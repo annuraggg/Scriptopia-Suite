@@ -112,7 +112,7 @@ const Problems = () => {
       </div>
 
       <div className="mt-5">
-        <Table>
+        <Table isStriped>
           <TableHeader>
             <TableColumn>Problem</TableColumn>
             <TableColumn>Difficulty</TableColumn>
