@@ -17,7 +17,7 @@ const Navbar = ({ exclude }: { exclude: string[] }) => {
     <div
       className={`
     ${exclude.includes(currentPath) ? "hidden" : ""}
-     px-10 w-full h-[8vh] flex items-center justify-between sticky top-0 z-50 backdrop-filter backdrop-blur-sm 
+     px-10 w-full h-[10vh] flex items-center justify-between sticky top-0 z-50 backdrop-filter backdrop-blur-lg 
     `}
     >
       <div className="flex items-center gap-5">

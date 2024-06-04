@@ -5,7 +5,7 @@ import Timer from "./Timer";
 
 const Home = () => {
   return (
-    <div className="flex gap-10">
+    <div className="flex gap-10 pb-10">
       <div className="w-[80%]">
         <Problems />
       </div>
