@@ -1,16 +1,15 @@
+@import url("./fonts.css");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+html {
+  height: 100%;
+}
 
 body {
   background: rgb(22, 22, 24);
-  background: linear-gradient(
-    322deg,
-    rgba(22, 22, 24, 1) 39%,
-    rgba(21, 21, 23, 1) 72%
-  );
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-attachment: fixed;
+
   color: #fff;
+  font-family: "geist";
 }

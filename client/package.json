@@ -12,6 +12,9 @@
   "dependencies": {
     "@clerk/clerk-react": "^5.2.2",
     "@clerk/themes": "^2.1.8",
+    "@nextui-org/react": "^2.4.1",
+    "echarts": "^5.5.0",
+    "framer-motion": "^11.2.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.23.1"
