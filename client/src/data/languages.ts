@@ -1,0 +1,27 @@
+const languages = [
+  "cpp",
+  "java",
+  "python",
+  "javascript",
+  "typescript",
+  "csharp",
+  "ruby",
+  "go",
+  "rust",
+  "kotlin",
+  "swift",
+  "php",
+  "scala",
+  "perl",
+  "r",
+  "bash",
+  "lua",
+  "sql",
+  "dart",
+  "haskell",
+  "groovy",
+  "objectivec",
+  "plaintext",
+];
+
+export default languages;

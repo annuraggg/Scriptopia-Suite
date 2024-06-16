@@ -1,4 +1,4 @@
-import { Home, Disc2, BookUser, BookCheck } from "lucide-react";
+import { Home, UsersRound, Code, User, Box } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const links: {
@@ -13,19 +13,24 @@ const links: {
     hash: "",
   },
   {
-    title: "Assessments Created",
-    icon: BookUser,
-    hash: "created",
+    title: "Problems",
+    icon: Code,
+    hash: "problems",
   },
   {
-    title: "Live Assessments Created",
-    icon: Disc2,
-    hash: "live",
+    title: "User Generated Problems",
+    icon: UsersRound,
+    hash: "user-generated",
   },
   {
-    title: "Assessments Taken",
-    icon: BookCheck,
-    hash: "taken",
+    title: "Conundrum Cubes",
+    icon: Box,
+    hash: "conumdrum-cubes",
+  },
+  {
+    title: "My Problems",
+    icon: User,
+    hash: "my-problems",
   },
   /*  {
     title: "Analytics",
@@ -41,7 +46,7 @@ const Sidebar = ({
   setActive: (number: number) => void;
 }) => {
   return (
-    <div className="hidden md:block w-[30%]">
+    <div className="hidden md:block w-[20%]">
       <div className="flex h-full max-h-screen flex-col gap-2">
         <div className="flex h-14 lg:h-[60px] items-center">
           <a className="flex gap-2 font-semibold">

@@ -5,10 +5,14 @@ import SignUp from "./pages/signUp/SignUp";
 import Home from "./pages/home/Home";
 import Navbar from "./components/Navbar";
 import AssessmentDashboard from "./pages/assessments/dashboard/Assessments";
+import Problems from "./pages/problems/dashboard/Problems";
+import Problem from "./pages/problems/problem/Problem";
+import NewProblem from "./pages/problems/new/NewProblem";
+import { Toaster } from "./components/ui/sonner";
 
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: "/dashboard",
     element: <Home />,
   },
   {
@@ -23,9 +27,25 @@ const router = createBrowserRouter([
     path: "/sign-up",
     element: <SignUp />,
   },
+
+  // Assessments
   {
-    path: "/assessments/dashboard",
+    path: "/assessments",
     element: <AssessmentDashboard />,
+  },
+
+  // Problems
+  {
+    path: "/problems",
+    element: <Problems />,
+  },
+  {
+    path: "/problems/new",
+    element: <NewProblem />,
+  },
+  {
+    path: "/problems/:id",
+    element: <Problem />,
   },
 ]);
 
@@ -34,6 +54,7 @@ const exclude = ["/sign-in", "/sign-up"];
 function App() {
   return (
     <div className="overflow-auto">
+      <Toaster />
       <Navbar exclude={exclude} />
       <div
         className={` 

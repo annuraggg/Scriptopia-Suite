@@ -86,18 +86,22 @@ const Problems = () => {
     },
   ];
 
+  const goToProblem = () => {
+    window.location.href = "/problems/1";
+  }
+
   return (
     <div>
-      <h2 className="text-xl text-gray-500 mb-5">Problems</h2>
+      <h6 className="text-md mt-2 text-gray-500 mb-5">Problems</h6>
       <div className="flex gap-5 line-clamp-1 flex-wrap h-5">
         {tags.map((tag) => (
-          <div className="hover:text-blue-500 duration-200 transition-colors cursor-pointer">
+          <div className="hover:text-blue-500 duration-200 transition-colors cursor-pointer text-sm">
             {tag}
           </div>
         ))}
       </div>
       <div className="mt-5 flex gap-5 w-[70%]">
-        <Input type="Search" label="Email" size="sm" />
+        <Input type="Search" label="Search Problems" size="sm" />
         <Select label="Difficulty" className="max-w-xs" size="sm">
           <SelectItem key="easy" value="easy">
             Easy
@@ -122,7 +126,7 @@ const Problems = () => {
           <TableBody>
             {problems.map((problem) => (
               <TableRow className="h-14">
-                <TableCell className="w-[550px]">
+                <TableCell className="w-[550px] hover:text-blue-500 cursor-pointer" onClick={goToProblem}>
                   <p className="truncate max-w-[500px]">{problem.name}</p>
                 </TableCell>
                 <TableCell
