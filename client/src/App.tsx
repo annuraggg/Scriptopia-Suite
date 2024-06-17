@@ -9,6 +9,7 @@ import Problems from "./pages/problems/dashboard/Problems";
 import Problem from "./pages/problems/problem/Problem";
 import NewProblem from "./pages/problems/new/NewProblem";
 import { Toaster } from "./components/ui/sonner";
+import New from "./pages/assessments/standard/new/New";
 
 const router = createBrowserRouter([
   {
@@ -32,6 +33,10 @@ const router = createBrowserRouter([
   {
     path: "/assessments",
     element: <AssessmentDashboard />,
+  },
+  {
+    path: "/assessments/standard/new",
+    element: <New />,
   },
 
   // Problems

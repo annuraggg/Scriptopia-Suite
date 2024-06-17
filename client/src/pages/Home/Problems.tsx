@@ -94,8 +94,8 @@ const Problems = () => {
     <div>
       <h6 className="text-md mt-2 text-gray-500 mb-5">Problems</h6>
       <div className="flex gap-5 line-clamp-1 flex-wrap h-5">
-        {tags.map((tag) => (
-          <div className="hover:text-blue-500 duration-200 transition-colors cursor-pointer text-sm">
+        {tags.map((tag, i) => (
+          <div className="hover:text-blue-500 duration-200 transition-colors cursor-pointer text-sm" key={i}>
             {tag}
           </div>
         ))}
@@ -116,7 +116,7 @@ const Problems = () => {
       </div>
 
       <div className="mt-5">
-        <Table isStriped>
+        <Table isStriped aria-label="Problems">
           <TableHeader>
             <TableColumn>Problem</TableColumn>
             <TableColumn>Difficulty</TableColumn>
@@ -125,7 +125,7 @@ const Problems = () => {
           </TableHeader>
           <TableBody>
             {problems.map((problem) => (
-              <TableRow className="h-14">
+              <TableRow className="h-14" key={problem.name}>
                 <TableCell className="w-[550px] hover:text-blue-500 cursor-pointer" onClick={goToProblem}>
                   <p className="truncate max-w-[500px]">{problem.name}</p>
                 </TableCell>

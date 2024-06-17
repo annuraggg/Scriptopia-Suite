@@ -8,7 +8,7 @@ const SignIn = () => {
         className="w-10 h-10 absolute top-10 left-10 cursor-pointer"
         onClick={() => window.location.assign("/")}
       />
-      <SignInBox />
+      <SignInBox forceRedirectUrl="/dashboard" />
     </div>
   );
 };

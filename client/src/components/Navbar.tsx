@@ -1,4 +1,7 @@
-import { UserButton } from "@clerk/clerk-react";
+import {
+  OrganizationSwitcher,
+  UserButton,
+} from "@clerk/clerk-react";
 import Logo from "../assets/logo1080_transparent_white_large.png";
 
 const Navbar = ({ exclude }: { exclude: string[] }) => {
@@ -40,7 +43,8 @@ const Navbar = ({ exclude }: { exclude: string[] }) => {
           </a>
         ))}
       </div>
-      <div className="">
+      <div className="flex items-center gap-2">
+        <OrganizationSwitcher />
         <UserButton />
       </div>
     </div>

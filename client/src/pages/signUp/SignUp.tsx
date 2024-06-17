@@ -1,4 +1,3 @@
-import React from "react";
 import { SignUp as SignUpBox } from "@clerk/clerk-react";
 
 const SignUp = () => {
@@ -9,7 +8,7 @@ const SignUp = () => {
         className="w-10 h-10 absolute top-10 left-10 cursor-pointer"
         onClick={() => window.location.assign("/")}
       />
-      <SignUpBox />
+      <SignUpBox forceRedirectUrl="/dashboard" />
     </div>
   );
 };

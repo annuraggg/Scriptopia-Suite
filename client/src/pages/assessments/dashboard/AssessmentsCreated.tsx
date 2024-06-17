@@ -8,8 +8,11 @@ import {
 } from "@nextui-org/react";
 import { Eye, Link, Pencil, Trash2 } from "lucide-react";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const AssessmentsCreated = () => {
+  const navigate = useNavigate();
+
   const assessments = [
     {
       name: "Assessment 1",
@@ -50,7 +53,7 @@ const AssessmentsCreated = () => {
         <Input placeholder="Search Assessments" />
       </div>
       <div>
-        <Button className="mt-5" variant="flat">
+        <Button className="mt-5" variant="flat" onClick={() => navigate("/assessments/standard/new")}>
          + Create Assessment
         </Button>
       </div>
