@@ -9,65 +9,31 @@ import { useState } from "react";
 import { ChevronDownIcon, ChevronUpIcon, TrashIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const questions = [
-  {
-    id: 1,
-    name: "Two Sum",
-    author: "@kylelobo",
-    description:
-      "Given an array of integers, return indices of the two numbers such that they add up to a specific target. Given an array of integers, return indices of the two numbers such that they add up to a specific target.",
-    tags: ["Array", "Dynamic Programming", "Binary Search", "Hash Table"],
-  },
-  {
-    id: 2,
-    name: "Longest Common Prefix",
-    author: "@kylelobo",
-    description:
-      "Write a function to find the longest common prefix string amongst an array of strings.",
-    tags: ["String", "Dynamic Programming", "Hash Table"],
-  },
-  {
-    id: 3,
-    name: "Longest Increasing Subsequence",
-    author: "@kylelobo",
-    description:
-      "Given an unsorted array of integers, find the length of the longest increasing subsequence.",
-    tags: ["Array", "Dynamic Programming", "Hash Table"],
-  },
-  {
-    id: 4,
-    name: "Longest Substring Without Repeating Characters",
-    author: "@kylelobo",
-    description:
-      "Given a string, find the length of the longest substring without repeating characters.",
-    tags: ["String", "Dynamic Programming", "Hash Table"],
-  },
-  {
-    id: 5,
-    name: "Valid Sudoku",
-    author: "@kylelobo",
-    description:
-      "Determine if a 9x9 Sudoku board is valid. Only the filled cells need to be validated according to the following rules: Each row must contain the digits 1-9 without repetition. Each column must contain the digits 1-9 without repetition. Each of the nine 3x3 sub-boxes of the grid must contain the digits 1-9 without repetition.",
-    tags: ["Array", "Dynamic Programming", "Hash Table"],
-  },
-  {
-    id: 6,
-    name: "Valid Parentheses",
-    author: "@kylelobo",
-    description:
-      "Given a string containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid.",
-    tags: ["String", "Dynamic Programming", "Hash Table"],
-  },
-];
+interface Question {
+  id: number;
+  name: string;
+  author: string;
+  description: string;
+  tags: string[];
+}
 
-const Questions = () => {
+const Questions = ({
+  availableQuestions,
+  setAvailableQuestions,
+  selectedQuestions,
+  setSelectedQuestions,
+}: {
+  availableQuestions: Question[];
+  setAvailableQuestions: (
+    questions: Question[] | ((prev: Question[]) => Question[])
+  ) => void;
+  selectedQuestions: Question[];
+  setSelectedQuestions: (
+    questions: Question[] | ((prev: Question[]) => Question[])
+  ) => void;
+
+}) => {
   const [sheetOpen, setSheetOpen] = useState(false);
-
-  const [availableQuestions, setAvailableQuestions] =
-    useState<typeof questions>(questions);
-  const [selectedQuestions, setSelectedQuestions] = useState<typeof questions>(
-    []
-  );
 
   const moveQuestion = (index: number, direction: "up" | "down") => {
     const newQuestions = [...selectedQuestions];
@@ -149,7 +115,6 @@ const Questions = () => {
                           setAvailableQuestions((prev) =>
                             prev.concat(question)
                           );
-                          setSheetOpen(false);
                         }}
                       >
                         <TrashIcon />

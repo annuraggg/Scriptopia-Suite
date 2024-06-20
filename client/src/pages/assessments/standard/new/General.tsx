@@ -1,5 +1,4 @@
 import {
-  Checkbox,
   Input,
   RangeCalendar,
   Textarea,
@@ -20,12 +19,6 @@ const General = ({
   setTimeLimit,
   passingPercentage,
   setPassingPercentage,
-  allowAutocomplete,
-  setAllowAutocomplete,
-  allowRunCode,
-  setAllowRunCode,
-  allowSyntaxHighlighting,
-  setAllowSyntaxHighlighting,
   testOpenRange,
   setTestOpenRange,
   startTime,
@@ -41,12 +34,6 @@ const General = ({
   setTimeLimit: (timeLimit: number) => void;
   passingPercentage: number;
   setPassingPercentage: (passingPercentage: number) => void;
-  allowAutocomplete: boolean;
-  setAllowAutocomplete: (allowAutocomplete: boolean) => void;
-  allowRunCode: boolean;
-  setAllowRunCode: (allowRunCode: boolean) => void;
-  allowSyntaxHighlighting: boolean;
-  setAllowSyntaxHighlighting: (allowSyntaxHighlighting: boolean) => void;
   testOpenRange: RangeValue<DateValue>;
   setTestOpenRange: (testOpenRange: RangeValue<DateValue>) => void;
   startTime: TimeInputValue;
@@ -60,7 +47,7 @@ const General = ({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="w-full flex flex-col justify-center h-full"
+        className="w-full flex flex-col justify-start h-full"
       >
         <Input
           label="Assessment Name"
@@ -95,33 +82,6 @@ const General = ({
             value={passingPercentage.toString()}
             onChange={(e) => setPassingPercentage(Number(e.target.value))}
           />
-        </div>
-
-        <div className="flex gap-10 mt-10">
-          <Checkbox
-            size="sm"
-            color="success"
-            checked={allowAutocomplete}
-            onChange={(e) => setAllowAutocomplete(e.target.checked)}
-          >
-            Allow Autocomplete
-          </Checkbox>
-          <Checkbox
-            size="sm"
-            color="success"
-            checked={allowRunCode}
-            onChange={(e) => setAllowRunCode(e.target.checked)}
-          >
-            Allow to Run Code
-          </Checkbox>
-          <Checkbox
-            size="sm"
-            color="success"
-            checked={allowSyntaxHighlighting}
-            onChange={(e) => setAllowSyntaxHighlighting(e.target.checked)}
-          >
-            Allow Syntax Highlighting
-          </Checkbox>
         </div>
       </motion.div>
       <motion.div

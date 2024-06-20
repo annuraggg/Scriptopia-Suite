@@ -1,11 +1,45 @@
 import { Input, Select, SelectItem } from "@nextui-org/react";
-import { useState } from "react";
+import { motion } from "framer-motion";
 
-const Grading = () => {
-  const [gradingMetric, setGradingMetric] = useState("");
+interface Question {
+  id: number;
+  name: string;
+  author: string;
+  description: string;
+  tags: string[];
+}
 
+interface TestCaseGrading {
+  easy: number;
+  medium: number;
+  hard: number;
+}
+
+const Grading = ({
+  gradingMetric,
+  setGradingMetric,
+  selectedQuestions,
+  testCaseGrading,
+  setTestCaseGrading,
+  questionsGrading,
+  setQuestionsGrading,
+}: {
+  gradingMetric: string;
+  setGradingMetric: (gradingMetric: string) => void;
+  selectedQuestions: Question[];
+  testCaseGrading: TestCaseGrading;
+  setTestCaseGrading: (testCaseGrading: TestCaseGrading) => void;
+  questionsGrading: number[];
+  setQuestionsGrading: (
+    questionsGrading: number[] | ((prev: number[]) => number[])
+  ) => void;
+}) => {
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <h4>Grading Metrics</h4>
       <Select
         label="Grading Metric"
@@ -37,6 +71,13 @@ const Grading = () => {
               endContent={<div>pts.</div>}
               labelPlacement="outside"
               placeholder="score"
+              value={testCaseGrading?.easy?.toString()}
+              onChange={(e) =>
+                setTestCaseGrading({
+                  ...testCaseGrading,
+                  easy: parseInt(e?.target?.value),
+                })
+              }
             />
             <Input
               type="number"
@@ -45,6 +86,13 @@ const Grading = () => {
               endContent={<div>pts.</div>}
               labelPlacement="outside"
               placeholder="score"
+              value={testCaseGrading?.medium?.toString()}
+              onChange={(e) =>
+                setTestCaseGrading({
+                  ...testCaseGrading,
+                  medium: parseInt(e.target.value),
+                })
+              }
             />
             <Input
               type="number"
@@ -53,19 +101,50 @@ const Grading = () => {
               endContent={<div>pts.</div>}
               labelPlacement="outside"
               placeholder="score"
+              value={testCaseGrading?.hard?.toString()}
+              onChange={(e) =>
+                setTestCaseGrading({
+                  ...testCaseGrading,
+                  hard: parseInt(e.target.value),
+                })
+              }
             />
           </div>
         )}
 
         {gradingMetric === "questions" && (
           <div>
-            <p className="text-sm text-gray-400 mb-16">
+            <p className="text-sm text-gray-400 mb-5">
               Evaluate Candidates based on the number of questions they answer.
             </p>
+            <div className="flex gap-5 flex-wrap items-center">
+              {selectedQuestions.map((question) => (
+                <div key={question.id} className="w-[200px]">
+                  <p className="text-sm text-gray-400 line-clamp-1">
+                    {question.name}
+                  </p>
+                  <Input
+                    type="number"
+                    label="Score"
+                    className="w-[200px] mb-10 pt-2"
+                    endContent={<div>pts.</div>}
+                    labelPlacement="outside"
+                    placeholder="score"
+                    value={questionsGrading[question.id]?.toString()}
+                    onChange={(e) =>
+                      setQuestionsGrading((prev) => ({
+                        ...prev,
+                        [question.id]: parseInt(e.target.value),
+                      }))
+                    }
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
