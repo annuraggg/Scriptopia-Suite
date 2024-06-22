@@ -1,5 +1,4 @@
 import { Card, CardBody, CardHeader, Input } from "@nextui-org/react";
-import React from "react";
 
 const AssessmentsTaken = () => {
   const assessments = [
