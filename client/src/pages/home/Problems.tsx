@@ -113,9 +113,9 @@ const Problems = () => {
                 </TableCell>
                 <TableCell
                   className={`
-                    ${problem.difficulty === "easy" && "text-green-400"}
-                    ${problem.difficulty === "medium" && "text-yellow-400"}
-                    ${problem.difficulty === "hard" && "text-red-400"}  
+                    ${problem.difficulty.toLowerCase() === "easy" && "text-green-400"}
+                    ${problem.difficulty.toLowerCase() === "medium" && "text-yellow-400"}
+                    ${problem.difficulty.toLowerCase() === "hard" && "text-red-400"}  
                     `}
                 >
                   {problem.difficulty.slice(0, 1).toUpperCase() +
