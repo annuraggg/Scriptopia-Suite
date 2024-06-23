@@ -7,7 +7,20 @@ import {
   TableRow,
   TableCell,
 } from "@nextui-org/react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+
+interface Problem {
+  id: string;
+  name: string;
+  difficulty: "easy" | "medium" | "hard";
+  tags: string[];
+  status: "Solved" | "Not Solved";
+}
+
 const Problems = () => {
+  const navigate = useNavigate();
   const tags = [
     "Array",
     "Hash Maps",
@@ -41,61 +54,27 @@ const Problems = () => {
     "Stacks",
   ];
 
-  const problems = [
-    {
-      name: "Two Sum",
-      difficulty: "easy",
-      tags: ["Array", "Hash Maps"],
-      status: "Solved",
-    },
-    {
-      name: "Add Two Numbers",
-      difficulty: "medium",
-      tags: ["Linked Lists"],
-      status: "Solved",
-    },
-    {
-      name: "Valid Parentheses",
-      difficulty: "easy",
-      tags: ["Stacks"],
-      status: "Solved",
-    },
-    {
-      name: "Longest Substring Without Repeating CharactersLongest Substring Without Repeating CharactersLongest Substring Without Repeating CharactersLongest Substring Without Repeating Characters",
-      difficulty: "medium",
-      tags: [
-        "Strings",
-        "Two Pointers",
-        "Two Pointers",
-        "Two Pointers",
-        "Two Pointers",
-      ],
-      status: "Solved",
-    },
-    {
-      name: "Container With Most Water",
-      difficulty: "medium",
-      tags: ["Two Pointers"],
-      status: "Solved",
-    },
-    {
-      name: "Longest Valid Parentheses",
-      difficulty: "hard",
-      tags: ["Stacks"],
-      status: "Solved",
-    },
-  ];
+  const { error, data, isLoading } = useQuery({
+    queryKey: ["dashboard-get-problems"],
+    queryFn: async () => (await axios.get("http://localhost:3000/home")).data,
+  });
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
 
   const goToProblem = () => {
-    window.location.href = "/problems/1";
-  }
+    navigate("/problems/1");
+  };
 
   return (
     <div>
       <h6 className="text-md mt-2 text-gray-500 mb-5">Problems</h6>
       <div className="flex gap-5 line-clamp-1 flex-wrap h-5">
         {tags.map((tag, i) => (
-          <div className="hover:text-blue-500 duration-200 transition-colors cursor-pointer text-sm" key={i}>
+          <div
+            className="hover:text-blue-500 duration-200 transition-colors cursor-pointer text-sm"
+            key={i}
+          >
             {tag}
           </div>
         ))}
@@ -124,9 +103,12 @@ const Problems = () => {
             <TableColumn>Status</TableColumn>
           </TableHeader>
           <TableBody>
-            {problems.map((problem) => (
+            {data?.data?.problems?.map((problem: Problem) => (
               <TableRow className="h-14" key={problem.name}>
-                <TableCell className="w-[550px] hover:text-blue-500 cursor-pointer" onClick={goToProblem}>
+                <TableCell
+                  className="w-[550px] hover:text-blue-500 cursor-pointer"
+                  onClick={goToProblem}
+                >
                   <p className="truncate max-w-[500px]">{problem.name}</p>
                 </TableCell>
                 <TableCell
