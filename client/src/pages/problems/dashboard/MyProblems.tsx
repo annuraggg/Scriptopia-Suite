@@ -12,56 +12,23 @@ import {
 } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
 
-const problems = [
-  {
-    name: "Two Sum",
-    difficulty: "easy",
-    tags: ["Array", "Hash Maps"],
-    status: "Solved",
-  },
-  {
-    name: "Add Two Numbers",
-    difficulty: "medium",
-    tags: ["Linked Lists"],
-    status: "Solved",
-  },
-  {
-    name: "Valid Parentheses",
-    difficulty: "easy",
-    tags: ["Stacks"],
-    status: "Solved",
-  },
-  {
-    name: "Longest Substring Without Repeating CharactersLongest Substring Without Repeating CharactersLongest Substring Without Repeating CharactersLongest Substring Without Repeating Characters",
-    difficulty: "medium",
-    tags: [
-      "Strings",
-      "Two Pointers",
-      "Two Pointers",
-      "Two Pointers",
-      "Two Pointers",
-    ],
-    status: "Solved",
-  },
-  {
-    name: "Container With Most Water",
-    difficulty: "medium",
-    tags: ["Two Pointers"],
-    status: "Solved",
-  },
-  {
-    name: "Longest Valid Parentheses",
-    difficulty: "hard",
-    tags: ["Stacks"],
-    status: "Solved",
-  },
-];
+  
+interface MyProblem {
+  title: string;
+  difficulty: string;
+  tags: string[];
+  status: string;
+}
+
+interface MyProblemsListProps {
+  myproblems: MyProblem[];
+}
 
 const openProblem = () => {
   console.log("Opening problem: ");
 };
 
-const MyProblems = () => {
+const MyProblems = ({myproblems} : MyProblemsListProps) => {
   const navigate = useNavigate();
 
   return (
@@ -94,10 +61,10 @@ const MyProblems = () => {
           <TableColumn>Actions</TableColumn>
         </TableHeader>
         <TableBody>
-          {problems.map((problem) => (
+          {myproblems.map((problem) => (
             <TableRow className="h-14">
               <TableCell className="w-[550px]  cursor-pointer hover:text-blue-500" onClick={() => openProblem()}>
-                <p className="truncate max-w-[500px]">{problem.name}</p>
+                <p className="truncate max-w-[500px]">{problem.title}</p>
               </TableCell>
               <TableCell
                 className={`
