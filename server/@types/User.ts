@@ -1,0 +1,69 @@
+import mongoose, { Document } from "mongoose";
+
+interface IProblemReference {
+  problemId: mongoose.Types.ObjectId;
+  solvedAt: Date;
+}
+
+interface IPortfolioEducation {
+  institution: string;
+  degree: string;
+  fieldOfStudy: string;
+  startYear: number;
+  endYear: number;
+  grade: string;
+}
+
+interface IPortfolioExperience {
+  title: string;
+  type:
+    | "full-time"
+    | "part-time"
+    | "internship"
+    | "freelance"
+    | "self-employed"
+    | "trainee";
+  company: string;
+  location: string;
+  locationType: "remote" | "onsite" | "hybrid";
+  startYear: number;
+  endYear: number;
+  description: string;
+}
+
+interface IPortfolioProject {
+  title: string;
+  description: string;
+  startYear: number;
+  endYear: number;
+  link: string;
+}
+
+interface IPortfolioCertification {
+  title: string;
+  organization: string;
+  issueDate: Date;
+  expirationDate: Date;
+  credentialId: string;
+  credentialUrl: string;
+}
+
+interface IPortfolio {
+  education: IPortfolioEducation[];
+  experience: IPortfolioExperience[];
+  projects: IPortfolioProject[];
+  certifications: IPortfolioCertification[];
+  skills: string[];
+}
+
+interface IUser extends Document {
+  clerkId: string;
+  solvedProblems: IProblemReference[];
+  streak: string[];
+  achievements: mongoose.Types.ObjectId[];
+  resume: string[];
+  portfolio: IPortfolio;
+}
+
+export default IUser;
+export { IProblemReference, IPortfolioEducation, IPortfolioExperience, IPortfolioProject, IPortfolioCertification };

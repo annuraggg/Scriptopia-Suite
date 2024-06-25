@@ -1,3 +1,4 @@
+import IProblem from "@/@types/Problem";
 import { Input, Select, SelectItem } from "@nextui-org/react";
 import {
   Table,
@@ -8,69 +9,23 @@ import {
   TableCell,
 } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { useQuery } from "@tanstack/react-query";
 
-interface Problem {
-  id: string;
-  name: string;
-  difficulty: "easy" | "medium" | "hard";
+const Problems = ({
+  problems,
+  tags,
+  solvedProblems,
+}: {
+  problems: IProblem[];
   tags: string[];
-  status: "Solved" | "Not Solved";
-}
-
-const Problems = () => {
+  solvedProblems: string[];
+}) => {
   const navigate = useNavigate();
-  const tags = [
-    "Array",
-    "Hash Maps",
-    "Strings",
-    "Two Pointers",
-    "Linked Lists",
-    "Stacks",
-    "Array",
-    "Hash Maps",
-    "Strings",
-    "Two Pointers",
-    "Linked Lists",
-    "Stacks",
-    "Array",
-    "Hash Maps",
-    "Strings",
-    "Two Pointers",
-    "Linked Lists",
-    "Stacks",
-    "Array",
-    "Hash Maps",
-    "Strings",
-    "Two Pointers",
-    "Linked Lists",
-    "Stacks",
-    "Array",
-    "Hash Maps",
-    "Strings",
-    "Two Pointers",
-    "Linked Lists",
-    "Stacks",
-  ];
-
-  const { error, data, isLoading } = useQuery({
-    queryKey: ["dashboard-get-problems"],
-    queryFn: async () => (await axios.get("http://localhost:3000/home")).data,
-  });
-
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-
-  const goToProblem = () => {
-    navigate("/problems/1");
-  };
 
   return (
     <div>
       <h6 className="text-md mt-2 text-gray-500 mb-5">Problems</h6>
       <div className="flex gap-5 line-clamp-1 flex-wrap h-5">
-        {tags.map((tag, i) => (
+        {tags?.map((tag, i) => (
           <div
             className="hover:text-blue-500 duration-200 transition-colors cursor-pointer text-sm"
             key={i}
@@ -103,19 +58,28 @@ const Problems = () => {
             <TableColumn>Status</TableColumn>
           </TableHeader>
           <TableBody>
-            {data?.data?.problems?.map((problem: Problem) => (
-              <TableRow className="h-14" key={problem.name}>
+            {problems?.map((problem: IProblem) => (
+              <TableRow className="h-14" key={problem.title}>
                 <TableCell
                   className="w-[550px] hover:text-blue-500 cursor-pointer"
-                  onClick={goToProblem}
+                  onClick={() => navigate(`/problem/${problem._id}`)}
                 >
-                  <p className="truncate max-w-[500px]">{problem.name}</p>
+                  <p className="truncate max-w-[500px]">{problem.title}</p>
                 </TableCell>
                 <TableCell
                   className={`
-                    ${problem.difficulty.toLowerCase() === "easy" && "text-green-400"}
-                    ${problem.difficulty.toLowerCase() === "medium" && "text-yellow-400"}
-                    ${problem.difficulty.toLowerCase() === "hard" && "text-red-400"}  
+                    ${
+                      problem.difficulty.toLowerCase() === "easy" &&
+                      "text-green-400"
+                    }
+                    ${
+                      problem.difficulty.toLowerCase() === "medium" &&
+                      "text-yellow-400"
+                    }
+                    ${
+                      problem.difficulty.toLowerCase() === "hard" &&
+                      "text-red-400"
+                    }  
                     `}
                 >
                   {problem.difficulty.slice(0, 1).toUpperCase() +
@@ -126,7 +90,13 @@ const Problems = () => {
                     {problem.tags.join(", ")}
                   </p>
                 </TableCell>
-                <TableCell>{problem.status}</TableCell>
+                <TableCell>
+                  {solvedProblems?.find(
+                    (solvedProblem) => solvedProblem === problem._id
+                  )
+                    ? "Solved"
+                    : "Not Solved"}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

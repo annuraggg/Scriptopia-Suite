@@ -9,9 +9,11 @@ import "./db";
 import authMiddleware from "../middlewares/authMiddleware";
 
 import homeRoute from "../routes/homeRoute";
+import { clerkMiddleware } from "@hono/clerk-auth";
 
 const app = new Hono();
 
+app.use(clerkMiddleware())
 app.use(prettyJSON());
 app.use(cors());
 app.use(authMiddleware);
