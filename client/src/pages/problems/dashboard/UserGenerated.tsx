@@ -48,7 +48,7 @@ const UserGenerated = ({userproblems} : UserProblemsListProps) => {
         </TableHeader>
         <TableBody>
           {userproblems.map((problem) => (
-            <TableRow className="h-14">
+            <TableRow className="h-14" key={problem.title}>
               <TableCell className="w-[550px]">
                 <p className="truncate max-w-[500px] cursor-pointer hover:text-blue-500">{problem.title}</p>
               </TableCell>

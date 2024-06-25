@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import axios from "axios";
 import Sidebar from "./Sidebar";
 import ProblemsList from "./ProblemsList";
@@ -12,12 +12,24 @@ import Loader from "@/components/Loader";
 import ErrorPage from "@/components/ErrorPage";
 
 const Problems = () => {
-
   const [active, setActive] = useState(0);
 
-  const { error, data, isLoading } = useQuery({
-    queryKey: ["problems-section-get-problems"],
-    queryFn: async () => (await axios.get("/problems/all/1")).data,
+  const data = useQueries({
+    queries: [
+      {
+        queryKey: ["problems-section-get-problems"],
+        queryFn: async () => (await axios.get("/problems/all/1")).data,
+      },
+      {
+        queryKey: ["problems-section-get-user-problems"],
+        queryFn: async () =>
+          (await axios.get("/problems/user-generated/1")).data,
+      },
+      {
+        queryKey: ["problems-section-get-my-problems"],
+        queryFn: async () => (await axios.get("/problems/my-problems/1")).data,
+      },
+    ],
   });
 
   useEffect(() => {
@@ -40,8 +52,8 @@ const Problems = () => {
     }
   }, []);
 
-  if (isLoading) return <Loader />;
-  if (error) return <ErrorPage />;
+  if (data[0].isLoading || data[1].isLoading || data[2].isLoading) return <Loader />;
+  if (data[0].error || data[1].error || data[2].error) return <ErrorPage />;
 
   return (
     <motion.div
@@ -53,10 +65,10 @@ const Problems = () => {
       <div className="h-full flex gap-5">
         <Sidebar active={active} setActive={setActive} />
         {active === 0 && <Dashboard />}
-        {active === 1 && <ProblemsList problems={data?.data || []} />}
-        {active === 2 && <UserGenerated  userproblems={data?.data || []}/>}
+        {active === 1 && <ProblemsList problems={data[0]?.data.data || []} />}
+        {active === 2 && <UserGenerated userproblems={data[1]?.data.data || []} />}
         {active === 3 && <ConundrumCubes />}
-        {active === 4 && <MyProblems  myproblems={data?.data || []}/>}
+        {active === 4 && <MyProblems myproblems={data[2]?.data.data || []} />}
       </div>
     </motion.div>
   );

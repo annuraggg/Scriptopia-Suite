@@ -23,7 +23,7 @@ const functionArgSchema = new mongoose.Schema({
 const ProblemSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: Object, required: true },
-  author: { type: mongoose.Types.ObjectId, ref: "User" },
+  author: { type: String, ref: "User" },
   difficulty: {
     type: String,
     enum: ["easy", "medium", "hard"],

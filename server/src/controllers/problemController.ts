@@ -15,6 +15,7 @@ const getProblems = async (c: Context) => {
 
     return sendSuccess(c, 200, "Success", problems);
   } catch (error) {
+    console.log(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };
@@ -32,6 +33,7 @@ const getUserGeneratedProblems = async (c: Context) => {
 
     return sendSuccess(c, 200, "Success", problems);
   } catch (error) {
+    console.log(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };
@@ -52,6 +54,7 @@ const getMyProblems = async (c: Context) => {
 
     return sendSuccess(c, 200, "Success", problems);
   } catch (error) {
+    console.log(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };
@@ -66,6 +69,7 @@ const getProblem = async (c: Context) => {
     }
     return sendSuccess(c, 200, "Success", problem);
   } catch (error) {
+    console.log(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };

@@ -62,7 +62,7 @@ const MyProblems = ({myproblems} : MyProblemsListProps) => {
         </TableHeader>
         <TableBody>
           {myproblems.map((problem) => (
-            <TableRow className="h-14">
+            <TableRow className="h-14" key={problem.title}>
               <TableCell className="w-[550px]  cursor-pointer hover:text-blue-500" onClick={() => openProblem()}>
                 <p className="truncate max-w-[500px]">{problem.title}</p>
               </TableCell>
