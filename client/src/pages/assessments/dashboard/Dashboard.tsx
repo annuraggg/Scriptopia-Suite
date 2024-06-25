@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Card, CardBody, CardHeader } from "@nextui-org/react";
 import { UsersRound, BookUser, Disc2, BookCheck } from "lucide-react";
 
@@ -84,7 +85,13 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="w-full p-10 h-[90vh]">
+    <motion.div
+      initial={{ y: 50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="w-full p-10 h-[90vh]"
+    >
+    <div className="w-full h-[90vh]">
       <div className="flex justify-between w-full flex-wrap">
         {cards.map((card, index) => (
           <Card key={index} className="h-32 w-56">
@@ -143,6 +150,7 @@ const Dashboard = () => {
         </Card>
       </div>
     </div>
+   </motion.div>
   );
 };
 

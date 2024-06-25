@@ -9,9 +9,17 @@ import Loader from "@/components/Loader";
 import ErrorPage from "@/components/ErrorPage";
 
 const Home = () => {
+
+  const Data = {
+    data: {
+      problemsCount: { easy: 10, medium: 5, hard: 2 },
+    },
+  };
+
   const { error, data, isLoading } = useQuery({
     queryKey: ["dashboard-get-problems"],
     queryFn: async () => (await axios.get("/home")).data,
+    initialData: Data,
   });
 
   if (isLoading) return <Loader />;
@@ -39,7 +47,11 @@ const Home = () => {
         transition={{ duration: 0.5 }}
         className="flex gap-5 flex-col w-[20%]"
       >
+        {data?.data?.streak ? (
         <StreakCalender dates={data?.data?.streak} />
+        ) : (
+            <p>No Streaks Yet</p>
+        )}
         <Timer />
         <ProblemsChart easy={data?.data?.problemsCount.easy} medium={data?.data?.problemsCount.medium} hard={data?.data?.problemsCount.hard} />
       </motion.div>

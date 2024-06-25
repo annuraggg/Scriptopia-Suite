@@ -2,7 +2,7 @@ import { Calendar, DateValue } from "@nextui-org/react";
 import { today, getLocalTimeZone, isWeekend } from "@internationalized/date";
 import { useLocale } from "@react-aria/i18n";
 
-const StreakCalender = ({ dates }: { dates: string[] }) => {
+const StreakCalender = ({ dates = []}: { dates: string[] }) => {
   // ! FIX THIS CALENDER TO CUT ALL THE DATES WHICH ARE NOT IN DATES PROP
   const now = today(getLocalTimeZone());
   const dateArray = dates.map((date) => new Date(date));
