@@ -3,7 +3,7 @@ import { serve } from "@hono/node-server";
 import app from "./config/init";
 import logger from "./utils/logger";
 
-const port = 3000;
+const port = parseInt(process.env.PORT!) || 3000;
 
 app.get("/health", (c) => {
   return c.json({ status: "ok", version: "1.0.0" });

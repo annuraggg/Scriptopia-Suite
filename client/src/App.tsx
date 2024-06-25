@@ -61,10 +61,11 @@ const router = createBrowserRouter([
 const exclude = ["/sign-in", "/sign-up"];
 
 function App() {
+  axios.defaults.baseURL = import.meta.env.VITE_API_URL as string;
+  console.log(import.meta.env.VITE_API_URL);
   const [loading, setLoading] = useState(true);
 
   const { getToken } = useAuth();
-  axios.defaults.baseURL = import.meta.env.VITE_API_URL as string;
   getToken().then((token) => {
     axios.defaults.headers.common["Authorization"] = token;
     setLoading(false);
