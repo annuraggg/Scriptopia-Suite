@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import ProblemsList from "./ProblemsList";
@@ -19,6 +20,12 @@ const Problems = () => {
     }, []);
 
   return (
+    <motion.div
+      initial={{ y: 50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className=""
+    >
     <div className="h-full flex gap-5">
         <Sidebar active={active} setActive={setActive} />
         {active === 0 && <Dashboard />}
@@ -27,6 +34,7 @@ const Problems = () => {
         {active === 3 && <ConundrumCubes />}
         {active === 4 && <MyProblems />}
     </div>
+    </motion.div>
   );
 };
 
