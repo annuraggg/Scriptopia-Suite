@@ -108,6 +108,10 @@ html {
   font-family: "geist";
 }
 
+.loader {
+  background: rgb(22, 22, 24);
+}
+
 .ce-toolbar__plus,
 .ce-toolbar__settings-btn {
   color: white;

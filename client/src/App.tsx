@@ -10,6 +10,10 @@ import Problem from "./pages/problems/problem/Problem";
 import NewProblem from "./pages/problems/new/NewProblem";
 import { Toaster } from "./components/ui/sonner";
 import New from "./pages/assessments/standard/new/New";
+import { useAuth } from "@clerk/clerk-react";
+import axios from "axios";
+import { useState } from "react";
+import Loader from "./components/Loader";
 
 const router = createBrowserRouter([
   {
@@ -57,6 +61,19 @@ const router = createBrowserRouter([
 const exclude = ["/sign-in", "/sign-up"];
 
 function App() {
+  const [loading, setLoading] = useState(true);
+
+  const { getToken } = useAuth();
+  axios.defaults.baseURL = import.meta.env.VITE_API_URL as string;
+  getToken().then((token) => {
+    axios.defaults.headers.common["Authorization"] = token;
+    setLoading(false);
+  });
+
+  if (loading) {
+    return <Loader />;
+  }
+
   return (
     <div className="overflow-auto">
       <Toaster />
