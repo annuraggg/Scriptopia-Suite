@@ -58,8 +58,6 @@ const router = createBrowserRouter([
   },
 ]);
 
-// TEST COMMIT
-
 const exclude = ["/sign-in", "/sign-up"];
 
 function App() {
