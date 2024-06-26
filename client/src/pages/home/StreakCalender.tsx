@@ -1,33 +1,26 @@
 import { Calendar, DateValue } from "@nextui-org/react";
-import { today, getLocalTimeZone, isWeekend } from "@internationalized/date";
+import { today, getLocalTimeZone } from "@internationalized/date";
 import { useLocale } from "@react-aria/i18n";
 
-const StreakCalender = ({ dates = []}: { dates: string[] }) => {
-  // ! FIX THIS CALENDER TO CUT ALL THE DATES WHICH ARE NOT IN DATES PROP
+const StreakCalendar = ({ dates = [] }: { dates: string[] }) => {
   const now = today(getLocalTimeZone());
-  const dateArray = dates.map((date) => new Date(date));
-
-  console.log(dateArray);
-
-  const disabledRanges = [
-    [now, now.add({ days: 5 })],
-  ];
+  const dateSet = new Set(dates.map((date) => new Date(date).toISOString().split('T')[0])); // Create a set of date strings
 
   const { locale } = useLocale();
 
-  const isDateUnavailable = (date: DateValue) =>
-    disabledRanges.some(
-      (interval) =>
-        date.compare(interval[0]) >= 0 && date.compare(interval[1]) <= 0
-    );
+  const isDateUnavailable = (date: DateValue) => {
+    // Check if the date is not in the dateSet
+    return !dateSet.has(date.toDate(getLocalTimeZone()).toISOString().split('T')[0]);
+  };
 
   return (
     <Calendar
-      aria-label="Date (Unavailable)"
+      aria-label="Streak Calendar"
       isDateUnavailable={isDateUnavailable}
       isReadOnly
+      className="hidden md:block"
     />
   );
 };
 
-export default StreakCalender;
+export default StreakCalendar;

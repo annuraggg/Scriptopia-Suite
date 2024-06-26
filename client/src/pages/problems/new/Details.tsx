@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Input, Select, SelectItem, Switch } from "@nextui-org/react";
 import { useEffect } from "react";
 import TagsInput from "react-tagsinput";
@@ -59,6 +60,12 @@ const Details = ({
   }, []);
 
   return (
+    <motion.div
+    initial={{ y: 50, opacity: 0 }}
+    animate={{ y: 0, opacity: 1 }}
+    transition={{ duration: 0.5 }}
+    className=""
+  >
     <div className="px-5 py-2 text-xs overflow-y-auto h-full">
       <div className="flex gap-5">
         <Input
@@ -100,6 +107,7 @@ const Details = ({
         <div id="editor" className="bg-card w-full"></div>
       </div>
     </div>
+    </motion.div>
   );
 };
 

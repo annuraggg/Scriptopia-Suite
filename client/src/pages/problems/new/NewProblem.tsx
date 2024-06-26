@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import { Button, Card, CardBody, CardHeader } from "@nextui-org/react";
@@ -111,6 +112,12 @@ const NewProblem = () => {
   };
 
   return (
+    <motion.div
+    initial={{ x: -50, opacity: 0 }}
+    animate={{ x: 0, opacity: 1 }}
+    transition={{ duration: 0.5 }}
+    className=""
+  >
     <div className="h-full w-full flex flex-col">
       <h5>Create a Problem</h5>
       <div className="flex gap-5 mt-5 h-full">
@@ -195,6 +202,7 @@ const NewProblem = () => {
         </Card>
       </div>
     </div>
+    </motion.div>
   );
 };
 

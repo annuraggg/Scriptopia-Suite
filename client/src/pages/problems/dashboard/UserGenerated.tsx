@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   Table,
   TableHeader,
@@ -23,6 +24,12 @@ interface UserProblemsListProps {
 const UserGenerated = ({userproblems} : UserProblemsListProps) => {
 
   return (
+    <motion.div
+      initial={{ y: 50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className=""
+    >
     <div>
       <h2>User Generated Problems</h2>
       <div className="mt-5 mb-5 flex gap-5 w-[70%]">
@@ -73,6 +80,7 @@ const UserGenerated = ({userproblems} : UserProblemsListProps) => {
         </TableBody>
       </Table>
     </div>
+    </motion.div>
   );
 };
 

@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import FnArgument from "@/@types/FnArguments";
 import TestCase from "@/@types/TestCase";
 import {
@@ -108,6 +109,12 @@ const TestCases = ({
   };
 
   return (
+    <motion.div
+    initial={{ y: 50, opacity: 0 }}
+    animate={{ y: 0, opacity: 1 }}
+    transition={{ duration: 0.5 }}
+    className=""
+  >
     <div className="px-5 py-2">
       <div className="flex gap-5">
         <Button
@@ -248,6 +255,7 @@ const TestCases = ({
         </ModalContent>
       </Modal>
     </div>
+    </motion.div>
   );
 };
 

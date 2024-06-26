@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   Button,
   Card,
@@ -44,7 +45,13 @@ const LiveAssessmentsCreated = () => {
     },
   ];
   return (
-    <div className="w-full p-10 h-[90vh]">
+    <motion.div
+    initial={{ y: 50, opacity: 0 }}
+    animate={{ y: 0, opacity: 1 }}
+    transition={{ duration: 0.3 }}
+    className="w-full p-10 h-[90vh]"
+  >
+    <div className="">
       <div>
         <Input placeholder="Search Assessments" />
       </div>{" "}
@@ -116,6 +123,7 @@ const LiveAssessmentsCreated = () => {
         ))}
       </div>
     </div>
+    </motion.div>
   );
 };
 

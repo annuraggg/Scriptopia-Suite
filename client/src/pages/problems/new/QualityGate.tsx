@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Button, CircularProgress } from "@nextui-org/react";
 import { CircleCheck, CircleX } from "lucide-react";
 import React, { useEffect } from "react";
@@ -31,6 +32,12 @@ const QualityGate = ({
   }, []);
 
   return (
+    <motion.div
+    initial={{ y: 50, opacity: 0 }}
+    animate={{ y: 0, opacity: 1 }}
+    transition={{ duration: 0.5 }}
+    className=""
+  >
     <div className="flex items-center justify-center px-5 py-2 h-full flex-col gap-10">
       <h4>
         Quality Gate -{" "}
@@ -102,6 +109,7 @@ const QualityGate = ({
         Submit
       </Button>
     </div>
+    </motion.div>
   );
 };
 
