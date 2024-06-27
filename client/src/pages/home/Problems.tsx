@@ -23,7 +23,7 @@ const Problems = ({
 
   return (
     <div className="">
-      <h6 className="text-md mt-2 text-gray-500 mb-5 sm:text-xl">Problems</h6>
+      <h6 className="text-md md:text-md mt-4 md:mt-2 text-gray-500 mb-5">Problems</h6>
       <div className="flex gap-5 line-clamp-1 flex-wrap h-5">
         {tags?.map((tag, i) => (
           <div
