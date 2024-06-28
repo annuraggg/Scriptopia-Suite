@@ -1,19 +1,15 @@
-import {
-  OrganizationSwitcher,
-  UserButton,
-} from "@clerk/clerk-react";
+import { OrganizationSwitcher, UserButton } from "@clerk/clerk-react";
 import Logo from "../assets/logo1080_transparent_white_large.png";
 import { Link, Button } from "@nextui-org/react";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
-const Navbar = ({ exclude }: { exclude: string[] }) => {
-
+const Navbar = () => {
   const [showMenu, setShowMenu] = useState(false);
   const handleMenu = () => {
     setShowMenu(!showMenu);
-  }
-  const currentPath = window.location.pathname;
+  };
+
   const links = [
     {
       path: "/problems",
@@ -28,10 +24,9 @@ const Navbar = ({ exclude }: { exclude: string[] }) => {
   return (
     <>
       <div
-        className={`
-    ${exclude.includes(currentPath) ? "hidden" : ""}
-    px-5 sm:px-10 w-full h-[8vh] flex items-center justify-between sticky top-0 z-50 backdrop-filter backdrop-blur-lg 
-    `}
+        className={
+          "px-5 sm:px-10 w-full h-[8vh] flex items-center justify-between sticky top-0 z-50 backdrop-filter backdrop-blur-lg"
+        }
       >
         <div className="flex items-center gap-2 sm:gap-5">
           <img
@@ -42,7 +37,10 @@ const Navbar = ({ exclude }: { exclude: string[] }) => {
               window.location.href = "/dashboard";
             }}
           />
-          <p className="flex text-md sm:text-base duration-200 transition-all md:hidden"> Scriptopia</p>
+          <p className="flex text-md sm:text-base duration-200 transition-all md:hidden">
+            {" "}
+            Scriptopia
+          </p>
           {links.map((link) => (
             <a
               key={link.path}
@@ -63,9 +61,15 @@ const Navbar = ({ exclude }: { exclude: string[] }) => {
           </div>
         </div>
       </div>
-      <div className={!showMenu ? 'fixed left-[-100] ease-in-out duration-400 hidden md:block' : 'fixed relaive z-20 left-0 top-0 w-[100%] h-full border-r-gray-900 backdrop-blur-lg ease-in-out duration-400 md:hidden'}>
+      <div
+        className={
+          !showMenu
+            ? "fixed left-[-100] ease-in-out duration-400 hidden md:block"
+            : "fixed relaive z-20 left-0 top-0 w-[100%] h-full border-r-gray-900 backdrop-blur-lg ease-in-out duration-400 md:hidden"
+        }
+      >
         <div className="flex flex-col items-center pt-20 h-full md:hidden">
-        <div className="flex items-center pl-2 gap-2 sm:gap-5 border-1 border-gray-600 shadow-md md:hidden my-2  w-[80%] h-[8%] rounded-md justify-start">
+          <div className="flex items-center pl-2 gap-2 sm:gap-5 border-1 border-gray-600 shadow-md md:hidden my-2  w-[80%] h-[8%] rounded-md justify-start">
             <UserButton />
             <OrganizationSwitcher />
           </div>

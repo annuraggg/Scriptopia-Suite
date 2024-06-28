@@ -1,21 +1,21 @@
+// src/components/Home.tsx
+
 import { motion } from "framer-motion";
 import Problems from "./Problems";
 import ProblemsChart from "./ProblemsChart";
 import StreakCalender from "./StreakCalender";
 import Timer from "./Timer";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import axios from "@/config/axios"; // Correct import path to your configured Axios instance
 import Loader from "@/components/Loader";
-import ErrorPage from "@/components/ErrorPage";
 
 const Home = () => {
-  const { error, data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["dashboard-get-problems"],
     queryFn: async () => (await axios.get("/home")).data,
   });
 
   if (isLoading) return <Loader />;
-  if (error) return <ErrorPage />;
 
   console.log(data);
 
