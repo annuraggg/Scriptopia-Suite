@@ -25,14 +25,6 @@ const router = createBrowserRouter([
         element: <>ABout</>,
       },
       {
-        path: "/sign-in",
-        element: <SignIn />,
-      },
-      {
-        path: "/sign-up",
-        element: <SignUp />,
-      },
-      {
         path: "/assessments",
         element: <AssessmentDashboard />,
       },
@@ -54,6 +46,14 @@ const router = createBrowserRouter([
       },
     ],
     errorElement: <ErrorPage statusCode={418} message="Render Error" />,
+  },
+  {
+    path: "/sign-in",
+    element: <SignIn />,
+  },
+  {
+    path: "/sign-up",
+    element: <SignUp />,
   },
 ]);
 

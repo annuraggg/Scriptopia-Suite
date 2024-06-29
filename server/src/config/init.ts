@@ -11,6 +11,7 @@ import authMiddleware from "../middlewares/authMiddleware";
 
 import homeRoute from "../routes/homeRoute";
 import problemRoute from "../routes/problemsRoute";
+import asseessmentRoute from "../routes/assessmentRoute";
 
 const app = new Hono();
 
@@ -22,5 +23,6 @@ app.use(performanceMiddleware);
 
 app.route("/home", homeRoute);
 app.route("/problems", problemRoute);
+app.route("/assessments", asseessmentRoute);
 
 export default app;
