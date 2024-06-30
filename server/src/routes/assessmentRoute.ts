@@ -9,4 +9,6 @@ app.get("/live-created/:page", assessmentController.getMyLiveAssessments);
 // app.get("/taken/:page", assessmentController.getTakenAssessments);
 app.get("/:id", assessmentController.getAssessment);
 
+app.post("/", assessmentController.createAssessment);
+
 export default app;

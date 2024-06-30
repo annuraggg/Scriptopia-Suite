@@ -75,9 +75,37 @@ const getProblem = async (c: Context) => {
   }
 };
 
+const createProblem = async (c: Context) => {
+  try {
+    const auth = getAuth(c);
+
+    if (!auth?.userId) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const body = c.req.parseBody();
+
+    const problem = new Problem({
+      ...body,
+      author: auth.userId,
+    });
+
+    await problem.save();
+
+    return sendSuccess(c, 200, "Success", problem);
+  } catch (error: any) {
+    console.log(error);
+    if (error.name === "ValidationError") {
+      return sendError(c, 400, "Invalid Data", error.message);
+    }
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
 export default {
   getProblems,
   getUserGeneratedProblems,
   getMyProblems,
   getProblem,
+  createProblem,
 };
