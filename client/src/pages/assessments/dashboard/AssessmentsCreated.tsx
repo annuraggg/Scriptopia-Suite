@@ -10,43 +10,23 @@ import {
 import { Eye, Link, Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const AssessmentsCreated = () => {
+interface CreatedAssessment {
+  name: string;
+  date: string;
+  status: string;
+  participants: number;
+  duration: number;
+  mcqs: number;
+  codes: number;
+  totalMarks: number;
+}
+
+interface CreatedAssessmentListProps {
+  createdAssessments: CreatedAssessment[];
+}
+
+const AssessmentsCreated = ({createdAssessments} : CreatedAssessmentListProps) => {
   const navigate = useNavigate();
-
-  const assessments = [
-    {
-      name: "Assessment 1",
-      date: "12/12/2021",
-      status: "Active",
-      participants: 10,
-      duration: 60,
-      mcqs: 10,
-      codes: 5,
-      totalMarks: 100,
-    },
-
-    {
-      name: "Assessment 2",
-      date: "12/12/2021",
-      status: "Active",
-      participants: 10,
-      duration: 60,
-      mcqs: 10,
-      codes: 5,
-      totalMarks: 100,
-    },
-
-    {
-      name: "Assessment 3",
-      date: "12/12/2021",
-      status: "Expired",
-      participants: 10,
-      duration: 60,
-      mcqs: 10,
-      codes: 5,
-      totalMarks: 100,
-    },
-  ];
   return (
     <motion.div
     initial={{ y: 50, opacity: 0 }}
@@ -64,32 +44,32 @@ const AssessmentsCreated = () => {
         </Button>
       </div>
       <div className="mt-5 flex gap-5 flex-wrap">
-        {assessments.map((assessment) => (
+        {createdAssessments.map((CreatedAssessment) => (
           <Card className="w-[32%]">
-            <CardHeader>{assessment.name}</CardHeader>
+            <CardHeader>{CreatedAssessment.name}</CardHeader>
             <CardBody>
               {" "}
               <p className="text-xs text-gray-500">
                 Status:{" "}
                 <span
                   className={`${
-                    assessment.status === "Active"
+                    CreatedAssessment.status === "Active"
                       ? "text-green-500"
                       : "text-red-500"
                   }`}
                 >
-                  {assessment.status}
+                  {CreatedAssessment.status}
                 </span>
               </p>
-              <p className="text-xs text-gray-500">Date: {assessment.date}</p>
+              <p className="text-xs text-gray-500">Date: {CreatedAssessment.date}</p>
               <p className="text-xs text-gray-500">
-                Duration: {assessment.duration} minutes
+                Duration: {CreatedAssessment.duration} minutes
               </p>
               <p className="text-xs text-gray-500">
-                MCQs: {assessment.mcqs}, Codes: {assessment.codes}
+                MCQs: {CreatedAssessment.mcqs}, Codes: {CreatedAssessment.codes}
               </p>
               <p className="text-xs mt-5">
-                Participants: {assessment.participants}
+                Participants: {CreatedAssessment.participants}
               </p>
             </CardBody>
             <CardFooter className="gap-2 flex-wrap">

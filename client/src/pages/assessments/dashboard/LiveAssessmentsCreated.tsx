@@ -9,41 +9,23 @@ import {
 } from "@nextui-org/react";
 import { Eye, Link, Pencil, Trash2 } from "lucide-react";
 
-const LiveAssessmentsCreated = () => {
-  const assessments = [
-    {
-      name: "Assessment 1",
-      date: "12/12/2021",
-      status: "Live",
-      participants: 10,
-      duration: 60,
-      mcqs: 10,
-      codes: 5,
-      totalMarks: 100,
-    },
+interface LiveAssessment {
+  name: string;
+  date: string;
+  status: string;
+  participants: number;
+  duration: number;
+  mcqs: number;
+  codes: number;
+  totalMarks: number;
+}
 
-    {
-      name: "Assessment 2",
-      date: "12/12/2021",
-      status: "Live",
-      participants: 10,
-      duration: 60,
-      mcqs: 10,
-      codes: 5,
-      totalMarks: 100,
-    },
+interface LiveAssessmentListProps {
+  liveAssessments: LiveAssessment[];
+}
 
-    {
-      name: "Assessment 3",
-      date: "12/12/2021",
-      status: "Expired",
-      participants: 10,
-      duration: 60,
-      mcqs: 10,
-      codes: 5,
-      totalMarks: 100,
-    },
-  ];
+const LiveAssessmentsCreated = ({liveAssessments}: LiveAssessmentListProps) => {
+  
   return (
     <motion.div
     initial={{ y: 50, opacity: 0 }}
@@ -61,32 +43,32 @@ const LiveAssessmentsCreated = () => {
         </Button>
       </div>
       <div className="mt-5 flex gap-5 flex-wrap">
-        {assessments.map((assessment) => (
+        {liveAssessments.map((LiveAssessment) => (
           <Card className="w-[32%]">
-            <CardHeader>{assessment.name}</CardHeader>
+            <CardHeader>{LiveAssessment.name}</CardHeader>
             <CardBody>
               {" "}
               <p className="text-xs text-gray-500">
                 Status:{" "}
                 <span
                   className={`${
-                    assessment.status === "Live"
+                    LiveAssessment.status === "Live"
                       ? "text-green-500"
                       : "text-red-500"
                   }`}
                 >
-                  {assessment.status}
+                  {LiveAssessment.status}
                 </span>
               </p>
-              <p className="text-xs text-gray-500">Date: {assessment.date}</p>
+              <p className="text-xs text-gray-500">Date: {LiveAssessment.date}</p>
               <p className="text-xs text-gray-500">
-                Duration: {assessment.duration} minutes
+                Duration: {LiveAssessment.duration} minutes
               </p>
               <p className="text-xs text-gray-500">
-                MCQs: {assessment.mcqs}, Codes: {assessment.codes}
+                MCQs: {LiveAssessment.mcqs}, Codes: {LiveAssessment.codes}
               </p>
               <p className="text-xs mt-5">
-                Participants: {assessment.participants}
+                Participants: {LiveAssessment.participants}
               </p>
             </CardBody>
             <CardFooter className="gap-2 flex-wrap">
@@ -104,7 +86,7 @@ const LiveAssessmentsCreated = () => {
               </Button>
               <Button
                 className={`${
-                  assessment.status === "Live" ? "w-[48%]" : "w-full"
+                  LiveAssessment.status === "Live" ? "w-[48%]" : "w-full"
                 } flex items-center justify-center text-xs gap-3 bg-red-900 bg-opacity-40`}
                 variant="flat"
               >
@@ -112,7 +94,7 @@ const LiveAssessmentsCreated = () => {
               </Button>
               <Button
                 className={`${
-                  assessment.status === "Live" ? "flex" : "hidden"
+                  LiveAssessment.status === "Live" ? "flex" : "hidden"
                 } w-[48%] items-center justify-center text-xs gap-3`}
                 variant="flat"
               >

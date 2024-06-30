@@ -1,26 +1,17 @@
 import { motion } from "framer-motion";
 import { Card, CardBody, CardHeader, Input } from "@nextui-org/react";
 
-const AssessmentsTaken = () => {
-  const assessments = [
-    {
-      name: "Assessment 1",
-      date: "12/12/2021",
-      duration: 60,
-    },
+interface TakenAssessment {
+  name: string;
+  date: string;
+  duration: number;
+}
 
-    {
-      name: "Assessment 2",
-      date: "12/12/2021",
-      duration: 60,
-    },
+interface TakenAssessmentListProps {
+  takenAssessments: TakenAssessment[];
+}
 
-    {
-      name: "Assessment 3",
-      date: "12/12/2021",
-      duration: 60,
-    },
-  ];
+const AssessmentsTaken = ({takenAssessments}: TakenAssessmentListProps) => {
   return (
     <motion.div
     initial={{ y: 50, opacity: 0 }}
@@ -33,13 +24,13 @@ const AssessmentsTaken = () => {
         <Input placeholder="Search Assessments" />
       </div>
       <div className="mt-5 flex gap-5 flex-wrap">
-        {assessments.map((assessment) => (
+        {takenAssessments.map((TakenAssessment) => (
           <Card className="w-[32%]">
-            <CardHeader>{assessment.name}</CardHeader>
+            <CardHeader>{TakenAssessment.name}</CardHeader>
             <CardBody>
-              <p className="text-xs text-gray-500">Date: {assessment.date}</p>
+              <p className="text-xs text-gray-500">Date: {TakenAssessment.date}</p>
               <p className="text-xs text-gray-500">
-                Duration: {assessment.duration} minutes
+                Duration: {TakenAssessment.duration} minutes
               </p>
             </CardBody>
           </Card>
