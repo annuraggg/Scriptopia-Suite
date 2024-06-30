@@ -8,4 +8,6 @@ app.get("/user-generated/:page", problemController.getUserGeneratedProblems);
 app.get("/my-problems/:page", problemController.getMyProblems);
 app.get("/:id", problemController.getProblem);
 // app.get"/problems/conundrum-cubes/:page"); 
+
+app.post("/", problemController.createProblem);
 export default app;
