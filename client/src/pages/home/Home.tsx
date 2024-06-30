@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import Problems from "./Problems";
 import ProblemsChart from "./ProblemsChart";
-import StreakCalender from "./StreakCalender";
+import StreakCalender from "./StreakCalendar";
 import Timer from "./Timer";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -39,6 +39,7 @@ const Home = () => {
         transition={{ duration: 0.5 }}
         className="flex gap-5 flex-col w-[20%]"
       >
+        
         {data?.data?.streak ? (
           <StreakCalender dates={data?.data?.streak} />
         ) : (
