@@ -1,21 +1,25 @@
+// src/components/Home.tsx
+
 import { motion } from "framer-motion";
 import Problems from "./Problems";
 import ProblemsChart from "./ProblemsChart";
-import StreakCalender from "./StreakCalender";
+import StreakCalender from "./StreakCalendar";
 import Timer from "./Timer";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import ax from "@/config/axios"; // Correct import path to your configured Axios instance
 import Loader from "@/components/Loader";
-import ErrorPage from "@/components/ErrorPage";
+import { useAuth } from "@clerk/clerk-react";
 
 const Home = () => {
-  const { error, data, isLoading } = useQuery({
+  const { getToken } = useAuth();
+  const axios = ax(getToken)
+  
+  const { data, isLoading } = useQuery({
     queryKey: ["dashboard-get-problems"],
     queryFn: async () => (await axios.get("/home")).data,
   });
 
   if (isLoading) return <Loader />;
-  if (error) return <ErrorPage />;
 
   console.log(data);
 
@@ -39,9 +43,18 @@ const Home = () => {
         transition={{ duration: 0.5 }}
         className="flex gap-5 flex-col w-[20%]"
       >
-        <StreakCalender dates={data?.data?.streak} />
+
+        {data?.data?.streak ? (
+          <StreakCalender dates={data?.data?.streak} />
+        ) : (
+          <p>No Streaks Yet</p>
+        )}
         <Timer />
-        <ProblemsChart easy={data?.data?.problemsCount.easy} medium={data?.data?.problemsCount.medium} hard={data?.data?.problemsCount.hard} />
+        <ProblemsChart
+          easy={data?.data?.problemsCount.easy}
+          medium={data?.data?.problemsCount.medium}
+          hard={data?.data?.problemsCount.hard}
+        />
       </motion.div>
     </motion.div>
   );

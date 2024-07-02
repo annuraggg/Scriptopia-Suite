@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import FnArgument from "@/@types/FnArguments";
 import { Button, Input, Select, SelectItem } from "@nextui-org/react";
 import {
@@ -73,6 +74,12 @@ const Stub = ({
   };
 
   return (
+    <motion.div
+    initial={{ y: 50, opacity: 0 }}
+    animate={{ y: 0, opacity: 1 }}
+    transition={{ duration: 0.5 }}
+    className=""
+  >
     <div className="px-5 py-2">
       <p>Function Definition</p>
       <div className="flex gap-5 mt-5">
@@ -207,6 +214,7 @@ const Stub = ({
         </ModalContent>
       </Modal>
     </div>
+    </motion.div>
   );
 };
 

@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   Table,
   TableHeader,
@@ -10,53 +11,25 @@ import {
   SelectItem,
 } from "@nextui-org/react";
 
-const ProblemsList = () => {
-  const problems = [
-    {
-      name: "Two Sum",
-      difficulty: "easy",
-      tags: ["Array", "Hash Maps"],
-      status: "Solved",
-    },
-    {
-      name: "Add Two Numbers",
-      difficulty: "medium",
-      tags: ["Linked Lists"],
-      status: "Solved",
-    },
-    {
-      name: "Valid Parentheses",
-      difficulty: "easy",
-      tags: ["Stacks"],
-      status: "Solved",
-    },
-    {
-      name: "Longest Substring Without Repeating CharactersLongest Substring Without Repeating CharactersLongest Substring Without Repeating CharactersLongest Substring Without Repeating Characters",
-      difficulty: "medium",
-      tags: [
-        "Strings",
-        "Two Pointers",
-        "Two Pointers",
-        "Two Pointers",
-        "Two Pointers",
-      ],
-      status: "Solved",
-    },
-    {
-      name: "Container With Most Water",
-      difficulty: "medium",
-      tags: ["Two Pointers"],
-      status: "Solved",
-    },
-    {
-      name: "Longest Valid Parentheses",
-      difficulty: "hard",
-      tags: ["Stacks"],
-      status: "Solved",
-    },
-  ];
+interface Problem {
+  title: string;
+  difficulty: string;
+  tags: string[];
+  status: string;
+}
 
+interface ProblemsListProps {
+  problems: Problem[];
+}
+
+const ProblemsList = ({ problems }: ProblemsListProps) => {
   return (
+    <motion.div
+      initial={{ y: 50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className=""
+    >
     <div>
       <h2>Scriptopia Problems</h2>
       <div className="mt-5 mb-5 flex gap-5 w-[70%]">
@@ -81,17 +54,19 @@ const ProblemsList = () => {
           <TableColumn>Status</TableColumn>
         </TableHeader>
         <TableBody>
-          {problems.map((problem) => (
-            <TableRow className="h-14">
+          {problems.map((problem, index) => (
+            <TableRow key={index} className="h-14">
               <TableCell className="w-[550px]">
-                <p className="truncate max-w-[500px] cursor-pointer hover:text-blue-500">{problem.name}</p>
+                <p className="truncate max-w-[500px] cursor-pointer hover:text-blue-500">
+                  {problem.title}
+                </p>
               </TableCell>
               <TableCell
                 className={`
-              ${problem.difficulty === "easy" && "text-green-400"}
-              ${problem.difficulty === "medium" && "text-yellow-400"}
-              ${problem.difficulty === "hard" && "text-red-400"}  
-              `}
+                  ${problem.difficulty === "easy" && "text-green-400"}
+                  ${problem.difficulty === "medium" && "text-yellow-400"}
+                  ${problem.difficulty === "hard" && "text-red-400"}  
+                `}
               >
                 {problem.difficulty.slice(0, 1).toUpperCase() +
                   problem.difficulty.slice(1)}
@@ -107,6 +82,7 @@ const ProblemsList = () => {
         </TableBody>
       </Table>
     </div>
+    </motion.div>
   );
 };
 

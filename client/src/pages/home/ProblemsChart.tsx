@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import * as echarts from "echarts";
 import { Card, CardHeader, CardBody } from "@nextui-org/card";
@@ -49,7 +50,7 @@ const ProblemsChart = ({
 
   return (
     <>
-      <Card className="w-full h-64 overflow-visible">
+      <Card className="w-full h-64 overflow-visible hidden md:block">
         <CardHeader className="flex items-center justify-center">
           Problems Solved
         </CardHeader>

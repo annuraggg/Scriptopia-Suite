@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   Button,
   Card,
@@ -61,6 +62,12 @@ const ConundrumCubes = () => {
     },
   ];
   return (
+    <motion.div
+    initial={{ y: 50, opacity: 0 }}
+    animate={{ y: 0, opacity: 1 }}
+    transition={{ duration: 0.5 }}
+    className=""
+  >
     <div className="w-full">
       <h2>Conundrum Cubes</h2>
       <div className="mt-5 mb-5 flex gap-5 w-[70%]">
@@ -111,6 +118,7 @@ const ConundrumCubes = () => {
         ))}
       </div>
     </div>
+    </motion.div>
   );
 };
 
