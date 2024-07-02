@@ -9,20 +9,14 @@ import { useQuery } from "@tanstack/react-query";
 import ax from "@/config/axios"; // Correct import path to your configured Axios instance
 import Loader from "@/components/Loader";
 import { useAuth } from "@clerk/clerk-react";
-import { useEffect } from "react";
 
 const Home = () => {
   const { getToken } = useAuth();
   const axios = ax(getToken)
-
-  useEffect(() => {
-    console.log("Component Mounted")
-   axios.get("/health").then(r => console.log(r))
-  })
   
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-get-problems"],
-    queryFn: async () => (await axios.get("/health")).data,
+    queryFn: async () => (await axios.get("/home")).data,
   });
 
   if (isLoading) return <Loader />;

@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
-import axios from "axios";
 import Sidebar from "./Sidebar";
 import ProblemsList from "./ProblemsList";
 import Dashboard from "./Dashboard";
@@ -10,9 +9,14 @@ import ConundrumCubes from "./ConundrumCubes";
 import MyProblems from "./MyProblems";
 import Loader from "@/components/Loader";
 import ErrorPage from "@/components/ErrorPage";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios"
 
 const Problems = () => {
   const [active, setActive] = useState(0);
+
+  const { getToken } = useAuth()
+  const axios = ax(getToken)
 
   const data = useQueries({
     queries: [

@@ -14,6 +14,7 @@ const authMiddleware = createMiddleware(async (c, next) => {
   const auth = getAuth(c)
 
   if (!auth?.userId) {
+    console.log("NO USERID")
     return sendError(c, 401, "Unauthorized");
   }
 

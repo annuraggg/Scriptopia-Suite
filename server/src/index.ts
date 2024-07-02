@@ -12,5 +12,5 @@ app.get("/health", (c) => {
 logger.info(`Server is running on port ${port}`);
 serve({
   fetch: app.fetch,
-  port,
+  port, 
 });
