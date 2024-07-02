@@ -7,6 +7,7 @@ const LIMIT_PER_PAGE = 20;
 
 const getAssessments = async (c: Context) => {
   try {
+    console.log("REQ REC")
     const page = parseInt(c.req.param("page")) || 1;
 
     const assessments = await Assessment.find()

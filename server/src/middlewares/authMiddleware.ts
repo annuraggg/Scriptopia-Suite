@@ -3,7 +3,9 @@ import { createMiddleware } from "hono/factory";
 import { sendError } from "../utils/sendResponse";
 
 const authMiddleware = createMiddleware(async (c, next) => {
-  const token = c.req.header("Authorization");
+  const token = c.req.header("Authorization");  
+
+  if(c.req.path === "/health") return next();
 
   if (!token) {
     console.log("No token");
@@ -12,6 +14,7 @@ const authMiddleware = createMiddleware(async (c, next) => {
   const auth = getAuth(c)
 
   if (!auth?.userId) {
+    console.log("NO USERID")
     return sendError(c, 401, "Unauthorized");
   }
 

@@ -23,6 +23,6 @@ app.use(performanceMiddleware);
 
 app.route("/home", homeRoute);
 app.route("/problems", problemRoute);
-app.route("/assessments", asseessmentRoute);
+app.route("/assesments", asseessmentRoute);
 
 export default app;
