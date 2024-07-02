@@ -6,13 +6,23 @@ import ProblemsChart from "./ProblemsChart";
 import StreakCalender from "./StreakCalendar";
 import Timer from "./Timer";
 import { useQuery } from "@tanstack/react-query";
-import axios from "@/config/axios"; // Correct import path to your configured Axios instance
+import ax from "@/config/axios"; // Correct import path to your configured Axios instance
 import Loader from "@/components/Loader";
+import { useAuth } from "@clerk/clerk-react";
+import { useEffect } from "react";
 
 const Home = () => {
+  const { getToken } = useAuth();
+  const axios = ax(getToken)
+
+  useEffect(() => {
+    console.log("Component Mounted")
+   axios.get("/health").then(r => console.log(r))
+  })
+  
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-get-problems"],
-    queryFn: async () => (await axios.get("/home")).data,
+    queryFn: async () => (await axios.get("/health")).data,
   });
 
   if (isLoading) return <Loader />;
@@ -39,7 +49,7 @@ const Home = () => {
         transition={{ duration: 0.5 }}
         className="flex gap-5 flex-col w-[20%]"
       >
-        
+
         {data?.data?.streak ? (
           <StreakCalender dates={data?.data?.streak} />
         ) : (
