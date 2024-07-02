@@ -74,7 +74,7 @@ const Problems = (
                 selectedKeys={selectedKeys}
                 onSelectionChange={(value) => setSelectedKeys(new Set<string>(Array.from(value) as string[]))}
               >
-                {tags.map((tag, i) => (
+                {tags.map((tag, _i) => (
                   <DropdownItem key={tag}>{tag}</DropdownItem>
                 ))}
               </DropdownMenu>
