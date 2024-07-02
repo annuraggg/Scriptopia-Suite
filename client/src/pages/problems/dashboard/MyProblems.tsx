@@ -42,7 +42,7 @@ const MyProblems = ({myproblems} : MyProblemsListProps) => {
     <div>
       <h2>My Problems</h2>
       <div className="mt-5 mb-5 flex gap-5 w-[70%]">
-        <Input type="Search" label="Search Problems" size="sm" />
+        <Input type="Search" label="Search Problems" size="md" />
         <Select label="Difficulty" className="max-w-xs" size="sm">
           <SelectItem key="easy" value="easy">
             Easy
