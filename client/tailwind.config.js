@@ -21,6 +21,11 @@ export default {
         'xs':'360px',
       },
     },
+    fontFamily: {
+      neue: ["neue-montreal", "sans-serif"],
+      gloock: ["Gloock", "sans-serif"],
+      poly: ["Polysans", "sans-serif"],
+    },
     extend: {
       dropShadow: {
         glow: [
