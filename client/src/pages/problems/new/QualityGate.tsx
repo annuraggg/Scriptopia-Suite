@@ -9,12 +9,14 @@ const QualityGate = ({
   minimumTwoTags,
   minimum100Words,
   completed,
+  buildRequestData,
 }: {
   minimumFiveCases: boolean;
   minimumThreeSampleCases: boolean;
   minimumTwoTags: boolean;
   minimum100Words: boolean;
   completed: boolean[];
+  buildRequestData: () => void;
 }) => {
   const [value, setValue] = React.useState(0);
 
@@ -105,6 +107,7 @@ const QualityGate = ({
         variant="flat"
         disabled={value !== 100}
         aria-label="Submit"
+        onClick={buildRequestData}
       >
         Submit
       </Button>

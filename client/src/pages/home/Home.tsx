@@ -6,7 +6,7 @@ import ProblemsChart from "./ProblemsChart";
 import StreakCalender from "./StreakCalendar";
 import Timer from "./Timer";
 import { useQuery } from "@tanstack/react-query";
-import ax from "@/config/axios"; // Correct import path to your configured Axios instance
+import ax from "@/config/axios"; 
 import Loader from "@/components/Loader";
 import { useAuth } from "@clerk/clerk-react";
 

@@ -10,6 +10,8 @@ import NewProblem from "./pages/problems/new/NewProblem";
 import New from "./pages/assessments/standard/new/New";
 import Layout from "./components/Layout";
 import ErrorPage from "./components/ErrorPage";
+import OrgIntro from "./pages/organization/intro/Intro";
+import OrgMain from "./pages/organization/main/Main";
 
 const router = createBrowserRouter([
   {
@@ -44,6 +46,12 @@ const router = createBrowserRouter([
         path: "/problems/:id",
         element: <Problem />,
       },
+
+      {
+        path: "/organization/intro",
+        element: <OrgIntro />,
+      },
+      { path: "/organization", element: <OrgMain /> },
     ],
     errorElement: <ErrorPage statusCode={418} message="Render Error" />,
   },
