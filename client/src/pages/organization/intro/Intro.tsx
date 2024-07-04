@@ -136,7 +136,7 @@ const Intro = () => {
               </p>
 
               {price.desc && (
-                <p className="text-xs text-danger mt-2">{price.desc}</p>
+                <p className="text-xs text-warning mt-2">{price.desc}</p>
               )}
               <Button
                 className="mt-5 float-right absolute right-5 bottom-5"

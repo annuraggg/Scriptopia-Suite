@@ -67,10 +67,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-2">
             <Dropdown>
               <DropdownTrigger>
-                <EllipsisVertical
-                  className="p-2 hover:bg-gray-700 rounded-full bg-opacity-10 duration-200 transition-all cursor-pointer"
-                  size={35}
-                />
+                Organization
               </DropdownTrigger>
               <DropdownMenu aria-label="Static Actions">
                 <DropdownItem onClick={openOrg}>Organization</DropdownItem>
