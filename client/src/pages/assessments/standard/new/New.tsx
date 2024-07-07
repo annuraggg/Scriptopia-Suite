@@ -24,6 +24,9 @@ import {
   parseAbsoluteToLocal,
 } from "@internationalized/date";
 import Languages from "./Languages";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
+import { toast } from "sonner";
 
 const tabsList = [
   "General",
@@ -152,6 +155,42 @@ const New = () => {
   // Feedback Tab States
   const [feedbackEmail, setFeedbackEmail] = useState("");
 
+  const { getToken } = useAuth();
+  const buildAssessmentData = () => {
+    const axios = ax(getToken);
+    axios
+      .post("/problems", {
+        assessmentName,
+        assessmentDescription,
+        timeLimit,
+        passingPercentage,
+        testOpenRange,
+        startTime,
+        endTime,
+        selectedLanguages,
+        selectedQuestions,
+        testCaseGrading,
+        questionsGrading,
+        access,
+        candidates,
+        instructions,
+        codePlayback,
+        codeExecution,
+        tabChangeDetection,
+        copyPasteDetection,
+        autocomplete,
+        runCode,
+        syntaxHighlighting,
+        feedbackEmail,
+      })
+      .then(() => {
+        toast.success("Assessment created successfully");
+      })
+      .catch(() => {
+        toast.error("Error creating assessment");
+      });
+  };
+
   const handleSubmit = () => {};
 
   const tabsComponents = [
@@ -220,6 +259,7 @@ const New = () => {
         feedbackEmail,
         setFeedbackEmail,
         handleSubmit,
+        buildAssessmentData,
       }}
     />,
   ];
