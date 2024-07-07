@@ -114,7 +114,7 @@ const createAssessment = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const body = c.req.parseBody();
+    const body = await c.req.parseBody();
 
     const assessment = new Assessment({
       ...body,
