@@ -31,5 +31,17 @@ jobs:
             cd ~/scriptopia-staging/server
             git pull
             npm install
-            pm2 restart all || pm2 restart 0
+
+            # Check PM2 version
+            pm2 -v
+
+            # Check PM2 process list
+            pm2 list
+
+            # Restart the application
+            pm2 restart all || pm2 restart staging
+
+            # Check the status of PM2 processes
+            pm2 list
+
             echo 'Backend Staged Successfully!'
