@@ -5,18 +5,8 @@ import TagsInput from "react-tagsinput";
 import Quill from "quill";
 import "quill/dist/quill.core.css";
 import { Delta } from "quill/core";
-import 'react-tagsinput/react-tagsinput.css';
-import { useMutation } from '@tanstack/react-query';
-import ax from "@/config/axios";
-import { useAuth } from "@clerk/clerk-react";
+import "react-tagsinput/react-tagsinput.css";
 
-interface ProblemData {
-  title: string;
-  description: Record<string, any>;
-  difficulty: "easy" | "medium" | "hard";
-  tags: string[];
-  isPrivate: boolean;
-}
 const Details = ({
   title,
   setTitle,
@@ -40,24 +30,6 @@ const Details = ({
   description: Delta;
   setDescription: (description: Delta) => void;
 }) => {
-  const { getToken } = useAuth();
-  const axios = ax(getToken);
-
-  const createProblem = async (problemData: ProblemData) => {
-    const response = await axios.post('/problems', problemData);
-    return response.data;
-  };
-
-  const createProblemMutation = useMutation({
-    mutationFn: createProblem,
-    onSuccess: (data) => {
-      console.log('Problem created:', data);
-    },
-    onError: (error) => {
-      console.error('Error creating problem:', error);
-    },
-  });
-
   useEffect(() => {
     const quill = new Quill("#editor", {
       theme: "snow",
@@ -82,19 +54,7 @@ const Details = ({
     return () => {
       quill.off("text-change");
     };
-  }, [description, setDescription]);
-
-  const handleSubmit = () => {
-    const problemData: ProblemData = {
-      title,
-      description: description.ops,
-      difficulty: difficulty.toLowerCase() as "easy" | "medium" | "hard",
-      tags,
-      isPrivate,
-    };
-
-    createProblemMutation.mutate(problemData);
-  };
+  }, []);
 
   return (
     <motion.div
@@ -142,7 +102,6 @@ const Details = ({
         <div className="h-[40vh] w-full mt-5 rounded-lg">
           <div id="editor" className="bg-card w-full"></div>
         </div>
-        
       </div>
     </motion.div>
   );

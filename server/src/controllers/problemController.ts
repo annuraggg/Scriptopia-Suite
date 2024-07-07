@@ -83,7 +83,8 @@ const createProblem = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const body = c.req.parseBody();
+    const body = await c.req.json();
+    console.log(body);
 
     const problem = new Problem({
       ...body,

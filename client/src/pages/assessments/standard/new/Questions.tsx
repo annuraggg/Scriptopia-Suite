@@ -7,31 +7,26 @@ import {
 } from "@/components/ui/sheet";
 import { useState } from "react";
 import { ChevronDownIcon, ChevronUpIcon, TrashIcon } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-
-interface Question {
-  id: number;
-  name: string;
-  author: string;
-  description: string;
-  tags: string[];
-}
+import { motion, AnimatePresence } from "framer-motion"; // @ts-expect-error - Types Not Available
+import toPlaintext from "quill-delta-to-plaintext";
+import IProblem from "@/@types/Problem";
 
 const Questions = ({
   availableQuestions,
   setAvailableQuestions,
   selectedQuestions,
   setSelectedQuestions,
+  isLoading,
 }: {
-  availableQuestions: Question[];
+  availableQuestions: IProblem[];
   setAvailableQuestions: (
-    questions: Question[] | ((prev: Question[]) => Question[])
+    questions: IProblem[] | ((prev: IProblem[]) => IProblem[])
   ) => void;
-  selectedQuestions: Question[];
+  selectedQuestions: IProblem[];
   setSelectedQuestions: (
-    questions: Question[] | ((prev: Question[]) => Question[])
+    questions: IProblem[] | ((prev: IProblem[]) => IProblem[])
   ) => void;
-
+  isLoading: boolean;
 }) => {
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -61,70 +56,76 @@ const Questions = ({
 
       <div className="flex flex-col gap-4 mt-5">
         <AnimatePresence>
-          {selectedQuestions.map((question, index) => (
-            <motion.div
-              key={question.id}
-              layout
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card>
-                <CardHeader>{question.name}</CardHeader>
-                <CardBody>
-                  <div className="flex gap-5 items-center">
-                    <div className="min-w-12 min-h-12 rounded-full flex items-center justify-center border text-center">
-                      {index + 1}
-                    </div>
-                    <div className="w-full">
-                      <p className="text-sm text-gray-400 line-clamp-3">
-                        {question.description}
-                      </p>
-                      <div className="flex gap-2 flex-wrap mt-5 text-xs line-clamp-1 text-ellipsis h-7">
-                        {question.tags.map((tag) => (
-                          <Chip key={tag} className="text-xs" size="sm">
-                            {tag}
-                          </Chip>
-                        ))}
+          {isLoading ? (
+            "Loading..."
+          ) : (
+            <>
+              {selectedQuestions.map((question, index) => (
+                <motion.div
+                  key={question._id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card>
+                    <CardHeader>{question.title}</CardHeader>
+                    <CardBody>
+                      <div className="flex gap-5 items-center">
+                        <div className="min-w-12 min-h-12 rounded-full flex items-center justify-center border text-center">
+                          {index + 1}
+                        </div>
+                        <div className="w-full">
+                          <p className="text-sm text-gray-400 line-clamp-3">
+                          {toPlaintext(question.description.ops)}
+                          </p>
+                          <div className="flex gap-2 flex-wrap mt-5 text-xs line-clamp-1 text-ellipsis h-7">
+                            {question.tags.map((tag: string) => (
+                              <Chip key={tag} className="text-xs" size="sm">
+                                {tag}
+                              </Chip>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex gap-2">
+                            <Button
+                              isIconOnly
+                              onClick={() => moveQuestion(index, "up")}
+                            >
+                              <ChevronUpIcon />
+                            </Button>
+                            <Button
+                              isIconOnly
+                              onClick={() => moveQuestion(index, "down")}
+                            >
+                              <ChevronDownIcon />
+                            </Button>
+                          </div>
+                          <Button
+                            className="mt-2 w-full"
+                            color="danger"
+                            variant="flat"
+                            onClick={() => {
+                              setSelectedQuestions((prev) =>
+                                prev.filter((q) => q._id !== question._id)
+                              );
+                              setAvailableQuestions((prev) =>
+                                prev.concat(question)
+                              );
+                            }}
+                          >
+                            <TrashIcon />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <div className="flex gap-2">
-                        <Button
-                          isIconOnly
-                          onClick={() => moveQuestion(index, "up")}
-                        >
-                          <ChevronUpIcon />
-                        </Button>
-                        <Button
-                          isIconOnly
-                          onClick={() => moveQuestion(index, "down")}
-                        >
-                          <ChevronDownIcon />
-                        </Button>
-                      </div>
-                      <Button
-                        className="mt-2 w-full"
-                        color="danger"
-                        variant="flat"
-                        onClick={() => {
-                          setSelectedQuestions((prev) =>
-                            prev.filter((q) => q.id !== question.id)
-                          );
-                          setAvailableQuestions((prev) =>
-                            prev.concat(question)
-                          );
-                        }}
-                      >
-                        <TrashIcon />
-                      </Button>
-                    </div>
-                  </div>
-                </CardBody>
-              </Card>
-            </motion.div>
-          ))}
+                    </CardBody>
+                  </Card>
+                </motion.div>
+              ))}
+            </>
+          )}
         </AnimatePresence>
       </div>
 
@@ -135,14 +136,14 @@ const Questions = ({
           </SheetHeader>
           <div className="flex flex-col gap-4 mt-5">
             {availableQuestions.map((question) => (
-              <Card key={question.id} className="w-full">
-                <CardHeader>{question.name}</CardHeader>
+              <Card key={question._id} className="w-full">
+                <CardHeader>{question.title}</CardHeader>
                 <CardBody>
                   <p className="text-sm text-gray-400 line-clamp-2">
-                    {question.description}
+                    {toPlaintext(question.description.ops)}
                   </p>
                   <div className="flex gap-2 flex-wrap mt-5 text-xs line-clamp-1 text-ellipsis h-7 justify-center">
-                    {question.tags.map((tag) => (
+                    {question.tags.map((tag: string) => (
                       <Chip key={tag} className="text-xs" size="sm">
                         {tag}
                       </Chip>
@@ -160,7 +161,7 @@ const Questions = ({
                       onClick={() => {
                         setSelectedQuestions((prev) => [...prev, question]);
                         setAvailableQuestions((prev) =>
-                          prev.filter((q) => q.id !== question.id)
+                          prev.filter((q) => q._id !== question._id)
                         );
                         setSheetOpen(false);
                       }}

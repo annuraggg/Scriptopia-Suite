@@ -39,7 +39,7 @@ const MyProblems = ({myproblems} : MyProblemsListProps) => {
     transition={{ duration: 0.5 }}
     className=""
   >
-    <div>
+    <div className="w-full">
       <h2>My Problems</h2>
       <div className="mt-5 mb-5 flex gap-5 w-[70%]">
         <Input type="Search" label="Search Problems" size="sm" />

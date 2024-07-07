@@ -21,25 +21,25 @@ const Assessments = () => {
     queries: [
       {
         queryKey: ["all-assessments"],
-        queryFn: async () => ( await axios.get("/assesments/all/1")).data,
+        queryFn: async () => ( await axios.get("/assessments/all/1")).data,
       },
       {
         queryKey: ["created-assessments"],
-        queryFn: async () => (await axios.get("/assesments/created/1")).data,
+        queryFn: async () => (await axios.get("/assessments/created/1")).data,
       },
       {
         queryKey: ["live-assessments"],
-        queryFn: async () => (await axios.get("/assesments/live-created/1")).data,
+        queryFn: async () => (await axios.get("/assessments/live-created/1")).data,
       },
       {
         queryKey: ["taken-assessments"],
-        queryFn: async () => (await axios.get("/assesments/taken/1")).data,
+        queryFn: async () => (await axios.get("/assessments/taken/1")).data,
       },
     ],
   });
 
   console.log(data);
-
+  
   useEffect(() => {
     const hash = window.location.hash;
     switch (hash) {
