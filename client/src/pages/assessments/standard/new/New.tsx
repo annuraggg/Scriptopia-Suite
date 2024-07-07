@@ -160,17 +160,14 @@ const New = () => {
     const axios = ax(getToken);
     axios
       .post("/assessments", {
-        assessmentName,
-        assessmentDescription,
+        name: assessmentName,
+        description: assessmentDescription,
         timeLimit,
         passingPercentage,
-        testOpenRange,
-        startTime,
-        endTime,
-        selectedLanguages,
-        selectedQuestions,
-        testCaseGrading,
-        questionsGrading,
+        openRange: testOpenRange,
+        languages: selectedLanguages,
+        questions: selectedQuestions.map((q) => q._id),
+        grading: testCaseGrading?{type:"testcase",testcases:testCaseGrading}:{type:"problem",problem:questionsGrading},
         access,
         candidates,
         instructions,
