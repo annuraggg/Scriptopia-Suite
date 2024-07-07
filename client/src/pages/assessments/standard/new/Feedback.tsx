@@ -12,18 +12,6 @@ const Feedback = ({
   handleSubmit: () => void;
   buildAssessmentData: () => void;
 }) => {
-
-  const navigate = useNavigate();
-
-  const handleClick = async () => {
-    try {
-      await buildAssessmentData();
-      navigate('/');
-    } catch (error) {
-      console.error('Error during buildAssessmentData:', error);
-    }
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -45,7 +33,7 @@ const Feedback = ({
           onChange={(e) => setFeedbackEmail(e.target.value)}
         />
       </div>
-      <Button className="mt-5 absolute right-5 bottom-5" color="success" variant="flat" onClick={handleClick}>
+      <Button className="mt-5 absolute right-5 bottom-5" color="success" variant="flat" onClick={buildAssessmentData}>
         Submit
       </Button>
     </motion.div>
