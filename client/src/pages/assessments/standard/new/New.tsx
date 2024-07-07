@@ -159,7 +159,7 @@ const New = () => {
   const buildAssessmentData = () => {
     const axios = ax(getToken);
     axios
-      .post("/problems", {
+      .post("/assessment", {
         assessmentName,
         assessmentDescription,
         timeLimit,

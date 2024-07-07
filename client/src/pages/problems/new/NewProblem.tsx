@@ -62,7 +62,7 @@ const NewProblem = () => {
   const buildRequestData = () => {
     const axios = ax(getToken);
     axios
-      .post("/problems/new", {
+      .post("/problems", {
         title,
         isPrivate,
         difficulty,
