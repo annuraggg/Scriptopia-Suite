@@ -7,13 +7,12 @@ import Stub from "./Stub";
 import TestCases from "./TestCases";
 import QualityGate from "./QualityGate";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Toaster, toast } from "sonner";
+import { toast } from "sonner";
 import { Delta } from "quill/core";
 import FnArgument from "@/@types/FnArguments";
 import TestCase from "@/@types/TestCase";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { useMutation } from "@tanstack/react-query";
 
 const steps = [
   {
@@ -73,6 +72,10 @@ const NewProblem = () => {
         returnType,
         fnArguments,
         testCases,
+        minimumFiveCases,
+        minimumThreeSampleCases,
+        minimumTwoTags,
+        minimum100Words,
       })
       .then(() => {
         toast.success("Problem created successfully");
@@ -263,7 +266,7 @@ const NewProblem = () => {
                     minimumTwoTags,
                     minimum100Words,
                     completed,
-                    buildRequestData
+                    buildRequestData,
                   }}
                 />
               )}
