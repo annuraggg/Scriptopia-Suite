@@ -1,13 +1,7 @@
 import { Input, Select, SelectItem } from "@nextui-org/react";
 import { motion } from "framer-motion";
-
-interface Question {
-  id: number;
-  name: string;
-  author: string;
-  description: string;
-  tags: string[];
-}
+import IProblem from "@/@types/Problem";
+import { IProblem as IProblemAssessment } from "@/@types/Assessment";
 
 interface TestCaseGrading {
   easy: number;
@@ -26,12 +20,12 @@ const Grading = ({
 }: {
   gradingMetric: string;
   setGradingMetric: (gradingMetric: string) => void;
-  selectedQuestions: Question[];
+  selectedQuestions: IProblem[];
   testCaseGrading: TestCaseGrading;
   setTestCaseGrading: (testCaseGrading: TestCaseGrading) => void;
-  questionsGrading: number[];
+  questionsGrading: IProblemAssessment[];
   setQuestionsGrading: (
-    questionsGrading: number[] | ((prev: number[]) => number[])
+    questionsGrading: IProblemAssessment[] | ((prev: IProblemAssessment[]) => IProblemAssessment[])
   ) => void;
 }) => {
   return (
@@ -119,9 +113,9 @@ const Grading = ({
             </p>
             <div className="flex gap-5 flex-wrap items-center">
               {selectedQuestions.map((question) => (
-                <div key={question.id} className="w-[200px]">
+                <div key={question._id} className="w-[200px]">
                   <p className="text-sm text-gray-400 line-clamp-1">
-                    {question.name}
+                    {question.title}
                   </p>
                   <Input
                     type="number"
@@ -130,11 +124,11 @@ const Grading = ({
                     endContent={<div>pts.</div>}
                     labelPlacement="outside"
                     placeholder="score"
-                    value={questionsGrading[question.id]?.toString()}
+                    value={questionsGrading.find((q) => q.problemId === question._id)?.points?.toString()}
                     onChange={(e) =>
                       setQuestionsGrading((prev) => ({
                         ...prev,
-                        [question.id]: parseInt(e.target.value),
+                        [question._id]: parseInt(e.target.value),
                       }))
                     }
                   />

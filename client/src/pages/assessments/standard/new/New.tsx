@@ -27,6 +27,9 @@ import Languages from "./Languages";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import IProblem from "@/@types/Problem";
+import { IProblem as IProblemAssessment } from "@/@types/Assessment";
 
 const tabsList = [
   "General",
@@ -37,65 +40,6 @@ const tabsList = [
   "Instructions",
   "Security",
   "Feedback",
-];
-
-interface Question {
-  id: number;
-  name: string;
-  author: string;
-  description: string;
-  tags: string[];
-}
-
-const questions = [
-  {
-    id: 1,
-    name: "Two Sum",
-    author: "@kylelobo",
-    description:
-      "Given an array of integers, return indices of the two numbers such that they add up to a specific target. Given an array of integers, return indices of the two numbers such that they add up to a specific target.",
-    tags: ["Array", "Dynamic Programming", "Binary Search", "Hash Table"],
-  },
-  {
-    id: 2,
-    name: "Longest Common Prefix",
-    author: "@kylelobo",
-    description:
-      "Write a function to find the longest common prefix string amongst an array of strings.",
-    tags: ["String", "Dynamic Programming", "Hash Table"],
-  },
-  {
-    id: 3,
-    name: "Longest Increasing Subsequence",
-    author: "@kylelobo",
-    description:
-      "Given an unsorted array of integers, find the length of the longest increasing subsequence.",
-    tags: ["Array", "Dynamic Programming", "Hash Table"],
-  },
-  {
-    id: 4,
-    name: "Longest Substring Without Repeating Characters",
-    author: "@kylelobo",
-    description:
-      "Given a string, find the length of the longest substring without repeating characters.",
-    tags: ["String", "Dynamic Programming", "Hash Table"],
-  },
-  {
-    id: 5,
-    name: "Valid Sudoku",
-    author: "@kylelobo",
-    description:
-      "Determine if a 9x9 Sudoku board is valid. Only the filled cells need to be validated according to the following rules: Each row must contain the digits 1-9 without repetition. Each column must contain the digits 1-9 without repetition. Each of the nine 3x3 sub-boxes of the grid must contain the digits 1-9 without repetition.",
-    tags: ["Array", "Dynamic Programming", "Hash Table"],
-  },
-  {
-    id: 6,
-    name: "Valid Parentheses",
-    author: "@kylelobo",
-    description:
-      "Given a string containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid.",
-    tags: ["String", "Dynamic Programming", "Hash Table"],
-  },
 ];
 
 const New = () => {
@@ -120,10 +64,18 @@ const New = () => {
   // Languages Tab States
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
 
-  // Questions Tab States
-  const [availableQuestions, setAvailableQuestions] =
-    useState<Question[]>(questions);
-  const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
+  const [selectedQuestions, setSelectedQuestions] = useState<IProblem[]>([]);
+  const [availableQuestions, setAvailableQuestions] = useState<IProblem[]>([]);
+
+  const { isLoading } = useQuery({
+    queryKey: ["assessment-new-questions"],
+    queryFn: async () => {
+      const axios = ax(getToken);
+      const data = (await axios.get("/problems/all/1")).data;
+      setAvailableQuestions(data.data);
+      return data;
+    },
+  });
 
   // Grading Tab States
   const [gradingMetric, setGradingMetric] = useState("testcase");
@@ -132,7 +84,9 @@ const New = () => {
     medium: 0,
     hard: 0,
   });
-  const [questionsGrading, setQuestionsGrading] = useState<number[]>([]);
+  const [questionsGrading, setQuestionsGrading] = useState<
+    IProblemAssessment[]
+  >([]);
 
   // Candidates Tab States
   const [access, setAccess] = useState("all");
@@ -159,18 +113,17 @@ const New = () => {
   const buildAssessmentData = () => {
     const axios = ax(getToken);
     axios
-      .post("/assessment", {
-        assessmentName,
-        assessmentDescription,
+      .post("/assessments", {
+        name: assessmentName,
+        description: assessmentDescription,
         timeLimit,
         passingPercentage,
-        testOpenRange,
-        startTime,
-        endTime,
-        selectedLanguages,
-        selectedQuestions,
-        testCaseGrading,
-        questionsGrading,
+        openRange: testOpenRange,
+        languages: selectedLanguages,
+        questions: selectedQuestions.map((q) => q._id),
+        grading: testCaseGrading
+          ? { type: "testcase", testcases: testCaseGrading }
+          : { type: "problem", problem: questionsGrading },
         access,
         candidates,
         instructions,
@@ -221,6 +174,7 @@ const New = () => {
         setSelectedQuestions,
         testCaseGrading,
         setTestCaseGrading,
+        isLoading,
       }}
     />,
     <Grading
