@@ -1,4 +1,4 @@
-name: Stage Backend 
+name: Stage Backend
 
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
         run: npm install
         working-directory: server
 
-      - name: Pull latest code
+      - name: Deploy Server
         uses: appleboy/ssh-action@v0.1.2
         with:
           host: ${{ secrets.DO_HOST }}
@@ -30,33 +30,11 @@ jobs:
           script: |
             cd ~/scriptopia-staging/server
             git pull
-
-      - name: Install dependencies on server
-        uses: appleboy/ssh-action@v0.1.2
-        with:
-          host: ${{ secrets.DO_HOST }}
-          key: ${{ secrets.DO_SSH_KEY }}
-          username: ${{ secrets.DO_USER }}
-          script: |
-            cd ~/scriptopia-staging/server
             npm install
-
-      - name: Source NVM
-        uses: appleboy/ssh-action@v0.1.2
-        with:
-          host: ${{ secrets.DO_HOST }}
-          key: ${{ secrets.DO_SSH_KEY }}
-          username: ${{ secrets.DO_USER }}
-          script: |
+            # Source NVM
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            # Restart the application
+            pm2 restart server
 
-      - name: Restart application
-        uses: appleboy/ssh-action@v0.1.2
-        with:
-          host: ${{ secrets.DO_HOST }}
-          key: ${{ secrets.DO_SSH_KEY }}
-          username: ${{ secrets.DO_USER }}
-          script: |
-            pm2 restart staging
             echo 'Backend Staged Successfully!'

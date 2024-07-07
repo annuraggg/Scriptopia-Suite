@@ -21,7 +21,7 @@ jobs:
         run: npm install
         working-directory: server
 
-      - name: Pull latest code
+      - name: Deploy Server
         uses: appleboy/ssh-action@v0.1.2
         with:
           host: ${{ secrets.DO_HOST }}
@@ -30,33 +30,11 @@ jobs:
           script: |
             cd ~/scriptopia/server
             git pull
-
-      - name: Install dependencies on server
-        uses: appleboy/ssh-action@v0.1.2
-        with:
-          host: ${{ secrets.DO_HOST }}
-          key: ${{ secrets.DO_SSH_KEY }}
-          username: ${{ secrets.DO_USER }}
-          script: |
-            cd ~/scriptopia/server 
             npm install
-
-      - name: Source NVM
-        uses: appleboy/ssh-action@v0.1.2
-        with:
-          host: ${{ secrets.DO_HOST }}
-          key: ${{ secrets.DO_SSH_KEY }}
-          username: ${{ secrets.DO_USER }}
-          script: |
+            # Source NVM
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-
-      - name: Restart application
-        uses: appleboy/ssh-action@v0.1.2
-        with:
-          host: ${{ secrets.DO_HOST }}
-          key: ${{ secrets.DO_SSH_KEY }}
-          username: ${{ secrets.DO_USER }}
-          script: |
+            # Restart the application
             pm2 restart server
+
             echo 'Backend Deployed Successfully!'
