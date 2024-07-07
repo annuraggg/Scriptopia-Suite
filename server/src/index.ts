@@ -6,7 +6,7 @@ import logger from "./utils/logger";
 const port = parseInt(process.env.PORT!) || 3000;
 
 app.get("/health", (c) => {
-  return c.json({ status: "ok", version: "1.0.0" });
+  return c.json({ status: "ok", version: process.env.VERSION });
 });
 
 logger.info(`Server is running on port ${port}`);

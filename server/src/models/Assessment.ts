@@ -49,14 +49,18 @@ const securitySchema = new mongoose.Schema({
 
 const mcqSchema = new mongoose.Schema({
   question: { type: String, required: true },
-  type: { type: String, enum: ["multiple", "checkbox", "text"], required: true },
+  type: {
+    type: String,
+    enum: ["multiple", "checkbox", "text"],
+    required: true,
+  },
   mcq: {
-    options: { type: [String], required: true },
-    correct: { type: String, required: true },
+    options: { type: [String] },
+    correct: { type: String },
   },
   checkbox: {
-    options: { type: [String], required: true },
-    correct: { type: [String], required: true },
+    options: { type: [String] },
+    correct: { type: [String] },
   },
 });
 
@@ -64,7 +68,7 @@ const assessmentSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
   author: { type: String, ref: "User", required: true },
-  mcqs: { type: mcqSchema },
+  mcqs: { type: [mcqSchema] },
   type: { type: String, enum: ["standard", "live"], required: true },
   timeLimit: { type: Number, required: true },
   passingPercentage: { type: Number, required: true },
@@ -80,6 +84,7 @@ const assessmentSchema = new mongoose.Schema({
   instructions: { type: String, required: true },
   security: { type: securitySchema, required: true },
   feedbackEmail: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
 });
 
 const Assessment = mongoose.model("Assessment", assessmentSchema);

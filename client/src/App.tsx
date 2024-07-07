@@ -12,6 +12,7 @@ import Layout from "./components/Layout";
 import ErrorPage from "./components/ErrorPage";
 import OrgIntro from "./pages/organization/intro/Intro";
 import OrgMain from "./pages/organization/main/Main";
+import TakeAssessment from "./pages/assessments/standard/assess/Lander";
 
 const router = createBrowserRouter([
   {
@@ -22,10 +23,8 @@ const router = createBrowserRouter([
         path: "/dashboard",
         element: <Home />,
       },
-      {
-        path: "/about",
-        element: <>ABout</>,
-      },
+
+      // Assessments
       {
         path: "/assessments",
         element: <AssessmentDashboard />,
@@ -34,6 +33,8 @@ const router = createBrowserRouter([
         path: "/assessments/standard/new",
         element: <New />,
       },
+
+      // Problems
       {
         path: "/problems",
         element: <Problems />,
@@ -53,7 +54,6 @@ const router = createBrowserRouter([
       },
       { path: "/organization", element: <OrgMain /> },
     ],
-    errorElement: <ErrorPage statusCode={418} message="Render Error" />,
   },
   {
     path: "/sign-in",
@@ -62,6 +62,10 @@ const router = createBrowserRouter([
   {
     path: "/sign-up",
     element: <SignUp />,
+  },
+  {
+    path: "/assessments/standard/:id",
+    element: <TakeAssessment />,
   },
 ]);
 

@@ -1,0 +1,35 @@
+name: Stage Backend
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "18"
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: server
+
+      - name: Deploy NodeJS app
+        uses: appleboy/ssh-action@v0.1.2
+        with:
+          host: ${{ secrets.DO_HOST }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          username: ${{ secrets.DO_USER }}
+          script: |
+            cd ~/scriptopia-staging/server
+            git pull
+            npm install
+            pm2 restart all || pm2 restart 0
+            echo 'Backend Staged Successfully!'

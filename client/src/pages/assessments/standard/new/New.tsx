@@ -124,6 +124,13 @@ const New = () => {
     rangeEnd.setHours(endTime.hour);
     rangeEnd.setMinutes(endTime.minute);
 
+    const mcqSchema = mcqs.map((mcq: IMcq) => ({
+      question: mcq.question,
+      type: mcq.type,
+      mcq: mcq.type === "multiple" ? mcq.mcq : undefined,
+      checkbox: mcq.type === "checkbox" ? mcq.checkbox : undefined,
+    }));
+
     const reqBody = {
       name: assessmentName,
       description: assessmentDescription,
@@ -133,7 +140,7 @@ const New = () => {
       openRange: { start: rangeStart, end: rangeEnd },
       languages: selectedLanguages,
       problems: selectedQuestions.map((q) => q._id),
-      mcqs,
+      mcqs: mcqSchema,
       grading:
         gradingMetric === "testcase"
           ? { type: "testcase", testcases: testCaseGrading }
