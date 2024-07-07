@@ -1,4 +1,4 @@
-name: Stage Backend
+name: Deploy Backend
 
 on:
   push:
@@ -31,6 +31,10 @@ jobs:
             cd ~/scriptopia-staging/server
             git pull
             npm install
+
+            # Source NVM
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
             # Check PM2 version
             pm2 -v
