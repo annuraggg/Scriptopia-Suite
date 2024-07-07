@@ -1,4 +1,4 @@
-name: Stage Backend
+name: Deploy Backend
 
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
         run: npm install
         working-directory: server
 
-      - name: Deploy NodeJS app
+      - name: Connect to server
         uses: appleboy/ssh-action@v0.1.2
         with:
           host: ${{ secrets.DO_HOST }}
@@ -29,19 +29,41 @@ jobs:
           username: ${{ secrets.DO_USER }}
           script: |
             cd ~/scriptopia-staging/server
+
+      - name: Pull latest code
+        uses: appleboy/ssh-action@v0.1.2
+        with:
+          host: ${{ secrets.DO_HOST }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          username: ${{ secrets.DO_USER }}
+          script: |
             git pull
+
+      - name: Install dependencies on server
+        uses: appleboy/ssh-action@v0.1.2
+        with:
+          host: ${{ secrets.DO_HOST }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          username: ${{ secrets.DO_USER }}
+          script: |
             npm install
 
-            # Check PM2 version
-            pm2 -v
+      - name: Source NVM
+        uses: appleboy/ssh-action@v0.1.2
+        with:
+          host: ${{ secrets.DO_HOST }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          username: ${{ secrets.DO_USER }}
+          script: |
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-            # Check PM2 process list
-            pm2 list
-
-            # Restart the application
-            pm2 restart all || pm2 restart staging
-
-            # Check the status of PM2 processes
-            pm2 list
-
+      - name: Restart application
+        uses: appleboy/ssh-action@v0.1.2
+        with:
+          host: ${{ secrets.DO_HOST }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          username: ${{ secrets.DO_USER }}
+          script: |
+            pm2 restart staging
             echo 'Backend Staged Successfully!'
