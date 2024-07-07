@@ -7,8 +7,9 @@ import {
 } from "@/components/ui/sheet";
 import { useState } from "react";
 import { ChevronDownIcon, ChevronUpIcon, TrashIcon } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion"; // @ts-expect-error - Types Not Available
 import toPlaintext from "quill-delta-to-plaintext";
+import IProblem from "@/@types/Problem";
 
 const Questions = ({
   availableQuestions,

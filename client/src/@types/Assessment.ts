@@ -30,6 +30,13 @@ export interface ICandidates {
   candidates?: ICandidate[];
 }
 
+export interface IMcq {
+  question: string;
+  type: "multiple" | "checkbox" | "text";
+  mcq: { options: string[]; correct: string };
+  checkbox: { options: string[]; correct: string[] };
+}
+
 export interface ISecurity {
   codePlayback: boolean;
   codeExecution: boolean;
@@ -49,6 +56,7 @@ interface IAssessment extends Document {
   openRange: IOpenRange;
   languages: string[];
   problems: string[];
+  mcqs: IMcq[];
   grading: IGrading;
   candidates: ICandidates;
   instructions: string;

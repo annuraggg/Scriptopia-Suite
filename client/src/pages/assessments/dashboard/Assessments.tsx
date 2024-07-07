@@ -37,6 +37,8 @@ const Assessments = () => {
       },
     ],
   });
+
+  console.log(data);
   
   useEffect(() => {
     const hash = window.location.hash;

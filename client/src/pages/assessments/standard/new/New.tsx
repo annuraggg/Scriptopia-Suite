@@ -17,6 +17,7 @@ import Candidates from "./Candidates";
 import Instructions from "./Instructions";
 import Security from "./Security";
 import Feedback from "./Feedback";
+import Mcqs from "./Mcqs";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   today,
@@ -29,12 +30,13 @@ import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import IProblem from "@/@types/Problem";
-import { IProblem as IProblemAssessment } from "@/@types/Assessment";
+import { IMcq, IProblem as IProblemAssessment } from "@/@types/Assessment";
 
 const tabsList = [
   "General",
   "Languages",
-  "Questions",
+  "Problems",
+  "MCQs",
   "Grading",
   "Candidates",
   "Instructions",
@@ -88,6 +90,9 @@ const New = () => {
     IProblemAssessment[]
   >([]);
 
+  // MCQs Tab States
+  const [mcqs, setMcqs] = useState<IMcq[]>([]);
+
   // Candidates Tab States
   const [access, setAccess] = useState("all");
   const [candidates, setCandidates] = useState<
@@ -110,41 +115,57 @@ const New = () => {
   const [feedbackEmail, setFeedbackEmail] = useState("");
 
   const { getToken } = useAuth();
+
   const buildAssessmentData = () => {
-    const axios = ax(getToken);
-    axios
-      .post("/assessments", {
-        name: assessmentName,
-        description: assessmentDescription,
-        timeLimit,
-        passingPercentage,
-        openRange: testOpenRange,
-        languages: selectedLanguages,
-        questions: selectedQuestions.map((q) => q._id),
-        grading: testCaseGrading
+    const rangeStart = testOpenRange.start.toDate("UTC");
+    const rangeEnd = testOpenRange.end.toDate("UTC");
+    rangeStart.setHours(startTime.hour);
+    rangeStart.setMinutes(startTime.minute);
+    rangeEnd.setHours(endTime.hour);
+    rangeEnd.setMinutes(endTime.minute);
+
+    const reqBody = {
+      name: assessmentName,
+      description: assessmentDescription,
+      type: "standard",
+      timeLimit,
+      passingPercentage,
+      openRange: { start: rangeStart, end: rangeEnd },
+      languages: selectedLanguages,
+      problems: selectedQuestions.map((q) => q._id),
+      mcqs,
+      grading:
+        gradingMetric === "testcase"
           ? { type: "testcase", testcases: testCaseGrading }
           : { type: "problem", problem: questionsGrading },
-        access,
+      candidates: {
+        type: access,
         candidates,
-        instructions,
+      },
+      instructions,
+      security: {
         codePlayback,
         codeExecution,
         tabChangeDetection,
         copyPasteDetection,
-        autocomplete,
-        runCode,
-        syntaxHighlighting,
-        feedbackEmail,
-      })
+        allowAutocomplete: autocomplete,
+        allowRunningCode: runCode,
+        enableSyntaxHighlighting: syntaxHighlighting,
+      },
+      feedbackEmail,
+    };
+
+    const axios = ax(getToken);
+    axios
+      .post("/assessments", reqBody)
       .then(() => {
         toast.success("Assessment created successfully");
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error(err);
         toast.error("Error creating assessment");
       });
   };
-
-  const handleSubmit = () => {};
 
   const tabsComponents = [
     <General
@@ -175,6 +196,12 @@ const New = () => {
         testCaseGrading,
         setTestCaseGrading,
         isLoading,
+      }}
+    />,
+    <Mcqs
+      {...{
+        mcqs,
+        setMcqs,
       }}
     />,
     <Grading
@@ -212,7 +239,6 @@ const New = () => {
       {...{
         feedbackEmail,
         setFeedbackEmail,
-        handleSubmit,
         buildAssessmentData,
       }}
     />,

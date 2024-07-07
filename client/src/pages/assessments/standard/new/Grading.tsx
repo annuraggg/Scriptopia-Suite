@@ -25,7 +25,9 @@ const Grading = ({
   setTestCaseGrading: (testCaseGrading: TestCaseGrading) => void;
   questionsGrading: IProblemAssessment[];
   setQuestionsGrading: (
-    questionsGrading: IProblemAssessment[] | ((prev: IProblemAssessment[]) => IProblemAssessment[])
+    questionsGrading:
+      | IProblemAssessment[]
+      | ((prev: IProblemAssessment[]) => IProblemAssessment[])
   ) => void;
 }) => {
   return (
@@ -124,13 +126,31 @@ const Grading = ({
                     endContent={<div>pts.</div>}
                     labelPlacement="outside"
                     placeholder="score"
-                    value={questionsGrading.find((q) => q.problemId === question._id)?.points?.toString()}
-                    onChange={(e) =>
-                      setQuestionsGrading((prev) => ({
-                        ...prev,
-                        [question._id]: parseInt(e.target.value),
-                      }))
-                    }
+                    value={questionsGrading
+                      .find((q) => q.problemId === question._id)
+                      ?.points?.toString()}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value, 10);
+                      setQuestionsGrading((prev) => {
+                        const exists = prev.find(
+                          (q) => q.problemId === question._id
+                        );
+                        if (exists) {
+                          return prev.map((q) =>
+                            q.problemId === question._id
+                              ? { ...q, points: value }
+                              : q
+                          );
+                        }
+                        return [
+                          ...prev,
+                          {
+                            problemId: question._id,
+                            points: value,
+                          },
+                        ];
+                      });
+                    }}
                   />
                 </div>
               ))}
