@@ -5,10 +5,12 @@ const Feedback = ({
   feedbackEmail,
   setFeedbackEmail,
   handleSubmit,
+  buildAssessmentData,
 }: {
   feedbackEmail: string;
   setFeedbackEmail: (feedbackEmail: string) => void;
   handleSubmit: () => void;
+  buildAssessmentData: () => void;
 }) => {
   return (
     <motion.div
@@ -31,7 +33,7 @@ const Feedback = ({
           onChange={(e) => setFeedbackEmail(e.target.value)}
         />
       </div>
-      <Button className="mt-5 absolute right-5 bottom-5" color="success" variant="flat" onClick={handleSubmit}>
+      <Button className="mt-5 absolute right-5 bottom-5" color="success" variant="flat" onClick={buildAssessmentData}>
         Submit
       </Button>
     </motion.div>
