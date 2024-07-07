@@ -1,14 +1,22 @@
-import { OrganizationSwitcher, UserButton } from "@clerk/clerk-react";
+import { UserButton, useAuth } from "@clerk/clerk-react";
 import Logo from "../assets/logo1080_transparent_white_large.png";
 import { Link, Button } from "@nextui-org/react";
-import { Menu, X } from "lucide-react";
+import { EllipsisVertical, Menu, X } from "lucide-react";
 import { useState } from "react";
+import {
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+} from "@nextui-org/react";
 
 const Navbar = () => {
   const [showMenu, setShowMenu] = useState(false);
   const handleMenu = () => {
     setShowMenu(!showMenu);
   };
+
+  const { orgId } = useAuth();
 
   const links = [
     {
@@ -20,6 +28,11 @@ const Navbar = () => {
       label: "Assessments",
     },
   ];
+
+  const openOrg = () => {
+    if (orgId === null) window.location.href = "/organization/intro";
+    else window.location.href = "/organization";
+  };
 
   return (
     <>
@@ -38,7 +51,6 @@ const Navbar = () => {
             }}
           />
           <p className="flex text-md sm:text-base duration-200 transition-all md:hidden">
-            {" "}
             Scriptopia
           </p>
           {links.map((link) => (
@@ -52,8 +64,15 @@ const Navbar = () => {
           ))}
         </div>
         <div className="flex items-center gap-2 sm:gap-5">
-          <div className="flex hidden md:block">
-            <OrganizationSwitcher />
+          <div className="hidden md:flex items-center gap-2">
+            <Dropdown>
+              <DropdownTrigger>
+                Organization
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Static Actions">
+                <DropdownItem onClick={openOrg}>Organization</DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
             <UserButton />
           </div>
           <div className="flex md:hidden" onClick={handleMenu}>
@@ -71,7 +90,7 @@ const Navbar = () => {
         <div className="flex flex-col items-center pt-20 h-full md:hidden">
           <div className="flex items-center pl-2 gap-2 sm:gap-5 border-1 border-gray-600 shadow-md md:hidden my-2  w-[80%] h-[8%] rounded-md justify-start">
             <UserButton />
-            <OrganizationSwitcher />
+            <EllipsisVertical />
           </div>
           {links.map((link) => (
             <Button

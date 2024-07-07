@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { Delta } from "quill/core";
 import FnArgument from "@/@types/FnArguments";
 import TestCase from "@/@types/TestCase";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
 
 const steps = [
   {
@@ -56,10 +58,41 @@ const NewProblem = () => {
   const [minimumTwoTags, setMinimumTwoTags] = useState(false);
   const [minimum100Words, setMinimum100Words] = useState(false);
 
+  const { getToken } = useAuth();
+  const buildRequestData = () => {
+    const axios = ax(getToken);
+    axios
+      .post("/problems/new", {
+        title,
+        isPrivate,
+        difficulty,
+        tags,
+        description,
+        functionName,
+        returnType,
+        fnArguments,
+        testCases,
+        minimumFiveCases,
+        minimumThreeSampleCases,
+        minimumTwoTags,
+        minimum100Words,
+      })
+      .then(() => {
+        toast.success("Problem created successfully");
+      })
+      .catch(() => {
+        toast.error("Error creating problem");
+      });
+  };
+
   useEffect(() => {
-    // @ts-expect-error - TODO: Fix this
-    const step1Completed = title && difficulty && tags.length > 0 && description?.ops?.[0]?.insert?.trim();
-    setCompleted(prev => {
+    const step1Completed =
+      title &&
+      difficulty &&
+      tags.length > 0 &&
+      // @ts-expect-error - TODO: Fix this
+      description?.ops?.[0]?.insert?.trim();
+    setCompleted((prev) => {
       const newCompleted = [...prev];
       newCompleted[0] = !!step1Completed;
       return newCompleted;
@@ -68,7 +101,7 @@ const NewProblem = () => {
 
   useEffect(() => {
     const step2Completed = functionName && returnType && fnArguments.length > 0;
-    setCompleted(prev => {
+    setCompleted((prev) => {
       const newCompleted = [...prev];
       newCompleted[1] = !!step2Completed;
       return newCompleted;
@@ -77,7 +110,7 @@ const NewProblem = () => {
 
   useEffect(() => {
     const step3Completed = testCases.length >= 5;
-    setCompleted(prev => {
+    setCompleted((prev) => {
       const newCompleted = [...prev];
       newCompleted[2] = !!step3Completed;
       return newCompleted;
@@ -86,9 +119,17 @@ const NewProblem = () => {
 
   useEffect(() => {
     calculateQualityGate();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, difficulty, tags, description, functionName, returnType, fnArguments.length, testCases.length]);
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    title,
+    difficulty,
+    tags,
+    description,
+    functionName,
+    returnType,
+    fnArguments.length,
+    testCases.length,
+  ]);
 
   const calculateQualityGate = () => {
     if (testCases.length >= 5) setMinimumFiveCases(true);
@@ -111,97 +152,128 @@ const NewProblem = () => {
     else setMinimum100Words(false);
   };
 
+  //   const handleSubmit = async (e: any) => {
+  //     e.preventDefault();
+
+  //     if (true) {
+  //       try {
+  //         await createProblemMutation.mutate();
+  //       } catch (error) {}
+  //     }
+  //   };
+  // };
+
+  // const { getToken } = useAuth();
+  // const axios = ax(getToken);
+
+  // const createProblemMutation = useMutation(
+  //   () => {
+  //     const requestData = buildRequestData();
+  //     const response = await axios.post("/problems", requestData);
+  //     return response.data;
+  //   },
+  //   {
+  //     onSuccess: (data: any) => {
+  //       console.log("Problem created successfully:", data);
+  //     },
+  //     onError: (error: any) => {
+  //       console.error("Error creating problem:", error);
+  //     },
+  //   }
+  // );
+
   return (
     <motion.div
-    initial={{ x: -50, opacity: 0 }}
-    animate={{ x: 0, opacity: 1 }}
-    transition={{ duration: 0.5 }}
-    className=""
-  >
-    <div className="h-full w-full flex flex-col">
-      <h5>Create a Problem</h5>
-      <div className="flex gap-5 mt-5 h-full">
-        <Sidebar
-          completed={completed}
-          steps={steps}
-          activeStep={activeStep}
-          setActiveStep={setActiveStep}
-        />
-        <Card className="border h-[82.2vh] w-full">
-          <CardHeader className="border-b flex justify-between">
-            <p>{steps[activeStep - 1]?.description}</p>
-            <div className="flex gap-3">
-              <Button
-                onClick={() => {
-                  if (activeStep === 1)
-                    return toast.error("You have reached the start");
-                  setActiveStep((prev) => prev - 1);
-                }}
-                variant="flat"
-                isIconOnly
-              >
-                <ChevronLeft />
-              </Button>
-              <Button
-                onClick={() => {
-                  if (activeStep === steps.length)
-                    return toast.error("You have reached the end");
-                  setActiveStep((prev) => prev + 1);
-                }}
-                variant="flat"
-                isIconOnly
-              >
-                <ChevronRight />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardBody>
-            {activeStep === 1 && (
-              <Details
-                {...{
-                  title,
-                  setTitle,
-                  isPrivate,
-                  setIsPrivate,
-                  difficulty,
-                  setDifficulty,
-                  tags,
-                  setTags,
-                  description,
-                  setDescription,
-                }}
-              />
-            )}
-            {activeStep === 2 && (
-              <Stub
-                {...{
-                  functionName,
-                  setFunctionName,
-                  returnType,
-                  setReturnType,
-                  fnArguments,
-                  setFnArguments,
-                }}
-              />
-            )}
-            {activeStep === 3 && (
-              <TestCases {...{ testCases, setTestCases, fnArguments }} />
-            )}
-            {activeStep === 4 && (
-              <QualityGate
-                {...{
-                  minimumFiveCases,
-                  minimumThreeSampleCases,
-                  minimumTwoTags,
-                  minimum100Words,
-                  completed,
-                }}
-              />
-            )}
-          </CardBody>
-        </Card>
+      initial={{ x: -50, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className=""
+    >
+      <div className="h-full w-full flex flex-col">
+        <h5>Create a Problem</h5>
+        <div className="flex gap-5 mt-5 h-full">
+          <Sidebar
+            completed={completed}
+            steps={steps}
+            activeStep={activeStep}
+            setActiveStep={setActiveStep}
+          />
+          <Card className="border h-[82.2vh] w-full">
+            <CardHeader className="border-b flex justify-between">
+              <p>{steps[activeStep - 1]?.description}</p>
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => {
+                    if (activeStep === 1)
+                      return toast.error("You have reached the start");
+                    setActiveStep((prev) => prev - 1);
+                  }}
+                  variant="flat"
+                  isIconOnly
+                >
+                  <ChevronLeft />
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (activeStep === steps.length)
+                      return toast.error("You have reached the end");
+                    setActiveStep((prev) => prev + 1);
+                  }}
+                  variant="flat"
+                  isIconOnly
+                >
+                  <ChevronRight />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardBody>
+              {activeStep === 1 && (
+                <Details
+                  {...{
+                    title,
+                    setTitle,
+                    isPrivate,
+                    setIsPrivate,
+                    difficulty,
+                    setDifficulty,
+                    tags,
+                    setTags,
+                    description,
+                    setDescription,
+                  }}
+                />
+              )}
+              {activeStep === 2 && (
+                <Stub
+                  {...{
+                    functionName,
+                    setFunctionName,
+                    returnType,
+                    setReturnType,
+                    fnArguments,
+                    setFnArguments,
+                  }}
+                />
+              )}
+              {activeStep === 3 && (
+                <TestCases {...{ testCases, setTestCases, fnArguments }} />
+              )}
+              {activeStep === 4 && (
+                <QualityGate
+                  {...{
+                    minimumFiveCases,
+                    minimumThreeSampleCases,
+                    minimumTwoTags,
+                    minimum100Words,
+                    completed,
+                    buildRequestData,
+                  }}
+                />
+              )}
+            </CardBody>
+          </Card>
+        </div>
       </div>
-    </div>
     </motion.div>
   );
 };
