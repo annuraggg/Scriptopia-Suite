@@ -66,4 +66,4 @@ jobs:
           username: ${{ secrets.DO_USER }}
           script: |
             pm2 restart server
-            echo 'Backend Staged Successfully!'
+            echo 'Backend Deployed Successfully!'

@@ -1,5 +1,4 @@
-name: Deploy Backend
-name: Deploy Backend
+name: Stage Backend 
 
 on:
   push:
