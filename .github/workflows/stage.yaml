@@ -21,15 +21,6 @@ jobs:
         run: npm install
         working-directory: server
 
-      - name: Connect to server
-        uses: appleboy/ssh-action@v0.1.2
-        with:
-          host: ${{ secrets.DO_HOST }}
-          key: ${{ secrets.DO_SSH_KEY }}
-          username: ${{ secrets.DO_USER }}
-          script: |
-            cd ~/scriptopia-staging/server
-
       - name: Pull latest code
         uses: appleboy/ssh-action@v0.1.2
         with:
@@ -37,6 +28,7 @@ jobs:
           key: ${{ secrets.DO_SSH_KEY }}
           username: ${{ secrets.DO_USER }}
           script: |
+            cd ~/scriptopia-staging/server
             git pull
 
       - name: Install dependencies on server
@@ -46,6 +38,7 @@ jobs:
           key: ${{ secrets.DO_SSH_KEY }}
           username: ${{ secrets.DO_USER }}
           script: |
+            cd ~/scriptopia-staging/server
             npm install
 
       - name: Source NVM
