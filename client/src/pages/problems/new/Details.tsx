@@ -82,7 +82,7 @@ const Details = ({
     return () => {
       quill.off("text-change");
     };
-  }, [description, setDescription]);
+  }, []);
 
   const handleSubmit = () => {
     const problemData: ProblemData = {
