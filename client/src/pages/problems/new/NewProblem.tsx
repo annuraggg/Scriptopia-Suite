@@ -62,14 +62,14 @@ const NewProblem = () => {
   const buildRequestData = () => {
     const axios = ax(getToken);
     axios
-      .post("/problems/new", {
+      .post("/problems", {
         title,
         isPrivate,
         difficulty,
         tags,
         description,
         functionName,
-        returnType,
+        functionReturnType: returnType,
         fnArguments,
         testCases,
         minimumFiveCases,
@@ -137,7 +137,7 @@ const NewProblem = () => {
 
     if (
       testCases.length >= 3 &&
-      testCases.filter((i) => i.isSample).length >= 3
+      testCases.filter((i) => i.isSample).length >= 2
     )
       setMinimumThreeSampleCases(true);
     else setMinimumThreeSampleCases(false);
