@@ -11,7 +11,7 @@ import { Eye, Link, Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import IAssessment from "@/@types/Assessment";
 
-const calculateStatus = (createdAssessment) => {
+const calculateStatus = (createdAssessment: IAssessment) => {
   const startDate = new Date(createdAssessment.openRange.start);
   const endDate = new Date(createdAssessment.openRange.end);
   const currentDate = new Date();
