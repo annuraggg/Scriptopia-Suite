@@ -11,7 +11,9 @@ const authMiddleware = createMiddleware(async (c, next) => {
     console.log("No token");
     return sendError(c, 401, "Unauthorized");
   }
-  const auth = getAuth(c)
+
+   // @ts-ignore
+  const auth = devAuth ? global.auth : getAuth(c);
 
   if (!auth?.userId) {
     console.log("NO USERID")

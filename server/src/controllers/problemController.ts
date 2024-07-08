@@ -42,7 +42,8 @@ const getUserGeneratedProblems = async (c: Context) => {
 const getMyProblems = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
-    const auth = getAuth(c);
+    // @ts-ignore
+    const auth = devAuth ? global.auth : getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
@@ -77,7 +78,8 @@ const getProblem = async (c: Context) => {
 
 const createProblem = async (c: Context) => {
   try {
-    const auth = getAuth(c);
+    // @ts-ignore
+    const auth = devAuth ? global.auth : getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");

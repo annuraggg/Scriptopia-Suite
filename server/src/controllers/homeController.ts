@@ -6,10 +6,13 @@ import User from "../models/User";
 import IProblem from "../../@types/Problem";
 
 const getHome = async (c: Context) => {
-  const auth = getAuth(c);
+  // @ts-ignore
+  const auth = devAuth ? global.auth : getAuth(c);
   const problems = await Problem.find().limit(20).lean();
   const dupTabs = problems.map((problem) => problem.tags).flat();
   const tags = [...new Set(dupTabs)];
+
+  console.log(auth?.userId);
 
   const user = await User.findOne({ clerkId: auth?.userId })
     .populate("solvedProblems.problemId")

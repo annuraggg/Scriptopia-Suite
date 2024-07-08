@@ -25,7 +25,8 @@ const getAssessments = async (c: Context) => {
 const getMyAssessments = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
-    const auth = getAuth(c);
+    // @ts-ignore
+    const auth = devAuth ? global.auth : getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
@@ -46,7 +47,8 @@ const getMyAssessments = async (c: Context) => {
 const getMyLiveAssessments = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
-    const auth = getAuth(c);
+    // @ts-ignore
+    const auth = devAuth ? global.auth : getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
@@ -108,7 +110,8 @@ const getAssessment = async (c: Context) => {
 
 const createAssessment = async (c: Context) => {
   try {
-    const auth = getAuth(c);
+    // @ts-ignore
+    const auth = devAuth ? global.auth : getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
