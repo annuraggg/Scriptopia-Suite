@@ -84,6 +84,11 @@ const McqModal = ({
 
     const type = Array.from(questionType)[0];
 
+    if (!type) {
+      setError("Question type is required.");
+      return;
+    }
+
     if (type === "multiple") {
       if (options.length === 0) {
         setError("At least one option is required for multiple choice.");
