@@ -12,8 +12,6 @@ const getHome = async (c: Context) => {
   const dupTabs = problems.map((problem) => problem.tags).flat();
   const tags = [...new Set(dupTabs)];
 
-  console.log(auth?.userId);
-
   const user = await User.findOne({ clerkId: auth?.userId })
     .populate("solvedProblems.problemId")
     .lean();
@@ -52,6 +50,8 @@ const getHome = async (c: Context) => {
     solvedProblems,
     problemsCount: { easy: easyCount, medium: mediumCount, hard: hardCount },
   };
+
+  console.log(response)
   return sendSuccess(c, 200, "Success", response);
 };
 
