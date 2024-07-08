@@ -96,7 +96,7 @@ const Problems = (
               <TableRow className="h-14" key={problem.title}>
                 <TableCell
                   className="w-full md:w-auto hover:text-blue-500 cursor-pointer"
-                  onClick={() => navigate(`/problem/${problem._id}`)}
+                  onClick={() => navigate(`/problems/${problem._id}`)}
                 >
                   <p className="truncate max-w-[500px]">{problem.title}</p>
                 </TableCell>
