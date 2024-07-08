@@ -25,6 +25,8 @@ interface IProblem extends Document {
   testCases: ITestCase[];
   isPrivate: boolean;
   allowInAssessments: boolean;
+
+  status?: "Solved" | "Unsolved";
 }
 
 export default IProblem;
