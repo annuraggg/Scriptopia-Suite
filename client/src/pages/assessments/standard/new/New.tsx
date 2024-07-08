@@ -154,17 +154,6 @@ const New = () => {
       },
       feedbackEmail,
     };
-
-    const axios = ax(getToken);
-    axios
-      .post("/assessments", reqBody)
-      .then(() => {
-        toast.success("Assessment created successfully");
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error("Error creating assessment");
-      });
   };
 
   const tabsComponents = [
