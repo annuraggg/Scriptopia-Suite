@@ -9,11 +9,15 @@ const Actions = ({
   runCode,
   submitCode,
   loading,
+  language,
+  setLanguage,
 }: {
   setExplainOpen: (open: boolean) => void;
   runCode: () => Promise<Response<object>>;
   submitCode: () => Promise<Response<object>>;
   loading: boolean;
+  setLanguage: (lang: string) => void;
+  language: string;
 }) => {
   const [runLoading, setRunLoading] = useState<boolean>(false);
   const [submitLoading, setSubmitLoading] = useState<boolean>(false);
@@ -35,6 +39,10 @@ const Actions = ({
         size="sm"
         className="w-[180px]"
         aria-label="Select Language"
+        defaultSelectedKeys={[language]}
+        onChange={(e) => {
+          setLanguage(e.target.value);
+        }}
       >
         {languages.map((lang) => (
           <SelectItem key={lang} value={lang}>

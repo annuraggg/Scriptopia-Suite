@@ -9,7 +9,7 @@ import Problem from "./pages/problems/problem/Problem";
 import NewProblem from "./pages/problems/new/NewProblem";
 import New from "./pages/assessments/standard/new/New";
 import Layout from "./components/Layout";
-import ErrorPage from "./components/ErrorPage";
+// import ErrorPage from "./components/ErrorPage";
 import OrgIntro from "./pages/organization/intro/Intro";
 import OrgMain from "./pages/organization/main/Main";
 import TakeAssessment from "./pages/assessments/standard/assess/Lander";
@@ -18,7 +18,7 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <Layout />,
-    errorElement: <ErrorPage />,
+
     children: [
       {
         path: "/dashboard",

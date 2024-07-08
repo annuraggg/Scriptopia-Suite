@@ -6,127 +6,10 @@ import Split from "@uiw/react-split";
 import Response from "@/@types/Response";
 import { Case, Submission } from "./types";
 import starterGenerator from "@/functions/starterGenerator";
-import { OutputData } from "@editorjs/editorjs";
-
-const submissionsEx = [
-  {
-    status: "Accepted",
-    time: "2 days ago",
-    language: "Python",
-    runtime: "32ms",
-    memory: "14.3 MB",
-    beatsTime: "98.34%",
-    beatsMemory: "100%",
-    code: "class Solution:\n    def reverseString(self, s: List[str]) -> None:\n        s.reverse()",
-    author: "Anurag Sawant",
-  },
-  {
-    status: "Accepted",
-    time: "2 days ago",
-    language: "Python",
-    runtime: "32ms",
-    memory: "14.3 MB",
-    beatsTime: "98.34%",
-    beatsMemory: "100%",
-    code: "class Solution:\n    def reverseString(self, s: List[str]) -> None:\n        s.reverse()",
-    author: "Anurag Sawant",
-  },
-  {
-    status: "Accepted",
-    time: "2 days ago",
-    language: "Python",
-    runtime: "32ms",
-    memory: "14.3 MB",
-    beatsTime: "98.34%",
-    beatsMemory: "100%",
-    code: "class Solution:\n    def reverseString(self, s: List[str]) -> None:\n        s.reverse()",
-    author: "Anurag Sawant",
-  },
-  {
-    status: "Accepted",
-    time: "2 days ago",
-    language: "Python",
-    runtime: "32ms",
-    memory: "14.3 MB",
-    beatsTime: "98.34%",
-    beatsMemory: "100%",
-    code: "class Solution:\n    def reverseString(self, s: List[str]) -> None:\n        s.reverse()",
-    author: "Anurag Sawant",
-  },
-  {
-    status: "Not Accepted",
-    time: "2 days ago",
-    language: "Javascript",
-    runtime: "3ms",
-    memory: "1.3 MB",
-    beatsTime: "100%",
-    beatsMemory: "100%",
-    code: "var reverseString = function(s) {\n    return s.reverse();\n};",
-    author: "Anurag Sawant",
-  },
-];
-
-const statementEx = {
-  time: 1717676502247,
-  blocks: [
-    {
-      id: "qLvm-R849R",
-      type: "header",
-      data: { text: "Reverse String", level: 2 },
-    },
-    {
-      id: "pyXge4mvz1",
-      type: "paragraph",
-      data: {
-        text: "Write a function that reverses a string. The input string is given as an array of characters s.",
-      },
-    },
-    {
-      id: "uEV5vRj8T2",
-      type: "paragraph",
-      data: {
-        text: "You must do this by modifying the input array in-place with O(1) extra memory.",
-      },
-    },
-    { id: "jw0APpxgwK", type: "paragraph", data: { text: "Example 1:" } },
-    {
-      id: "bomO6rAEjJ",
-      type: "code",
-      data: {
-        code: 'Input: s = ["h","e","l","l","o"]\nOutput: ["o","l","l","e","h"]\n',
-      },
-    },
-    { id: "fiVuaLBUNb", type: "paragraph", data: { text: "Example 2:" } },
-    {
-      id: "lflE_sy1GT",
-      type: "code",
-      data: {
-        code: 'Input: s = ["H","a","n","n","a","h"]\nOutput: ["h","a","n","n","a","H"]\n',
-      },
-    },
-    { id: "yAc0fecIs-", type: "paragraph", data: { text: "Constraints:" } },
-    {
-      id: "g1bSigco3C",
-      type: "list",
-      data: {
-        style: "unordered",
-        items: ["1 <= s.length <= 105", "s[i] is a printable ascii character."],
-      },
-    },
-  ],
-  version: "2.29.1",
-};
-
-const starter = {
-  functionName: "reverseString",
-  functionParams: [
-    {
-      name: "s",
-      type: "String Array",
-    },
-  ],
-  functionReturnType: "String Array",
-};
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
+import { Delta } from "quill/core";
+import { IFunctionArg } from "@/@types/Problem";
 
 const languageEx = "javascript";
 
@@ -134,35 +17,54 @@ const Problem = () => {
   const [rootLoading, setRootLoading] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const [statement, setStatement] = useState<OutputData>({} as OutputData);
+  const [statement, setStatement] = useState<Delta>({} as Delta);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [title, setTitle] = useState<string>("");
 
   const [code, setCode] = useState<string>("");
-  const [language, setLanguage] = useState<string>("");
+  const [language, setLanguage] = useState<string>("javascript");
 
   const [consoleOutput, setConsoleOutput] = useState<string>("");
   const [cases, setCases] = useState<Case[]>([]);
 
+  const [functionName, setFunctionName] = useState<string>("");
+  const [functionArgs, setFunctionArgs] = useState<IFunctionArg[]>([]);
+  const [functionReturnType, setFunctionReturnType] = useState<string>("");
+
+  const [editorUpdateFlag, setEditorUpdateFlag] = useState<boolean>(false);
+
+  const { getToken } = useAuth();
   useEffect(() => {
-    setTimeout(() => {
-      setStatement(statementEx);
-      setSubmissions(submissionsEx);
+    const axios = ax(getToken);
+    const id = window.location.pathname.split("/").pop();
+    axios
+      .get(`/problems/${id}`)
+      .then((res) => {
+        console.log(res.data.data);
 
-      const starterCode = starterGenerator(
-        starter.functionName,
-        starter.functionParams,
-        starter.functionReturnType,
-        language
-      );
-      setCode(starterCode);
+        setStatement(res.data.data.description.ops);
+        setSubmissions(res.data.data?.submissions);
+        setTitle(res.data.data?.title);
+        setFunctionName(res.data.data?.functionName);
+        setFunctionArgs(res.data.data?.functionArgs);
+        setFunctionReturnType(res.data.data?.functionReturnType);
 
-      setLanguage(languageEx);
-    }, 1000);
-
-    setTimeout(() => {
-      setRootLoading(false);
-    }, 2000);
-  });
+        const starterCode = starterGenerator(
+          res.data.data?.functionName,
+          res.data.data?.functionArgs,
+          res.data.data?.functionReturnType,
+          languageEx
+        );
+        setCode(starterCode);
+        setLanguage(languageEx);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        setRootLoading(false);
+      });
+  }, [getToken]);
 
   const runCode = async () => {
     return new Promise<Response<object>>((resolve, reject) => {
@@ -207,7 +109,7 @@ const Problem = () => {
               output: '["f","e","d","c","b","a"]',
               expected: '["f","e","d","c","b","a"]',
               isSample: false,
-            }
+            },
           ]);
           setConsoleOutput("Success");
           resolve({ success: true, error: "", data: {} });
@@ -237,11 +139,28 @@ const Problem = () => {
     });
   };
 
+  useEffect(() => {
+    console.log("Language Changed: ", language);
+    const starter = starterGenerator(
+      functionName,
+      functionArgs,
+      functionReturnType,
+      language
+    );
+    setCode(starter);
+    console.log("Starter Code: ", starter);
+    setEditorUpdateFlag((prev) => !prev);
+  }, [language]);
+
   if (rootLoading) return <div>Loading...</div>;
 
   return (
     <Split className="flex h-[90vh] w-full gap-2" vaul-drawer-wrapper="">
-      <Statement statement={statement} submissions={submissions} />
+      <Statement
+        statement={statement}
+        submissions={submissions}
+        title={title}
+      />
       <Split mode="vertical" className="w-full">
         <Editor
           runCode={runCode}
@@ -249,6 +168,9 @@ const Problem = () => {
           loading={loading}
           code={code}
           setCode={setCode}
+          language={language}
+          setLanguage={setLanguage}
+          editorUpdateFlag={editorUpdateFlag}
         />
         <InfoPanel cases={cases} consoleOutput={consoleOutput} />
       </Split>

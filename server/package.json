@@ -1,7 +1,8 @@
 {
   "name": "server",
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts && npm run sentry:sourcemaps",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org scriptopia --project scriptopia-backend ./out && sentry-cli sourcemaps upload --org scriptopia --project scriptopia-backend ./out"
   },
   "dependencies": {
     "@axiomhq/pino": "^1.0.0",
@@ -9,6 +10,7 @@
     "@hono/clerk-auth": "^2.0.0",
     "@hono/node-server": "^1.11.4",
     "@hono/sentry": "^1.2.0",
+    "@sentry/cli": "^2.32.1",
     "@sentry/node": "^8.15.0",
     "@sentry/profiling-node": "^8.15.0",
     "dotenv": "^16.4.5",

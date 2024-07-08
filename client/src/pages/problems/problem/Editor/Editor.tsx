@@ -13,12 +13,18 @@ const Editor = ({
   loading,
   code,
   setCode,
+  language,
+  setLanguage,
+  editorUpdateFlag,
 }: {
   runCode: () => Promise<Response<object>>;
   submitCode: () => Promise<Response<object>>;
   loading: boolean;
   code: string;
   setCode: (code: string) => void;
+  language: string;
+  setLanguage: (lang: string) => void;
+  editorUpdateFlag: boolean;
 }) => {
   const [explainOpen, setExplainOpen] = useState<boolean>(false);
 
@@ -36,11 +42,13 @@ const Editor = ({
               runCode={runCode}
               submitCode={submitCode}
               loading={loading}
+              language={language}
+              setLanguage={setLanguage}
             />
           </div>
         </CardHeader>
         <CardBody className="h-full p-0 overflow-visible">
-          <Monaco code={code} setCode={setCode} loading={loading} />
+          <Monaco key={language} code={code} setCode={setCode} loading={loading} language={language} editorUpdateFlag={editorUpdateFlag} />
         </CardBody>
       </Card>
 
