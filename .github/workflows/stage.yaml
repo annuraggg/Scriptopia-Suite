@@ -1,8 +1,8 @@
-name: Deploy Backend
+name: Stage Backend
 
 on:
   push:
-    branches: [main]
+    branches: [dev]
 
 jobs:
   deploy:
@@ -28,13 +28,13 @@ jobs:
           key: ${{ secrets.DO_SSH_KEY }}
           username: ${{ secrets.DO_USER }}
           script: |
-            cd ~/scriptopia/server
+            cd ~/scriptopia-staging/server
             git pull
             npm install
             # Source NVM
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             # Restart the application
-            pm2 restart server
+            pm2 restart staging
 
-            echo 'Backend Deployed Successfully!'
+            echo 'Backend Staged Successfully!'

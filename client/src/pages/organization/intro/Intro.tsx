@@ -9,7 +9,6 @@ import {
   UserCheck,
   Users,
 } from "lucide-react";
-import React from "react";
 
 const Intro = () => {
   const steps = [

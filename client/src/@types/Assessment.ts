@@ -62,6 +62,7 @@ interface IAssessment extends Document {
   instructions: string;
   security: ISecurity;
   feedbackEmail: string;
+  createdAt: Date;
 }
 
 export default IAssessment;
