@@ -10,7 +10,7 @@ import ErrorPage from "./components/ErrorPage.tsx";
 import * as Sentry from "@sentry/react";
 
 Sentry.init({
-  dsn: "https://ee70fa62b6eef4168846857ac0b90395@o4507565080444928.ingest.de.sentry.io/4507565109477456",
+  dsn: import.meta.env.VITE_SENTRY_DSN,
   integrations: [
     Sentry.browserTracingIntegration(),
     Sentry.replayIntegration(),
@@ -20,7 +20,7 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0,
 });
 
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERdK_PUBLISHABLE_KEY;
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key");

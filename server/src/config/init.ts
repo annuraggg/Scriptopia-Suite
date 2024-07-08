@@ -1,8 +1,10 @@
 import "dotenv/config";
+import "./instrument";
 import { Hono } from "hono";
 import { prettyJSON } from "hono/pretty-json";
 import { cors } from "hono/cors";
 import { clerkMiddleware } from "@hono/clerk-auth";
+import { sentry } from "@hono/sentry";
 import performanceMiddleware from "../middlewares/performanceMiddleware";
 
 import "../utils/logger";
@@ -15,7 +17,14 @@ import assessmentRoute from "../routes/assessmentRoute";
 
 const app = new Hono();
 
-app.use(clerkMiddleware())
+// @ts-expect-error - Types Not Available
+app.use(clerkMiddleware()); // @ts-expect-error - Types Not Available
+app.use(
+  "*",
+  sentry({
+    dsn: process.env.SENTRY_DSN,
+  })
+);
 app.use(prettyJSON());
 app.use(cors());
 app.use(authMiddleware);

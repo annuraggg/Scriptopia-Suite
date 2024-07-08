@@ -8,8 +8,11 @@
     "@clerk/backend": "^1.2.4",
     "@hono/clerk-auth": "^2.0.0",
     "@hono/node-server": "^1.11.4",
+    "@hono/sentry": "^1.2.0",
+    "@sentry/node": "^8.15.0",
+    "@sentry/profiling-node": "^8.15.0",
     "dotenv": "^16.4.5",
-    "hono": "^4.4.7",
+    "hono": "^4.4.12",
     "mongoose": "^8.4.3",
     "pino": "^9.2.0"
   },
