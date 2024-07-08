@@ -66,9 +66,7 @@ const Navbar = () => {
         <div className="flex items-center gap-2 sm:gap-5">
           <div className="hidden md:flex items-center gap-2">
             <Dropdown>
-              <DropdownTrigger>
-                Organization
-              </DropdownTrigger>
+              <DropdownTrigger>Organization</DropdownTrigger>
               <DropdownMenu aria-label="Static Actions">
                 <DropdownItem onClick={openOrg}>Organization</DropdownItem>
               </DropdownMenu>
@@ -76,7 +74,7 @@ const Navbar = () => {
             <UserButton />
           </div>
           <div className="flex md:hidden" onClick={handleMenu}>
-            {!showMenu ? <Menu size={24} /> : <X size={24} />}
+            {!showMenu ? <Menu size={22} /> : <X size={22} />}
           </div>
         </div>
       </div>

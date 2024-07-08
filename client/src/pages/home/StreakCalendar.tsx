@@ -13,7 +13,7 @@ const StreakCalendar = ({ dates = [] }: { dates: string[] }) => {
       aria-label="Streak Calendar"
       isDateUnavailable={isDateUnavailable}
       isReadOnly
-      className=""
+      className="mt-0"
     />
   );
 };
