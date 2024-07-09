@@ -16,7 +16,7 @@ const Feedback = ({
   const handleClick = async () => {
     try {
       buildAssessmentData();
-      navigate("/");
+      navigate("/assessments");
     } catch (error) {
       console.error("Error during buildAssessmentData:", error);
     }

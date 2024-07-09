@@ -2,6 +2,7 @@ import { Card, CardHeader, CardBody } from "@nextui-org/card";
 import { Clock } from "lucide-react";
 import { CardTitle } from "@/components/ui/card";
 import { Progress } from "@nextui-org/react";
+import { motion } from "framer-motion";
 
 const convertToTime = (time: number) => {
   const hours = Math.floor(time / 3600);
@@ -42,59 +43,63 @@ const Sidebar = ({
   progress: { overall: number; mcq: number; code: number };
 }) => {
   return (
-    <div className="w-[25%] h-full">
-      <Card className="w-full h-full">
-        <CardHeader className=" border">
-          <div className="flex gap-5 items-center justify-center w-full">
-            <Clock />
-            <div>{convertToTime(timer)}</div>
-          </div>
-        </CardHeader>
-        <CardBody className="px-5 text-xs py-3">
-          <div>
-            <p className="text-medium">How the Assessment Works:</p>
-            <div>
-              {assessmentSteps.map((step, index) => (
-                <div className="mt-5">
-                  <p className="font-bold mb-1 text-gray-300">
-                    {index + 1}. {step.title}
-                  </p>
-                  <ul className="pl-4 text-gray-400">
-                    <li>{step.description}</li>
-                  </ul>
-                </div>
-              ))}
-
-              <Card className="mt-5 p-3 border">
-                <CardTitle className="text-sm">Your Progress</CardTitle>
-                <CardBody>
-                  <div>
-                    <p>Overall Completion: {progress.overall}%</p>
-                    <Progress
-                      value={progress.overall}
-                      className="mt-2"
-                      size="sm"
-                    />
-                  </div>
-                  <div className="mt-3">
-                    <p>MCQ Completion: {progress.mcq}%</p>
-                    <Progress value={progress.mcq} className="mt-2" size="sm" />
-                  </div>
-                  <div className="mt-3">
-                    <p>Code Completion: {progress.code}%</p>
-                    <Progress
-                      value={progress.code}
-                      className="mt-2"
-                      size="sm"
-                    />
-                  </div>
-                </CardBody>
-              </Card>
+    <motion.div
+      initial={{ x: -50, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="w-[25%] h-full">
+        <Card className="w-full h-full">
+          <CardHeader className=" border">
+            <div className="flex gap-5 items-center justify-center w-full">
+              <Clock />
+              <div>{convertToTime(timer)}</div>
             </div>
-          </div>
-        </CardBody>
-      </Card>
-    </div>
+          </CardHeader>
+          <CardBody className="px-5 text-xs py-3">
+            <div>
+              <p className="text-medium">How the Assessment Works:</p>
+              <div>
+                {assessmentSteps.map((step, index) => (
+                  <div className="mt-5">
+                    <p className="font-bold mb-1 text-gray-300">
+                      {index + 1}. {step.title}
+                    </p>
+                    <ul className="pl-4 text-gray-400">
+                      <li>{step.description}</li>
+                    </ul>
+                  </div>
+                ))}
+
+                <Card className="mt-5 p-3 border">
+                  <CardTitle className="text-sm">Your Progress</CardTitle>
+                  <CardBody>
+                    <div>
+                      <p>Overall Completion: {progress.overall}%</p>
+                      <Progress
+                        value={progress.overall}
+                        className="mt-2"
+                        size="sm"
+                      />
+                    </div>
+                    <div className="mt-3">
+                      <p>MCQ Completion: {progress.mcq}%</p>
+                      <Progress value={progress.mcq} className="mt-2" size="sm" />
+                    </div>
+                    <div className="mt-3">
+                      <p>Code Completion: {progress.code}%</p>
+                      <Progress
+                        value={progress.code}
+                        className="mt-2"
+                        size="sm"
+                      />
+                    </div>
+                  </CardBody>
+                </Card>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+    </motion.div>
   );
 };
 
