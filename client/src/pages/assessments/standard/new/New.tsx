@@ -43,7 +43,6 @@ const tabsList = [
   "Security",
   "Feedback",
 ];
-
 const New = () => {
   const [activeTab, setActiveTab] = useState("0");
 
