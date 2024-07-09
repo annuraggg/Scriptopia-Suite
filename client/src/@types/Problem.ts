@@ -19,6 +19,7 @@ interface IProblem extends Document {
   difficulty: "easy" | "medium" | "hard";
   tags: string[];
   votes: number;
+  acceptance: number;
   functionName: string;
   functionReturnType: "string" | "number" | "boolean" | "array";
   functionArgs: IFunctionArg[];
