@@ -30,7 +30,6 @@ const Problem = () => {
   const [functionName, setFunctionName] = useState<string>("");
   const [functionArgs, setFunctionArgs] = useState<IFunctionArg[]>([]);
   const [functionReturnType, setFunctionReturnType] = useState<string>("");
-  const [problemId, setProblemId] = useState<string>("");
 
   const [editorUpdateFlag, setEditorUpdateFlag] = useState<boolean>(false);
 
@@ -49,7 +48,6 @@ const Problem = () => {
         setFunctionName(res.data.data?.functionName);
         setFunctionArgs(res.data.data?.functionArgs);
         setFunctionReturnType(res.data.data?.functionReturnType);
-        setProblemId(res.data.data?._id);
 
         const starterCode = starterGenerator(
           res.data.data?.functionName,
@@ -69,8 +67,6 @@ const Problem = () => {
   }, [getToken]);
 
   const runCode = async () => {
-    const axios = ax(getToken);
-    axios.post("/submissions/run", { code, language, problemId })
     return new Promise<Response<object>>((resolve, reject) => {
       setLoading(true);
       // TODO Logic to run code
@@ -144,6 +140,7 @@ const Problem = () => {
   };
 
   useEffect(() => {
+    console.log("Language Changed: ", language);
     const starter = starterGenerator(
       functionName,
       functionArgs,
@@ -158,7 +155,7 @@ const Problem = () => {
   if (rootLoading) return <div>Loading...</div>;
 
   return (
-    <Split className="flex h-[90vh] w-full gap-2" vaul-drawer-wrapper="">
+    <Split className="flex h-[90vh] w-full gap-2 my-5 px-5" vaul-drawer-wrapper="">
       <Statement
         statement={statement}
         submissions={submissions}

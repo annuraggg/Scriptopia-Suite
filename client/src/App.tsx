@@ -12,7 +12,9 @@ import Layout from "./components/Layout";
 // import ErrorPage from "./components/ErrorPage";
 import OrgIntro from "./pages/organization/intro/Intro";
 import OrgMain from "./pages/organization/main/Main";
-import TakeAssessment from "./pages/assessments/standard/assess/Lander";
+import MainAssessment from "./pages/assessments/standard/assess/Main";
+import AssessmentCurrent from "./pages/assessments/standard/assess/Dashboard";
+import AssessmentCurrentProblem from "./pages/assessments/standard/assess/problem/Problem";
 
 const router = createBrowserRouter([
   {
@@ -66,7 +68,15 @@ const router = createBrowserRouter([
   },
   {
     path: "/assessments/standard/:id",
-    element: <TakeAssessment />,
+    element: <MainAssessment />,
+  },
+  {
+    path: "/assessments/standard/:id/current",
+    element: <AssessmentCurrent />,
+  },
+  {
+    path: "/assessments/standard/:id/current/:probid",
+    element: <AssessmentCurrentProblem />,
   },
 ]);
 

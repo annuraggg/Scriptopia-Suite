@@ -38,10 +38,10 @@ const Statement = ({
         >
           <Card className="w-full">
             <h6 className="px-5 mt-3">{title}</h6>
-            <CardBody className="h-[79.5vh]">
+            <CardBody className="h-[84.5vh]">
               <div
                 id="editor-div"
-                className="w-full overflow-auto -mt-10"
+                className="w-full overflow-auto -mt-10 px-5"
               ></div>
             </CardBody>
           </Card>

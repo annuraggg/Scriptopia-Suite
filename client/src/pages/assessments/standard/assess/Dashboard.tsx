@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
-import Main from "./Main";
+import Main from "./MainWindow";
 
 const Lander = () => {
   const [timer, setTimer] = useState(3600);
