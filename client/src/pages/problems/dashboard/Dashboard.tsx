@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import Loader from "@/components/Loader";
 import {
   Card,
   CardHeader,
