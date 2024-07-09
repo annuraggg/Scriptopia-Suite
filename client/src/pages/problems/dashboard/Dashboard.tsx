@@ -9,7 +9,7 @@ import {
   TableColumn,
   TableBody,
   TableRow,
-  TableCell
+  TableCell,
 } from "@nextui-org/react";
 import { UsersRound, BookUser, Percent } from "lucide-react";
 import IProblem from "@/@types/Problem";
@@ -46,36 +46,40 @@ const Dashboard = ({ myproblems }: { myproblems: IProblem[] }) => {
       initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="w-full p-5 h-[100%]"
+      className="w-full p-10 h-[100%]"
     >
-      <div className="w-full h-[90-vh] ml-10">
-        <div className="flex justify-center gap-24 w-full flex-wrap">
+      <div className="w-full h-[90-vh]">
+        <div className="flex justify-between w-full flex-wrap">
           {Cards.map((card, index) => (
-            <Card key={index} className="h-32 w-56 pt-2 mt-4">
+            <Card key={index} className="h-32 w-56">
               <CardHeader className="text-center flex justify-center text-gray-400">
                 {card.title}
               </CardHeader>
-              <CardBody className="flex justify-center items-start gap-3 flex-row">
+              <CardBody className="flex justify-center items-start gap-5 flex-row">
                 <card.icon size={30} className={`${card.color}`} />
                 <p className="text-xl">{card.value}</p>
               </CardBody>
             </Card>
           ))}
-          <Card className="h-40 w-52 pt-2 mb-6">
+          <Card className="h-40 w-60 pt-2">
             <CardHeader className="text-center flex flex-row gap-2 justify-center text-gray-400">
-              <UsersRound size={30} className="text-yellow-500" />
+              <UsersRound size={25} className="text-yellow-500" />
               <p className="text-yellow-500">Top Contributors</p>
             </CardHeader>
-            <CardBody className="flex justify-center items-start gap-3 flex-row">
-            </CardBody>
+            <CardBody className="flex justify-center items-start gap-3 flex-row"></CardBody>
           </Card>
         </div>
         <div className="flex flex-col">
-          <div className="flex flex-row flex-wrap justify-start items-center  mt-4">
+          <div className="flex flex-row justify-start items-center pt-5 mt-4 w-[]">
             <Card className="p-2">
               <CardBody className="flex justify-start items-start gap-36 flex-row p-1 pl-4">
                 <p className="mt-3">Latest Activities</p>
-                <Input type="Search" label="Search Problems" size="sm" className="w-[60vh]" />
+                <Input
+                  type="Search"
+                  label="Search Problems"
+                  size="sm"
+                  className="w-[60vh]"
+                />
               </CardBody>
             </Card>
           </div>
@@ -98,7 +102,9 @@ const Dashboard = ({ myproblems }: { myproblems: IProblem[] }) => {
                       <p className="truncate max-w-[500px]">{problem.title}</p>
                     </TableCell>
                     <TableCell>
-                      <p className="text-green-500">{problem.acceptance || `70%`}</p>
+                      <p className="text-green-500">
+                        {problem.acceptance || `70%`}
+                      </p>
                     </TableCell>
                     <TableCell
                       className={`
@@ -129,7 +135,7 @@ const Dashboard = ({ myproblems }: { myproblems: IProblem[] }) => {
         </div>
       </div>
     </motion.div>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;
