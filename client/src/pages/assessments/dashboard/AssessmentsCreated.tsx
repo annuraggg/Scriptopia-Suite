@@ -67,20 +67,35 @@ const AssessmentsCreated = ({
                     {calculateStatus(CreatedAssessment)}
                   </span>
                 </p>
-                <p className="text-xs text-gray-500">
-                  Date: {new Date(CreatedAssessment.createdAt).toLocaleString()}
+                <p>
+                  <span className="text-xs text-gray-500">Date: </span>
+                  <span className="text-xs text-white-200">
+                    {new Date(CreatedAssessment.createdAt).toLocaleString()}
+                  </span>
                 </p>
-                <p className="text-xs text-gray-500">
-                  Duration: {CreatedAssessment.timeLimit} minutes
+                <p>
+                  <span className="text-xs text-gray-500">Duration: </span>
+                  <span className="text-xs text-white-200">
+                    {CreatedAssessment.timeLimit} minutes
+                  </span>
                 </p>
-                <p className="text-xs text-gray-500">
-                  MCQs: {CreatedAssessment.mcqs.length}, Codes:{" "}
-                  {CreatedAssessment.problems.length}
+                <p>
+                  <span className="text-xs text-gray-500">MCQs: </span>
+                  <span className="text-xs text-white-200">
+                    {CreatedAssessment.mcqs.length}
+                  </span>
+                  <span className="text-xs text-gray-500">, </span>
+                  <span className="text-xs text-gray-500">Codes: </span>
+                  <span className="text-xs text-white-200">
+                    {" "}
+                    {CreatedAssessment.problems.length}
+                  </span>
                 </p>
                 <p className="text-xs text-gray-500 mt-2">Time Range:</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-white-200">
                   {new Date(CreatedAssessment.openRange.start).toLocaleString()}{" "}
-                  - {new Date(CreatedAssessment.openRange.end).toLocaleString()}
+                  <span className="text-xs text-gray-500 mt-2">to </span>
+                  {new Date(CreatedAssessment.openRange.end).toLocaleString()}
                 </p>
               </CardBody>
               <CardFooter className="gap-2 flex-wrap">

@@ -46,11 +46,11 @@ const Sidebar = ({
   setActive: (number: number) => void;
 }) => {
   return (
-    <div className="hidden md:block w-[20%]">
+    <div className="hidden md:block w-[30%]">
       <div className="flex h-full max-h-screen flex-col gap-2">
         <div className="flex h-14 lg:h-[60px] items-center">
           <a className="flex gap-2 font-semibold">
-            <span className="">Assessments</span>
+            <span className="">Problems</span>
           </a>
         </div>
         <div className="flex-1">
