@@ -70,15 +70,15 @@ const Dashboard = ({ myproblems }: { myproblems: IProblem[] }) => {
           </Card>
         </div>
         <div className="flex flex-col">
-          <div className="flex flex-row justify-start items-center pt-5 mt-4 w-[]">
-            <Card className="p-2">
-              <CardBody className="flex justify-start items-start gap-36 flex-row p-1 pl-4">
-                <p className="mt-3">Latest Activities</p>
+          <div className="flex flex-row justify-start items-center pt-5 mt-4 w-full">
+            <Card className="p-2 w-full">
+              <CardBody className="flex flex-row flex-wrap justify-between items-start gap-36 p-1 pl-4">
+                <p className="mt-3 left-element">Latest Activities</p>
                 <Input
                   type="Search"
                   label="Search Problems"
                   size="sm"
-                  className="w-[60vh]"
+                  className="w-[80vh] right-element"
                 />
               </CardBody>
             </Card>
