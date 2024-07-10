@@ -13,7 +13,7 @@ import Layout from "./components/Layout";
 import OrgIntro from "./pages/organization/intro/Intro";
 import OrgMain from "./pages/organization/main/Main";
 import TakeAssessment from "./pages/assessments/standard/assess/Lander";
-
+import { Result } from "./pages/assessments/standard/assess/Result";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -67,6 +67,10 @@ const router = createBrowserRouter([
   {
     path: "/assessments/standard/:id",
     element: <TakeAssessment />,
+  },
+  {
+    path: "/assessments/standard/result",
+    element: <Result />,
   },
 ]);
 
