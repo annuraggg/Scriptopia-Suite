@@ -1,26 +1,18 @@
 const { performance } = require("perf_hooks");
+//import { performance } from "perf_hooks";
 
 const handler = async (event) => {
   try {
-    const {
-      functionName,
-      functionArgs,
-      functionBody,
-      functionReturn,
-      testCases,
-    } = event;
+    const { functionSchema, testCases } = event;
+    const { functionName, functionBody, functionArgs } = functionSchema;
 
-    const fnScript = createFunctionScript(
-      functionName,
-      functionArgs,
-      functionBody,
-      functionReturn
-    );
+    console.log(functionSchema);
 
     const { results, avgTime, avgMemory } = runTestCases(
       functionName,
-      fnScript,
-      testCases
+      functionBody,
+      testCases,
+      functionArgs
     );
 
     const failedCase = results.find((result) => !result.passed);
@@ -43,24 +35,7 @@ const handler = async (event) => {
   }
 };
 
-const createFunctionScript = (
-  functionName,
-  functionArgs,
-  functionBody,
-  functionReturn
-) => {
-  const args = functionArgs.map((arg) => arg.name);
-
-  const fn = `
-    function ${functionName}(${args.join(", ")}) {
-        ${functionBody}
-    }
-    `;
-
-  return fn;
-};
-
-const runTestCases = (functionName, fnScript, testCases) => {
+const runTestCases = (functionName, fnScript, testCases, functionArgs) => {
   const results = [];
   let totalTime = 0;
   let totalMemory = 0;
@@ -68,6 +43,7 @@ const runTestCases = (functionName, fnScript, testCases) => {
   testCases.forEach((testCase, index) => {
     const { time, memory, passed, output } = executeFn(
       functionName,
+      functionArgs,
       fnScript,
       testCase
     );
@@ -83,45 +59,73 @@ const runTestCases = (functionName, fnScript, testCases) => {
   return { results, avgTime, avgMemory };
 };
 
-const executeFn = (functionName, fnScript, testCase) => {
+const executeFn = (functionName, functionArgs, fnScript, testCase) => {
   const { input, output } = testCase;
 
   const start = performance.now();
   const initialMemory = process.memoryUsage().heapUsed;
 
-  const result = new Function(`return (${fnScript});`)()(...input);
+  let actualInput = [];
+  const arrInput = JSON.parse(input);
+  arrInput.forEach((arg, index) => {
+    let newInput = arg;
+    if (functionArgs[index].type === "string") {
+      newInput = arg;
+    } else if (functionArgs[index].type === "number") {
+      newInput = parseInt(arg);
+    } else if (functionArgs[index].type === "array") {
+      newInput = JSON.parse(arg);
+    } else if (functionArgs[index].type === "boolean") {
+      newInput = arg === "true";
+    }
+
+    actualInput.push(newInput);
+  });
+
+  const evalScript = `
+  ${fnScript}
+  ${functionName}(${actualInput});
+  `;
+
+  console.log(evalScript);
+
+  const result = eval(evalScript);
 
   const end = performance.now();
   const finalMemory = process.memoryUsage().heapUsed;
 
   const time = end - start;
   const memory = finalMemory - initialMemory;
-  const passed = result === output;
+  const passed = JSON.stringify(result) === JSON.stringify(JSON.parse(output));
 
   return { time, memory, passed, output: result };
 };
 
+// export { handler };
+
+module.exports = { handler };
+
 const testEvent = {
-  functionName: "sum",
-  functionArgs: [
-    {
-      name: "no1",
-      type: "number",
-    },
-    {
-      name: "no2",
-      type: "number",
-    },
-  ],
-  functionBody: "return no1 + no2;",
-  functionReturn: "number",
+  functionSchema: {
+    functionName: "sum",
+    functionArgs: [
+      { name: "a", type: "number" },
+      { name: "b", type: "number" },
+    ],
+    functionBody: `function sum(a, b) {
+    return a + b;
+    }`,
+    functionReturn: "number",
+  },
   testCases: [
     {
-      input: [1, 2],
-      output: 3,
+      input: "[2, 9]",
+      output: "11",
+      difficulty: "easy",
+      isSample: true,
+      _id: "668a435ddce9a929d18990f7",
     },
   ],
 };
-handler(testEvent).then(console.log);
 
-module.exports = { handler };
+handler(testEvent).then(console.log);

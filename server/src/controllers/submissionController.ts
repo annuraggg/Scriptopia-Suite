@@ -18,7 +18,7 @@ const runCode = async (c: Context) => {
       functionReturn: prob.functionReturnType,
     };
 
-    const result = await runCompilerCode(prob.language, functionSchema, body.testCases);
+    const result = await runCompilerCode(body.language, functionSchema, prob.testCases);
 
     return sendSuccess(c, 200, "Success", body);
   } catch (error) {
