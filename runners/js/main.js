@@ -1,6 +1,6 @@
-import { performance } from "perf_hooks";
+const { performance } = require("perf_hooks");
 
-export const handler = async (event) => {
+const handler = async (event) => {
   try {
     const {
       functionName,
@@ -100,3 +100,28 @@ const executeFn = (functionName, fnScript, testCase) => {
 
   return { time, memory, passed, output: result };
 };
+
+const testEvent = {
+  functionName: "sum",
+  functionArgs: [
+    {
+      name: "no1",
+      type: "number",
+    },
+    {
+      name: "no2",
+      type: "number",
+    },
+  ],
+  functionBody: "return no1 + no2;",
+  functionReturn: "number",
+  testCases: [
+    {
+      input: [1, 2],
+      output: 3,
+    },
+  ],
+};
+handler(testEvent).then(console.log);
+
+module.exports = { handler };

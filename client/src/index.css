@@ -128,7 +128,7 @@ html {
 .ce-conversion-toolbar,
 .ce-conversion-tool__icon {
   background-color: black;
-  border: 1px solid lightgray;
+
 }
 
 .ce-inline-toolbar__dropdown:hover {
@@ -199,7 +199,6 @@ html {
 
 .ql-toolbar {
   border: none !important;
-  border: 1px solid #2e2e33 !important;
   border-radius: 10px;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
@@ -236,7 +235,7 @@ button:hover .ql-stroke,
 }
 
 .ql-container {
-  border: 1px solid #2e2e33 !important;
+  border: none !important;
   border-radius: 10px;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
