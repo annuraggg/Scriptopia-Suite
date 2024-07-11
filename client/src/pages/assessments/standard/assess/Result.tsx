@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Key, useState } from 'react'
 import { motion } from "framer-motion";
 import {
     Card,
@@ -13,12 +13,18 @@ import {
     TableCell,
     Button,
     Tabs,
-    Tab
+    Tab,
+    Dropdown,
+    DropdownTrigger,
+    DropdownMenu,
+    DropdownItem,
 } from "@nextui-org/react";
 import { Clock4, Code, SquareStack } from "lucide-react";
 import ResultBar from "./resultBar";
 
-export const Result = () => {
+type ProgressOption = 'Coding' | 'MCQ';
+
+const Result = () => {
     const codeResult = [
         {
             questionNo: 1,
@@ -51,6 +57,16 @@ export const Result = () => {
             score: "18 out off 20",
         },
     ]
+
+    const [selectedOption, setSelectedOption] = useState<ProgressOption>('Coding');
+
+    const handleSelectionChange = (key: Key) => {
+        if (typeof key === 'string' && (key === 'Coding' || key === 'MCQ')) {
+            setSelectedOption(key);
+        }
+    };
+
+
     return (
         <motion.div
             initial={{ y: 50, opacity: 0 }}
@@ -58,7 +74,7 @@ export const Result = () => {
             transition={{ duration: 0.5 }}
             className="w-full p-10 h-[100%] flex flex-row"
         >
-            <div className="w-full h-screen flex flex-col">
+            <div className="flex flex-col w-3/4 h-screen">
                 <div className="flex justify-center gap-11 w-full flex-wrap">
                     <Card className="h-36 w-52">
                         <CardHeader className="flex flex-row gap-2 text-center justify-center text-gray-400">
@@ -141,7 +157,38 @@ export const Result = () => {
                     </Tabs>
                 </div>
             </div>
-                <ResultBar/>
+            <div>
+                <Card className="h-[50vh] w-[50vh] pt-2 rounded-2xl">
+                    <CardHeader className="text-center flex flex-row gap-4 justify-center text-gray-400">
+                        <p className="text-yellow-500">Your Progress</p>
+                        <Dropdown className='w-12 h-12'>
+                            <DropdownTrigger>
+                                <Button variant="flat" className='w-11 h-9'>{selectedOption}</Button>
+                            </DropdownTrigger>
+                            <DropdownMenu
+                                aria-label="Link Actions"
+                                onAction={handleSelectionChange}
+                            >
+                                <DropdownItem key="Coding">
+                                    Coding
+                                </DropdownItem>
+                                <DropdownItem key="MCQ">
+                                    MCQ
+                                </DropdownItem>
+                            </DropdownMenu>
+                        </Dropdown>
+                    </CardHeader>
+                    <CardBody className="flex justify-center items-start gap-3 flex-row">
+                        {selectedOption === 'Coding' ? (
+                            <div>Coding progress content goes here</div>
+                        ) : (
+                            <div>MCQ progress content goes here</div>
+                        )}
+                    </CardBody>
+                </Card>
+            </div>
         </motion.div>
     )
 }
+
+export default Result;
