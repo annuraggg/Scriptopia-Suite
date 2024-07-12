@@ -5,11 +5,13 @@ import { prettyJSON } from "hono/pretty-json";
 import { cors } from "hono/cors";
 import { clerkMiddleware } from "@hono/clerk-auth";
 import { sentry } from "@hono/sentry";
+
 import performanceMiddleware from "../middlewares/performanceMiddleware";
+import authMiddleware from "../middlewares/authMiddleware";
 
 import "../utils/logger";
 import "./db";
-import authMiddleware from "../middlewares/authMiddleware";
+import "./cache";
 
 import homeRoute from "../routes/homeRoute";
 import problemRoute from "../routes/problemsRoute";

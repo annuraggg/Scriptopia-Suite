@@ -3,13 +3,25 @@ import Editor from "./Editor/Editor";
 import InfoPanel from "./InfoPanel";
 import Statement from "./LeftPanel/Statement";
 import Split from "@uiw/react-split";
-import Response from "@/@types/Response";
-import { Case, Submission } from "./types";
 import starterGenerator from "@/functions/starterGenerator";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { Delta } from "quill/core";
 import { IFunctionArg } from "@/@types/Problem";
+import { IRunResponseResult } from "@/@types/RunResponse";
+import confetti from "canvas-confetti";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { Button, Card, CardBody } from "@nextui-org/react";
+import { CpuIcon, TimerIcon } from "lucide-react";
+import { ISubmission } from "@/@types/Submission";
 
 const languageEx = "javascript";
 
@@ -18,14 +30,14 @@ const Problem = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const [statement, setStatement] = useState<Delta>({} as Delta);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [submissions, setSubmissions] = useState<ISubmission[]>([]);
   const [title, setTitle] = useState<string>("");
 
   const [code, setCode] = useState<string>("");
   const [language, setLanguage] = useState<string>("javascript");
 
   const [consoleOutput, setConsoleOutput] = useState<string>("");
-  const [cases, setCases] = useState<Case[]>([]);
+  const [cases, setCases] = useState<IRunResponseResult[]>([]);
 
   const [functionName, setFunctionName] = useState<string>("");
   const [functionArgs, setFunctionArgs] = useState<IFunctionArg[]>([]);
@@ -33,6 +45,11 @@ const Problem = () => {
   const [problemId, setProblemId] = useState<string>("");
 
   const [editorUpdateFlag, setEditorUpdateFlag] = useState<boolean>(false);
+
+  const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
+
+  const [leftPanelActiveTab, setLeftPanelActiveTab] =
+    useState<string>("statement");
 
   const { getToken } = useAuth();
   useEffect(() => {
@@ -43,18 +60,18 @@ const Problem = () => {
       .then((res) => {
         console.log(res.data.data);
 
-        setStatement(res.data.data.description.ops);
+        setStatement(res.data.data.problem.description.ops);
         setSubmissions(res.data.data?.submissions);
-        setTitle(res.data.data?.title);
-        setFunctionName(res.data.data?.functionName);
-        setFunctionArgs(res.data.data?.functionArgs);
-        setFunctionReturnType(res.data.data?.functionReturnType);
-        setProblemId(res.data.data?._id);
+        setTitle(res.data.data?.problem?.title);
+        setFunctionName(res.data.data?.problem?.functionName);
+        setFunctionArgs(res.data.data?.problem?.functionArgs);
+        setFunctionReturnType(res.data.data?.problem?.functionReturnType);
+        setProblemId(res.data.data?.problem?._id);
 
         const starterCode = starterGenerator(
-          res.data.data?.functionName,
-          res.data.data?.functionArgs,
-          res.data.data?.functionReturnType,
+          res.data.data?.problem?.functionName,
+          res.data.data?.problem?.functionArgs,
+          res.data.data?.problem?.functionReturnType,
           languageEx
         );
         setCode(starterCode);
@@ -70,77 +87,98 @@ const Problem = () => {
 
   const runCode = async () => {
     const axios = ax(getToken);
-    axios.post("/submissions/run", { code, language, problemId })
-    return new Promise<Response<object>>((resolve, reject) => {
-      setLoading(true);
-      // TODO Logic to run code
-      try {
-        setTimeout(() => {
-          setLoading(false);
-          setCases([
-            {
-              name: "Case 1",
-              difficulty: "Easy",
-              score: 1,
-              input: ['["h","e","l","l","o"]'],
-              output: '["o","l","l","e","h"]',
-              expected: '["o","l","l","e","h"]',
-              isSample: true,
-            },
-            {
-              name: "Case 2",
-              difficulty: "Easy",
-              score: 1,
-              input: ['["H","a","n","n","a","h"]'],
-              output: '["h","a","n","n","a","H"]',
-              expected: '["h","a","n","n","a","H"]',
-              isSample: true,
-            },
-            {
-              name: "Case 3",
-              difficulty: "Easy",
-              score: 1,
-              input: ['["a","b","c","d","e"]'],
-              output: '["e","d","c","b","a"]',
-              expected: '["e","d","c","b","a"]',
-              isSample: false,
-            },
-            {
-              name: "Case 4",
-              difficulty: "Easy",
-              score: 1,
-              input: ['["a","b","c","d","e","f"]'],
-              output: '["f","e","d","c","b","a"]',
-              expected: '["f","e","d","c","b","a"]',
-              isSample: false,
-            },
-          ]);
-          setConsoleOutput("Success");
-          resolve({ success: true, error: "", data: {} });
-        }, 2000);
-        // End of Test Logic
-      } catch (error) {
-        setLoading(false);
-        reject({ success: false, error: error, data: {} });
+    return axios
+      .post("/submissions/run", { code, language, problemId })
+      .then((res) => {
+        console.log(res.data.data);
+        setCases(
+          res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
+        );
+
+        // ! This is a temporary solution
+        setConsoleOutput(
+          res.data.data.results
+            .map(
+              (r: { input: string; output: string; expected: string }) =>
+                `Input: ${r.input}\nOutput: ${r.output}\nExpected: ${r.expected}`
+            )
+            .join("\n\n")
+        );
+
+        return { success: true, error: "", data: {} };
+      })
+      .catch((err) => {
+        console.log(err);
+        return { success: false, error: err, data: {} };
+      });
+  };
+
+  const runConfetti = (type: "success" | "error") => {
+    const end = Date.now() + 500;
+
+    const successColors = ["#052814", "#12A150"];
+    const errorColors = ["#8B0000", "#FF0000"];
+
+    (function frame() {
+      confetti({
+        particleCount: 10,
+        angle: 60,
+        spread: 100,
+        origin: { x: 0 },
+        colors: type === "success" ? successColors : errorColors,
+      });
+      confetti({
+        particleCount: 10,
+        angle: 120,
+        spread: 100,
+        origin: { x: 1 },
+        colors: type === "success" ? successColors : errorColors,
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
       }
-    });
+    })();
   };
 
   const submitCode = async () => {
-    return new Promise<Response<object>>((resolve, reject) => {
-      setLoading(true);
-      // TODO Logic to submit code
-      try {
-        setTimeout(() => {
-          setLoading(false);
-          resolve({ success: true, error: "", data: {} });
-        }, 2000);
-        // End of Test Logic
-      } catch (error) {
+    const axios = ax(getToken);
+    setLoading(true);
+    return axios
+      .post("/submissions/submit", { code, language, problemId })
+      .then((res) => {
+        console.log(res.data.data);
+        setCases(
+          res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
+        );
+
+        // ! This is a temporary solution
+        setConsoleOutput(
+          res.data.data.results
+            .map(
+              (r: { input: string; output: string; expected: string }) =>
+                `Input: ${r.input}\nOutput: ${r.output}\nExpected: ${r.expected}`
+            )
+            .join("\n\n")
+        );
         setLoading(false);
-        reject({ success: false, error: error, data: {} });
-      }
-    });
+
+        if (res.data.data.status === "FAILED") {
+          runConfetti("error");
+        } else {
+          runConfetti("success");
+        }
+
+        setDrawerOpen(true);
+        setLeftPanelActiveTab("submissions");
+        setSubmissions((prev) => [...(prev ?? []), res.data.data]);
+        return { success: true, error: "", data: {} };
+      })
+      .catch((err) => {
+        console.log(err);
+        setLoading(false);
+        return { success: false, error: err, data: {} };
+      });
   };
 
   useEffect(() => {
@@ -153,31 +191,83 @@ const Problem = () => {
     setCode(starter);
     console.log("Starter Code: ", starter);
     setEditorUpdateFlag((prev) => !prev);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
   if (rootLoading) return <div>Loading...</div>;
 
   return (
-    <Split className="flex h-[90vh] w-full gap-2" vaul-drawer-wrapper="">
-      <Statement
-        statement={statement}
-        submissions={submissions}
-        title={title}
-      />
-      <Split mode="vertical" className="w-full">
-        <Editor
-          runCode={runCode}
-          submitCode={submitCode}
+    <>
+      <Split className="flex h-[90vh] w-full gap-2" vaul-drawer-wrapper="">
+        <Statement
+          statement={statement}
+          submissions={submissions}
+          title={title}
+          setActiveTab={setLeftPanelActiveTab}
+          activeTab={leftPanelActiveTab}
           loading={loading}
-          code={code}
-          setCode={setCode}
-          language={language}
-          setLanguage={setLanguage}
-          editorUpdateFlag={editorUpdateFlag}
         />
-        <InfoPanel cases={cases} consoleOutput={consoleOutput} />
+        <Split mode="vertical" className="w-full">
+          <Editor
+            runCode={runCode}
+            submitCode={submitCode}
+            loading={loading}
+            code={code}
+            setCode={setCode}
+            language={language}
+            setLanguage={setLanguage}
+            editorUpdateFlag={editorUpdateFlag}
+          />
+          <InfoPanel cases={cases} consoleOutput={consoleOutput} />
+        </Split>
       </Split>
-    </Split>
+
+      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+        <DrawerContent className="outline-none">
+          <DrawerHeader>
+            <DrawerTitle>Solution Submitted</DrawerTitle>
+            <DrawerDescription>
+              Submitted at {new Date().toLocaleString()}
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="flex gap-5 items-center justify-center">
+            <Card className="px-10 py-5">
+              <CardBody>
+                <div className="flex gap-5 items-center">
+                  <TimerIcon size={30} />
+                  <div>
+                    <h5>Time Taken</h5>
+                    <p>0.5 seconds</p>
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+
+            <Card className="px-10 py-5">
+              <CardBody>
+                <div className="flex gap-5 items-center">
+                  <CpuIcon size={30} />
+                  <div>
+                    <h5>Memory Used</h5>
+                    <p>0.5 MB</p>
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+          </div>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button
+                className="w-fit mx-auto"
+                onClick={() => setDrawerOpen(false)}
+              >
+                Close
+              </Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 };
 

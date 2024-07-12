@@ -12,7 +12,10 @@ import Layout from "./components/Layout";
 // import ErrorPage from "./components/ErrorPage";
 import OrgIntro from "./pages/organization/intro/Intro";
 import OrgMain from "./pages/organization/main/Main";
-import TakeAssessment from "./pages/assessments/standard/assess/Lander";
+import MainAssessment from "./pages/assessments/standard/assess/MainWindow";
+import AssessmentCurrent from "./pages/assessments/standard/assess/Main";
+import AssessmentCurrentProblem from "./pages/assessments/standard/assess/problem/Problem";
+import Result from "./pages/assessments/standard/assess/Result";
 
 const router = createBrowserRouter([
   {

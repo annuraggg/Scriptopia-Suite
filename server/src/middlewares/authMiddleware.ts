@@ -20,6 +20,7 @@ const authMiddleware = createMiddleware(async (c, next) => {
     return sendError(c, 401, "Unauthorized");
   }
 
+  c.set("auth", auth);
   return next();
 });
 

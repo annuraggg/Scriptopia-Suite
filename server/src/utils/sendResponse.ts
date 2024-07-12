@@ -1,5 +1,6 @@
 import { Context } from "hono";
 import { StatusCode } from "hono/utils/http-status";
+import logger from "./logger";
 
 const sendSuccess = (
   c: Context,
@@ -24,6 +25,7 @@ const sendError = (
   message: string,
   data?: any
 ) => {
+  logger.error("Error: " + data);
   return c.json(
     {
       success: false,

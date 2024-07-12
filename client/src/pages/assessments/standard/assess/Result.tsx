@@ -1,17 +1,14 @@
-import React from 'react'
 import { motion } from "framer-motion";
 import {
     Card,
     CardHeader,
     CardBody,
-    Input,
     Table,
     TableHeader,
     TableColumn,
     TableBody,
     TableRow,
     TableCell,
-    Button,
     Tabs,
     Tab
 } from "@nextui-org/react";
@@ -56,11 +53,11 @@ export const Result = () => {
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="w-full p-10 h-[100%] flex flex-row"
+            className="w-full p-10 h-[100%] flex flex-row gap-20 px-[10vw]"
         >
-            <div className="w-full h-screen flex flex-col">
-                <div className="flex justify-center gap-11 w-full flex-wrap">
-                    <Card className="h-36 w-52">
+            <div className="w-full h-screen flex flex-col ">
+                <div className="flex justify-center gap-11 w-full">
+                    <Card className="h-36 w-full">
                         <CardHeader className="flex flex-row gap-2 text-center justify-center text-gray-400">
                             <p>Time Taken</p>
                             <Clock4 size={28} className="text-blue-500" />
@@ -69,7 +66,7 @@ export const Result = () => {
                             <p className="text-xl"></p>
                         </CardBody>
                     </Card>
-                    <Card className="h-36 w-52">
+                    <Card className="h-36 w-full">
                         <CardHeader className="text-center flex flex-row gap-2 justify-center text-gray-400">
                             <p>Coding Completion</p>
                             <Code size={28} className="text-green-500" />
@@ -78,7 +75,7 @@ export const Result = () => {
                             <p className="text-xl"></p>
                         </CardBody>
                     </Card>
-                    <Card className="h-36 w-52">
+                    <Card className="h-36 w-full">
                         <CardHeader className="text-center flex flex-row gap-2 justify-center text-gray-400">
                             <p>MCQ Completion</p>
                             <SquareStack size={27} className="text-yellow-500" />
@@ -88,9 +85,9 @@ export const Result = () => {
                         </CardBody>
                     </Card>
                 </div>
-                <div>
+                {/* <div>
                     <div className="flex flex-row justify-center items-center pt-7 gap-9 w-full">
-                        <Card className="h-44 w-[28%]">
+                        <Card className="h-44 w-full">
                             <CardHeader className="text-left flex flex-row gap-2 justify-start text-gray-400 border-b-2">
                                 <p>Assessments Results:</p>
                             </CardHeader>
@@ -100,7 +97,7 @@ export const Result = () => {
                                 <p className="text-sm text-blue-500">Intermediate.🚀</p>
                             </CardBody>
                         </Card>
-                        <Card className="h-44 w-53">
+                        <Card className="h-44 w-full">
                             <CardHeader className="text-center flex flex-row gap-2 justify-center text-gray-400">
                                 <p>Your Report Card</p>
                             </CardHeader>
@@ -113,13 +110,13 @@ export const Result = () => {
                             </CardBody>
                         </Card>
                     </div>
-                </div>
-                <div className='flex justify-center items-center w-full pt-7'>
+                </div> */}
+                <div className='w-full pt-7'>
                     <Tabs aria-label="Options" className=''>
                         <Tab key="mcq" title="MCQs" className="">
                         </Tab>
                         <Tab key="coding" title="Coding" className="">
-                            <Table isStriped aria-label="Code Results" className="pt-10">
+                            <Table isStriped aria-label="Code Results" className="">
                                 <TableHeader>
                                     <TableColumn className="text-sm">Question No.</TableColumn>
                                     <TableColumn className="text-sm">Question</TableColumn>
@@ -145,3 +142,5 @@ export const Result = () => {
         </motion.div>
     )
 }
+
+export default Result

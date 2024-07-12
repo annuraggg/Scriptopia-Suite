@@ -2,18 +2,24 @@ import { useEffect } from "react";
 import { Card, CardBody } from "@nextui-org/react";
 import { Tabs, Tab } from "@nextui-org/tabs";
 import Submission from "./Submission";
-import { Submission as SubmissionType } from "../types";
 import Quill from "quill";
 import { Delta } from "quill/core";
+import { ISubmission } from "@/@types/Submission";
 
 const Statement = ({
   statement,
   submissions,
   title,
+  setActiveTab,
+  activeTab,
+  loading,
 }: {
   statement: Delta;
-  submissions: SubmissionType[];
+  submissions: ISubmission[];
   title: string;
+  setActiveTab: (key: string) => void;
+  activeTab: string;
+  loading: boolean;
 }) => {
   useEffect(() => {
     setTimeout(() => {
@@ -30,7 +36,13 @@ const Statement = ({
 
   return (
     <div className="w-full">
-      <Tabs placement="top" className="w-[48%]" variant="underlined">
+      <Tabs
+        placement="top"
+        className="w-[48%]"
+        variant="underlined"
+        selectedKey={activeTab}
+        onSelectionChange={(key) => setActiveTab(key.toString())}
+      >
         <Tab
           key="statement"
           title="Statement &nbsp;&nbsp;"
@@ -50,7 +62,7 @@ const Statement = ({
         <Tab key="submissions" title="Submissions" className="w-full p-0">
           <Card className="w-full">
             <CardBody className="h-[84.5vh]">
-              <Submission submissions={submissions} />
+              <Submission submissions={submissions} loading={loading} />
             </CardBody>
           </Card>
         </Tab>

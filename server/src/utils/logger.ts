@@ -17,7 +17,6 @@ class logger {
     console.warn(
       `\x1b[37m[${new Date().toISOString()}] \x1b[33mWARN: \x1b[33m${message} \x1b[37m`
     );
-    console.warn(message);
   }
 }
 
