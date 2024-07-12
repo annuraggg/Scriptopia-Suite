@@ -1,17 +1,8 @@
-import React from 'react'
 import { motion } from "framer-motion";
 import {
     Card,
     CardHeader,
     CardBody,
-    Table,
-    TableHeader,
-    TableColumn,
-    TableBody,
-    TableRow,
-    TableCell,
-    Tabs,
-    Tab,
 } from "@nextui-org/react";
 
 const ViewAssessment = () => {
