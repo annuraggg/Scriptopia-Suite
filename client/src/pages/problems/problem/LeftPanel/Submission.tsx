@@ -1,4 +1,5 @@
 import {
+  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -6,14 +7,28 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/react";
-import { Submission as SubmissionType } from "../types";
+import { ISubmission } from "@/@types/Submission";
 
-const Submission = ({ submissions }: { submissions: SubmissionType[] }) => {
+const Submission = ({
+  submissions,
+  loading,
+}: {
+  submissions: ISubmission[];
+  loading: boolean;
+}) => {
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <CircularProgress />
+      </div>
+    );
+  }
+
   return (
     <div className="p-2">
       <h6>Submissions</h6>
 
-      {submissions.length !== 0 ? (
+      {submissions?.length !== 0 ? (
         <>
           <Table className="mt-5">
             <TableHeader>
@@ -31,7 +46,7 @@ const Submission = ({ submissions }: { submissions: SubmissionType[] }) => {
                 >
                   <TableCell
                     className={`${
-                      submission?.status === "Accepted"
+                      submission?.status === "SUCCESS"
                         ? "text-success"
                         : "text-danger"
                     }`}
@@ -39,9 +54,15 @@ const Submission = ({ submissions }: { submissions: SubmissionType[] }) => {
                     {submission?.status}
                   </TableCell>
                   <TableCell>{submission?.language}</TableCell>
-                  <TableCell>{submission?.time}</TableCell>
-                  <TableCell>{submission?.runtime}</TableCell>
-                  <TableCell>{submission?.memory}</TableCell>
+                  <TableCell>
+                    {new Date(submission?.createdAt).toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    {(submission?.avgTime * 10).toFixed(2) + " ms"}
+                  </TableCell>
+                  <TableCell>
+                    {submission?.avgMemory.toFixed(2) + " MB"}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

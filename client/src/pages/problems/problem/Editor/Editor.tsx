@@ -5,7 +5,6 @@ import "@/config/monaco";
 import Explain from "./Explain";
 import Monaco from "./Monaco";
 import Actions from "./Actions";
-import Response from "@/@types/Response";
 
 const Editor = ({
   runCode,
@@ -17,8 +16,8 @@ const Editor = ({
   setLanguage,
   editorUpdateFlag,
 }: {
-  runCode: () => Promise<Response<object>>;
-  submitCode: () => Promise<Response<object>>;
+  runCode: () => Promise<object>;
+  submitCode: () => Promise<object>;
   loading: boolean;
   code: string;
   setCode: (code: string) => void;

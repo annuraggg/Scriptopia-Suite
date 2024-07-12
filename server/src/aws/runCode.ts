@@ -20,27 +20,24 @@ const runCode = async (
     },
   });
 
-  console.log(functionSchema)
-
+  const data = { functionSchema, testCases };
   const params = {
     FunctionName: `${language}-compiler`,
-    Payload: JSON.stringify({ functionSchema, testCases }),
+    Payload: JSON.stringify(data),
   };
 
   try {
     const data = await lambdaClient.send(new InvokeCommand(params));
     if (data.FunctionError) {
-      console.error("Error: ", data.FunctionError);
       return;
     }
     if (data.Payload) {
       const d = JSON.parse(new TextDecoder().decode(data.Payload));
-      console.log("Success: ", d);
+      return d;
     }
 
     return { status: "ERROR" };
   } catch (err) {
-    console.error("Error: ", err);
     return { status: "ERROR" };
   }
 };
