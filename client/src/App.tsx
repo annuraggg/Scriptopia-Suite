@@ -15,7 +15,9 @@ import OrgMain from "./pages/organization/main/Main";
 import MainAssessment from "./pages/assessments/standard/assess/MainWindow";
 import AssessmentCurrent from "./pages/assessments/standard/assess/Main";
 import AssessmentCurrentProblem from "./pages/assessments/standard/assess/problem/Problem";
-import Result from "./pages/assessments/standard/assess/Result";
+import Result from "./pages/assessments/standard/assess/Result/Result";
+import ViewAssessment from "./pages/assessments/dashboard/ViewAssessment/ViewAssessment";
+import ViewUserAssessment from "./pages/assessments/dashboard/ViewAssessment/ViewUserAssessment";
 
 const router = createBrowserRouter([
   {
@@ -32,6 +34,14 @@ const router = createBrowserRouter([
       {
         path: "/assessments",
         element: <AssessmentDashboard />,
+      },
+      {
+        path: "/assessments/id/view",
+        element: <ViewAssessment />,
+      },
+      {
+        path: "/assessments/id/view/id",
+        element: <ViewUserAssessment />,
       },
       {
         path: "/assessments/standard/new",
