@@ -1,5 +1,6 @@
-import React, { Key, useState } from 'react'
+import React from 'react'
 import {
+    Button,
     Card,
     CardHeader,
     CardBody,
@@ -11,12 +12,10 @@ import {
     TableCell,
     Tabs,
     Tab,
+    Link,
 } from "@nextui-org/react";
-import { Clock4, Code, SquareStack } from "lucide-react";
 
-
-
-const ResultLeft = () => {
+const RightPane = () => {
 
     const codeResult = [
         {
@@ -100,66 +99,28 @@ const ResultLeft = () => {
     ]
 
     return (
-        <div className="w-full h-screen flex flex-col">
-            <div className="flex justify-center gap-11 w-full">
-                <Card className="h-36 w-full">
-                    <CardHeader className="flex flex-row gap-2 text-center justify-center text-gray-400">
-                        <p>Time Taken</p>
-                        <Clock4 size={28} className="text-blue-500" />
+        <div className='w-full h-screen flex flex-col gap-10'>
+            <div className='flex flex-row gap-12'>
+                <Card className='w-full h-[40vh] rounded-2xl'>
+                    <CardHeader className="text-center flex flex-row gap-2 justify-center h-14 border-b-1 border-gray-400">
+                        <Link isExternal showAnchorIcon href="/problems#" className="text-lg ml-5">Total Problems Solved</Link>
                     </CardHeader>
-                    <CardBody className="flex justify-center items-start gap-5 flex-row">
-                        <p className="text-xl"></p>
+                    <CardBody className="flex justify-center items-center">
                     </CardBody>
                 </Card>
-                <Card className="h-36 w-full">
-                    <CardHeader className="text-center flex flex-row gap-2 justify-center text-gray-400">
-                        <p>Coding Completion</p>
-                        <Code size={28} className="text-green-500" />
+                <Card className='w-full h-[40vh] rounded-2xl'>
+                    <CardHeader className="text-center flex flex-row gap-2 justify-center h-14 border-b-1 border-gray-400">
+                        <p className='text-lg'>Average Assessment Score:</p>
+                        <p>70%</p>
                     </CardHeader>
-                    <CardBody className="flex justify-center items-start gap-5 flex-row">
-                        <p className="text-xl"></p>
-                    </CardBody>
-                </Card>
-                <Card className="h-36 w-full">
-                    <CardHeader className="text-center flex flex-row gap-2 justify-center text-gray-400">
-                        <p>MCQ Completion</p>
-                        <SquareStack size={27} className="text-yellow-500" />
-                    </CardHeader>
-                    <CardBody className="flex justify-center items-start gap-5 flex-row">
-                        <p className="text-xl"></p>
+                    <CardBody className="flex justify-center items-center">
                     </CardBody>
                 </Card>
             </div>
             <div>
-                <div className="flex flex-row justify-center items-center pt-7 gap-9 w-full">
-                    <Card className="h-44 w-full">
-                        <CardHeader className="text-left flex flex-row gap-2 justify-start text-gray-400 border-b-2">
-                            <p>Assessments Results:</p>
-                        </CardHeader>
-                        <CardBody className="flex justify-center items-center gap-3 flex-col p-2">
-                            <p className="text-sm">🌟 Congratulations on completing the assessment! 🌟</p>
-                            <p className="text-sm">Based on your performance, here's your skill level:</p>
-                            <p className="text-sm text-blue-500">Intermediate.🚀</p>
-                        </CardBody>
-                    </Card>
-                    <Card className="h-44 w-full">
-                        <CardHeader className="text-center flex flex-row gap-2 justify-center text-gray-400">
-                            <p>Your Report Card</p>
-                        </CardHeader>
-                        <CardBody className="flex justify-center items-start gap-5 flex-row">
-                            <ul className="list-disc ml-4 text-sm flex flex-col gap-3">
-                                <li><span className='text-blue-500 mr-1'>Time Taken:</span>10 mins</li>
-                                <li><span className='text-green-500 mr-1'>Coding Completion:</span>10 mins</li>
-                                <li><span className='text-yellow-500 mr-1'>MCQ Completion:</span>10 mins</li>
-                            </ul>
-                        </CardBody>
-                    </Card>
-                </div>
-            </div>
-            <div className='w-full pt-7'>
                 <Tabs aria-label="Options" className=''>
                     <Tab key="mcq" title="MCQs" className="">
-                    <Table isStriped aria-label="Mcq Results" className="pt-6">
+                        <Table isStriped aria-label="Mcq Results" className="pt-6">
                             <TableHeader>
                                 <TableColumn className="text-sm">#</TableColumn>
                                 <TableColumn className="text-sm">Test</TableColumn>
@@ -185,9 +146,9 @@ const ResultLeft = () => {
                         </Table>
                     </Tab>
                     <Tab key="coding" title="Coding" className="">
-                        <Table isStriped aria-label="Code Results" className="pt-10">
+                        <Table isStriped aria-label="Code Results" className="pt-6">
                             <TableHeader>
-                                <TableColumn className="text-sm">Question No.</TableColumn>
+                                <TableColumn className="text-sm">#</TableColumn>
                                 <TableColumn className="text-sm">Question</TableColumn>
                                 <TableColumn className="text-sm">Time Taken</TableColumn>
                                 <TableColumn className="text-sm">Score</TableColumn>
@@ -210,4 +171,4 @@ const ResultLeft = () => {
     )
 }
 
-export default ResultLeft
+export default RightPane

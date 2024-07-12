@@ -18,6 +18,7 @@ import AssessmentCurrentProblem from "./pages/assessments/standard/assess/proble
 import Result from "./pages/assessments/standard/assess/Result/Result";
 import ViewAssessment from "./pages/assessments/dashboard/ViewAssessment/ViewAssessment";
 import ViewUserAssessment from "./pages/assessments/dashboard/ViewAssessment/ViewUserAssessment";
+import Profile from "./pages/Profile/profile";
 
 const router = createBrowserRouter([
   {
@@ -68,6 +69,10 @@ const router = createBrowserRouter([
       },
       { path: "/organization", element: <OrgMain /> },
     ],
+  },
+  {
+    path: "/profile",
+    element: <Profile />,
   },
   {
     path: "/sign-in",
