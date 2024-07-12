@@ -15,7 +15,7 @@ import OrgMain from "./pages/organization/main/Main";
 import MainAssessment from "./pages/assessments/standard/assess/MainWindow";
 import AssessmentCurrent from "./pages/assessments/standard/assess/Main";
 import AssessmentCurrentProblem from "./pages/assessments/standard/assess/problem/Problem";
-import Result from "./pages/assessments/standard/assess/result/Result";
+import Result from "./pages/assessments/standard/assess/Result/Result";
 import ViewAssessment from "./pages/assessments/dashboard/ViewAssessment/ViewAssessment";
 import ViewUserAssessment from "./pages/assessments/dashboard/ViewAssessment/ViewUserAssessment";
 
