@@ -1,6 +1,4 @@
 import { motion } from "framer-motion";
-import FnArgument from "@/@types/FnArguments";
-import TestCase from "@/@types/TestCase";
 import {
   Button,
   Input,
@@ -23,17 +21,18 @@ import {
 } from "@nextui-org/react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { IFunctionArg, ITestCase } from "@/@types/Problem";
 
 const TestCases = ({
   testCases,
   setTestCases,
   fnArguments,
 }: {
-  testCases: TestCase[];
+  testCases: ITestCase[];
   setTestCases: (
-    testCases: TestCase[] | ((prev: TestCase[]) => TestCase[])
+    testCases: ITestCase[] | ((prev: ITestCase[]) => ITestCase[])
   ) => void;
-  fnArguments: FnArgument[];
+  fnArguments: IFunctionArg[];
 }) => {
   const {
     isOpen: isAddCaseOpen,
@@ -61,16 +60,15 @@ const TestCases = ({
     });
   };
 
-  const addCase = (index: number) => {
+  const addCase = () => {
     if (!input.every((i) => i !== ""))
       return toast.error("Please fill all the input fields");
     if (!output) return toast.error("Please fill the output field");
     if (difficulty === "") return toast.error("Please select a difficulty");
-    const newTestCase: TestCase = {
-      id: index.toString(),
-      input: input.join(", "),
+    const newTestCase: ITestCase = {
+      input: input,
       output: output,
-      difficulty: difficulty,
+      difficulty: difficulty as "easy" | "medium" | "hard",
       isSample: isSample,
     };
 
@@ -96,11 +94,7 @@ const TestCases = ({
   const editCase = (index: number) => {
     setIsEditing(true);
     setIsEditingIndex(index);
-    setInput((prev) => {
-      return prev.map((i, itemIndex) =>
-        itemIndex === index ? testCases[index].input : i
-      );
-    });
+    setInput(testCases[index].input);
     setOutput(testCases[index].output);
     setDifficulty(testCases[index].difficulty);
     setIsSample(testCases[index].isSample);
@@ -140,7 +134,7 @@ const TestCases = ({
           {testCases.map((testCase, index) => (
             <TableRow key={index}>
               <TableCell>{index + 1}</TableCell>
-              <TableCell>{testCase.input}</TableCell>
+              <TableCell>{testCase.input.join(", ")}</TableCell>
               <TableCell>{testCase.output}</TableCell>
               <TableCell>{testCase.difficulty}</TableCell>
               <TableCell>{testCase.isSample ? "Yes" : "No"}</TableCell>
@@ -247,7 +241,7 @@ const TestCases = ({
             <Button
               variant="flat"
               color="success"
-              onClick={() => addCase(testCases.length)}
+              onClick={() => addCase()}
             >
               Add Case
             </Button>

@@ -14,4 +14,5 @@ export interface IRunResponseResult {
   isSample: boolean;
   memory: number;
   time: number;
+  consoleOutput: string[];
 }

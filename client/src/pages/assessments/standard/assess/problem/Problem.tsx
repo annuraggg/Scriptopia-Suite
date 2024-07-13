@@ -4,12 +4,13 @@ import InfoPanel from "./InfoPanel";
 import Statement from "./LeftPanel/Statement";
 import Split from "@uiw/react-split";
 import Response from "@/@types/Response";
-import { Case, Submission } from "./types";
 import starterGenerator from "@/functions/starterGenerator";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { Delta } from "quill/core";
 import { IFunctionArg } from "@/@types/Problem";
+import { ISubmission } from "@/@types/Submission";
+import { IRunResponseResult } from "@/@types/RunResponse";
 
 const languageEx = "javascript";
 
@@ -18,14 +19,14 @@ const Problem = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const [statement, setStatement] = useState<Delta>({} as Delta);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [submissions, setSubmissions] = useState<ISubmission[]>([]);
   const [title, setTitle] = useState<string>("");
 
   const [code, setCode] = useState<string>("");
   const [language, setLanguage] = useState<string>("javascript");
 
   const [consoleOutput, setConsoleOutput] = useState<string>("");
-  const [cases, setCases] = useState<Case[]>([]);
+  const [cases, setCases] = useState<IRunResponseResult[]>([]);
 
   const [functionName, setFunctionName] = useState<string>("");
   const [functionArgs, setFunctionArgs] = useState<IFunctionArg[]>([]);
@@ -71,49 +72,9 @@ const Problem = () => {
       setLoading(true);
       // TODO Logic to run code
       try {
-        setTimeout(() => {
-          setLoading(false);
-          setCases([
-            {
-              name: "Case 1",
-              difficulty: "Easy",
-              score: 1,
-              input: ['["h","e","l","l","o"]'],
-              output: '["o","l","l","e","h"]',
-              expected: '["o","l","l","e","h"]',
-              isSample: true,
-            },
-            {
-              name: "Case 2",
-              difficulty: "Easy",
-              score: 1,
-              input: ['["H","a","n","n","a","h"]'],
-              output: '["h","a","n","n","a","H"]',
-              expected: '["h","a","n","n","a","H"]',
-              isSample: true,
-            },
-            {
-              name: "Case 3",
-              difficulty: "Easy",
-              score: 1,
-              input: ['["a","b","c","d","e"]'],
-              output: '["e","d","c","b","a"]',
-              expected: '["e","d","c","b","a"]',
-              isSample: false,
-            },
-            {
-              name: "Case 4",
-              difficulty: "Easy",
-              score: 1,
-              input: ['["a","b","c","d","e","f"]'],
-              output: '["f","e","d","c","b","a"]',
-              expected: '["f","e","d","c","b","a"]',
-              isSample: false,
-            },
-          ]);
-          setConsoleOutput("Success");
-          resolve({ success: true, error: "", data: {} });
-        }, 2000);
+        setConsoleOutput("Running Code...");
+        setCases([] as IRunResponseResult[]);
+        resolve({ success: true, error: "", data: {} });
         // End of Test Logic
       } catch (error) {
         setLoading(false);
@@ -150,12 +111,16 @@ const Problem = () => {
     setCode(starter);
     console.log("Starter Code: ", starter);
     setEditorUpdateFlag((prev) => !prev);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
   if (rootLoading) return <div>Loading...</div>;
 
   return (
-    <Split className="flex h-[90vh] w-full gap-2 my-5 px-5" vaul-drawer-wrapper="">
+    <Split
+      className="flex h-[90vh] w-full gap-2 my-5 px-5"
+      vaul-drawer-wrapper=""
+    >
       <Statement
         statement={statement}
         submissions={submissions}

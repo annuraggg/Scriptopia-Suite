@@ -29,7 +29,8 @@ const runCode = async (
   try {
     const data = await lambdaClient.send(new InvokeCommand(params));
     if (data.FunctionError) {
-      return;
+      console.log(data.FunctionError);
+      return { status: "ERROR", error: data.FunctionError };
     }
     if (data.Payload) {
       const d = JSON.parse(new TextDecoder().decode(data.Payload));
