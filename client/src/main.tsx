@@ -44,8 +44,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         >
           <App />
 
-          <SpeedInsights />
-          <Analytics />
+          <SpeedInsights debug={false} />
+          <Analytics debug={false} />
           <Toaster richColors theme="dark" />
         </ClerkProvider>
       </NextUIProvider>

@@ -4,6 +4,8 @@ import { Button, Input } from "@nextui-org/react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import ax from "@/config/axios";
+import { FullScreen, useFullScreenHandle } from "react-full-screen";
 
 const divStyle = {
   background: "url('/wave2.svg')",
@@ -33,17 +35,21 @@ const Main = () => {
     }
 
     setLoading(true);
-    // const req = axios.post("/test").finally(() => setLoading(false));
-    const req = new Promise<void>((resolve): void => {
-      setTimeout(() => {
-        resolve();
-        setLoading(false);
-        setInstructions(
-          "This is a test. Please follow the instructions below: \n\n1. Do not refresh the page \n2. Do not close the tab \n3. Do not use any external resources \n\nClick on the button below to start the assessment. Good Luck!"
-        );
+
+    const axios = ax();
+    const req = axios
+      .post("/assessments/verify", {
+        id: window.location.pathname.split("/").pop(),
+        email,
+      })
+      .then((res) => {
+        setInstructions(res.data.data.instructions);
         setPage("instructions");
-      }, 2000);
-    });
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => setLoading(false));
 
     toast.promise(req, {
       loading: "Validating Access",
@@ -52,81 +58,88 @@ const Main = () => {
     });
   };
 
+  const fullScreenHandle = useFullScreenHandle();
   const startTest = () => {
     navigate("current");
+    fullScreenHandle.enter();
   };
 
   return (
-    <div className="h-screen flex items-center justify-center" style={divStyle}>
-      {page === "main" && (
-        <Card className="h-[70%] w-[50%] p-3  border-2">
-          <CardHeader>
-            <img
-              src="/logo1080_transparent_white_large.png"
-              alt="logo"
-              className="w-10"
-            />
-          </CardHeader>
-          <CardBody className="flex flex-col items-center justify-center">
-            <h4>Scriptopia Assessment</h4>
-            <p className="mt-2 text-sm">
-              Please Enter Your Details to Continue
-            </p>
-            <Input
-              placeholder="Enter Your Name"
-              className="mt-5 w-[300px]"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <Input
-              placeholder="Enter Your Email"
-              className="mt-5 w-[300px]"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <Button
-              variant="flat"
-              color="success"
-              className="mt-5"
-              onClick={submitData}
-              isLoading={loading}
-            >
-              Submit
-            </Button>
-          </CardBody>
-          <CardFooter className="flex justify-center">
-            <p className="text-sm text-gray-500">
-              By clicking submit, you agree to our Terms and Conditions
-            </p>
-          </CardFooter>
-        </Card>
-      )}
+    <FullScreen handle={fullScreenHandle}>
+      <div
+        className="h-screen flex items-center justify-center"
+        style={divStyle}
+      >
+        {page === "main" && (
+          <Card className="h-[70%] w-[50%] p-3  border-2">
+            <CardHeader>
+              <img
+                src="/logo1080_transparent_white_large.png"
+                alt="logo"
+                className="w-10"
+              />
+            </CardHeader>
+            <CardBody className="flex flex-col items-center justify-center">
+              <h4>Scriptopia Assessment</h4>
+              <p className="mt-2 text-sm">
+                Please Enter Your Details to Continue
+              </p>
+              <Input
+                placeholder="Enter Your Name"
+                className="mt-5 w-[300px]"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+              <Input
+                placeholder="Enter Your Email"
+                className="mt-5 w-[300px]"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <Button
+                variant="flat"
+                color="success"
+                className="mt-5"
+                onClick={submitData}
+                isLoading={loading}
+              >
+                Submit
+              </Button>
+            </CardBody>
+            <CardFooter className="flex justify-center">
+              <p className="text-sm text-gray-500">
+                By clicking submit, you agree to our Terms and Conditions
+              </p>
+            </CardFooter>
+          </Card>
+        )}
 
-      {page === "instructions" && (
-        <Card className="h-[70%] w-[50%] p-3  border-2">
-          <CardHeader>
-            <img
-              src="/logo1080_transparent_white_large.png"
-              alt="logo"
-              className="w-10"
-            />
-          </CardHeader>
-          <CardBody className="flex flex-col items-center justify-center">
-            <h4>Instructions</h4>
-            <pre className="my-5 text-sm">{instructions}</pre>
-            <Button
-              variant="flat"
-              color="success"
-              className="mt-5"
-              onClick={startTest}
-              isLoading={loading}
-            >
-              Start Test
-            </Button>
-          </CardBody>
-        </Card>
-      )}
-    </div>
+        {page === "instructions" && (
+          <Card className="h-[70%] w-[50%] p-3  border-2">
+            <CardHeader>
+              <img
+                src="/logo1080_transparent_white_large.png"
+                alt="logo"
+                className="w-10"
+              />
+            </CardHeader>
+            <CardBody className="flex flex-col items-center justify-center">
+              <h4>Instructions</h4>
+              <pre className="my-5 text-sm">{instructions}</pre>
+              <Button
+                variant="flat"
+                color="success"
+                className="mt-5"
+                onClick={startTest}
+                isLoading={loading}
+              >
+                Start Test
+              </Button>
+            </CardBody>
+          </Card>
+        )}
+      </div>
+    </FullScreen>
   );
 };
 

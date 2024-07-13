@@ -1,6 +1,6 @@
 import { Button, Card, CardBody, Tabs, Tab, Textarea } from "@nextui-org/react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { CompassIcon } from "lucide-react";
+import { Check, CompassIcon } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -10,32 +10,23 @@ import {
 } from "@/components/ui/sheet";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { IMcq } from "@/@types/Assessment";
+import IProblem from "@/@types/Problem";
 
-const Main = () => {
-  const problems = [
-    { title: "Two Sum", _id: "1" },
-    { title: "Add Two Numbers", _id: "2" },
-    { title: "Longest Substring Without Repeating Characters", _id: "3" },
-  ];
-
+const Main = ({
+  mcqs,
+  problems,
+  setUpdateFlag,
+  languages,
+  solvedProblems,
+}: {
+  mcqs: IMcq[];
+  problems: IProblem[];
+  setUpdateFlag: (flag: boolean | ((prevState: boolean) => boolean)) => void;
+  languages: string[];
+  solvedProblems: string[];
+}) => {
   const [isOpen, setIsOpen] = useState(false);
-
-  const mcqs = [
-    {
-      question: "What is the capital of France?",
-      type: "multiple",
-      options: ["Paris", "Berlin", "London", "Madrid"],
-    },
-    {
-      question: "Who is CEO of Tesla?",
-      type: "checkbox",
-      options: ["Jeff Bezos", "Elon Musk", "Bill Gates", "Tony Stark"],
-    },
-    {
-      question: "The iPhone was created by which company?",
-      type: "text",
-    },
-  ];
 
   const goTo = (id: string) => {
     const item = document.getElementById(id);
@@ -52,6 +43,27 @@ const Main = () => {
 
   const navigate = useNavigate();
 
+  const saveAnswer = (value: string | string[], index: number) => {
+    const saveObj = {
+      id: mcqs[index]._id,
+      answer: value,
+    };
+
+    const submissionArray = sessionStorage.getItem("mcqSubmissions") || "[]";
+    const submissions = JSON.parse(submissionArray);
+    const exists = submissions.findIndex(
+      (item: { id: string }) => item.id === mcqs[index]._id
+    );
+    if (exists !== -1) {
+      submissions[exists] = saveObj;
+    } else {
+      submissions.push(saveObj);
+    }
+
+    sessionStorage.setItem("mcqSubmissions", JSON.stringify(submissions));
+    setUpdateFlag((prev) => !prev);
+  };
+
   return (
     <div className="w-[75%] h-full">
       <Tabs aria-label="Options">
@@ -67,10 +79,11 @@ const Main = () => {
                     Save
                   </Button>
                 </div>
-                {mcqs.map((mcq, index) => (
+                {mcqs?.map((mcq, index) => (
                   <div
                     className="flex flex-col border p-5 mt-3 rounded-xl bg-gray-100 bg-opacity-5 min-h-[30vh]"
                     id={`mcq-${index}`}
+                    key={index}
                   >
                     <div className="flex justify-between items-center w-full">
                       <div>{mcq.question}</div>
@@ -89,8 +102,11 @@ const Main = () => {
                         <ToggleGroup
                           type={mcq.type === "multiple" ? "single" : "multiple"}
                           className="w-full flex-wrap gap-3 mt-2"
+                          onValueChange={(value: string | string[]) =>
+                            saveAnswer(value, index)
+                          }
                         >
-                          {mcq?.options?.map((option) => (
+                          {mcq?.mcq.options?.map((option) => (
                             <ToggleGroupItem
                               key={option}
                               value={option}
@@ -124,13 +140,25 @@ const Main = () => {
             <CardBody>
               <div>
                 <h5>Coding Challenges</h5>
-                {problems.map((problem) => (
+                {problems?.map((problem) => (
                   <div
                     key={problem._id}
                     className="flex justify-between px-5 py-2 items-center border mt-3 rounded-xl bg-gray-100 bg-opacity-5 hf"
                   >
                     <div>{problem.title}</div>
-                    <Button onClick={() => navigate(`${problem._id}`)}>Attempt</Button>
+                    <div className="flex gap-3 items-center">
+                      {solvedProblems.includes(problem._id) && <Check size={16} className="text-green-500" />}
+                      <Button
+                        onClick={() =>
+                          navigate(`${problem._id}`, {
+                            state: { languages: languages },
+                          })
+                        }
+                        isDisabled={solvedProblems.includes(problem._id)}
+                      >
+                        Attempt
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -144,8 +172,8 @@ const Main = () => {
           <SheetHeader>
             <SheetTitle>Questions</SheetTitle>
             <SheetDescription>
-              {mcqs.map((mcq, index) => (
-                <div>
+              {mcqs?.map((mcq, index) => (
+                <div key={index}>
                   <a
                     onClick={() => goTo(`mcq-${index}`)}
                     className="block p-4 border rounded-lg mt-2 cursor-pointer hover:bg-gray-100 hover:bg-opacity-10"

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import * as monaco from "monaco-editor";
+import secureLocalStorage from "react-secure-storage";
 
 const Monaco = ({
   code,
@@ -18,15 +19,34 @@ const Monaco = ({
     const editorContainer = document.getElementById("code-editor");
     if (!editorContainer) return;
 
+    const securityConfig = secureLocalStorage.getItem("securityConfig") as {
+      languages: string[];
+      codePlayback: boolean;
+      codeExecution: boolean;
+      tabChangeDetection: boolean;
+      copyPasteDetection: boolean;
+      allowAutoComplete: boolean;
+      syntaxHighlighting: boolean;
+    };
+
     // Dispose of any existing models to avoid memory leaks
     monaco.editor.getModels().forEach((model) => model.dispose());
 
     // Create the editor if it doesn't already exist
     const editor = monaco.editor.create(editorContainer, {
       value: code,
-      language: language,
+      language: securityConfig.syntaxHighlighting
+        ? language
+        : "plaintext",
       theme: "vs-dark",
       readOnly: loading,
+      minimap: { enabled: false },
+
+      suggestOnTriggerCharacters: securityConfig.allowAutoComplete,
+      quickSuggestions: securityConfig.allowAutoComplete,
+      suggest: {
+        snippetsPreventQuickSuggestions: securityConfig.allowAutoComplete,
+      },
     });
 
     const model = editor.getModel();

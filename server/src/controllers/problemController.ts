@@ -72,7 +72,7 @@ const getProblem = async (c: Context) => {
       return sendSuccess(c, 404, "Problem not found");
     }
 
-    if (!userId) return sendSuccess(c, 200, "Success", problem);
+    if (!userId) return sendSuccess(c, 200, "Success", { problem });
 
     const submissions = await Submission.find({
       problem: id,

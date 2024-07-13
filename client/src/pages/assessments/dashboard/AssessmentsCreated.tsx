@@ -10,6 +10,7 @@ import {
 import { Eye, Link, Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import IAssessment from "@/@types/Assessment";
+import { toast } from "sonner";
 
 const calculateStatus = (createdAssessment: IAssessment) => {
   const startDate = new Date(createdAssessment.openRange.start);
@@ -19,6 +20,14 @@ const calculateStatus = (createdAssessment: IAssessment) => {
   if (currentDate < startDate) return "Upcoming";
   if (currentDate > endDate) return "Expired";
   return "Active";
+};
+
+const copyLink = (assessmentId: string) => {
+  navigator.clipboard.writeText(
+    `${window.location.origin}/assessments/standard/${assessmentId}`
+  );
+  console.log("Link copied to clipboard");
+  toast.success("Link copied to clipboard");
 };
 
 const AssessmentsCreated = ({
@@ -121,6 +130,7 @@ const AssessmentsCreated = ({
                 <Button
                   className="w-[48%] flex items-center justify-center text-xs gap-3"
                   variant="flat"
+                  onClick={() => copyLink(CreatedAssessment._id)}
                 >
                   <Link size={18} /> <p>Copy Link</p>
                 </Button>

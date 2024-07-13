@@ -153,7 +153,7 @@ const Problem = () => {
 
         setConsoleOutput(
           res.data.data.results.map((r: IRunResponseResult) =>
-            r.consoleOutput.join("\n")
+            r?.consoleOutput?.join("\n")
           )
         );
         setLoading(false);
@@ -247,7 +247,7 @@ const Problem = () => {
                   <CpuIcon size={30} />
                   <div>
                     <h5>Memory Used</h5>
-                    <p>{currentSubmission?.avgMemory.toFixed(2)} MB</p>
+                    <p>{((currentSubmission?.avgMemory || 0) * 1000).toFixed(2)} KB</p>
                   </div>
                 </div>
               </CardBody>

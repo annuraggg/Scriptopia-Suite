@@ -2,19 +2,21 @@ import { Context } from "hono";
 import { sendError, sendSuccess } from "../utils/sendResponse";
 import { getAuth } from "@hono/clerk-auth";
 import Assessment from "../models/Assessment";
+import Problem from "../models/Problem";
 
 const LIMIT_PER_PAGE = 20;
 
 const getAssessments = async (c: Context) => {
   try {
-    console.log("REQ REC")
     const page = parseInt(c.req.param("page")) || 1;
 
-    const assessments = await Assessment.find()
+    const assessments = await Assessment.find({ author: c.get("auth").userId })
       .skip((page - 1) * LIMIT_PER_PAGE)
       .limit(LIMIT_PER_PAGE)
       .lean();
 
+    console.log(c.get("auth").userId);
+    console.log(assessments);
     return sendSuccess(c, 200, "Success", assessments);
   } catch (error) {
     console.log(error);
@@ -101,7 +103,13 @@ const getAssessment = async (c: Context) => {
     if (!assessment) {
       return sendError(c, 404, "Assessment not found");
     }
-    return sendSuccess(c, 200, "Success", assessment);
+
+    //for each problem id in the assessment, get the problem details
+    const problems = await Problem.find({
+      _id: { $in: assessment.problems },
+    }).lean();
+
+    return sendSuccess(c, 200, "Success", { assessment, problems });
   } catch (error) {
     console.log(error);
     return sendError(c, 500, "Internal Server Error", error);
@@ -137,10 +145,43 @@ const createAssessment = async (c: Context) => {
   }
 };
 
+const verifyAccess = async (c: Context) => {
+  try {
+    const body = await c.req.json();
+
+    const assessment = await Assessment.findOne({ _id: body.id });
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    if (assessment.candidates.type === "all") {
+      return sendSuccess(c, 200, "Access Granted", {
+        instructions: assessment.instructions,
+      });
+    }
+
+    const candidate = assessment.candidates.candidates.find(
+      (candidate) => candidate.email === body.email
+    );
+
+    if (!candidate) {
+      return sendError(c, 403, "You are not allowed to take this assessment");
+    }
+
+    return sendSuccess(c, 200, "Access Granted", {
+      instructions: assessment.instructions,
+    });
+  } catch (error) {
+    console.log(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
 export default {
   getAssessments,
   getMyAssessments,
   getMyLiveAssessments,
   getAssessment,
   createAssessment,
+  verifyAccess,
 };

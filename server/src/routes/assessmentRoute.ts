@@ -11,4 +11,6 @@ app.get("/:id", assessmentController.getAssessment);
 
 app.post("/", assessmentController.createAssessment);
 
+app.post("/verify", assessmentController.verifyAccess);
+
 export default app;
