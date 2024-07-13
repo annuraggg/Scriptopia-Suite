@@ -1,13 +1,13 @@
+import { IRunResponseResult } from "@/@types/RunResponse";
 import { Card, Code, Tab, Tabs } from "@nextui-org/react";
 import { FlaskConical, SquareChevronRight } from "lucide-react";
-import { Case } from "./types";
 
 const InfoPanel = ({
   consoleOutput,
   cases,
 }: {
   consoleOutput: string;
-  cases: Case[];
+  cases: IRunResponseResult[];
 }) => {
   return (
     <Card className="h-[50%] mt-2 p-2 overflow-auto">
@@ -25,7 +25,7 @@ const InfoPanel = ({
           {cases.length !== 0 ? (
             <Tabs className="overflow-auto">
               {cases?.map(
-                (c: Case, i: number) =>
+                (c, i: number) =>
                   c.isSample && (
                     <Tab
                       key={i}

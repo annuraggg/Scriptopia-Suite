@@ -66,9 +66,9 @@ const Navbar = () => {
           ))}
         </div>
         <div className="flex items-center gap-2 sm:gap-5">
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-3">
             <Dropdown>
-              <DropdownTrigger><Menu size={22} /></DropdownTrigger>
+              <DropdownTrigger className="cursor-pointer"><Menu size={22} /></DropdownTrigger>
               <DropdownMenu aria-label="Static Actions">
                 <DropdownItem onClick={openOrg}>Organization</DropdownItem>
                 <DropdownItem onClick={() => navigate("/profile")}>Profile</DropdownItem>

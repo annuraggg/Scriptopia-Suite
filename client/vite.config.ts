@@ -23,6 +23,17 @@ export default defineConfig(({ mode }) => {
 
     build: {
       sourcemap: true,
+      rollupOptions: {
+        onLog(level, log, handler) {
+          if (
+            log.cause && // @ts-expect-error - `cause` is not in the type definition
+            log.cause.message === `Can't resolve original location of error.`
+          ) {
+            return;
+          }
+          handler(level, log);
+        },
+      },
     },
   };
 });

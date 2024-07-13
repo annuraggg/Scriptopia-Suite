@@ -6,7 +6,7 @@ const UserSchema = new mongoose.Schema({
     type: [{ problemId: mongoose.Types.ObjectId, solvedAt: Date }],
     ref: "Problem",
   },
-  streak: { type: [String] },
+  streak: { type: [Date] },
   achievements: { type: [mongoose.Types.ObjectId], ref: "Achievement" },
   resume: { type: [String] },
   portfolio: {
