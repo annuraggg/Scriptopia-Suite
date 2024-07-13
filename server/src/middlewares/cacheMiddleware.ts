@@ -12,7 +12,7 @@ const cacheMiddleware = createMiddleware(async (c, next) => {
 
   return next().then(async () => {
     const response = await c.res.json();
-    cache.set(cacheKey, JSON.stringify(response));
+    cache.set(cacheKey, JSON.stringify(response.data));
 
     return response;
   });

@@ -1,13 +1,7 @@
 import { Input, Select, SelectItem } from "@nextui-org/react";
 import { motion } from "framer-motion";
 import IProblem from "@/@types/Problem";
-import { IProblem as IProblemAssessment } from "@/@types/Assessment";
-
-interface TestCaseGrading {
-  easy: number;
-  medium: number;
-  hard: number;
-}
+import { IProblem as IProblemAssessment, ITestCases } from "@/@types/Assessment";
 
 const Grading = ({
   gradingMetric,
@@ -21,8 +15,8 @@ const Grading = ({
   gradingMetric: string;
   setGradingMetric: (gradingMetric: string) => void;
   selectedQuestions: IProblem[];
-  testCaseGrading: TestCaseGrading;
-  setTestCaseGrading: (testCaseGrading: TestCaseGrading) => void;
+  testCaseGrading: ITestCases;
+  setTestCaseGrading: (testCaseGrading: ITestCases) => void;
   questionsGrading: IProblemAssessment[];
   setQuestionsGrading: (
     questionsGrading:

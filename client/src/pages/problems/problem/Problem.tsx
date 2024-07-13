@@ -48,6 +48,9 @@ const Problem = () => {
 
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
 
+  const [currentSubmission, setCurrentSubmission] =
+    useState<ISubmission | null>(null);
+
   const [leftPanelActiveTab, setLeftPanelActiveTab] =
     useState<string>("statement");
 
@@ -61,7 +64,7 @@ const Problem = () => {
         console.log(res.data.data);
 
         setStatement(res.data.data.problem.description.ops);
-        setSubmissions(res.data.data?.submissions);
+        setSubmissions(res.data.data?.submissions.reverse());
         setTitle(res.data.data?.problem?.title);
         setFunctionName(res.data.data?.problem?.functionName);
         setFunctionArgs(res.data.data?.problem?.functionArgs);
@@ -95,14 +98,10 @@ const Problem = () => {
           res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
         );
 
-        // ! This is a temporary solution
         setConsoleOutput(
-          res.data.data.results
-            .map(
-              (r: { input: string; output: string; expected: string }) =>
-                `Input: ${r.input}\nOutput: ${r.output}\nExpected: ${r.expected}`
-            )
-            .join("\n\n")
+          res.data.data.results.map((r: IRunResponseResult) =>
+            r.consoleOutput.join("\n")
+          )
         );
 
         return { success: true, error: "", data: {} };
@@ -152,14 +151,10 @@ const Problem = () => {
           res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
         );
 
-        // ! This is a temporary solution
         setConsoleOutput(
-          res.data.data.results
-            .map(
-              (r: { input: string; output: string; expected: string }) =>
-                `Input: ${r.input}\nOutput: ${r.output}\nExpected: ${r.expected}`
-            )
-            .join("\n\n")
+          res.data.data.results.map((r: IRunResponseResult) =>
+            r.consoleOutput.join("\n")
+          )
         );
         setLoading(false);
 
@@ -171,7 +166,10 @@ const Problem = () => {
 
         setDrawerOpen(true);
         setLeftPanelActiveTab("submissions");
-        setSubmissions((prev) => [...(prev ?? []), res.data.data]);
+        const newSubmissions = [...submissions];
+        newSubmissions.unshift(res.data.data);
+        setSubmissions(newSubmissions);
+        setCurrentSubmission(res.data.data);
         return { success: true, error: "", data: {} };
       })
       .catch((err) => {
@@ -237,7 +235,7 @@ const Problem = () => {
                   <TimerIcon size={30} />
                   <div>
                     <h5>Time Taken</h5>
-                    <p>0.5 seconds</p>
+                    <p>{currentSubmission?.avgTime.toFixed(2)} ms</p>
                   </div>
                 </div>
               </CardBody>
@@ -249,7 +247,7 @@ const Problem = () => {
                   <CpuIcon size={30} />
                   <div>
                     <h5>Memory Used</h5>
-                    <p>0.5 MB</p>
+                    <p>{currentSubmission?.avgMemory.toFixed(2)} MB</p>
                   </div>
                 </div>
               </CardBody>

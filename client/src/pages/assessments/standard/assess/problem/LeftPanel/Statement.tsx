@@ -2,9 +2,9 @@ import { useEffect } from "react";
 import { Card, CardBody } from "@nextui-org/react";
 import { Tabs, Tab } from "@nextui-org/tabs";
 import Submission from "./Submission";
-import { Submission as SubmissionType } from "../types";
 import Quill from "quill";
 import { Delta } from "quill/core";
+import { ISubmission } from "@/@types/Submission";
 
 const Statement = ({
   statement,
@@ -12,7 +12,7 @@ const Statement = ({
   title,
 }: {
   statement: Delta;
-  submissions: SubmissionType[];
+  submissions: ISubmission[];
   title: string;
 }) => {
   useEffect(() => {

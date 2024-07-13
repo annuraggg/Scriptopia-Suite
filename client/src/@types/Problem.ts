@@ -1,4 +1,5 @@
 export interface ITestCase {
+  _id?: string;
   input: string[];
   output: string;
   difficulty: "easy" | "medium" | "hard";

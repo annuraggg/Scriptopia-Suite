@@ -4,12 +4,13 @@ import Problem from "../models/Problem";
 import { runCode as runCompilerCode } from "../aws/runCode";
 import { Console } from "console";
 import Submission from "../models/Submission";
+import User from "../models/User";
 
 const runCode = async (c: Context) => {
   try {
     const cached = c.get("cached") || false;
     if (cached) {
-      return sendSuccess(c, 200, "Success", c.get("cachedData"));
+      return sendSuccess(c, 200, "Success", JSON.parse(c.get("cachedData")));
     }
 
     const body = await c.req.json();
@@ -31,8 +32,9 @@ const runCode = async (c: Context) => {
       prob.testCases
     );
 
-    if (result.status === "ERROR") {
-      return sendError(c, 500, "Internal Server Error");
+    if (result?.status === "ERROR") {
+      console.log(result.error);
+      return sendError(c, 500, "Internal Server Error", result.error);
     }
 
     return sendSuccess(c, 200, "Success", result);
@@ -88,6 +90,14 @@ const submitCode = async (c: Context) => {
         timestamp: result.timestamp,
       },
     });
+
+    if (result.failedCaseNo === -1) {
+      const date = new Date();
+      const user = await User.findOne({ clerkId: c.get("auth").userId });
+
+      user?.streak.push(date);
+      await user?.save();
+    }
 
     await submission.save();
 

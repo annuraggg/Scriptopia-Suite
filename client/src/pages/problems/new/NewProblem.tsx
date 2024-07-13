@@ -9,10 +9,9 @@ import QualityGate from "./QualityGate";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { Delta } from "quill/core";
-import FnArgument from "@/@types/FnArguments";
-import TestCase from "@/@types/TestCase";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
+import { IFunctionArg, ITestCase } from "@/@types/Problem";
 
 const steps = [
   {
@@ -47,10 +46,10 @@ const NewProblem = () => {
   // Stub State
   const [functionName, setFunctionName] = useState("");
   const [returnType, setReturnType] = useState("");
-  const [fnArguments, setFnArguments] = useState<FnArgument[]>([]);
+  const [fnArguments, setFnArguments] = useState<IFunctionArg[]>([]);
 
   // Test Cases State
-  const [testCases, setTestCases] = useState<TestCase[]>([]);
+  const [testCases, setTestCases] = useState<ITestCase[]>([]);
 
   // Quality Gate State
   const [minimumFiveCases, setMinimumFiveCases] = useState(false);
@@ -70,7 +69,7 @@ const NewProblem = () => {
         description,
         functionName,
         functionReturnType: returnType,
-        fnArguments,
+        functionArgs:fnArguments,
         testCases,
         minimumFiveCases,
         minimumThreeSampleCases,

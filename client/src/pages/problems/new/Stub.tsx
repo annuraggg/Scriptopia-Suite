@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import FnArgument from "@/@types/FnArguments";
 import { Button, Input, Select, SelectItem } from "@nextui-org/react";
 import {
   Modal,
@@ -13,6 +12,7 @@ import starterGenerator from "@/functions/starterGenerator";
 import * as monaco from "monaco-editor";
 import { useEffect, useState } from "react";
 import languages from "@/data/languages";
+import { IFunctionArg } from "@/@types/Problem";
 
 const Stub = ({
   functionName,
@@ -26,9 +26,9 @@ const Stub = ({
   setFunctionName: (value: string) => void;
   returnType: string;
   setReturnType: (value: string) => void;
-  fnArguments: FnArgument[];
+  fnArguments: IFunctionArg[];
   setFnArguments: (
-    value: FnArgument[] | ((prev: FnArgument[]) => FnArgument[])
+    value: IFunctionArg[] | ((prev: IFunctionArg[]) => IFunctionArg[])
   ) => void;
 }) => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -68,152 +68,154 @@ const Stub = ({
   };
 
   const handleArgumentTypeChange = (index: number, newType: string) => {
-    setFnArguments((prev) =>
-      prev.map((arg, i) => (i === index ? { ...arg, type: newType } : arg))
-    );
+    setFnArguments((prev: IFunctionArg[]) => {
+      const newArgs = [...prev];
+      newArgs[index].type = newType as "string" | "number" | "boolean" | "array";
+      return newArgs;
+    });
   };
 
   return (
     <motion.div
-    initial={{ y: 50, opacity: 0 }}
-    animate={{ y: 0, opacity: 1 }}
-    transition={{ duration: 0.5 }}
-    className=""
-  >
-    <div className="px-5 py-2">
-      <p>Function Definition</p>
-      <div className="flex gap-5 mt-5">
-        <Input
-          label="Function Name"
-          value={functionName}
-          onChange={(e) => setFunctionName(e.target.value)}
-          size="sm"
-        />
-        <Select
-          label="Return Type"
-          selectedKeys={[returnType]}
-          onChange={(e) => setReturnType(e.target.value as string)}
-          size="sm"
-        >
-          <SelectItem key="string" value="string">
-            String
-          </SelectItem>
-          <SelectItem key="number" value="number">
-            Number
-          </SelectItem>
-          <SelectItem key="boolean" value="boolean">
-            Boolean
-          </SelectItem>
-          <SelectItem key="array" value="array">
-            Array
-          </SelectItem>
-        </Select>
-      </div>
-
-      <div className="mt-5">
-        <div className="flex gap-5 items-center">
-          <p>Function Arguments</p>
-          <Button
-            variant="flat"
-            onClick={() =>
-              setFnArguments((prev: FnArgument[]) => [
-                ...prev,
-                { name: "", type: "string" },
-              ])
-            }
+      initial={{ y: 50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className=""
+    >
+      <div className="px-5 py-2">
+        <p>Function Definition</p>
+        <div className="flex gap-5 mt-5">
+          <Input
+            label="Function Name"
+            value={functionName}
+            onChange={(e) => setFunctionName(e.target.value)}
+            size="sm"
+          />
+          <Select
+            label="Return Type"
+            selectedKeys={[returnType]}
+            onChange={(e) => setReturnType(e.target.value as string)}
+            size="sm"
           >
-            Add Argument
-          </Button>
-          <Button
-            variant="flat"
-            color="danger"
-            onClick={() => setFnArguments([])}
-          >
-            Remove All
-          </Button>
-          <Button variant="flat" color="success" onClick={onOpen}>
-            Preview Stub
-          </Button>
+            <SelectItem key="string" value="string">
+              String
+            </SelectItem>
+            <SelectItem key="number" value="number">
+              Number
+            </SelectItem>
+            <SelectItem key="boolean" value="boolean">
+              Boolean
+            </SelectItem>
+            <SelectItem key="array" value="array">
+              Array
+            </SelectItem>
+          </Select>
         </div>
-        <div className="flex flex-col gap-5 mt-5">
-          {fnArguments.map((arg, index) => (
-            <div key={index} className="flex gap-5 items-center">
-              <Input
-                label="Argument Name"
-                value={arg.name}
-                onChange={(e) =>
-                  handleArgumentNameChange(index, e.target.value)
-                }
-                size="sm"
-              />
-              <Select
-                label="Datatype"
-                selectedKeys={[arg.type]}
-                onChange={(e) =>
-                  handleArgumentTypeChange(index, e.target.value as string)
-                }
-                size="sm"
-              >
-                <SelectItem key="string" value="string">
-                  String
-                </SelectItem>
-                <SelectItem key="number" value="number">
-                  Number
-                </SelectItem>
-                <SelectItem key="boolean" value="boolean">
-                  Boolean
-                </SelectItem>
-                <SelectItem key="array" value="array">
-                  Array
-                </SelectItem>
-              </Select>
-              <Button
-                variant="light"
-                color="danger"
-                onClick={() =>
-                  setFnArguments((prev: FnArgument[]) =>
-                    prev.filter((_, i) => i !== index)
-                  )
-                }
-              >
-                Remove
-              </Button>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} backdrop="blur">
-        <ModalContent>
-          <ModalHeader>Preview Stub</ModalHeader>
-          <ModalBody className="p-5">
-            <p>This is a preview of your stub, that the user will see.</p>
-            <Select
-              label="Language"
-              selectedKeys={[language]}
-              onChange={(e) => setLanguage(e.target.value as string)}
-              size="sm"
+        <div className="mt-5">
+          <div className="flex gap-5 items-center">
+            <p>Function Arguments</p>
+            <Button
+              variant="flat"
+              onClick={() =>
+                setFnArguments((prev: IFunctionArg[]) => [
+                  ...prev,
+                  { name: "", type: "string" },
+                ])
+              }
             >
-              {languages.map((language) => (
-                <SelectItem key={language} value={language}>
-                  {language}
-                </SelectItem>
-              ))}
-            </Select>
-
-            <div
-              id="code-editor"
-              className="border h-[30vh] w-full z-50 overflow-visible rounded-lg"
-            ></div>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="flat" onClick={onOpenChange}>
-              Close
+              Add Argument
             </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </div>
+            <Button
+              variant="flat"
+              color="danger"
+              onClick={() => setFnArguments([])}
+            >
+              Remove All
+            </Button>
+            <Button variant="flat" color="success" onClick={onOpen}>
+              Preview Stub
+            </Button>
+          </div>
+          <div className="flex flex-col gap-5 mt-5">
+            {fnArguments.map((arg, index) => (
+              <div key={index} className="flex gap-5 items-center">
+                <Input
+                  label="Argument Name"
+                  value={arg.name}
+                  onChange={(e) =>
+                    handleArgumentNameChange(index, e.target.value)
+                  }
+                  size="sm"
+                />
+                <Select
+                  label="Datatype"
+                  selectedKeys={[arg.type]}
+                  onChange={(e) =>
+                    handleArgumentTypeChange(index, e.target.value as string)
+                  }
+                  size="sm"
+                >
+                  <SelectItem key="string" value="string">
+                    String
+                  </SelectItem>
+                  <SelectItem key="number" value="number">
+                    Number
+                  </SelectItem>
+                  <SelectItem key="boolean" value="boolean">
+                    Boolean
+                  </SelectItem>
+                  <SelectItem key="array" value="array">
+                    Array
+                  </SelectItem>
+                </Select>
+                <Button
+                  variant="light"
+                  color="danger"
+                  onClick={() =>
+                    setFnArguments((prev: IFunctionArg[]) =>
+                      prev.filter((_, i) => i !== index)
+                    )
+                  }
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <Modal isOpen={isOpen} onOpenChange={onOpenChange} backdrop="blur">
+          <ModalContent>
+            <ModalHeader>Preview Stub</ModalHeader>
+            <ModalBody className="p-5">
+              <p>This is a preview of your stub, that the user will see.</p>
+              <Select
+                label="Language"
+                selectedKeys={[language]}
+                onChange={(e) => setLanguage(e.target.value as string)}
+                size="sm"
+              >
+                {languages.map((language) => (
+                  <SelectItem key={language} value={language}>
+                    {language}
+                  </SelectItem>
+                ))}
+              </Select>
+
+              <div
+                id="code-editor"
+                className="border h-[30vh] w-full z-50 overflow-visible rounded-lg"
+              ></div>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="flat" onClick={onOpenChange}>
+                Close
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      </div>
     </motion.div>
   );
 };

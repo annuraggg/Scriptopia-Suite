@@ -10,6 +10,9 @@ import ErrorPage from "./components/ErrorPage.tsx";
 import * as Sentry from "@sentry/react";
 import { Toaster } from "sonner";
 
+import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
+
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   integrations: [
@@ -40,6 +43,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           }}
         >
           <App />
+
+          <SpeedInsights />
+          <Analytics />
           <Toaster richColors theme="dark" />
         </ClerkProvider>
       </NextUIProvider>

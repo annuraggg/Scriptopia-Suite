@@ -1,3 +1,4 @@
+import { ISubmission } from "@/@types/Submission";
 import {
   Table,
   TableBody,
@@ -6,9 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/react";
-import { Submission as SubmissionType } from "../types";
 
-const Submission = ({ submissions }: { submissions: SubmissionType[] }) => {
+const Submission = ({ submissions }: { submissions: ISubmission[] }) => {
   return (
     <div className="p-2">
       <h6>Submissions</h6>
@@ -31,7 +31,7 @@ const Submission = ({ submissions }: { submissions: SubmissionType[] }) => {
                 >
                   <TableCell
                     className={`${
-                      submission?.status === "Accepted"
+                      submission?.status === "SUCCESS"
                         ? "text-success"
                         : "text-danger"
                     }`}
@@ -39,9 +39,9 @@ const Submission = ({ submissions }: { submissions: SubmissionType[] }) => {
                     {submission?.status}
                   </TableCell>
                   <TableCell>{submission?.language}</TableCell>
-                  <TableCell>{submission?.time}</TableCell>
-                  <TableCell>{submission?.runtime}</TableCell>
-                  <TableCell>{submission?.memory}</TableCell>
+                  <TableCell>{submission?.createdAt.toDateString()}</TableCell>
+                  <TableCell>{submission?.avgTime}</TableCell>
+                  <TableCell>{submission?.avgMemory}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
