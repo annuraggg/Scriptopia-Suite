@@ -1,5 +1,5 @@
-import { ISubmission } from "@/@types/Submission";
 import {
+  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -7,13 +7,28 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/react";
+import { ISubmission } from "@/@types/Submission";
 
-const Submission = ({ submissions }: { submissions: ISubmission[] }) => {
+const Submission = ({
+  submissions,
+  loading,
+}: {
+  submissions: ISubmission[];
+  loading: boolean;
+}) => {
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <CircularProgress />
+      </div>
+    );
+  }
+
   return (
     <div className="p-2">
       <h6>Submissions</h6>
 
-      {submissions.length !== 0 ? (
+      {submissions?.length !== 0 ? (
         <>
           <Table className="mt-5">
             <TableHeader>
@@ -39,9 +54,15 @@ const Submission = ({ submissions }: { submissions: ISubmission[] }) => {
                     {submission?.status}
                   </TableCell>
                   <TableCell>{submission?.language}</TableCell>
-                  <TableCell>{submission?.createdAt.toDateString()}</TableCell>
-                  <TableCell>{submission?.avgTime}</TableCell>
-                  <TableCell>{submission?.avgMemory}</TableCell>
+                  <TableCell>
+                    {new Date(submission?.createdAt).toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    {(submission?.avgTime * 10).toFixed(2) + " ms"}
+                  </TableCell>
+                  <TableCell>
+                    {submission?.avgMemory.toFixed(2) + " MB"}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

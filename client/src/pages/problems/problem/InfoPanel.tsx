@@ -46,7 +46,7 @@ const InfoPanel = ({
                       <div className="overflow-auto h-full">
                         <Code className="border p-2 rounded-lg w-full">
                           <p className="mb-2">Input</p>
-                          <Code className="w-full">{c.input}</Code>
+                          <Code className="w-full">{c.input.join(",")}</Code>
                         </Code>
                         <Code className="border p-2 rounded-lg w-full mt-2">
                           <p className="mb-2">Expected Output</p>

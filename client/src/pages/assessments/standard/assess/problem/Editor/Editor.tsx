@@ -5,7 +5,6 @@ import "@/config/monaco";
 import Explain from "./Explain";
 import Monaco from "./Monaco";
 import Actions from "./Actions";
-import Response from "@/@types/Response";
 
 const Editor = ({
   runCode,
@@ -16,21 +15,23 @@ const Editor = ({
   language,
   setLanguage,
   editorUpdateFlag,
+  languages,
 }: {
-  runCode: () => Promise<Response<object>>;
-  submitCode: () => Promise<Response<object>>;
+  runCode: () => Promise<object>;
+  submitCode: () => void;
   loading: boolean;
   code: string;
   setCode: (code: string) => void;
   language: string;
   setLanguage: (lang: string) => void;
   editorUpdateFlag: boolean;
+  languages: string[];
 }) => {
   const [explainOpen, setExplainOpen] = useState<boolean>(false);
 
   return (
     <div className="h-[50%] mb-2 w-full">
-      <Card className="h-full overflow-visible">
+      <Card className="h-full overflow-">
         <CardHeader className="border-b justify-between">
           <div className="flex items-center gap-3">
             <Code size={16} className="text-gray-500" />
@@ -44,6 +45,7 @@ const Editor = ({
               loading={loading}
               language={language}
               setLanguage={setLanguage}
+              languages={languages}
             />
           </div>
         </CardHeader>

@@ -2,6 +2,8 @@
   "name": "server",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "sun": "tsx watch src/index.ts",
+    "prod": "tsx src/index.ts",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org scriptopia --project scriptopia-backend ./out && sentry-cli sourcemaps upload --org scriptopia --project scriptopia-backend ./out"
   },
   "dependencies": {

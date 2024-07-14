@@ -1,8 +1,7 @@
-import Response from "@/@types/Response";
 import { Button, Select, SelectItem, Tooltip } from "@nextui-org/react";
 import { ArrowUpFromLine, Play, Sparkles } from "lucide-react";
-import { useState } from "react";
-import languages from "@/data/languages";
+import { useEffect, useState } from "react";
+import secureLocalStorage from "react-secure-storage";
 
 const Actions = ({
   setExplainOpen,
@@ -11,16 +10,17 @@ const Actions = ({
   loading,
   language,
   setLanguage,
+  languages,
 }: {
   setExplainOpen: (open: boolean) => void;
-  runCode: () => Promise<Response<object>>;
-  submitCode: () => Promise<Response<object>>;
+  runCode: () => Promise<object>;
+  submitCode: () => void;
   loading: boolean;
   setLanguage: (lang: string) => void;
   language: string;
+  languages: string[];
 }) => {
   const [runLoading, setRunLoading] = useState<boolean>(false);
-  const [submitLoading, setSubmitLoading] = useState<boolean>(false);
 
   const triggerRun = async () => {
     setRunLoading(true);
@@ -28,9 +28,21 @@ const Actions = ({
   };
 
   const triggerSubmit = async () => {
-    setSubmitLoading(true);
-    submitCode().finally(() => setSubmitLoading(false));
+    submitCode();
   };
+
+  const [allowExecution, setAllowExecution] = useState<boolean>(false);
+  useEffect(() => {
+    const securityConfig = secureLocalStorage.getItem("securityConfig") as {
+      languages: string[];
+      codePlayback: boolean;
+      codeExecution: boolean;
+      tabChangeDetection: boolean;
+      copyPasteDetection: boolean;
+      allowAutoComplete: boolean;
+    };
+    setAllowExecution(securityConfig.codeExecution);
+  });
 
   return (
     <>
@@ -44,7 +56,7 @@ const Actions = ({
           setLanguage(e.target.value);
         }}
       >
-        {languages.map((lang) => (
+        {languages?.map((lang) => (
           <SelectItem key={lang} value={lang}>
             {lang}
           </SelectItem>
@@ -54,7 +66,7 @@ const Actions = ({
       <Tooltip content="Explain Code">
         <Button
           variant="flat"
-          className="p-0 max-w-2 m-0 bg-yellow-900"
+          className="p-0 max-w-2 m-0 bg-yellow-900 hidden"
           size="sm"
           isIconOnly
           onClick={() => setExplainOpen(true)}
@@ -65,20 +77,22 @@ const Actions = ({
         </Button>
       </Tooltip>
 
-      <Tooltip content="Run Code">
-        <Button
-          variant="flat"
-          className="p-0 max-w-2 m-0 bg-green-900"
-          size="sm"
-          isIconOnly
-          onClick={triggerRun}
-          disabled={loading}
-          isLoading={runLoading}
-          aria-label="Run Code"
-        >
-          <Play size={14} />
-        </Button>
-      </Tooltip>
+      {allowExecution && (
+        <Tooltip content="Run Code">
+          <Button
+            variant="flat"
+            className="p-0 max-w-2 m-0 bg-green-900"
+            size="sm"
+            isIconOnly
+            onClick={triggerRun}
+            disabled={loading}
+            isLoading={runLoading}
+            aria-label="Run Code"
+          >
+            <Play size={14} />
+          </Button>
+        </Tooltip>
+      )}
 
       <Tooltip content="Submit Code">
         <Button
@@ -87,8 +101,6 @@ const Actions = ({
           size="sm"
           isIconOnly
           onClick={triggerSubmit}
-          disabled={loading}
-          isLoading={submitLoading}
           aria-label="Submit Code"
         >
           <ArrowUpFromLine size={14} />

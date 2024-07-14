@@ -8,7 +8,7 @@ const ViewUserAssessment = () => {
       initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="w-full p-10 h-screen flex flex-col"
+      className="w-full px-10 h-screen flex flex-col"
     >
       <ViewUserAssessmentTop />
       <ViewUserAssessmentBottom />

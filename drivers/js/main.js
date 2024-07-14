@@ -1,12 +1,12 @@
-const { performance } = require("perf_hooks");
-//import { performance } from "perf_hooks";
+import { performance } from "perf_hooks";
+
+const driver = "NodeJS v18.x";
+const timestamp = Date.now();
 
 const handler = async (event) => {
   try {
     const { functionSchema, testCases } = event;
     const { functionName, functionBody, functionArgs } = functionSchema;
-
-    console.log(functionSchema);
 
     const { results, avgTime, avgMemory } = runTestCases(
       functionName,
@@ -25,12 +25,16 @@ const handler = async (event) => {
       avgTime: avgTime,
       avgMemory: avgMemory,
       results: results,
+      driver: driver,
+      timestamp: timestamp,
     };
   } catch (error) {
     console.error("Error executing function:", error);
     return {
       STATUS: "ERROR",
       message: error.message,
+      driver: driver,
+      timestamp: timestamp,
     };
   }
 };
@@ -41,14 +45,30 @@ const runTestCases = (functionName, fnScript, testCases, functionArgs) => {
   let totalMemory = 0;
 
   testCases.forEach((testCase, index) => {
-    const { time, memory, passed, output } = executeFn(
-      functionName,
-      functionArgs,
-      fnScript,
-      testCase
-    );
+    const {
+      time,
+      memory,
+      passed,
+      output,
+      isSample,
+      input,
+      expected,
+      _id,
+      consoleOutput,
+    } = executeFn(functionName, functionArgs, fnScript, testCase);
 
-    results.push({ caseNo: index + 1, time, memory, passed, output });
+    results.push({
+      caseNo: index + 1,
+      time,
+      memory,
+      passed,
+      output,
+      isSample,
+      input,
+      expected,
+      _id,
+      consoleOutput,
+    });
     totalTime += time;
     totalMemory += memory;
   });
@@ -60,14 +80,14 @@ const runTestCases = (functionName, fnScript, testCases, functionArgs) => {
 };
 
 const executeFn = (functionName, functionArgs, fnScript, testCase) => {
-  const { input, output } = testCase;
+  const { input, output, isSample, _id } = testCase;
+  let consoleLogs = []; // Array to capture console logs
 
   const start = performance.now();
   const initialMemory = process.memoryUsage().heapUsed;
 
   let actualInput = [];
-  const arrInput = JSON.parse(input);
-  arrInput.forEach((arg, index) => {
+  input.forEach((arg, index) => {
     let newInput = arg;
     if (functionArgs[index].type === "string") {
       newInput = arg;
@@ -82,50 +102,42 @@ const executeFn = (functionName, functionArgs, fnScript, testCase) => {
     actualInput.push(newInput);
   });
 
+  // Override console.log to capture logs
+  const originalConsoleLog = console.log;
+  console.log = (...args) => {
+    consoleLogs.push(args.join(" "));
+    originalConsoleLog.apply(console, args);
+  };
+
   const evalScript = `
   ${fnScript}
   ${functionName}(${actualInput});
   `;
 
-  console.log(evalScript);
-
+  // Evaluate script
   const result = eval(evalScript);
+
+  // Restore original console.log
+  console.log = originalConsoleLog;
 
   const end = performance.now();
   const finalMemory = process.memoryUsage().heapUsed;
 
   const time = end - start;
-  const memory = finalMemory - initialMemory;
+  const memory = (finalMemory - initialMemory) / (1024 * 1024); // Convert bytes to MB
   const passed = JSON.stringify(result) === JSON.stringify(JSON.parse(output));
 
-  return { time, memory, passed, output: result };
+  return {
+    time,
+    memory,
+    passed,
+    output: result,
+    isSample,
+    input,
+    expected: output,
+    _id,
+    consoleOutput: consoleLogs, // Include captured console logs in the result
+  };
 };
 
-// export { handler };
-
-module.exports = { handler };
-
-const testEvent = {
-  functionSchema: {
-    functionName: "sum",
-    functionArgs: [
-      { name: "a", type: "number" },
-      { name: "b", type: "number" },
-    ],
-    functionBody: `function sum(a, b) {
-    return a + b;
-    }`,
-    functionReturn: "number",
-  },
-  testCases: [
-    {
-      input: "[2, 9]",
-      output: "11",
-      difficulty: "easy",
-      isSample: true,
-      _id: "668a435ddce9a929d18990f7",
-    },
-  ],
-};
-
-handler(testEvent).then(console.log);
+export { handler };
