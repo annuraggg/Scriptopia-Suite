@@ -5,6 +5,16 @@ import ax from "@/config/axios";
 import IAssessment from "@/@types/Assessment";
 import { toast } from "sonner";
 import secureLocalStorage from "react-secure-storage";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from "@nextui-org/modal";
+import { Button } from "@nextui-org/react";
+import { Progress } from "@nextui-org/progress";
 
 const Lander = () => {
   const [assessment, setAssessment] = useState<IAssessment>({} as IAssessment);
@@ -23,6 +33,12 @@ const Lander = () => {
 
   const [solvedProblems, setSolvedProblems] = useState([]);
 
+  const {
+    isOpen: isTabChangeOpen,
+    onOpen: onTabChangeOpen,
+    onOpenChange: onTabChangeOpenChange,
+  } = useDisclosure();
+
   useEffect(() => {
     const axios = ax();
     const id = window.location.pathname.split("/")[3];
@@ -32,12 +48,14 @@ const Lander = () => {
       .then((res) => {
         setAssessment(res.data.data.assessment);
         setProblems(res.data.data.problems);
-        const time = sessionStorage.getItem("timer");
+        const time = secureLocalStorage.getItem("timer") as string;
         if (time) setTimer(parseInt(time));
         else setTimer(res.data.data.assessment.timeLimit * 60);
 
-        const solvedArray = sessionStorage.getItem("submissions") || "[]";
-        const mcqSolvedArray = sessionStorage.getItem("mcqSubmissions") || "[]";
+        const solvedArray =
+          (secureLocalStorage.getItem("submissions") as string) || "[]";
+        const mcqSolvedArray =
+          (secureLocalStorage.getItem("mcqSubmissions") as string) || "[]";
 
         const solvedSubmissions = JSON.parse(solvedArray);
         const solvedMcqSubmissions = JSON.parse(mcqSolvedArray);
@@ -53,7 +71,9 @@ const Lander = () => {
 
         setProblemSolved(pSolved);
         setMcqSolved(mSolved);
-        setSolvedProblems(solvedSubmissions);
+        setSolvedProblems(
+          solvedSubmissions.map((item: { problemId: string }) => item.problemId)
+        );
 
         const securityConfig = {
           languages: res.data.data.assessment.languages,
@@ -69,19 +89,60 @@ const Lander = () => {
             res.data.data.assessment.security.enableSyntaxHighlighting,
         };
 
+        if (securityConfig.codePlayback) {
+          // @ts-expect-error - Types are not available for this library
+          window?.sessionRewind?.identifyUser({
+            userId: localStorage.getItem("email"),
+          });
+          // @ts-expect-error - Types are not available for this library
+          window?.sessionRewind?.startSession();
+        }
+
+        if (securityConfig.tabChangeDetection) {
+          window.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+              onTabChangeOpen();
+              const offtrack: {
+                tabChange: {
+                  mcq: number;
+                  problem: [{ problemId: string; times: number }];
+                };
+              } = (secureLocalStorage.getItem("offtrack") as {
+                tabChange: {
+                  mcq: number;
+                  problem: [{ problemId: string; times: number }];
+                };
+              }) || { tabChange: { mcq: 0, problem: [] } };
+
+              offtrack.tabChange.mcq = offtrack.tabChange.mcq
+                ? offtrack.tabChange.mcq + 1
+                : 1;
+
+              secureLocalStorage.setItem("offtrack", offtrack);
+            }
+          });
+        }
+
         secureLocalStorage.setItem("securityConfig", securityConfig);
+
+        return () => {
+          window.removeEventListener("visibilitychange", () => {});
+        };
       })
       .catch((err) => {
         console.log(err);
         toast.error("Failed to fetch assessment details");
       });
 
+    console.log("UseEffect Called");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    const solvedArray = sessionStorage.getItem("submissions") || "[]";
-    const mcqSolvedArray = sessionStorage.getItem("mcqSubmissions") || "[]";
+    const solvedArray =
+      (secureLocalStorage.getItem("submissions") as string) || "[]";
+    const mcqSolvedArray =
+      (secureLocalStorage.getItem("mcqSubmissions") as string) || "[]";
 
     const solvedSubmissions = JSON.parse(solvedArray);
     const solvedMcqSubmissions = JSON.parse(mcqSolvedArray);
@@ -97,25 +158,125 @@ const Lander = () => {
 
     setProblemSolved(pSolved);
     setMcqSolved(mSolved);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updateFlag]);
 
   useEffect(() => {
     if (assessment && timer > 0) {
       const interval = setInterval(() => {
+        secureLocalStorage.setItem("timer", timer.toString());
         setTimer((prev) => prev - 1);
-        sessionStorage.setItem("timer", timer.toString());
       }, 1000);
 
       return () => clearInterval(interval);
     }
   }, [assessment, timer]);
 
+  const [submitted, setSubmitted] = useState(false);
+  const [submitProgress, setSubmitProgress] = useState(0);
+
+  const submitAssessment = () => {
+    const submissionObj = {
+      mcqSubmissions: JSON.parse(
+        secureLocalStorage.getItem("mcqSubmissions") as string
+      ),
+      submissions: JSON.parse(
+        secureLocalStorage.getItem("submissions") as string
+      ),
+      assessmentId: assessment._id,
+      offenses: secureLocalStorage.getItem("offtrack") as string,
+      timer: timer, // @ts-expect-error - Types are not available for this library
+      sessionRewindUrl: window?.sessionRewind?.getSessionUrl(),
+      name: localStorage.getItem("name"),
+      email: localStorage.getItem("email"),
+    };
+
+    // @ts-expect-error - Types are not available for this library
+    window?.sessionRewind?.stopSession();
+
+    setSubmitted(true);
+
+    const axios = ax();
+    axios
+      .post("/assessments/submit", submissionObj)
+      .then(() => {
+        clearAssessment();
+        setSubmitProgress(100);
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to submit assessment");
+      });
+  };
+
+  const clearAssessment = () => {
+    secureLocalStorage.removeItem("mcqSubmissions");
+    secureLocalStorage.removeItem("submissions");
+    secureLocalStorage.removeItem("timer");
+    secureLocalStorage.removeItem("offtrack");
+    secureLocalStorage.removeItem("securityConfig");
+  };
+
+  useEffect(() => {
+    if (submitted) {
+      const interval = setInterval(() => {
+        if (submitProgress < 80) {
+          setSubmitProgress((prev) => prev + 1);
+        }
+      }, 100);
+
+      return () => clearInterval(interval);
+    }
+  }, [submitProgress, submitted]);
+
+  if (submitted) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen px-64 transition-all">
+        <Progress value={submitProgress} color="success" />
+        <div className="text-center text-lg mt-5">
+          {submitProgress < 100
+            ? "Submitting Assessment"
+            : "Assessment Submitted"}
+        </div>
+        <p className="mt-5 opacity-50">
+          {submitProgress < 100 && "Do not close the tab"}
+          {submitProgress === 100 && "You can close the tab now"}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex gap-5 items-center justify-center p-5 h-screen">
+      <Modal
+        isOpen={isTabChangeOpen}
+        onClose={onTabChangeOpenChange}
+        classNames={{
+          backdrop:
+            "bg-gradient-to-t from-red-900/50 to-red-900/5 backdrop-opacity-5",
+        }}
+      >
+        <ModalContent>
+          <ModalHeader>We detected that you changed the tab</ModalHeader>
+          <ModalBody>
+            Repeated tab changes may lead to disqualification.
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              onClick={onTabChangeOpenChange}
+              variant="flat"
+              color="danger"
+            >
+              OK
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
       <Sidebar
         timer={timer}
         problemsSolved={problemSolved}
         mcqsSolved={mcqSolved}
+        submitAssessment={submitAssessment}
       />
       <Main
         mcqs={assessment?.mcqs}

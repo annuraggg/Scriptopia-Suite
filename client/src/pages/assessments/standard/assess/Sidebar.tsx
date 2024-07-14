@@ -1,8 +1,16 @@
 import { Card, CardHeader, CardBody } from "@nextui-org/card";
 import { Clock } from "lucide-react";
 import { CardTitle } from "@/components/ui/card";
-import { Progress } from "@nextui-org/react";
+import { Button, Progress } from "@nextui-org/react";
 import { motion } from "framer-motion";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from "@nextui-org/modal";
 
 const convertToTime = (time: number) => {
   const hours = Math.floor(time / 3600);
@@ -11,7 +19,6 @@ const convertToTime = (time: number) => {
 
   return `${hours}:${minutes}:${seconds}`;
 };
-
 const assessmentSteps = [
   {
     title: "Choose Your Path",
@@ -39,10 +46,12 @@ const Sidebar = ({
   timer,
   problemsSolved,
   mcqsSolved,
+  submitAssessment,
 }: {
   timer: number;
   problemsSolved: { total: number; solved: number };
   mcqsSolved: { total: number; solved: number };
+  submitAssessment: () => void;
 }) => {
   const getPercentage = (solved: number, total: number) => {
     if (!solved || !total) return 0;
@@ -50,6 +59,8 @@ const Sidebar = ({
     if (total === 0) return 0;
     return ((solved / total) * 100).toFixed(2);
   };
+
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   return (
     <motion.div
@@ -132,7 +143,39 @@ const Sidebar = ({
             </div>
           </div>
         </CardBody>
+        <Button
+          className="mx-5 my-5"
+          variant="flat"
+          color="success"
+          onClick={onOpen}
+        >
+          Complete Assessment
+        </Button>
       </Card>
+
+      <Modal
+        isOpen={isOpen}
+        onClose={onOpenChange}
+        backdrop="blur"
+      >
+        <ModalContent>
+          <ModalHeader>Do you want to submit the assessment?</ModalHeader>
+          <ModalBody>
+            You won't be able to make changes after submission.
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={onOpenChange} variant="flat" color="danger">
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              submitAssessment();
+              onOpenChange();
+            }} variant="flat" color="success">
+              Submit
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </motion.div>
   );
 };

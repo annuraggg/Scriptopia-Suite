@@ -40,8 +40,14 @@ const Problem = () => {
   const [problemId, setProblemId] = useState<string>("");
 
   const [editorUpdateFlag, setEditorUpdateFlag] = useState<boolean>(false);
+  const [pid, setPid] = useState<string>("");
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const {
+    isOpen: isTabChangeOpen,
+    onOpen: onTabChangeOpen,
+    onOpenChange: onTabChangeOpenChange,
+  } = useDisclosure();
 
   const { getToken } = useAuth();
   useEffect(() => {
@@ -52,7 +58,8 @@ const Problem = () => {
     setLanguage(langs[0]);
 
     const axios = ax(getToken);
-    const id = window.location.pathname.split("/").pop();
+    const id = window.location.pathname.split("/").pop() as string;
+    setPid(id);
     axios
       .get(`/problems/${id}`)
       .then((res) => {
@@ -79,6 +86,42 @@ const Problem = () => {
       .finally(() => {
         setRootLoading(false);
       });
+
+    const securityConfig = secureLocalStorage.getItem("securityConfig") as {
+      languages: string[];
+      codePlayback: boolean;
+      codeExecution: boolean;
+      tabChangeDetection: boolean;
+      copyPasteDetection: boolean;
+      allowAutoComplete: boolean;
+      syntaxHighlighting: boolean;
+    };
+
+    if (securityConfig.tabChangeDetection) {
+      window.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          onTabChangeOpen();
+          const offtrack = (secureLocalStorage.getItem("offtrack") as {
+            tabChange: { problem: { problemId: string; times: number }[] };
+          }) || { tabChange: { problem: [] } };
+
+          const problem = offtrack.tabChange.problem.find(
+            (p: { problemId: string }) => p.problemId === problemId
+          );
+          if (problem) {
+            problem.times = problem.times ? problem.times + 1 : 1;
+          } else {
+            offtrack.tabChange.problem.push({ problemId: pid || id, times: 1 });
+          }
+
+          secureLocalStorage.setItem("offtrack", offtrack);
+        }
+      });
+    }
+
+    return () => {
+      window.removeEventListener("visibilitychange", () => {});
+    };
   }, [getToken]);
 
   const runCode = async () => {
@@ -120,10 +163,11 @@ const Problem = () => {
       problemId,
     };
 
-    const submissionArray = sessionStorage.getItem("submissions") || "[]";
+    const submissionArray =
+      (secureLocalStorage.getItem("submissions") as string) || "[]";
     const submissions = JSON.parse(submissionArray);
     submissions.push(saveObj);
-    sessionStorage.setItem("submissions", JSON.stringify(submissions));
+    secureLocalStorage.setItem("submissions", JSON.stringify(submissions));
     window.history.back();
   };
 
@@ -174,6 +218,31 @@ const Problem = () => {
             </Button>
             <Button onClick={saveCode} variant="flat" color="success">
               Submit
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal
+        isOpen={isTabChangeOpen}
+        onClose={onTabChangeOpenChange}
+        classNames={{
+          backdrop:
+            "bg-gradient-to-t from-red-900/50 to-red-900/5 backdrop-opacity-5",
+        }}
+      >
+        <ModalContent>
+          <ModalHeader>We detected that you changed the tab</ModalHeader>
+          <ModalBody>
+            Repeated tab changes may lead to disqualification.
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              onClick={onTabChangeOpenChange}
+              variant="flat"
+              color="danger"
+            >
+              OK
             </Button>
           </ModalFooter>
         </ModalContent>

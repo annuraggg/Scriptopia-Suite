@@ -8,10 +8,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { IMcq } from "@/@types/Assessment";
 import IProblem from "@/@types/Problem";
+import secureLocalStorage from "react-secure-storage";
 
 const Main = ({
   mcqs,
@@ -28,6 +29,13 @@ const Main = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
+  useEffect(() => {
+    const submissions = secureLocalStorage.getItem("mcqSubmissions") as string || "[]";
+    const parsedSubmissions = JSON.parse(submissions);
+    const answers = parsedSubmissions.map((item: { answer: string }) => item.answer);
+    setMcqAnswers(answers);
+  }, []);
+
   const goTo = (id: string) => {
     const item = document.getElementById(id);
     if (item) {
@@ -41,6 +49,8 @@ const Main = ({
     setIsOpen(false);
   };
 
+  const [mcqAnswers, setMcqAnswers] = useState<(string | string[])[]>([]);
+
   const navigate = useNavigate();
 
   const saveAnswer = (value: string | string[], index: number) => {
@@ -49,7 +59,15 @@ const Main = ({
       answer: value,
     };
 
-    const submissionArray = sessionStorage.getItem("mcqSubmissions") || "[]";
+    // Update mcqAnswers state correctly using index
+    setMcqAnswers((prev) => {
+      const updatedAnswers = [...prev];
+      updatedAnswers[index] = value;
+      return updatedAnswers;
+    });
+
+    // Save submission to sessionStorage
+    const submissionArray = secureLocalStorage.getItem("mcqSubmissions") as string || "[]";
     const submissions = JSON.parse(submissionArray);
     const exists = submissions.findIndex(
       (item: { id: string }) => item.id === mcqs[index]._id
@@ -59,8 +77,9 @@ const Main = ({
     } else {
       submissions.push(saveObj);
     }
+    secureLocalStorage.setItem("mcqSubmissions", JSON.stringify(submissions));
 
-    sessionStorage.setItem("mcqSubmissions", JSON.stringify(submissions));
+    // Trigger update flag
     setUpdateFlag((prev) => !prev);
   };
 
@@ -75,9 +94,6 @@ const Main = ({
                   <Button isIconOnly onClick={() => setIsOpen(true)}>
                     <CompassIcon />
                   </Button>
-                  <Button color="success" variant="flat">
-                    Save
-                  </Button>
                 </div>
                 {mcqs?.map((mcq, index) => (
                   <div
@@ -86,7 +102,7 @@ const Main = ({
                     key={index}
                   >
                     <div className="flex justify-between items-center w-full">
-                      <div>{mcq.question}</div>
+                      <div className="flex gap-3 items-center">{mcq.question} {mcqAnswers[index] && <Check size={16} className="text-green-500" />}</div>
                       <div className="opacity-50">
                         {index + 1} of {mcqs.length}
                       </div>
@@ -99,9 +115,11 @@ const Main = ({
                           {mcq.type === "checkbox" ? "one or more " : "one "}
                           option:
                         </p>
+                        {/* @ts-expect-error - Types are not available for this library */}
                         <ToggleGroup
-                          type={mcq.type === "multiple" ? "single" : "multiple"}
+                          type={mcq.type == "multiple" ? "single" : "multiple"}
                           className="w-full flex-wrap gap-3 mt-2"
+                          value={mcqAnswers[index] as string | string[]}
                           onValueChange={(value: string | string[]) =>
                             saveAnswer(value, index)
                           }
@@ -147,7 +165,9 @@ const Main = ({
                   >
                     <div>{problem.title}</div>
                     <div className="flex gap-3 items-center">
-                      {solvedProblems.includes(problem._id) && <Check size={16} className="text-green-500" />}
+                      {solvedProblems.includes(problem._id) && (
+                        <Check size={16} className="text-green-500" />
+                      )}
                       <Button
                         onClick={() =>
                           navigate(`${problem._id}`, {

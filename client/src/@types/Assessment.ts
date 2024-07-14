@@ -31,7 +31,7 @@ export interface ICandidates {
 }
 
 export interface IMcq {
-  _id: string;
+  _id?: string;
   question: string;
   type: "multiple" | "checkbox" | "text";
   mcq: { options: string[]; correct: string };

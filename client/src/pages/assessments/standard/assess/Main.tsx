@@ -60,6 +60,8 @@ const Main = () => {
 
   const fullScreenHandle = useFullScreenHandle();
   const startTest = () => {
+    localStorage.setItem("name", name);
+    localStorage.setItem("email", email);
     navigate("current");
     fullScreenHandle.enter();
   };

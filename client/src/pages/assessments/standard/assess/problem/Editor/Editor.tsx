@@ -31,7 +31,7 @@ const Editor = ({
 
   return (
     <div className="h-[50%] mb-2 w-full">
-      <Card className="h-full overflow-visible">
+      <Card className="h-full overflow-">
         <CardHeader className="border-b justify-between">
           <div className="flex items-center gap-3">
             <Code size={16} className="text-gray-500" />
