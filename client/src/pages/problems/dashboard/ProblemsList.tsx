@@ -21,12 +21,12 @@ const ProblemsList = ({ problems }: { problems: IProblem[] }) => {
       initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className=""
+      className="w-full"
     >
       <div>
         <h2>Scriptopia Problems</h2>
         <div className="mt-5 mb-5 flex gap-5 w-[70%]">
-          <Input type="Search" label="Email" size="sm" />
+          <Input type="Search" label="Search" size="sm" />
           <Select label="Difficulty" className="max-w-xs" size="sm">
             <SelectItem key="easy" value="easy">
               Easy

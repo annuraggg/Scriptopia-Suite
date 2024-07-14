@@ -29,13 +29,38 @@ const Candidates = ({
 }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [emailError, setEmailError] = useState("");
+
+  const validateEmail = (email: string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
 
   const addCandidates = () => {
+    setNameError("");
+    setEmailError("");
+
+    if (!name.trim()) {
+      setNameError("Name cannot be blank");
+      return;
+    }
+
+    if (!email.trim()) {
+      setEmailError("Email cannot be blank");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setEmailError("Invalid email format");
+      return;
+    }
+
     setCandidates((prev) => [
       ...prev,
       {
-        name: name,
-        email: email,
+        name: name.trim(),
+        email: email.trim(),
       },
     ]);
 
@@ -76,6 +101,8 @@ const Candidates = ({
                   placeholder="Enter Candidate Name"
                   onChange={(e) => setName(e.target.value)}
                   value={name}
+                  errorMessage={nameError}
+                  isInvalid={!!nameError}
                 />
                 <Input
                   className="w-full"
@@ -83,6 +110,8 @@ const Candidates = ({
                   type="email"
                   onChange={(e) => setEmail(e.target.value)}
                   value={email}
+                  errorMessage={emailError}
+                  isInvalid={!!emailError}
                 />
               </div>
               <Button className="w-full" onClick={addCandidates}>

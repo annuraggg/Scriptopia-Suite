@@ -8,7 +8,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Main = () => {
@@ -19,6 +19,7 @@ const Main = () => {
   ];
 
   const [isOpen, setIsOpen] = useState(false);
+  const [text, setText] = useState('');
 
   const mcqs = [
     {
@@ -51,6 +52,22 @@ const Main = () => {
   };
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedText = localStorage.getItem('savedText');
+    if (savedText) {
+      setText(savedText);
+    }
+  }, []);
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLElement>) => {
+    setText((e.target as HTMLTextAreaElement).value);
+  };
+
+  const handleSave = () => {
+    localStorage.setItem('savedText', text);
+    alert('Text saved successfully!');
+  };
 
   return (
     <div className="w-[75%] h-full">
@@ -104,13 +121,20 @@ const Main = () => {
                     )}
 
                     {mcq.type === "text" && (
-                      <div>
+                      <div className="flex flex-col">
                         <Textarea
                           variant="bordered"
                           type="text"
                           placeholder="Write your answer here"
                           className="w-full mt-5 rounded-xl bg-gray-100 bg-opacity-5 min-h-full"
+                          value={text}
+                          onChange={handleTextChange}
                         />
+                        <div className="flex justify-end mt-3">
+                          <Button color="success" onClick={handleSave} variant="flat" className="items-center">
+                            Save
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>
