@@ -144,11 +144,9 @@ const Main = ({
                           type="text"
                           placeholder="Write your answer here"
                           className="w-full mt-5 rounded-xl bg-gray-100 bg-opacity-5 min-h-full"
-                          value={text}
-                          onChange={handleTextChange}
                         />
                         <div className="flex justify-end mt-3">
-                          <Button color="success" onClick={handleSave} variant="flat" className="items-center">
+                          <Button color="success" variant="flat" className="items-center">
                             Save
                           </Button>
                         </div>
