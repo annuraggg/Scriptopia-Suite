@@ -169,6 +169,19 @@ const Lander = () => {
       }, 1000);
 
       return () => clearInterval(interval);
+    } else if (timer === 0) {
+      toast.info("Time's up!");
+      submitAssessment();
+    }
+
+    // remind at 1 minute
+    if (timer === 60) {
+      toast.info("1 minute remaining");
+    }
+
+    //remind at 5 minutes
+    if (timer === 300) {
+      toast.info("5 minutes remaining");
     }
   }, [assessment, timer]);
 
@@ -215,6 +228,14 @@ const Lander = () => {
     secureLocalStorage.removeItem("timer");
     secureLocalStorage.removeItem("offtrack");
     secureLocalStorage.removeItem("securityConfig");
+
+    localStorage.removeItem("name");
+    localStorage.removeItem("email");
+    localStorage.removeItem("mcqSubmissions");
+    localStorage.removeItem("submissions");
+    localStorage.removeItem("timer");
+    localStorage.removeItem("offtrack");
+    localStorage.removeItem("securityConfig");
   };
 
   useEffect(() => {

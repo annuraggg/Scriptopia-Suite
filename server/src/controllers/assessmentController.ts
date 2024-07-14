@@ -156,6 +156,18 @@ const verifyAccess = async (c: Context) => {
       return sendError(c, 404, "Assessment not found");
     }
 
+    const assessmentStartTime = new Date(assessment.openRange.start).getTime();
+    const assessmentEndTime = new Date(assessment.openRange.end).getTime();
+
+    const currentTime = new Date().getTime();
+    if (currentTime < assessmentStartTime) {
+      return sendError(c, 403, "Assessment not started yet");
+    }
+
+    if (currentTime > assessmentEndTime) {
+      return sendError(c, 403, "Assessment has ended");
+    }
+
     if (assessment.candidates.type === "all") {
       return sendSuccess(c, 200, "Access Granted", {
         instructions: assessment.instructions,
@@ -168,6 +180,15 @@ const verifyAccess = async (c: Context) => {
 
     if (!candidate) {
       return sendError(c, 403, "You are not allowed to take this assessment");
+    }
+
+    const takenAssessment = await AssessmentSubmissions.findOne({
+      assessmentId: body.id,
+      email: body.email,
+    });
+
+    if (takenAssessment) {
+      return sendError(c, 403, "You have already taken this assessment");
     }
 
     return sendSuccess(c, 200, "Access Granted", {
@@ -207,7 +228,7 @@ const submitAssessment = async (c: Context) => {
         functionReturn: problem.functionReturnType,
       };
 
-      const result = await runCompilerCode(
+      const result: any = await runCompilerCode(
         submission.language,
         functionSchema,
         problem.testCases

@@ -7,7 +7,7 @@ export interface IRunResponse {
 }
 
 export interface IRunResponseResult {
-  input: string;
+  input: string[];
   output: string;
   expected: string;
   passed: boolean;
