@@ -1,130 +1,181 @@
-import React from 'react';
+import React, { useEffect, useRef } from "react";
 import {
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    Card, 
-    CardBody, 
-    Link,
-    CardHeader,
-    Accordion,
-    AccordionItem,
-    Table,
-    TableColumn,
-    TableHeader,
-    TableCell,
-    TableBody,
-    TableRow,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  Card,
+  CardBody,
+  Table,
+  TableHeader,
+  TableBody,
+  TableColumn,
+  TableRow,
+  TableCell,
 } from "@nextui-org/react";
-import {
-    ClipboardListIcon,
-    Clock,
-}
-from "lucide-react";
+import { ClipboardListIcon, Clock, CodeXml } from "lucide-react";
+import { ArrowLeftRight, Scissors } from "lucide-react";
+import { Tabs, Tab } from "@nextui-org/tabs";
+import * as monaco from "monaco-editor";
 
 interface CodeSolutionModalProps {
-    isOpen: boolean;
-    onClose: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-const CodeSolutionModal: React.FC<CodeSolutionModalProps> = ({ isOpen, onClose }) => {
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} size='full' className='p-4'>
-            <ModalContent>
-                    <>
-                        <ModalHeader className="flex flex-col gap-2">Coding Result</ModalHeader>
-                        <ModalBody className='p-20'>
-                            <div className='w-full h-full flex flex-row gap-4'>
-                                <Card className='w-[45%] h-20 flex flex-row justify-center items-center p-2'>
-                                    <CardBody className="flex justify-center items-start gap-1 flex-col">
-                                        <p className="text-xl">Scriptopia Code</p>
-                                        <Link isExternal showAnchorIcon href="#" className="text-sm">contact@scriptopia.in</Link>
-                                    </CardBody>
-                                    <CardBody className="flex justify-center items-center gap-2 flex-row rounded-xl bg-gray-700 w-[90%]">
-                                        <p className="text-base">Code Result</p>
-                                    </CardBody>
-                                </Card>
-                                <Card className='w-[55%] h-20 flex flex-row justify-center items-center p-2'>
-                                    <CardBody className="flex justify-center items-start gap-1 flex-col">
-                                        <p className="text-xl">Two Sum</p>
-                                    </CardBody>
-                                    <CardBody className="flex justify-center items-center gap-2 flex-row rounded-xl bg-blue-800 w-[40vh]">
-                                        <Link showAnchorIcon className="text-base">View Question</Link>
-                                    </CardBody>
-                                </Card>
-                            </div>
-                            <div className='w-full h-full flex flex-row gap-4'>
-                                <Card className='w-[40%] h-28'>
-                                    <CardHeader className='flex flex-row justify-center items-center pb-0 text-gray-500'>
-                                        <p>Time Taken</p>
-                                    </CardHeader>
-                                    <CardBody className='flex flex-row justify-center items-center gap-3'>
-                                        <Clock size={28} className='text-blue-500' />
-                                        <p>150s</p>
-                                    </CardBody>
-                                </Card>
-                                <Card className='w-[40%] h-28'>
-                                    <CardHeader className='flex flex-row justify-center items-center pb-0 text-gray-500'>
-                                        <p>Code Solution</p>
-                                    </CardHeader>
-                                    <CardBody className='flex flex-row justify-center items-center gap-3'>
-                                        <ClipboardListIcon size={28} className='text-green-500' />
-                                        <p>Accepted</p>
-                                    </CardBody>
-                                </Card>
-                                <Card className='w-[60%] h-28'>
-                                    <CardHeader className='flex flex-row justify-center items-center pb-0 text-gray-500'>
-                                        <p>Programming Language Used</p>
-                                    </CardHeader>
-                                    <CardBody className='flex flex-row justify-center items-center gap-3'>
-                                        <p>JavaScript</p>
-                                    </CardBody>
-                                </Card>
-                            </div>
-                            <div className='w-full h-full flex flex-row'>
-                                <Card className='w-full h-16 flex flex-row justify-start items-start p-2 gap-3'>
-                                    <CardBody className="flex justify-center items-startr gap-2 flex-row rounded-3xl bg-green-600 w-[40vh] border-2px">
-                                        <p className="text-base">No Cheating Deteted</p>
-                                    </CardBody>
-                                    <CardBody className="flex justify-center items-center gap-2 flex-row rounded-3xl bg-gray-700 w-[40vh] border-2px">
-                                        <p className="text-base">Pasted 0 Time(s)</p>
-                                    </CardBody>
-                                    <CardBody className="flex justify-center items-center gap-2 flex-row rounded-3xl bg-gray-700 w-[40vh] border-2px">
-                                        <p className="text-base">Windows Switch 0 Time(s)</p>
-                                    </CardBody>
-                                </Card>
-                            </div>
-                            <div className=' flex flex-row'>
-                                <Accordion variant="splitted" className='w-full h-full'>
-                                    <AccordionItem value="1" className='' aria-label="Accordion 1" title="TestCases">
-                                        <Table isStriped aria-label="Mcq Results" className="pt-6">
-                                            <TableHeader>
-                                                <TableColumn className="text-sm">Input</TableColumn>
-                                                <TableColumn className="text-sm">Expected Output</TableColumn>
-                                                <TableColumn className="text-sm">User Output</TableColumn>
-                                            </TableHeader>
-                                            <TableBody>
-                                                    <TableRow className="h-14">
-                                                        <TableCell className="w-full md:w-auto">["H","a","n","n","a","h"]</TableCell>
-                                                        <TableCell className="w-full md:w-auto">["h","a","n","n","a","H"]</TableCell>
-                                                        <TableCell className="w-full md:w-auto">["h","a","n","n","a","H"]</TableCell>
-                                                    </TableRow>
-                                            </TableBody>
-                                        </Table>
-                                    </AccordionItem>
-                                </Accordion>
-                            </div>
-                            <div className='w-full h-full flex flex-col'>
-                                <Card className='w-full h-30 flex flex-col justify- items-center'>
+const CodeSolutionModal: React.FC<CodeSolutionModalProps> = ({
+  isOpen,
+  onClose,
+}) => {
+  const leftCard = [
+    {
+      title: "Time Taken",
+      status: "150s",
+      icon: <Clock size={20} />,
+    },
+    {
+      title: "Solution",
+      status: "Accepted",
+      icon: <ClipboardListIcon size={20} />,
+    },
+    {
+      title: "Programming Language",
+      status: "Javascript",
+      icon: <CodeXml size={20} />,
+    },
+  ];
 
-                                </Card>
-                            </div>
-                        </ModalBody>
-                    </>
-            </ModalContent>
-        </Modal>
-    );
+  const rightCard = [
+    {
+      title: "Pasted Code",
+      status: "NO",
+      icon: <Scissors size={20} />,
+    },
+    {
+      title: "Window Switch",
+      status: "NO",
+      icon: <ArrowLeftRight size={20} />,
+    },
+  ];
+
+  const code = `function add(a, b) {
+    return a + b;
+    }`;
+
+  const editorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen && editorRef.current) {
+      const editor = monaco.editor.create(editorRef.current!, {
+        value: code,
+        language: "javascript",
+        theme: "vs-dark",
+        readOnly: true,
+        overviewRulerBorder: false,
+        minimap: {
+          enabled: false,
+        },
+        lineNumbers: "off",
+      });
+
+      return () => {
+        editor.dispose();
+      };
+    }
+  }, [code, isOpen]);
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} className="min-w-[60%]">
+      <ModalContent>
+        <ModalHeader>Code Solution</ModalHeader>
+        <ModalBody>
+          <div className="flex gap-3">
+            <Card className="w-full border drop-shadow-sm">
+              <CardBody className="flex justify-start items-start gap-3 flex-col p-8">
+                {leftCard.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center gap-3 flex-row w-full"
+                  >
+                    <div className="flex gap-2">
+                      {item.icon}
+                      <p className="text-sm">{item.title}</p>
+                    </div>
+                    <p className="text-sm text-green-500 ml-[90px]">
+                      {item.status}
+                    </p>
+                  </div>
+                ))}
+              </CardBody>
+            </Card>
+
+            <Card className="w-full border drop-shadow-sm">
+              <CardBody className="flex justify-start items-start gap-3 flex-col p-8">
+                {rightCard.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center gap-3 flex-row w-full"
+                  >
+                    <div className="flex gap-2">
+                      {item.icon}
+                      <p className="text-sm">{item.title}</p>
+                    </div>
+                    <p className="text-sm text-green-500 ml-[90px]">
+                      {item.status}
+                    </p>
+                  </div>
+                ))}
+              </CardBody>
+            </Card>
+          </div>
+
+          <Tabs aria-label="Options">
+            <Tab key="code" title="Code">
+              <Card>
+                <CardBody>
+                  <div
+                    id="code-editor"
+                    className="border h-[30vh] w-full z-50 overflow-visible rounded-lg"
+                    ref={editorRef}
+                  ></div>
+                </CardBody>
+              </Card>
+            </Tab>
+            <Tab key="cases" title="Test Cases">
+              <Card>
+                <CardBody className="border">
+                  <Table removeWrapper>
+                    <TableHeader>
+                      <TableColumn>Input</TableColumn>
+                      <TableColumn>Output</TableColumn>
+                      <TableColumn>Expected</TableColumn>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell>1</TableCell>
+                        <TableCell>1</TableCell>
+                        <TableCell>1</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>2</TableCell>
+                        <TableCell>2</TableCell>
+                        <TableCell>2</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>3</TableCell>
+                        <TableCell>3</TableCell>
+                        <TableCell>3</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </CardBody>
+              </Card>
+            </Tab>
+          </Tabs>
+        </ModalBody>
+      </ModalContent>
+    </Modal>
+  );
 };
 
 export default CodeSolutionModal;
