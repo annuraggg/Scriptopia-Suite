@@ -2,6 +2,7 @@ import { Context } from "hono";
 import Problem from "../models/Problem";
 import { sendError, sendSuccess } from "../utils/sendResponse";
 import { getAuth } from "@hono/clerk-auth";
+import Submission from "../models/Submission";
 
 const LIMIT_PER_PAGE = 20;
 
@@ -42,7 +43,8 @@ const getUserGeneratedProblems = async (c: Context) => {
 const getMyProblems = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
-    const auth = getAuth(c);
+    // @ts-ignore
+    const auth = devAuth ? global.auth : getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
@@ -63,12 +65,21 @@ const getMyProblems = async (c: Context) => {
 const getProblem = async (c: Context) => {
   try {
     const id = c.req.param("id");
+    const userId = c.get("auth")?.userId;
 
     const problem = await Problem.findById(id).lean();
     if (!problem) {
       return sendSuccess(c, 404, "Problem not found");
     }
-    return sendSuccess(c, 200, "Success", problem);
+
+    if (!userId) return sendSuccess(c, 200, "Success", { problem });
+
+    const submissions = await Submission.find({
+      problem: id,
+      user: userId,
+    }).lean();
+
+    return sendSuccess(c, 200, "Success", { problem, submissions });
   } catch (error) {
     console.log(error);
     return sendError(c, 500, "Internal Server Error", error);
@@ -77,7 +88,8 @@ const getProblem = async (c: Context) => {
 
 const createProblem = async (c: Context) => {
   try {
-    const auth = getAuth(c);
+    // @ts-ignore
+    const auth = devAuth ? global.auth : getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");

@@ -81,12 +81,17 @@ const McqModal = ({
       setError("Question title is required.");
       return;
     }
-
+  
     const type = Array.from(questionType)[0];
-
+  
+    if (!type) {
+      setError("Question type is required.");
+      return;
+    }
+  
     if (type === "multiple") {
-      if (options.length === 0) {
-        setError("At least one option is required for multiple choice.");
+      if (options.length < 2) {
+        setError("At least two options are required for multiple choice.");
         return;
       }
       if (correctOption.trim() === "") {
@@ -94,10 +99,10 @@ const McqModal = ({
         return;
       }
     }
-
+  
     if (type === "checkbox") {
-      if (checkboxes.length === 0) {
-        setError("At least one option is required for checkbox.");
+      if (checkboxes.length < 2) {
+        setError("At least two options are required for checkbox.");
         return;
       }
       if (correctCheckboxes.length === 0) {
@@ -105,7 +110,7 @@ const McqModal = ({
         return;
       }
     }
-
+  
     const question = title;
     const mcq = {
       options,
@@ -115,10 +120,10 @@ const McqModal = ({
       options: checkboxes,
       correct: correctCheckboxes,
     };
-
+  
     // @ts-expect-error - Types Not Available
     save(question, type, mcq, checkbox);
-
+  
     setTitle("");
     setQuestionType(new Set<string>(["multiple"]));
     setOptions([]);

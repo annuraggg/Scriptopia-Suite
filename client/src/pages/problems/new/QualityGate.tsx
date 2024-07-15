@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button, CircularProgress } from "@nextui-org/react";
 import { CircleCheck, CircleX } from "lucide-react";
 import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const QualityGate = ({
   minimumFiveCases,
@@ -18,6 +19,7 @@ const QualityGate = ({
   completed: boolean[];
   buildRequestData: () => void;
 }) => {
+  const navigate = useNavigate();
   const [value, setValue] = React.useState(0);
 
   useEffect(() => {
@@ -32,6 +34,11 @@ const QualityGate = ({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const onClickHandle = () => {
+    buildRequestData();
+    navigate("/problems#my-problems");
+  }
 
   return (
     <motion.div
@@ -107,7 +114,7 @@ const QualityGate = ({
         variant="flat"
         disabled={value !== 100}
         aria-label="Submit"
-        onClick={buildRequestData}
+        onClick={onClickHandle}
       >
         Submit
       </Button>

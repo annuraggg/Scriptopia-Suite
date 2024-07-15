@@ -1,25 +1,15 @@
 import { performance } from "perf_hooks";
 
-export const handler = async (event) => {
+const handler = async (event) => {
   try {
-    const {
-      functionName,
-      functionArgs,
-      functionBody,
-      functionReturn,
-      testCases,
-    } = event;
+    const { functionSchema, testCases } = event;
+    const { functionName, functionBody } = functionSchema;
 
-    const fnScript = createFunctionScript(
-      functionName,
-      functionArgs,
-      functionBody,
-      functionReturn
-    );
+    console.log(functionSchema);
 
     const { results, avgTime, avgMemory } = runTestCases(
       functionName,
-      fnScript,
+      functionBody,
       testCases
     );
 
@@ -41,23 +31,6 @@ export const handler = async (event) => {
       message: error.message,
     };
   }
-};
-
-const createFunctionScript = (
-  functionName,
-  functionArgs,
-  functionBody,
-  functionReturn
-) => {
-  const args = functionArgs.map((arg) => arg.name);
-
-  const fn = `
-    function ${functionName}(${args.join(", ")}) {
-        ${functionBody}
-    }
-    `;
-
-  return fn;
 };
 
 const runTestCases = (functionName, fnScript, testCases) => {
@@ -86,17 +59,30 @@ const runTestCases = (functionName, fnScript, testCases) => {
 const executeFn = (functionName, fnScript, testCase) => {
   const { input, output } = testCase;
 
+  const parsedInput = parseInput(input);
+
+  // Define the function from the script
+  eval(fnScript);
+
   const start = performance.now();
   const initialMemory = process.memoryUsage().heapUsed;
 
-  const result = new Function(`return (${fnScript});`)()(...input);
+  // Execute the function
+  const result = eval(`${functionName}(...parsedInput)`);
 
   const end = performance.now();
   const finalMemory = process.memoryUsage().heapUsed;
 
   const time = end - start;
   const memory = finalMemory - initialMemory;
-  const passed = result === output;
+  const passed = JSON.stringify(result) === JSON.stringify(JSON.parse(output));
 
   return { time, memory, passed, output: result };
 };
+
+const parseInput = (input) => {
+  // Parsing the input string to actual arguments
+  return JSON.parse(`[${input}]`);
+};
+
+export { handler }

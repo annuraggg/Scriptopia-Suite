@@ -3,21 +3,24 @@ import { createMiddleware } from "hono/factory";
 import { sendError } from "../utils/sendResponse";
 
 const authMiddleware = createMiddleware(async (c, next) => {
-  const token = c.req.header("Authorization");  
+  // const token = c.req.header("Authorization");
 
-  if(c.req.path === "/health") return next();
+  // if(c.req.path === "/health") return next();
 
-  if (!token) {
-    console.log("No token");
-    return sendError(c, 401, "Unauthorized");
-  }
-  const auth = getAuth(c)
+  // if (!token) {
+  //   console.log("No token");
+  //   return sendError(c, 401, "Unauthorized");
+  // }
 
-  if (!auth?.userId) {
-    console.log("NO USERID")
-    return sendError(c, 401, "Unauthorized");
-  }
+  // @ts-ignore
+  const auth = devAuth ? global.auth : getAuth(c);
 
+  // if (!auth?.userId) {
+  //   console.log("NO USERID")
+  //   return sendError(c, 401, "Unauthorized");
+  // }
+
+  c.set("auth", auth);
   return next();
 });
 

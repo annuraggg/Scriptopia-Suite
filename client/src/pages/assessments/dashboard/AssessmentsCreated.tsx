@@ -10,6 +10,7 @@ import {
 import { Eye, Link, Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import IAssessment from "@/@types/Assessment";
+import { toast } from "sonner";
 
 const calculateStatus = (createdAssessment: IAssessment) => {
   const startDate = new Date(createdAssessment.openRange.start);
@@ -19,6 +20,14 @@ const calculateStatus = (createdAssessment: IAssessment) => {
   if (currentDate < startDate) return "Upcoming";
   if (currentDate > endDate) return "Expired";
   return "Active";
+};
+
+const copyLink = (assessmentId: string) => {
+  navigator.clipboard.writeText(
+    `${window.location.origin}/assessments/standard/${assessmentId}`
+  );
+  console.log("Link copied to clipboard");
+  toast.success("Link copied to clipboard");
 };
 
 const AssessmentsCreated = ({
@@ -67,20 +76,35 @@ const AssessmentsCreated = ({
                     {calculateStatus(CreatedAssessment)}
                   </span>
                 </p>
-                <p className="text-xs text-gray-500">
-                  Date: {new Date(CreatedAssessment.createdAt).toLocaleString()}
+                <p>
+                  <span className="text-xs text-gray-500">Date: </span>
+                  <span className="text-xs text-white-200">
+                    {new Date(CreatedAssessment.createdAt).toLocaleString()}
+                  </span>
                 </p>
-                <p className="text-xs text-gray-500">
-                  Duration: {CreatedAssessment.timeLimit} minutes
+                <p>
+                  <span className="text-xs text-gray-500">Duration: </span>
+                  <span className="text-xs text-white-200">
+                    {CreatedAssessment.timeLimit} minutes
+                  </span>
                 </p>
-                <p className="text-xs text-gray-500">
-                  MCQs: {CreatedAssessment.mcqs.length}, Codes:{" "}
-                  {CreatedAssessment.problems.length}
+                <p>
+                  <span className="text-xs text-gray-500">MCQs: </span>
+                  <span className="text-xs text-white-200">
+                    {CreatedAssessment.mcqs.length}
+                  </span>
+                  <span className="text-xs text-gray-500">, </span>
+                  <span className="text-xs text-gray-500">Codes: </span>
+                  <span className="text-xs text-white-200">
+                    {" "}
+                    {CreatedAssessment.problems.length}
+                  </span>
                 </p>
                 <p className="text-xs text-gray-500 mt-2">Time Range:</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-white-200">
                   {new Date(CreatedAssessment.openRange.start).toLocaleString()}{" "}
-                  - {new Date(CreatedAssessment.openRange.end).toLocaleString()}
+                  <span className="text-xs text-gray-500 mt-2">to </span>
+                  {new Date(CreatedAssessment.openRange.end).toLocaleString()}
                 </p>
               </CardBody>
               <CardFooter className="gap-2 flex-wrap">
@@ -93,6 +117,7 @@ const AssessmentsCreated = ({
                 <Button
                   className="w-[48%] flex items-center justify-center text-xs gap-3"
                   variant="flat"
+                  onClick={() => navigate(`/assessments/id/view`)}
                 >
                   <Eye size={18} /> <p>View</p>
                 </Button>
@@ -105,6 +130,7 @@ const AssessmentsCreated = ({
                 <Button
                   className="w-[48%] flex items-center justify-center text-xs gap-3"
                   variant="flat"
+                  onClick={() => copyLink(CreatedAssessment._id)}
                 >
                   <Link size={18} /> <p>Copy Link</p>
                 </Button>

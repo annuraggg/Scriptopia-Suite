@@ -1,62 +1,59 @@
-import EditorJS, { OutputData } from "@editorjs/editorjs";
-import Header from "@editorjs/header"; // @ts-expect-error - no types available
-import Link from "@editorjs/link"; // @ts-expect-error - no types available
-import SimpleImage from "@editorjs/simple-image"; // @ts-expect-error - no types available
-import Checklist from "@editorjs/checklist"; // @ts-expect-error - no types available
-import List from "@editorjs/list"; // @ts-expect-error - no types available
-import Code from "@editorjs/code"; // @ts-expect-error - no types available
-import Table from "@editorjs/table"; // @ts-expect-error - no types available
-import Warning from "@editorjs/warning"; // @ts-expect-error - no types available
-import inlineCode from "@editorjs/inline-code";
 import { useEffect } from "react";
 import { Card, CardBody } from "@nextui-org/react";
 import { Tabs, Tab } from "@nextui-org/tabs";
 import Submission from "./Submission";
-import { Submission as SubmissionType } from "../types";
+import Quill from "quill";
+import { Delta } from "quill/core";
+import { ISubmission } from "@/@types/Submission";
 
 const Statement = ({
   statement,
   submissions,
+  title,
+  setActiveTab,
+  activeTab,
+  loading,
 }: {
-  statement: OutputData;
-  submissions: SubmissionType[];
+  statement: Delta;
+  submissions: ISubmission[];
+  title: string;
+  setActiveTab: (key: string) => void;
+  activeTab: string;
+  loading: boolean;
 }) => {
   useEffect(() => {
-    if (!statement) return;
-
     setTimeout(() => {
-      new EditorJS({
-        holder: "editor-div",
+      const quill = new Quill("#editor-div", {
         readOnly: true,
-        tools: {
-          header: Header,
-          link: Link,
-          image: SimpleImage,
-          checklist: Checklist,
-          list: List,
-          code: Code,
-          table: Table,
-          warning: Warning,
-          inlineCode: inlineCode,
+        theme: "bubble",
+        modules: {
+          toolbar: false,
         },
-        data: statement,
       });
+      quill.setContents(statement);
     }, 100);
   }, [statement]);
 
   return (
     <div className="w-full">
-      <Tabs placement="top" className="w-[48%]" variant="underlined">
+      <Tabs
+        placement="top"
+        className="w-[48%]"
+        variant="underlined"
+        selectedKey={activeTab}
+        onSelectionChange={(key) => setActiveTab(key.toString())}
+      >
         <Tab
           key="statement"
           title="Statement &nbsp;&nbsp;"
           className="w-full p-0"
         >
           <Card className="w-full">
-            <CardBody className="h-[84.5vh]">
+            <h6 className="px-5 mt-3">{title}</h6>
+            <CardBody className="h-[79.5vh]">
               <div
                 id="editor-div"
-                className="w-full overflow-auto -mt-10 px-5"
+                className="w-full overflow-auto -mt-10"
               ></div>
             </CardBody>
           </Card>
@@ -65,7 +62,7 @@ const Statement = ({
         <Tab key="submissions" title="Submissions" className="w-full p-0">
           <Card className="w-full">
             <CardBody className="h-[84.5vh]">
-              <Submission submissions={submissions} />
+              <Submission submissions={submissions} loading={loading} />
             </CardBody>
           </Card>
         </Tab>

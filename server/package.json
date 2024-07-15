@@ -1,15 +1,24 @@
 {
   "name": "server",
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "sun": "tsx watch src/index.ts",
+    "prod": "tsx src/index.ts",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org scriptopia --project scriptopia-backend ./out && sentry-cli sourcemaps upload --org scriptopia --project scriptopia-backend ./out"
   },
   "dependencies": {
+    "@aws-sdk/client-lambda": "^3.614.0",
     "@axiomhq/pino": "^1.0.0",
     "@clerk/backend": "^1.2.4",
     "@hono/clerk-auth": "^2.0.0",
     "@hono/node-server": "^1.11.4",
+    "@hono/sentry": "^1.2.0",
+    "@sentry/cli": "^2.32.1",
+    "@sentry/node": "^8.15.0",
+    "@sentry/profiling-node": "^8.15.0",
     "dotenv": "^16.4.5",
-    "hono": "^4.4.7",
+    "hono": "^4.4.12",
+    "ioredis": "^5.4.1",
     "mongoose": "^8.4.3",
     "pino": "^9.2.0"
   },

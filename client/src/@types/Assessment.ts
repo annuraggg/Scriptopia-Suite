@@ -31,6 +31,7 @@ export interface ICandidates {
 }
 
 export interface IMcq {
+  _id?: string;
   question: string;
   type: "multiple" | "checkbox" | "text";
   mcq: { options: string[]; correct: string };
@@ -48,6 +49,7 @@ export interface ISecurity {
 }
 
 interface IAssessment extends Document {
+  _id: string;
   name: string;
   description: string;
   type: "standard" | "live";

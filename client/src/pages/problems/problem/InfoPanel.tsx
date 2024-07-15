@@ -1,13 +1,13 @@
 import { Card, Code, Tab, Tabs } from "@nextui-org/react";
 import { FlaskConical, SquareChevronRight } from "lucide-react";
-import { Case } from "./types";
+import { IRunResponseResult } from "@/@types/RunResponse";
 
 const InfoPanel = ({
   consoleOutput,
   cases,
 }: {
   consoleOutput: string;
-  cases: Case[];
+  cases: IRunResponseResult[];
 }) => {
   return (
     <Card className="h-[50%] mt-2 p-2 overflow-auto">
@@ -25,7 +25,7 @@ const InfoPanel = ({
           {cases.length !== 0 ? (
             <Tabs className="overflow-auto">
               {cases?.map(
-                (c: Case, i: number) =>
+                (c: IRunResponseResult, i: number) =>
                   c.isSample && (
                     <Tab
                       key={i}
@@ -33,7 +33,7 @@ const InfoPanel = ({
                         <div className="flex items-center gap-2">
                           <div
                             className={`w-1 h-1 rounded-full ${
-                              c.output === c.expected
+                              c.passed
                                 ? "bg-green-500"
                                 : "bg-red-500"
                             }`}
@@ -46,7 +46,7 @@ const InfoPanel = ({
                       <div className="overflow-auto h-full">
                         <Code className="border p-2 rounded-lg w-full">
                           <p className="mb-2">Input</p>
-                          <Code className="w-full">{c.input}</Code>
+                          <Code className="w-full">{c.input.join(",")}</Code>
                         </Code>
                         <Code className="border p-2 rounded-lg w-full mt-2">
                           <p className="mb-2">Expected Output</p>

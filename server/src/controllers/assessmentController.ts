@@ -2,19 +2,23 @@ import { Context } from "hono";
 import { sendError, sendSuccess } from "../utils/sendResponse";
 import { getAuth } from "@hono/clerk-auth";
 import Assessment from "../models/Assessment";
+import Problem from "../models/Problem";
+import { runCode as runCompilerCode } from "../aws/runCode";
+import AssessmentSubmissions from "../models/AssessmentSubmissions";
 
 const LIMIT_PER_PAGE = 20;
 
 const getAssessments = async (c: Context) => {
   try {
-    console.log("REQ REC")
     const page = parseInt(c.req.param("page")) || 1;
 
-    const assessments = await Assessment.find()
+    const assessments = await Assessment.find({ author: c.get("auth").userId })
       .skip((page - 1) * LIMIT_PER_PAGE)
       .limit(LIMIT_PER_PAGE)
       .lean();
 
+    console.log(c.get("auth").userId);
+    console.log(assessments);
     return sendSuccess(c, 200, "Success", assessments);
   } catch (error) {
     console.log(error);
@@ -25,7 +29,8 @@ const getAssessments = async (c: Context) => {
 const getMyAssessments = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
-    const auth = getAuth(c);
+    // @ts-ignore
+    const auth = devAuth ? global.auth : getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
@@ -46,7 +51,8 @@ const getMyAssessments = async (c: Context) => {
 const getMyLiveAssessments = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
-    const auth = getAuth(c);
+    // @ts-ignore
+    const auth = devAuth ? global.auth : getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
@@ -99,7 +105,13 @@ const getAssessment = async (c: Context) => {
     if (!assessment) {
       return sendError(c, 404, "Assessment not found");
     }
-    return sendSuccess(c, 200, "Success", assessment);
+
+    //for each problem id in the assessment, get the problem details
+    const problems = await Problem.find({
+      _id: { $in: assessment.problems },
+    }).lean();
+
+    return sendSuccess(c, 200, "Success", { assessment, problems });
   } catch (error) {
     console.log(error);
     return sendError(c, 500, "Internal Server Error", error);
@@ -108,7 +120,8 @@ const getAssessment = async (c: Context) => {
 
 const createAssessment = async (c: Context) => {
   try {
-    const auth = getAuth(c);
+    // @ts-ignore
+    const auth = devAuth ? global.auth : getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
@@ -134,10 +147,153 @@ const createAssessment = async (c: Context) => {
   }
 };
 
+const verifyAccess = async (c: Context) => {
+  try {
+    const body = await c.req.json();
+
+    const assessment = await Assessment.findOne({ _id: body.id });
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    const assessmentStartTime = new Date(assessment.openRange.start).getTime();
+    const assessmentEndTime = new Date(assessment.openRange.end).getTime();
+
+    const currentTime = new Date().getTime();
+    if (currentTime < assessmentStartTime) {
+      return sendError(c, 403, "Assessment not started yet");
+    }
+
+    if (currentTime > assessmentEndTime) {
+      return sendError(c, 403, "Assessment has ended");
+    }
+
+    if (assessment.candidates.type === "all") {
+      return sendSuccess(c, 200, "Access Granted", {
+        instructions: assessment.instructions,
+      });
+    }
+
+    const candidate = assessment.candidates.candidates.find(
+      (candidate) => candidate.email === body.email
+    );
+
+    if (!candidate) {
+      return sendError(c, 403, "You are not allowed to take this assessment");
+    }
+
+    const takenAssessment = await AssessmentSubmissions.findOne({
+      assessmentId: body.id,
+      email: body.email,
+    });
+
+    if (takenAssessment) {
+      return sendError(c, 403, "You have already taken this assessment");
+    }
+
+    return sendSuccess(c, 200, "Access Granted", {
+      instructions: assessment.instructions,
+    });
+  } catch (error) {
+    console.log(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const submitAssessment = async (c: Context) => {
+  try {
+    const body = await c.req.json();
+    const {
+      mcqSubmissions,
+      submissions,
+      assessmentId,
+      offenses,
+      timer,
+      sessionRewindUrl,
+      name,
+      email,
+    } = body;
+
+    const problemResults = [];
+    for (const submission of submissions) {
+      const problem = await Problem.findById(submission.problemId);
+      if (!problem) {
+        return sendError(c, 404, "Problem not found");
+      }
+
+      const functionSchema = {
+        functionName: problem.functionName,
+        functionArgs: problem.functionArgs,
+        functionBody: submission.code,
+        functionReturn: problem.functionReturnType,
+      };
+
+      const result: any = await runCompilerCode(
+        submission.language,
+        functionSchema,
+        problem.testCases
+      );
+
+      if (result?.status === "ERROR") {
+        console.log(result.error);
+        return sendError(c, 500, "Internal Server Error", result.error);
+      }
+
+      const r = result.results.map((r: any) => ({
+        caseNo: r.caseNo,
+        caseId: r._id,
+        output: r.output,
+        isSample: r.isSample,
+        memory: r.memory,
+        time: r.time,
+        passed: r.passed,
+        console: r.console,
+      }));
+
+      problemResults.push({
+        problemId: submission.problemId,
+        code: submission.code,
+        language: submission.language,
+        results: r,
+      });
+    }
+
+    const mcqs: { mcqId: string; selectedOptions: string[] }[] = [];
+    mcqSubmissions.forEach((mcq: any) => {
+      mcqs.push({
+        mcqId: mcq.id,
+        selectedOptions:
+          typeof mcq.answer === "string" ? [mcq.answer] : mcq.answer,
+      });
+    });
+
+    const assessmentSubmission = {
+      assessmentId,
+      name,
+      email,
+      offenses,
+      mcqSubmissions: mcqs,
+      submissions: problemResults,
+      timer,
+      sessionRewindUrl,
+    };
+
+    const submission = new AssessmentSubmissions(assessmentSubmission);
+    await submission.save();
+
+    return sendSuccess(c, 200, "Success");
+  } catch (error) {
+    console.log(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
 export default {
   getAssessments,
   getMyAssessments,
   getMyLiveAssessments,
   getAssessment,
   createAssessment,
+  verifyAccess,
+  submitAssessment,
 };

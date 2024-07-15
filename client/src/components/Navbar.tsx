@@ -1,8 +1,9 @@
 import { UserButton, useAuth } from "@clerk/clerk-react";
 import Logo from "../assets/logo1080_transparent_white_large.png";
 import { Link, Button } from "@nextui-org/react";
-import { EllipsisVertical, Menu, X } from "lucide-react";
+import { EllipsisVertical, Menu, X, } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dropdown,
   DropdownTrigger,
@@ -11,6 +12,7 @@ import {
 } from "@nextui-org/react";
 
 const Navbar = () => {
+  const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const handleMenu = () => {
     setShowMenu(!showMenu);
@@ -64,19 +66,18 @@ const Navbar = () => {
           ))}
         </div>
         <div className="flex items-center gap-2 sm:gap-5">
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-3">
             <Dropdown>
-              <DropdownTrigger>
-                Organization
-              </DropdownTrigger>
+              <DropdownTrigger className="cursor-pointer"><Menu size={22} /></DropdownTrigger>
               <DropdownMenu aria-label="Static Actions">
                 <DropdownItem onClick={openOrg}>Organization</DropdownItem>
+                <DropdownItem onClick={() => navigate("/profile")}>Profile</DropdownItem>
               </DropdownMenu>
             </Dropdown>
             <UserButton />
           </div>
           <div className="flex md:hidden" onClick={handleMenu}>
-            {!showMenu ? <Menu size={24} /> : <X size={24} />}
+            {!showMenu ? <Menu size={22} /> : <X size={22} />}
           </div>
         </div>
       </div>

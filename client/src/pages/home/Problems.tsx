@@ -42,8 +42,8 @@ const Problems = (
           </div>
         ))}
       </div>
-      <div className="md:mt-5 flex flex-col md:flex-row gap-3 w-[70%]">
-        <Input type="Search" label="Search Problems" size="sm" className="w-[60%] md:w-[70%]" />
+      <div className="md:mt-5 flex flex-col md:flex-row gap-3 w-[70vh] w-full">
+        <Input type="Search" label="Search Problems" size="sm" className="w-[45vh] md:w-[70%]" />
         <div className="flex flex-row items-center flex-wrap md:w-[30%] md:gap-0 md:justify-center gap-4">
           <Select label="Difficulty" className=" w-[30%] md:flex-grow md:ml-4" size="sm">
             <SelectItem key="easy" value="easy">
@@ -83,7 +83,7 @@ const Problems = (
         </div>
       </div>
 
-      <div className="mt-3 md:mt-5 overflow-x-auto md:overflow-x-visible">
+      <div className="mt-3 md:mt-5 overflow-x-auto md:overflow-x-visible w-[45vh] md:w-[full] md:w-[100%]">
         <Table isStriped aria-label="Problems" className="min-w-full">
           <TableHeader>
             <TableColumn className="text-sm">Problem</TableColumn>
@@ -96,7 +96,7 @@ const Problems = (
               <TableRow className="h-14" key={problem.title}>
                 <TableCell
                   className="w-full md:w-auto hover:text-blue-500 cursor-pointer"
-                  onClick={() => navigate(`/problem/${problem._id}`)}
+                  onClick={() => navigate(`/problems/${problem._id}`)}
                 >
                   <p className="truncate max-w-[500px]">{problem.title}</p>
                 </TableCell>

@@ -1,4 +1,5 @@
 export interface ITestCase {
+  _id?: string;
   input: string[];
   output: string;
   difficulty: "easy" | "medium" | "hard";
@@ -19,12 +20,15 @@ interface IProblem extends Document {
   difficulty: "easy" | "medium" | "hard";
   tags: string[];
   votes: number;
+  acceptance: number;
   functionName: string;
   functionReturnType: "string" | "number" | "boolean" | "array";
   functionArgs: IFunctionArg[];
   testCases: ITestCase[];
   isPrivate: boolean;
   allowInAssessments: boolean;
+
+  status?: "Solved" | "Unsolved";
 }
 
 export default IProblem;
