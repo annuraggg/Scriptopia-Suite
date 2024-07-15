@@ -79,6 +79,16 @@ const runTestCases = (functionName, fnScript, testCases, functionArgs) => {
   return { results, avgTime, avgMemory };
 };
 
+const obj = {
+  functionName: "addTwo",
+  functionArgs: [
+    { name: "a", type: "number" },
+    { name: "b", type: "number" },
+  ],
+  fnScript: `function addTwo(a, b) return a + b; `,
+  testCase: { input: "[1,2]", output: "3" },
+};
+
 const executeFn = (functionName, functionArgs, fnScript, testCase) => {
   const { input, output, isSample, _id } = testCase;
   let consoleLogs = []; // Array to capture console logs
@@ -113,6 +123,11 @@ const executeFn = (functionName, functionArgs, fnScript, testCase) => {
   ${fnScript}
   ${functionName}(${actualInput});
   `;
+
+  /*
+  function addTwo(a, b) return a + b;
+  addTwo(1, 2);
+  */
 
   // Evaluate script
   const result = eval(evalScript);
