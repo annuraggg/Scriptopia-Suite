@@ -20,7 +20,7 @@ const UserGenerated = ({ userproblems }: { userproblems: IProblem[] }) => {
       initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className=""
+      className="w-full"
     >
       <div>
         <h2>User Generated Problems</h2>

@@ -8,6 +8,7 @@ import {
   PencilIcon,
   TrashIcon,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Mcqs = ({
   mcqs,
@@ -95,6 +96,11 @@ const Mcqs = ({
   };
 
   return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
     <div>
       <div>
         <Button onClick={onOpen}>Add Question</Button>
@@ -172,6 +178,7 @@ const Mcqs = ({
         ))}
       </div>
     </div>
+    </motion.div>
   );
 };
 
