@@ -144,9 +144,23 @@ const Main = ({
                           type="text"
                           placeholder="Write your answer here"
                           className="w-full mt-5 rounded-xl bg-gray-100 bg-opacity-5 min-h-full"
+                          value={mcqAnswers[index] as string || ''}
+                          onChange={(e) => {
+                            const newValue = e.target.value;
+                            setMcqAnswers((prev) => {
+                              const updatedAnswers = [...prev];
+                              updatedAnswers[index] = newValue;
+                              return updatedAnswers;
+                            });
+                          }}
                         />
                         <div className="flex justify-end mt-3">
-                          <Button color="success" variant="flat" className="items-center">
+                          <Button
+                            color="success"
+                            variant="flat"
+                            className="items-center"
+                            onClick={() => saveAnswer(mcqAnswers[index] as string, index)}
+                          >
                             Save
                           </Button>
                         </div>
