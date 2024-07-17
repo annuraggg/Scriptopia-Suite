@@ -9,9 +9,9 @@ const Settings = () => {
   return (
     <div className="h-cover">
       <Navbar />
-      <div className="flex h-[90vh]">
+      <div className="flex h-[90vh] w-full">
         <Sidebar active={active} setActive={setActive} />
-        <div className="p-10">
+        <div className="p-10 w-full h-full">
           {active === "General" && <General />}
           {active === "Members" && <Members />}
         </div>
