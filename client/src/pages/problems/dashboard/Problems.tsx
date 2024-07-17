@@ -68,9 +68,9 @@ const Problems = () => {
     >
       <div className="h-full flex gap-5">
         <Sidebar active={active} setActive={setActive} />
-        {active === 0 && <Dashboard  myproblems={data[2]?.data.data || []}/>}
+        {active === 0 && <Dashboard myproblems={data[0]?.data.data || []} />}
         {active === 1 && <ProblemsList problems={data[0]?.data.data || []} />}
-        {active === 2 && <UserGenerated userproblems={data[1]?.data.data || []} />}
+        {active === 2 && <UserGenerated userproblems={data[2]?.data.data || []} />}
         {active === 3 && <ConundrumCubes />}
         {active === 4 && <MyProblems myproblems={data[2]?.data.data || []} />}
       </div>

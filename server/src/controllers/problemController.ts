@@ -15,7 +15,16 @@ const getProblems = async (c: Context) => {
       .limit(LIMIT_PER_PAGE)
       .lean();
 
-    return sendSuccess(c, 200, "Success", problems);
+      const acceptanceRate = problems.map(problem => {
+        const problemsWithAcceptanceRate = problem.totalSubmissions > 0
+          ? (problem.successfulSubmissions / problem.totalSubmissions) * 100
+          : 0;
+        return { ...problem, problemsWithAcceptanceRate };
+      });
+    
+    console.log(acceptanceRate);  
+
+    return sendSuccess(c, 200, "Success", acceptanceRate);
   } catch (error) {
     console.log(error);
     return sendError(c, 500, "Internal Server Error", error);
@@ -32,8 +41,15 @@ const getUserGeneratedProblems = async (c: Context) => {
       .skip((page - 1) * LIMIT_PER_PAGE)
       .limit(LIMIT_PER_PAGE)
       .lean();
+    
+      const problemsWithAcceptanceRate = problems.map(problem => {
+        const acceptanceRate = problem.totalSubmissions > 0
+          ? (problem.successfulSubmissions / problem.totalSubmissions) * 100
+          : 0;
+        return { ...problem, acceptanceRate };
+      });
 
-    return sendSuccess(c, 200, "Success", problems);
+    return sendSuccess(c, 200, "Success", problemsWithAcceptanceRate);
   } catch (error) {
     console.log(error);
     return sendError(c, 500, "Internal Server Error", error);
@@ -77,7 +93,7 @@ const getProblem = async (c: Context) => {
     const submissions = await Submission.find({
       problem: id,
       user: userId,
-    }).lean();
+    }).lean();  
 
     return sendSuccess(c, 200, "Success", { problem, submissions });
   } catch (error) {

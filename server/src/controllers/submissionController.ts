@@ -99,6 +99,13 @@ const submitCode = async (c: Context) => {
       await user?.save();
     }
 
+    prob.totalSubmissions += 1;
+    if (result.failedCaseNo === -1) {
+      prob.successfulSubmissions += 1;
+    }
+
+    await prob.save();
+
     await submission.save();
 
     return sendSuccess(c, 200, "Success", submission);

@@ -41,6 +41,8 @@ const ProblemSchema = new mongoose.Schema({
   testCases: { type: [testCaseSchema], required: true },
   isPrivate: { type: Boolean, default: false },
   allowInAssessments: { type: Boolean, default: false },
+  totalSubmissions: { type: Number, default: 0 },
+  successfulSubmissions: { type: Number, default: 0 },
 });
 
 const Problem = mongoose.model("Problem", ProblemSchema);
