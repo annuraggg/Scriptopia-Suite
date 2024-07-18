@@ -8,6 +8,7 @@ import Settings from "./pages/settings/Settings";
 import CreateOrganization from "./pages/lander/CreateOrganization";
 
 import Ats from "./pages/postings/ats/Ats";
+import Workflow from "./pages/workflow/Workflow";
 
 function App() {
   const router = createBrowserRouter([
@@ -34,6 +35,10 @@ function App() {
         {
           path: "dashboard",
           element: <Dashboard />,
+        },
+        {
+          path: "workflow",
+          element: <Workflow />,
         },
         {
           path: "ats",
