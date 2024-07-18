@@ -6,6 +6,8 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import Postings from "./pages/postings/Postings";
 import Settings from "./pages/settings/Settings";
 
+import Ats from "./pages/postings/ats/Ats";
+
 function App() {
   const router = createBrowserRouter([
     {
@@ -28,6 +30,10 @@ function App() {
           path: "dashboard",
           element: <Dashboard />,
         },
+        {
+          path: "ats",
+          element: <Ats />,
+        }
       ],
     },
   ]);

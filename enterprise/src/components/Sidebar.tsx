@@ -63,7 +63,7 @@ const Sidebar = () => {
             <Tooltip key={index}>
               <TooltipTrigger asChild>
                 <Link
-                  to={item.link}
+                  to={"/postings/test" + item.link}
                   className={`flex h-9 w-9 items-center ${
                     active === item.label.toLowerCase()
                       ? " text-black bg-white"
