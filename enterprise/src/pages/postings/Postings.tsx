@@ -7,8 +7,11 @@ import {
   Input,
   Switch,
 } from "@nextui-org/react";
+import { useNavigate } from "react-router-dom";
 
 const Postings = () => {
+  const navigate = useNavigate();
+
   const postings = [
     {
       title: "React App Developer",
@@ -269,7 +272,7 @@ const Postings = () => {
                       </p>
                       <p className="text-xs opacity-50">{post.createdOn}</p>
                     </div>
-                    <Button variant="bordered">Details</Button>
+                    <Button variant="bordered" onClick={() => navigate(`/postings/:id`)}>Details</Button>
                   </div>
                 </CardBody>
               </Card>

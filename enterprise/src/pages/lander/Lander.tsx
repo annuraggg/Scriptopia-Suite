@@ -10,8 +10,11 @@ import {
   Users,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const Lander = () => {
+
+  const navigate = useNavigate();
   const steps = [
     {
       title: "Job Posting and Requisition Management",
@@ -95,7 +98,7 @@ const Lander = () => {
           <p className="mt-5 font-poly text-gray-300">
             Industry Grade Screening and Hiring ATS
           </p>
-          <Button className="mt-10" variant="flat" color="success">
+          <Button className="mt-10" variant="flat" color="success" onClick={() => navigate("/create-organization")}>
             Get Started
           </Button>
         </div>
