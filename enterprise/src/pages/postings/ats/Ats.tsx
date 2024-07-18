@@ -1,5 +1,3 @@
-
-
 const Ats = () => {
   return (
     <div>

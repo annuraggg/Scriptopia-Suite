@@ -9,6 +9,7 @@ import CreateOrganization from "./pages/lander/CreateOrganization";
 import CreateJob from "./pages/postings/CreatePosting";
 import Apply from "./pages/postings/Apply";
 import Ats from "./pages/postings/ats/Ats";
+import Workflow from "./pages/workflow/Workflow";
 
 function App() {
   const router = createBrowserRouter([
@@ -47,6 +48,10 @@ function App() {
         {
           path: "dashboard",
           element: <Dashboard />,
+        },
+        {
+          path: "workflow",
+          element: <Workflow />,
         },
         {
           path: "ats",
