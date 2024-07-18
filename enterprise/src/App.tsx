@@ -2,11 +2,12 @@ import "./App.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Lander from "./pages/lander/Lander";
 import Layout from "./components/Layout";
-import Dashboard from "./pages/dashboard/Dashboard";
+import Dashboard from "./pages/postings/dashboard/Dashboard";
 import Postings from "./pages/postings/Postings";
 import Settings from "./pages/settings/Settings";
 import CreateOrganization from "./pages/lander/CreateOrganization";
-
+import CreateJob from "./pages/postings/CreatePosting";
+import Apply from "./pages/postings/Apply";
 import Ats from "./pages/postings/ats/Ats";
 
 function App() {
@@ -18,6 +19,18 @@ function App() {
     {
       path: "/create-organization",
       element: <CreateOrganization />,
+    },
+    {
+      path: "/create-job",
+      element: <CreateJob />,
+    },
+    {
+      path: "/apply",
+      element: <Apply />,
+    },
+    {
+      path: "/postings",
+      element: <Postings />,
     },
     {
       path: "/postings",

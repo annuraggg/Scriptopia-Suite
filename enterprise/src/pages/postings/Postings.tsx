@@ -1,4 +1,4 @@
-import Navbar from "@/components/Navbar";
+import React, { useState, useEffect } from 'react';
 import {
   Button,
   Card,
@@ -7,272 +7,94 @@ import {
   Input,
   Switch,
 } from "@nextui-org/react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
-const Postings = () => {
+interface Posting {
+  title: string;
+  createdOn: string;
+  status: 'Active' | 'Inactive';
+  openUntil: string;
+}
+
+interface CalendarEvent {
+  date: string;
+  time: string;
+  event: string;
+}
+
+interface LocationState {
+  newPosting?: Posting;
+}
+
+const Postings: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [showInactive, setShowInactive] = useState<boolean>(false);
+  const [postings, setPostings] = useState<Posting[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
-  const postings = [
-    {
-      title: "React App Developer",
-      createdOn: "23 May 2023",
-    },
-    {
-      title: "Full Stack Engineer",
-      createdOn: "15 June 2023",
-    },
-    {
-      title: "Frontend Developer",
-      createdOn: "10 July 2023",
-    },
-    {
-      title: "Backend Developer",
-      createdOn: "5 August 2023",
-    },
-    {
-      title: "UI/UX Designer",
-      createdOn: "18 September 2023",
-    },
-    {
-      title: "Software Engineer",
-      createdOn: "22 October 2023",
-    },
-    {
-      title: "Data Scientist",
-      createdOn: "9 November 2023",
-    },
-    {
-      title: "Cloud Architect",
-      createdOn: "14 December 2023",
-    },
-    {
-      title: "DevOps Engineer",
-      createdOn: "27 January 2024",
-    },
-    {
-      title: "Product Manager",
-      createdOn: "8 February 2024",
-    },
-    {
-      title: "Machine Learning Engineer",
-      createdOn: "12 March 2024",
-    },
-    {
-      title: "Cybersecurity Analyst",
-      createdOn: "25 April 2024",
-    },
-    {
-      title: "Mobile App Developer",
-      createdOn: "7 May 2024",
-    },
-    {
-      title: "Blockchain Developer",
-      createdOn: "19 June 2024",
-    },
-    {
-      title: "Game Developer",
-      createdOn: "2 July 2024",
-    },
-    {
-      title: "Network Engineer",
-      createdOn: "14 August 2024",
-    },
-    {
-      title: "QA Engineer",
-      createdOn: "27 September 2024",
-    },
-    {
-      title: "Technical Writer",
-      createdOn: "8 October 2024",
-    },
-    {
-      title: "Systems Administrator",
-      createdOn: "21 November 2024",
-    },
-    {
-      title: "AI Research Scientist",
-      createdOn: "3 December 2024",
-    },
-  ];
+  useEffect(() => {
 
-  const calendar = [
-    {
-      date: "7/18/2024",
-      time: "08:42:38 PM",
-      event: "Sed quia molestiae et.",
-    },
-    {
-      date: "6/29/2024",
-      time: "07:24:09 AM",
-      event: "Non libero nemo.",
-    },
-    {
-      date: "7/27/2024",
-      time: "11:52:56 AM",
-      event: "Sapiente sint doloribus.",
-    },
-    {
-      date: "6/27/2024",
-      time: "01:36:01 AM",
-      event: "Qui est quo.",
-    },
-    {
-      date: "7/31/2024",
-      time: "02:30:25 AM",
-      event: "Laboriosam assumenda ut.",
-    },
-    {
-      date: "6/25/2024",
-      time: "07:45:35 AM",
-      event: "Sed voluptatem quos.",
-    },
-    {
-      date: "6/23/2024",
-      time: "07:16:06 AM",
-      event: "Molestiae et adipisci.",
-    },
-    {
-      date: "7/21/2024",
-      time: "04:54:54 AM",
-      event: "Reprehenderit non ut.",
-    },
-    {
-      date: "7/30/2024",
-      time: "02:55:29 AM",
-      event: "Voluptatem nisi vitae.",
-    },
-    {
-      date: "7/22/2024",
-      time: "12:10:01 AM",
-      event: "Quis dolorem molestiae.",
-    },
-    {
-      date: "7/18/2024",
-      time: "02:05:03 PM",
-      event: "Sed nisi id.",
-    },
-    {
-      date: "7/26/2024",
-      time: "12:01:08 PM",
-      event: "Facilis sunt voluptatem.",
-    },
-    {
-      date: "6/24/2024",
-      time: "05:54:57 AM",
-      event: "Quisquam molestias sequi.",
-    },
-    {
-      date: "6/25/2024",
-      time: "03:08:09 AM",
-      event: "Quasi est architecto.",
-    },
-    {
-      date: "6/23/2024",
-      time: "01:16:25 AM",
-      event: "Rerum ipsum enim.",
-    },
-    {
-      date: "7/28/2024",
-      time: "03:13:29 AM",
-      event: "Doloribus officiis repellendus.",
-    },
-    {
-      date: "7/19/2024",
-      time: "11:20:42 AM",
-      event: "Ex aspernatur ut.",
-    },
-    {
-      date: "6/26/2024",
-      time: "12:32:53 AM",
-      event: "Consequatur sunt amet.",
-    },
-    {
-      date: "7/29/2024",
-      time: "07:17:27 PM",
-      event: "Nobis ut magni.",
-    },
-    {
-      date: "6/27/2024",
-      time: "10:13:10 AM",
-      event: "Quod et nihil.",
-    },
-    {
-      date: "6/30/2024",
-      time: "06:11:47 AM",
-      event: "Maxime non autem.",
-    },
-    {
-      date: "7/24/2024",
-      time: "06:38:21 AM",
-      event: "Ea non facere.",
-    },
-    {
-      date: "6/28/2024",
-      time: "08:20:51 PM",
-      event: "Tempora ut sunt.",
-    },
-    {
-      date: "7/25/2024",
-      time: "11:02:47 PM",
-      event: "Dolorem id quia.",
-    },
-    {
-      date: "6/28/2024",
-      time: "01:10:41 PM",
-      event: "Quam quos sit.",
-    },
-    {
-      date: "7/20/2024",
-      time: "07:05:37 AM",
-      event: "Quibusdam harum aut.",
-    },
-    {
-      date: "6/29/2024",
-      time: "04:32:45 AM",
-      event: "Amet aut illum.",
-    },
-    {
-      date: "6/30/2024",
-      time: "01:18:12 AM",
-      event: "Est et sunt.",
-    },
-    {
-      date: "7/19/2024",
-      time: "09:57:44 AM",
-      event: "Eveniet ad iste.",
-    },
-    {
-      date: "7/23/2024",
-      time: "09:44:02 AM",
-      event: "Sit minima sit.",
-    },
-  ];
+    const savedPostings = localStorage.getItem('postings');
+    if (savedPostings) {
+      setPostings(JSON.parse(savedPostings));
+    }
+  }, []);
+
+  useEffect(() => {
+    const state = location.state as LocationState;
+    if (state && state.newPosting) {
+      const updatedPostings = [...postings, state.newPosting];
+      setPostings(updatedPostings);
+
+      localStorage.setItem('postings', JSON.stringify(updatedPostings));
+
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, postings]);
+
+  const calendar: CalendarEvent[] = postings.map(posting => ({
+    date: posting.openUntil.split(' ')[0],
+    time: posting.openUntil.split(' ')[1],
+    event: `${posting.title} `,
+  }));
+
+  const filteredPostings = postings
+    .filter(post => showInactive ? true : post.status === 'Active')
+    .filter(post => post.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div>
-      <Navbar />
       <div className="flex p-10 w-cover">
         <div className="min-w-[70%]">
           <h3>Postings</h3>
           <div className="flex gap-5 items-end justify-between max-w-[93%]">
-            <Input className="mt-3 w-[70%]" placeholder="Search Postings" />
-            <Switch size="sm">Show Inactive</Switch>
+            <Input
+              className="mt-3 w-[70%]"
+              placeholder="Search Postings"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Switch size="sm" checked={showInactive} onValueChange={setShowInactive}>
+              Show Inactive
+            </Switch>
           </div>
           <div className="flex gap-5 flex-wrap items-center mt-5">
-            {postings.map((post, i) => (
-              <Card key={i} className=" w-[30%] ">
+            {filteredPostings.map((post, i) => (
+              <Card key={i} className="w-[30%]">
                 <CardHeader>{post.title}</CardHeader>
                 <CardBody>
                   <div className="flex justify-between text-xs items-center">
                     <div>
                       <p className="text-sm">
-                        <span className="text-xs text-green-500 font-bold">
-                          Active
+                        <span className={`text-xs font-bold ${post.status === 'Active' ? 'text-green-500' : 'text-red-500'}`}>
+                          {post.status}
                         </span>
                       </p>
                       <p className="text-xs opacity-50">{post.createdOn}</p>
+                      <p className="text-xs">Open until: {post.openUntil}</p>
                     </div>
-                    <Button variant="bordered" onClick={() => navigate(`/postings/:id`)}>Details</Button>
+                    <Button variant="bordered" onClick={() => navigate(`/postings/${i}`)}>Details</Button>
                   </div>
                 </CardBody>
               </Card>
@@ -283,15 +105,17 @@ const Postings = () => {
         <div className="ml-5 w-full">
           <h3>Schedule</h3>
           {calendar.map((event, i) => (
-            <Card key={i} className="w-full py-3 mt-3">
+            <Card key={i} className="w-full py-2 mt-2">
               <CardBody>
-                <div className="flex justify-between bg-card items-center rounded-lg">
-                  <div>
+                <div className="flex flex-col justify-start bg-card items-start rounded-lg">
+                  <div className="w-[50%] flex flex-row justify-start items-center">
+                    <label className="text-md">Event:</label>
+                    <p className='text-sm'>{event.event}</p>
+                  </div>
+                  <div className='flex flex-row gap-2 jsutify-between items-center'>
+                    <label className="text-base">Posting Closes:</label>
                     <p className="text-sm">{event.date}</p>
                     <p className="text-sm">{event.time}</p>
-                  </div>
-                  <div className="w-[50%] text-right">
-                    <p>{event.event}</p>
                   </div>
                 </div>
               </CardBody>
