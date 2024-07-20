@@ -96,8 +96,8 @@ const Dashboard: React.FC = () => {
       <div className="flex flex-row items-center justify-start gap-8 w-[90%] pt-10 pl-14">
         {['Applied', 'Aptitude', 'Interview', 'Evaluation'].map((stage) => (
           <div key={stage} className="w-full h-full flex flex-col gap-4">
-            <Card className="w-full h-20 flex flex-col">
-              <CardBody className="flex flex-row items-center justify-center space-x-10">
+            <Card className="w-full h-40 flex flex-col">
+              <CardBody className="flex flex-row items-center justify-center space-x-8 p-0">
                 <div className="flex flex-row">
                   <p className="text-lg">{stage} ({participants.filter(p => p.stage === stage).length})</p>
                 </div>
