@@ -28,28 +28,12 @@ const Resume = () => {
         <div className='flex flex-col items-start justify-start h-full w-full gap-6'>
             <div className="flex flex-col items-start justify-center gap-1 w-full">
                 <p className="text-2xl">Resume*</p>
-                <p className="text-sm text-slate-500">Make certain to submit an updated resume</p>
+                <p className="text-sm text-neutral-400">Make certain to submit an updated resume</p>
             </div>
-            <div className="flex flex-col items-start justify-center gap-4 w-full">
-                <input
-                    type="file"
-                    accept=".doc,.docx,.pdf"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    ref={fileInputRef}
-                />
-                <Button
-                    className="text-green-500 flex items-center"
-                    onClick={() => fileInputRef.current?.click()}
-                >
-                    <LinkIcon size={20} className="mr-2" />
-                    Upload Resume
-                </Button>
-                <p className="text-sm text-slate-500">DOC/DOCX/PDF (2MB), MAX 1 Attachment</p>
-            </div>
+
             {uploadedFile && (
-                <Card className="p-4 w-full max-w-xs">
-                    <div className="flex items-center justify-between">
+                <Card className="p-4">
+                    <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-2">
                             <FileIcon size={20} />
                             <span className="text-sm truncate">{uploadedFile.name}</span>
@@ -65,6 +49,25 @@ const Resume = () => {
                     </div>
                 </Card>
             )}
+
+            <div className="flex flex-col items-start justify-center gap-4 w-full">
+                <input
+                    type="file"
+                    accept=".doc,.docx,.pdf"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    ref={fileInputRef}
+                />
+                <Button
+                    className="text-green-500 flex items-center"
+                    onClick={() => fileInputRef.current?.click()}
+                >
+                    <LinkIcon size={20} className="mr-2" />
+                    Upload Resume
+                </Button>
+                <p className="text-sm text-neutral-400">DOC/DOCX/PDF (2MB), MAX 1 Attachment</p>
+            </div>
+
         </div>
     )
 }

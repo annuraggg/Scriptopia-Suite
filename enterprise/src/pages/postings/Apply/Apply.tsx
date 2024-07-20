@@ -42,7 +42,7 @@ const Apply = () => {
     },
     {
       step: "Step 3",
-      title: "Additional Questions",
+      title: "Additional Query",
       icon: <CircleHelpIcon size={24} />,
       component: <AdditionalQuestions />,
     },
@@ -93,7 +93,7 @@ const Apply = () => {
       <div className="flex flex-col items-center justify-between h-screen w-[65%] p-16">
         <div className="flex flex-row w-full items-center">
           <div className="flex flex-col items-start justify-between gap-2 w-full">
-            <p className="text-gray-500">Step {currentStep + 1} of {cards.length}</p>
+            <p className="text-neutral-400">Step {currentStep + 1} of {cards.length}</p>
             <Progress
               aria-label="Application Progress"
               size="md"
@@ -104,7 +104,7 @@ const Apply = () => {
           </div>
           <Button 
             variant="flat" 
-            className="bg-green-600 bg-opacity-20 text-green-500"
+            className="bg-green-500 bg-opacity-20 text-green-500"
             onClick={handleNextClick}
             disabled={currentStep === cards.length - 1}
           >
@@ -116,14 +116,14 @@ const Apply = () => {
             <Card
               isPressable={true}
               key={index}
-              className={`rounded-xl flex items-start justify-center w-full h-32 p-4 gap-6 cursor-pointer transition-colors duration-300 ${
+              className={`rounded-xl flex items-start justify-center w-full h-24 p-4 gap-4 cursor-pointer transition-colors duration-300 ${
                 isStepCompleted(index) || index <= currentStep
-                  ? 'bg-green-600 bg-opacity-20 text-green-500'
+                  ? 'bg-green-500 bg-opacity-10 text-green-500'
                   : ''
               }`}
               onPress={() => handleCardClick(index)}
             >
-              <h1 className={`text-sm font-bold ${isStepCompleted(index) || index <= currentStep ? 'text-green-500' : 'text-slate-500'}`}>
+              <h1 className={`text-sm font-bold ${isStepCompleted(index) || index <= currentStep ? 'text-green-500' : 'text-neutral-400'}`}>
                 {card.step}
               </h1>
               <div className="flex flex-row items-center justify-center gap-2">

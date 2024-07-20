@@ -21,7 +21,7 @@ const ContactInfo = () => {
                 </div>
                 <div className='flex flex-col items-start justify-center gap-2 w-full h-full'>
                     <label className='text-base'>Email Address *</label>
-                    <Input placeholder='eg. John' className='w-full rounded-sm' />
+                    <Input placeholder='eg. johndoe@example.com' className='w-full rounded-sm' />
                 </div>
             </div>
             <div className='flex flex-col items-center justify-center gap-2 w-full h-full'>
@@ -31,11 +31,11 @@ const ContactInfo = () => {
                 </div>
                 <div className='flex flex-col items-start justify-center gap-2 w-full h-full'>
                     <label className='text-base'>Phone No *</label>
-                    <Input placeholder='eg. 1234567890' className='w-full rounded-sm' />
+                    <Input placeholder='eg. 123-456-789' className='w-full rounded-sm' />
                 </div>
                 <div className='flex flex-col items-start justify-center gap-2 w-full h-full'>
                     <label className='text-base'>Website</label>
-                    <Input placeholder='eg. John' className='w-full rounded-sm' />
+                    <Input placeholder='eg. portfolio.example.com' className='w-full rounded-sm' />
                 </div>
             </div>
         </div>

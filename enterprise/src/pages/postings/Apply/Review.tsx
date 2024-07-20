@@ -24,7 +24,7 @@ const Review = () => {
     };
 
     return (
-        <div className="flex flex-col items-start justify-start h-screen w-full gap-6 overflow-y-auto">
+        <div className="flex flex-col items-start justify-start h-[10]0 w-full gap-6 overflow-hidden px-10">
             <div className="flex flex-col items-start justify-start gap-6 w-full h-[40%] flex-reverse">
                 <div className="flex flex-row items-center justify-start w-full">
                     <p className="text-2xl">Contact Information</p>
@@ -34,7 +34,7 @@ const Review = () => {
                     </div>
                 </div>
                 <div className="flex flex-col-2 w-[50%] h-full gap-5 text-base">
-                    <div className="space-y-3 text-slate-500">
+                    <div className="space-y-3 text-default-500">
                         <p>Name:</p>
                         <p>Phone No:</p>
                         <p>Email Address:</p>
@@ -67,7 +67,7 @@ const Review = () => {
                     </div>
                 </div>
                 <div className="flex flex-col-2 w-[50%] h-full gap-5 text-base">
-                    <div className="space-y-3 text-slate-500">
+                    <div className="space-y-3 text-default-500">
                         <p>Question 1:</p>
                         <p>Question 2:</p>
                         <p>Question 3:</p>
@@ -79,7 +79,7 @@ const Review = () => {
                     </div>
                 </div>
                 <div className="flex flex-col items-start justify-start w-full h-full gap-2">
-                    <p className="text-base text-slate-500">
+                    <p className="text-base text-default-500">
                         Do You Have Any Questions ?
                     </p>
                     <Textarea
@@ -101,7 +101,7 @@ const Review = () => {
                     {isSelected && (
                         <Button
                             onPress={handleSubmit}
-                            className=" bottom-2 bg-blue-600 text-white"
+                            className=" bottom-2 bg-green-500 text-base"
                         >
                             Submit
                         </Button>
