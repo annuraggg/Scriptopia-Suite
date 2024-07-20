@@ -28,12 +28,12 @@ const Review: React.FC<ReviewProps> = ({ onEdit }) => {
     };
 
     return (
-        <div className="flex flex-col items-start justify-start h-[10]0 w-full gap-6 overflow-hidden px-10">
+        <div className="flex flex-col items-start justify-start h-[100] w-full gap-6 overflow-hidden py-10">
             <div className="flex flex-col items-start justify-start gap-6 w-full h-[40%] flex-reverse">
-                <div className="flex flex-row items-center justify-start w-full">
+                <div className="flex flex-row flex-wrap items-center justify-between w-full">
                     <p className="text-2xl">Contact Information</p>
                     <div 
-                        className="flex flex-row gap-1 items-center justify-start text-green-500 cursor-pointer"
+                        className="flex flex-row gap-1 items-center  text-green-500 cursor-pointer"
                         onClick={() => onEdit("contact")}
                     >
                         <EditIcon size={14} />
@@ -54,8 +54,8 @@ const Review: React.FC<ReviewProps> = ({ onEdit }) => {
                 </div>
             </div>
             <div className="w-full h-[0.5px] bg-slate-500 justify-start rounded-full"></div>
-            <div className="flex flex-col items-start justify-start gap-6 w-full h-[40%] flex-reverse">
-                <div className="flex flex-row items-center justify-start w-full">
+            <div className="flex flex-col items-start justify-start my-1 w-full h-[40%] flex-reverse">
+                <div className="flex flex-row flex-wrap items-center justify-between w-full">
                     <p className="text-2xl">Resume</p>
                     <div 
                         className="flex flex-row gap-1 items-center justify-start text-green-500 cursor-pointer"
@@ -69,7 +69,7 @@ const Review: React.FC<ReviewProps> = ({ onEdit }) => {
             </div>
             <div className="w-full h-[0.5px] bg-slate-500 justify-start rounded-full"></div>
             <div className="flex flex-col items-start justify-start gap-6 w-full h-full flex-reverse">
-                <div className="flex flex-row items-center justify-start w-full">
+                <div className="flex flex-row flex-wrap items-center justify-between w-full">
                     <p className="text-2xl">Additional Questions</p>
                     <div 
                         className="flex flex-row gap-1 items-center justify-start text-green-500 cursor-pointer"
@@ -104,7 +104,7 @@ const Review: React.FC<ReviewProps> = ({ onEdit }) => {
                     />
                 </div>
             </div>
-            <div className="w-full h-[0.5px] bg-slate-500 justify-start rounded-full"></div>
+            <div className="w-full h-[0.5px] bg-default-400 justify-start rounded-full"></div>
             <div className="flex flex-col items-start justify-start gap-6 w-full h-[40%]">
                 <div className="flex flex-row items-center justify-start w-full gap-2">
                     <Checkbox radius="sm" isSelected={isSelected} onValueChange={setIsSelected}></Checkbox>
@@ -114,7 +114,7 @@ const Review: React.FC<ReviewProps> = ({ onEdit }) => {
                     {isSelected && (
                         <Button
                             onPress={handleSubmit}
-                            className=" bottom-2 bg-green-500 text-base"
+                            className=" bottom-2 bg-sky-500 text-sky-900"
                         >
                             Submit
                         </Button>

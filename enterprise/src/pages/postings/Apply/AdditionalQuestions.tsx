@@ -18,10 +18,10 @@ const AdditionalQuestions = () => {
                 </div>
             </div>
             <div className='flex flex-col items-center justify-start gap-2 w-full h-full'>
-                <div className='flex flex-col items-start justify-start gap-2 w-full h-full mt-7'>
-                    <label className='text-base'>Last Name *</label>
+                <div className='flex flex-col items-start justify-start gap-2 w-full h-full mt-5'>
+                    <label className='text-base'>Do you have any queries?</label>
                     <Textarea
-                        variant="bordered"
+                        variant="flat"
                         placeholder="Enter your description"
                         disableAnimation
                         disableAutosize

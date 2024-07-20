@@ -104,7 +104,7 @@ const Apply = () => {
   return (
     <div className="flex items-center justify-center h-screen">
       <div className="flex flex-col items-center justify-between h-screen w-[65%] p-16">
-        <div className="flex flex-row w-full items-center">
+        <div className="flex flex-row w-full items-center justify-center">
           <div className="flex flex-col items-start justify-between gap-2 w-full">
             <p className="text-neutral-400">Step {currentStep + 1} of {cards.length}</p>
             <Progress
@@ -112,7 +112,7 @@ const Apply = () => {
               size="md"
               value={progressValue}
               color="success"
-              className="max-w-md"
+              className="max-w-xl"
             />
           </div>
           <Button 
@@ -129,7 +129,7 @@ const Apply = () => {
             <Card
               isPressable={true}
               key={index}
-              className={`rounded-xl flex items-start justify-center w-full h-32 p-4 gap-6 cursor-pointer transition-colors duration-300 ${
+              className={`rounded-xl flex items-start justify-center w-full h-26 p-4 gap-6 cursor-pointer transition-colors duration-300 ${
                 isStepCompleted(index) 
                   ? 'bg-green-600 bg-opacity-20 text-green-500'
                   : isStepActive(index)
