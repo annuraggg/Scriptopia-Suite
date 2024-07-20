@@ -17,7 +17,7 @@ const Sidebar = ({
       {items.map((item, index) => (
         <div
           key={index}
-          className={`flex items-center gap-5 p-3 hover:text-gray-300 duration-300 transition-colors cursor-pointer rounded-lg text-sm ${
+          className={`flex items-center gap-5 p-3 hover:text-gray-300 duration-300 transition-colors cursor-pointer rounded-xl text-sm ${
             active === item.title && "bg-gray-800 text-gray-300"
           }`}
           onClick={() => setActive(item.title)}

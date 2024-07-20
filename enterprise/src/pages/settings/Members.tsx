@@ -12,7 +12,7 @@ import {
   Select,
   SelectItem,
   useDisclosure,
-  SelectSection
+  SelectSection,
 } from "@nextui-org/react";
 import InviteModal from "./InviteModal";
 
@@ -62,15 +62,15 @@ const Members: React.FC = () => {
   return (
     <div className="flex flex-col items-start justify-start w-full h-full">
       <h1 className="text-3xl">Members</h1>
-      <Tabs aria-label="Options" className='w-full pt-7' variant="underlined">
+      <Tabs aria-label="Options" className="w-full pt-7" variant="underlined">
         <Tab key="members" title="Members" className="w-full">
-          <Table aria-label="Members" className="w-[60%]">
+          <Table aria-label="Members" className="w-full">
             <TableHeader>
               <TableColumn>User</TableColumn>
               <TableColumn>Joined</TableColumn>
               <TableColumn>Role</TableColumn>
             </TableHeader>
-            <TableBody>
+            <TableBody emptyContent={<p>No Members</p>}>
               {members.map((member, index) => (
                 <TableRow key={member.name}>
                   <TableCell>{member.name}</TableCell>
@@ -78,11 +78,17 @@ const Members: React.FC = () => {
                   <TableCell>
                     <Select
                       selectedKeys={[member.role]}
-                      onSelectionChange={(keys) => handleRoleChange(index, Array.from(keys)[0] as string)}
+                      onSelectionChange={(keys) =>
+                        handleRoleChange(index, Array.from(keys)[0] as string)
+                      }
                     >
                       {roles.map((role) => (
                         <SelectSection className="">
-                          <SelectItem key={role.role} value={role.role} className="">
+                          <SelectItem
+                            key={role.role}
+                            value={role.role}
+                            className=""
+                          >
                             {role.role}
                           </SelectItem>
                         </SelectSection>
@@ -94,15 +100,17 @@ const Members: React.FC = () => {
             </TableBody>
           </Table>
         </Tab>
-        <Tab key="invite" title="Invite" className="w-full">
-          <Button color="primary" onPress={onOpen}>Invite</Button>
-          <Table aria-label="Invited Members" className="w-[60%] mt-4">
+        <Tab key="invite" title="Invites" className="w-full">
+          <Button color="default" onPress={onOpen}>
+            Invite
+          </Button>
+          <Table aria-label="Invited Members" className="w-full mt-4">
             <TableHeader>
               <TableColumn>User</TableColumn>
               <TableColumn>Invited</TableColumn>
               <TableColumn>Role</TableColumn>
             </TableHeader>
-            <TableBody>
+            <TableBody emptyContent={<p>No Invited Members</p>}>
               {invitedMembers.map((member, index) => (
                 <TableRow key={index}>
                   <TableCell>{member.email}</TableCell>

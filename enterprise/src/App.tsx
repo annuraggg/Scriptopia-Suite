@@ -5,7 +5,6 @@ import Layout from "./components/Layout";
 import Dashboard from "./pages/postings/dashboard/Dashboard";
 import Postings from "./pages/postings/Postings";
 import Settings from "./pages/settings/Settings";
-import CreateOrganization from "./pages/lander/CreateOrganization";
 import CreateJob from "./pages/postings/CreatePosting";
 import Apply from "./pages/postings/Apply/Apply";
 import Ats from "./pages/postings/ats/Ats";
@@ -16,10 +15,6 @@ function App() {
     {
       path: "/",
       element: <Lander />,
-    },
-    {
-      path: "/create-organization",
-      element: <CreateOrganization />,
     },
     {
       path: "/create-job",
