@@ -7,7 +7,7 @@ import Postings from "./pages/postings/Postings";
 import Settings from "./pages/settings/Settings";
 import CreateOrganization from "./pages/lander/CreateOrganization";
 import CreateJob from "./pages/postings/CreatePosting";
-import Apply from "./pages/postings/Apply";
+import Apply from "./pages/postings/Apply/Apply";
 import Ats from "./pages/postings/ats/Ats";
 import Workflow from "./pages/workflow/Workflow";
 
