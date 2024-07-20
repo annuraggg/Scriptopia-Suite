@@ -27,6 +27,25 @@ const Apply = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
 
+  const handleEdit = (section: string) => {
+    let newStep: number;
+    switch(section) {
+      case "contact":
+        newStep = 0;
+        break;
+      case "resume":
+        newStep = 1;
+        break;
+      case "additional":
+        newStep = 2;
+        break;
+      default:
+        newStep = currentStep;
+    }
+    setCurrentStep(newStep);
+    setCompletedSteps(prevSteps => prevSteps.filter(step => step <= newStep));
+  };
+
   const cards: StepCard[] = [
     {
       step: "Step 1",
@@ -50,7 +69,7 @@ const Apply = () => {
       step: "Step 4",
       title: "Review",
       icon: <ScanSearchIcon size={24} />,
-      component: <Review />,
+      component: <Review onEdit={handleEdit} />,
     }
   ];
 
@@ -59,15 +78,8 @@ const Apply = () => {
   }, []);
 
   const handleCardClick = (index: number) => {
-    if (index <= currentStep + 1) {
+    if (index <= Math.max(...completedSteps, currentStep)) {
       setCurrentStep(index);
-      setCompletedSteps(prevSteps => {
-        const newSteps = prevSteps.filter(step => step <= index);
-        if (!newSteps.includes(index)) {
-          newSteps.push(index);
-        }
-        return newSteps;
-      });
     }
   };
 
@@ -85,6 +97,7 @@ const Apply = () => {
   };
 
   const isStepCompleted = (index: number) => completedSteps.includes(index);
+  const isStepActive = (index: number) => index === currentStep;
 
   const progressValue = ((completedSteps.length) / cards.length) * 100;
 
@@ -116,14 +129,22 @@ const Apply = () => {
             <Card
               isPressable={true}
               key={index}
-              className={`rounded-xl flex items-start justify-center w-full h-24 p-4 gap-4 cursor-pointer transition-colors duration-300 ${
-                isStepCompleted(index) || index <= currentStep
-                  ? 'bg-green-500 bg-opacity-10 text-green-500'
+              className={`rounded-xl flex items-start justify-center w-full h-32 p-4 gap-6 cursor-pointer transition-colors duration-300 ${
+                isStepCompleted(index) 
+                  ? 'bg-green-600 bg-opacity-20 text-green-500'
+                  : isStepActive(index)
+                  ? 'bg-blue-600 bg-opacity-20 text-blue-500'
                   : ''
               }`}
               onPress={() => handleCardClick(index)}
             >
-              <h1 className={`text-sm font-bold ${isStepCompleted(index) || index <= currentStep ? 'text-green-500' : 'text-neutral-400'}`}>
+              <h1 className={`text-sm font-bold ${
+                isStepCompleted(index) 
+                  ? 'text-green-500' 
+                  : isStepActive(index)
+                  ? 'text-blue-500'
+                  : 'text-slate-500'
+              }`}>
                 {card.step}
               </h1>
               <div className="flex flex-row items-center justify-center gap-2">

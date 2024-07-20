@@ -11,7 +11,11 @@ import {
     ModalFooter,
 } from "@nextui-org/react";
 
-const Review = () => {
+interface ReviewProps {
+    onEdit: (section: string) => void;
+}
+
+const Review: React.FC<ReviewProps> = ({ onEdit }) => {
     const [isSelected, setIsSelected] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -28,7 +32,10 @@ const Review = () => {
             <div className="flex flex-col items-start justify-start gap-6 w-full h-[40%] flex-reverse">
                 <div className="flex flex-row items-center justify-start w-full">
                     <p className="text-2xl">Contact Information</p>
-                    <div className="flex flex-row gap-1 items-center justify-start text-green-500">
+                    <div 
+                        className="flex flex-row gap-1 items-center justify-start text-green-500 cursor-pointer"
+                        onClick={() => onEdit("contact")}
+                    >
                         <EditIcon size={14} />
                         <p className="text-sm mt-1">Edit</p>
                     </div>
@@ -50,7 +57,10 @@ const Review = () => {
             <div className="flex flex-col items-start justify-start gap-6 w-full h-[40%] flex-reverse">
                 <div className="flex flex-row items-center justify-start w-full">
                     <p className="text-2xl">Resume</p>
-                    <div className="flex flex-row gap-1 items-center justify-start text-green-500">
+                    <div 
+                        className="flex flex-row gap-1 items-center justify-start text-green-500 cursor-pointer"
+                        onClick={() => onEdit("resume")}
+                    >
                         <EditIcon size={14} />
                         <p className="text-sm mt-1">Edit</p>
                     </div>
@@ -61,7 +71,10 @@ const Review = () => {
             <div className="flex flex-col items-start justify-start gap-6 w-full h-full flex-reverse">
                 <div className="flex flex-row items-center justify-start w-full">
                     <p className="text-2xl">Additional Questions</p>
-                    <div className="flex flex-row gap-1 items-center justify-start text-green-500">
+                    <div 
+                        className="flex flex-row gap-1 items-center justify-start text-green-500 cursor-pointer"
+                        onClick={() => onEdit("additional")}
+                    >
                         <EditIcon size={14} />
                         <p className="text-sm mt-1">Edit</p>
                     </div>
