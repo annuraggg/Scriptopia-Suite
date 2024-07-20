@@ -67,7 +67,7 @@ const Sidebar = () => {
                   onClick={() => setActive(item.label.toLowerCase())}
                   className={`flex h-9 w-9 items-center ${
                     active === item.label.toLowerCase()
-                      ? " text-gray-500 bg-gray-800 rounded-xl"
+                      ? " text-white-500 bg-zinc-600 rounded-xl"
                       : "text-muted-foreground hover:text-white"
                   } justify-center rounded-lg transition-colors  md:h-8 md:w-8`}
                 >

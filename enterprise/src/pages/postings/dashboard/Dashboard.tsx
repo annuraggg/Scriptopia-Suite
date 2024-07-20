@@ -70,7 +70,7 @@ const Dashboard: React.FC = () => {
             <p className="text-sm text-slate-400">{participant.email}</p>
             <p className="text-xl">{participant.phone}</p>
           </CardBody>
-          <CardFooter className="flex flex-row h-10 items-center justify-center space-x-40 bg-zinc-900 rounded-3xl pb-2">
+          <CardFooter className="flex flex-row h-10 items-center justify-center space-x-24 bg-zinc-900 rounded-3xl pb-2">
             <p className="text-sm mb-1">Resume</p>
             <Button size="sm" variant="light" className="flex flex-row rounded-3xl mb-1">
               <Download size={14} />
@@ -97,13 +97,13 @@ const Dashboard: React.FC = () => {
         {['Applied', 'Aptitude', 'Interview', 'Evaluation'].map((stage) => (
           <div key={stage} className="w-full h-full flex flex-col gap-4">
             <Card className="w-full h-40 flex flex-col">
-              <CardBody className="flex flex-row items-center justify-center space-x-8 p-0">
+              <CardBody className="flex flex-row items-center justify-center space-x-5 px-5">
                 <div className="flex flex-row">
-                  <p className="text-lg">{stage} ({participants.filter(p => p.stage === stage).length})</p>
+                  <p className="text-m">{stage} ({participants.filter(p => p.stage === stage).length})</p>
                 </div>
                 <Button size="sm" variant="light" className="flex flex-row" onClick={() => handleAddParticipant(stage as Participant['stage'])}>
-                  <PlusIcon size={22} className="text-slate-400" />
-                  <span className="text-slate-400 text-sm">Add Participants</span>
+                  <PlusIcon size={22} className="text-success-300" />
+                  <span className="text-success-300 text-sm">Add Participants</span>
                 </Button>
               </CardBody>
             </Card>
