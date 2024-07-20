@@ -34,10 +34,6 @@ function App() {
       element: <Postings />,
     },
     {
-      path: "/postings",
-      element: <Postings />,
-    },
-    {
       path: "/settings",
       element: <Settings />,
     },
