@@ -1,0 +1,39 @@
+
+import { Input, Textarea } from '@nextui-org/react';
+const AdditionalQuestions = () => {
+    return (
+        <div className='flex flex-cols-2 items-center justify-between h-full w-full gap-6'>
+            <div className='flex flex-col items-start justify-center gap-1 w-full h-full'>
+                <div className='flex flex-col items-start justify-center gap-2 w-full h-full'>
+                    <label className='text-base'>Question 1 *</label>
+                    <Input placeholder='' className='w-full rounded-sm' />
+                </div>
+                <div className='flex flex-col items-start justify-center gap-2 w-full h-full'>
+                    <label className='text-base'>Question 2 *</label>
+                    <Input placeholder='' className='w-full rounded-sm' />
+                </div>
+                <div className='flex flex-col items-start justify-center gap-2 w-full h-full'>
+                    <label className='text-base'>Question 3 *</label>
+                    <Input placeholder='' className='w-full rounded-sm' />
+                </div>
+            </div>
+            <div className='flex flex-col items-center justify-start gap-2 w-full h-full'>
+                <div className='flex flex-col items-start justify-start gap-2 w-full h-full mt-7'>
+                    <label className='text-base'>Last Name *</label>
+                    <Textarea
+                        variant="bordered"
+                        placeholder="Enter your description"
+                        disableAnimation
+                        disableAutosize
+                        classNames={{
+                            base: "max-w-full",
+                            input: "resize-y min-h-[70px]",
+                        }}
+                    />
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export default AdditionalQuestions
