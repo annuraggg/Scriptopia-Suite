@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Table,
@@ -15,6 +16,23 @@ import IProblem from "@/@types/Problem";
 
 const ProblemsList = ({ problems }: { problems: IProblem[] }) => {
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDifficulty, setSelectedDifficulty] = useState("");
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const handleDifficultyChange = (value: string) => {
+    setSelectedDifficulty(value);
+  };
+
+  const filteredProblems = problems.filter((problem) => {
+    const matchesSearchTerm = problem.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDifficulty = selectedDifficulty === "" || problem.difficulty === selectedDifficulty;
+
+    return matchesSearchTerm && matchesDifficulty;
+  });
 
   return (
     <motion.div
@@ -26,8 +44,23 @@ const ProblemsList = ({ problems }: { problems: IProblem[] }) => {
       <div>
         <h2>Scriptopia Problems</h2>
         <div className="mt-5 mb-5 flex gap-5 w-[70%]">
-          <Input type="Search" label="Search" size="sm" />
-          <Select label="Difficulty" className="max-w-xs" size="sm">
+          <Input
+            type="Search"
+            label="Search"
+            size="sm"
+            value={searchTerm}
+            onChange={handleSearchChange}
+          />
+          <Select
+            label="Difficulty"
+            className="max-w-xs"
+            size="sm"
+            value={selectedDifficulty}
+            onChange={(event) => handleDifficultyChange(event.target.value)}
+          >
+            <SelectItem key="all" value="">
+              All
+            </SelectItem>
             <SelectItem key="easy" value="easy">
               Easy
             </SelectItem>
@@ -47,7 +80,7 @@ const ProblemsList = ({ problems }: { problems: IProblem[] }) => {
             <TableColumn>Status</TableColumn>
           </TableHeader>
           <TableBody>
-            {problems.map((problem, index) => (
+            {filteredProblems.map((problem, index) => (
               <TableRow key={index} className="h-14">
                 <TableCell className="w-[550px]">
                   <p

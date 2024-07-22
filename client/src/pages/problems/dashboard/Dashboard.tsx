@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Card,
@@ -21,6 +22,16 @@ const Dashboard = ({ myproblems }: { myproblems: IProblem[] }) => {
     navigate(`/problems/${id}`);
   };
 
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const filteredProblems = myproblems.filter((problem) =>
+    problem.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const Cards = [
     {
       title: "Total Students",
@@ -41,6 +52,7 @@ const Dashboard = ({ myproblems }: { myproblems: IProblem[] }) => {
       color: "text-green-500",
     },
   ];
+
   return (
     <motion.div
       initial={{ y: 50, opacity: 0 }}
@@ -78,6 +90,8 @@ const Dashboard = ({ myproblems }: { myproblems: IProblem[] }) => {
                   type="Search"
                   label="Search Problems"
                   size="sm"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
                   className="w-[80vh] right-element"
                 />
               </CardBody>
@@ -93,25 +107,25 @@ const Dashboard = ({ myproblems }: { myproblems: IProblem[] }) => {
                 <TableColumn>Actions</TableColumn>
               </TableHeader>
               <TableBody>
-                {myproblems.map((problem) => (
+                {filteredProblems.map((problem) => (
                   <TableRow className="h-14" key={problem.title}>
                     <TableCell
-                      className="w-[550px]  cursor-pointer hover:text-blue-500"
+                      className="w-[550px] cursor-pointer hover:text-blue-500"
                       onClick={() => openProblem(problem._id)}
                     >
                       <p className="truncate max-w-[500px]">{problem.title}</p>
                     </TableCell>
                     <TableCell>
                       <p className="text-green-500">
-                        {problem.acceptance || `70%`}
+                        {problem.acceptanceRate || `70%`}
                       </p>
                     </TableCell>
                     <TableCell
                       className={`
-          ${problem.difficulty === "easy" && "text-green-400"}
-          ${problem.difficulty === "medium" && "text-yellow-400"}
-          ${problem.difficulty === "hard" && "text-red-400"}  
-          `}
+                        ${problem.difficulty === "easy" && "text-green-400"}
+                        ${problem.difficulty === "medium" && "text-yellow-400"}
+                        ${problem.difficulty === "hard" && "text-red-400"}
+                      `}
                     >
                       {problem.difficulty.slice(0, 1).toUpperCase() +
                         problem.difficulty.slice(1)}
