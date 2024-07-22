@@ -9,6 +9,7 @@ import CreateJob from "./pages/postings/CreatePosting";
 import Apply from "./pages/postings/Apply/Apply";
 import Ats from "./pages/postings/ats/Ats";
 import Workflow from "./pages/postings/workflow/Workflow";
+import Interviews from "./pages/postings/interviews/Interviews";
 
 function App() {
   const router = createBrowserRouter([
@@ -47,6 +48,10 @@ function App() {
         {
           path: "ats",
           element: <Ats />,
+        },
+        {
+          path: "interviews",
+          element: <Interviews />,
         }
       ],
     },
