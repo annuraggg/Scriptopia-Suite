@@ -1,0 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Gloock&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+/* Geist */
+@font-face {
+  font-family: "geist";
+  src: url("/fonts/geist/Geist-Regular.otf");
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "neue";
+  src: url("/fonts/neue/neue.otf");
+}
+
+@font-face {
+  font-family: "polysans";
+  src: url("/fonts/polysans/polysans.ttf");
+}

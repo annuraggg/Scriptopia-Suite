@@ -1,37 +1,38 @@
-import { StreamVideoClient, User } from "@stream-io/video-react-sdk";
-import {
-  CallControls,
-  SpeakerLayout,
-  StreamCall,
-  StreamTheme,
-  StreamVideo,
-} from "@stream-io/video-react-sdk";
-import "@stream-io/video-react-sdk/dist/css/styles.css";
-
-const apiKey = import.meta.env.VITE_STREAM_API_KEY;
+import { useState } from "react";
+import ActionButtons from "./ActionButtons";
+import User from "./User";
+import Chatbox from "./Chatbox";
+import Settings from "./Settings";
 
 const Meet = () => {
-  const username = window.location.pathname.split("/")[2];
-  // token in get params
-  const token = new URLSearchParams(window.location.search).get("token")!;
-  const user: User = {
-    id: username,
-  };
-
-  const client = new StreamVideoClient({ apiKey, token, user });
-  const call = client.call("default", "first");
-  call.join({ create: true });
+  const [mic, setMic] = useState(true);
+  const [camera, setCamera] = useState(true);
+  const [chat, setChat] = useState(true);
+  const [present, setPresent] = useState(true);
+  const [recording, setRecording] = useState(true);
+  const [settings, setSettings] = useState(false);
 
   return (
-    <div>
-      <StreamVideo client={client}>
-        <StreamCall call={call}>
-          <StreamTheme>
-            <SpeakerLayout />
-            <CallControls />
-          </StreamTheme>
-        </StreamCall>
-      </StreamVideo>
+    <div className="w-[100vw]  h-screen flex flex-col items-center justify-center px-5 py-5 overflow-x-hidden relative">
+      <div className="flex gap-5 w-[100vw] h-full overflow-x-hidden relative">
+        <User isOpen={chat || settings} />
+        <Chatbox isOpen={chat} />
+        <Settings isOpen={settings} />
+      </div>
+
+      <ActionButtons
+        mic={mic}
+        camera={camera}
+        chat={chat}
+        present={present}
+        recording={recording}
+        setMic={setMic}
+        setCamera={setCamera}
+        setChat={setChat}
+        setPresent={setPresent}
+        setRecording={setRecording}
+        setSettings={setSettings}
+      />
     </div>
   );
 };
