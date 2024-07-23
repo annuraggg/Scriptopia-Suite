@@ -8,7 +8,7 @@ import {
 
 const User = ({ isOpen }: { isOpen: boolean }) => {
   const { useParticipants } = useCallStateHooks();
-  const [participantInSpotlight ] = useParticipants();
+  const participants = useParticipants();
 
   return (
     <div
@@ -16,20 +16,9 @@ const User = ({ isOpen }: { isOpen: boolean }) => {
         isOpen ? "w-[74vw]" : "w-full mr-5"
       }`}
     >
-      <div className="speaker-view">
-        <div className="spotlight">
-          {participantInSpotlight && (
-            <ParticipantView
-              participant={participantInSpotlight}
-              trackType={
-                hasScreenShare(participantInSpotlight)
-                  ? "screenShareTrack"
-                  : "videoTrack"
-              }
-            />
-          )}
-        </div>
-      </div>
+      {participants.map((p) => (
+        <ParticipantView participant={p} key={p.sessionId} />
+      ))}
       <MyVideo />
     </div>
   );

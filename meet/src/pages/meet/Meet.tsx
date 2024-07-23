@@ -239,9 +239,10 @@ const Meet = () => {
   const userId = window.location.pathname.split("/").pop() || "";
   const token = new URLSearchParams(window.location.search).get("token") || "";
   const user: UserType = { id: userId };
+  const room = window.location.pathname.split("/")[1];
 
   const client = new StreamVideoClient({ apiKey, user, token });
-  const call = client.call("default", "my-first-call");
+  const call = client.call("interview", room);
   call.join({ create: true });
 
   return (
