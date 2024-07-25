@@ -6,47 +6,49 @@ import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
 import {
-  Home,
   Users,
   ChevronRight,
-  FileText,
-  LineChartIcon,
-  Workflow,
-  MonitorPlay,
+  Building2,
+  Lock,
+  SquareChevronRight,
+  Boxes,
+  Brush,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/@types/reducer";
 
 const Sidebar = () => {
   const topItems = [
     {
-      icon: Home,
-      label: "Dashboard",
-      link: "/dashboard",
-    },
-    {
-      icon: Workflow,
-      label: "Workflow",
-      link: "/workflow",
-    },
-    {
-      icon: FileText,
-      label: "ATS",
-      link: "/ats",
-    },
-    {
-      icon: LineChartIcon,
-      label: "Assessments",
-      link: "/assessments",
+      icon: Building2,
+      label: "General",
+      link: "/general",
     },
     {
       icon: Users,
-      label: "Candidates",
-      link: "/candidates",
+      label: "Members",
+      link: "/members",
     },
     {
-      icon: MonitorPlay,
-      label: "Interviews",
-      link: "/interviews",
+      icon: SquareChevronRight,
+      label: "Roles",
+      link: "/roles",
+    },
+    {
+      icon: Boxes,
+      label: "Departments",
+      link: "/departments",
+    },
+    {
+      icon: Lock,
+      label: "Security",
+      link: "/security",
+    },
+    {
+      icon: Brush,
+      label: "Personalization",
+      link: "/personalization",
     },
   ];
 
@@ -54,8 +56,10 @@ const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
 
+  const org = useSelector((state: RootState) => state.organization);
+
   useEffect(() => {
-    setActive(window.location.pathname.split("/")[4]);
+    setActive(window.location.pathname.split("/")[3]);
   }, []);
 
   return (
@@ -78,9 +82,7 @@ const Sidebar = () => {
                           : "text-muted-foreground opacity-50 hover:text-white"
                       } `}
                       onClick={() => {
-                        const path = window.location.pathname.split("/");
-                        path.pop();
-                        navigate(path.join("/") + item.link);
+                        navigate(`/${org._id}/settings${item.link}`);
                         setActive(item.label.toLowerCase());
                       }}
                     >

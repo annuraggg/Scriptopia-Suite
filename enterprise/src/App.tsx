@@ -7,7 +7,6 @@ import Jobs from "./pages/jobs/Jobs";
 import Candidates from "./pages/candidates/Candidates";
 import Analytics from "./pages/analytics/Analytics";
 import Calendar from "./pages/calendar/Calendar";
-import Settings from "./pages/settings/Settings";
 import Documentation from "./pages/documentation/Documentation";
 import Billing from "./pages/billing/Billing";
 import Support from "./pages/support/Support";
@@ -21,6 +20,13 @@ import Interviews from "./pages/jobs/job/interviews/Interviews";
 
 import SettingsLayout from "./pages/settings/Layout";
 import GeneralSettings from "./pages/settings/general/General";
+import Members from "./pages/settings/members/Member";
+import Roles from "./pages/settings/roles/Roles";
+import Departments from "./pages/settings/departments/Departments";
+import Security from "./pages/settings/security/Security";
+import Personalization from "./pages/settings/personalization/Personalization";
+import AuditLogs from "./pages/settings/security/audit-logs/Audit-Logs";
+import Notifications from "./pages/notifications/Notifications";
 
 // import Dashboard from "./pages/postings/dashboard/Dashboard";
 // import Postings from "./pages/postings/Postings";
@@ -40,7 +46,16 @@ function App() {
     { path: "interviews", element: <Interviews /> },
   ];
 
-  const settingsRoute = [{ path: "general", element: <GeneralSettings /> }];
+  const settingsRoute = [
+    { path: "general", element: <GeneralSettings /> },
+    { path: "members", element: <Members /> },
+    { path: "roles", element: <Roles /> },
+    { path: "departments", element: <Departments /> },
+    { path: "security", element: <Security /> },
+    { path: "personalization", element: <Personalization /> },
+
+    { path: "security/audit-logs", element: <AuditLogs /> },
+  ];
 
   const router = createBrowserRouter([
     {
@@ -59,7 +74,7 @@ function App() {
         { path: "analytics", element: <Analytics /> },
         { path: "calendar", element: <Calendar /> },
 
-        { path: "settings", element: <Settings /> },
+        { path: "notifications", element: <Notifications /> },
         { path: "billing", element: <Billing /> },
         { path: "documentation", element: <Documentation /> },
         { path: "support", element: <Support /> },
