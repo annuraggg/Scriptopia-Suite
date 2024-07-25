@@ -38,13 +38,6 @@ const Navbar = () => {
               }}
             />
           </div>
-          <p className="flex text-md sm:text-base duration-200 transition-all md:hidden">
-            Scriptopia
-          </p>
-          <p className="font-bold uppercase font-neue drop-shadow-glow opacity-90">
-            {" "}
-            React App Postings
-          </p>
         </div>
         <div className="flex items-center gap-2 sm:gap-5">
           <div className="hidden md:flex items-center gap-5">

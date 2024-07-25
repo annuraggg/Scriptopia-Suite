@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Tooltip,
   TooltipContent,
@@ -8,11 +8,14 @@ import {
 import {
   Home,
   Settings,
-  Workflow,
-  FileText,
-  LineChartIcon,
-  MonitorPlay,
   Users,
+  Briefcase,
+  PieChart,
+  Calendar,
+  BookOpenText,
+  CreditCard,
+  HelpCircle,
+  ChevronRight,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -24,19 +27,9 @@ const Sidebar = () => {
       link: "/dashboard",
     },
     {
-      icon: Workflow,
-      label: "Workflow",
-      link: "/workflow",
-    },
-    {
-      icon: FileText,
-      label: "ATS",
-      link: "/ats",
-    },
-    {
-      icon: LineChartIcon,
-      label: "Assessments",
-      link: "/assessments",
+      icon: Briefcase,
+      label: "Jobs",
+      link: "/jobs",
     },
     {
       icon: Users,
@@ -44,61 +37,151 @@ const Sidebar = () => {
       link: "/candidates",
     },
     {
-      icon: MonitorPlay,
-      label: "Interviews",
-      link: "/interviews",
+      icon: PieChart,
+      label: "Analytics",
+      link: "/analytics",
+    },
+    {
+      icon: Calendar,
+      label: "Calendar",
+      link: "/calendar",
+    },
+  ];
+
+  const bottomItems = [
+    {
+      icon: Settings,
+      label: "Settings",
+      link: "/settings",
+    },
+    {
+      icon: CreditCard,
+      label: "Billing",
+      link: "/billing",
+    },
+    {
+      icon: BookOpenText,
+      label: "Documentation",
+      link: "/documentation",
+    },
+    {
+      icon: HelpCircle,
+      label: "Support",
+      link: "/support",
     },
   ];
 
   const [active, setActive] = useState("dashboard");
+  const [collapsed, setCollapsed] = useState(true);
+  const navigate = useNavigate();
+
   useEffect(() => {
-    setActive(window.location.pathname.split("/")[3]);
+    setActive(window.location.pathname.split("/")[2]);
   }, []);
 
   return (
-    <TooltipProvider>
-      <aside className="fixed top-14 inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
-        <nav className="flex flex-col items-center gap-4 px-2 sm:py-5">
-          {topItems.map((item, index) => (
-            <Tooltip key={index}>
-              <TooltipTrigger asChild>
-                <Link
-                  to={"/postings/test" + item.link}
-                  onClick={() => setActive(item.label.toLowerCase())}
-                  className={`flex h-9 w-9 items-center ${
-                    active === item.label.toLowerCase()
-                      ? " text-white-500 bg-zinc-600 rounded-xl"
-                      : "text-muted-foreground hover:text-white"
-                  } justify-center rounded-lg transition-colors  md:h-8 md:w-8`}
-                >
-                  {item.icon && <item.icon className="h-5 w-5" />}
-                  <span className="sr-only">{item.label}</span>
-                </Link>
+    <>
+      <TooltipProvider>
+        <aside
+          className={` sticky h-[100vh] min-w-16 px-5 top-0 left-0 z-10 hidden transition-width flex-col border-r bg-background sm:flex overflow-x-hidden ${
+            collapsed ? "w-16" : "w-64"
+          }`}
+        >
+          <nav className={`flex flex-col gap-4 sm:py-5 `}>
+            <div>
+              <img
+                src="/logo1080_transparent_white_large.png"
+                alt="logo"
+                className="cursor-pointer h-6"
+                onClick={() => {
+                  window.location.href = "/";
+                }}
+              />
+            </div>
+
+            {topItems.map((item, index) => (
+              <Tooltip key={index}>
+                <TooltipTrigger asChild>
+                  <table>
+                    <tbody
+                      className={` cursor-pointer h-8 ${
+                        active === item.label.toLowerCase()
+                          ? " text-white-500 rounded-xl"
+                          : "text-muted-foreground opacity-50 hover:text-white"
+                      } `}
+                      onClick={() => {
+                        navigate(
+                          "/" +
+                            window.location.pathname.split("/")[1] +
+                            item.link
+                        );
+                        setActive(item.label.toLowerCase());
+                      }}
+                    >
+                      <td className="pr-3">
+                        {item.icon && <item.icon className="h-7 w-5" />}
+                      </td>
+                      {collapsed ? null : (
+                        <td className="text-start w-full">{item.label}</td>
+                      )}
+                    </tbody>
+                  </table>
+                </TooltipTrigger>
+                <TooltipContent side="right">{item.label}</TooltipContent>
+              </Tooltip>
+            ))}
+          </nav>
+          <nav className={`mt-auto flex flex-col gap-4 sm:py-5`}>
+            {bottomItems.map((item, index) => (
+              <Tooltip key={index}>
+                <TooltipTrigger asChild>
+                  <table>
+                    <tbody
+                      className={` cursor-pointer h-7 ${
+                        active === item.label.toLowerCase()
+                          ? " text-white rounded-xl"
+                          : "text-muted-foreground opacity-50 hover:text-white"
+                      } `}
+                      onClick={() => {
+                        navigate(
+                          "/" +
+                            window.location.pathname.split("/")[1] +
+                            item.link
+                        );
+
+                        setActive(item.label.toLowerCase());
+                      }}
+                    >
+                      <td className="pr-3">
+                        {item.icon && <item.icon className="h-5 w-5" />}
+                      </td>
+                      {collapsed ? null : (
+                        <td className="text-start w-full">{item.label}</td>
+                      )}
+                    </tbody>
+                  </table>
+                </TooltipTrigger>
+                <TooltipContent side="right">{item.label}</TooltipContent>
+              </Tooltip>
+            ))}
+          </nav>
+
+          <div className={` flex w-full mb-5 `}>
+            <Tooltip>
+              <TooltipTrigger>
+                <ChevronRight
+                  className={`h-5 w-5 text-muted-foreground transition-all  opacity-50 ${
+                    !collapsed ? "rotate-180" : ""
+                  }`}
+                  onClick={() => setCollapsed(!collapsed)}
+                />
               </TooltipTrigger>
-              <TooltipContent side="right">{item.label}</TooltipContent>
+              <TooltipContent side="right">Collapse sidebar</TooltipContent>
             </Tooltip>
-          ))}
-        </nav>
-        <nav className="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link
-                to="/settings"
-                className={`flex h-9 w-9 items-center ${
-                  active === "settings"
-                    ? " text-black bg-white"
-                    : "text-muted-foreground hover:text-white"
-                } justify-center rounded-lg transition-colors  md:h-8 md:w-8`}
-              >
-                <Settings className="h-5 w-5" />
-                <span className="sr-only">Settings</span>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent side="right">Settings</TooltipContent>
-          </Tooltip>
-        </nav>
-      </aside>
-    </TooltipProvider>
+          </div>
+        </aside>
+      </TooltipProvider>
+    </>
   );
 };
 

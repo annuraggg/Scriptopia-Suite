@@ -9,7 +9,6 @@ import {
   Switch,
 } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "@/components/Navbar";
 import { ChevronRight, CircleAlert, CircleDot } from "lucide-react";
 
 interface Posting {
@@ -346,9 +345,8 @@ const Postings: React.FC = () => {
 
   return (
     <>
-      <Navbar />
       <div>
-        <div className="flex p-10 gap-5 w-full">
+        <div className="flex gap-5 w-full ">
           <div className="min-w-[70%] w-[70%]">
             <h4>Postings</h4>
             <div className="flex gap-5 items-end justify-between w-full">
