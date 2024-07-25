@@ -16,6 +16,8 @@ import {
   CreditCard,
   HelpCircle,
   ChevronRight,
+  CircleUser,
+  Bell,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -49,6 +51,16 @@ const Sidebar = () => {
   ];
 
   const bottomItems = [
+    {
+      icon: CircleUser,
+      label: "Profile",
+      link: "/profile"
+    },
+    {
+      icon: Bell,
+      label: "Notifications",
+      link: "/notifications",
+    },
     {
       icon: Settings,
       label: "Settings",

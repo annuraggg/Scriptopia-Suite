@@ -18,6 +18,10 @@ import Workflow from "./pages/jobs/job/workflow/Workflow";
 import Ats from "./pages/jobs/job/ats/Ats";
 import Assessments from "./pages/jobs/job/assessments/Assessments";
 import Interviews from "./pages/jobs/job/interviews/Interviews";
+
+import SettingsLayout from "./pages/settings/Layout";
+import GeneralSettings from "./pages/settings/general/General";
+
 // import Dashboard from "./pages/postings/dashboard/Dashboard";
 // import Postings from "./pages/postings/Postings";
 // import Settings from "./pages/settings/Settings";
@@ -35,6 +39,8 @@ function App() {
     { path: "assessments", element: <Assessments /> },
     { path: "interviews", element: <Interviews /> },
   ];
+
+  const settingsRoute = [{ path: "general", element: <GeneralSettings /> }];
 
   const router = createBrowserRouter([
     {
@@ -64,6 +70,11 @@ function App() {
       path: ":org/jobs/:id",
       element: <JobLayout />,
       children: jobRoutes,
+    },
+    {
+      path: ":org/settings",
+      element: <SettingsLayout />,
+      children: settingsRoute,
     },
   ]);
 

@@ -5,16 +5,21 @@ import { NextUIProvider } from "@nextui-org/react";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { Toaster } from "sonner";
 
+import { Provider } from "react-redux";
+import store from "@/store/store.ts";
+
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 if (!publishableKey) {
   throw new Error("Missing Vite Clerk publishable key");
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <ClerkProvider publishableKey={publishableKey}>
-    <NextUIProvider>
-      <Toaster richColors theme="dark"/>
-      <App />
-    </NextUIProvider>
-  </ClerkProvider>
+  <Provider store={store}>
+    <ClerkProvider publishableKey={publishableKey}>
+      <NextUIProvider>
+        <Toaster richColors theme="dark" />
+        <App />
+      </NextUIProvider>
+    </ClerkProvider>
+  </Provider>
 );
