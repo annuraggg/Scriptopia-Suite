@@ -10,13 +10,13 @@ import MyProblems from "./MyProblems";
 import Loader from "@/components/Loader";
 import ErrorPage from "@/components/ErrorPage";
 import { useAuth } from "@clerk/clerk-react";
-import ax from "@/config/axios"
+import ax from "@/config/axios";
 
 const Problems = () => {
   const [active, setActive] = useState(0);
 
-  const { getToken } = useAuth()
-  const axios = ax(getToken)
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
 
   const data = useQueries({
     queries: [
@@ -45,10 +45,10 @@ const Problems = () => {
       case "#user-generated":
         setActive(2);
         break;
-      case "#conundrum-cubes":
+      case "#my-problems":
         setActive(3);
         break;
-      case "#my-problems":
+      case "#conundrum-cubes":
         setActive(4);
         break;
       default:
@@ -56,7 +56,8 @@ const Problems = () => {
     }
   }, []);
 
-  if (data[0].isLoading || data[1].isLoading || data[2].isLoading) return <Loader />;
+  if (data[0].isLoading || data[1].isLoading || data[2].isLoading)
+    return <Loader />;
   if (data[0].error || data[1].error || data[2].error) return <ErrorPage />;
 
   return (
@@ -70,9 +71,11 @@ const Problems = () => {
         <Sidebar active={active} setActive={setActive} />
         {active === 0 && <Dashboard myproblems={data[0]?.data.data || []} />}
         {active === 1 && <ProblemsList problems={data[0]?.data.data || []} />}
-        {active === 2 && <UserGenerated userproblems={data[2]?.data.data || []} />}
-        {active === 3 && <ConundrumCubes />}
-        {active === 4 && <MyProblems myproblems={data[2]?.data.data || []} />}
+        {active === 2 && (
+          <UserGenerated userproblems={data[2]?.data.data || []} />
+        )}
+        {active === 3 && <MyProblems myproblems={data[2]?.data.data || []} />}
+        {active === 4 && <ConundrumCubes />}
       </div>
     </motion.div>
   );

@@ -1,24 +1,24 @@
-import { UserButton, useAuth } from "@clerk/clerk-react";
+import { UserButton, /*useAuth*/ } from "@clerk/clerk-react";
 import Logo from "../assets/logo1080_transparent_white_large.png";
 import { Link, Button } from "@nextui-org/react";
 import { EllipsisVertical, Menu, X, } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-} from "@nextui-org/react";
+// import { useNavigate } from "react-router-dom";
+// import {
+//   Dropdown,
+//   DropdownTrigger,
+//   DropdownMenu,
+//   DropdownItem,
+// } from "@nextui-org/react";
 
 const Navbar = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const handleMenu = () => {
     setShowMenu(!showMenu);
   };
 
-  const { orgId } = useAuth();
+  // const { orgId } = useAuth();
 
   const links = [
     {
@@ -31,10 +31,10 @@ const Navbar = () => {
     },
   ];
 
-  const openOrg = () => {
-    if (orgId === null) window.location.href = "/organization/intro";
-    else window.location.href = "/organization";
-  };
+  // const openOrg = () => {
+  //   if (orgId === null) window.location.href = "/organization/intro";
+  //   else window.location.href = "/organization";
+  // };
 
   return (
     <>
@@ -67,13 +67,13 @@ const Navbar = () => {
         </div>
         <div className="flex items-center gap-2 sm:gap-5">
           <div className="hidden md:flex items-center gap-3">
-            <Dropdown>
+            {/* <Dropdown>
               <DropdownTrigger className="cursor-pointer"><Menu size={22} /></DropdownTrigger>
               <DropdownMenu aria-label="Static Actions">
                 <DropdownItem onClick={openOrg}>Organization</DropdownItem>
                 <DropdownItem onClick={() => navigate("/profile")}>Profile</DropdownItem>
               </DropdownMenu>
-            </Dropdown>
+            </Dropdown> */}
             <UserButton />
           </div>
           <div className="flex md:hidden" onClick={handleMenu}>

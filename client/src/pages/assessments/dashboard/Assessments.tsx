@@ -14,14 +14,14 @@ import { useAuth } from "@clerk/clerk-react";
 const Assessments = () => {
   const [active, setActive] = useState(0);
 
-  const { getToken } = useAuth()
-  const axios = ax(getToken)
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
 
   const data = useQueries({
     queries: [
       {
         queryKey: ["all-assessments"],
-        queryFn: async () => ( await axios.get("/assessments/all/1")).data,
+        queryFn: async () => (await axios.get("/assessments/all/1")).data,
       },
       {
         queryKey: ["created-assessments"],
@@ -29,7 +29,8 @@ const Assessments = () => {
       },
       {
         queryKey: ["live-assessments"],
-        queryFn: async () => (await axios.get("/assessments/live-created/1")).data,
+        queryFn: async () =>
+          (await axios.get("/assessments/live-created/1")).data,
       },
       {
         queryKey: ["taken-assessments"],
@@ -39,17 +40,17 @@ const Assessments = () => {
   });
 
   console.log(data);
-  
+
   useEffect(() => {
     const hash = window.location.hash;
     switch (hash) {
       case "#created":
         setActive(1);
         break;
-      case "#live":
+      case "#taken":
         setActive(2);
         break;
-      case "#taken":
+      case "#live":
         setActive(3);
         break;
       default:
@@ -57,7 +58,8 @@ const Assessments = () => {
     }
   }, []);
 
-  if (data[0].isLoading || data[1].isLoading || data[2].isLoading) return <Loader />;
+  if (data[0].isLoading || data[1].isLoading || data[2].isLoading)
+    return <Loader />;
   if (data[0].error || data[1].error || data[2].error) return <ErrorPage />;
 
   return (
@@ -70,9 +72,13 @@ const Assessments = () => {
       <div className="h-full flex gap-5">
         <Sidebar active={active} setActive={setActive} />
         {active === 0 && <Dashboard />}
-        {active === 1 && <AssessmentsCreated createdAssessments={data[1]?.data.data || []} />}
-        {active === 2 && <LiveAssessmentsCreated liveAssessments={data[2]?.data.data || []} />}
-        {active === 3 && <AssessmentsTaken takenAssessments={[]} />}
+        {active === 1 && (
+          <AssessmentsCreated createdAssessments={data[1]?.data.data || []} />
+        )}
+        {active === 2 && <AssessmentsTaken takenAssessments={[]} />}
+        {active === 3 && (
+          <LiveAssessmentsCreated liveAssessments={data[2]?.data.data || []} />
+        )}
       </div>
     </motion.div>
   );

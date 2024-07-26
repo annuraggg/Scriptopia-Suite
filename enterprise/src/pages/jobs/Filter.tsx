@@ -42,7 +42,8 @@ const Filter: React.FC<FilterProps> = ({
                     <p className='text-neutral-400 text-sm'>Sort by</p>
                 </div>
                 <Select size='sm' placeholder='Select' className='max-w-xs'>
-                    <SelectItem key='text'>Text</SelectItem>
+                    <SelectItem key='text'>job (a-z)</SelectItem>
+                    <SelectItem key='text'>job (z-a)</SelectItem>
                 </Select>
             </div>
             <Card className='w-full h-full mt-7'>

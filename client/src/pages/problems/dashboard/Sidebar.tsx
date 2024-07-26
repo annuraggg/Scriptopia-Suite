@@ -1,4 +1,4 @@
-import { Home, UsersRound, Code, User, Box } from "lucide-react";
+import { Home, UsersRound, Code, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const links: {
@@ -23,15 +23,16 @@ const links: {
     hash: "user-generated",
   },
   {
-    title: "Conundrum Cubes",
-    icon: Box,
-    hash: "conumdrum-cubes",
-  },
-  {
     title: "My Problems",
     icon: User,
     hash: "my-problems",
   },
+  // {
+  //   title: "Conundrum Cubes",
+  //   icon: Box,
+  //   hash: "conumdrum-cubes",
+  // },
+
   /*  {
     title: "Analytics",
     icon: LineChart,

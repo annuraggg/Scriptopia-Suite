@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  Card,
-  CardBody,
-  Input,
-  Link,
-} from "@nextui-org/react";
+import { Card, CardBody, Input, Link } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
 import {
   ListIcon,
@@ -44,7 +39,6 @@ const postingsSample: Posting[] = [
     salaryFrom: "₹50,000",
     salaryUpto: "₹1,00,000",
     jobprofile: "Part Time",
-
   },
   {
     id: "2",
@@ -93,7 +87,6 @@ const postingsSample: Posting[] = [
     salaryFrom: "₹70,000",
     salaryUpto: "₹1,20,000",
     jobprofile: "Part Time",
-
   },
   {
     id: "6",
@@ -166,7 +159,6 @@ const postingsSample: Posting[] = [
     salaryFrom: "₹15,000",
     salaryUpto: "₹50,000",
     jobprofile: "Part Time",
-
   },
   {
     id: "12",
@@ -302,7 +294,7 @@ const Cards = [
     jobCount: 5,
     icon: <ArchiveIcon size={28} />,
     filter: "archived",
-  }
+  },
 ];
 
 const Postings: React.FC = () => {
@@ -312,17 +304,34 @@ const Postings: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [workScheduleFilter, setWorkScheduleFilter] = useState<string[]>([]);
   const [departmentFilter, setDepartmentFilter] = useState<string>("");
-  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: "", end: "" });
+  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
+    start: "",
+    end: "",
+  });
 
   const filteredPostings = postings.filter((post) => {
-    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = selectedFilter === "all" || post.status === selectedFilter;
-    const matchesWorkSchedule = workScheduleFilter.length === 0 || workScheduleFilter.includes(post.jobprofile);
-    const matchesDepartment = !departmentFilter || post.category === departmentFilter;
-    const matchesDateRange = (!dateRange.start || new Date(post.createdOn) >= new Date(dateRange.start)) &&
+    const matchesSearch = post.title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      selectedFilter === "all" || post.status === selectedFilter;
+    const matchesWorkSchedule =
+      workScheduleFilter.length === 0 ||
+      workScheduleFilter.includes(post.jobprofile);
+    const matchesDepartment =
+      !departmentFilter || post.category === departmentFilter;
+    const matchesDateRange =
+      (!dateRange.start ||
+        new Date(post.createdOn) >= new Date(dateRange.start)) &&
       (!dateRange.end || new Date(post.createdOn) <= new Date(dateRange.end));
 
-    return matchesSearch && matchesStatus && matchesWorkSchedule && matchesDepartment && matchesDateRange;
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      matchesWorkSchedule &&
+      matchesDepartment &&
+      matchesDateRange
+    );
   });
 
   const handleDetailsClick = (posting: Posting) => {
@@ -356,11 +365,11 @@ const Postings: React.FC = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <Card className="w-1/4">
-                <CardBody className="flex items-center justify-between bg-secondary bg-opacity-5 p-2">
+              <Card className="w-1/4 cursor-pointer">
+                <CardBody className="flex items-center justify-between bg-blue-500 bg-opacity-3 p-2">
                   <Link className="flex items-center gap-2">
-                    <p className="text-neutral-400 text-sm">Create a New Job</p>
                     <FilePlusIcon size={22} />
+                    <p className="text-white text-sm">Create a New Job</p>
                   </Link>
                 </CardBody>
               </Card>
@@ -371,33 +380,53 @@ const Postings: React.FC = () => {
                 <Card
                   isPressable
                   key={index}
-                  className={`rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${selectedFilter === card.filter ? 'bg-blue-700/20 text-white' : ''}`}
+                  className={`rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${
+                    selectedFilter === card.filter
+                      ? "bg-blue-700/20 text-white"
+                      : ""
+                  }`}
                   onClick={() => handleFilterChange(card.filter)}
                 >
                   <div className="flex items-center justify-center gap-2 w-full">
                     <div>{card.icon}</div>
                     <h1 className="text-base">{card.title}</h1>
                   </div>
-                  <p className="text-center w-full text-gray-500">{card.jobCount} Jobs</p>
+                  <p className="text-center w-full text-gray-500">
+                    {card.jobCount} Jobs
+                  </p>
                 </Card>
               ))}
             </div>
 
             <div className="flex flex-col gap-3 w-full mt-6 overflow-y-auto">
               {filteredPostings.map((posting, index) => (
-                <Card className="w-full h-24 border-none p-2 grid grid-cols-2 gap-2" key={index}>
+                <Card
+                  className="w-full h-24 border-none p-2 grid grid-cols-2 gap-2"
+                  key={index}
+                >
                   <div className="flex flex-col items-start justify-start gap-3 w-full p-2">
                     <div className="flex flex-row items-center justify-start gap-2 w-full">
-                      <p className="text-lg">{posting.title}</p>
-                      <span className={`text-xs px-3 rounded-full whitespace-nowrap ${posting.category === 'IT' ? 'bg-green-500 text-white' :
-                          posting.category === 'Operations' ? 'bg-orange-500 text-white' :
-                            'bg-gray-100 text-gray-800'
-                        }`}>
+                      <p className="mr-3 cursor-pointer"
+                      onClick={() => handleDetailsClick(posting)}>{posting.title}</p>
+                      <span
+                        className={`text-xs px-3 rounded-full whitespace-nowrap ${
+                          posting.category === "IT"
+                            ? "bg-green-500 text-white"
+                            : posting.category === "Operations"
+                            ? "bg-orange-500 text-white"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
                         {posting.category}
                       </span>
-                      <span className={`text-xs px-3 rounded-full whitespace-nowrap ${posting.status === 'active' ? 'bg-blue-500 text-white' : 'bg-red-500 text-white'
-                        }`}>
-                        {posting.status === 'active' ? 'Active' : 'Closed'}
+                      <span
+                        className={`text-xs px-3 ml-1 rounded-full whitespace-nowrap ${
+                          posting.status === "active"
+                            ? "bg-green-900 text-green-500"
+                            : "bg-red-900 text-red-500"
+                        }`}
+                      >
+                        {posting.status === "active" ? "Active" : "Closed"}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 w-full text-sm mt-3 text-gray-500">
@@ -411,16 +440,24 @@ const Postings: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <BanknoteIcon size={18} />
-                        <p>{posting.salaryFrom} - {posting.salaryUpto}</p>
+                        <p>
+                          {posting.salaryFrom} - {posting.salaryUpto}
+                        </p>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between w-full">
-                    <div className="text-sm rounded-full border bg-secondary bg-opacity-5 p-2">
-                      <p className="text-neutral-400">Open Until {posting.openUntil}</p>
+                    <div className="text-sm rounded-full border bg-secondary bg-opacity-5 px-2 py-1">
+                      <p className="text-gray-300 text-xs">
+                        Open Until {posting.openUntil}
+                      </p>
                     </div>
-                    <Menu size={28} className="mr-6 cursor-pointer" onClick={() => handleDetailsClick(posting)} />
+                    <Menu
+                      size={28}
+                      className="mr-6 cursor-pointer"
+                      //onClick={() => handleDetailsClick()}
+                    />
                   </div>
                 </Card>
               ))}

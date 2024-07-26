@@ -1,26 +1,43 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-const candidatesSchema = new Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true },
-  phone: { type: String, required: true },
-  resumeUrl: { type: String, required: true },
-  status: {
-    type: String,
-    enum: ["pending", "accepted", "rejected"],
-    required: true,
+const interviewerSchema = new Schema({
+  interviewer: { type: String, required: true },
+  candidates: [{ type: String, required: true }],
+  meetingLink: { type: String, required: true },
+  timeSlot: {
+    type: {
+      start: { type: Date, required: true },
+      end: { type: Date, required: false },
+    },
   },
 });
 
-const periodSchema = new Schema({
-  start: { type: Date, required: true },
-  end: { type: Date, required: true },
+const interviewSchema = new Schema({
+  assignees: { type: [interviewerSchema], required: true },
+  duration: { type: Number, required: true },
 });
 
-const workflowStepSchema = new Schema({
-  name: { type: String, required: true },
-  type: { type: String, enum: ["rs", "sa", "ca", "pi"], required: true },
+const assessmentSchema = new Schema({
+  assessmentId: { type: String, required: true, ref: "Assessment" },
+});
+
+const atsSchema = new Schema({
+  minimumScore: { type: Number, required: true },
+  negativePrompts: [{ type: String, required: true }],
+  positivePrompts: [{ type: String, required: true }],
+});
+
+const candidatesSchema = new Schema({
+  candidateId: { type: mongoose.Types.ObjectId, ref: "Candidate" },
+  disqualifiedStage: { type: Number },
+  disqualifiedReason: { type: String },
+  status: {
+    type: String,
+    enum: ["pending", "qualified", "rejected"],
+    required: true,
+    default: "pending",
+  },
 });
 
 const autoSchema = new Schema({
@@ -29,56 +46,43 @@ const autoSchema = new Schema({
   end: { type: Date, required: true },
 });
 
-const resumeScreenConfigSchema = new Schema({
-  matchingThreshold: { type: Number, required: true },
-});
-
-const resumeSelectedCandidatesSchema = new Schema({
-  candidate: { type: String, required: true },
-  atsScore: { type: Number, required: true },
-  resumeAnalysis: { type: String, required: true },
-  missingSkills: [{ type: String, required: true }],
-});
-
-const resumeScreenSchema = new Schema({
-  config: { type: resumeScreenConfigSchema, required: true },
-  selectedCandidates: [{ type: [resumeSelectedCandidatesSchema], ref: "User" }],
+const workflowStepSchema = new Schema({
+  name: { type: String, required: true },
+  type: { type: String, enum: ["rs", "sa", "ca", "pi", "cu"], required: true },
 });
 
 const workflowSchema = new Schema({
-  steps: [{ type: [workflowStepSchema], required: true }],
+  steps: [{ type: [workflowStepSchema] }],
   currentStep: { type: Number, required: true },
   behavior: { type: String, enum: ["manual", "auto"], required: true },
-  auto: { type: autoSchema, required: true },
+  auto: { type: [autoSchema] },
 });
 
-const assessmentSchema = new Schema({
-  name: { type: String, required: true },
-  id: { type: String, required: true, ref: "Assessment" },
-  selectedCandidates: [{ type: [String], ref: "User" }],
-});
-
-const interviewSchema = new Schema({
-  name: { type: String, required: true },
-  selectedCandidates: [{ type: [String], ref: "User" }],
-});
+const salarySchema = new Schema({ min: Number, max: Number, currency: String });
 
 const postingSchema = new Schema({
   title: { type: String, required: true },
-  email: { type: String, required: true },
   description: { type: String, required: true },
-  code: { type: String, required: true },
-  period: { type: periodSchema, required: true },
-  candidates: [{ type: candidatesSchema, ref: "User" }],
-
+  department: { type: mongoose.Types.ObjectId, ref: "Department" },
+  schedule: { type: String, enum: ["full", "part", "intern"], required: true },
+  openings: { type: Number, required: true },
+  location: { type: String, required: true },
+  salaryRange: {
+    type: salarySchema,
+    required: true,
+  },
   workflow: { type: workflowSchema },
-  resumeScreens: { type: resumeScreenSchema, required: true },
-  assessments: [{ type: assessmentSchema, ref: "Assessment" }],
+
+  ats: { type: atsSchema, required: true },
+  assessments: [{ type: [assessmentSchema], ref: "Assessment" }],
   interview: { type: interviewSchema, required: true },
 
+  candidates: [{ type: candidatesSchema, ref: "Candidate" }],
+
+  publishedOn: { type: Date, required: true },
   createdOn: { type: Date, default: Date.now, required: true },
   updatedOn: { type: Date, default: Date.now, required: true },
-})
+});
 
 postingSchema.pre("save", function (next) {
   this.updatedOn = new Date();

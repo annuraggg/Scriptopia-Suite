@@ -9,21 +9,56 @@ import {
   TableCell,
 } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button } from "@nextui-org/react";
-import React from "react";
+import {
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+  Button,
+} from "@nextui-org/react";
+import React, { useEffect } from "react";
 
-const Problems = (
-  {
-    problems,
-    tags,
-    solvedProblems,
-  }: {
-    problems: IProblem[];
-    tags: string[];
-    solvedProblems: string[];
-  }) => {
+const Problems = ({
+  problems,
+  tags,
+  solvedProblems,
+}: {
+  problems: IProblem[];
+  tags: string[];
+  solvedProblems: string[];
+}) => {
   const navigate = useNavigate();
-  const [selectedKeys, setSelectedKeys] = React.useState(new Set<string>(["Select"]));
+  const [selectedKeys, setSelectedKeys] = React.useState(
+    new Set<string>(["Select"])
+  );
+
+  const [difficulty, setDifficulty] = React.useState("");
+  const [search, setSearch] = React.useState("");
+
+  const [filteredProblems, setFilteredProblems] = React.useState<IProblem[]>(
+    []
+  );
+
+    useEffect(() => {
+      // filter problems
+      if (problems) {
+        const filteredProblems = problems.filter((problem) => {
+          if (difficulty && problem.difficulty !== difficulty) return false;
+          if (
+            search &&
+            !problem.title.toLowerCase().includes(search.toLowerCase())
+          )
+            return false;
+          if (
+            selectedKeys.size > 0 &&
+            !problem.tags.some((tag) => selectedKeys.has(tag))
+          )
+            return false;
+          return true;
+        });
+        setFilteredProblems(filteredProblems);
+      }
+    }, [difficulty, search, selectedKeys, problems]);
 
   const selectedValue = React.useMemo(
     () => Array.from(selectedKeys).join(", ").replace(/_/g, " "),
@@ -31,8 +66,10 @@ const Problems = (
   );
   return (
     <div className="fixed left-3 md:static">
-      <h6 className="text-md md:text-md mt-4 md:mt-2 text-gray-500 mb-5">Problems</h6>
-      <div className="flex gap-5 line-clamp-1 flex-wrap h-5 w-[100%] hidden md:block">
+      <h6 className="text-md md:text-md mt-4 md:mt-2 text-gray-500 mb-5">
+        Problems
+      </h6>
+      <div className="flex gap-5 line-clamp-1 flex-wrap h-5 w-[100%] md:block">
         {tags?.map((tag, i) => (
           <div
             className="hover:text-blue-500 duration-200 transition-colors cursor-pointer text-sm"
@@ -42,10 +79,23 @@ const Problems = (
           </div>
         ))}
       </div>
-      <div className="md:mt-5 flex flex-col md:flex-row gap-3 w-[70vh] w-full">
-        <Input type="Search" label="Search Problems" size="sm" className="w-[45vh] md:w-[70%]" />
+      <div className="md:mt-5 flex flex-col md:flex-row gap-3 w-full">
+        <Input
+          type="Search"
+          label="Search Problems"
+          size="sm"
+          className="w-[45vh] md:w-[70%]"
+          onChange={(e) => setSearch(e.target.value)}
+          value={search}
+        />
         <div className="flex flex-row items-center flex-wrap md:w-[30%] md:gap-0 md:justify-center gap-4">
-          <Select label="Difficulty" className=" w-[30%] md:flex-grow md:ml-4" size="sm">
+          <Select
+            label="Difficulty"
+            className=" w-[30%] md:flex-grow md:ml-4"
+            size="sm"
+            selectedKeys={[difficulty]}
+            onChange={(e) => setDifficulty(e.target.value)}
+          >
             <SelectItem key="easy" value="easy">
               Easy
             </SelectItem>
@@ -59,10 +109,7 @@ const Problems = (
           <div className="md:hidden">
             <Dropdown>
               <DropdownTrigger>
-                <Button
-                  variant="solid"
-                  className="capitaliz"
-                >
+                <Button variant="solid" className="capitaliz">
                   {selectedValue}
                 </Button>
               </DropdownTrigger>
@@ -72,7 +119,11 @@ const Problems = (
                 disallowEmptySelection
                 selectionMode="single"
                 selectedKeys={selectedKeys}
-                onSelectionChange={(value) => setSelectedKeys(new Set<string>(Array.from(value) as string[]))}
+                onSelectionChange={(value) =>
+                  setSelectedKeys(
+                    new Set<string>(Array.from(value) as string[])
+                  )
+                }
               >
                 {tags.map((tag) => (
                   <DropdownItem key={tag}>{tag}</DropdownItem>
@@ -83,7 +134,7 @@ const Problems = (
         </div>
       </div>
 
-      <div className="mt-3 md:mt-5 overflow-x-auto md:overflow-x-visible w-[45vh] md:w-[full] md:w-[100%]">
+      <div className="mt-3 md:mt-5 overflow-x-auto md:overflow-x-visible w-[45vh] md:w-[100%]">
         <Table isStriped aria-label="Problems" className="min-w-full">
           <TableHeader>
             <TableColumn className="text-sm">Problem</TableColumn>
@@ -92,7 +143,7 @@ const Problems = (
             <TableColumn className="text-sm">Status</TableColumn>
           </TableHeader>
           <TableBody>
-            {problems?.map((problem: IProblem) => (
+            {filteredProblems?.map((problem: IProblem) => (
               <TableRow className="h-14" key={problem.title}>
                 <TableCell
                   className="w-full md:w-auto hover:text-blue-500 cursor-pointer"
@@ -103,17 +154,25 @@ const Problems = (
                 <TableCell
                   className={`
               ${problem.difficulty.toLowerCase() === "easy" && "text-green-400"}
-              ${problem.difficulty.toLowerCase() === "medium" && "text-yellow-400"}
+              ${
+                problem.difficulty.toLowerCase() === "medium" &&
+                "text-yellow-400"
+              }
               ${problem.difficulty.toLowerCase() === "hard" && "text-red-400"}
             `}
                 >
-                  {problem.difficulty.slice(0, 1).toUpperCase() + problem.difficulty.slice(1)}
+                  {problem.difficulty.slice(0, 1).toUpperCase() +
+                    problem.difficulty.slice(1)}
                 </TableCell>
                 <TableCell className="w-full md:w-auto">
-                  <p className="truncate max-w-[250px]">{problem.tags.join(", ")}</p>
+                  <p className="truncate max-w-[250px]">
+                    {problem.tags.join(", ")}
+                  </p>
                 </TableCell>
                 <TableCell>
-                  {solvedProblems?.find((solvedProblem) => solvedProblem === problem._id)
+                  {solvedProblems?.find(
+                    (solvedProblem) => solvedProblem === problem._id
+                  )
                     ? "Solved"
                     : "Not Solved"}
                 </TableCell>
@@ -122,7 +181,6 @@ const Problems = (
           </TableBody>
         </Table>
       </div>
-
     </div>
   );
 };

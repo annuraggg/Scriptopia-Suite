@@ -13,7 +13,7 @@ const Billing = () => {
   const [renews, setRenews] = useState<string | null>(null);
 
   useEffect(() => {
-    setCurrentPlan("quaterly");
+    setCurrentPlan("trial");
     setTrialDays(10);
     setRenews("2024-10-10");
   }, []);
