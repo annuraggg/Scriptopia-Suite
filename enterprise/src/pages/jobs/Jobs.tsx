@@ -448,8 +448,8 @@ const Postings: React.FC = () => {
                   </div>
 
                   <div className="flex items-center justify-between w-full">
-                    <div className="text-sm rounded-full border bg-secondary bg-opacity-5 p-2">
-                      <p className="text-neutral-400">
+                    <div className="text-sm rounded-full border bg-secondary bg-opacity-5 px-2 py-1">
+                      <p className="text-gray-300 text-xs">
                         Open Until {posting.openUntil}
                       </p>
                     </div>
