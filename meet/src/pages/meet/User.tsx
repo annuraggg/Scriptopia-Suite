@@ -1,10 +1,6 @@
 import MyVideo from "./MyVideo";
 
-import {
-  ParticipantView,
-  useCallStateHooks,
-  hasScreenShare,
-} from "@stream-io/video-react-sdk";
+import { ParticipantView, useCallStateHooks } from "@stream-io/video-react-sdk";
 
 const User = ({ isOpen }: { isOpen: boolean }) => {
   const { useParticipants } = useCallStateHooks();

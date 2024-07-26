@@ -64,7 +64,7 @@ const Sidebar = () => {
     {
       icon: Settings,
       label: "Settings",
-      link: "/settings",
+      link: "/settings/general",
     },
     {
       icon: CreditCard,
