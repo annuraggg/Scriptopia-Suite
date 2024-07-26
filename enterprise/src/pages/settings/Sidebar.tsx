@@ -1,31 +1,121 @@
-import { Building2, Users } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
+import {
+  Users,
+  ChevronRight,
+  Building2,
+  Lock,
+  SquareChevronRight,
+  Boxes,
+  Brush,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/@types/reducer";
 
-const Sidebar = ({
-  active,
-  setActive,
-}: {
-  active: string;
-  setActive: (active: string) => void;
-}) => {
-  const items = [
-    { title: "General", icon: <Building2 /> },
-    { title: "Members", icon: <Users /> },
+const Sidebar = () => {
+  const topItems = [
+    {
+      icon: Building2,
+      label: "General",
+      link: "/general",
+    },
+    {
+      icon: Users,
+      label: "Members",
+      link: "/members",
+    },
+    {
+      icon: SquareChevronRight,
+      label: "Roles",
+      link: "/roles",
+    },
+    {
+      icon: Boxes,
+      label: "Departments",
+      link: "/departments",
+    },
+    {
+      icon: Lock,
+      label: "Security",
+      link: "/security",
+    },
+    {
+      icon: Brush,
+      label: "Personalization",
+      link: "/personalization",
+    },
   ];
 
+  const [active, setActive] = useState("dashboard");
+  const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
+
+  const org = useSelector((state: RootState) => state.organization);
+
+  useEffect(() => {
+    setActive(window.location.pathname.split("/")[3]);
+  }, []);
+
   return (
-    <div className="border p-5 w-[15%] h-cover">
-      {items.map((item, index) => (
-        <div
-          key={index}
-          className={`flex items-center gap-5 p-3 hover:text-gray-300 duration-300 transition-colors cursor-pointer rounded-xl text-sm ${
-            active === item.title && "bg-gray-800 text-gray-300"
+    <>
+      <TooltipProvider>
+        <aside
+          className={` sticky h-[100vh] min-w-16 px-5 top-0 left-0 hidden transition-width flex-col border-r bg-background sm:flex overflow-x-hidden ${
+            collapsed ? "w-16" : "w-64"
           }`}
-          onClick={() => setActive(item.title)}
         >
-          {item.icon} {item.title}
-        </div>
-      ))}
-    </div>
+          <nav className={`flex flex-col gap-4 sm:py-5 `}>
+            {topItems.map((item, index) => (
+              <Tooltip key={index}>
+                <TooltipTrigger asChild>
+                  <table>
+                    <tbody
+                      className={` cursor-pointer h-8 ${
+                        active === item.label.toLowerCase()
+                          ? " text-white-500 rounded-xl"
+                          : "text-muted-foreground opacity-50 hover:text-white"
+                      } `}
+                      onClick={() => {
+                        navigate(`/${org._id}/settings${item.link}`);
+                        setActive(item.label.toLowerCase());
+                      }}
+                    >
+                      <td className="pr-3">
+                        {item.icon && <item.icon className="h-7 w-5" />}
+                      </td>
+                      {collapsed ? null : (
+                        <td className="text-start w-full">{item.label}</td>
+                      )}
+                    </tbody>
+                  </table>
+                </TooltipTrigger>
+                <TooltipContent side="right">{item.label}</TooltipContent>
+              </Tooltip>
+            ))}
+          </nav>
+
+          <div className={` flex w-full mb-5 bottom-0 absolute `}>
+            <Tooltip>
+              <TooltipTrigger>
+                <ChevronRight
+                  className={`h-5 w-5 text-muted-foreground transition-all  opacity-50 ${
+                    !collapsed ? "rotate-180" : ""
+                  }`}
+                  onClick={() => setCollapsed(!collapsed)}
+                />
+              </TooltipTrigger>
+              <TooltipContent side="right">Collapse sidebar</TooltipContent>
+            </Tooltip>
+          </div>
+        </aside>
+      </TooltipProvider>
+    </>
   );
 };
 
