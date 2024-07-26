@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Problems from "./Problems";
 import ProblemsChart from "./ProblemsChart";
 import StreakCalender from "./StreakCalendar";
-import Timer from "./Timer";
+// import Timer from "./Timer";
 import { useQuery } from "@tanstack/react-query";
 import ax from "@/config/axios";
 import Loader from "@/components/Loader";
@@ -48,11 +48,11 @@ const Home = () => {
           ) : (
             <p>No Streaks Yet</p>
           )}
-          <Timer />
+          {/* <Timer /> */}
           <ProblemsChart
-            easy={data?.data?.problemsCount.easy}
-            medium={data?.data?.problemsCount.medium}
-            hard={data?.data?.problemsCount.hard}
+            easyNo={data?.data?.problemsCount.easy}
+            mediumNo={data?.data?.problemsCount.medium}
+            hardNo={data?.data?.problemsCount.hard}
           />
         </motion.div>
       </div>

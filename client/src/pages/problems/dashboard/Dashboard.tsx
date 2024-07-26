@@ -34,7 +34,7 @@ const Dashboard = ({ myproblems }: { myproblems: IProblem[] }) => {
 
   const Cards = [
     {
-      title: "Total Students",
+      title: "Total Solutions",
       icon: UsersRound,
       value: 20,
       color: "text-blue-500",
@@ -58,12 +58,13 @@ const Dashboard = ({ myproblems }: { myproblems: IProblem[] }) => {
       initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="w-full p-10 h-[100%]"
+      className="w-full px-10 h-[100%]"
     >
-      <div className="w-full h-[90-vh]">
-        <div className="flex justify-between w-full flex-wrap">
+      <div className="w-full">
+        <p className="mb-3 opacity-50">Your Problems Dashboard</p>
+        <div className="flex justify-between w-full gap-5">
           {Cards.map((card, index) => (
-            <Card key={index} className="h-32 w-56">
+            <Card key={index} className="h-32 w-full">
               <CardHeader className="text-center flex justify-center text-gray-400">
                 {card.title}
               </CardHeader>
@@ -73,16 +74,16 @@ const Dashboard = ({ myproblems }: { myproblems: IProblem[] }) => {
               </CardBody>
             </Card>
           ))}
-          <Card className="h-40 w-60 pt-2">
+          {/* <Card className="h-40 w-60 pt-2">
             <CardHeader className="text-center flex flex-row gap-2 justify-center text-gray-400">
               <UsersRound size={25} className="text-yellow-500" />
               <p className="text-yellow-500">Top Contributors</p>
             </CardHeader>
             <CardBody className="flex justify-center items-start gap-3 flex-row"></CardBody>
-          </Card>
+          </Card> */}
         </div>
-        <div className="flex flex-col">
-          <div className="flex flex-row justify-start items-center pt-5 mt-4 w-full">
+        {/* <div className="flex flex-col">
+          <div className="flex flex-row justify-start items-center pt-5 w-full">
             <Card className="p-2 w-full">
               <CardBody className="flex flex-row flex-wrap justify-between items-start gap-36 p-1 pl-4">
                 <p className="mt-3 left-element">Latest Activities</p>
@@ -146,7 +147,7 @@ const Dashboard = ({ myproblems }: { myproblems: IProblem[] }) => {
               </TableBody>
             </Table>
           </div>
-        </div>
+        </div> */}
       </div>
     </motion.div>
   );

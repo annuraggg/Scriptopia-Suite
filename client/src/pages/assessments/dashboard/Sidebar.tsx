@@ -1,4 +1,4 @@
-import { Home, Disc2, BookUser, BookCheck } from "lucide-react";
+import { Home, BookUser, BookCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const links: {
@@ -18,15 +18,15 @@ const links: {
     hash: "created",
   },
   {
-    title: "Live Assessments Created",
-    icon: Disc2,
-    hash: "live",
-  },
-  {
     title: "Assessments Taken",
     icon: BookCheck,
     hash: "taken",
   },
+  // {
+  //   title: "Live Assessments Created",
+  //   icon: Disc2,
+  //   hash: "live",
+  // },
   /*  {
     title: "Analytics",
     icon: LineChart,

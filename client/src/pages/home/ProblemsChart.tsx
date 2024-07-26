@@ -1,70 +1,120 @@
+"use client";
 
-import { useEffect } from "react";
-import * as echarts from "echarts";
-import { Card, CardHeader, CardBody } from "@nextui-org/card";
+import { useMemo } from "react";
+import { Label, Pie, PieChart } from "recharts";
+import { Card, CardHeader } from "@nextui-org/react";
 
-const ProblemsChart = ({
-  easy,
-  medium,
-  hard,
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+
+const chartConfig = {
+  problems: {
+    label: "Problems",
+  },
+  easy: {
+    label: "Easy",
+    color: "hsl(var(--chart-3))",
+  },
+  medium: {
+    label: "Medium",
+    color: "hsl(var(--chart-2))",
+  },
+  hard: {
+    label: "Hard",
+    color: "hsl(var(--chart-1))",
+  },
+} satisfies ChartConfig;
+
+export function ProblemsChart({
+  easyNo = 0,
+  mediumNo = 0,
+  hardNo = 0,
 }: {
-  easy: number;
-  medium: number;
-  hard: number;
-}) => {
-  useEffect(() => {
-    const chartDom = document.getElementById("questionsChartsDashboard");
-    const myChart = echarts.init(chartDom);
-    const option = {
-      color: ["#31d550", "#fea801", "#f94c4c"],
-      tooltip: {
-        trigger: "item",
-      },
-      series: [
-        {
-          name: "Questions Solved",
-          type: "pie",
-          radius: ["70%", "80%"],
-          padAngle: 10,
-          itemStyle: {
-            borderRadius: 20,
-          },
-          label: {
-            show: false,
-          },
-          data: [
-            { value: easy, name: "Easy" },
-            { value: medium, name: "Medium" },
-            { value: hard, name: "Hard" },
-          ],
-        },
-      ],
-    };
+  easyNo: number;
+  mediumNo: number;
+  hardNo: number;
+}) {
+  const chartData = useMemo(() => {
+    return [
+      { level: "easy", count: easyNo, fill: "hsl(var(--chart-2)" },
+      { level: "Medium", count: mediumNo, fill: "hsl(var(--chart-3))" },
+      { level: "Hard", count: hardNo, fill: "hsl(var(--chart-5))" },
+    ];
+  }, [easyNo, hardNo, mediumNo]);
 
-    option && myChart.setOption(option);
+  const totalProblems = useMemo(() => {
+    return easyNo + mediumNo + hardNo;
+  }, [easyNo, hardNo, mediumNo]);
 
-    return () => {
-      myChart.dispose();
-    };
-  }, []);
+  if (totalProblems === 0) {
+    return (
+      <Card className="flex flex-col">
+        <CardHeader className="items-center pb-0">Problems Solved</CardHeader>
+        <div className="flex items-center justify-center flex-1 text-muted-foreground min-h-[30vh] w-[100%]">
+          No problems solved yet
+        </div>
+      </Card>
+    );
+  }
 
   return (
-    <>
-      <Card className="w-full h-64 overflow-visible hidden md:block">
-        <CardHeader className="flex items-center justify-center">
-          Problems Solved
-        </CardHeader>
-        <CardBody className="flex items-center justify-center overflow-visible">
-          <div
-            id="questionsChartsDashboard"
-            className=" w-full h-full absolute overflow-visible"
+    <Card className="flex flex-col">
+      <CardHeader className="items-center pb-0">Problems Solved</CardHeader>
+
+      <ChartContainer
+        config={chartConfig}
+        className="mx-auto aspect-square max-h-[250px] h-[30vh] w-[100%]"
+      >
+        <PieChart>
+          <ChartTooltip
+            cursor={false}
+            content={<ChartTooltipContent hideLabel />}
+          />
+          <Pie
+            data={chartData}
+            dataKey="count"
+            nameKey="level"
+            innerRadius={60}
+            strokeWidth={5}
           >
-            QuestionsChart
-          </div>
-        </CardBody>
-      </Card>
-    </>
+            <Label
+              content={({ viewBox }) => {
+                if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                  return (
+                    <text
+                      x={viewBox.cx}
+                      y={viewBox.cy}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                    >
+                      <tspan
+                        x={viewBox.cx}
+                        y={viewBox.cy}
+                        className="fill-foreground text-3xl font-bold"
+                      >
+                        {totalProblems.toLocaleString()}
+                      </tspan>
+                      <tspan
+                        x={viewBox.cx}
+                        y={(viewBox.cy || 0) + 24}
+                        className="fill-muted-foreground"
+                      >
+                        Problems
+                      </tspan>
+                    </text>
+                  );
+                }
+              }}
+            />
+          </Pie>
+        </PieChart>
+      </ChartContainer>
+    </Card>
   );
-};
+}
 
 export default ProblemsChart;
