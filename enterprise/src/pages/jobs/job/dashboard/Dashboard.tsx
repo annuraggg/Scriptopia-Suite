@@ -11,9 +11,10 @@ import {
   BriefcaseIcon,
   BanknoteIcon,
   Menu,
-  UploadIcon,
   ThumbsUpIcon,
   FileTextIcon,
+  Ban,
+  FileUp,
 } from "lucide-react";
 import { ChevronLeftIcon } from "lucide-react";
 
@@ -71,40 +72,43 @@ const Dashboard: React.FC = () => {
           <CardFooter className="h-8 flex flex-row items-center justify-center gap-4 mr-1">
             <div className="flex flex-row items-center gap-2">
               <ThumbsUpIcon size={14} />
-              <p className={`text-xs ${participant.percentage <= 30 ? 'text-red-400' :
-                participant.percentage <= 70 ? 'text-orange-400' :
+              <p className={`text-xs ${participant.percentage <= 35 ? 'text-red-400' :
+                participant.percentage <= 50 ? 'text-orange-400' :
+                participant.percentage <= 70 ? 'text-yellow-400' :
                   'text-green-500'
                 }`}>
                 {participant.percentage}%
               </p>
             </div>
-            <div className="flex flex-row items-center text-blue-500">
+            <div className="flex flex-row items-center text-blue-500 cursor-pointer">
               <FileTextIcon size={14} />
-              <p className="text-xs">Resume</p>
+              <p className="text-xs">&nbsp;Resume</p>
             </div>
-            <FileTextIcon size={14} className='text-red-500' />
+            <Ban size={14} className='text-red-500' />
           </CardFooter>
         </Card>
       ));
   };
 
   return (
-    <div className="flex flex-col items-start justify-start p-10 pt-8 h-screen w-full">
+    <div className="flex flex-col items-start justify-start p-10 pt-8 h-scroll w-full">
       <div className="flex flex-row items-center justify-start gap-4 w-full">
         <ChevronLeftIcon size={50} className="text-slate-400 mt-6" onClick={() => navigate('/postings/jobs')} />
         <div className="flex flex-col gap-3 w-full mt-6 overflow-y-auto">
           <Card className="w-full h-24 border-none p-2 grid grid-cols-2 gap-2">
-            <div className="flex flex-col items-start justify-start gap-3 w-full p-2">
+            <div className="flex flex-col items-start justify-start gap-3 w-full py-2 px-4">
               <div className="flex flex-row items-center justify-start gap-2 w-full">
                 <p className="text-lg">{posting?.title}</p>
                 <span className={`text-xs px-3 rounded-full whitespace-nowrap ${posting?.category === 'IT' ? 'bg-green-500 text-white' : 'bg-orange-500 text-white'}`}>
                   {posting?.category}
                 </span>
-                <span className={`text-xs px-3 rounded-full whitespace-nowrap ${posting?.status === 'active' ? 'bg-blue-500 text-white' : 'bg-red-500 text-white'}`}>
+                <span className={`text-xs px-3 rounded-full whitespace-nowrap ${posting?.status === 'active' ? "bg-green-900 text-green-500"
+                            : "bg-red-900 text-red-500"
+                        }`}>
                   {posting?.status === 'active' ? 'Active' : 'Closed'}
                 </span>
               </div>
-              <div className="flex items-center gap-2 w-full text-sm mt-3 text-gray-500">
+              <div className="flex items-center gap-2 w-full text-sm text-gray-500">
                 <div className="flex items-center gap-2">
                   <BriefcaseIcon size={18} />
                   <p>{posting?.jobprofile}</p>
@@ -120,8 +124,8 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center justify-between w-full">
-              <div className="text-sm rounded-full border bg-secondary bg-opacity-5 p-2">
-                <p className="text-neutral-400">Open Until {posting?.openUntil}</p>
+              <div className="text-sm rounded-full border bg-secondary bg-opacity-5 px-2 py-1">
+                <p className="text-gray-300 text-xs">Open Until {posting?.openUntil}</p>
               </div>
               <Menu size={28} className="mr-6 cursor-pointer" />
             </div>
@@ -130,9 +134,9 @@ const Dashboard: React.FC = () => {
         <div className='w-[20%] pt-9'>
           <Card
             isPressable
-            className='flex flex-row w-full h-10 items-center justify-center gap-2 rounded-full bg-primary/5 '>
-            <UploadIcon size={24} />
-            <p className='text-sm'>Export</p>
+            className='flex flex-row w-full h-10 items-center justify-center gap-2 rounded-large bg-slate-50 text-zinc-900 p-5 '>
+            <FileUp size={24} />
+            <p className='text-sm'>Export to CSV</p>
           </Card>
         </div>
       </div>
@@ -140,15 +144,15 @@ const Dashboard: React.FC = () => {
       <div className="flex flex-row items-start justify-start gap-4 w-full pt-6 pl-14">
         <Switch
           size='sm'
-          defaultSelected className='bg-primary/5'>
+          defaultSelected  color="default">
           Show Disqualified ?
         </Switch>
       </div>
 
-      <div className="flex flex-row items-center justify-between w-full gap-2 pt-10 pl-14">
+      <div className="flex flex-row items-start justify-between w-full gap-2 pt-10 pl-14">
         {['Applied', 'Problem-Solving', 'Technical', 'Interview', 'Evaluation'].map((stage) => (
           <div key={stage} className="w-full h-full flex flex-col gap-3">
-            <Card className="w-full h-20 bg-blue-500 bg-opacity-10">
+            <Card className="w-full h-fit bg-blue-500 bg-opacity-10 py-0.5">
               <CardBody className="flex flex-col items-center justify-center p-2">
                 <div className="flex flex-col-2 items-start gap-2">
                   <div>
@@ -162,10 +166,10 @@ const Dashboard: React.FC = () => {
                 </div>
               </CardBody>
             </Card>
-            <Card className="w-full h-24 flex flex-col">
-              <CardBody className="flex flex-col items-center justify-center h-full">
-                <div className="flex flex-col items-center">
-                  <p className="text-sm">{stage} ({participants.filter(p => p.stage === stage).length})</p>
+            <Card className="w-full h-fit flex flex-col">
+              <CardBody className="flex flex-col items-center justify-center h-fit">
+                <div className="flex flex-col items-start">
+                  <p className="text-sm">{stage} {participants.filter(p => p.stage === stage).length}</p>
                   <div className='flex flex-row gap-1'>
                     <p className='text-xs text-slate-400 mt-1'>Qualified:</p>
                     <span className='text-xs text-green-500 items-center justify-between mt-1'>30</span>
