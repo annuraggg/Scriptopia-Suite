@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from "react";
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Input,
-  Switch,
-} from "@nextui-org/react";
+import { useState } from "react";
+import { Card, CardBody, Input, Link } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, CircleAlert, CircleDot } from "lucide-react";
+import {
+  ListIcon,
+  CirclePlayIcon,
+  BanIcon,
+  ArchiveIcon,
+  FilePlusIcon,
+  MapPinIcon,
+  BriefcaseIcon,
+  BanknoteIcon,
+  Menu,
+} from "lucide-react";
+import Filter from "./Filter";
 
 interface Posting {
   id: string;
@@ -16,6 +20,11 @@ interface Posting {
   createdOn: string;
   status: "active" | "inactive";
   openUntil: string;
+  category: "Operations" | "IT";
+  location: string;
+  salaryFrom: string;
+  salaryUpto: string;
+  jobprofile: "Full Time" | "Part Time" | "Internship";
 }
 
 const postingsSample: Posting[] = [
@@ -25,6 +34,11 @@ const postingsSample: Posting[] = [
     createdOn: "23 May 2023",
     status: "active",
     openUntil: "30 June 2023",
+    category: "IT",
+    location: "Mumbai",
+    salaryFrom: "₹50,000",
+    salaryUpto: "₹1,00,000",
+    jobprofile: "Part Time",
   },
   {
     id: "2",
@@ -32,6 +46,11 @@ const postingsSample: Posting[] = [
     createdOn: "15 June 2023",
     status: "active",
     openUntil: "31 July 2023",
+    category: "IT",
+    location: "Bangalore",
+    salaryFrom: "₹1,00,000",
+    salaryUpto: "₹2,00,000",
+    jobprofile: "Full Time",
   },
   {
     id: "3",
@@ -39,6 +58,11 @@ const postingsSample: Posting[] = [
     createdOn: "10 July 2023",
     status: "inactive",
     openUntil: "15 August 2023",
+    category: "IT",
+    location: "Delhi",
+    salaryFrom: "₹80,000",
+    salaryUpto: "₹1,50,000",
+    jobprofile: "Internship",
   },
   {
     id: "4",
@@ -46,6 +70,11 @@ const postingsSample: Posting[] = [
     createdOn: "5 August 2023",
     status: "active",
     openUntil: "30 September 2023",
+    category: "IT",
+    location: "Chennai",
+    salaryFrom: "₹90,000",
+    salaryUpto: "₹1,80,000",
+    jobprofile: "Full Time",
   },
   {
     id: "5",
@@ -53,6 +82,11 @@ const postingsSample: Posting[] = [
     createdOn: "18 September 2023",
     status: "inactive",
     openUntil: "31 October 2023",
+    category: "IT",
+    location: "Hyderabad",
+    salaryFrom: "₹70,000",
+    salaryUpto: "₹1,20,000",
+    jobprofile: "Part Time",
   },
   {
     id: "6",
@@ -60,6 +94,11 @@ const postingsSample: Posting[] = [
     createdOn: "22 October 2023",
     status: "active",
     openUntil: "15 November 2023",
+    category: "Operations",
+    location: "Pune",
+    salaryFrom: "₹60,000",
+    salaryUpto: "₹1,10,000",
+    jobprofile: "Internship",
   },
   {
     id: "7",
@@ -67,6 +106,11 @@ const postingsSample: Posting[] = [
     createdOn: "9 November 2023",
     status: "inactive",
     openUntil: "30 December 2023",
+    category: "Operations",
+    location: "Kolkata",
+    salaryFrom: "₹40,000",
+    salaryUpto: "₹90,000",
+    jobprofile: "Full Time",
   },
   {
     id: "8",
@@ -74,6 +118,11 @@ const postingsSample: Posting[] = [
     createdOn: "14 December 2023",
     status: "active",
     openUntil: "31 January 2024",
+    category: "Operations",
+    location: "Ahmedabad",
+    salaryFrom: "₹30,000",
+    salaryUpto: "₹80,000",
+    jobprofile: "Part Time",
   },
   {
     id: "9",
@@ -81,6 +130,11 @@ const postingsSample: Posting[] = [
     createdOn: "27 January 2024",
     status: "inactive",
     openUntil: "28 February 2024",
+    category: "Operations",
+    location: "Jaipur",
+    salaryFrom: "₹20,000",
+    salaryUpto: "₹70,000",
+    jobprofile: "Internship",
   },
   {
     id: "10",
@@ -88,6 +142,11 @@ const postingsSample: Posting[] = [
     createdOn: "8 February 2024",
     status: "active",
     openUntil: "31 March 2024",
+    category: "Operations",
+    location: "Lucknow",
+    salaryFrom: "₹10,000",
+    salaryUpto: "₹60,000",
+    jobprofile: "Full Time",
   },
   {
     id: "11",
@@ -95,6 +154,11 @@ const postingsSample: Posting[] = [
     createdOn: "12 March 2024",
     status: "inactive",
     openUntil: "30 April 2024",
+    category: "IT",
+    location: "Chandigarh",
+    salaryFrom: "₹15,000",
+    salaryUpto: "₹50,000",
+    jobprofile: "Part Time",
   },
   {
     id: "12",
@@ -102,6 +166,11 @@ const postingsSample: Posting[] = [
     createdOn: "25 April 2024",
     status: "active",
     openUntil: "31 May 2024",
+    category: "IT",
+    location: "Indore",
+    salaryFrom: "₹25,000",
+    salaryUpto: "₹40,000",
+    jobprofile: "Internship",
   },
   {
     id: "13",
@@ -109,6 +178,11 @@ const postingsSample: Posting[] = [
     createdOn: "7 May 2024",
     status: "inactive",
     openUntil: "30 June 2024",
+    category: "IT",
+    location: "Bhopal",
+    salaryFrom: "₹35,000",
+    salaryUpto: "₹30,000",
+    jobprofile: "Full Time",
   },
   {
     id: "14",
@@ -116,6 +190,11 @@ const postingsSample: Posting[] = [
     createdOn: "19 June 2024",
     status: "active",
     openUntil: "31 July 2024",
+    category: "IT",
+    location: "Raipur",
+    salaryFrom: "₹45,000",
+    salaryUpto: "₹20,000",
+    jobprofile: "Part Time",
   },
   {
     id: "15",
@@ -123,6 +202,11 @@ const postingsSample: Posting[] = [
     createdOn: "2 July 2024",
     status: "inactive",
     openUntil: "31 August 2024",
+    category: "IT",
+    location: "Ranchi",
+    salaryFrom: "₹55,000",
+    salaryUpto: "₹100,000",
+    jobprofile: "Internship",
   },
   {
     id: "16",
@@ -130,6 +214,11 @@ const postingsSample: Posting[] = [
     createdOn: "14 August 2024",
     status: "active",
     openUntil: "30 September 2024",
+    category: "Operations",
+    location: "Patna",
+    salaryFrom: "₹65,000",
+    salaryUpto: "₹90,000",
+    jobprofile: "Full Time",
   },
   {
     id: "17",
@@ -137,6 +226,11 @@ const postingsSample: Posting[] = [
     createdOn: "27 September 2024",
     status: "inactive",
     openUntil: "31 October 2024",
+    category: "Operations",
+    location: "Guwahati",
+    salaryFrom: "₹75,000",
+    salaryUpto: "₹80,000",
+    jobprofile: "Part Time",
   },
   {
     id: "18",
@@ -144,6 +238,11 @@ const postingsSample: Posting[] = [
     createdOn: "8 October 2024",
     status: "active",
     openUntil: "30 November 2024",
+    category: "Operations",
+    location: "Shillong",
+    salaryFrom: "₹85,000",
+    salaryUpto: "₹70,000",
+    jobprofile: "Internship",
   },
   {
     id: "19",
@@ -151,6 +250,11 @@ const postingsSample: Posting[] = [
     createdOn: "21 November 2024",
     status: "inactive",
     openUntil: "31 December 2024",
+    category: "Operations",
+    location: "Agartala",
+    salaryFrom: "₹95,000",
+    salaryUpto: "₹60,000",
+    jobprofile: "Full Time",
   },
   {
     id: "20",
@@ -158,93 +262,210 @@ const postingsSample: Posting[] = [
     createdOn: "3 December 2024",
     status: "active",
     openUntil: "31 January 2025",
+    category: "Operations",
+    location: "Itanagar",
+    salaryFrom: "₹15,000",
+    salaryUpto: "₹50,000",
+    jobprofile: "Part Time",
+  },
+];
+
+const Cards = [
+  {
+    title: "ALL",
+    jobCount: 20,
+    icon: <ListIcon size={28} />,
+    filter: "all",
+  },
+  {
+    title: "Active",
+    jobCount: 10,
+    icon: <CirclePlayIcon size={28} />,
+    filter: "active",
+  },
+  {
+    title: "Closed",
+    jobCount: 5,
+    icon: <BanIcon size={28} />,
+    filter: "inactive",
+  },
+  {
+    title: "Archived",
+    jobCount: 5,
+    icon: <ArchiveIcon size={28} />,
+    filter: "archived",
   },
 ];
 
 const Postings: React.FC = () => {
   const navigate = useNavigate();
-  const [showInactive, setShowInactive] = useState<boolean>(false);
-  const [postings, setPostings] = useState<Posting[]>([]);
+  const [postings] = useState<Posting[]>(postingsSample);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedFilter, setSelectedFilter] = useState<string>("all");
+  const [workScheduleFilter, setWorkScheduleFilter] = useState<string[]>([]);
+  const [departmentFilter, setDepartmentFilter] = useState<string>("");
+  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
+    start: "",
+    end: "",
+  });
 
-  useEffect(() => {
-    setPostings(postingsSample);
-  }, []);
+  const filteredPostings = postings.filter((post) => {
+    const matchesSearch = post.title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      selectedFilter === "all" || post.status === selectedFilter;
+    const matchesWorkSchedule =
+      workScheduleFilter.length === 0 ||
+      workScheduleFilter.includes(post.jobprofile);
+    const matchesDepartment =
+      !departmentFilter || post.category === departmentFilter;
+    const matchesDateRange =
+      (!dateRange.start ||
+        new Date(post.createdOn) >= new Date(dateRange.start)) &&
+      (!dateRange.end || new Date(post.createdOn) <= new Date(dateRange.end));
 
-  const filteredPostings = postings
-    .filter((post) => (showInactive ? true : post.status === "active"))
-    .filter((post) =>
-      post.title.toLowerCase().includes(searchTerm.toLowerCase())
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      matchesWorkSchedule &&
+      matchesDepartment &&
+      matchesDateRange
     );
+  });
 
   const handleDetailsClick = (posting: Posting) => {
     navigate(`${posting.id}/dashboard`);
   };
 
+  const handleFilterChange = (filter: string) => {
+    setSelectedFilter(filter);
+  };
+
   return (
-    <>
-      <div>
-        <div className="flex gap-5 w-full p-5">
-          <div>
-            <h4>Postings</h4>
-            <div className="flex gap-5 items-end justify-between w-full">
+    <div className="flex gap-5 w-full p-5">
+      <div className="w-full">
+        <h4 className="text-2xl font-bold mb-4">Postings</h4>
+        <div className="flex justify-between items-start w-full gap-5">
+          <div className="w-1/5">
+            <Filter
+              workScheduleFilter={workScheduleFilter}
+              setWorkScheduleFilter={setWorkScheduleFilter}
+              departmentFilter={departmentFilter}
+              setDepartmentFilter={setDepartmentFilter}
+              dateRange={dateRange}
+              setDateRange={setDateRange}
+            />
+          </div>
+          <div className="flex flex-col gap-4 w-4/5">
+            <div className="flex justify-between items-center w-full gap-4">
               <Input
-                className="mt-3 w-[70%]"
+                className="w-3/4"
                 placeholder="Search Postings"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <Switch
-                size="sm"
-                checked={showInactive}
-                onValueChange={setShowInactive}
-              >
-                Show Inactive
-              </Switch>
+              <Card className="w-1/4 cursor-pointer">
+                <CardBody className="flex items-center justify-between bg-blue-500 bg-opacity-3 p-2">
+                  <Link className="flex items-center gap-2">
+                    <FilePlusIcon size={22} />
+                    <p className="text-white text-sm">Create a New Job</p>
+                  </Link>
+                </CardBody>
+              </Card>
             </div>
-            <div className="flex flex-wrap items-center gap-4 mt-7 w-full">
-              {filteredPostings.map((post) => (
-                <Card key={post.id} className="w-[32%]">
-                  <CardHeader>{post.title}</CardHeader>
-                  <CardBody>
-                    <div className="flex justify-between text-xs items-center">
-                      <div>
-                        <p className="text-sm">
-                          <span
-                            className={`text-xs font-bold flex items-center gap-1 mb-2 ${
-                              post.status === "active"
-                                ? "text-green-500"
-                                : "text-red-500"
-                            }`}
-                          >
-                            {post.status === "active" ? (
-                              <CircleDot size={12} />
-                            ) : (
-                              <CircleAlert size={12} />
-                            )}
-                            {post.status.slice(0, 1).toUpperCase() +
-                              post.status.slice(1)}
-                          </span>
-                        </p>
 
-                        <p className="text-xs">Open until: {post.openUntil}</p>
-                      </div>
-                      <Button
-                        variant="flat"
-                        onClick={() => handleDetailsClick(post)}
-                        isIconOnly
+            <div className="grid grid-cols-4 gap-8 mt-2 w-full">
+              {Cards.map((card, index) => (
+                <Card
+                  isPressable
+                  key={index}
+                  className={`rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${
+                    selectedFilter === card.filter
+                      ? "bg-blue-700/20 text-white"
+                      : ""
+                  }`}
+                  onClick={() => handleFilterChange(card.filter)}
+                >
+                  <div className="flex items-center justify-center gap-2 w-full">
+                    <div>{card.icon}</div>
+                    <h1 className="text-base">{card.title}</h1>
+                  </div>
+                  <p className="text-center w-full text-gray-500">
+                    {card.jobCount} Jobs
+                  </p>
+                </Card>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-3 w-full mt-6 overflow-y-auto">
+              {filteredPostings.map((posting, index) => (
+                <Card
+                  className="w-full h-24 border-none p-2 grid grid-cols-2 gap-2"
+                  key={index}
+                >
+                  <div className="flex flex-col items-start justify-start gap-3 w-full p-2">
+                    <div className="flex flex-row items-center justify-start gap-2 w-full">
+                      <p className="mr-3 cursor-pointer"
+                      onClick={() => handleDetailsClick(posting)}>{posting.title}</p>
+                      <span
+                        className={`text-xs px-3 rounded-full whitespace-nowrap ${
+                          posting.category === "IT"
+                            ? "bg-green-500 text-white"
+                            : posting.category === "Operations"
+                            ? "bg-orange-500 text-white"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
                       >
-                        <ChevronRight />
-                      </Button>
+                        {posting.category}
+                      </span>
+                      <span
+                        className={`text-xs px-3 ml-1 rounded-full whitespace-nowrap ${
+                          posting.status === "active"
+                            ? "bg-green-900 text-green-500"
+                            : "bg-red-900 text-red-500"
+                        }`}
+                      >
+                        {posting.status === "active" ? "Active" : "Closed"}
+                      </span>
                     </div>
-                  </CardBody>
+                    <div className="flex items-center gap-2 w-full text-sm mt-3 text-gray-500">
+                      <div className="flex items-center gap-2">
+                        <BriefcaseIcon size={18} />
+                        <p>{posting.jobprofile}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPinIcon size={18} />
+                        <p>{posting.location}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <BanknoteIcon size={18} />
+                        <p>
+                          {posting.salaryFrom} - {posting.salaryUpto}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between w-full">
+                    <div className="text-sm rounded-full border bg-secondary bg-opacity-5 p-2">
+                      <p className="text-neutral-400">
+                        Open Until {posting.openUntil}
+                      </p>
+                    </div>
+                    <Menu
+                      size={28}
+                      className="mr-6 cursor-pointer"
+                      //onClick={() => handleDetailsClick()}
+                    />
+                  </div>
                 </Card>
               ))}
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
