@@ -52,7 +52,9 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
     match: string;
   }
 
+  // @ts-expect-error - data is not assignable to type TData[]
   const exactTextFilter = (rows, id, filterValue) => {
+    // @ts-expect-error - id is not assignable to type string
     const f = rows.filter((row) => {
       const rowValue = row.values[id];
       return rowValue === filterValue;
