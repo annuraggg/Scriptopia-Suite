@@ -15,6 +15,7 @@ import JobLayout from "./pages/jobs/job/Layout";
 import JobDashboard from "./pages/jobs/job/dashboard/Dashboard";
 import Workflow from "./pages/jobs/job/workflow/Workflow";
 import Ats from "./pages/jobs/job/ats/Ats";
+import JobCandidates from "./pages/jobs/job/candidates/Candidates";
 import Assessments from "./pages/jobs/job/assessments/Assessments";
 import Interviews from "./pages/jobs/job/interviews/Interviews";
 
@@ -42,6 +43,7 @@ function App() {
     { path: "dashboard", element: <JobDashboard /> },
     { path: "workflow", element: <Workflow /> },
     { path: "ats", element: <Ats /> },
+    { path: "candidates", element: <JobCandidates /> },
     { path: "assessments", element: <Assessments /> },
     { path: "interviews", element: <Interviews /> },
   ];
