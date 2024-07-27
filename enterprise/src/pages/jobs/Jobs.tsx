@@ -366,10 +366,10 @@ const Postings: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               <Card className="w-1/5 cursor-pointer">
-                <CardBody className="flex items-center justify-between bg-success-400 bg-opacity-3 py-2 px-5">
+                <CardBody className="flex items-center justify-between bg-success-400 text-background bg-opacity-3 py-2 px-5">
                   <Link className="flex items-center gap-2">
                     <FilePlusIcon className="text-background" size={22} />
-                    <p className="text-background text-sm">Create a new job</p>
+                    <p className="text-sm text-background">Create a new job</p>
                   </Link>
                 </CardBody>
               </Card>

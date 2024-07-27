@@ -22,23 +22,23 @@ const Candidates = () => {
   }
 
   return (
-    <div className="w-full h-full flex flex-col p-6">
-      <div className="w-full flex flex-row items-start justify-between gap-4 mb-6">
-        <div className="flex flex-row items-start gap-4">
-          <p className="text-lg font-bold pt-2">Candidates for the Job of</p>
-          <div className="items-center justify-center border-2 border-blue-500 text-blue-500 rounded-full p-2 whitespace-nowrap h-12">
+    <div className="w-full h-full flex flex-col p-4">
+      <div className="w-full flex flex-row items-center justify-between gap-4 mb-3">
+        <div className="flex flex-row items-center gap-2">
+          <p className="text-lg font-bold">Candidates for the Job of</p>
+          <div className="items-center justify-center text-blue-500 rounded-full whitespace-nowrap">
             <p className="text-lg font-semibold">Software Engineer</p>
           </div>
         </div>
         <Card
           isPressable
-          className="flex flex-row h-18 mt-1 p-2 rounded-xl gap-3 items-center justify-center border-2 shadow-md ml-auto"
+          className="flex flex-row h-18 mt-1 py-2 px-3 rounded-xl gap-3 items-center justify-center border-2 shadow-md ml-auto bg-success-400 text-success-foreground"
         >
-          <FolderOutputIcon size={24} />
-          <p className="text-neutral-400 text-sm">Export to CSV</p>
+          <FolderOutputIcon size={20} />
+          <p className="text-xs">Export to CSV</p>
         </Card>
       </div>
-      <div className="w-full bg-slate-700 h-[1px] rounded-full mb-6"></div>
+      <div className="w-full bg-slate-700 h-[1px] rounded-full mb-4"></div>
       <div className="w-full flex flex-row gap-4">
         <div className="w-[20%]">
           <Filter />

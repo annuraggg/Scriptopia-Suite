@@ -122,12 +122,10 @@ const Dashboard: React.FC = () => {
               <p
                 className={`text-xs ${
                   participant.percentage <= 35
-                    ? "text-red-400"
+                    ? "text-danger-400"
                     : participant.percentage <= 50
-                    ? "text-orange-400"
-                    : participant.percentage <= 70
-                    ? "text-yellow-400"
-                    : "text-green-500"
+                    ? "text-warning-400"
+                    : "text-success-400"
                 }`}
               >
                 {participant.percentage}%
@@ -137,7 +135,7 @@ const Dashboard: React.FC = () => {
               <FileTextIcon size={14} />
               <p className="text-xs">&nbsp;Resume</p>
             </div>
-            <Ban size={14} className="text-red-500" />
+            <Ban size={14} className="text-danger" />
           </CardFooter>
         </Card>
       ));
@@ -157,24 +155,26 @@ const Dashboard: React.FC = () => {
               <div className="flex flex-row items-center justify-start gap-2 w-full">
                 <p className="text-lg">{posting?.title}</p>
                 <span
-                  className={`text-xs px-3 rounded-full whitespace-nowrap ${
-                    posting?.category === "IT"
-                      ? "bg-green-500 text-white"
-                      : "bg-orange-500 text-white"
-                  }`}
-                >
-                  {posting?.category}
-                </span>
-                <span
-                  className={`text-xs px-3 rounded-full whitespace-nowrap ${
-                    posting?.status === "active"
-                      ? "bg-green-900 text-green-500"
-                      : "bg-red-900 text-red-500"
-                  }`}
-                >
-                  {posting?.status === "active" ? "Active" : "Closed"}
-                </span>
-              </div>
+                        className={`text-xs mr-3 rounded-full whitespace-nowrap ${
+                          posting.category === "IT"
+                            ? "text-success-500"
+                            : posting.category === "Operations"
+                            ? "text-warning-500"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {posting.category}
+                      </span>
+                      <span
+                        className={`text-xs px-2 rounded-full whitespace-nowrap ${
+                          posting.status === "active"
+                            ? " text-success-500 bg-success-100"
+                            : " text-danger-500 bg-danger-100"
+                        }`}
+                      >
+                        {posting.status === "active" ? "Active" : "Closed"}
+                      </span>
+                    </div>
               <div className="flex items-center gap-2 w-full text-sm text-gray-500">
                 <div className="flex items-center gap-2">
                   <BriefcaseIcon size={18} />
@@ -205,7 +205,7 @@ const Dashboard: React.FC = () => {
         <div className="w-[20%] pt-9">
           <Card
             isPressable
-            className="flex flex-row w-full h-10 items-center justify-center gap-2 rounded-large bg-slate-50 text-zinc-900 p-5 "
+            className="flex flex-row w-full h-10 items-center justify-center gap-2 rounded-large bg-success-400 text-background bg-opacity-3 py-2 px-5"
           >
             <FileUp size={24} />
             <p className="text-sm">Export to CSV</p>
@@ -255,7 +255,7 @@ const Dashboard: React.FC = () => {
                   </p>
                   <div className="flex flex-row gap-1">
                     <p className="text-xs text-slate-400 mt-1">Qualified:</p>
-                    <span className="text-xs text-green-500 items-center justify-between mt-1">
+                    <span className="text-xs text-success-500 items-center justify-between mt-1">
                       30
                     </span>
                   </div>
