@@ -1,9 +1,10 @@
-import { Calendar, momentLocalizer } from "react-big-calendar";
-import moment from "moment";
+import { Calendar, dayjsLocalizer } from "react-big-calendar";
+import dayjs from "dayjs";
+
 import "./calendars.scss";
 
 const MainCalendar = () => {
-  const localizer = momentLocalizer(moment);
+  const localizer = dayjsLocalizer(dayjs);
   const events = [
     {
       title: "All Day Event",
