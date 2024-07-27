@@ -33,7 +33,7 @@ import {
   ChevronRight,
   MoreHorizontal,
 } from "lucide-react";
-import { Button, Checkbox, Input } from "@nextui-org/react";
+import { Button, Checkbox, Input, Select, SelectItem } from "@nextui-org/react";
 import { useState } from "react";
 
 interface DataTableProps<TData> {
@@ -51,6 +51,18 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
     received: string;
     match: string;
   }
+
+  // @ts-expect-error - data is not assignable to type TData[]
+  const exactTextFilter = (rows, id, filterValue) => {
+    // @ts-expect-error - id is not assignable to type string
+    const f = rows.filter((row) => {
+      const rowValue = row.values[id];
+      return rowValue === filterValue;
+    });
+
+    alert(f.length);
+    return f;
+  };
 
   const columns: ColumnDef<Candidates>[] = [
     {
@@ -118,18 +130,19 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
       },
     },
     {
-      accessorKey: "match",
+      accessorKey: "status",
       header: ({ column }) => {
         return (
           <Button
             variant="light"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Match
+            Status
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
+      filterFn: exactTextFilter,
     },
     {
       id: "actions",
@@ -149,7 +162,7 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
       },
     },
   ];
-  
+
   const table = useReactTable({
     data, // @ts-expect-error - data is not assignable to type TData[]
     columns,
@@ -192,7 +205,23 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
             table.getColumn("email")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
-        />
+        />{" "}
+        <Select
+          onChange={(event) => {
+            if (event.target.value === "all") {
+              table.getColumn("status")?.setFilterValue(undefined);
+            } else {
+              table.getColumn("status")?.setFilterValue(event.target.value);
+            }
+          }}
+          size="sm"
+          className="max-w-sm"
+        >
+          <SelectItem key="all">All</SelectItem>
+          <SelectItem key="qualified">Qualified</SelectItem>
+          <SelectItem key="disqualified">Disqualified</SelectItem>
+          <SelectItem key="hired">Hired</SelectItem>
+        </Select>
       </div>
       <Table className="mt-5">
         <TableHeader>

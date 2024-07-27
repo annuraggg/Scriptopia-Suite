@@ -1,60 +1,67 @@
 import "./App.css";
+import { Suspense, lazy } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+
 import Lander from "./pages/lander/Lander";
+
 import Layout from "./components/Layout";
-import Dashboard from "./pages/dashboard/Dashboard";
-import Jobs from "./pages/jobs/Jobs";
-import Candidates from "./pages/candidates/Candidates";
-import Analytics from "./pages/analytics/Analytics";
-import Calendar from "./pages/calendar/Calendar";
-import Documentation from "./pages/documentation/Documentation";
-import Billing from "./pages/billing/Billing";
-import Support from "./pages/support/Support";
-
 import JobLayout from "./pages/jobs/job/Layout";
-import JobDashboard from "./pages/jobs/job/dashboard/Dashboard";
-import Workflow from "./pages/jobs/job/workflow/Workflow";
-import Ats from "./pages/jobs/job/ats/Ats";
-import Assessments from "./pages/jobs/job/assessments/Assessments";
-import Interviews from "./pages/jobs/job/interviews/Interviews";
-
 import SettingsLayout from "./pages/settings/Layout";
-import GeneralSettings from "./pages/settings/general/General";
-import Members from "./pages/settings/members/Member";
-import Roles from "./pages/settings/roles/Roles";
-import Departments from "./pages/settings/departments/Departments";
-import Security from "./pages/settings/security/Security";
-import Personalization from "./pages/settings/personalization/Personalization";
-import AuditLogs from "./pages/settings/security/audit-logs/Audit-Logs";
-import Notifications from "./pages/notifications/Notifications";
 
-// import Dashboard from "./pages/postings/dashboard/Dashboard";
-// import Postings from "./pages/postings/Postings";
-// import Settings from "./pages/settings/Settings";
-// import CreateJob from "./pages/postings/CreatePosting";
-// import Apply from "./pages/postings/Apply/Apply";
-// import Ats from "./pages/postings/ats/Ats";
-// import Workflow from "./pages/postings/workflow/Workflow";
-// import Interviews from "./pages/postings/interviews/Interviews";
+// import Dashboard from "./pages/dashboard/Dashboard";
+// import Jobs from "./pages/jobs/Jobs";
+// import Candidates from "./pages/candidates/Candidates";
+// import Analytics from "./pages/analytics/Analytics";
+// import Calendar from "./pages/calendar/Calendar";
+// import Documentation from "./pages/documentation/Documentation";
+// import Billing from "./pages/billing/Billing";
+// import Support from "./pages/support/Support";
+
+const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
+const Jobs = lazy(() => import("./pages/jobs/Jobs"));
+const Candidates = lazy(() => import("./pages/candidates/Candidates"));
+const Analytics = lazy(() => import("./pages/analytics/Analytics"));
+const Calendar = lazy(() => import("./pages/calendar/Calendar"));
+const Documentation = lazy(() => import("./pages/documentation/Documentation"));
+const Billing = lazy(() => import("./pages/billing/Billing"));
+const Support = lazy(() => import("./pages/support/Support"));
+
+const JobDashboard = lazy(() => import("./pages/jobs/job/dashboard/Dashboard"));
+const Workflow = lazy(() => import("./pages/jobs/job/workflow/Workflow"));
+const Ats = lazy(() => import("./pages/jobs/job/ats/Ats"));
+const JobCandidates = lazy(() => import("./pages/jobs/job/candidates/Candidates"));
+const Assessments = lazy(() => import("./pages/jobs/job/assessments/Assessments"));
+const Interviews = lazy(() => import("./pages/jobs/job/interviews/Interviews"));
+
+const GeneralSettings = lazy(() => import("./pages/settings/general/General"));
+const Members = lazy(() => import("./pages/settings/members/Member"));
+const Roles = lazy(() => import("./pages/settings/roles/Roles"));
+const Departments = lazy(() => import("./pages/settings/departments/Departments"));
+const Security = lazy(() => import("./pages/settings/security/Security"));
+const Personalization = lazy(() => import("./pages/settings/personalization/Personalization"));
+const AuditLogs = lazy(() => import("./pages/settings/security/audit-logs/Audit-Logs"));
+const Notifications = lazy(() => import("./pages/notifications/Notifications"));
+
+const Loader = () => <div>Loading...</div>;
 
 function App() {
   const jobRoutes = [
-    { path: "dashboard", element: <JobDashboard /> },
-    { path: "workflow", element: <Workflow /> },
-    { path: "ats", element: <Ats /> },
-    { path: "assessments", element: <Assessments /> },
-    { path: "interviews", element: <Interviews /> },
+    { path: "dashboard", element: <Suspense fallback={<Loader />} children={<JobDashboard />} /> },
+    { path: "workflow", element: <Suspense fallback={<Loader />} children={<Workflow />} /> },
+    { path: "ats", element: <Suspense fallback={<Loader />} children={<Ats />} /> },
+    { path: "candidates", element: <Suspense fallback={<Loader />} children={<JobCandidates />} /> },
+    { path: "assessments", element: <Suspense fallback={<Loader />} children={<Assessments />} /> },
+    { path: "interviews", element: <Suspense fallback={<Loader />} children={<Interviews />} /> },
   ];
 
   const settingsRoute = [
-    { path: "general", element: <GeneralSettings /> },
-    { path: "members", element: <Members /> },
-    { path: "roles", element: <Roles /> },
-    { path: "departments", element: <Departments /> },
-    { path: "security", element: <Security /> },
-    { path: "personalization", element: <Personalization /> },
-
-    { path: "security/audit-logs", element: <AuditLogs /> },
+    { path: "general", element: <Suspense fallback={<Loader />} children={<GeneralSettings />} /> },
+    { path: "members", element: <Suspense fallback={<Loader />} children={<Members />} /> },
+    { path: "roles", element: <Suspense fallback={<Loader />} children={<Roles />} /> },
+    { path: "departments", element: <Suspense fallback={<Loader />} children={<Departments />} /> },
+    { path: "security", element: <Suspense fallback={<Loader />} children={<Security />} /> },
+    { path: "personalization", element: <Suspense fallback={<Loader />} children={<Personalization />} /> },
+    { path: "security/audit-logs", element: <Suspense fallback={<Loader />} children={<AuditLogs />} /> },
   ];
 
   const router = createBrowserRouter([
@@ -66,21 +73,17 @@ function App() {
       path: "/:org",
       element: <Layout />,
       children: [
-        { path: "dashboard", element: <Dashboard /> },
-
-        { path: "jobs", element: <Jobs /> },
-
-        { path: "candidates", element: <Candidates /> },
-        { path: "analytics", element: <Analytics /> },
-        { path: "calendar", element: <Calendar /> },
-
-        { path: "notifications", element: <Notifications /> },
-        { path: "billing", element: <Billing /> },
-        { path: "documentation", element: <Documentation /> },
-        { path: "support", element: <Support /> },
+        { path: "dashboard", element: <Suspense fallback={<Loader />} children={<Dashboard />} /> },
+        { path: "jobs", element: <Suspense fallback={<Loader />} children={<Jobs />} /> },
+        { path: "candidates", element: <Suspense fallback={<Loader />} children={<Candidates />} /> },
+        { path: "analytics", element: <Suspense fallback={<Loader />} children={<Analytics />} /> },
+        { path: "calendar", element: <Suspense fallback={<Loader />} children={<Calendar />} /> },
+        { path: "notifications", element: <Suspense fallback={<Loader />} children={<Notifications />} /> },
+        { path: "billing", element: <Suspense fallback={<Loader />} children={<Billing />} /> },
+        { path: "documentation", element: <Suspense fallback={<Loader />} children={<Documentation />} /> },
+        { path: "support", element: <Suspense fallback={<Loader />} children={<Support />} /> },
       ],
     },
-
     {
       path: ":org/jobs/:id",
       element: <JobLayout />,
@@ -88,7 +91,7 @@ function App() {
     },
     {
       path: ":org/settings",
-      element: <SettingsLayout />,
+      element:<SettingsLayout />,
       children: settingsRoute,
     },
   ]);
