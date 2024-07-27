@@ -10,6 +10,7 @@ import {
   FileTextIcon,
   Ban,
   FileUp,
+  FolderOutputIcon,
 } from "lucide-react";
 import { ChevronLeftIcon } from "lucide-react";
 
@@ -145,37 +146,37 @@ const Dashboard: React.FC = () => {
     <div className="flex flex-col items-start justify-start p-10 pt-8 h-scroll w-full">
       <div className="flex flex-row items-center justify-start gap-4 w-full">
         <ChevronLeftIcon
-          size={50}
+          size={40}
           className="text-slate-400 mt-6"
           onClick={() => navigate("/postings/jobs")}
         />
-        <div className="flex flex-col gap-3 w-full mt-6 overflow-y-auto">
-          <Card className="w-full h-24 border-none p-2 grid grid-cols-2 gap-2">
-            <div className="flex flex-col items-start justify-start gap-3 w-full py-2 px-4">
-              <div className="flex flex-row items-center justify-start gap-2 w-full">
+        <div className="flex flex-row items-center justify-center gap-3 w-full mt-6 overflow-y-auto">
+          <Card className="w-fit h-18 py-4 px-8 flex items-center justify-center border-none bg-zinc-800/25">
+            <div className="flex items-center gap-8 w-full">
+              <div className="flex items-center gap-2">
                 <p className="text-lg">{posting?.title}</p>
                 <span
-                        className={`text-xs mr-3 rounded-full whitespace-nowrap ${
-                          posting.category === "IT"
-                            ? "text-success-500"
-                            : posting.category === "Operations"
-                            ? "text-warning-500"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {posting.category}
-                      </span>
-                      <span
-                        className={`text-xs px-2 rounded-full whitespace-nowrap ${
-                          posting.status === "active"
-                            ? " text-success-500 bg-success-100"
-                            : " text-danger-500 bg-danger-100"
-                        }`}
-                      >
-                        {posting.status === "active" ? "Active" : "Closed"}
-                      </span>
-                    </div>
-              <div className="flex items-center gap-2 w-full text-sm text-gray-500">
+                  className={`text-xs rounded-full whitespace-nowrap ${
+                    posting.category === "IT"
+                      ? "text-success-500"
+                      : posting.category === "Operations"
+                      ? "text-warning-500"
+                      : "bg-gray-100 text-gray-800"
+                  }`}
+                >
+                  {posting.category}
+                </span>
+                <span
+                  className={`text-xs px-2 rounded-full whitespace-nowrap ${
+                    posting.status === "active"
+                      ? "text-success-500 bg-success-100"
+                      : "text-danger-500 bg-danger-100"
+                  }`}
+                >
+                  {posting.status === "active" ? "Active" : "Closed"}
+                </span>
+              </div>
+              <div className="flex items-center gap-7 text-sm text-gray-500">
                 <div className="flex items-center gap-2">
                   <BriefcaseIcon size={18} />
                   <p>{posting?.jobprofile}</p>
@@ -190,30 +191,23 @@ const Dashboard: React.FC = () => {
                     {posting?.salaryFrom} - {posting?.salaryUpto}
                   </p>
                 </div>
-              </div>
-            </div>
-            <div className="flex items-center justify-between w-full">
-              <div className="text-sm rounded-full border bg-secondary bg-opacity-5 px-2 py-1">
-                <p className="text-gray-300 text-xs">
+                <div className="ml-auto text-xs text-gray-300 bg-secondary bg-opacity-5 rounded-full px-2 py-1">
                   Open Until {posting?.openUntil}
-                </p>
+                </div>
               </div>
-              <Menu size={28} className="mr-6 cursor-pointer" />
             </div>
           </Card>
-        </div>
-        <div className="w-[20%] pt-9">
           <Card
             isPressable
-            className="flex flex-row w-full h-10 items-center justify-center gap-2 rounded-large bg-success-400 text-background bg-opacity-3 py-2 px-5"
+            className="flex flex-row h-10 py-2 px-3 rounded-xl gap-3 items-center justify-center border-2 shadow-md ml-auto bg-success-400 text-success-foreground"
           >
-            <FileUp size={24} />
-            <p className="text-sm">Export to CSV</p>
+            <FolderOutputIcon size={20} />
+            <p className="text-xs">Export to CSV</p>
           </Card>
         </div>
       </div>
 
-      <div className="flex flex-row items-start justify-start gap-4 w-full pt-6 pl-14">
+      <div className="flex flex-row items-center  gap-4 w-full pt-6 pl-14">
         <Switch size="sm" defaultSelected color="default">
           Show Disqualified ?
         </Switch>
