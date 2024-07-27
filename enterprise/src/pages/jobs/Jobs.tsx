@@ -335,7 +335,7 @@ const Postings: React.FC = () => {
   });
 
   const handleDetailsClick = (posting: Posting) => {
-    navigate(`${posting.id}/dashboard`);
+    navigate(`${posting.id}/dashboard`, { state: { posting } });
   };
 
   const handleFilterChange = (filter: string) => {
