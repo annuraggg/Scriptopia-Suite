@@ -216,9 +216,9 @@ function App() {
   useEffect(() => {
     if (isSignedIn) {
       const data = {
-        _id: user.publicMetadata.orgId,
-        role: user.publicMetadata.roleName,
-        permissions: user.publicMetadata.permissions,
+        _id: user?.publicMetadata?.orgId,
+        role: user?.publicMetadata?.roleName,
+        permissions: user?.publicMetadata?.permissions,
       };
       dispatch(setOrganization(data));
     }
