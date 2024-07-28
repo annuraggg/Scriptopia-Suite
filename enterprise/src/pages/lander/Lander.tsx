@@ -101,7 +101,7 @@ const Lander = () => {
       <div className="py-10 mx-20">
         <div>
           <img
-            src="/logo1080_transparent_white_large.png"
+            src="/logo.png"
             alt="logo"
             className="w-10 h-10"
           />

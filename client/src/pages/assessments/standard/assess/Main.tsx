@@ -76,7 +76,7 @@ const Main = () => {
           <Card className="h-[70%] w-[50%] p-3  border-2">
             <CardHeader>
               <img
-                src="/logo1080_transparent_white_large.png"
+                src="/logo.png"
                 alt="logo"
                 className="w-10"
               />
@@ -120,7 +120,7 @@ const Main = () => {
           <Card className="h-[70%] w-[50%] p-3  border-2">
             <CardHeader>
               <img
-                src="/logo1080_transparent_white_large.png"
+                src="/logo.png"
                 alt="logo"
                 className="w-10"
               />

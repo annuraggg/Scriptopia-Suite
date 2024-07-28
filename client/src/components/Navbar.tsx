@@ -1,5 +1,5 @@
 import { UserButton, /*useAuth*/ } from "@clerk/clerk-react";
-import Logo from "../assets/logo1080_transparent_white_large.png";
+import Logo from "../assets/logo.png";
 import { Link, Button } from "@nextui-org/react";
 import { EllipsisVertical, Menu, X, } from "lucide-react";
 import { useState } from "react";

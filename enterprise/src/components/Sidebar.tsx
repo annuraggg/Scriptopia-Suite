@@ -128,7 +128,7 @@ const Sidebar = () => {
           <nav className={`flex flex-col gap-4 sm:py-5 `}>
             <div>
               <img
-                src="/logo1080_transparent_white_large.png"
+                src="/logo.png"
                 alt="logo"
                 className="cursor-pointer h-6"
                 onClick={() => {
