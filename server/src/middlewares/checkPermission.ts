@@ -1,31 +1,38 @@
 import { sendError } from "../utils/sendResponse";
 import { getAuth } from "@hono/clerk-auth";
 import clerkClient from "../config/clerk";
-import jwt from "jsonwebtoken";
+// import jwt from "jsonwebtoken";
 import { Context } from "hono";
 import logger from "../utils/logger";
 
-interface PermissionsPayload {
-  permissions: string[];
-  org: string;
-}
+// interface PermissionsPayload {
+//   permissions: string[];
+//   org: string;
+// }
 
 interface ReturnType {
   allowed: boolean;
-  data: PermissionsPayload | null;
+  data: userMeta | null;
+}
+
+interface userMeta extends UserPublicMetadata {
+  permissions: string[];
+  orgId: string;
+  roleId: string;
+  roleName: string;
 }
 
 class checkPermission {
   private static async getUserPermissions(userId: string) {
     try {
       const user = await clerkClient.users.getUser(userId);
-      const perms = user.privateMetadata.token as string;
+      const perms: userMeta = user.publicMetadata as userMeta;
 
-      const metaPermissions = jwt.verify(
-        perms,
-        process.env.JWT_SECRET!
-      ) as PermissionsPayload;
-      return metaPermissions;
+      // const metaPermissions = jwt.verify(
+      //   perms,
+      //   process.env.JWT_SECRET!
+      // ) as PermissionsPayload;
+      return perms;
     } catch (error) {
       throw new Error("Error retrieving or verifying user permissions");
     }

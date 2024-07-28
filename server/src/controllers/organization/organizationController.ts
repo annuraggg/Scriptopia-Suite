@@ -1,4 +1,3 @@
-import Permission from "../../models/Permission";
 import { Context } from "hono";
 import { sendError, sendSuccess } from "../../utils/sendResponse";
 import Organization from "../../models/Organization";
@@ -10,6 +9,7 @@ import clerkClient from "../../config/clerk";
 import logger from "../../utils/logger";
 import Roles from "../../models/Roles";
 import checkPermission from "../../middlewares/checkPermission";
+import PermissionType from "../../@types/Permission";
 
 const roleIdMap = {
   admin: "66a6165bdc907b2eb692501b",
@@ -120,8 +120,8 @@ const createOrganization = async (c: Context) => {
       publicMetadata: {
         orgId: org._id,
         roleName: "admin",
-        roleId: roleIdMap["admin"],
-        permissions: adminPerm?.permissions,
+        roleId: roleIdMap["admin"], // @ts-ignore
+        permissions: adminPerm?.permissions.map((p: PermissionType) => p.name),
       },
     });
 
@@ -225,15 +225,28 @@ const joinOrganization = async (c: Context) => {
     }
 
     if (status === "accept") {
-      const permissions = await Roles.findOne({ _id: decoded.roleId })
+      const perms = await Roles.findOne({ _id: decoded.roleId })
         .populate("permissions")
         .exec();
+
+      if (!perms) {
+        return sendError(c, 404, "Role not found");
+      }
+
+      // @ts-ignore
+      const onlyName = perms?.permissions.map((p: PermissionType) => p.name);
+
       clerkClient.users.updateUser(u, {
         publicMetadata: {
           organization: org._id,
           roleName: decoded.role.toLowerCase(),
           roleId: decoded.roleId,
-          permissions: permissions,
+          permissions: onlyName,
+        },
+
+        privateMetadata: {
+          permissions: onlyName,
+          organization: org._id,
         },
       });
 
@@ -264,7 +277,7 @@ const getSettings = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const org = await Organization.findById(perms.data?.org)
+    const org = await Organization.findById(perms.data?.orgId)
       .populate("roles")
       .populate("members.user")
       .populate("auditLogs.user")
