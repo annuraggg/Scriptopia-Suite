@@ -196,9 +196,9 @@ const Lander = () => {
             <div className="flex gap-5 mt-5 w-[80vw]">
               {prices.map((price, index) => (
                 <Card className="w-full" key={index}>
-                  <CardHeader className="h-[50px]">
+                  <CardHeader className="h-[50px] flex al">
                     <div className="font-bold">{price.name}</div>
-                    <div className="mt-3 ml-3 text-sm text-warning-300">
+                    <div className="ml-3 text-sm text-success-400">
                       {price.desc}
                     </div>
                   </CardHeader>
