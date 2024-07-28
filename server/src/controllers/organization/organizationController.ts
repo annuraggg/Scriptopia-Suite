@@ -69,8 +69,8 @@ const createOrganization = async (c: Context) => {
 
       const mem = {
         user: user?.clerkId || "",
-        email: member.email,
-        role: member.role.toLowerCase(),
+        email: member.email, // @ts-ignore
+        role: [roleIdMap[member.role.toLowerCase() as string]],
         addedOn: new Date(),
         status: "pending",
       };
@@ -87,7 +87,7 @@ const createOrganization = async (c: Context) => {
     membersArr.push({
       user: clerkId,
       email: creator.emailAddresses[0].emailAddress,
-      role: "admin",
+      role: [roleIdMap["admin"]],
       addedOn: new Date(),
       status: "active",
     });

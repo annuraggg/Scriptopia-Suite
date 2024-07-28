@@ -11,7 +11,6 @@ import {
 } from "@nextui-org/react";
 import { HeartCrack, Link } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const bgStyle = {
@@ -33,7 +32,6 @@ interface Token {
 }
 
 const Join = () => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const { isSignedIn, user, isLoaded } = useUser();
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -67,7 +65,9 @@ const Join = () => {
       .post("/organizations/join", { status, token })
       .then((res) => {
         toast.success("Joined Organization");
-        navigate("/" + res.data.data.id);
+        setTimeout(() => {
+          window.location.href = "/" + res.data.data.id;
+        }, 1000);
       })
       .catch((err) => {
         console.error(err);
@@ -114,7 +114,11 @@ const Join = () => {
                   ? `${token.inviter} has invited you to join`
                   : "You have been invited to join"}
               </p>
-              <h3 className="mt-3">{token?.organizationname ? token.organizationname : "Organization"}</h3>
+              <h3 className="mt-3">
+                {token?.organizationname
+                  ? token.organizationname
+                  : "Organization"}
+              </h3>
             </CardBody>
             <CardFooter>
               <Button

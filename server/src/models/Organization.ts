@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 const membersSchema = new Schema({
-  user: { type: String, required: true },
+  user: { type: String },
   email: { type: String, required: true },
   role: { type: mongoose.Schema.Types.ObjectId, ref: "Role", required: true },
   addedOn: { type: Date, default: Date.now },
