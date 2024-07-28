@@ -360,16 +360,16 @@ const Postings: React.FC = () => {
           <div className="flex flex-col gap-4 w-4/5">
             <div className="flex justify-between items-center w-full gap-4">
               <Input
-                className="w-3/4"
+                className="4/5"
                 placeholder="Search Postings"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <Card className="w-1/4 cursor-pointer">
-                <CardBody className="flex items-center justify-between bg-blue-500 bg-opacity-3 p-2">
+              <Card className="w-1/5 cursor-pointer">
+                <CardBody className="flex items-center justify-between bg-success-400 text-background bg-opacity-3 py-2 px-5">
                   <Link className="flex items-center gap-2">
-                    <FilePlusIcon size={22} />
-                    <p className="text-white text-sm">Create a New Job</p>
+                    <FilePlusIcon className="text-background" size={22} />
+                    <p className="text-sm text-background">Create a new job</p>
                   </Link>
                 </CardBody>
               </Card>
@@ -380,18 +380,40 @@ const Postings: React.FC = () => {
                 <Card
                   isPressable
                   key={index}
-                  className={`rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${
+                  className={`text-white rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${
                     selectedFilter === card.filter
-                      ? "bg-blue-700/20 text-white"
-                      : ""
+                      ? "bg-gray-500/20 text-white"
+                      : "text-gray-500"
                   }`}
                   onClick={() => handleFilterChange(card.filter)}
                 >
                   <div className="flex items-center justify-center gap-2 w-full">
-                    <div>{card.icon}</div>
-                    <h1 className="text-base">{card.title}</h1>
+                    <div
+                      className={`${
+                        selectedFilter === card.filter
+                          ? "text-white"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {card.icon}
+                    </div>
+                    <h1
+                      className={`${
+                        selectedFilter === card.filter
+                          ? "text-white"
+                          : "text-gray-500"
+                      } text-base`}
+                    >
+                      {card.title}
+                    </h1>
                   </div>
-                  <p className="text-center w-full text-gray-500">
+                  <p
+                    className={`text-center w-full ${
+                      selectedFilter === card.filter
+                        ? "text-white"
+                        : "text-gray-500"
+                    }`}
+                  >
                     {card.jobCount} Jobs
                   </p>
                 </Card>
@@ -406,24 +428,28 @@ const Postings: React.FC = () => {
                 >
                   <div className="flex flex-col items-start justify-start gap-3 w-full p-2">
                     <div className="flex flex-row items-center justify-start gap-2 w-full">
-                      <p className="mr-3 cursor-pointer"
-                      onClick={() => handleDetailsClick(posting)}>{posting.title}</p>
+                      <p
+                        className="mr-1 cursor-pointer"
+                        onClick={() => handleDetailsClick(posting)}
+                      >
+                        {posting.title}
+                      </p>
                       <span
-                        className={`text-xs px-3 rounded-full whitespace-nowrap ${
+                        className={`text-xs mr-3 rounded-full whitespace-nowrap ${
                           posting.category === "IT"
-                            ? "bg-green-500 text-white"
+                            ? "text-success-500"
                             : posting.category === "Operations"
-                            ? "bg-orange-500 text-white"
+                            ? "text-warning-500"
                             : "bg-gray-100 text-gray-800"
                         }`}
                       >
                         {posting.category}
                       </span>
                       <span
-                        className={`text-xs px-3 ml-1 rounded-full whitespace-nowrap ${
+                        className={`text-xs px-2 rounded-full whitespace-nowrap ${
                           posting.status === "active"
-                            ? "bg-green-900 text-green-500"
-                            : "bg-red-900 text-red-500"
+                            ? " text-success-500 bg-success-100"
+                            : " text-danger-500 bg-danger-100"
                         }`}
                       >
                         {posting.status === "active" ? "Active" : "Closed"}

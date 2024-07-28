@@ -35,18 +35,24 @@ const Candidates = () => {
   }
 
   return (
-    <div className="w-full h-full flex flex-col p-5">
-      <div className="w-full flex flex-row justify-between gap-4 items-center text-sm">
-        <div className="flex flex-row items-start gap-4">
-          <p className="font-bold">Viewing Candidates for the job: </p>
-          <p>Software Engineer</p>
+    <div className="w-full h-full flex flex-col p-4">
+      <div className="w-full flex flex-row items-center justify-between gap-4 mb-3">
+        <div className="flex flex-row items-center gap-2">
+          <p className="text-lg font-bold">Candidates for the Job of</p>
+          <div className="items-center justify-center text-blue-500 rounded-full whitespace-nowrap">
+            <p className="text-lg font-semibold">Software Engineer</p>
+          </div>
         </div>
-        <Button variant="flat">
-          <FolderOutputIcon size={16} />
-          <p>Export to CSV</p>
-        </Button>
+        <Card
+          isPressable
+          className="flex flex-row h-18 mt-1 py-2 px-3 rounded-xl gap-3 items-center justify-center border-2 shadow-md ml-auto bg-success-400 text-success-foreground"
+        >
+          <FolderOutputIcon size={20} />
+          <p className="text-xs">Export to CSV</p>
+        </Card>
       </div>
-      <div className="w-full flex flex-row gap-4 mt-5">
+      <div className="w-full bg-slate-700 h-[1px] rounded-full mb-4"></div>
+      <div className="w-full flex flex-row gap-4">
         <div className="w-[20%]">
           <Filter />
         </div>
