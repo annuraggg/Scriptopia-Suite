@@ -1,6 +1,6 @@
 import Filter from "./Filter";
 import { DataTable } from "./DataTable";
-import { Button } from "@nextui-org/react";
+import { Button, Card } from "@nextui-org/react";
 import { FolderOutputIcon } from "lucide-react";
 
 const stages = [
