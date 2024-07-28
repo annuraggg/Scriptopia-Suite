@@ -1,12 +1,19 @@
 import mongoose from "mongoose";
-import { Schema } from "mongoose";
+const { Schema } = mongoose;
 
 const membersSchema = new Schema({
-  user: { type: String, ref: "User" },
+  user: { type: String, required: true },
   email: { type: String, required: true },
-  role: { type: String, required: true },
+  role: { type: mongoose.Schema.Types.ObjectId, ref: "Role", required: true },
   addedOn: { type: Date, default: Date.now },
   status: { type: String, enum: ["pending", "active"], default: "pending" },
+});
+
+membersSchema.virtual("userDetails", {
+  ref: "User",
+  localField: "user",
+  foreignField: "clerkId",
+  justOne: true,
 });
 
 const rolesSchema = new Schema({
@@ -21,9 +28,16 @@ const departmentsSchema = new Schema({
 
 const auditLogSchema = new Schema({
   action: { type: String, required: true },
-  user: { type: String, ref: "User" },
+  user: { type: String, required: true },
   date: { type: Date, default: Date.now, required: true },
-  type: { type: String, enum: ["info", "warning", "error"], default: "info" },
+  type: { type: String, enum: ["info", "warning", "error", "success"], default: "info", required: true },
+});
+
+auditLogSchema.virtual("userDetails", {
+  ref: "User",
+  localField: "user",
+  foreignField: "clerkId",
+  justOne: true,
 });
 
 const subscriptionSchema = new Schema({
@@ -53,7 +67,7 @@ const organizationSchema = new Schema({
     type: subscriptionSchema,
     required: true,
   },
-  candidates: { type: [mongoose.Types.ObjectId], ref: "Candidate" },
+  candidates: { type: [Schema.Types.ObjectId], ref: "Candidate" },
 
   postings: [{ type: Schema.Types.ObjectId, ref: "Posting" }],
 
@@ -65,6 +79,13 @@ organizationSchema.pre("save", function (next) {
   this.updatedOn = new Date();
   next();
 });
+
+// Ensure virtual fields are included in JSON and plain object outputs
+membersSchema.set("toJSON", { virtuals: true });
+membersSchema.set("toObject", { virtuals: true });
+
+auditLogSchema.set("toJSON", { virtuals: true });
+auditLogSchema.set("toObject", { virtuals: true });
 
 const Organization = mongoose.model("Organization", organizationSchema);
 export default Organization;

@@ -14,7 +14,7 @@ const Documentation = () => {
           </BreadcrumbItem>
         </Breadcrumbs>
       </div>
-      <div className="p-10 flex items-center justify-center h-[100vh] flex-col">
+      <div className="p-10 flex items-center justify-center flex-col">
         <div className="p-5 border rounded-xl text-center font-neue">
           <h4>Page Under Construction</h4>
           <p>We are working on this page. Thankyou for your patience.</p>

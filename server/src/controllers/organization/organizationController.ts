@@ -1,3 +1,4 @@
+import Permission from "../../models/Permission";
 import { Context } from "hono";
 import { sendError, sendSuccess } from "../../utils/sendResponse";
 import Organization from "../../models/Organization";
@@ -7,6 +8,15 @@ import jwt from "jsonwebtoken";
 import loops from "../../config/loops";
 import clerkClient from "../../config/clerk";
 import logger from "../../utils/logger";
+import Roles from "../../models/Roles";
+import checkPermission from "../../middlewares/checkPermission";
+
+const roleIdMap = {
+  admin: "66a6165bdc907b2eb692501b",
+  "read-only": "66a6165bdc907b2eb692501c",
+  finance: "66a6165bdc907b2eb692501d",
+  "hiring-manager": "66a6165bdc907b2eb692501e",
+};
 
 const createOrganization = async (c: Context) => {
   try {
@@ -68,13 +78,23 @@ const createOrganization = async (c: Context) => {
       membersArr.push(mem);
     }
 
+    const creator = await clerkClient.users.getUser(u);
+
+    if (!creator) {
+      return sendError(c, 404, "User not found");
+    }
+
     membersArr.push({
       user: clerkId,
-      email,
+      email: creator.emailAddresses[0].emailAddress,
       role: "admin",
       addedOn: new Date(),
       status: "active",
     });
+
+    const adminPerm = await Roles.findOne({ _id: roleIdMap["admin"] })
+      .populate("permissions")
+      .exec();
 
     const customer = await stripe.customers.create({
       name,
@@ -96,11 +116,23 @@ const createOrganization = async (c: Context) => {
       },
     });
 
+    clerkClient.users.updateUser(clerkId, {
+      publicMetadata: {
+        orgId: org._id,
+        roleName: "admin",
+        roleId: roleIdMap["admin"],
+        permissions: adminPerm?.permissions,
+      },
+    });
+
     for (const member of members) {
       const reqObj = {
         email: member.email,
-        role: member.role,
+        role: member.role, // @ts-ignore
+        roleId: roleIdMap[member.role.toLowerCase() as string],
         organization: org._id,
+        inviter: fName || "",
+        organizationname: name,
       };
 
       const token = jwt.sign(reqObj, process.env.JWT_SECRET!);
@@ -151,13 +183,8 @@ const verifyInvite = async (c: Context) => {
       members: { $elemMatch: { email, status: "pending" } },
     });
 
-    console.log("Org 1", organization);
-
     if (!organization) {
-      return sendError(c, 400, "Invalid Invite");
-    }
-
-    if (organization._id.toString() !== decoded.organization) {
+      logger.warn("No organization found");
       return sendError(c, 400, "Invalid Invite");
     }
 
@@ -168,7 +195,99 @@ const verifyInvite = async (c: Context) => {
   }
 };
 
+const joinOrganization = async (c: Context) => {
+  try {
+    const { status, token } = await c.req.json();
+    const u = c.get("auth").userId;
+    const clerkUser = await clerkClient.users.getUser(u);
+    const email = clerkUser.emailAddresses[0].emailAddress;
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+      organization: string;
+    } as { role: string; roleId: string; organization: string };
+
+    const org = await Organization.findById(decoded.organization);
+    if (!org) {
+      return sendError(c, 404, "Organization not found");
+    }
+
+    const organization = await Organization.findOne({
+      _id: decoded.organization,
+      members: { $elemMatch: { email, status: "pending" } },
+    });
+
+    if (!organization) {
+      return sendError(c, 400, "Invalid Invite");
+    }
+
+    if (organization._id.toString() !== decoded.organization) {
+      return sendError(c, 400, "Invalid Invite");
+    }
+
+    if (status === "accept") {
+      const permissions = await Roles.findOne({ _id: decoded.roleId })
+        .populate("permissions")
+        .exec();
+      clerkClient.users.updateUser(u, {
+        publicMetadata: {
+          organization: org._id,
+          roleName: decoded.role.toLowerCase(),
+          roleId: decoded.roleId,
+          permissions: permissions,
+        },
+      });
+
+      await Organization.updateOne(
+        { _id: decoded.organization, "members.email": email },
+        { $set: { "members.$.status": "active", "members.$.user": u } }
+      );
+    } else {
+      await Organization.updateOne(
+        { _id: decoded.organization, "members.email": email },
+        { $pull: { members: { email } } }
+      );
+    }
+
+    return sendSuccess(c, 200, "Joined Organization", {
+      id: decoded.organization,
+    });
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Failed to join organization", error);
+  }
+};
+
+const getSettings = async (c: Context) => {
+  try {
+    const perms = await checkPermission.all(c, ["view_organization"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const org = await Organization.findById(perms.data?.org)
+      .populate("roles")
+      .populate("members.user")
+      .populate("auditLogs.user")
+      .populate("members.role")
+      .lean();
+
+    if (!org) {
+      return sendError(c, 404, "Organization not found");
+    }
+
+    const defaultRoles = await Roles.find({ default: true }).lean();
+    defaultRoles.forEach((role) => org.roles.push(role));
+
+    return sendSuccess(c, 200, "Success", org);
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Failed to get organization settings", error);
+  }
+};
+
 export default {
   createOrganization,
   verifyInvite,
+  joinOrganization,
+  getSettings,
 };

@@ -57,7 +57,7 @@ interface IAssessment extends Document {
 }
 
 export default IAssessment;
-export {
+export type {
   IOpenRange,
   ITestCases,
   IProblem,

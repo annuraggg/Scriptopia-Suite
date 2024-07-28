@@ -1,13 +1,17 @@
 import { Image } from "@nextui-org/image";
 import { Button, Input } from "@nextui-org/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useSelector } from "react-redux";
 import { RootState } from "@/@types/reducer";
 import { Upload } from "lucide-react";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
+import { toast } from "sonner";
 
 const General = () => {
   const [companyName, setCompanyName] = useState<string>("Scriptopia");
+  const [logo, setLogo] = useState<string>();
   const [companyWebsite, setCompanyWebsite] = useState<string>(
     "https://scriptopia.tech"
   );
@@ -16,6 +20,24 @@ const General = () => {
   );
 
   const org = useSelector((state: RootState) => state.organization);
+
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+
+  useEffect(() => {
+    axios
+      .post("organizations/get/settings")
+      .then((res) => {
+        setCompanyName(res.data.data.name);
+        setCompanyEmail(res.data.data.email);
+        setCompanyWebsite(res.data.data.website);
+        setLogo(res.data.data.logo || "/defaultOrgLogo.png");
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Error Fetching Settings");
+      });
+  }, []);
 
   return (
     <>
@@ -32,7 +54,7 @@ const General = () => {
       </div>
       <div className="p-5 px-10">
         <div className="w-fit">
-          <Image src="https://picsum.photos/200/200" width={200} height={200} />
+          <Image src={logo} width={200} height={200} />
           <Button className="mt-2 w-full" variant="ghost">
             <Upload /> Change Logo
           </Button>

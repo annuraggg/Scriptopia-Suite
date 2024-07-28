@@ -20,33 +20,51 @@ import {
   Bell,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/@types/reducer";
 
 const Sidebar = () => {
+  const org = useSelector((state: RootState) => state.organization);
+  if (!org || !org.permissions) {
+    window.location.href = "/";
+  }
+
   const topItems = [
     {
       icon: Home,
       label: "Dashboard",
       link: "/dashboard",
+      visible: true,
     },
     {
       icon: Briefcase,
       label: "Jobs",
       link: "/jobs",
+      visible:
+        org?.permissions?.includes("view_jobs") ||
+        org?.permissions?.includes("manage_jobs"),
     },
     {
       icon: Users,
       label: "Candidates",
       link: "/candidates",
+      visible:
+        org?.permissions?.includes("view_jobs") ||
+        org?.permissions?.includes("manage_jobs"),
     },
     {
       icon: PieChart,
       label: "Analytics",
       link: "/analytics",
+      visible:
+        org?.permissions?.includes("view_analytics") ||
+        org?.permissions?.includes("manage_organizations"),
     },
     {
       icon: Calendar,
       label: "Calendar",
       link: "/calendar",
+      visible: true,
     },
   ];
 
@@ -54,32 +72,40 @@ const Sidebar = () => {
     {
       icon: CircleUser,
       label: "Profile",
-      link: "/profile"
+      link: "/profile",
+      visible: true,
     },
     {
       icon: Bell,
       label: "Notifications",
       link: "/notifications",
+      visible: true,
     },
     {
       icon: Settings,
       label: "Settings",
       link: "/settings/general",
+      visible: org?.permissions?.includes("manage_organizations"),
     },
     {
       icon: CreditCard,
       label: "Billing",
       link: "/billing",
+      visible:
+        org?.permissions?.includes("view_billing") ||
+        org?.permissions?.includes("manage_billing"),
     },
     {
       icon: BookOpenText,
       label: "Documentation",
       link: "/documentation",
+      visible: true,
     },
     {
       icon: HelpCircle,
       label: "Support",
       link: "/support",
+      visible: true,
     },
   ];
 
@@ -114,9 +140,9 @@ const Sidebar = () => {
             {topItems.map((item, index) => (
               <Tooltip key={index}>
                 <TooltipTrigger asChild>
-                  <table>
+                  <table className={!item.visible ? "hidden" : ""}>
                     <tbody
-                      className={` cursor-pointer h-8 ${
+                      className={`cursor-pointer h-8 ${
                         active === item.label.toLowerCase()
                           ? " text-white-500 rounded-xl"
                           : "text-muted-foreground opacity-50 hover:text-white"
@@ -147,9 +173,9 @@ const Sidebar = () => {
             {bottomItems.map((item, index) => (
               <Tooltip key={index}>
                 <TooltipTrigger asChild>
-                  <table>
+                  <table className={!item.visible ? "hidden" : ""}>
                     <tbody
-                      className={` cursor-pointer h-7 ${
+                      className={`cursor-pointer h-7 ${
                         active === item.label.toLowerCase()
                           ? " text-white rounded-xl"
                           : "text-muted-foreground opacity-50 hover:text-white"

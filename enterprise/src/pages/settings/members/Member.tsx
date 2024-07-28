@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Table,
   TableHeader,
@@ -12,57 +12,78 @@ import {
   Select,
   SelectItem,
   useDisclosure,
-  SelectSection,
 } from "@nextui-org/react";
 import InviteModal from "./InviteModal";
 import { useSelector } from "react-redux";
 import { RootState } from "@/@types/reducer";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
+import { toast } from "sonner";
+import { Member } from "@/@types/Organization";
+import Role from "@/@types/Roles";
 
-interface Member {
-  name: string;
-  joined: string;
-  role: string;
-}
+// interface Member {
+//   name: string;
+//   joined: string;
+//   role: string;
+// }
 
-interface InvitedMember {
-  email: string;
-  invited: string;
-  role: string;
-}
+// interface InvitedMember {
+//   email: string;
+//   invited: string;
+//   role: string;
+// }
 
-interface Role {
-  role: string;
-}
+// interface Role {
+//   role: string;
+// }
 
 const Members: React.FC = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [members, setMembers] = useState<Member[]>([
-    { name: "John Doe", joined: "15/07/2024", role: "Admin" },
-    { name: "Jane Doe", joined: "15/07/2024", role: "Hiring Manager" },
-    { name: "Anurag Sawant", joined: "14/7/2024", role: "Finance" },
-  ]);
-
-  const [invitedMembers, setInvitedMembers] = useState<InvitedMember[]>([]);
-
-  const roles: Role[] = [
-    { role: "Admin" },
-    { role: "Hiring Manager" },
-    { role: "Finance" },
-    { role: "Read Only" },
-  ];
+  const [members, setMembers] = useState<Member[]>([]);
+  const [invitedMembers, setInvitedMembers] = useState<Member[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
 
   const org = useSelector((state: RootState) => state.organization);
 
-  const handleInvite = (newMember: InvitedMember) => {
+  const handleInvite = (newMember: Member) => {
     setInvitedMembers([...invitedMembers, newMember]);
   };
 
   const handleRoleChange = (index: number, newRole: string) => {
     const updatedMembers = [...members];
-    updatedMembers[index].role = newRole;
+    updatedMembers[index].role = roles.find((role) => role.name === newRole) as Role;
     setMembers(updatedMembers);
   };
+
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+  useEffect(() => {
+    axios
+      .post("organizations/get/settings")
+      .then((res) => {
+        setMembers(
+          res.data.data.members.filter(
+            (member: Member) => member.status === "active"
+          )
+        );
+
+        setInvitedMembers(
+          res.data.data.members.filter(
+            (member: Member) => member.status === "pending"
+          )
+        );
+
+        setRoles(res.data.data.roles);
+        console.log(res.data.data.roles);
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Error Fetching Settings");
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
@@ -89,26 +110,22 @@ const Members: React.FC = () => {
               </TableHeader>
               <TableBody emptyContent={<p>No Members</p>}>
                 {members.map((member, index) => (
-                  <TableRow key={member.name}>
-                    <TableCell>{member.name}</TableCell>
-                    <TableCell>{member.joined}</TableCell>
+                  <TableRow key={member.email}>
+                    <TableCell>{member.email}</TableCell>
+                    <TableCell>
+                      {new Date(member.addedOn).toDateString()}
+                    </TableCell>
                     <TableCell>
                       <Select
-                        selectedKeys={[member.role]}
+                        selectedKeys={[member.role.name]}
                         onSelectionChange={(keys) =>
                           handleRoleChange(index, Array.from(keys)[0] as string)
                         }
                       >
                         {roles.map((role) => (
-                          <SelectSection className="">
-                            <SelectItem
-                              key={role.role}
-                              value={role.role}
-                              className=""
-                            >
-                              {role.role}
-                            </SelectItem>
-                          </SelectSection>
+                          <SelectItem key={role.name} value={role.name}>
+                            {role.name}
+                          </SelectItem>
                         ))}
                       </Select>
                     </TableCell>
@@ -131,8 +148,10 @@ const Members: React.FC = () => {
                 {invitedMembers.map((member, index) => (
                   <TableRow key={index}>
                     <TableCell>{member.email}</TableCell>
-                    <TableCell>{member.invited}</TableCell>
-                    <TableCell>{member.role}</TableCell>
+                    <TableCell>
+                      {new Date(member.addedOn).toDateString()}
+                    </TableCell>
+                    <TableCell>{member.role.name}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

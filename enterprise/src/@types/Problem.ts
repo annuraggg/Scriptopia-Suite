@@ -26,4 +26,4 @@ interface IProblem {
 }
 
 export default IProblem;
-export { ITestCase, IFunctionArg };
+export type { ITestCase, IFunctionArg };

@@ -1,10 +1,5 @@
+import { Department } from "@/@types/Organization";
 import { Button } from "@nextui-org/react";
-
-interface Department {
-  _id: string;
-  name: string;
-  description: string;
-}
 
 const Sidebar = ({ departments }: { departments: Department[] }) => {
   return (
@@ -16,7 +11,9 @@ const Sidebar = ({ departments }: { departments: Department[] }) => {
             key={role._id}
             className="flex flex-col gap-1 px-3 py-2 rounded-xl border hover:bg-gray-800 cursor-pointer transition-all "
           >
-            <p className="text-sm">{role.name} - {role.description}</p>
+            <p className="text-sm">
+              {role.name} - {role.description}
+            </p>
           </div>
         ))}
       </div>

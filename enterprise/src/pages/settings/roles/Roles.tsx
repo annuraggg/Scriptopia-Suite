@@ -2,40 +2,32 @@ import { RootState } from "@/@types/reducer";
 import Sidebar from "./Sidebar";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useSelector } from "react-redux";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
+import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import Role from "@/@types/Roles";
 
 const Roles = () => {
   const org = useSelector((state: RootState) => state.organization);
-  const builtInRoles = [
-    {
-      _id: "1",
-      name: "Admin",
-      description: "Admins can do anything",
-    },
-    {
-      _id: "2",
-      name: "Hiring Manager",
-      description: "Hiring Managers can view and edit data",
-    },
-    {
-      _id: "3",
-      name: "Finance",
-      description: "Finance can view and edit financial data",
-    },
-    { _id: "4", name: "Read Only", description: "Read Only can view data" },
-  ];
+  const [builtInRoles, setBuiltInRoles] = useState<Role[]>([]);
+  const [customRoles, setCustomRoles] = useState<Role[]>([]);
 
-  const customRoles = [
-    {
-      _id: "5",
-      name: "Custom Role 1",
-      description: "Custom Role 1 can do something",
-    },
-    {
-      _id: "6",
-      name: "Custom Role 2",
-      description: "Custom Role 2 can do something",
-    },
-  ];
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+
+  useEffect(() => {
+    axios
+      .post("organizations/get/settings")
+      .then((res) => {
+        setBuiltInRoles(res.data.data.roles.filter((role: Role) => role.default));
+        setCustomRoles(res.data.data.roles.filter((role: Role) => !role.default));
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Error Fetching Settings");
+      });
+  }, []);
 
   return (
     <div>

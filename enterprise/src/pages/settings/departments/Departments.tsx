@@ -2,27 +2,30 @@ import { RootState } from "@/@types/reducer";
 import Sidebar from "./Sidebar";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useSelector } from "react-redux";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
+import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import { Department } from "@/@types/Organization";
 
 const Departments = () => {
   const org = useSelector((state: RootState) => state.organization);
+  const [departments, setDepartments] = useState<Department[]>([]);
 
-  const departments = [
-    {
-      _id: "1",
-      name: "Engineering",
-      description: "Engineering department",
-    },
-    {
-      _id: "2",
-      name: "Marketing",
-      description: "Marketing department",
-    },
-    {
-      _id: "3",
-      name: "Sales",
-      description: "Sales department",
-    },
-  ];
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+
+  useEffect(() => {
+    axios
+      .post("organizations/get/settings")
+      .then((res) => {
+        setDepartments(res.data.data.departments);
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Error Fetching Settings");
+      });
+  }, []);
 
   return (
     <div>

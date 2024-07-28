@@ -1,5 +1,5 @@
 import "./App.css";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import Lander from "./pages/lander/Lander";
@@ -8,8 +8,15 @@ import Layout from "./components/Layout";
 import JobLayout from "./pages/jobs/job/Layout";
 import SettingsLayout from "./pages/settings/Layout";
 import Start from "./pages/start/Start";
-import { RedirectToSignIn, SignedIn, SignedOut } from "@clerk/clerk-react";
+import {
+  RedirectToSignIn,
+  SignedIn,
+  SignedOut,
+  useUser,
+} from "@clerk/clerk-react";
 import Join from "./pages/join/Join";
+import { useDispatch } from "react-redux";
+import { setOrganization } from "./reducers/organizationReducer";
 
 // import Dashboard from "./pages/dashboard/Dashboard";
 // import Jobs from "./pages/jobs/Jobs";
@@ -19,6 +26,14 @@ import Join from "./pages/join/Join";
 // import Documentation from "./pages/documentation/Documentation";
 // import Billing from "./pages/billing/Billing";
 // import Support from "./pages/support/Support";
+
+const GeneralSettings = lazy(() => import("./pages/settings/general/General"));
+const Members = lazy(() => import("./pages/settings/members/Member"));
+const Roles = lazy(() => import("./pages/settings/roles/Roles"));
+const Departments = lazy(() => import("./pages/settings/departments/Departments"));
+const Security = lazy(() => import("./pages/settings/security/Security"));
+const Personalization = lazy(() => import("./pages/settings/personalization/Personalization"));
+const AuditLogs = lazy(() => import("./pages/settings/security/audit-logs/Audit-Logs"));
 
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
 const Jobs = lazy(() => import("./pages/jobs/Jobs"));
@@ -40,51 +55,11 @@ const Assessments = lazy(
 );
 const Interviews = lazy(() => import("./pages/jobs/job/interviews/Interviews"));
 
-const GeneralSettings = lazy(() => import("./pages/settings/general/General"));
-const Members = lazy(() => import("./pages/settings/members/Member"));
-const Roles = lazy(() => import("./pages/settings/roles/Roles"));
-const Departments = lazy(
-  () => import("./pages/settings/departments/Departments")
-);
-const Security = lazy(() => import("./pages/settings/security/Security"));
-const Personalization = lazy(
-  () => import("./pages/settings/personalization/Personalization")
-);
-const AuditLogs = lazy(
-  () => import("./pages/settings/security/audit-logs/Audit-Logs")
-);
 const Notifications = lazy(() => import("./pages/notifications/Notifications"));
 
 const Loader = () => <div>Loading...</div>;
 
 function App() {
-  const jobRoutes = [
-    {
-      path: "dashboard",
-      element: <Suspense fallback={<Loader />} children={<JobDashboard />} />,
-    },
-    {
-      path: "workflow",
-      element: <Suspense fallback={<Loader />} children={<Workflow />} />,
-    },
-    {
-      path: "ats",
-      element: <Suspense fallback={<Loader />} children={<Ats />} />,
-    },
-    {
-      path: "candidates",
-      element: <Suspense fallback={<Loader />} children={<JobCandidates />} />,
-    },
-    {
-      path: "assessments",
-      element: <Suspense fallback={<Loader />} children={<Assessments />} />,
-    },
-    {
-      path: "interviews",
-      element: <Suspense fallback={<Loader />} children={<Interviews />} />,
-    },
-  ];
-
   const settingsRoute = [
     {
       path: "general",
@@ -117,6 +92,33 @@ function App() {
     {
       path: "security/audit-logs",
       element: <Suspense fallback={<Loader />} children={<AuditLogs />} />,
+    },
+  ];
+
+  const jobRoutes = [
+    {
+      path: "dashboard",
+      element: <Suspense fallback={<Loader />} children={<JobDashboard />} />,
+    },
+    {
+      path: "workflow",
+      element: <Suspense fallback={<Loader />} children={<Workflow />} />,
+    },
+    {
+      path: "ats",
+      element: <Suspense fallback={<Loader />} children={<Ats />} />,
+    },
+    {
+      path: "candidates",
+      element: <Suspense fallback={<Loader />} children={<JobCandidates />} />,
+    },
+    {
+      path: "assessments",
+      element: <Suspense fallback={<Loader />} children={<Assessments />} />,
+    },
+    {
+      path: "interviews",
+      element: <Suspense fallback={<Loader />} children={<Interviews />} />,
     },
   ];
 
@@ -208,6 +210,20 @@ function App() {
       children: settingsRoute,
     },
   ]);
+
+  const { user, isSignedIn } = useUser();
+  const dispatch = useDispatch();
+  useEffect(() => {
+    if (isSignedIn) {
+      const data = {
+        _id: user.publicMetadata.orgId,
+        role: user.publicMetadata.roleName,
+        permissions: user.publicMetadata.permissions,
+      };
+      dispatch(setOrganization(data));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSignedIn]);
 
   return <RouterProvider router={router} />;
 }

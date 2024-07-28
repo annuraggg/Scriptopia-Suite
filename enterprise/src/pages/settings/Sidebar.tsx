@@ -12,7 +12,6 @@ import {
   Lock,
   SquareChevronRight,
   Boxes,
-  Brush,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
@@ -45,11 +44,11 @@ const Sidebar = () => {
       label: "Security",
       link: "/security",
     },
-    {
-      icon: Brush,
-      label: "Personalization",
-      link: "/personalization",
-    },
+    // {
+    //   icon: Brush,
+    //   label: "Personalization",
+    //   link: "/personalization",
+    // },
   ];
 
   const [active, setActive] = useState("dashboard");

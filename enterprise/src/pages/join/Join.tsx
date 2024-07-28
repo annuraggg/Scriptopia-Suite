@@ -9,8 +9,9 @@ import {
   CardHeader,
   CircularProgress,
 } from "@nextui-org/react";
-import { Link } from "lucide-react";
+import { HeartCrack, Link } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const bgStyle = {
@@ -23,23 +24,57 @@ const bgStyle = {
   backdropFilter: "blur(100px)",
 };
 
+interface Token {
+  inviter: string;
+  organization: string;
+  role: string;
+  email: string;
+  organizationname: string;
+}
+
 const Join = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const { isSignedIn, user, isLoaded } = useUser();
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  const [token, setToken] = useState<Token>({} as Token);
 
   const { getToken } = useAuth();
+  const axios = ax(getToken);
   useEffect(() => {
-    const axios = ax(getToken);
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
     axios
       .post("/organizations/verify", { token })
-      .then(() => setLoading(false))
+      .then((data) => {
+        setToken(data.data.data);
+        setLoading(false);
+      })
       .catch((err) => {
         console.error(err);
-        toast.error("Invalid Invite");
-      });
+        setError(true);
+      })
+      .finally(() => setLoading(false));
   }, []);
+
+  const handleJoin = (status: "accept" | "decline") => {
+    setSubmitLoading(true);
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+    axios
+      .post("/organizations/join", { status, token })
+      .then((res) => {
+        toast.success("Joined Organization");
+        navigate("/" + res.data.data.id);
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to join organization");
+      })
+      .finally(() => setSubmitLoading(false));
+  };
 
   return (
     <div
@@ -49,6 +84,20 @@ const Join = () => {
       <div>
         {!isSignedIn || !isLoaded || loading ? (
           <CircularProgress />
+        ) : error ? (
+          <Card>
+            <CardHeader className="justify-center">
+              You received an invite but...
+            </CardHeader>
+            <CardBody className="items-center px-10 w-[30vw]">
+              <HeartCrack size={100} className="opacity-50 text-red-500" />
+              <h3 className="mt-3">Invite Invalid</h3>
+              <p className="mt-5 opacity-50 text-center">
+                The Invite may have expired or you may not have permission to
+                join this organization
+              </p>
+            </CardBody>
+          </Card>
         ) : (
           <Card>
             <CardHeader className="justify-center">
@@ -60,14 +109,32 @@ const Join = () => {
                 <Link />
                 <Avatar size="lg" />
               </div>
-              <p className="mt-5 opacity-50">Anurag has invited you to join</p>
-              <h3 className="mt-3">Quebecia</h3>
+              <p className="mt-5 opacity-50">
+                {token.inviter
+                  ? `${token.inviter} has invited you to join`
+                  : "You have been invited to join"}
+              </p>
+              <h3 className="mt-3">{token?.organizationname ? token.organizationname : "Organization"}</h3>
             </CardBody>
             <CardFooter>
-              <Button className="w-full mr-2" color="danger" variant="flat">
+              <Button
+                className="w-full mr-2"
+                color="danger"
+                variant="flat"
+                onClick={() => handleJoin("decline")}
+                isDisabled={submitLoading}
+                isLoading={submitLoading}
+              >
                 Decline
               </Button>
-              <Button className="w-full" color="success" variant="flat">
+              <Button
+                className="w-full"
+                color="success"
+                variant="flat"
+                onClick={() => handleJoin("accept")}
+                isDisabled={submitLoading}
+                isLoading={submitLoading}
+              >
                 Join
               </Button>
             </CardFooter>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Modal,
   ModalContent,
@@ -10,39 +10,29 @@ import {
   Select,
   SelectItem,
 } from "@nextui-org/react";
+import { Member } from "@/@types/Organization";
+import Role from "@/@types/Roles";
 
-interface InvitedMember {
-  email: string;
-  invited: string;
-  role: string;
-}
-
-interface Role {
-  role: string;
-}
-
-interface InviteModalProps {
-  isOpen: boolean;
-  onOpenChange: (isOpen: boolean) => void;
-  onInvite: (member: InvitedMember) => void;
-  roles: Role[];
-}
-
-const InviteModal: React.FC<InviteModalProps> = ({
+const InviteModal = ({
   isOpen,
   onOpenChange,
   onInvite,
   roles,
+}: {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onInvite: (newMember: Member) => void;
+  roles: Role[];
 }) => {
   const [email, setEmail] = useState<string>("");
-  const [selectedRole, setSelectedRole] = useState<string>("");
+  const [selectedRole, setSelectedRole] = useState<Role>({} as Role);
 
   const handleInvite = () => {
     if (email && selectedRole) {
       const currentDate = new Date().toLocaleDateString("en-GB");
-      onInvite({ email, role: selectedRole, invited: currentDate });
+      onInvite({ email, role: selectedRole, addedOn: currentDate });
       setEmail("");
-      setSelectedRole("");
+      setSelectedRole({} as Role);
       onOpenChange(false);
     }
   };
@@ -63,14 +53,16 @@ const InviteModal: React.FC<InviteModalProps> = ({
               <Select
                 label="Role"
                 placeholder="Select a role"
-                selectedKeys={selectedRole ? [selectedRole] : []}
+                selectedKeys={selectedRole._id ? [selectedRole._id] : []}
                 onSelectionChange={(keys) =>
-                  setSelectedRole(Array.from(keys)[0] as string)
+                  setSelectedRole( // @ts-expect-error - shutup
+                    roles.find((role) => role._id === keys[0] as string) || ({} as Role)
+                  )
                 }
               >
                 {roles.map((role) => (
-                  <SelectItem key={role.role} value={role.role}>
-                    {role.role}
+                  <SelectItem key={role.name} value={role._id}>
+                    {role.name}
                   </SelectItem>
                 ))}
               </Select>

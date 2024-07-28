@@ -29,4 +29,4 @@ export interface ISubmission {
 }
 
 export default ISubmission;
-export { IResult, IDriverMeta };
+export type { IResult, IDriverMeta };

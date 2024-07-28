@@ -1,10 +1,5 @@
+import Role from "@/@types/Roles";
 import { Button } from "@nextui-org/react";
-
-interface Role {
-  _id: string;
-  name: string;
-  description: string;
-}
 
 const Sidebar = ({
   builtInRoles,
