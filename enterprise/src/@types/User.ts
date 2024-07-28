@@ -64,7 +64,7 @@ interface IUser extends Document {
 }
 
 export default IUser;
-export {
+export type {
   IProblemReference,
   IPortfolioEducation,
   IPortfolioExperience,

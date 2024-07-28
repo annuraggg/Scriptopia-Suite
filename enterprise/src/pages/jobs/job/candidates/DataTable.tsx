@@ -50,8 +50,8 @@ interface DataTableProps {
   data: Candidate[];
 }
 
-const stages = ["ATS", "Problem Solving", "Technical", "Interview", "Evaluation"];
-const assignees = ["John Doe", "Jane Smith", "Mike Johnson", "Emily Brown", "Alex Lee", "Sarah Wilson"];
+// const stages = ["ATS", "Problem Solving", "Technical", "Interview", "Evaluation"];
+// const assignees = ["John Doe", "Jane Smith", "Mike Johnson", "Emily Brown", "Alex Lee", "Sarah Wilson"];
 
 export function DataTable({ data }: DataTableProps) {
   const [candidates, setCandidates] = useState(data);

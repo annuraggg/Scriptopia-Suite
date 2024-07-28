@@ -5,11 +5,9 @@ import {
   MapPinIcon,
   BriefcaseIcon,
   BanknoteIcon,
-  Menu,
   ThumbsUpIcon,
   FileTextIcon,
   Ban,
-  FileUp,
   FolderOutputIcon,
 } from "lucide-react";
 import { ChevronLeftIcon } from "lucide-react";
