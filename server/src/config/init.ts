@@ -12,11 +12,17 @@ import authMiddleware from "../middlewares/authMiddleware";
 import "../utils/logger";
 import "./db";
 import "./cache";
+import "./stripe";
+import "./loops";
+import "./clerk";
 
 import homeRoute from "../routes/homeRoute";
 import problemRoute from "../routes/problemsRoute";
 import assessmentRoute from "../routes/assessmentRoute";
 import submissionRoute from "../routes/submissionRoute";
+import organizationRoute from "../routes/organizationRoute";
+import userRoute from "../routes/userRoute";
+import testRoute from "../routes/testRoute"
 
 const app = new Hono();
 
@@ -37,5 +43,8 @@ app.route("/home", homeRoute);
 app.route("/problems", problemRoute);
 app.route("/assessments", assessmentRoute);
 app.route("/submissions", submissionRoute);
+app.route("/organizations", organizationRoute);
+app.route("/users", userRoute);
+app.route("/test", testRoute)
 
 export default app;

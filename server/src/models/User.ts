@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
   clerkId: { type: String, required: true },
+  email: { type: String, required: true },
   solvedProblems: {
     type: [{ problemId: mongoose.Types.ObjectId, solvedAt: Date }],
     ref: "Problem",

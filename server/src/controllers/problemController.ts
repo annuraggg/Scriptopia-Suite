@@ -22,7 +22,6 @@ const getProblems = async (c: Context) => {
         return { ...problem, problemsWithAcceptanceRate };
       });
     
-    console.log(acceptanceRate);  
 
     return sendSuccess(c, 200, "Success", acceptanceRate);
   } catch (error) {

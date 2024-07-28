@@ -18,7 +18,7 @@ export default {
       padding: "2rem",
       screens: {
         "2xl": "1400px",
-        'xs':'360px',
+        xs: "360px",
       },
     },
     fontFamily: {
@@ -32,6 +32,10 @@ export default {
           "0 0px 10px rgba(255,255, 255, 0.35)",
           "0 0px 65px rgba(255, 255,255, 0.2)",
         ],
+        "glow-opacity": [
+          "0 0px 10px rgba(255,255, 255, 0.03)",
+          "0 0px 65px rgba(255, 255,255, 0.03)",
+        ],
         "glow-light": [
           "0 0px 1px rgba(255,255, 255, 0.35)",
           "0 0px 10px rgba(255, 255,255, 0.2)",
@@ -40,6 +44,24 @@ export default {
           "0 0px 1px rgba(255,255, 255, 0.1)",
           "0 0px 5px rgba(255, 255,255, 0.1)",
         ],
+
+        "glow-dark": [
+          "0 0px 10px rgba(1,1,1, 1)",
+          "0 0px 65px rgba(1,1,1, 1)",
+        ],
+        "glow-opacity-dark": [
+          "0 0px 10px rgba(0,0, 0, 0.03)",
+          "0 0px 65px rgba(0,0,0, 0.03)",
+        ],
+        "glow-light-dark": [
+          "0 0px 1px rgba(0,0, 0, 0.35)",
+          "0 0px 10px rgba(0,0,0, 0.2)",
+        ],
+        "glow-extralight-dark": [
+          "0 0px 1px rgba(0,0, 0, 0.1)",
+          "0 0px 5px rgba(0,0,0, 0.1)",
+        ],
+
         "glow-extralight-red": [
           "0 0px 1px rgba(255,0, 0, .1)",
           "0 0px 5px rgba(255, 0,0, .1)",

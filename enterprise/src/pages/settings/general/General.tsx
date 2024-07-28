@@ -62,7 +62,11 @@ const General = () => {
           />
         </div>
 
-        <Button className="absolute bottom-10 right-10" variant="flat" color="success">
+        <Button
+          className="absolute bottom-10 right-10"
+          variant="flat"
+          color="success"
+        >
           Save
         </Button>
       </div>

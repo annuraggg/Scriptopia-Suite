@@ -1,10 +1,23 @@
 import Filter from "./Filter";
 import { DataTable } from "./DataTable";
-import { Card } from "@nextui-org/react";
+import { Button } from "@nextui-org/react";
 import { FolderOutputIcon } from "lucide-react";
 
-const stages = ["ATS", "Problem Solving", "Technical", "Interview", "Evaluation"];
-const assignees = ["John Doe", "Jane Smith", "Mike Johnson", "Emily Brown", "Alex Lee", "Sarah Wilson"];
+const stages = [
+  "ATS",
+  "Problem Solving",
+  "Technical",
+  "Interview",
+  "Evaluation",
+];
+const assignees = [
+  "John Doe",
+  "Jane Smith",
+  "Mike Johnson",
+  "Emily Brown",
+  "Alex Lee",
+  "Sarah Wilson",
+];
 const statuses = ["Qualified", "Disqualified", "Hired"];
 
 const Candidates = () => {
@@ -22,24 +35,18 @@ const Candidates = () => {
   }
 
   return (
-    <div className="w-full h-full flex flex-col p-6">
-      <div className="w-full flex flex-row items-start justify-between gap-4 mb-6">
+    <div className="w-full h-full flex flex-col p-5">
+      <div className="w-full flex flex-row justify-between gap-4 items-center text-sm">
         <div className="flex flex-row items-start gap-4">
-          <p className="text-lg font-bold pt-2">Candidates for the Job of</p>
-          <div className="items-center justify-center border-2 border-blue-500 text-blue-500 rounded-full p-2 whitespace-nowrap h-12">
-            <p className="text-lg font-semibold">Software Engineer</p>
-          </div>
+          <p className="font-bold">Viewing Candidates for the job: </p>
+          <p>Software Engineer</p>
         </div>
-        <Card
-          isPressable
-          className="flex flex-row h-18 mt-1 p-2 rounded-xl gap-3 items-center justify-center border-2 shadow-md ml-auto"
-        >
-          <FolderOutputIcon size={24} />
-          <p className="text-neutral-400 text-sm">Export to CSV</p>
-        </Card>
+        <Button variant="flat">
+          <FolderOutputIcon size={16} />
+          <p>Export to CSV</p>
+        </Button>
       </div>
-      <div className="w-full bg-slate-700 h-[1px] rounded-full mb-6"></div>
-      <div className="w-full flex flex-row gap-4">
+      <div className="w-full flex flex-row gap-4 mt-5">
         <div className="w-[20%]">
           <Filter />
         </div>
