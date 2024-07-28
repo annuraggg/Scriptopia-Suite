@@ -238,15 +238,10 @@ const joinOrganization = async (c: Context) => {
 
       clerkClient.users.updateUser(u, {
         publicMetadata: {
-          organization: org._id,
+          orgId: org._id,
           roleName: decoded.role.toLowerCase(),
           roleId: decoded.roleId,
           permissions: onlyName,
-        },
-
-        privateMetadata: {
-          permissions: onlyName,
-          organization: org._id,
         },
       });
 
