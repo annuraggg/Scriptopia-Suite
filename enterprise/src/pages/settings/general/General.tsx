@@ -10,14 +10,10 @@ import ax from "@/config/axios";
 import { toast } from "sonner";
 
 const General = () => {
-  const [companyName, setCompanyName] = useState<string>("Scriptopia");
+  const [companyName, setCompanyName] = useState<string>("");
   const [logo, setLogo] = useState<string>();
-  const [companyWebsite, setCompanyWebsite] = useState<string>(
-    "https://scriptopia.tech"
-  );
-  const [companyEmail, setCompanyEmail] = useState<string>(
-    "contact@scriptopia.tech"
-  );
+  const [companyWebsite, setCompanyWebsite] = useState<string>();
+  const [companyEmail, setCompanyEmail] = useState<string>();
 
   const org = useSelector((state: RootState) => state.organization);
 

@@ -19,7 +19,7 @@ const AuditLogs = () => {
   useEffect(() => {
     axios
       .post("organizations/get/settings")
-      .then((res) => {
+      .then((res) => {  
         setAuditLogs(res.data.data.auditLogs);
       })
       .catch((err) => {
