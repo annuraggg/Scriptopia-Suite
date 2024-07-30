@@ -49,9 +49,12 @@ class checkPermission {
     }
 
     try {
+
       const userPermissions = await checkPermission.getUserPermissions(
         auth.userId
       );
+
+
       const hasPermission = permissions.every((permission) =>
         userPermissions.permissions.includes(permission)
       );

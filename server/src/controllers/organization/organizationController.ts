@@ -289,13 +289,58 @@ const getSettings = async (c: Context) => {
     return sendSuccess(c, 200, "Success", org);
   } catch (error) {
     logger.error(error as string);
-    return sendError(c, 500, "Failed to get organization settings", error);
+    return sendError(c, 500, "Failed to fetch organization settings", error);
   }
 };
+
+const updateSettings = async (c: Context) => {
+  try {
+    const perms = await checkPermission.all(c, ["edit_organization"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const { name, email, website } = await c.req.json();
+    const orgId = perms.data?.orgId;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const websiteRegex = /(http|https):\/\/[^ "]*/;
+
+    if (!name || !email || !website) {
+      return sendError(c, 400, "Please fill all required fields");
+    }
+
+    if (!emailRegex.test(email)) {
+      return sendError(c, 400, "Invalid email address");
+    }
+
+    if (!websiteRegex.test(website)) {
+      return sendError(c, 400, "Invalid website address");
+    }
+
+    const updatedOrg = await Organization.findByIdAndUpdate(
+      orgId,
+      { name, email, website },
+      { new: true }
+    );
+
+    if (!updatedOrg) {
+      return sendError(c, 404, "Organization not found");
+    }
+
+    return sendSuccess(c, 200, "Organization settings updated successfully", updatedOrg);
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Failed to update organization settings", error);
+  }
+};
+
+
 
 export default {
   createOrganization,
   verifyInvite,
   joinOrganization,
   getSettings,
+  updateSettings,
 };

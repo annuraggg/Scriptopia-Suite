@@ -6,6 +6,7 @@ app.post("/create", organizationController.createOrganization);
 app.post("/verify", organizationController.verifyInvite);
 app.post("/join", organizationController.joinOrganization);
 
-app.post("/get/settings", organizationController.getSettings);
+app.get("/settings", organizationController.getSettings);
+app.post("/settings", organizationController.updateSettings);
 
 export default app;

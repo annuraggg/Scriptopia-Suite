@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { Card, CardBody, Input, Link } from "@nextui-org/react";
+import {
+  Card,
+  CardBody,
+  Input,
+  Link,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+} from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
 import {
   ListIcon,
@@ -11,6 +20,10 @@ import {
   BriefcaseIcon,
   BanknoteIcon,
   Menu,
+  Trash2Icon,
+  ShareIcon,
+  PencilIcon,
+  Share,
 } from "lucide-react";
 import Filter from "./Filter";
 
@@ -297,6 +310,26 @@ const Cards = [
   },
 ];
 
+const editItems = [
+  {
+    title: "Edit",
+    icon: <PencilIcon size={18} />,
+  },
+  {
+    title: "Share",
+    icon: <ShareIcon size={18} />,
+    
+  },
+  {
+    title: "Archive",
+    icon: <ArchiveIcon size={18} />,
+  },
+  {
+    title: "Delete",
+    icon: <Trash2Icon size={18} />,
+  },
+];
+
 const Postings: React.FC = () => {
   const navigate = useNavigate();
   const [postings] = useState<Posting[]>(postingsSample);
@@ -380,39 +413,35 @@ const Postings: React.FC = () => {
                 <Card
                   isPressable
                   key={index}
-                  className={`text-white rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${
-                    selectedFilter === card.filter
-                      ? "bg-gray-500/20 text-white"
-                      : "text-gray-500"
-                  }`}
+                  className={`text-white rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${selectedFilter === card.filter
+                    ? "bg-gray-500/20 text-white"
+                    : "text-gray-500"
+                    }`}
                   onClick={() => handleFilterChange(card.filter)}
                 >
                   <div className="flex items-center justify-center gap-2 w-full">
                     <div
-                      className={`${
-                        selectedFilter === card.filter
-                          ? "text-white"
-                          : "text-gray-500"
-                      }`}
+                      className={`${selectedFilter === card.filter
+                        ? "text-white"
+                        : "text-gray-500"
+                        }`}
                     >
                       {card.icon}
                     </div>
                     <h1
-                      className={`${
-                        selectedFilter === card.filter
-                          ? "text-white"
-                          : "text-gray-500"
-                      } text-base`}
+                      className={`${selectedFilter === card.filter
+                        ? "text-white"
+                        : "text-gray-500"
+                        } text-base`}
                     >
                       {card.title}
                     </h1>
                   </div>
                   <p
-                    className={`text-center w-full ${
-                      selectedFilter === card.filter
-                        ? "text-white"
-                        : "text-gray-500"
-                    }`}
+                    className={`text-center w-full ${selectedFilter === card.filter
+                      ? "text-white"
+                      : "text-gray-500"
+                      }`}
                   >
                     {card.jobCount} Jobs
                   </p>
@@ -435,22 +464,20 @@ const Postings: React.FC = () => {
                         {posting.title}
                       </p>
                       <span
-                        className={`text-xs mr-3 rounded-full whitespace-nowrap ${
-                          posting.category === "IT"
-                            ? "text-success-500"
-                            : posting.category === "Operations"
+                        className={`text-xs mr-3 rounded-full whitespace-nowrap ${posting.category === "IT"
+                          ? "text-success-500"
+                          : posting.category === "Operations"
                             ? "text-warning-500"
                             : "bg-gray-100 text-gray-800"
-                        }`}
+                          }`}
                       >
                         {posting.category}
                       </span>
                       <span
-                        className={`text-xs px-2 rounded-full whitespace-nowrap ${
-                          posting.status === "active"
-                            ? " text-success-500 bg-success-100"
-                            : " text-danger-500 bg-danger-100"
-                        }`}
+                        className={`text-xs px-2 rounded-full whitespace-nowrap ${posting.status === "active"
+                          ? " text-success-500 bg-success-100"
+                          : " text-danger-500 bg-danger-100"
+                          }`}
                       >
                         {posting.status === "active" ? "Active" : "Closed"}
                       </span>
@@ -479,11 +506,26 @@ const Postings: React.FC = () => {
                         Open Until {posting.openUntil}
                       </p>
                     </div>
-                    <Menu
-                      size={28}
-                      className="mr-6 cursor-pointer"
-                      //onClick={() => handleDetailsClick()}
-                    />
+                    <Dropdown>
+                      <DropdownTrigger>
+                        <Menu
+                          size={28}
+                          className="mr-6 cursor-pointer"
+                        //onClick={() => handleDetailsClick()}
+                        />
+                      </DropdownTrigger>
+                      <DropdownMenu>
+                        {editItems.map((item, index) => (
+                          <DropdownItem
+                            key={index} className={item.title === "Delete" ? "text-danger" : ""}>
+                            <div className="flex items-center gap-2">
+                              {item.icon}
+                              <p>{item.title}</p>
+                            </div>
+                          </DropdownItem>
+                        ))}
+                      </DropdownMenu>
+                    </Dropdown>
                   </div>
                 </Card>
               ))}
