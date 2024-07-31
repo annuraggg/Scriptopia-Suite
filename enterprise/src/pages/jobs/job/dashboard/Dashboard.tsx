@@ -190,7 +190,9 @@ const Dashboard: React.FC = () => {
                   </p>
                 </div>
                 <div className="ml-auto text-xs text-gray-300 bg-secondary bg-opacity-5 rounded-full px-2 py-1">
-                  Open Until {posting?.openUntil}
+                {posting.status === "active"
+                          ? `Open Until ${posting.openUntil}`
+                          : `Closed at ${posting.openUntil}`}
                 </div>
               </div>
             </div>

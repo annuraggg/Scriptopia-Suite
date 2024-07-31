@@ -318,7 +318,6 @@ const editItems = [
   {
     title: "Share",
     icon: <ShareIcon size={18} />,
-    
   },
   {
     title: "Archive",
@@ -413,35 +412,39 @@ const Postings: React.FC = () => {
                 <Card
                   isPressable
                   key={index}
-                  className={`text-white rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${selectedFilter === card.filter
-                    ? "bg-gray-500/20 text-white"
-                    : "text-gray-500"
-                    }`}
+                  className={`text-white rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${
+                    selectedFilter === card.filter
+                      ? "bg-gray-500/20 text-white"
+                      : "text-gray-500"
+                  }`}
                   onClick={() => handleFilterChange(card.filter)}
                 >
                   <div className="flex items-center justify-center gap-2 w-full">
                     <div
-                      className={`${selectedFilter === card.filter
-                        ? "text-white"
-                        : "text-gray-500"
-                        }`}
+                      className={`${
+                        selectedFilter === card.filter
+                          ? "text-white"
+                          : "text-gray-500"
+                      }`}
                     >
                       {card.icon}
                     </div>
                     <h1
-                      className={`${selectedFilter === card.filter
-                        ? "text-white"
-                        : "text-gray-500"
-                        } text-base`}
+                      className={`${
+                        selectedFilter === card.filter
+                          ? "text-white"
+                          : "text-gray-500"
+                      } text-base`}
                     >
                       {card.title}
                     </h1>
                   </div>
                   <p
-                    className={`text-center w-full ${selectedFilter === card.filter
-                      ? "text-white"
-                      : "text-gray-500"
-                      }`}
+                    className={`text-center w-full ${
+                      selectedFilter === card.filter
+                        ? "text-white"
+                        : "text-gray-500"
+                    }`}
                   >
                     {card.jobCount} Jobs
                   </p>
@@ -464,20 +467,22 @@ const Postings: React.FC = () => {
                         {posting.title}
                       </p>
                       <span
-                        className={`text-xs mr-3 rounded-full whitespace-nowrap ${posting.category === "IT"
-                          ? "text-success-500"
-                          : posting.category === "Operations"
+                        className={`text-xs mr-3 rounded-full whitespace-nowrap ${
+                          posting.category === "IT"
+                            ? "text-success-500"
+                            : posting.category === "Operations"
                             ? "text-warning-500"
                             : "bg-gray-100 text-gray-800"
-                          }`}
+                        }`}
                       >
                         {posting.category}
                       </span>
                       <span
-                        className={`text-xs px-2 rounded-full whitespace-nowrap ${posting.status === "active"
-                          ? " text-success-500 bg-success-100"
-                          : " text-danger-500 bg-danger-100"
-                          }`}
+                        className={`text-xs px-2 rounded-full whitespace-nowrap ${
+                          posting.status === "active"
+                            ? " text-success-500 bg-success-100"
+                            : " text-danger-500 bg-danger-100"
+                        }`}
                       >
                         {posting.status === "active" ? "Active" : "Closed"}
                       </span>
@@ -503,7 +508,9 @@ const Postings: React.FC = () => {
                   <div className="flex items-center justify-between w-full">
                     <div className="text-sm rounded-full border bg-secondary bg-opacity-5 px-2 py-1">
                       <p className="text-gray-300 text-xs">
-                        Open Until {posting.openUntil}
+                        {posting.status === "active"
+                          ? `Open Until ${posting.openUntil}`
+                          : `Closed at ${posting.openUntil}`}
                       </p>
                     </div>
                     <Dropdown>
@@ -511,13 +518,17 @@ const Postings: React.FC = () => {
                         <Menu
                           size={28}
                           className="mr-6 cursor-pointer"
-                        //onClick={() => handleDetailsClick()}
+                          //onClick={() => handleDetailsClick()}
                         />
                       </DropdownTrigger>
                       <DropdownMenu>
                         {editItems.map((item, index) => (
                           <DropdownItem
-                            key={index} className={item.title === "Delete" ? "text-danger" : ""}>
+                            key={index}
+                            className={
+                              item.title === "Delete" ? "text-danger" : ""
+                            }
+                          >
                             <div className="flex items-center gap-2">
                               {item.icon}
                               <p>{item.title}</p>
