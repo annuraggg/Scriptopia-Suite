@@ -51,12 +51,12 @@ const General = () => {
         name: companyName,
         email: companyEmail,
         website: companyWebsite,
-        logo: logo,
+        logo: logo
       });
       toast.success("Settings updated successfully");
       setHasChanges(false);
     } catch (err) {
-      console.error(err);
+      console.log(err);
       toast.error("Error updating settings. Please try again.");
     } finally {
       setSaving(false);

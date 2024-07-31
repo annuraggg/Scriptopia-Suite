@@ -1,7 +1,6 @@
 import { Context } from "hono";
 import { sendError, sendSuccess } from "../../utils/sendResponse";
 import Organization from "../../models/Organization";
-import stripe from "../../config/stripe";
 import User from "../../models/User";
 import jwt from "jsonwebtoken";
 import loops from "../../config/loops";
@@ -10,6 +9,7 @@ import logger from "../../utils/logger";
 import Roles from "../../models/Roles";
 import checkPermission from "../../middlewares/checkPermission";
 import PermissionType from "../../@types/Permission";
+import { createCustomer } from "@lemonsqueezy/lemonsqueezy.js";
 
 const roleIdMap = {
   admin: "66a6165bdc907b2eb692501b",
@@ -96,11 +96,14 @@ const createOrganization = async (c: Context) => {
       .populate("permissions")
       .exec();
 
-    const customer = await stripe.customers.create({
-      name,
-      email,
-    });
-
+    const { data: lemonSqueezyCustomer } = await createCustomer(
+      process.env.LEMON_SQUEEZY_STORE_ID!,
+      {
+        name,
+        email,
+      }
+    );
+    
     // Create organization
     const org = await Organization.create({
       name,
@@ -112,7 +115,7 @@ const createOrganization = async (c: Context) => {
         status: "active",
         startedOn: new Date(),
         endsOn: new Date(new Date().setDate(new Date().getDate() + 15)),
-        stripeId: customer.id,
+        lemonSqueezyId: lemonSqueezyCustomer?.data?.id || "",
       },
     });
 
@@ -328,14 +331,17 @@ const updateSettings = async (c: Context) => {
       return sendError(c, 404, "Organization not found");
     }
 
-    return sendSuccess(c, 200, "Organization settings updated successfully", updatedOrg);
+    return sendSuccess(
+      c,
+      200,
+      "Organization settings updated successfully",
+      updatedOrg
+    );
   } catch (error) {
     logger.error(error as string);
     return sendError(c, 500, "Failed to update organization settings", error);
   }
 };
-
-
 
 export default {
   createOrganization,

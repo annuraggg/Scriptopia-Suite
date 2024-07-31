@@ -10,7 +10,6 @@ import authMiddleware from "../middlewares/authMiddleware";
 import "../utils/logger";
 import "./db";
 import "./cache";
-import "./stripe";
 import "./loops";
 import "./clerk";
 
