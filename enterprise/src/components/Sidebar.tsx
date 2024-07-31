@@ -22,6 +22,7 @@ import {
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/@types/reducer";
+import { UserButton, /*useAuth*/ } from "@clerk/clerk-react";
 
 const Sidebar = () => {
   const org = useSelector((state: RootState) => state.organization);
@@ -121,9 +122,8 @@ const Sidebar = () => {
     <>
       <TooltipProvider>
         <aside
-          className={` sticky h-[100vh] min-w-16 px-5 top-0 left-0 z-10 hidden transition-width flex-col border-r bg-background sm:flex overflow-x-hidden ${
-            collapsed ? "w-16" : "w-64"
-          }`}
+          className={` sticky h-[100vh] min-w-16 px-5 top-0 left-0 z-10 hidden transition-width flex-col border-r bg-background sm:flex overflow-x-hidden ${collapsed ? "w-16" : "w-64"
+            }`}
         >
           <nav className={`flex flex-col gap-4 sm:py-5 `}>
             <div>
@@ -142,16 +142,15 @@ const Sidebar = () => {
                 <TooltipTrigger asChild>
                   <table className={!item.visible ? "hidden" : ""}>
                     <tbody
-                      className={`cursor-pointer h-8 ${
-                        active === item.label.toLowerCase()
-                          ? " text-white-500 rounded-xl"
-                          : "text-muted-foreground opacity-50 hover:text-white"
-                      } `}
+                      className={`cursor-pointer h-8 ${active === item.label.toLowerCase()
+                        ? " text-white-500 rounded-xl"
+                        : "text-muted-foreground opacity-50 hover:text-white"
+                        } `}
                       onClick={() => {
                         navigate(
                           "/" +
-                            window.location.pathname.split("/")[1] +
-                            item.link
+                          window.location.pathname.split("/")[1] +
+                          item.link
                         );
                         setActive(item.label.toLowerCase());
                       }}
@@ -175,23 +174,28 @@ const Sidebar = () => {
                 <TooltipTrigger asChild>
                   <table className={!item.visible ? "hidden" : ""}>
                     <tbody
-                      className={`cursor-pointer h-7 ${
-                        active === item.label.toLowerCase()
-                          ? " text-white rounded-xl"
-                          : "text-muted-foreground opacity-50 hover:text-white"
-                      } `}
+                      className={`cursor-pointer h-7 ${active === item.label.toLowerCase()
+                        ? " text-white rounded-xl"
+                        : "text-muted-foreground opacity-50 hover:text-white"
+                        } `}
                       onClick={() => {
                         navigate(
                           "/" +
-                            window.location.pathname.split("/")[1] +
-                            item.link
+                          window.location.pathname.split("/")[1] +
+                          item.link
                         );
 
                         setActive(item.label.toLowerCase());
                       }}
                     >
                       <td className="pr-3">
-                        {item.icon && <item.icon className="h-5 w-5" />}
+                        {item.label === "Profile" ? (
+                          <div className="flex items-center justify-center user-button-small">
+                            <UserButton />
+                          </div>
+                        ) : (
+                          item.icon && <item.icon className="h-5 w-5" />
+                        )}
                       </td>
                       {collapsed ? null : (
                         <td className="text-start w-full">{item.label}</td>
@@ -208,9 +212,8 @@ const Sidebar = () => {
             <Tooltip>
               <TooltipTrigger>
                 <ChevronRight
-                  className={`h-5 w-5 text-muted-foreground transition-all  opacity-50 ${
-                    !collapsed ? "rotate-180" : ""
-                  }`}
+                  className={`h-5 w-5 text-muted-foreground transition-all  opacity-50 ${!collapsed ? "rotate-180" : ""
+                    }`}
                   onClick={() => setCollapsed(!collapsed)}
                 />
               </TooltipTrigger>

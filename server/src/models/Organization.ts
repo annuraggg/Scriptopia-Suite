@@ -49,7 +49,7 @@ const subscriptionSchema = new Schema({
   status: { type: String, enum: ["active", "inactive"], default: "inactive" },
   startedOn: { type: Date, default: Date.now, required: true },
   endsOn: { type: Date, required: true },
-  stripeId: { type: String, required: true },
+  lemonSqueezyId: { type: String, required: true },
 });
 
 const organizationSchema = new Schema({

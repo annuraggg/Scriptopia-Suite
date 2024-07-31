@@ -260,3 +260,9 @@ button:hover .ql-fill,
   fill: skyblue !important;
   stroke: none;
 }
+
+.user-button-small {
+  height: 1.25rem; /* 20px */
+  width: 1.25rem;  /* 20px */
+}
+

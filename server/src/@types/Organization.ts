@@ -33,7 +33,7 @@ interface Subscription {
   status?: "active" | "inactive";
   startedOn: Date;
   endsOn: Date;
-  stripeId: string;
+  lemonSqueezyId: string;
 }
 
 interface Organization {
