@@ -3,7 +3,6 @@ import {
   Card,
   CardBody,
   Input,
-  Link,
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
@@ -25,6 +24,7 @@ import {
   PencilIcon,
 } from "lucide-react";
 import Filter from "./Filter";
+import CreateJobModal from "./CreateJobModal";
 
 interface Posting {
   id: string;
@@ -339,6 +339,7 @@ const Postings: React.FC = () => {
     start: "",
     end: "",
   });
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const filteredPostings = postings.filter((post) => {
     const matchesSearch = post.title
@@ -373,6 +374,14 @@ const Postings: React.FC = () => {
     setSelectedFilter(filter);
   };
 
+  const openCreateJobModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeCreateJobModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
     <div className="flex gap-5 w-full p-5">
       <div className="w-full">
@@ -396,12 +405,12 @@ const Postings: React.FC = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <Card className="w-1/5 cursor-pointer">
+              <Card className="w-1/5 cursor-pointer" isPressable onClick={openCreateJobModal}>
                 <CardBody className="flex items-center justify-between bg-success-400 text-background bg-opacity-3 py-2 px-5">
-                  <Link className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <FilePlusIcon className="text-background" size={22} />
                     <p className="text-sm text-background">Create a new job</p>
-                  </Link>
+                  </div>
                 </CardBody>
               </Card>
             </div>
@@ -543,6 +552,7 @@ const Postings: React.FC = () => {
           </div>
         </div>
       </div>
+      <CreateJobModal isOpen={isModalOpen} onClose={closeCreateJobModal} />
     </div>
   );
 };
