@@ -2,6 +2,7 @@ import { Context } from "hono";
 import { sendError, sendSuccess } from "../../utils/sendResponse";
 import Organization from "../../models/Organization";
 import User from "../../models/User";
+import { Types } from "mongoose";
 import jwt from "jsonwebtoken";
 import loops from "../../config/loops";
 import clerkClient from "../../config/clerk";
@@ -10,6 +11,8 @@ import Roles from "../../models/Roles";
 import checkPermission from "../../middlewares/checkPermission";
 import PermissionType from "../../@types/Permission";
 import { createCustomer } from "@lemonsqueezy/lemonsqueezy.js";
+import Candidate from "../../@types/Candidate";
+import candidateModel from "../../models/Candidate";
 
 const roleIdMap = {
   admin: "66a6165bdc907b2eb692501b",
@@ -103,7 +106,7 @@ const createOrganization = async (c: Context) => {
         email,
       }
     );
-    
+
     // Create organization
     const org = await Organization.create({
       name,
@@ -343,10 +346,60 @@ const updateSettings = async (c: Context) => {
   }
 };
 
+const getCandidates = async (c: Context) => {
+  try {
+    const perms = await checkPermission.all(c, ["view_candidates"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const orgId = perms.data?.orgId;
+
+    const organization = await Organization.findById(orgId);
+
+    if (!organization) {
+      return sendError(c, 404, "Organization not found");
+    }
+
+    const candidateIds = organization.candidates.map((id) =>
+      id instanceof Types.ObjectId ? id : new Types.ObjectId(id)
+    );
+
+    const candidates = await candidateModel.find({
+      _id: { $in: candidateIds },
+    });
+
+    const formattedCandidates: Candidate[] = candidates.map((candidate) => ({
+      _id: candidate._id.toString(),
+      firstName: candidate.firstName,
+      lastName: candidate.lastName,
+      email: candidate.email,
+      phone: candidate.phone,
+      resumeUrl: candidate.resumeUrl,
+      queries: candidate.queries,
+      status: candidate.status || "N/A",
+      receivedDate: candidate.receivedDate
+        ? candidate.receivedDate.toISOString()
+        : "N/A",
+    }));
+
+    return sendSuccess(
+      c,
+      200,
+      "Candidates retrieved successfully",
+      formattedCandidates
+    );
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Failed to fetch candidates", error);
+  }
+};
+
 export default {
   createOrganization,
   verifyInvite,
   joinOrganization,
   getSettings,
   updateSettings,
+  getCandidates,
 };

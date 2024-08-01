@@ -8,7 +8,9 @@ const candidateSchema = new Schema({
   phone: { type: String, required: true },
   resumeUrl: { type: String, required: true },
   queries: [{ type: String }],
+  status: { type: String, default: 'N/A' },
+  receivedDate: { type: Date, default: Date.now }
 });
 
-const candidate = mongoose.model("Candidate", candidateSchema);
-export default candidate;
+const Candidate = mongoose.model("Candidate", candidateSchema);
+export default Candidate;
