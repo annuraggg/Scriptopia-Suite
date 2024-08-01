@@ -23,7 +23,6 @@ import {
   Trash2Icon,
   ShareIcon,
   PencilIcon,
-  Share,
 } from "lucide-react";
 import Filter from "./Filter";
 
