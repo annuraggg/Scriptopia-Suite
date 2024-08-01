@@ -38,6 +38,7 @@
     "react-router-dom": "^6.25.1",
     "react-tagsinput": "^3.20.3",
     "recharts": "^2.12.7",
+    "rollup": "^4.19.2",
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
