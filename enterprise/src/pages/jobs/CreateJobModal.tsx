@@ -28,8 +28,6 @@ const CreateJobModal: React.FC<CreateJobModalProps> = ({ isOpen, onClose }) => {
     { label: "Job Title", description: "Enter the job title" },
     { label: "Department", description: "Enter the department" },
     { label: "Location", description: "Enter the location" },
-    { label: "Salary From", description: "Enter the minimum salary", type: "number" },
-    { label: "Salary To", description: "Enter the maximum salary", type: "number" },
   ];
 
   return (
@@ -48,11 +46,11 @@ const CreateJobModal: React.FC<CreateJobModalProps> = ({ isOpen, onClose }) => {
           {inputFields.map((field, index) => (
             <div key={index} className="w-full">
               <Input
-                type={field.type || "text"}
+                type="text"
                 label={field.label}
                 labelPlacement="outside"
                 description={field.description}
-                value={field.type === "number" ? "" : ""}
+                value=""
                 onChange={() => {}}
                 classNames={{
                   label: "pb-0 text-left",
@@ -77,59 +75,65 @@ const CreateJobModal: React.FC<CreateJobModalProps> = ({ isOpen, onClose }) => {
               ))}
             </Select>
           </div>
-          <div className="flex flex-col space-y-2 w-full">
-            <label className="text-sm font-medium text-left">Job Posting Start</label>
-            <Input
-              type="date"
-              label="Date"
-              labelPlacement="outside"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              classNames={{
-                label: "pb-0 text-left",
-                base: "w-full",
-                inputWrapper: "mt-1"
-              }}
-            />
-            <Input
-              type="time"
-              label="Time"
-              labelPlacement="outside"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              classNames={{
-                label: "pb-0 text-left",
-                base: "w-full",
-                inputWrapper: "mt-1"
-              }}
-            />
-          </div>
-          <div className="flex flex-col space-y-2 w-full">
-            <label className="text-sm font-medium text-left">Application Deadline</label>
-            <Input
-              type="date"
-              label="Date"
-              labelPlacement="outside"
-              value={deadlineDate}
-              onChange={(e) => setDeadlineDate(e.target.value)}
-              classNames={{
-                label: "pb-0 text-left",
-                base: "w-full",
-                inputWrapper: "mt-1"
-              }}
-            />
-            <Input
-              type="time"
-              label="Time"
-              labelPlacement="outside"
-              value={deadlineTime}
-              onChange={(e) => setDeadlineTime(e.target.value)}
-              classNames={{
-                label: "pb-0 text-left",
-                base: "w-full",
-                inputWrapper: "mt-1"
-              }}
-            />
+          <div className="flex flex-col w-full h-full gap-4">
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-left">Job Posting Start</label>
+              <div className="flex space-x-2">
+                <Input
+                  type="date"
+                  label="Date"
+                  labelPlacement="outside"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  classNames={{
+                    label: "pb-0 text-left",
+                    base: "w-1/2",
+                    inputWrapper: "mt-1"
+                  }}
+                />
+                <Input
+                  type="time"
+                  label="Time"
+                  labelPlacement="outside"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  classNames={{
+                    label: "pb-0 text-left",
+                    base: "w-1/2",
+                    inputWrapper: "mt-1"
+                  }}
+                />
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-left">Application Deadline</label>
+              <div className="flex space-x-2">
+                <Input
+                  type="date"
+                  label="Date"
+                  labelPlacement="outside"
+                  value={deadlineDate}
+                  onChange={(e) => setDeadlineDate(e.target.value)}
+                  classNames={{
+                    label: "pb-0 text-left",
+                    base: "w-1/2",
+                    inputWrapper: "mt-1"
+                  }}
+                />
+                <Input
+                  type="time"
+                  label="Time"
+                  labelPlacement="outside"
+                  value={deadlineTime}
+                  onChange={(e) => setDeadlineTime(e.target.value)}
+                  classNames={{
+                    label: "pb-0 text-left",
+                    base: "w-1/2",
+                    inputWrapper: "mt-1"
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </ModalBody>
         <ModalFooter>
