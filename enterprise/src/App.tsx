@@ -1,6 +1,8 @@
 import "./App.css";
 import { Suspense, lazy, useEffect } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Spinner } from "@nextui-org/react";
+import "./App.css";
 
 import Lander from "./pages/lander/Lander";
 
@@ -57,7 +59,10 @@ const Interviews = lazy(() => import("./pages/jobs/job/interviews/Interviews"));
 
 const Notifications = lazy(() => import("./pages/notifications/Notifications"));
 
-const Loader = () => <div>Loading...</div>;
+const Loader = () =>     <div className="spinner-container">
+<Spinner label="Loading..." color="default" />
+</div>
+
 
 function App() {
   const settingsRoute = [
