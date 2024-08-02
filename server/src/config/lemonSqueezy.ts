@@ -8,18 +8,11 @@ config();
 
 const apiKey = process.env.LEMON_SQUEEZY_API_KEY;
 
-lemonSqueezySetup({
+const ls = lemonSqueezySetup({
   apiKey,
-  onError: (error) => console.error("Error!", error),
+  onError: (error) => logger.error("Error in Lemon Squeezy: " + error),
 });
-logger.info("Stripe Initialized");
 
-const { data, error } = await getAuthenticatedUser();
+logger.info("Lemon Squeezy Initialized");
 
-if (error) {
-  console.log(error.message);
-} else {
-  console.log(data);
-}
-
-export default lemonSqueezySetup;
+export default ls;

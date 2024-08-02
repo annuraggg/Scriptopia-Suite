@@ -7,11 +7,13 @@ import { clerkMiddleware } from "@hono/clerk-auth";
 import performanceMiddleware from "../middlewares/performanceMiddleware";
 import authMiddleware from "../middlewares/authMiddleware";
 
+import "./lemonSqueezy";
 import "../utils/logger";
 import "./db";
 import "./cache";
 import "./loops";
 import "./clerk";
+import "newrelic";
 
 import homeRoute from "../routes/homeRoute";
 import problemRoute from "../routes/problemsRoute";
@@ -23,7 +25,7 @@ import userRoute from "../routes/userRoute";
 const app = new Hono();
 
 // @ts-expect-error - Types Not Available
-app.use(clerkMiddleware()); 
+app.use(clerkMiddleware());
 app.use(prettyJSON());
 app.use(cors());
 app.use(authMiddleware);

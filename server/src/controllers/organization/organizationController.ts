@@ -17,7 +17,7 @@ import r2Client from "../../config/s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import multer from "multer";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-const storage = multer.memoryStorage();
+import ls from "../../config/lemonSqueezy";
 
 const roleIdMap = {
   admin: "66a6165bdc907b2eb692501b",
@@ -104,13 +104,20 @@ const createOrganization = async (c: Context) => {
       .populate("permissions")
       .exec();
 
-    const { data: lemonSqueezyCustomer } = await createCustomer(
-      process.env.LEMON_SQUEEZY_STORE_ID!,
-      {
-        name,
-        email,
-      }
-    );
+    const {
+      data: lemonSqueezyCustomer,
+      error: lsError,
+      statusCode: lsStatus,
+    } = await createCustomer(process.env.LEMON_SQUEEZY_STORE_ID!, {
+      name,
+      email,
+    });
+
+    console.log(lsError);
+    console.log(lsStatus);
+
+    console.log(lemonSqueezyCustomer);
+    console.log(lemonSqueezyCustomer?.data?.id);
 
     // Create organization
     const org = await Organization.create({
@@ -123,7 +130,7 @@ const createOrganization = async (c: Context) => {
         status: "active",
         startedOn: new Date(),
         endsOn: new Date(new Date().setDate(new Date().getDate() + 15)),
-        lemonSqueezyId: lemonSqueezyCustomer?.data?.id || "",
+        lemonSqueezyId: lemonSqueezyCustomer?.data?.id,
       },
     });
 

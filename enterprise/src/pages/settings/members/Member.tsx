@@ -12,6 +12,7 @@ import {
   Select,
   SelectItem,
   useDisclosure,
+  Spinner,
 } from "@nextui-org/react";
 import InviteModal from "./InviteModal";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
@@ -21,12 +22,12 @@ import { toast } from "sonner";
 import { Member } from "@/@types/Organization";
 import Role from "@/@types/Roles";
 
-
 const Members: React.FC = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [members, setMembers] = useState<Member[]>([]);
   const [invitedMembers, setInvitedMembers] = useState<Member[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const handleInvite = (newMember: Member) => {
     setInvitedMembers([...invitedMembers, newMember]);
@@ -43,6 +44,7 @@ const Members: React.FC = () => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
   useEffect(() => {
+    setLoading(true);
     axios
       .get("organizations/settings")
       .then((res) => {
@@ -64,9 +66,18 @@ const Members: React.FC = () => {
       .catch((err) => {
         console.error(err);
         toast.error("Error Fetching Settings");
-      });
+      })
+      .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <>
