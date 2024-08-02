@@ -2,8 +2,6 @@ import { Image } from "@nextui-org/image";
 import { Button, Input, Spinner } from "@nextui-org/react";
 import { useEffect, useState } from "react";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
-import { useSelector } from "react-redux";
-import { RootState } from "@/@types/reducer";
 import { Upload } from "lucide-react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
@@ -17,8 +15,6 @@ const General = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
   const [hasChanges, setHasChanges] = useState<boolean>(false);
-
-  const org = useSelector((state: RootState) => state.organization);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -51,7 +47,7 @@ const General = () => {
         name: companyName,
         email: companyEmail,
         website: companyWebsite,
-        logo: logo
+        logo: logo,
       });
       toast.success("Settings updated successfully");
       setHasChanges(false);
@@ -63,10 +59,12 @@ const General = () => {
     }
   };
 
-  const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setter(e.target.value);
-    setHasChanges(true);
-  };
+  const handleInputChange =
+    (setter: React.Dispatch<React.SetStateAction<string>>) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setter(e.target.value);
+      setHasChanges(true);
+    };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -92,13 +90,8 @@ const General = () => {
     <>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem href={"/" + org._id}>Organization</BreadcrumbItem>
-          <BreadcrumbItem href={"/" + org._id + "/settings"}>
-            Settings
-          </BreadcrumbItem>
-          <BreadcrumbItem href={"/" + org._id + "/settings/general"}>
-            General
-          </BreadcrumbItem>
+          <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
+          <BreadcrumbItem href={"/settings/general"}>General</BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <div className="p-5 px-10">

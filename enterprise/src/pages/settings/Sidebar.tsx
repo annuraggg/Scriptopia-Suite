@@ -14,8 +14,6 @@ import {
   Boxes,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "@/@types/reducer";
 
 const Sidebar = () => {
   const topItems = [
@@ -55,8 +53,6 @@ const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
 
-  const org = useSelector((state: RootState) => state.organization);
-
   useEffect(() => {
     setActive(window.location.pathname.split("/")[3]);
   }, []);
@@ -81,7 +77,7 @@ const Sidebar = () => {
                           : "text-muted-foreground opacity-50 hover:text-white"
                       } `}
                       onClick={() => {
-                        navigate(`/${org._id}/settings${item.link}`);
+                        navigate(`/settings${item.link}`);
                         setActive(item.label.toLowerCase());
                       }}
                     >

@@ -14,8 +14,6 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import InviteModal from "./InviteModal";
-import { useSelector } from "react-redux";
-import { RootState } from "@/@types/reducer";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
@@ -45,15 +43,15 @@ const Members: React.FC = () => {
   const [invitedMembers, setInvitedMembers] = useState<Member[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
 
-  const org = useSelector((state: RootState) => state.organization);
-
   const handleInvite = (newMember: Member) => {
     setInvitedMembers([...invitedMembers, newMember]);
   };
 
   const handleRoleChange = (index: number, newRole: string) => {
     const updatedMembers = [...members];
-    updatedMembers[index].role = roles.find((role) => role.name === newRole) as Role;
+    updatedMembers[index].role = roles.find(
+      (role) => role.name === newRole
+    ) as Role;
     setMembers(updatedMembers);
   };
 
@@ -61,7 +59,7 @@ const Members: React.FC = () => {
   const axios = ax(getToken);
   useEffect(() => {
     axios
-      .post("organizations/get/settings")
+      .post("organizations/settings")
       .then((res) => {
         setMembers(
           res.data.data.members.filter(
@@ -89,13 +87,8 @@ const Members: React.FC = () => {
     <>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem href={"/" + org._id}>Organization</BreadcrumbItem>
-          <BreadcrumbItem href={"/" + org._id + "/settings"}>
-            Settings
-          </BreadcrumbItem>
-          <BreadcrumbItem href={"/" + org._id + "/settings/members"}>
-            Members
-          </BreadcrumbItem>
+          <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
+          <BreadcrumbItem href={"/settings/members"}>Members</BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <div className="flex flex-col items-start justify-start w-full h-full p-5">

@@ -159,7 +159,7 @@ function App() {
       ),
     },
     {
-      path: "/:org",
+      path: "/",
       element: <Layout />,
       children: [
         {
@@ -205,12 +205,12 @@ function App() {
       ],
     },
     {
-      path: ":org/jobs/:id",
+      path: "jobs/:id",
       element: <JobLayout />,
       children: jobRoutes,
     },
     {
-      path: ":org/settings",
+      path: "/settings",
       element: <SettingsLayout />,
       children: settingsRoute,
     },

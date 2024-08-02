@@ -1,15 +1,10 @@
-import { RootState } from "@/@types/reducer";
 import { Terminal } from "lucide-react";
-import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 const Sidebar = () => {
   const navigate = useNavigate();
-  const org = useSelector((state: RootState) => state.organization);
 
-  const tabs = [
-    { icon: Terminal, label: "Audit Logs", link: "audit-logs" },
-  ];
+  const tabs = [{ icon: Terminal, label: "Audit Logs", link: "audit-logs" }];
 
   return (
     <div className="h-[85vh] border w-[20%] rounded-xl bg-card px-2">
@@ -18,7 +13,7 @@ const Sidebar = () => {
           <div
             key={tab.label}
             className="flex gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 cursor-pointer transition-all"
-            onClick={() => navigate(`/${org._id}/settings/security/${tab.link}`)}
+            onClick={() => navigate(`/settings/security/${tab.link}`)}
           >
             <tab.icon />
             <p>{tab.label}</p>

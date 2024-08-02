@@ -1,7 +1,5 @@
-import { RootState } from "@/@types/reducer";
 import Sidebar from "../Sidebar";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
-import { useSelector } from "react-redux";
 import { CircleAlert, CircleCheck, CircleX, Info } from "lucide-react";
 import { Input } from "@nextui-org/react";
 import { useAuth } from "@clerk/clerk-react";
@@ -11,7 +9,6 @@ import { useEffect, useState } from "react";
 import { AuditLog } from "@/@types/Organization";
 
 const AuditLogs = () => {
-  const org = useSelector((state: RootState) => state.organization);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
 
   const { getToken } = useAuth();
@@ -19,30 +16,23 @@ const AuditLogs = () => {
   useEffect(() => {
     axios
       .post("organizations/get/settings")
-      .then((res) => {  
+      .then((res) => {
         setAuditLogs(res.data.data.auditLogs);
       })
       .catch((err) => {
         console.error(err);
         toast.error("Error Fetching Settings");
       });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem href={"/" + org._id}>Organization</BreadcrumbItem>
-          <BreadcrumbItem href={"/" + org._id + "/settings"}>
-            Settings
-          </BreadcrumbItem>
-          <BreadcrumbItem href={"/" + org._id + "/settings/security"}>
-            Security
-          </BreadcrumbItem>
-          <BreadcrumbItem
-            href={"/" + org._id + "/settings/security/audit-logs"}
-          >
+          <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
+          <BreadcrumbItem href={"/settings/security"}>Security</BreadcrumbItem>
+          <BreadcrumbItem href={"/settings/security/audit-logs"}>
             Audit Logs
           </BreadcrumbItem>
         </Breadcrumbs>
@@ -83,7 +73,9 @@ const AuditLogs = () => {
                 <p>{log.action}</p>
                 <p className="text-xs opacity-50">User: {log.user}</p>
               </div>
-              <p className="absolute right-5 text-xs opacity-50">{new Date(log.date).toLocaleString()}</p>
+              <p className="absolute right-5 text-xs opacity-50">
+                {new Date(log.date).toLocaleString()}
+              </p>
             </div>
           ))}
         </div>

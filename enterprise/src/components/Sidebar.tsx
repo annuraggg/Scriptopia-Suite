@@ -16,13 +16,12 @@ import {
   CreditCard,
   HelpCircle,
   ChevronRight,
-  CircleUser,
   Bell,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/@types/reducer";
-import { UserButton, /*useAuth*/ } from "@clerk/clerk-react";
+import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
 
 const Sidebar = () => {
   const org = useSelector((state: RootState) => state.organization);
@@ -71,12 +70,6 @@ const Sidebar = () => {
 
   const bottomItems = [
     {
-      icon: CircleUser,
-      label: "Profile",
-      link: "/profile",
-      visible: true,
-    },
-    {
       icon: Bell,
       label: "Notifications",
       link: "/notifications",
@@ -122,8 +115,9 @@ const Sidebar = () => {
     <>
       <TooltipProvider>
         <aside
-          className={` sticky h-[100vh] min-w-16 px-5 top-0 left-0 z-10 hidden transition-width flex-col border-r bg-background sm:flex overflow-x-hidden ${collapsed ? "w-16" : "w-64"
-            }`}
+          className={` sticky h-[100vh] min-w-16 px-5 top-0 left-0 z-10 hidden transition-width flex-col border-r bg-background sm:flex overflow-x-hidden ${
+            collapsed ? "w-16" : "w-64"
+          }`}
         >
           <nav className={`flex flex-col gap-4 sm:py-5 `}>
             <div>
@@ -142,16 +136,13 @@ const Sidebar = () => {
                 <TooltipTrigger asChild>
                   <table className={!item.visible ? "hidden" : ""}>
                     <tbody
-                      className={`cursor-pointer h-8 ${active === item.label.toLowerCase()
-                        ? " text-white-500 rounded-xl"
-                        : "text-muted-foreground opacity-50 hover:text-white"
-                        } `}
+                      className={`cursor-pointer h-8 ${
+                        active === item.label.toLowerCase()
+                          ? " text-white-500 rounded-xl"
+                          : "text-muted-foreground opacity-50 hover:text-white"
+                      } `}
                       onClick={() => {
-                        navigate(
-                          "/" +
-                          window.location.pathname.split("/")[1] +
-                          item.link
-                        );
+                        navigate(item.link);
                         setActive(item.label.toLowerCase());
                       }}
                     >
@@ -169,21 +160,21 @@ const Sidebar = () => {
             ))}
           </nav>
           <nav className={`mt-auto flex flex-col gap-4 sm:py-5`}>
+            <div className="-ml-1">
+              <UserButton />
+            </div>
             {bottomItems.map((item, index) => (
               <Tooltip key={index}>
                 <TooltipTrigger asChild>
                   <table className={!item.visible ? "hidden" : ""}>
                     <tbody
-                      className={`cursor-pointer h-7 ${active === item.label.toLowerCase()
-                        ? " text-white rounded-xl"
-                        : "text-muted-foreground opacity-50 hover:text-white"
-                        } `}
+                      className={`cursor-pointer h-7 ${
+                        active === item.label.toLowerCase()
+                          ? " text-white rounded-xl"
+                          : "text-muted-foreground opacity-50 hover:text-white"
+                      } `}
                       onClick={() => {
-                        navigate(
-                          "/" +
-                          window.location.pathname.split("/")[1] +
-                          item.link
-                        );
+                        navigate(item.link);
 
                         setActive(item.label.toLowerCase());
                       }}
@@ -212,8 +203,9 @@ const Sidebar = () => {
             <Tooltip>
               <TooltipTrigger>
                 <ChevronRight
-                  className={`h-5 w-5 text-muted-foreground transition-all  opacity-50 ${!collapsed ? "rotate-180" : ""
-                    }`}
+                  className={`h-5 w-5 text-muted-foreground transition-all  opacity-50 ${
+                    !collapsed ? "rotate-180" : ""
+                  }`}
                   onClick={() => setCollapsed(!collapsed)}
                 />
               </TooltipTrigger>
