@@ -13,6 +13,11 @@ import PermissionType from "../../@types/Permission";
 import { createCustomer } from "@lemonsqueezy/lemonsqueezy.js";
 import Candidate from "../../@types/Candidate";
 import candidateModel from "../../models/Candidate";
+import r2Client from "../../config/s3";
+import { Upload } from "@aws-sdk/lib-storage";
+import multer from "multer";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+const storage = multer.memoryStorage();
 
 const roleIdMap = {
   admin: "66a6165bdc907b2eb692501b",
@@ -292,6 +297,20 @@ const getSettings = async (c: Context) => {
     const defaultRoles = await Roles.find({ default: true }).lean();
     defaultRoles.forEach((role) => org.roles.push(role));
 
+    const logoUrl = org.logo;
+    if (logoUrl) {
+      const command = new GetObjectCommand({
+        Bucket: process.env.R2_S3_BUCKET!,
+        Key: logoUrl,
+      });
+
+      const data = await r2Client.send(command);
+      console.log(data.Body);
+      const buffer = await data.Body?.transformToByteArray();
+      const base64 = Buffer.from(buffer as ArrayBuffer).toString("base64");
+      org.logo = `data:image/png;base64,${base64}`;
+    }
+
     return sendSuccess(c, 200, "Success", org);
   } catch (error) {
     logger.error(error as string);
@@ -301,7 +320,7 @@ const getSettings = async (c: Context) => {
 
 const updateSettings = async (c: Context) => {
   try {
-    const perms = await checkPermission.all(c, ["edit_organization"]);
+    const perms = await checkPermission.all(c, ["manage_organizations"]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
@@ -343,6 +362,56 @@ const updateSettings = async (c: Context) => {
   } catch (error) {
     logger.error(error as string);
     return sendError(c, 500, "Failed to update organization settings", error);
+  }
+};
+
+const updateLogo = async (c: Context) => {
+  try {
+    const perms = await checkPermission.all(c, ["manage_organizations"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    // Parse the incoming request body
+    const file = await c.req.json();
+
+    if (!file.logo) {
+      return sendError(c, 400, "Please provide a file");
+    }
+
+    const buffer = Buffer.from(
+      file.logo.replace(/^data:image\/\w+;base64,/, ""),
+      "base64"
+    );
+
+    const orgId = perms.data?.orgId;
+    const uploadParams = {
+      Bucket: process.env.R2_S3_BUCKET!,
+      Key: `org-logos/${orgId}.png`,
+      Body: buffer,
+      ContentEncoding: "base64",
+      ContentType: "image/png",
+    };
+
+    const upload = new Upload({
+      client: r2Client,
+      params: uploadParams,
+    });
+
+    await upload.done();
+
+    const updatedOrg = await Organization.findByIdAndUpdate(orgId, {
+      logo: `org-logos/${orgId}.png`,
+    });
+
+    if (!updatedOrg) {
+      return sendError(c, 404, "Organization not found");
+    }
+
+    return c.json({ message: "Logo updated successfully" });
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Failed to update organization logo", error);
   }
 };
 
@@ -402,4 +471,5 @@ export default {
   getSettings,
   updateSettings,
   getCandidates,
+  updateLogo,
 };

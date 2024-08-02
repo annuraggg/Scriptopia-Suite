@@ -8,6 +8,7 @@ app.post("/join", organizationController.joinOrganization);
 
 app.get("/settings", organizationController.getSettings);
 app.post("/settings", organizationController.updateSettings);
+app.post("/settings/logo", organizationController.updateLogo);
 
 app.get('/candidates', organizationController.getCandidates);
 export default app;

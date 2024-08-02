@@ -1,11 +1,21 @@
 import { Image } from "@nextui-org/image";
 import { Button, Input, Spinner } from "@nextui-org/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { Upload } from "lucide-react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Slider,
+  useDisclosure,
+} from "@nextui-org/react";
+import AvatarEditor from "react-avatar-editor";
 
 const General = () => {
   const [companyName, setCompanyName] = useState<string>("");
@@ -16,11 +26,19 @@ const General = () => {
   const [saving, setSaving] = useState<boolean>(false);
   const [hasChanges, setHasChanges] = useState<boolean>(false);
 
+  const [newLogo, setNewLogo] = useState<File>({} as File);
+  const [zoom, setZoom] = useState<number>(1);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const newLogoRef = useRef<AvatarEditor>(null);
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
   useEffect(() => {
     fetchSettings();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchSettings = async () => {
@@ -69,13 +87,24 @@ const General = () => {
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setLogo(event.target?.result as string);
-        setHasChanges(true);
-      };
-      reader.readAsDataURL(file);
+      setNewLogo(file);
+      onOpen();
     }
+  };
+
+  const updateLogo = () => {
+    const canvas = newLogoRef.current?.getImage().toDataURL("image/png");
+    axios
+      .post("organizations/settings/logo", { logo: canvas })
+      .then(() => {
+        setLogo(canvas || "/defaultOrgLogo.png");
+        toast.success("Logo updated successfully");
+        onOpenChange();
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Error updating logo. Please try again.");
+      });
   };
 
   if (loading) {
@@ -97,16 +126,67 @@ const General = () => {
       <div className="p-5 px-10">
         <div className="w-fit">
           <Image src={logo} width={200} height={200} />
-          <Button className="mt-2 w-full" variant="ghost">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleLogoChange}
+            style={{ display: "none" }}
+            ref={fileInputRef}
+          />
+          <Button
+            className="mt-2 w-full"
+            variant="ghost"
+            onClick={() => fileInputRef.current?.click()}
+          >
             <Upload /> Change Logo
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleLogoChange}
-              style={{ display: "none" }}
-            />
           </Button>
         </div>
+
+        <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+          <ModalContent>
+            {(onClose) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1">
+                  New Logo
+                </ModalHeader>
+                <ModalBody className="justify-center items-center gap-5">
+                  <AvatarEditor
+                    ref={newLogoRef}
+                    image={newLogo}
+                    width={200}
+                    height={200}
+                    border={50}
+                    scale={zoom}
+                    rotate={0}
+                  />
+
+                  <div className="w-full flex items-center justify-center flex-col gap-2">
+                    <p>Zoom</p>
+                    <Slider
+                      minValue={1}
+                      maxValue={2}
+                      step={0.01}
+                      value={zoom}
+                      onChange={(value) => setZoom(value as number)}
+                    />
+                  </div>
+                </ModalBody>
+                <ModalFooter>
+                  <Button color="danger" variant="light" onPress={onClose}>
+                    Close
+                  </Button>
+                  <Button
+                    color="success"
+                    onPress={onClose}
+                    onClick={updateLogo}
+                  >
+                    Update
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
 
         <div className="flex gap-3 w-[50%] items-center mt-10">
           <p className="w-[40%]">Company Name</p>

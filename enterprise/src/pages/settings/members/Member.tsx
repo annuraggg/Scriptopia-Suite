@@ -21,21 +21,6 @@ import { toast } from "sonner";
 import { Member } from "@/@types/Organization";
 import Role from "@/@types/Roles";
 
-// interface Member {
-//   name: string;
-//   joined: string;
-//   role: string;
-// }
-
-// interface InvitedMember {
-//   email: string;
-//   invited: string;
-//   role: string;
-// }
-
-// interface Role {
-//   role: string;
-// }
 
 const Members: React.FC = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -59,7 +44,7 @@ const Members: React.FC = () => {
   const axios = ax(getToken);
   useEffect(() => {
     axios
-      .post("organizations/settings")
+      .get("organizations/settings")
       .then((res) => {
         setMembers(
           res.data.data.members.filter(

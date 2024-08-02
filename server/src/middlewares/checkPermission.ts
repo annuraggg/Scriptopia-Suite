@@ -44,7 +44,7 @@ class checkPermission {
   ): Promise<ReturnType> => {
     const auth = getAuth(c);
     if (!auth?.userId) {
-      sendError(c, 401, "Unauthorized");
+      sendError(c, 401, "Unauthorized in checkPermission");
       return { allowed: false, data: null };
     }
 
@@ -72,7 +72,7 @@ class checkPermission {
   ): Promise<ReturnType> => {
     const auth = getAuth(c);
     if (!auth?.userId) {
-      sendError(c, 401, "Unauthorized");
+      sendError(c, 401, "Unauthorized in checkPermission");
       return { allowed: false, data: null };
     }
 

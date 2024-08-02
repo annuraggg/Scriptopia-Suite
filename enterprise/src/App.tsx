@@ -34,7 +34,6 @@ const Members = lazy(() => import("./pages/settings/members/Member"));
 const Roles = lazy(() => import("./pages/settings/roles/Roles"));
 const Departments = lazy(() => import("./pages/settings/departments/Departments"));
 const Security = lazy(() => import("./pages/settings/security/Security"));
-const Personalization = lazy(() => import("./pages/settings/personalization/Personalization"));
 const AuditLogs = lazy(() => import("./pages/settings/security/audit-logs/Audit-Logs"));
 
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
@@ -87,12 +86,6 @@ function App() {
     {
       path: "security",
       element: <Suspense fallback={<Loader />} children={<Security />} />,
-    },
-    {
-      path: "personalization",
-      element: (
-        <Suspense fallback={<Loader />} children={<Personalization />} />
-      ),
     },
     {
       path: "security/audit-logs",

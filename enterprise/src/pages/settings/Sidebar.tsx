@@ -54,7 +54,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setActive(window.location.pathname.split("/")[3]);
+    setActive(window.location.pathname.split("/")[2]);
   }, []);
 
   return (
