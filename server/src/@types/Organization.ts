@@ -1,5 +1,5 @@
 interface Member {
-  _id: string;
+  _id?: string;
   user?: string;
   email: string;
   role: string;
@@ -8,19 +8,22 @@ interface Member {
 }
 
 interface Role {
-  _id: string;
+  _id?: string;
   name: string;
+  description: string;
   permissions?: string[];
+  default: boolean;
+  organization: string;
 }
 
 interface Department {
-  _id: string;
+  _id?: string;
   name: string;
   description: string;
 }
 
 interface AuditLog {
-  _id: string;
+  _id?: string;
   action: string;
   user: string;
   date: string;
@@ -28,7 +31,7 @@ interface AuditLog {
 }
 
 interface Subscription {
-  _id: string;
+  _id?: string;
   type: "quarterly" | "annual" | "trial";
   status?: "active" | "inactive";
   startedOn: Date;
@@ -37,7 +40,7 @@ interface Subscription {
 }
 
 interface Organization {
-  _id: string;
+  _id?: string;
   name: string;
   email: string;
   website: string;

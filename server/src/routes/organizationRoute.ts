@@ -11,6 +11,7 @@ app.get("/settings", organizationController.getSettings);
 app.post("/settings/general", organizationController.updateGeneralSettings);
 app.post("/settings/logo", organizationController.updateLogo);
 app.post("/settings/members", organizationController.updateMembers);
+app.post("/settings/roles", organizationController.updateRoles);
 
 app.get('/candidates', organizationController.getCandidates);
 export default app;

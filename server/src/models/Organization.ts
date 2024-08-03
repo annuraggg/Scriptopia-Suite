@@ -16,9 +16,12 @@ membersSchema.virtual("userDetails", {
   justOne: true,
 });
 
-const rolesSchema = new Schema({
+const rolesSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  default: { type: Boolean, default: true },
+  description: { type: String },
   permissions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Permission" }],
+  organization: { type: mongoose.Schema.Types.ObjectId, ref: "Organization" },
 });
 
 const departmentsSchema = new Schema({
@@ -30,7 +33,12 @@ const auditLogSchema = new Schema({
   action: { type: String, required: true },
   user: { type: String, required: true },
   date: { type: Date, default: Date.now, required: true },
-  type: { type: String, enum: ["info", "warning", "error", "success"], default: "info", required: true },
+  type: {
+    type: String,
+    enum: ["info", "warning", "error", "success"],
+    default: "info",
+    required: true,
+  },
 });
 
 auditLogSchema.virtual("userDetails", {
