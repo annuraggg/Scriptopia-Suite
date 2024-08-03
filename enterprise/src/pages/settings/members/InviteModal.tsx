@@ -30,9 +30,9 @@ const InviteModal = ({
   const handleInvite = () => {
     if (email && selectedRole) {
       const currentDate = new Date().toLocaleDateString("en-GB");
-      onInvite({ email, role: selectedRole, addedOn: currentDate });
+      onInvite({ email, role: selectedRole, addedOn: currentDate, status: "pending" });
       setEmail("");
-      setSelectedRole({} as Role);
+      setSelectedRole(roles[0]);
       onOpenChange(false);
     }
   };
@@ -53,15 +53,17 @@ const InviteModal = ({
               <Select
                 label="Role"
                 placeholder="Select a role"
-                selectedKeys={selectedRole._id ? [selectedRole._id] : []}
-                onSelectionChange={(keys) =>
+                selectedKeys={[selectedRole.name]}
+                onSelectionChange={(keys) => {
+                  if (keys.currentKey === null) return;
+
                   setSelectedRole( // @ts-expect-error - shutup
-                    roles.find((role) => role._id === keys[0] as string) || ({} as Role)
-                  )
-                }
+                    roles.find((role) => role.name === keys.currentKey)
+                  );
+                }}
               >
                 {roles.map((role) => (
-                  <SelectItem key={role.name} value={role._id}>
+                  <SelectItem key={role.name} value={role.name}>
                     {role.name}
                   </SelectItem>
                 ))}

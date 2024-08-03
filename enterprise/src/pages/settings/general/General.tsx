@@ -16,6 +16,10 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import AvatarEditor from "react-avatar-editor";
+import { useToast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
+import { setToastChanges } from "@/reducers/toastReducer";
+import { useDispatch } from "react-redux";
 
 const General = () => {
   const [companyName, setCompanyName] = useState<string>("");
@@ -23,8 +27,6 @@ const General = () => {
   const [companyWebsite, setCompanyWebsite] = useState<string>("");
   const [companyEmail, setCompanyEmail] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
-  const [saving, setSaving] = useState<boolean>(false);
-  const [hasChanges, setHasChanges] = useState<boolean>(false);
 
   const [newLogo, setNewLogo] = useState<File>({} as File);
   const [zoom, setZoom] = useState<number>(1);
@@ -33,13 +35,38 @@ const General = () => {
   const newLogoRef = useRef<AvatarEditor>(null);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
+  const [changes, setChanges] = useState<boolean>(false);
+  const { toast: shadToast } = useToast();
+  const dispatch = useDispatch();
+
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
   useEffect(() => {
     fetchSettings();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (changes) {
+      shadToast({
+        title: "Heads Up!",
+        description: "You have unsaved changes",
+        duration: 100000,
+        action: (
+          <ToastAction
+            altText="Save"
+            className="bg-green-500 text-green-400 bg-opacity-20 rounded-xl py-5 px-5"
+            onClick={handleSave}
+          >
+            Save
+          </ToastAction>
+        ),
+      });
+
+      dispatch(setToastChanges(true));
+    }
+  }, [changes, shadToast]);
 
   const fetchSettings = async () => {
     setLoading(true);
@@ -49,7 +76,7 @@ const General = () => {
       setCompanyEmail(res.data.data.email || "");
       setCompanyWebsite(res.data.data.website || "");
       setLogo(res.data.data.logo || "/defaultOrgLogo.png");
-      setHasChanges(false);
+      setChanges(false);
     } catch (err) {
       console.error(err);
       toast.error("Error fetching settings. Please try again.");
@@ -59,21 +86,22 @@ const General = () => {
   };
 
   const handleSave = async () => {
-    setSaving(true);
+    setLoading(true);
     try {
-      await axios.post("organizations/settings", {
+      await axios.post("organizations/settings/general", {
         name: companyName,
         email: companyEmail,
         website: companyWebsite,
         logo: logo,
       });
       toast.success("Settings updated successfully");
-      setHasChanges(false);
+      setChanges(false);
     } catch (err) {
       console.log(err);
       toast.error("Error updating settings. Please try again.");
     } finally {
-      setSaving(false);
+      setLoading(false);
+      dispatch(setToastChanges(false));
     }
   };
 
@@ -81,7 +109,7 @@ const General = () => {
     (setter: React.Dispatch<React.SetStateAction<string>>) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setter(e.target.value);
-      setHasChanges(true);
+      setChanges(true);
     };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -211,17 +239,6 @@ const General = () => {
             onChange={handleInputChange(setCompanyWebsite)}
           />
         </div>
-
-        <Button
-          className="absolute bottom-10 right-10"
-          variant="flat"
-          color="success"
-          onClick={handleSave}
-          isLoading={saving}
-          isDisabled={!hasChanges || saving}
-        >
-          Save
-        </Button>
       </div>
     </>
   );

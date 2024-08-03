@@ -8,19 +8,30 @@ import {
   TableCell,
   Tab,
   Tabs,
-  Button,
   Select,
   SelectItem,
-  useDisclosure,
   Spinner,
 } from "@nextui-org/react";
 import InviteModal from "./InviteModal";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { Member } from "@/@types/Organization";
 import Role from "@/@types/Roles";
+import { useToast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  useDisclosure,
+} from "@nextui-org/react";
+import { useDispatch } from "react-redux";
+import { setToastChanges } from "@/reducers/toastReducer";
 
 const Members: React.FC = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -28,21 +39,56 @@ const Members: React.FC = () => {
   const [invitedMembers, setInvitedMembers] = useState<Member[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [changes, setChanges] = useState<boolean>(false);
+  const [selectedEmail, setSelectedEmail] = useState<string>("");
+  const [userEmails, setUserEmails] = useState<string[]>([]);
 
-  const handleInvite = (newMember: Member) => {
-    setInvitedMembers([...invitedMembers, newMember]);
-  };
+  const dispatch = useDispatch();
 
-  const handleRoleChange = (index: number, newRole: string) => {
-    const updatedMembers = [...members];
-    updatedMembers[index].role = roles.find(
-      (role) => role.name === newRole
-    ) as Role;
-    setMembers(updatedMembers);
-  };
+  const {
+    isOpen: removeConfirmOpen,
+    onOpen: onRemoveConfirmOpen,
+    onOpenChange: onRemoveConfirmOpenChange,
+  } = useDisclosure();
+  const {
+    isOpen: revokeConfirmOpen,
+    onOpen: onRevokeConfirmOpen,
+    onOpenChange: onRevokeConfirmOpenChange,
+  } = useDisclosure();
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
+
+  const { toast: shadToast } = useToast();
+  const { user, isLoaded } = useUser();
+
+  useEffect(() => {
+    if (user && isLoaded) {
+      setUserEmails(user.emailAddresses.map((email) => email.emailAddress));
+    }
+  }, [isLoaded, user]);
+
+  useEffect(() => {
+    if (changes) {
+      shadToast({
+        title: "Heads Up!",
+        description: "You have unsaved changes",
+        duration: 100000,
+        action: (
+          <ToastAction
+            altText="Save"
+            className="bg-green-500 text-green-400 bg-opacity-20 rounded-xl py-5 px-5"
+            onClick={saveChanges}
+          >
+            Save
+          </ToastAction>
+        ),
+      });
+
+      dispatch(setToastChanges(true));
+    }
+  }, [changes, shadToast]);
+
   useEffect(() => {
     setLoading(true);
     axios
@@ -71,7 +117,65 @@ const Members: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (loading) {
+  const saveChanges = () => {
+    setLoading(true);
+    axios
+      .post("organizations/settings/members", {
+        screen: "members",
+        members: members.concat(invitedMembers),
+      })
+      .then(() => {
+        setChanges(false);
+        toast.success("Changes Saved");
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Error Saving Changes");
+      })
+      .finally(() => {
+        dispatch(setToastChanges(false));
+        setLoading(false);
+      });
+  };
+
+  const triggerSaveToast = () => {
+    if (!changes) {
+      setChanges(true);
+    }
+  };
+
+  const handleInvite = (newMember: Member) => {
+    setInvitedMembers([...invitedMembers, newMember]);
+    triggerSaveToast();
+  };
+
+  const handleRoleChange = (index: number, newRole: string) => {
+    if (!newRole) return;
+    const updatedMembers = [...members];
+    updatedMembers[index].role = roles.find(
+      (role) => role.name === newRole
+    ) as Role;
+    setMembers(updatedMembers);
+    triggerSaveToast();
+  };
+
+  const removeMember = (email: string) => {
+    const updatedMembers = members.filter((member) => member.email !== email);
+    setMembers(updatedMembers);
+    triggerSaveToast();
+    onRemoveConfirmOpenChange();
+  };
+
+  const revokeMember = (email: string) => {
+    const updatedInvitedMembers = invitedMembers.filter(
+      (member) => member.email !== email
+    );
+    setInvitedMembers(updatedInvitedMembers);
+    triggerSaveToast();
+    onRevokeConfirmOpenChange();
+  };
+
+  if (loading || !isLoaded) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -96,6 +200,7 @@ const Members: React.FC = () => {
                 <TableColumn>User</TableColumn>
                 <TableColumn>Joined</TableColumn>
                 <TableColumn>Role</TableColumn>
+                <TableColumn>Actions</TableColumn>
               </TableHeader>
               <TableBody emptyContent={<p>No Members</p>}>
                 {members.map((member, index) => (
@@ -104,9 +209,15 @@ const Members: React.FC = () => {
                     <TableCell>
                       {new Date(member.addedOn).toDateString()}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="w-[200px]">
                       <Select
+                        className="w-[200px]"
                         selectedKeys={[member.role.name]}
+                        aria-label="Role"
+                        isDisabled={
+                          userEmails.filter((email) => email === member.email)
+                            .length !== 0
+                        }
                         onSelectionChange={(keys) =>
                           handleRoleChange(index, Array.from(keys)[0] as string)
                         }
@@ -117,6 +228,19 @@ const Members: React.FC = () => {
                           </SelectItem>
                         ))}
                       </Select>
+                    </TableCell>
+                    <TableCell>
+                      {!userEmails.find((email) => email === member.email) && (
+                        <p
+                          className=" text-danger hover:text-danger-500 duration-300 transition-colors cursor-pointer py-3"
+                          onClick={() => {
+                            setSelectedEmail(member.email);
+                            onRemoveConfirmOpen();
+                          }}
+                        >
+                          Remove
+                        </p>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -132,6 +256,7 @@ const Members: React.FC = () => {
                 <TableColumn>User</TableColumn>
                 <TableColumn>Invited</TableColumn>
                 <TableColumn>Role</TableColumn>
+                <TableColumn>Actions</TableColumn>
               </TableHeader>
               <TableBody emptyContent={<p>No Invited Members</p>}>
                 {invitedMembers.map((member, index) => (
@@ -141,6 +266,17 @@ const Members: React.FC = () => {
                       {new Date(member.addedOn).toDateString()}
                     </TableCell>
                     <TableCell>{member.role.name}</TableCell>
+                    <TableCell>
+                      <p
+                        className=" text-danger hover:text-danger-500 duration-300 transition-colors cursor-pointer py-3"
+                        onClick={() => {
+                          setSelectedEmail(member.email);
+                          onRevokeConfirmOpen();
+                        }}
+                      >
+                        Revoke
+                      </p>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -154,6 +290,56 @@ const Members: React.FC = () => {
           roles={roles}
         />
       </div>
+
+      <Modal
+        isOpen={removeConfirmOpen}
+        onOpenChange={onRemoveConfirmOpenChange}
+        className="w-[400px]"
+      >
+        <ModalContent>
+          <ModalHeader>Remove Member</ModalHeader>
+          <ModalBody>
+            <p>Are you sure you want to remove this member?</p>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="default"
+              onPress={onRemoveConfirmOpenChange}
+              className="mr-2"
+            >
+              Cancel
+            </Button>
+            <Button color="danger" onClick={() => removeMember(selectedEmail)}>
+              Remove
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal
+        isOpen={revokeConfirmOpen}
+        onOpenChange={onRevokeConfirmOpen}
+        className="w-[400px]"
+      >
+        <ModalContent>
+          <ModalHeader>Revoke Invite</ModalHeader>
+          <ModalBody>
+            <p>Are you sure you want to revoke this invite?</p>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="default"
+              onPress={onRevokeConfirmOpenChange}
+              className="mr-2"
+            >
+              Cancel
+            </Button>
+            <Button color="danger" onClick={() => revokeMember(selectedEmail)}>
+              Revoke
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 };

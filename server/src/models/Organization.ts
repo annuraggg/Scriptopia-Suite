@@ -18,7 +18,7 @@ membersSchema.virtual("userDetails", {
 
 const rolesSchema = new Schema({
   name: { type: String, required: true },
-  permissions: [{ type: String }],
+  permissions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Permission" }],
 });
 
 const departmentsSchema = new Schema({
@@ -58,7 +58,7 @@ const organizationSchema = new Schema({
   website: { required: true, type: String },
   logo: { type: String },
 
-  members: [{ type: membersSchema }],
+  members: [membersSchema],
   roles: [{ type: rolesSchema }],
   departments: [{ type: departmentsSchema }],
   auditLogs: [{ type: auditLogSchema }],

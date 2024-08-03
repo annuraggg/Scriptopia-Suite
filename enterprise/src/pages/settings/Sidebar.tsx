@@ -14,8 +14,14 @@ import {
   Boxes,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/@types/reducer";
+import { shakeToast } from "@/reducers/toastReducer";
 
 const Sidebar = () => {
+  const toastChanges = useSelector((state: RootState) => state.toast.changes);
+  const dispatch = useDispatch();
+
   const topItems = [
     {
       icon: Building2,
@@ -51,6 +57,7 @@ const Sidebar = () => {
 
   const [active, setActive] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -77,16 +84,25 @@ const Sidebar = () => {
                           : "text-muted-foreground opacity-50 hover:text-white"
                       } `}
                       onClick={() => {
+                        if (toastChanges) {
+                          dispatch(shakeToast(true));
+                          setTimeout(() => {
+                            dispatch(shakeToast(false));
+                          }, 1000);
+                          return;
+                        }
                         navigate(`/settings${item.link}`);
                         setActive(item.label.toLowerCase());
                       }}
                     >
-                      <td className="pr-3">
-                        {item.icon && <item.icon className="h-7 w-5" />}
-                      </td>
-                      {collapsed ? null : (
-                        <td className="text-start w-full">{item.label}</td>
-                      )}
+                      <tr>
+                        <td className="pr-3">
+                          {item.icon && <item.icon className="h-7 w-5" />}
+                        </td>
+                        {collapsed ? null : (
+                          <td className="text-start w-full">{item.label}</td>
+                        )}
+                      </tr>
                     </tbody>
                   </table>
                 </TooltipTrigger>

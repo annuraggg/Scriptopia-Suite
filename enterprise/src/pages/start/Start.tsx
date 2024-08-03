@@ -13,9 +13,11 @@ import {
 } from "@nextui-org/react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setOrganization } from "@/reducers/organizationReducer";
 
 interface InvitedMember {
   email: string;
@@ -30,6 +32,7 @@ interface Role {
 const Start = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
+  const dispatch = useDispatch();
 
   const [companyName, setCompanyName] = useState<string>("");
   const [companyEmail, setCompanyEmail] = useState<string>("");
@@ -92,6 +95,7 @@ const Start = () => {
   };
 
   const { getToken } = useAuth();
+  const { user } = useUser();
   const submit = () => {
     const axios = ax(getToken);
     setSecondLoading(true);
@@ -102,10 +106,16 @@ const Start = () => {
         website: companyWebsite,
         members: invitedMembers,
       })
-      .then((res) => {
+      .then(() => {
         setSecondLoading(false);
         toast.success("Organization created successfully");
-        navigate("/" + res.data.data.org);
+        navigate("/dashboard");
+        const data = {
+          _id: user?.publicMetadata?.orgId,
+          role: user?.publicMetadata?.roleName,
+          permissions: user?.publicMetadata?.permissions,
+        };
+        dispatch(setOrganization(data));
       })
       .catch((err) => {
         console.log(err);

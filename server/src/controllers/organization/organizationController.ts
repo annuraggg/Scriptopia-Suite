@@ -18,6 +18,7 @@ import { Upload } from "@aws-sdk/lib-storage";
 import multer from "multer";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import ls from "../../config/lemonSqueezy";
+import { Member } from "../../@types/Organization";
 
 const roleIdMap = {
   admin: "66a6165bdc907b2eb692501b",
@@ -295,13 +296,14 @@ const getSettings = async (c: Context) => {
       .populate("members.user")
       .populate("auditLogs.user")
       .populate("members.role")
+      .populate("roles.permissions")
       .lean();
 
     if (!org) {
       return sendError(c, 404, "Organization not found");
     }
 
-    const defaultRoles = await Roles.find({ default: true }).lean();
+    const defaultRoles = await Roles.find({ default: true }).populate("permissions").lean();
     defaultRoles.forEach((role) => org.roles.push(role));
 
     const logoUrl = org.logo;
@@ -325,7 +327,7 @@ const getSettings = async (c: Context) => {
   }
 };
 
-const updateSettings = async (c: Context) => {
+const updateGeneralSettings = async (c: Context) => {
   try {
     const perms = await checkPermission.all(c, ["manage_organizations"]);
     if (!perms.allowed) {
@@ -422,6 +424,107 @@ const updateLogo = async (c: Context) => {
   }
 };
 
+const updateMembers = async (c: Context) => {
+  try {
+    const perms = await checkPermission.all(c, ["manage_organizations"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const { members } = await c.req.json();
+    const orgId = perms.data?.orgId;
+
+    // compare old pending members with new pending members. If there are new pending members, send them an invite
+    const organization = await Organization.findById(orgId);
+
+    if (!organization) {
+      return sendError(c, 404, "Organization not found");
+    }
+
+    const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+    const fName = clerkUser.firstName;
+
+    const oldPendingMembers = organization.members.filter(
+      (member) => member.status === "pending"
+    );
+
+    const newPendingMembers = members.filter(
+      (member: Member) => member.status === "pending"
+    );
+
+    if (oldPendingMembers.length !== newPendingMembers.length) {
+      const newPendingMembersEmails = newPendingMembers.map(
+        (member: Member) => member.email
+      );
+      const oldPendingMembersEmails = oldPendingMembers.map(
+        (member) => member.email
+      );
+
+      const newPendingMembersNotInOldPendingMembers =
+        newPendingMembersEmails.filter(
+          (email: string) => !oldPendingMembersEmails.includes(email)
+        );
+
+      console.log("New Member: ");
+      console.log(
+        members.find(
+          (member: Member) =>
+            member.email === newPendingMembersNotInOldPendingMembers[0]
+        )
+      );
+
+      for (const email of newPendingMembersNotInOldPendingMembers) {
+        const reqObj = {
+          email,
+          role: members.find((member: Member) => member.email === email).role
+            .name,
+          roleId:
+            // @ts-ignore
+            roleIdMap[
+              members
+                .find((member: Member) => member.email === email)
+                .role.name.toLowerCase() as string
+            ],
+          organization: orgId,
+          inviter: fName || "",
+          organizationname: organization.name,
+        };
+
+        const token = jwt.sign(reqObj, process.env.JWT_SECRET!);
+
+        await loops.sendTransactionalEmail({
+          transactionalId: process.env.LOOPS_INVITE_EMAIL!,
+          email: email,
+          dataVariables: {
+            inviter: fName || "",
+            joinlink:
+              process.env.ENTERPRISE_FRONTEND_URL! + "/join?token=" + token,
+            organizationname: organization.name,
+          },
+        });
+      }
+    }
+
+    const updatedOrg = await Organization.findByIdAndUpdate(orgId, {
+      members,
+    });
+
+    if (!updatedOrg) {
+      return sendError(c, 404, "Organization not found");
+    }
+
+    return sendSuccess(
+      c,
+      200,
+      "Organization settings updated successfully",
+      updatedOrg
+    );
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Failed to update organization settings", error);
+  }
+};
+
 const getCandidates = async (c: Context) => {
   try {
     const perms = await checkPermission.all(c, ["view_candidates"]);
@@ -476,7 +579,8 @@ export default {
   verifyInvite,
   joinOrganization,
   getSettings,
-  updateSettings,
+  updateGeneralSettings,
   getCandidates,
   updateLogo,
+  updateMembers,
 };

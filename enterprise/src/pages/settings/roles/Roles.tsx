@@ -5,17 +5,29 @@ import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import Role from "@/@types/Roles";
+import {
+  Button,
+  Card,
+  CardBody,
+  Checkbox,
+  CheckboxGroup,
+  Input,
+  Spinner,
+} from "@nextui-org/react";
+import Permission from "@/@types/Permission";
 
 const Roles = () => {
   const [builtInRoles, setBuiltInRoles] = useState<Role[]>([]);
   const [customRoles, setCustomRoles] = useState<Role[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [selectedRole, setSelectedRole] = useState<Role>({} as Role);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
   useEffect(() => {
     axios
-      .post("organizations/get/settings")
+      .get("organizations/settings")
       .then((res) => {
         setBuiltInRoles(
           res.data.data.roles.filter((role: Role) => role.default)
@@ -23,12 +35,25 @@ const Roles = () => {
         setCustomRoles(
           res.data.data.roles.filter((role: Role) => !role.default)
         );
+
+        setSelectedRole(
+          res.data.data.roles.filter((role: Role) => role.default)[0]
+        );
       })
       .catch((err) => {
         console.error(err);
         toast.error("Error Fetching Settings");
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -38,8 +63,91 @@ const Roles = () => {
           <BreadcrumbItem href={"/settings/roles"}>Roles</BreadcrumbItem>
         </Breadcrumbs>
       </div>
-      <div className="flex p-5 items-center h-[94vh] ">
-        <Sidebar builtInRoles={builtInRoles} customRoles={customRoles} />
+      <div className="flex p-5 items-center h-[94vh] gap-5 ">
+        <Sidebar
+          builtInRoles={builtInRoles}
+          customRoles={customRoles}
+          selectedRole={selectedRole}
+          setSelectedRole={setSelectedRole}
+        />
+        <Card className="h-full w-full">
+          <CardBody className="px-5">
+            <div className="flex justify-between items-center">
+              <h4>Role Details</h4>
+              <Button
+                color="success"
+                variant="flat"
+                isDisabled={selectedRole.default}
+              >
+                Save
+              </Button>
+            </div>
+            <div className="mt-5">
+              <div>
+                <p className="text-sm opacity-50">Role Name</p>
+                <Input
+                  type="text"
+                  value={selectedRole.name}
+                  onChange={(e) =>
+                    setSelectedRole({ ...selectedRole, name: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <p className="text-sm opacity-50 mt-5">Role Description</p>
+                <Input
+                  type="text"
+                  value={selectedRole.description}
+                  onChange={(e) =>
+                    setSelectedRole({
+                      ...selectedRole,
+                      description: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="mt-5">
+                <p className="text-sm opacity-50">Permissions</p>
+                <div className="grid grid-cols-2 gap-5 mt-5">
+                  {selectedRole.permissions?.map((permission) => (
+                    <div
+                      key={permission._id}
+                      className="flex items-center gap-2"
+                    >
+                      <CheckboxGroup>
+                        <Checkbox
+                          checked={selectedRole.permissions
+                            ?.map((p: Permission) => p._id)
+                            .includes(permission._id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedRole({
+                                ...selectedRole,
+                                permissions: [
+                                  ...selectedRole.permissions,
+                                  permission,
+                                ],
+                              });
+                            } else {
+                              setSelectedRole({
+                                ...selectedRole,
+                                permissions: selectedRole.permissions?.filter(
+                                  (p) => p._id !== permission._id
+                                ),
+                              });
+                            }
+                          }}
+                        />
+                      </CheckboxGroup>
+                      <p>{permission.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
       </div>
     </div>
   );

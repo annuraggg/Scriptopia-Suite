@@ -146,12 +146,14 @@ const Sidebar = () => {
                         setActive(item.label.toLowerCase());
                       }}
                     >
-                      <td className="pr-3">
-                        {item.icon && <item.icon className="h-7 w-5" />}
-                      </td>
-                      {collapsed ? null : (
-                        <td className="text-start w-full">{item.label}</td>
-                      )}
+                      <tr>
+                        <td className="pr-3">
+                          {item.icon && <item.icon className="h-7 w-5" />}
+                        </td>
+                        {collapsed ? null : (
+                          <td className="text-start w-full">{item.label}</td>
+                        )}
+                      </tr>
                     </tbody>
                   </table>
                 </TooltipTrigger>
@@ -179,18 +181,20 @@ const Sidebar = () => {
                         setActive(item.label.toLowerCase());
                       }}
                     >
-                      <td className="pr-3">
-                        {item.label === "Profile" ? (
-                          <div className="flex items-center justify-center user-button-small">
-                            <UserButton />
-                          </div>
-                        ) : (
-                          item.icon && <item.icon className="h-5 w-5" />
+                      <tr>
+                        <td className="pr-3">
+                          {item.label === "Profile" ? (
+                            <div className="flex items-center justify-center user-button-small">
+                              <UserButton />
+                            </div>
+                          ) : (
+                            item.icon && <item.icon className="h-5 w-5" />
+                          )}
+                        </td>
+                        {collapsed ? null : (
+                          <td className="text-start w-full">{item.label}</td>
                         )}
-                      </td>
-                      {collapsed ? null : (
-                        <td className="text-start w-full">{item.label}</td>
-                      )}
+                      </tr>
                     </tbody>
                   </table>
                 </TooltipTrigger>
