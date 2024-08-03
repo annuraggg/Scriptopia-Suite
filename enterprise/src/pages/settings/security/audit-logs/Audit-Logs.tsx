@@ -7,9 +7,11 @@ import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { AuditLog } from "@/@types/Organization";
+import { Select, SelectSection, SelectItem } from "@nextui-org/react";
 
 const AuditLogs = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [filteredLogs, setFilteredLogs] = useState<AuditLog[]>([]);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -18,6 +20,7 @@ const AuditLogs = () => {
       .get("organizations/settings")
       .then((res) => {
         setAuditLogs(res.data.data.auditLogs);
+        setFilteredLogs(res.data.data.auditLogs);
       })
       .catch((err) => {
         console.error(err);
@@ -25,6 +28,19 @@ const AuditLogs = () => {
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const filterInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === "") {
+      setFilteredLogs(auditLogs);
+    } else {
+      setFilteredLogs(
+        auditLogs.filter((log) =>
+          log.action.toLowerCase().includes(value.toLowerCase())
+        )
+      );
+    }
+  };
 
   return (
     <div>
@@ -40,11 +56,41 @@ const AuditLogs = () => {
       <div className="flex p-5 gap-5 items-center h-[94vh]">
         <Sidebar />
         <div className="h-[88vh] w-full overflow-y-auto pr-5">
-          <Input placeholder="Search Logs" />
-          {auditLogs?.length === 0 && (
+          <div className="flex gap-3">
+            <Input placeholder="Search Logs" onChange={filterInput} />
+            <Select
+              placeholder="Filter By Type"
+              onSelectionChange={(key) => {
+                if (key.currentKey === "All") {
+                  setFilteredLogs(auditLogs);
+                } else {
+                  setFilteredLogs(auditLogs.filter((log) => log.type === key.currentKey?.toLowerCase()));
+                }
+              }}
+            >
+              <SelectSection>
+                <SelectItem value="All" key={"All"}>
+                  All
+                </SelectItem>
+                <SelectItem value="Info" key={"Info"}>
+                  Info
+                </SelectItem>
+                <SelectItem value="Warning" key={"Warning"}>
+                  Warning
+                </SelectItem>
+                <SelectItem value="Error" key={"Error"}>
+                  Error
+                </SelectItem>
+                <SelectItem value="Success" key={"Success"}>
+                  Success
+                </SelectItem>
+              </SelectSection>
+            </Select>
+          </div>
+          {filteredLogs?.length === 0 && (
             <p className="text-center mt-5">No Logs Found</p>
           )}
-          {auditLogs?.map((log) => (
+          {filteredLogs?.map((log) => (
             <div
               className={`flex border py-3 gap-3 px-5 mt-3 rounded-xl w-full relative items-center bg-opacity-10
                 ${

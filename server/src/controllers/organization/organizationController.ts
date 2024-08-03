@@ -699,9 +699,7 @@ const getDepartments = async (c: Context) => {
       return sendError(c, 404, "Organization not found");
     }
 
-    return sendSuccess(c, 200, "Departments fetched successfully", {
-      departments: org.departments || [],
-    });
+    return sendSuccess(c, 200, "Departments fetched successfully", org.departments);
   } catch (error) {
     logger.error(error as string);
     return sendError(c, 500, "Failed to fetch departments", error);
@@ -716,7 +714,12 @@ const updateDepartments = async (c: Context) => {
     }
 
     const { departments } = await c.req.json();
+    console.log(departments)
     const orgId = perms.data?.orgId;
+
+    const user = await clerkClient.users.getUser(c.get("auth").userId);
+    const fName = user.firstName;
+    const lName = user.lastName;
 
     const organization = await Organization.findById(orgId);
     if (!organization) {
@@ -724,6 +727,12 @@ const updateDepartments = async (c: Context) => {
     }
 
     organization.departments = departments;
+    organization.auditLogs.push({
+      user: fName + " " + lName,
+      userId: c.get("auth").userId,
+      action: "Departments Updated",
+      type: "info",
+    });
     await organization.save();
 
     return sendSuccess(c, 200, "Departments updated successfully", {

@@ -2,17 +2,15 @@ import Sidebar from "../Sidebar";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { TrashIcon } from "lucide-react";
 import { Button, Divider } from "@nextui-org/react";
-import { useAuth } from "@clerk/clerk-react";
-import ax from "@/config/axios";
-import { useEffect, useState } from "react";
-import { AuditLog } from "@/@types/Organization";
+// import { useAuth } from "@clerk/clerk-react";
+// import ax from "@/config/axios";
+// import { useEffect, useState } from "react";
+// import { AuditLog } from "@/@types/Organization";
 
 const Data = () => {
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
-
-  const { getToken } = useAuth();
-  const axios = ax(getToken);
-  useEffect(() => {}, []);
+  // const { getToken } = useAuth();
+  // const axios = ax(getToken);
+  // useEffect(() => {}, []);
 
   return (
     <div>

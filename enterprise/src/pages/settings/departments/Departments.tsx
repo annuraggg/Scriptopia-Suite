@@ -45,7 +45,7 @@ const Departments: React.FC = () => {
   const fetchDepartments = () => {
     setLoading(true);
     axios
-      .post("organizations/settings/departments") 
+      .get("organizations/settings") 
       .then((res) => {
         setDepartments(res.data.data.departments);
       })
@@ -80,7 +80,7 @@ const Departments: React.FC = () => {
   };
 
   const addDepartment = () => {
-    setDepartments([...departments, { ...newDepartment, _id: Date.now().toString() }]);
+    setDepartments([...departments, { ...newDepartment }]);
     setNewDepartment({ name: '', description: '' });
     onOpenChange();
     triggerSaveToast();

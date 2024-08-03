@@ -63,10 +63,10 @@ const Join = () => {
     const token = urlParams.get("token");
     axios
       .post("/organizations/join", { status, token })
-      .then((res) => {
+      .then(() => {
         toast.success("Joined Organization");
         setTimeout(() => {
-          window.location.href = "/" + res.data.data.id;
+          window.location.href = "/dashboard"
         }, 1000);
       })
       .catch((err) => {
