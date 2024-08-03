@@ -10,20 +10,32 @@ import {
   Card,
   CardBody,
   Checkbox,
-  CheckboxGroup,
   Input,
   Spinner,
 } from "@nextui-org/react";
 import Permission from "@/@types/Permission";
+import UnsavedToast from "@/components/UnsavedToast";
+import { setToastChanges } from "@/reducers/toastReducer";
+import { useDispatch } from "react-redux";
 
 const Roles = () => {
   const [builtInRoles, setBuiltInRoles] = useState<Role[]>([]);
   const [customRoles, setCustomRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedRole, setSelectedRole] = useState<Role>({} as Role);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [changes, setChanges] = useState<boolean>(false);
+
+  const dispatch = useDispatch();
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
+
+  const triggerSaveToast = () => {
+    if (!changes) {
+      dispatch(setToastChanges(true));
+    }
+  };
 
   useEffect(() => {
     axios
@@ -39,6 +51,8 @@ const Roles = () => {
         setSelectedRole(
           res.data.data.roles.filter((role: Role) => role.default)[0]
         );
+
+        setPermissions(res.data.data.permissions);
       })
       .catch((err) => {
         console.error(err);
@@ -55,8 +69,11 @@ const Roles = () => {
     );
   }
 
+  const save = async () => {};
+
   return (
     <div>
+      <UnsavedToast action={save} />
       <div className="mt-5 ml-5">
         <Breadcrumbs>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
@@ -98,50 +115,56 @@ const Roles = () => {
                 <Input
                   type="text"
                   value={selectedRole.description}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setSelectedRole({
                       ...selectedRole,
                       description: e.target.value,
-                    })
-                  }
+                    });
+                    triggerSaveToast();
+                  }}
                 />
               </div>
 
               <div className="mt-5">
                 <p className="text-sm opacity-50">Permissions</p>
                 <div className="grid grid-cols-2 gap-5 mt-5">
-                  {selectedRole.permissions?.map((permission) => (
-                    <div
-                      key={permission._id}
-                      className="flex items-center gap-2"
+                  {permissions.map((perm) => (
+                    <Checkbox
+                      key={perm._id}
+                      isSelected={
+                        selectedRole.permissions.filter(
+                          (p) => p._id === perm._id
+                        ).length > 0
+                      }
+                      onValueChange={(val) => {
+                        if (val) {
+                          setSelectedRole({
+                            ...selectedRole,
+                            permissions: [
+                              ...selectedRole.permissions,
+                              { _id: perm._id, name: perm.name },
+                            ],
+                          });
+                        } else {
+                          setSelectedRole({
+                            ...selectedRole,
+                            permissions: selectedRole.permissions.filter(
+                              (p) => p._id !== perm._id
+                            ),
+                          });
+                        }
+
+                        triggerSaveToast();
+                      }}
                     >
-                      <CheckboxGroup>
-                        <Checkbox
-                          checked={selectedRole.permissions
-                            ?.map((p: Permission) => p._id)
-                            .includes(permission._id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedRole({
-                                ...selectedRole,
-                                permissions: [
-                                  ...selectedRole.permissions,
-                                  permission,
-                                ],
-                              });
-                            } else {
-                              setSelectedRole({
-                                ...selectedRole,
-                                permissions: selectedRole.permissions?.filter(
-                                  (p) => p._id !== permission._id
-                                ),
-                              });
-                            }
-                          }}
-                        />
-                      </CheckboxGroup>
-                      <p>{permission.name}</p>
-                    </div>
+                      <p>{permissions.find((p) => p._id === perm._id)?.name}</p>
+                      <p className="text-sm opacity-50">
+                        {
+                          permissions.find((p) => p._id === perm._id)
+                            ?.description
+                        }
+                      </p>
+                    </Checkbox>
                   ))}
                 </div>
               </div>

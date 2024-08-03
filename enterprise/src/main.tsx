@@ -7,7 +7,7 @@ import { Toaster } from "sonner";
 import { dark } from "@clerk/themes";
 import { Provider } from "react-redux";
 import store from "@/store/store.ts";
-import { Toaster as ShadToaster } from "@/components/ui/toaster"
+import { Toaster as ShadToaster } from "@/components/ui/toaster";
 
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 if (!publishableKey) {

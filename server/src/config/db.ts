@@ -5,7 +5,7 @@ import logger from "../utils/logger.js";
 // import("../models/AssessmentSubmissions");
 // import("../models/Candidate");
 // import("../models/Organization");
-import("../models/Permission");
+// import("../models/Permission");
 // import("../models/Posting");
 // import("../models/Problem");
 // import("../models/Roles");

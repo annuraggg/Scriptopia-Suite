@@ -16,10 +16,9 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import AvatarEditor from "react-avatar-editor";
-import { useToast } from "@/components/ui/use-toast";
-import { ToastAction } from "@/components/ui/toast";
 import { setToastChanges } from "@/reducers/toastReducer";
 import { useDispatch } from "react-redux";
+import UnsavedToast from "@/components/UnsavedToast";
 
 const General = () => {
   const [companyName, setCompanyName] = useState<string>("");
@@ -36,7 +35,6 @@ const General = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const [changes, setChanges] = useState<boolean>(false);
-  const { toast: shadToast } = useToast();
   const dispatch = useDispatch();
 
   const { getToken } = useAuth();
@@ -46,27 +44,6 @@ const General = () => {
     fetchSettings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (changes) {
-      shadToast({
-        title: "Heads Up!",
-        description: "You have unsaved changes",
-        duration: 100000,
-        action: (
-          <ToastAction
-            altText="Save"
-            className="bg-green-500 text-green-400 bg-opacity-20 rounded-xl py-5 px-5"
-            onClick={handleSave}
-          >
-            Save
-          </ToastAction>
-        ),
-      });
-
-      dispatch(setToastChanges(true));
-    }
-  }, [changes, shadToast]);
 
   const fetchSettings = async () => {
     setLoading(true);
@@ -82,6 +59,12 @@ const General = () => {
       toast.error("Error fetching settings. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const triggerSaveToast = () => {
+    if (!changes) {
+      dispatch(setToastChanges(true));
     }
   };
 
@@ -110,6 +93,7 @@ const General = () => {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setter(e.target.value);
       setChanges(true);
+      triggerSaveToast();
     };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -145,6 +129,7 @@ const General = () => {
 
   return (
     <>
+      <UnsavedToast action={handleSave} />
       <div className="mt-5 ml-5">
         <Breadcrumbs>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>

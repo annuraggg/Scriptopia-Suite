@@ -19,8 +19,6 @@ import ax from "@/config/axios";
 import { toast } from "sonner";
 import { Member } from "@/@types/Organization";
 import Role from "@/@types/Roles";
-import { useToast } from "@/components/ui/use-toast";
-import { ToastAction } from "@/components/ui/toast";
 import {
   Modal,
   ModalContent,
@@ -32,6 +30,7 @@ import {
 } from "@nextui-org/react";
 import { useDispatch } from "react-redux";
 import { setToastChanges } from "@/reducers/toastReducer";
+import UnsavedToast from "@/components/UnsavedToast";
 
 const Members: React.FC = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -59,7 +58,6 @@ const Members: React.FC = () => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
-  const { toast: shadToast } = useToast();
   const { user, isLoaded } = useUser();
 
   useEffect(() => {
@@ -67,27 +65,6 @@ const Members: React.FC = () => {
       setUserEmails(user.emailAddresses.map((email) => email.emailAddress));
     }
   }, [isLoaded, user]);
-
-  useEffect(() => {
-    if (changes) {
-      shadToast({
-        title: "Heads Up!",
-        description: "You have unsaved changes",
-        duration: 100000,
-        action: (
-          <ToastAction
-            altText="Save"
-            className="bg-green-500 text-green-400 bg-opacity-20 rounded-xl py-5 px-5"
-            onClick={saveChanges}
-          >
-            Save
-          </ToastAction>
-        ),
-      });
-
-      dispatch(setToastChanges(true));
-    }
-  }, [changes, shadToast]);
 
   useEffect(() => {
     setLoading(true);
@@ -118,29 +95,33 @@ const Members: React.FC = () => {
   }, []);
 
   const saveChanges = () => {
-    setLoading(true);
-    axios
-      .post("organizations/settings/members", {
-        screen: "members",
-        members: members.concat(invitedMembers),
-      })
-      .then(() => {
-        setChanges(false);
-        toast.success("Changes Saved");
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error("Error Saving Changes");
-      })
-      .finally(() => {
-        dispatch(setToastChanges(false));
-        setLoading(false);
-      });
+    const next = () => {
+      setLoading(true);
+      axios
+        .post("organizations/settings/members", {
+          screen: "members",
+          members: members.concat(invitedMembers),
+        })
+        .then(() => {
+          setChanges(false);
+          toast.success("Changes Saved");
+        })
+        .catch((err) => {
+          console.error(err);
+          toast.error("Error Saving Changes");
+        })
+        .finally(() => {
+          dispatch(setToastChanges(false));
+          setLoading(false);
+        });
+    };
+
+    next();
   };
 
   const triggerSaveToast = () => {
     if (!changes) {
-      setChanges(true);
+      dispatch(setToastChanges(true));
     }
   };
 
@@ -170,6 +151,7 @@ const Members: React.FC = () => {
     const updatedInvitedMembers = invitedMembers.filter(
       (member) => member.email !== email
     );
+    console.log(updatedInvitedMembers);
     setInvitedMembers(updatedInvitedMembers);
     triggerSaveToast();
     onRevokeConfirmOpenChange();
@@ -185,6 +167,7 @@ const Members: React.FC = () => {
 
   return (
     <>
+      <UnsavedToast action={saveChanges} />
       <div className="mt-5 ml-5">
         <Breadcrumbs>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
@@ -263,7 +246,7 @@ const Members: React.FC = () => {
                   <TableRow key={index}>
                     <TableCell>{member.email}</TableCell>
                     <TableCell>
-                      {new Date(member.addedOn).toDateString()}
+                      {new Date(member.addedOn).toLocaleDateString()}
                     </TableCell>
                     <TableCell>{member.role.name}</TableCell>
                     <TableCell>

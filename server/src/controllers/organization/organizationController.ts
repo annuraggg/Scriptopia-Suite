@@ -19,13 +19,14 @@ import multer from "multer";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import ls from "../../config/lemonSqueezy";
 import { Member } from "../../@types/Organization";
+import Permission from "../../models/Permission";
 
-const roleIdMap = {
-  admin: "66a6165bdc907b2eb692501b",
-  "read-only": "66a6165bdc907b2eb692501c",
-  finance: "66a6165bdc907b2eb692501d",
-  "hiring-manager": "66a6165bdc907b2eb692501e",
-};
+// const roleIdMap = {
+//   administrator: "66a6165bdc907b2eb692501b",
+//   "read-only": "66a6165bdc907b2eb692501c",
+//   finance: "66a6165bdc907b2eb692501d",
+//   "hiring-manager": "66a6165bdc907b2eb692501e",
+// };
 
 const createOrganization = async (c: Context) => {
   try {
@@ -75,11 +76,11 @@ const createOrganization = async (c: Context) => {
       }
 
       const user = await User.findOne({ email });
-
+      const role = await Roles.findOne({ name: member.role.toLowerCase() });
       const mem = {
         user: user?.clerkId || "",
         email: member.email, // @ts-ignore
-        role: [roleIdMap[member.role.toLowerCase() as string]],
+        role: role?._id,
         addedOn: new Date(),
         status: "pending",
       };
@@ -93,15 +94,19 @@ const createOrganization = async (c: Context) => {
       return sendError(c, 404, "User not found");
     }
 
+    const adminRole = await Roles.findOne({
+      name: "adminstrator",
+      default: true,
+    }).lean();
     membersArr.push({
       user: clerkId,
       email: creator.emailAddresses[0].emailAddress,
-      role: [roleIdMap["admin"]],
+      role: adminRole?._id,
       addedOn: new Date(),
       status: "active",
     });
 
-    const adminPerm = await Roles.findOne({ _id: roleIdMap["admin"] })
+    const adminPerm = await Roles.findOne({ _id: adminRole?._id })
       .populate("permissions")
       .exec();
 
@@ -113,12 +118,6 @@ const createOrganization = async (c: Context) => {
       name,
       email,
     });
-
-    console.log(lsError);
-    console.log(lsStatus);
-
-    console.log(lemonSqueezyCustomer);
-    console.log(lemonSqueezyCustomer?.data?.id);
 
     // Create organization
     const org = await Organization.create({
@@ -139,16 +138,17 @@ const createOrganization = async (c: Context) => {
       publicMetadata: {
         orgId: org._id,
         roleName: "admin",
-        roleId: roleIdMap["admin"], // @ts-ignore
+        roleId: adminRole?._id, // @ts-ignore
         permissions: adminPerm?.permissions.map((p: PermissionType) => p.name),
       },
     });
 
     for (const member of members) {
+      const role = await Roles.findOne({ name: member.role.toLowerCase() });
       const reqObj = {
         email: member.email,
         role: member.role, // @ts-ignore
-        roleId: roleIdMap[member.role.toLowerCase() as string],
+        roleId: role?._id,
         organization: org._id,
         inviter: fName || "",
         organizationname: name,
@@ -303,8 +303,12 @@ const getSettings = async (c: Context) => {
       return sendError(c, 404, "Organization not found");
     }
 
-    const defaultRoles = await Roles.find({ default: true }).populate("permissions").lean();
+    const defaultRoles = await Roles.find({ default: true })
+      .populate("permissions")
+      .lean();
     defaultRoles.forEach((role) => org.roles.push(role));
+
+    const allPermissions = await Permission.find().lean();
 
     const logoUrl = org.logo;
     if (logoUrl) {
@@ -314,13 +318,15 @@ const getSettings = async (c: Context) => {
       });
 
       const data = await r2Client.send(command);
-      console.log(data.Body);
       const buffer = await data.Body?.transformToByteArray();
       const base64 = Buffer.from(buffer as ArrayBuffer).toString("base64");
       org.logo = `data:image/png;base64,${base64}`;
     }
 
-    return sendSuccess(c, 200, "Success", org);
+    return sendSuccess(c, 200, "Success", {
+      ...org,
+      permissions: allPermissions,
+    });
   } catch (error) {
     logger.error(error as string);
     return sendError(c, 500, "Failed to fetch organization settings", error);
@@ -465,26 +471,13 @@ const updateMembers = async (c: Context) => {
           (email: string) => !oldPendingMembersEmails.includes(email)
         );
 
-      console.log("New Member: ");
-      console.log(
-        members.find(
-          (member: Member) =>
-            member.email === newPendingMembersNotInOldPendingMembers[0]
-        )
-      );
-
       for (const email of newPendingMembersNotInOldPendingMembers) {
         const reqObj = {
           email,
           role: members.find((member: Member) => member.email === email).role
             .name,
-          roleId:
-            // @ts-ignore
-            roleIdMap[
-              members
-                .find((member: Member) => member.email === email)
-                .role.name.toLowerCase() as string
-            ],
+          roleId: members.find((member: Member) => member.email === email).role
+            ._id,
           organization: orgId,
           inviter: fName || "",
           organizationname: organization.name,
