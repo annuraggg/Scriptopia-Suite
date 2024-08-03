@@ -32,9 +32,14 @@ import { setOrganization } from "./reducers/organizationReducer";
 const GeneralSettings = lazy(() => import("./pages/settings/general/General"));
 const Members = lazy(() => import("./pages/settings/members/Member"));
 const Roles = lazy(() => import("./pages/settings/roles/Roles"));
-const Departments = lazy(() => import("./pages/settings/departments/Departments"));
+const Departments = lazy(
+  () => import("./pages/settings/departments/Departments")
+);
 const Security = lazy(() => import("./pages/settings/security/Security"));
-const AuditLogs = lazy(() => import("./pages/settings/security/audit-logs/Audit-Logs"));
+const AuditLogs = lazy(
+  () => import("./pages/settings/security/audit-logs/Audit-Logs")
+);
+const OrgData = lazy(() => import("./pages/settings/security/data/Data"))
 
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
 const Jobs = lazy(() => import("./pages/jobs/Jobs"));
@@ -58,10 +63,11 @@ const Interviews = lazy(() => import("./pages/jobs/job/interviews/Interviews"));
 
 const Notifications = lazy(() => import("./pages/notifications/Notifications"));
 
-const Loader = () =>     <div className="spinner-container">
-<Spinner label="Loading..." color="default" />
-</div>
-
+const Loader = () => (
+  <div className="spinner-container">
+    <Spinner label="Loading..." color="default" />
+  </div>
+);
 
 function App() {
   const settingsRoute = [
@@ -90,6 +96,10 @@ function App() {
     {
       path: "security/audit-logs",
       element: <Suspense fallback={<Loader />} children={<AuditLogs />} />,
+    },
+    {
+      path: "security/data",
+      element: <Suspense fallback={<Loader />} children={<OrgData />} />,
     },
   ];
 
@@ -220,7 +230,7 @@ function App() {
       };
       dispatch(setOrganization(data));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSignedIn]);
 
   return <RouterProvider router={router} />;

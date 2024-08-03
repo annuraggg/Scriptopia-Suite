@@ -15,7 +15,7 @@ const AuditLogs = () => {
   const axios = ax(getToken);
   useEffect(() => {
     axios
-      .post("organizations/get/settings")
+      .get("organizations/settings")
       .then((res) => {
         setAuditLogs(res.data.data.auditLogs);
       })

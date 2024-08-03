@@ -18,7 +18,7 @@ import { Upload } from "@aws-sdk/lib-storage";
 import multer from "multer";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import ls from "../../config/lemonSqueezy";
-import { Member, Role } from "../../@types/Organization";
+import { AuditLog, Member, Role } from "../../@types/Organization";
 import Permission from "../../models/Permission";
 
 // const roleIdMap = {
@@ -35,6 +35,7 @@ const createOrganization = async (c: Context) => {
 
     const clerkUser = await clerkClient.users.getUser(u);
     const fName = clerkUser.firstName;
+    const lName = clerkUser.lastName;
     const clerkId = clerkUser.id;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -120,6 +121,13 @@ const createOrganization = async (c: Context) => {
     });
 
     // Create organization
+    const auditLog: AuditLog = {
+      user: fName + " " + lName,
+      userId: clerkId,
+      action: "Organization Created",
+      type: "info",
+    };
+
     const org = await Organization.create({
       name,
       email,
@@ -132,6 +140,7 @@ const createOrganization = async (c: Context) => {
         endsOn: new Date(new Date().setDate(new Date().getDate() + 15)),
         lemonSqueezyId: lemonSqueezyCustomer?.data?.id,
       },
+      auditLogs: [auditLog],
     });
 
     clerkClient.users.updateUser(clerkId, {
@@ -151,6 +160,7 @@ const createOrganization = async (c: Context) => {
         roleId: role?._id,
         organization: org._id,
         inviter: fName || "",
+        inviterId: clerkId,
         organizationname: name,
       };
 
@@ -223,7 +233,12 @@ const joinOrganization = async (c: Context) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
       organization: string;
-    } as { role: string; roleId: string; organization: string };
+    } as {
+      role: string;
+      roleId: string;
+      organization: string;
+      inviterId: string;
+    };
 
     const org = await Organization.findById(decoded.organization);
     if (!org) {
@@ -263,6 +278,16 @@ const joinOrganization = async (c: Context) => {
           permissions: onlyName,
         },
       });
+
+      const inviterClerk = await clerkClient.users.getUser(decoded.inviterId);
+      const auditLog: AuditLog = {
+        user: clerkUser.firstName + " " + clerkUser.lastName,
+        userId: u,
+        action: `User Joined Organization. Invited By: ${
+          inviterClerk.firstName + " " + inviterClerk.lastName
+        }`,
+        type: "info",
+      };
 
       await Organization.updateOne(
         { _id: decoded.organization, "members.email": email },
@@ -359,9 +384,21 @@ const updateGeneralSettings = async (c: Context) => {
       return sendError(c, 400, "Invalid website address");
     }
 
+    const user = await clerkClient.users.getUser(c.get("auth").userId);
+
+    const auditLog: AuditLog = {
+      user: user.firstName + " " + user.lastName,
+      userId: c.get("auth").userId,
+      action: "Organization General Settings Updated",
+      type: "info",
+    };
+
     const updatedOrg = await Organization.findByIdAndUpdate(
       orgId,
-      { name, email, website },
+      {
+        $set: { name, email, website },
+        $push: { auditLogs: auditLog },
+      },
       { new: true }
     );
 
@@ -416,8 +453,17 @@ const updateLogo = async (c: Context) => {
 
     await upload.done();
 
+    const user = await clerkClient.users.getUser(c.get("auth").userId);
+    const auditLog: AuditLog = {
+      user: user.firstName + " " + user.lastName,
+      userId: c.get("auth").userId,
+      action: "Organization Logo Updated",
+      type: "info",
+    };
+
     const updatedOrg = await Organization.findByIdAndUpdate(orgId, {
-      logo: `org-logos/${orgId}.png`,
+      $set: { logo: `org-logos/${orgId}.png` },
+      $push: { auditLogs: auditLog },
     });
 
     if (!updatedOrg) {
@@ -450,6 +496,7 @@ const updateMembers = async (c: Context) => {
 
     const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
     const fName = clerkUser.firstName;
+    const lName = clerkUser.lastName;
 
     const oldPendingMembers = organization.members.filter(
       (member) => member.status === "pending"
@@ -481,6 +528,7 @@ const updateMembers = async (c: Context) => {
             ._id,
           organization: orgId,
           inviter: fName || "",
+          inviterId: c.get("auth").userId,
           organizationname: organization.name,
         };
 
@@ -499,8 +547,16 @@ const updateMembers = async (c: Context) => {
       }
     }
 
+    const auditLog = {
+      user: fName + " " + lName,
+      userId: c.get("auth").userId,
+      action: "Organization Members Updated",
+      type: "info",
+    };
+
     const updatedOrg = await Organization.findByIdAndUpdate(orgId, {
-      members,
+      $set: { members },
+      $push: { auditLogs: auditLog },
     });
 
     if (!updatedOrg) {
@@ -548,8 +604,20 @@ const updateRoles = async (c: Context) => {
       return sendError(c, 404, "Organization not found");
     }
 
+    const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+    const fName = clerkUser.firstName;
+    const lName = clerkUser.lastName;
+
+    const auditLog: AuditLog = {
+      user: fName + " " + lName,
+      userId: c.get("auth").userId,
+      action: "Organization Roles Updated",
+      type: "info",
+    };
+
     const updatedOrg = await Organization.findByIdAndUpdate(orgId, {
-      roles: finalRoles,
+      $set: { roles: finalRoles },
+      $push: { auditLogs: auditLog },
     });
 
     if (!updatedOrg) {

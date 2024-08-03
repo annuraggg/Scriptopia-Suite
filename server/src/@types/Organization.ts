@@ -26,7 +26,8 @@ interface AuditLog {
   _id?: string;
   action: string;
   user: string;
-  date: string;
+  userId: string;
+  date?: string;
   type: "info" | "warning" | "error" | "success";
 }
 
