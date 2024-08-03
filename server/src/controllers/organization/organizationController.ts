@@ -567,6 +567,56 @@ const getCandidates = async (c: Context) => {
   }
 };
 
+const getDepartments = async (c: Context) => {
+  try {
+    const perms = await checkPermission.all(c, ["view_organization"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const orgId = perms.data?.orgId;
+    const org = await Organization.findById(orgId).lean();
+
+    if (!org) {
+      return sendError(c, 404, "Organization not found");
+    }
+
+    return sendSuccess(c, 200, "Departments fetched successfully", {
+      departments: org.departments || [],
+    });
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Failed to fetch departments", error);
+  }
+};
+
+const updateDepartments = async (c: Context) => {
+  try {
+    const perms = await checkPermission.all(c, ["manage_organizations"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const { departments } = await c.req.json();
+    const orgId = perms.data?.orgId;
+
+    const organization = await Organization.findById(orgId);
+    if (!organization) {
+      return sendError(c, 404, "Organization not found");
+    }
+
+    organization.departments = departments;
+    await organization.save();
+
+    return sendSuccess(c, 200, "Departments updated successfully", {
+      departments: organization.departments,
+    });
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Failed to update departments", error);
+  }
+};
+
 export default {
   createOrganization,
   verifyInvite,
@@ -576,4 +626,6 @@ export default {
   getCandidates,
   updateLogo,
   updateMembers,
+  getDepartments,
+  updateDepartments,
 };
