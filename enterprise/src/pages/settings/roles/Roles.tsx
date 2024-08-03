@@ -5,18 +5,12 @@ import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import Role from "@/@types/Roles";
-import {
-  Button,
-  Card,
-  CardBody,
-  Checkbox,
-  Input,
-  Spinner,
-} from "@nextui-org/react";
+import { Card, CardBody, Checkbox, Input, Spinner } from "@nextui-org/react";
 import Permission from "@/@types/Permission";
 import UnsavedToast from "@/components/UnsavedToast";
 import { setToastChanges } from "@/reducers/toastReducer";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/@types/reducer";
 
 const Roles = () => {
   const [builtInRoles, setBuiltInRoles] = useState<Role[]>([]);
@@ -26,6 +20,10 @@ const Roles = () => {
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [changes, setChanges] = useState<boolean>(false);
 
+  const [reset, setReset] = useState(false);
+
+  const org = useSelector((state: RootState) => state.organization._id)!;
+
   const dispatch = useDispatch();
 
   const { getToken } = useAuth();
@@ -33,11 +31,13 @@ const Roles = () => {
 
   const triggerSaveToast = () => {
     if (!changes) {
+      setChanges(true);
       dispatch(setToastChanges(true));
     }
   };
 
   useEffect(() => {
+    setLoading(true);
     axios
       .get("organizations/settings")
       .then((res) => {
@@ -59,7 +59,67 @@ const Roles = () => {
         toast.error("Error Fetching Settings");
       })
       .finally(() => setLoading(false));
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reset]);
+
+  const save = async () => {
+    setLoading(true);
+    axios
+      .post("organizations/settings/roles", { roles: customRoles })
+      .then(() => {
+        toast.success("Roles Saved Successfully");
+        setChanges(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Error Saving Roles");
+      })
+      .finally(() => setLoading(false));
+  };
+
+  const newRole = () => {
+    const newRole: Role = {
+      name: "New Role",
+      description: "",
+      permissions: [],
+      default: false,
+      organization: org,
+    };
+    setCustomRoles([...customRoles, newRole]);
+    setSelectedRole(newRole);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const changePerm = (val: any, perm: any) => {
+    if (selectedRole.default) return toast.error("Cannot edit built-in roles");
+    setChanges(true);
+    if (val) {
+      const newRole = {
+        ...selectedRole,
+        permissions: [
+          ...selectedRole.permissions,
+          { _id: perm._id, name: perm.name },
+        ],
+      };
+
+      setSelectedRole(newRole);
+      setCustomRoles(
+        customRoles.map((role) => (role._id === newRole._id ? newRole : role))
+      );
+    } else {
+      const newRole = {
+        ...selectedRole,
+        permissions: selectedRole.permissions.filter((p) => p._id !== perm._id),
+      };
+
+      setSelectedRole(newRole);
+      setCustomRoles(
+        customRoles.map((role) => (role._id === newRole._id ? newRole : role))
+      );
+    }
+
+    triggerSaveToast();
+  };
 
   if (loading) {
     return (
@@ -69,50 +129,56 @@ const Roles = () => {
     );
   }
 
-  const save = async () => {};
-
   return (
     <div>
-      <UnsavedToast action={save} />
+      <UnsavedToast action={save} reset={setReset} />
       <div className="mt-5 ml-5">
         <Breadcrumbs>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/roles"}>Roles</BreadcrumbItem>
         </Breadcrumbs>
       </div>
+
       <div className="flex p-5 items-center h-[94vh] gap-5 ">
         <Sidebar
           builtInRoles={builtInRoles}
           customRoles={customRoles}
           selectedRole={selectedRole}
           setSelectedRole={setSelectedRole}
+          newRole={newRole}
         />
         <Card className="h-full w-full">
           <CardBody className="px-5">
-            <div className="flex justify-between items-center">
-              <h4>Role Details</h4>
-              <Button
-                color="success"
-                variant="flat"
-                isDisabled={selectedRole.default}
-              >
-                Save
-              </Button>
-            </div>
             <div className="mt-5">
+              {selectedRole.default && (
+                <p className="text-red-500 mb-5">
+                  Default Roles cannot be edited
+                </p>
+              )}
               <div>
-                <p className="text-sm opacity-50">Role Name</p>
+                <p className="text-sm opacity-50 mb-2">Role Name</p>
                 <Input
                   type="text"
+                  isDisabled={selectedRole.default}
                   value={selectedRole.name}
-                  onChange={(e) =>
-                    setSelectedRole({ ...selectedRole, name: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setSelectedRole({ ...selectedRole, name: e.target.value });
+                    setCustomRoles(
+                      customRoles.map((role) =>
+                        role._id === selectedRole._id
+                          ? { ...selectedRole, name: e.target.value }
+                          : role
+                      )
+                    );
+
+                    triggerSaveToast();
+                  }}
                 />
               </div>
               <div>
-                <p className="text-sm opacity-50 mt-5">Role Description</p>
+                <p className="text-sm opacity-50 mt-5 mb-2">Role Description</p>
                 <Input
+                  isDisabled={selectedRole.default}
                   type="text"
                   value={selectedRole.description}
                   onChange={(e) => {
@@ -120,6 +186,14 @@ const Roles = () => {
                       ...selectedRole,
                       description: e.target.value,
                     });
+                    setCustomRoles(
+                      customRoles.map((role) =>
+                        role._id === selectedRole._id
+                          ? { ...selectedRole, description: e.target.value }
+                          : role
+                      )
+                    );
+
                     triggerSaveToast();
                   }}
                 />
@@ -130,32 +204,14 @@ const Roles = () => {
                 <div className="grid grid-cols-2 gap-5 mt-5">
                   {permissions.map((perm) => (
                     <Checkbox
+                      isDisabled={selectedRole.default}
                       key={perm._id}
                       isSelected={
                         selectedRole.permissions.filter(
                           (p) => p._id === perm._id
                         ).length > 0
                       }
-                      onValueChange={(val) => {
-                        if (val) {
-                          setSelectedRole({
-                            ...selectedRole,
-                            permissions: [
-                              ...selectedRole.permissions,
-                              { _id: perm._id, name: perm.name },
-                            ],
-                          });
-                        } else {
-                          setSelectedRole({
-                            ...selectedRole,
-                            permissions: selectedRole.permissions.filter(
-                              (p) => p._id !== perm._id
-                            ),
-                          });
-                        }
-
-                        triggerSaveToast();
-                      }}
+                      onValueChange={(val) => changePerm(val, perm)}
                     >
                       <p>{permissions.find((p) => p._id === perm._id)?.name}</p>
                       <p className="text-sm opacity-50">

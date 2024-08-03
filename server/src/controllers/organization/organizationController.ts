@@ -18,7 +18,7 @@ import { Upload } from "@aws-sdk/lib-storage";
 import multer from "multer";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import ls from "../../config/lemonSqueezy";
-import { Member } from "../../@types/Organization";
+import { Member, Role } from "../../@types/Organization";
 import Permission from "../../models/Permission";
 
 // const roleIdMap = {
@@ -306,6 +306,7 @@ const getSettings = async (c: Context) => {
     const defaultRoles = await Roles.find({ default: true })
       .populate("permissions")
       .lean();
+
     defaultRoles.forEach((role) => org.roles.push(role));
 
     const allPermissions = await Permission.find().lean();
@@ -518,6 +519,55 @@ const updateMembers = async (c: Context) => {
   }
 };
 
+const updateRoles = async (c: Context) => {
+  try {
+    const perms = await checkPermission.all(c, ["manage_organizations"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const { roles } = await c.req.json();
+    const finalRoles: Role[] = [];
+
+    for (const role of roles) {
+      const roleObj: Role = {
+        name: role.name,
+        description: role.description,
+        permissions: role.permissions.map((p: PermissionType) => p._id),
+        default: role.default,
+        organization: perms.data?.orgId!,
+      };
+
+      finalRoles.push(roleObj);
+    }
+
+    const orgId = perms.data?.orgId;
+    const organization = await Organization.findById(orgId);
+
+    if (!organization) {
+      return sendError(c, 404, "Organization not found");
+    }
+
+    const updatedOrg = await Organization.findByIdAndUpdate(orgId, {
+      roles: finalRoles,
+    });
+
+    if (!updatedOrg) {
+      return sendError(c, 404, "Organization not found");
+    }
+
+    return sendSuccess(
+      c,
+      200,
+      "Organization settings updated successfully",
+      updatedOrg
+    );
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Failed to update organization settings", error);
+  }
+};
+
 const getCandidates = async (c: Context) => {
   try {
     const perms = await checkPermission.all(c, ["view_candidates"]);
@@ -626,6 +676,7 @@ export default {
   getCandidates,
   updateLogo,
   updateMembers,
+  updateRoles,
   getDepartments,
   updateDepartments,
 };
