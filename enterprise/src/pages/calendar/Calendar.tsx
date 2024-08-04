@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import MainCalendar from "./MainCalendar";
 import { RootState } from "@/@types/reducer";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
@@ -15,9 +16,16 @@ const Calendar = () => {
           </BreadcrumbItem>
         </Breadcrumbs>
       </div>
-      <div className="p-5 px-10">
-        <MainCalendar />
-      </div>
+      <motion.div
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className=""
+      >
+        <div className="p-5 px-10">
+          <MainCalendar />
+        </div>
+      </motion.div>
     </>
   );
 };

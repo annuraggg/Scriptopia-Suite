@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { DataTable } from "./DataTable";
 import { RootState } from "@/@types/reducer";
@@ -60,9 +61,16 @@ const Candidates = () => {
           </BreadcrumbItem>
         </Breadcrumbs>
       </div>
-      <div className="p-5">
-        <DataTable data={tableData} />
-      </div>
+      <motion.div
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className=""
+      >
+        <div className="p-5">
+          <DataTable data={tableData} />
+        </div>
+      </motion.div>
     </>
   );
 };

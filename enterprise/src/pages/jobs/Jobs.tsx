@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useState } from "react";
 import {
   Card,
@@ -387,7 +388,12 @@ const Postings: React.FC = () => {
       <div className="w-full">
         <h4 className="text-2xl font-bold mb-4">Postings</h4>
         <div className="flex justify-between items-start w-full gap-5">
-          <div className="w-1/5">
+          <motion.div
+            initial={{ x: -50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="w-1/5"
+          >
             <Filter
               workScheduleFilter={workScheduleFilter}
               setWorkScheduleFilter={setWorkScheduleFilter}
@@ -396,160 +402,161 @@ const Postings: React.FC = () => {
               dateRange={dateRange}
               setDateRange={setDateRange}
             />
-          </div>
-          <div className="flex flex-col gap-4 w-4/5">
-            <div className="flex justify-between items-center w-full gap-4">
-              <Input
-                className="4/5"
-                placeholder="Search Postings"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <Card className="w-1/5 cursor-pointer" isPressable onClick={openCreateJobModal}>
-                <CardBody className="flex items-center justify-between bg-success-400 text-background bg-opacity-3 py-2 px-5">
-                  <div className="flex items-center gap-2">
-                    <FilePlusIcon className="text-background" size={22} />
-                    <p className="text-sm text-background">Create a new job</p>
-                  </div>
-                </CardBody>
-              </Card>
-            </div>
+          </motion.div>
+          <motion.div
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col gap-4 w-4/5"
+          >
+            <div className="">
+              <div className="flex justify-between items-center w-full gap-4">
+                <Input
+                  className="4/5"
+                  placeholder="Search Postings"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <Card className="w-1/5 cursor-pointer" isPressable onClick={openCreateJobModal}>
+                  <CardBody className="flex items-center justify-between bg-success-400 text-background bg-opacity-3 py-2 px-5">
+                    <div className="flex items-center gap-2">
+                      <FilePlusIcon className="text-background" size={22} />
+                      <p className="text-sm text-background">Create a new job</p>
+                    </div>
+                  </CardBody>
+                </Card>
+              </div>
 
-            <div className="grid grid-cols-4 gap-8 mt-2 w-full">
-              {Cards.map((card, index) => (
-                <Card
-                  isPressable
-                  key={index}
-                  className={`text-white rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${
-                    selectedFilter === card.filter
+              <div className="grid grid-cols-4 gap-8 mt-2 w-full">
+                {Cards.map((card, index) => (
+                  <Card
+                    isPressable
+                    key={index}
+                    className={`text-white rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${selectedFilter === card.filter
                       ? "bg-gray-500/20 text-white"
                       : "text-gray-500"
-                  }`}
-                  onClick={() => handleFilterChange(card.filter)}
-                >
-                  <div className="flex items-center justify-center gap-2 w-full">
-                    <div
-                      className={`${
-                        selectedFilter === card.filter
-                          ? "text-white"
-                          : "text-gray-500"
                       }`}
-                    >
-                      {card.icon}
-                    </div>
-                    <h1
-                      className={`${
-                        selectedFilter === card.filter
+                    onClick={() => handleFilterChange(card.filter)}
+                  >
+                    <div className="flex items-center justify-center gap-2 w-full">
+                      <div
+                        className={`${selectedFilter === card.filter
                           ? "text-white"
                           : "text-gray-500"
-                      } text-base`}
-                    >
-                      {card.title}
-                    </h1>
-                  </div>
-                  <p
-                    className={`text-center w-full ${
-                      selectedFilter === card.filter
+                          }`}
+                      >
+                        {card.icon}
+                      </div>
+                      <h1
+                        className={`${selectedFilter === card.filter
+                          ? "text-white"
+                          : "text-gray-500"
+                          } text-base`}
+                      >
+                        {card.title}
+                      </h1>
+                    </div>
+                    <p
+                      className={`text-center w-full ${selectedFilter === card.filter
                         ? "text-white"
                         : "text-gray-500"
-                    }`}
-                  >
-                    {card.jobCount} Jobs
-                  </p>
-                </Card>
-              ))}
-            </div>
+                        }`}
+                    >
+                      {card.jobCount} Jobs
+                    </p>
+                  </Card>
+                ))}
+              </div>
 
-            <div className="flex flex-col gap-3 w-full mt-6 overflow-y-auto">
-              {filteredPostings.map((posting, index) => (
-                <Card
-                  className="w-full h-24 border-none p-2 grid grid-cols-2 gap-2"
-                  key={index}
-                >
-                  <div className="flex flex-col items-start justify-start gap-3 w-full p-2">
-                    <div className="flex flex-row items-center justify-start gap-2 w-full">
-                      <p
-                        className="mr-1 cursor-pointer"
-                        onClick={() => handleDetailsClick(posting)}
-                      >
-                        {posting.title}
-                      </p>
-                      <span
-                        className={`text-xs mr-3 rounded-full whitespace-nowrap ${
-                          posting.category === "IT"
+              <div className="flex flex-col gap-3 w-full mt-6 overflow-y-auto">
+                {filteredPostings.map((posting, index) => (
+                  <Card
+                    className="w-full h-24 border-none p-2 grid grid-cols-2 gap-2"
+                    key={index}
+                  >
+                    <div className="flex flex-col items-start justify-start gap-3 w-full p-2">
+                      <div className="flex flex-row items-center justify-start gap-2 w-full">
+                        <p
+                          className="mr-1 cursor-pointer"
+                          onClick={() => handleDetailsClick(posting)}
+                        >
+                          {posting.title}
+                        </p>
+                        <span
+                          className={`text-xs mr-3 rounded-full whitespace-nowrap ${posting.category === "IT"
                             ? "text-success-500"
                             : posting.category === "Operations"
-                            ? "text-warning-500"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {posting.category}
-                      </span>
-                      <span
-                        className={`text-xs px-2 rounded-full whitespace-nowrap ${
-                          posting.status === "active"
+                              ? "text-warning-500"
+                              : "bg-gray-100 text-gray-800"
+                            }`}
+                        >
+                          {posting.category}
+                        </span>
+                        <span
+                          className={`text-xs px-2 rounded-full whitespace-nowrap ${posting.status === "active"
                             ? " text-success-500 bg-success-100"
                             : " text-danger-500 bg-danger-100"
-                        }`}
-                      >
-                        {posting.status === "active" ? "Active" : "Closed"}
-                      </span>
+                            }`}
+                        >
+                          {posting.status === "active" ? "Active" : "Closed"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 w-full text-sm mt-3 text-gray-500">
+                        <div className="flex items-center gap-2">
+                          <BriefcaseIcon size={18} />
+                          <p>{posting.jobprofile}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MapPinIcon size={18} />
+                          <p>{posting.location}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <BanknoteIcon size={18} />
+                          <p>
+                            {posting.salaryFrom} - {posting.salaryUpto}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 w-full text-sm mt-3 text-gray-500">
-                      <div className="flex items-center gap-2">
-                        <BriefcaseIcon size={18} />
-                        <p>{posting.jobprofile}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MapPinIcon size={18} />
-                        <p>{posting.location}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <BanknoteIcon size={18} />
-                        <p>
-                          {posting.salaryFrom} - {posting.salaryUpto}
+
+                    <div className="flex items-center justify-between w-full">
+                      <div className="text-sm rounded-full border bg-secondary bg-opacity-5 px-2 py-1">
+                        <p className="text-gray-300 text-xs">
+                          {posting.status === "active"
+                            ? `Open Until ${posting.openUntil}`
+                            : `Closed at ${posting.openUntil}`}
                         </p>
                       </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between w-full">
-                    <div className="text-sm rounded-full border bg-secondary bg-opacity-5 px-2 py-1">
-                      <p className="text-gray-300 text-xs">
-                        {posting.status === "active"
-                          ? `Open Until ${posting.openUntil}`
-                          : `Closed at ${posting.openUntil}`}
-                      </p>
-                    </div>
-                    <Dropdown>
-                      <DropdownTrigger>
-                        <Menu
-                          size={28}
-                          className="mr-6 cursor-pointer"
+                      <Dropdown>
+                        <DropdownTrigger>
+                          <Menu
+                            size={28}
+                            className="mr-6 cursor-pointer"
                           //onClick={() => handleDetailsClick()}
-                        />
-                      </DropdownTrigger>
-                      <DropdownMenu>
-                        {editItems.map((item, index) => (
-                          <DropdownItem
-                            key={index}
-                            className={
-                              item.title === "Delete" ? "text-danger" : ""
-                            }
-                          >
-                            <div className="flex items-center gap-2">
-                              {item.icon}
-                              <p>{item.title}</p>
-                            </div>
-                          </DropdownItem>
-                        ))}
-                      </DropdownMenu>
-                    </Dropdown>
-                  </div>
-                </Card>
-              ))}
+                          />
+                        </DropdownTrigger>
+                        <DropdownMenu>
+                          {editItems.map((item, index) => (
+                            <DropdownItem
+                              key={index}
+                              className={
+                                item.title === "Delete" ? "text-danger" : ""
+                              }
+                            >
+                              <div className="flex items-center gap-2">
+                                {item.icon}
+                                <p>{item.title}</p>
+                              </div>
+                            </DropdownItem>
+                          ))}
+                        </DropdownMenu>
+                      </Dropdown>
+                    </div>
+                  </Card>
+                ))}
+              </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
       <CreateJobModal isOpen={isModalOpen} onClose={closeCreateJobModal} />
