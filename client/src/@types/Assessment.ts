@@ -65,6 +65,7 @@ interface IAssessment extends Document {
   instructions: string;
   security: ISecurity;
   feedbackEmail: string;
+  obtainableScore: number;
   createdAt: Date;
 }
 

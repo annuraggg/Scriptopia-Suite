@@ -17,4 +17,7 @@ app.post("/", assessmentController.createAssessment);
 app.post("/verify", assessmentController.verifyAccess);
 app.post("/submit", assessmentController.submitAssessment);
 
+app.get("/view/:id", assessmentController.getAssessmentSubmissions);
+app.get("/view/:id/:submissionId", assessmentController.getAssessmentSubmission);
+
 export default app;

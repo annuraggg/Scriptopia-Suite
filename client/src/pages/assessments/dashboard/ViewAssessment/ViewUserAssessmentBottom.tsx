@@ -13,8 +13,13 @@ import {
 import { useState } from "react";
 import CodeSolutionModal from "./CodeSolutionModal";
 import McqReportModal from "./McqReportModal";
+import IAssessSub from "@/@types/AssessmentSubmission";
 
-const ViewUserAssessmentBottom = () => {
+const ViewUserAssessmentBottom = ({
+  submission,
+}: {
+  submission: IAssessSub;
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleOpen = () => setIsOpen(true);

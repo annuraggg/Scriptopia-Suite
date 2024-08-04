@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const api = (getToken?: any) => {
+const ax = (getToken?: any) => {
   const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL as string,
   });
@@ -28,4 +28,4 @@ const api = (getToken?: any) => {
   return api;
 };
 
-export default api;
+export default ax;

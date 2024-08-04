@@ -46,6 +46,33 @@ const ProblemSubmissionSchema = new Schema({
   results: { type: [ResultSchema], required: true },
 });
 
+const obtainedGradeSchema = new Schema({
+  mcq: {
+    type: [
+      {
+        mcqId: { type: Schema.Types.ObjectId, required: true },
+        obtainedMarks: { type: Number, required: true },
+      },
+    ],
+    required: false,
+  },
+  problem: {
+    type: [
+      {
+        problemId: {
+          type: Schema.Types.ObjectId,
+          ref: "Problem",
+          required: true,
+        },
+        obtainedMarks: { type: Number, required: true },
+      },
+    ],
+    required: false,
+  },
+
+  total: { type: Number, required: true },
+});
+
 const AssessmentSubmissionsSchema = new Schema({
   assessmentId: {
     type: Schema.Types.ObjectId,
@@ -60,6 +87,8 @@ const AssessmentSubmissionsSchema = new Schema({
   timer: { type: Number, required: true },
   sessionRewindUrl: { type: String, required: false },
   createdAt: { type: Date, default: Date.now },
+  obtainedGrades: { type: obtainedGradeSchema, required: true },
+  cheatingStatus: { type: String, enum: ["No Copying", "Light Copying", "Heavy Copying"], required: false },
 });
 
 const AssessmentSubmissions = mongoose.model(

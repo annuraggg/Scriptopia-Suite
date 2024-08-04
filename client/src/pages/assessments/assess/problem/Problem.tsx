@@ -51,6 +51,14 @@ const Problem = () => {
 
   const { getToken } = useAuth();
   useEffect(() => {
+    const name = localStorage.getItem("name") as string;
+    const email = localStorage.getItem("email") as string;
+
+    if (!name || !email) {
+      const redirectPath = window.location.pathname.split("/").slice(0, -2);
+      window.location.href = redirectPath.join("/");
+    }
+
     const langs =
       (secureLocalStorage.getItem("securityConfig") as { languages: string[] })
         ?.languages || [];

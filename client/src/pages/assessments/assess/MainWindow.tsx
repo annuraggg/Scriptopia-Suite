@@ -30,6 +30,14 @@ const Main = ({
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
+    const name = localStorage.getItem("name") as string;
+    const email = localStorage.getItem("email") as string;
+
+    if (!name || !email) {
+      const redirectPath = window.location.pathname.split("/").slice(0, -1);
+      window.location.href = redirectPath.join("/");
+    }
+
     const submissions =
       (secureLocalStorage.getItem("mcqSubmissions") as string) || "[]";
     const parsedSubmissions = JSON.parse(submissions);
@@ -136,15 +144,27 @@ const Main = ({
                               saveAnswer(value, index)
                             }
                           >
-                            {mcq?.mcq.options?.map((option) => (
-                              <ToggleGroupItem
-                                key={option}
-                                value={option}
-                                className="w-[48%] data-[state=on]:bg-green-6 data-[state=on]:bg-green-600 data-[state=on]:bg-opacity-20 data-[state=on]:text-green-500 border-2 p-5 bg-gray-100 bg-opacity-10"
-                              >
-                                {option}
-                              </ToggleGroupItem>
-                            ))}
+                            {mcq.type === "multiple" &&
+                              mcq?.mcq.options?.map((option) => (
+                                <ToggleGroupItem
+                                  key={option}
+                                  value={option}
+                                  className="w-[48%] data-[state=on]:bg-green-6 data-[state=on]:bg-green-600 data-[state=on]:bg-opacity-20 data-[state=on]:text-green-500 border-2 p-5 py-7 bg-gray-100 bg-opacity-10"
+                                >
+                                  {option}
+                                </ToggleGroupItem>
+                              ))}
+
+                            {mcq.type === "checkbox" &&
+                              mcq?.checkbox.options?.map((option) => (
+                                <ToggleGroupItem
+                                  key={option}
+                                  value={option}
+                                  className="w-[48%] data-[state=on]:bg-green-6 data-[state=on]:bg-green-600 data-[state=on]:bg-opacity-20 data-[state=on]:text-green-500 border-2 p-5 py-7 bg-gray-100 bg-opacity-10"
+                                >
+                                  {option}
+                                </ToggleGroupItem>
+                              ))}
                           </ToggleGroup>
                         </div>
                       )}

@@ -46,11 +46,11 @@ const router = createBrowserRouter([
         element: <AssessmentDashboard />,
       },
       {
-        path: "/assessments/id/view",
+        path: "/assessments/:id/view",
         element: <ViewAssessment />,
       },
       {
-        path: "/assessments/id/view/id",
+        path: "/assessments/:id/view/:cid",
         element: <ViewUserAssessment />,
       },
       {

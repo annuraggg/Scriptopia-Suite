@@ -111,7 +111,7 @@ const MCQCodeAssess = ({
                 <Button
                   className="w-[48%] flex items-center justify-center text-xs gap-3"
                   variant="flat"
-                  onClick={() => navigate(`/assessments/id/view`)}
+                  onClick={() => navigate(`/assessments/${CreatedAssessment._id}/view`)}
                 >
                   <Eye size={18} /> <p>View</p>
                 </Button>

@@ -85,6 +85,7 @@ const assessmentSchema = new mongoose.Schema({
   instructions: { type: String, required: true },
   security: { type: securitySchema, required: true },
   feedbackEmail: { type: String, required: true },
+  obtainableScore: { type: Number, required: true },
   createdAt: { type: Date, default: Date.now },
 });
 

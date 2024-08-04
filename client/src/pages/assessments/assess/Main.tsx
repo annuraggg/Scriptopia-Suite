@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import ax from "@/config/axios";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
+import secureLocalStorage from "react-secure-storage";
 
 const divStyle = {
   background: "url('/wave.svg')",
@@ -59,8 +60,25 @@ const Main = () => {
     });
   };
 
+  const clearAssessment = () => {
+    secureLocalStorage.removeItem("mcqSubmissions");
+    secureLocalStorage.removeItem("submissions");
+    secureLocalStorage.removeItem("timer");
+    secureLocalStorage.removeItem("offtrack");
+    secureLocalStorage.removeItem("securityConfig");
+
+    localStorage.removeItem("name");
+    localStorage.removeItem("email");
+    localStorage.removeItem("mcqSubmissions");
+    localStorage.removeItem("submissions");
+    localStorage.removeItem("timer");
+    localStorage.removeItem("offtrack");
+    localStorage.removeItem("securityConfig");
+  };
+
   const fullScreenHandle = useFullScreenHandle();
   const startTest = () => {
+    clearAssessment();
     localStorage.setItem("name", name);
     localStorage.setItem("email", email);
     navigate("current");
