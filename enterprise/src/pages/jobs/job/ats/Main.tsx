@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   Accordion,
   AccordionItem,
@@ -51,36 +52,43 @@ const Main = ({ save }: { save: () => void }) => {
 
   return (
     <div className="p-10 py-5">
-      <Tabs aria-label="Options" variant="light">
-        <Tab key="dashboard" title="Dashboard">
-          <div>
-            <Accordion variant="splitted">
-              <AccordionItem key="config" aria-label="config" title="Config">
-                <div className="flex items-center w-[50%] gap-5">
-                  <p>Match Threshold</p>
-                  <Input placeholder="In %" className="w-[50%]" />
-                </div>
-                <Button
-                  className="mt-5 float-right mb-5"
-                  variant="flat"
-                  color="success"
-                  onClick={save}
-                >
-                  Save
-                </Button>
-              </AccordionItem>
-            </Accordion>
-          </div>
+      <motion.div
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className=""
+      >
+        <Tabs aria-label="Options" variant="light">
+          <Tab key="dashboard" title="Dashboard">
+            <div>
+              <Accordion variant="splitted">
+                <AccordionItem key="config" aria-label="config" title="Config">
+                  <div className="flex items-center w-[50%] gap-5">
+                    <p>Match Threshold</p>
+                    <Input placeholder="In %" className="w-[50%]" />
+                  </div>
+                  <Button
+                    className="mt-5 float-right mb-5"
+                    variant="flat"
+                    color="success"
+                    onClick={save}
+                  >
+                    Save
+                  </Button>
+                </AccordionItem>
+              </Accordion>
+            </div>
 
-          <div className="mt-5 flex gap-5">
-            <SelectionChart chartData={selectionChartData} />
-            <ResumeChart chartData={chartData} />
-          </div>
-        </Tab>
-        <Tab key="candidates" title="Candidates">
-          <DataTable data={tableData} />
-        </Tab>
-      </Tabs>
+            <div className="mt-5 flex gap-5">
+              <SelectionChart chartData={selectionChartData} />
+              <ResumeChart chartData={chartData} />
+            </div>
+          </Tab>
+          <Tab key="candidates" title="Candidates">
+            <DataTable data={tableData} />
+          </Tab>
+        </Tabs>
+      </motion.div>
     </div>
   );
 };

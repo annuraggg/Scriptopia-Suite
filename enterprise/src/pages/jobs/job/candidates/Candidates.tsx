@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import Filter from "./Filter";
 import { DataTable } from "./DataTable";
 import { Card } from "@nextui-org/react";
@@ -53,12 +54,22 @@ const Candidates = () => {
       </div>
       <div className="w-full bg-slate-700 h-[1px] rounded-full mb-4"></div>
       <div className="w-full flex flex-row gap-4">
-        <div className="w-[20%]">
+        <motion.div
+          initial={{ x: -50, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="w-[20%]"
+        >
           <Filter />
-        </div>
-        <div className="w-[80%]">
+        </motion.div>
+        <motion.div
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="w-[80%]"
+        >
           <DataTable data={tableData} />
-        </div>
+        </motion.div>
       </div>
     </div>
   );
