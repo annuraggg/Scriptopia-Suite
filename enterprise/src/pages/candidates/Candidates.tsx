@@ -3,7 +3,8 @@ import { DataTable } from "./DataTable";
 import { RootState } from "@/@types/reducer";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useSelector } from "react-redux";
-import axios from "axios";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
 
 interface Candidate {
   _id: string;
@@ -23,24 +24,27 @@ const Candidates = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { getToken } = useAuth();
   useEffect(() => {
-    axios.get('/candidates')
-      .then(response => {
+    const axios = ax(getToken);
+    axios
+      .get("/organizations/candidates")
+      .then((response) => {
         setCandidates(response.data.data || []);
         setLoading(false);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error(error);
-        setError('Failed to fetch candidates');
+        setError("Failed to fetch candidates");
         setLoading(false);
       });
   }, []);
 
-  const tableData = candidates.map(candidate => ({
+  const tableData = candidates.map((candidate) => ({
     name: `${candidate.firstName} ${candidate.lastName}`,
     email: candidate.email,
-    received: candidate.receivedDate || 'N/A',
-    status: candidate.status || 'N/A',
+    received: candidate.receivedDate || "N/A",
+    status: candidate.status || "N/A",
   }));
 
   if (loading) return <div>Loading...</div>;

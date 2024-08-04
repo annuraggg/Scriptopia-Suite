@@ -17,12 +17,6 @@ const Dashboard = () => {
       color: "text-red-500",
     },
     {
-      title: "Total Live Assessments",
-      icon: Disc2,
-      value: 200,
-      color: "text-green-500",
-    },
-    {
       title: "Assessments Taken",
       icon: BookCheck,
       value: 200,

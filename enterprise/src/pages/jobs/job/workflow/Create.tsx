@@ -1,11 +1,13 @@
 import { useState } from "react";
 import {
   FileText,
-  LineChartIcon,
   Code,
   MonitorPlay,
   Edit2,
   Trash,
+  Combine,
+  Book,
+  Copy,
 } from "lucide-react";
 import { Button, Divider } from "@nextui-org/react";
 
@@ -20,12 +22,20 @@ const Create = () => {
       label: "ATS",
     },
     {
-      icon: LineChartIcon,
-      label: "Simple Assessment",
+      icon: Copy,
+      label: "MCQ Assessment",
     },
     {
       icon: Code,
       label: "Code Assessment",
+    },
+    {
+      icon: Combine,
+      label: "MCQ + Code Assessment",
+    },
+    {
+      icon: Book,
+      label: "Assignment",
     },
     {
       icon: MonitorPlay,

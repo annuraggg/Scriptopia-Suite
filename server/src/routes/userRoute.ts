@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import userController from "../controllers/userController";
+import userController from "../controllers/coding/userController";
 const app = new Hono();
 
 app.post("/create", userController.userCreated);

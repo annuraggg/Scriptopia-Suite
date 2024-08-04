@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import organizationController from "../controllers/organization/organizationController";
+import organizationController from "../controllers/enterprise/organization/organizationController";
 
 const app = new Hono();
 

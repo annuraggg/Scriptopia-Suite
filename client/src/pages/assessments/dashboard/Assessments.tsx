@@ -2,14 +2,15 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import Dashboard from "./Dashboard";
-import AssessmentsCreated from "./AssessmentsCreated";
-import LiveAssessmentsCreated from "./LiveAssessmentsCreated";
 import AssessmentsTaken from "./AssessmentsTaken";
 import { useQueries } from "@tanstack/react-query";
 import ax from "@/config/axios";
 import Loader from "@/components/Loader";
 import ErrorPage from "@/components/ErrorPage";
 import { useAuth } from "@clerk/clerk-react";
+import MCQAssess from "./MCQAssess";
+import CodeAssess from "./CodeAssess";
+import MCQCodeAssess from "./MCQCodeAssess";
 
 const Assessments = () => {
   const [active, setActive] = useState(0);
@@ -20,38 +21,41 @@ const Assessments = () => {
   const data = useQueries({
     queries: [
       {
-        queryKey: ["all-assessments"],
-        queryFn: async () => (await axios.get("/assessments/all/1")).data,
-      },
-      {
-        queryKey: ["created-assessments"],
-        queryFn: async () => (await axios.get("/assessments/created/1")).data,
-      },
-      {
-        queryKey: ["live-assessments"],
-        queryFn: async () =>
-          (await axios.get("/assessments/live-created/1")).data,
-      },
-      {
         queryKey: ["taken-assessments"],
         queryFn: async () => (await axios.get("/assessments/taken/1")).data,
+      },
+      {
+        queryKey: ["mcq-created-assessments"],
+        queryFn: async () =>
+          (await axios.get("/assessments/mcq/created/1")).data,
+      },
+      {
+        queryKey: ["code-created-assessments"],
+        queryFn: async () =>
+          (await axios.get("/assessments/code/created/1")).data,
+      },
+      {
+        queryKey: ["mcqcode-created-assessments"],
+        queryFn: async () =>
+          (await axios.get("/assessments/mcqcode/created/1")).data,
       },
     ],
   });
 
-  console.log(data);
-
   useEffect(() => {
     const hash = window.location.hash;
     switch (hash) {
-      case "#created":
+      case "#taken":
         setActive(1);
         break;
-      case "#taken":
+      case "#mcqcreated":
         setActive(2);
         break;
-      case "#live":
+      case "#codecreated":
         setActive(3);
+        break;
+      case "#mcqcodecreated":
+        setActive(4);
         break;
       default:
         setActive(0);
@@ -73,11 +77,16 @@ const Assessments = () => {
         <Sidebar active={active} setActive={setActive} />
         {active === 0 && <Dashboard />}
         {active === 1 && (
-          <AssessmentsCreated createdAssessments={data[1]?.data.data || []} />
+          <AssessmentsTaken takenAssessments={data[0]?.data.data || []} />
         )}
-        {active === 2 && <AssessmentsTaken takenAssessments={[]} />}
+        {active === 2 && (
+          <MCQAssess createdAssessments={data[1]?.data.data || []} />
+        )}
         {active === 3 && (
-          <LiveAssessmentsCreated liveAssessments={data[2]?.data.data || []} />
+          <CodeAssess createdAssessments={data[2]?.data.data || []} />
+        )}
+        {active === 4 && (
+          <MCQCodeAssess createdAssessments={data[3]?.data.data || []} />
         )}
       </div>
     </motion.div>

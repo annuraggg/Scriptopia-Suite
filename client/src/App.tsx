@@ -7,15 +7,20 @@ import AssessmentDashboard from "./pages/assessments/dashboard/Assessments";
 import Problems from "./pages/problems/dashboard/Problems";
 import Problem from "./pages/problems/problem/Problem";
 import NewProblem from "./pages/problems/new/NewProblem";
-import New from "./pages/assessments/standard/new/New";
+
 import Layout from "./components/Layout";
 // import ErrorPage from "./components/ErrorPage";
 import OrgIntro from "./pages/organization/intro/Intro";
 import OrgMain from "./pages/organization/main/Main";
-import MainAssessment from "./pages/assessments/standard/assess/Main";
-import AssessmentCurrent from "./pages/assessments/standard/assess/Dashboard";
-import AssessmentCurrentProblem from "./pages/assessments/standard/assess/problem/Problem";
-import Result from "./pages/assessments/standard/assess/result/Result";
+
+import NewMCQ from "./pages/assessments/new/mcq/New";
+import NewCode from "./pages/assessments/new/code/New";
+import NewMCQCode from "./pages/assessments/new/mcqcode/New";
+
+import MainAssessment from "./pages/assessments/assess/Main";
+import AssessmentCurrent from "./pages/assessments/assess/Dashboard";
+import AssessmentCurrentProblem from "./pages/assessments/assess/problem/Problem";
+import Result from "./pages/assessments/assess/result/Result";
 import ViewAssessment from "./pages/assessments/dashboard/ViewAssessment/ViewAssessment";
 import ViewUserAssessment from "./pages/assessments/dashboard/ViewAssessment/ViewUserAssessment";
 
@@ -44,8 +49,16 @@ const router = createBrowserRouter([
         element: <ViewUserAssessment />,
       },
       {
-        path: "/assessments/standard/new",
-        element: <New />,
+        path: "/assessments/new/mcq",
+        element: <NewMCQ />,
+      },
+      {
+        path: "/assessments/new/code",
+        element: <NewCode />,
+      },
+      {
+        path: "/assessments/new/mcqcode",
+        element: <NewMCQCode />,
       },
 
       // Problems
@@ -78,19 +91,19 @@ const router = createBrowserRouter([
     element: <SignUp />,
   },
   {
-    path: "/assessments/standard/:id",
+    path: "/assessments/:id",
     element: <MainAssessment />,
   },
   {
-    path: "/assessments/standard/:id/current",
+    path: "/assessments/:id/current",
     element: <AssessmentCurrent />,
   },
   {
-    path: "/assessments/standard/:id/current/:probid",
+    path: "/assessments/:id/current/:probid",
     element: <AssessmentCurrentProblem />,
   },
   {
-    path: "/assessments/standard/result",
+    path: "/assessments/result",
     element: <Result />,
   },
 ]);

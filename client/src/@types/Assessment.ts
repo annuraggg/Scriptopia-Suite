@@ -36,6 +36,7 @@ export interface IMcq {
   type: "multiple" | "checkbox" | "text";
   mcq: { options: string[]; correct: string };
   checkbox: { options: string[]; correct: string[] };
+  grade: number;
 }
 
 export interface ISecurity {
@@ -52,7 +53,7 @@ interface IAssessment extends Document {
   _id: string;
   name: string;
   description: string;
-  type: "standard" | "live";
+  type: "mcq" | "code" | "both";
   timeLimit: number;
   passingPercentage: number;
   openRange: IOpenRange;

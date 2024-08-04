@@ -9,13 +9,6 @@ import {
   TableCell,
 } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
-import {
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-  Button,
-} from "@nextui-org/react";
 import React, { useEffect } from "react";
 
 const Problems = ({
@@ -28,42 +21,33 @@ const Problems = ({
   solvedProblems: string[];
 }) => {
   const navigate = useNavigate();
-  const [selectedKeys, setSelectedKeys] = React.useState(
-    new Set<string>(["Select"])
-  );
 
   const [difficulty, setDifficulty] = React.useState("");
   const [search, setSearch] = React.useState("");
+  const [selectedTag, setSelectedTag] = React.useState<string | null>(null);
 
   const [filteredProblems, setFilteredProblems] = React.useState<IProblem[]>(
     []
   );
 
-    useEffect(() => {
-      // filter problems
-      if (problems) {
-        const filteredProblems = problems.filter((problem) => {
-          if (difficulty && problem.difficulty !== difficulty) return false;
-          if (
-            search &&
-            !problem.title.toLowerCase().includes(search.toLowerCase())
-          )
-            return false;
-          if (
-            selectedKeys.size > 0 &&
-            !problem.tags.some((tag) => selectedKeys.has(tag))
-          )
-            return false;
-          return true;
-        });
-        setFilteredProblems(filteredProblems);
-      }
-    }, [difficulty, search, selectedKeys, problems]);
+  useEffect(() => {
+    // filter problems
+    if (problems) {
+      const filteredProblems = problems.filter((problem) => {
+        if (difficulty && problem.difficulty !== difficulty) return false;
+        if (
+          search &&
+          !problem.title.toLowerCase().includes(search.toLowerCase())
+        )
+          return false;
 
-  const selectedValue = React.useMemo(
-    () => Array.from(selectedKeys).join(", ").replace(/_/g, " "),
-    [selectedKeys]
-  );
+        if (selectedTag && !problem.tags.includes(selectedTag.toLowerCase())) return false;
+        return true;
+      });
+      setFilteredProblems(filteredProblems);
+    }
+  }, [difficulty, search, problems, selectedTag]);
+
   return (
     <div className="fixed left-3 md:static">
       <h6 className="text-md md:text-md mt-4 md:mt-2 text-gray-500 mb-5">
@@ -74,6 +58,7 @@ const Problems = ({
           <div
             className="hover:text-blue-500 duration-200 transition-colors cursor-pointer text-sm"
             key={i}
+            onClick={() => setSelectedTag(tag)}
           >
             {tag}
           </div>
@@ -106,31 +91,6 @@ const Problems = ({
               Hard
             </SelectItem>
           </Select>
-          <div className="md:hidden">
-            <Dropdown>
-              <DropdownTrigger>
-                <Button variant="solid" className="capitaliz">
-                  {selectedValue}
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu
-                aria-label="Tag selection"
-                variant="flat"
-                disallowEmptySelection
-                selectionMode="single"
-                selectedKeys={selectedKeys}
-                onSelectionChange={(value) =>
-                  setSelectedKeys(
-                    new Set<string>(Array.from(value) as string[])
-                  )
-                }
-              >
-                {tags.map((tag) => (
-                  <DropdownItem key={tag}>{tag}</DropdownItem>
-                ))}
-              </DropdownMenu>
-            </Dropdown>
-          </div>
         </div>
       </div>
 
