@@ -8,7 +8,7 @@ import ax from "@/config/axios";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 
 const divStyle = {
-  background: "url('/wave2.svg')",
+  background: "url('/wave.svg')",
   backgroundSize: "cover",
   backgroundRepeat: "no-repeat",
   backgroundPosition: "center",

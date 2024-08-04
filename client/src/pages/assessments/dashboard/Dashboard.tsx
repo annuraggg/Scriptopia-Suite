@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Card, CardBody, CardHeader } from "@nextui-org/react";
-import { UsersRound, BookUser, Disc2, BookCheck } from "lucide-react";
+import { UsersRound, BookUser, BookCheck } from "lucide-react";
 
 const Dashboard = () => {
   const cards = [

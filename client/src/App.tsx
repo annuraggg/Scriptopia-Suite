@@ -23,8 +23,13 @@ import AssessmentCurrentProblem from "./pages/assessments/assess/problem/Problem
 import Result from "./pages/assessments/assess/result/Result";
 import ViewAssessment from "./pages/assessments/dashboard/ViewAssessment/ViewAssessment";
 import ViewUserAssessment from "./pages/assessments/dashboard/ViewAssessment/ViewUserAssessment";
+import Lander from "./pages/lander/Lander";
 
 const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Lander />,
+  },
   {
     path: "/",
     element: <Layout />,
