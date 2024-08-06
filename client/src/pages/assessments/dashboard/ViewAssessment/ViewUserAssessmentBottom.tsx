@@ -16,7 +16,6 @@ import McqReportModal from "./McqReportModal";
 import IAssessSub from "@/@types/AssessmentSubmission";
 
 const ViewUserAssessmentBottom = ({
-  submission,
 }: {
   submission: IAssessSub;
 }) => {
