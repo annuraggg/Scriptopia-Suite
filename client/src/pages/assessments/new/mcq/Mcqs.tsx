@@ -1,7 +1,7 @@
 import { Button, useDisclosure } from "@nextui-org/react";
 import McqModal from "./McqModal";
 import { IMcq } from "@/@types/Assessment";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   ChevronDownIcon,
   ChevronUpIcon,
@@ -19,6 +19,7 @@ const Mcqs = ({
   setMcqs: (mcqs: IMcq[] | ((prev: IMcq[]) => IMcq[])) => void;
 }) => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState("");
   const [questionType, setQuestionType] = useState(
@@ -105,6 +106,58 @@ const Mcqs = ({
     onOpen();
   };
 
+  const handleImportCSV = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const processCSV = (csv: string) => {
+    const lines = csv.split('\n');
+    const newMcqs: IMcq[] = [];
+
+    lines.forEach((line, index) => {
+      if (index === 0) return; // Skip header row
+      const [question, type, options, correct, gradeStr] = line.split(',');
+      
+      const mcqOptions = options.split(';');
+      const grade = parseInt(gradeStr, 10) || 1;
+
+      if (type === 'multiple') {
+        newMcqs.push({
+          question,
+          type: 'multiple',
+          mcq: { options: mcqOptions, correct },
+          checkbox: { options: [], correct: [] },
+          grade,
+        });
+      } else if (type === 'checkbox') {
+        const correctOptions = correct.split(';');
+        newMcqs.push({
+          question,
+          type: 'checkbox',
+          mcq: { options: [], correct: '' },
+          checkbox: { options: mcqOptions, correct: correctOptions },
+          grade,
+        });
+      }
+    });
+
+    setMcqs((prevMcqs) => [...prevMcqs, ...newMcqs]);
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        processCSV(content);
+      };
+      reader.readAsText(file);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -114,7 +167,16 @@ const Mcqs = ({
       <div>
         <div className="flex flex-row justify-start gap-2">
           <Button onClick={handleOpen}>Add Question</Button>
-          <Button variant="ghost"><ImportIcon size={22} />Import CSV</Button>
+          <Button variant="ghost" onClick={handleImportCSV}>
+            <ImportIcon size={22} />Import CSV
+          </Button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept=".csv"
+            style={{ display: 'none' }}
+          />
         </div>
         <McqModal
           isOpen={isOpen}
