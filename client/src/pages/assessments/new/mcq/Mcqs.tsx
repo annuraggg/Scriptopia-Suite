@@ -50,17 +50,17 @@ const Mcqs = ({
       newMcqs[editingIndex!] = { question, type, mcq, checkbox, grade };
       setMcqs(newMcqs);
       if (isOpen) onOpenChange();
-      clear();
+      resetModalState();
       return;
     }
 
     setMcqs([...mcqs, { question, type, mcq, checkbox, grade }]);
 
-    clear();
+    resetModalState();
     if (isOpen) onOpenChange();
   };
 
-  const clear = () => {
+  const resetModalState = () => {
     setTitle("");
     setQuestionType(new Set<string>(["multiple"]));
     setOptions([]);
@@ -69,8 +69,14 @@ const Mcqs = ({
     setCorrectCheckboxes([]);
     setNewOption("");
     setNewCheckbox("");
+    setGrade(1);
     setEditingIndex(null);
     setIsEditing(false);
+  };
+
+  const handleOpen = () => {
+    resetModalState();
+    onOpen();
   };
 
   const moveQuestion = (index: number, direction: "up" | "down") => {
@@ -106,11 +112,16 @@ const Mcqs = ({
     >
       <div>
         <div>
-          <Button onClick={onOpen}>Add Question</Button>
+          <Button onClick={handleOpen}>Add Question</Button>
         </div>
         <McqModal
           isOpen={isOpen}
-          onOpenChange={onOpenChange}
+          onOpenChange={(open: boolean) => {
+            if (!open) {
+              resetModalState();
+            }
+            onOpenChange();
+          }}
           save={addMcq}
           isEditing={isEditing}
           title={title}
