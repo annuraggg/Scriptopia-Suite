@@ -7,46 +7,113 @@ import {
   ArrowLeftRight,
   Play,
 } from "lucide-react";
+import IAssessment from "@/@types/Assessment";
+import IAssessSub from "@/@types/AssessmentSubmission";
 
-const ViewUserAssessmentTop = () => {
+const ViewUserAssessmentTop = ({
+  submission,
+  assessment,
+}: {
+  submission: IAssessSub;
+  assessment: IAssessment;
+}) => {
+  const getTimeTaken = () => {
+    const totalTime = assessment.timeLimit * 60;
+    const time = totalTime - submission.timer;
+
+    const hours = Math.floor(time / 3600);
+    const minutes = Math.floor((time % 3600) / 60);
+    const seconds = time % 60;
+    return `${hours}h ${minutes}m ${seconds}s`;
+  };
+
+  const getCodeCompletion = () => {
+    const totalQuestions = assessment?.mcqs?.length || 0;
+    const completedQuestions = submission?.mcqSubmissions?.length ?? 0;
+    const percentage = (completedQuestions / totalQuestions) * 100;
+    return `${percentage}%`;
+  };
+
+  const getMCQCompletion = () => {
+    const totalQuestions = assessment?.mcqs?.length || 0;
+    const completedQuestions = submission?.mcqSubmissions?.length ?? 0;
+    const percentage = (completedQuestions / totalQuestions) * 100;
+    return `${percentage}%`;
+  };
+
+  const getPercentage = (number: number = 0, total: number = 0) => {
+    return parseInt(((number / total) * 100).toFixed(2));
+  };
+
+  const calculateTotalCopies = () => {
+    let totalCopies = 0;
+    if (submission?.offenses?.copyPaste) {
+      totalCopies += submission.offenses.copyPaste.mcq;
+      submission.offenses.copyPaste.problem.forEach((problem) => {
+        totalCopies += problem.times;
+      });
+    }
+    return totalCopies;
+  };
+
+  const calculateTotalWindowSwitch = () => {
+    let totalSwitches = 0;
+    if (submission?.offenses?.tabChange) {
+      totalSwitches += submission.offenses.tabChange.mcq;
+      submission.offenses.tabChange.problem.forEach((problem) => {
+        totalSwitches += problem.times;
+      });
+    }
+
+    return totalSwitches;
+  };
+
   const Cards = [
     {
       title: "Time Taken",
       icon: Clock,
-      value: "60 Minutes",
+      value: getTimeTaken(),
       color: "text-blue-500",
+      visible: true,
     },
     {
       title: "Code Completion",
       icon: CodeXml,
-      value: "20%",
+      value: getCodeCompletion(),
       color: "text-green-500",
+      visible: assessment?.problems?.length > 0,
     },
     {
       title: "MCQ Completion",
       icon: SquareStack,
-      value: "70%",
+      value: getMCQCompletion(),
       color: "text-yellow-500",
+      visible: assessment?.mcqs?.length > 0,
     },
   ];
 
   return (
     <div className="flex flex-col w-full h-fit gap-3">
       <div className="w-full flex flex-row gap-3">
-        <Card className="w-[50%] h-fit flex flex-row justify-between items-center p-6">
+        <Card className="min-w-[50%] h-fit flex flex-row justify-between items-center p-6">
           <CardBody className="flex justify-center items-start gap-1 flex-col">
-            <p className="text-xl">Assessment I</p>
+            <p className="text-xl">{assessment.name}</p>
             <Link isExternal showAnchorIcon href="#" className="text-sm">
-              contact@scriptopia.in
+              {assessment.feedbackEmail}
             </Link>
           </CardBody>
           <CardBody className="max-w-[35%]">
             <p className="text-xs opacity-50">Assessment Submitted On</p>
-            <p className="mt-1 text-lg">20th August, 2021</p>
+            <p className="mt-1 leading-4 text-xs">
+              {new Date(assessment.createdAt).toString()}
+            </p>
           </CardBody>
         </Card>
         {Cards.map((card, index) => (
-          <Card key={index} className="py-3 h-fit w-56">
+          <Card
+            key={index}
+            className={`py-3 h-fit w-56 ${card.visible ? "w-full" : "hidden"}`}
+          >
             <CardHeader className="text-center flex justify-center text-gray-400">
               {card.title}
             </CardHeader>
@@ -66,12 +133,20 @@ const ViewUserAssessmentTop = () => {
           <CardBody className="flex flex-row justify-between items-start gap-1">
             <div className="w-full">
               <p className="text-xs opacity-50 text-center">Qualifying Score</p>
-              <p className="text-center mt-5 text-2xl">60%</p>
+              <p className="text-center mt-5 text-2xl">
+                {assessment.passingPercentage}%
+              </p>
             </div>
             <Divider orientation="vertical" />
             <div className="w-full">
               <p className="text-xs opacity-50 text-center">Aquired Score</p>
-              <p className="text-center mt-5 text-2xl">60%</p>
+              <p className="text-center mt-5 text-2xl">
+                {getPercentage(
+                  submission?.obtainedGrades?.total,
+                  assessment?.obtainableScore
+                )}
+                %
+              </p>
             </div>
           </CardBody>
         </Card>
@@ -86,14 +161,34 @@ const ViewUserAssessmentTop = () => {
                 <Scissors className="text-white" size={20} />
                 <p className="text-sm">Pasted Code</p>
               </div>
-              <p className="text-sm text-green-500 ml-[90px]">NO</p>
+              <p
+                className={`text-smml-[90px]
+              ${
+                calculateTotalCopies() === 0 ? "text-green-500" : "text-red-500"
+              }
+                `}
+              >
+                {calculateTotalCopies() === 0 ? "NO" : calculateTotalCopies()}
+              </p>
             </div>
             <div className="flex justify-between items-center gap-3 flex-row w-full">
               <div className="flex gap-2">
                 <ArrowLeftRight className="text-white" size={20} />
                 <p className="text-sm">Window Switch</p>
               </div>
-              <p className="text-sm text-green-500 ml-[68px]">NO</p>
+              <p
+                className={`text-sm  ml-[68px]
+              ${
+                calculateTotalWindowSwitch() === 0
+                  ? "text-green-500"
+                  : "text-red-500"
+              }
+                `}
+              >
+                {calculateTotalWindowSwitch() === 0
+                  ? "NO"
+                  : calculateTotalWindowSwitch()}
+              </p>
             </div>
           </CardBody>
         </Card>
@@ -104,7 +199,27 @@ const ViewUserAssessmentTop = () => {
               Candidate's Status
             </CardHeader>
             <CardBody className="flex justify-center items-center pb-5">
-              <p className="text-xl text-green-500">Selected</p>
+              <p
+                className={`text-xl 
+              ${
+                assessment?.passingPercentage <
+                getPercentage(
+                  submission?.obtainedGrades?.total,
+                  assessment?.obtainableScore
+                )
+                  ? "text-green-500"
+                  : "text-red-500"
+              }
+                `}
+              >
+                {assessment?.passingPercentage <
+                getPercentage(
+                  submission?.obtainedGrades?.total,
+                  assessment?.obtainableScore
+                )
+                  ? "PASSED"
+                  : "FAILED"}
+              </p>
             </CardBody>
           </Card>
 
@@ -112,7 +227,10 @@ const ViewUserAssessmentTop = () => {
             <CardHeader className="text-center flex items-center justify-center text-gray-400">
               Watch Session Rewind
             </CardHeader>
-            <CardBody className="flex justify-center items-center pb-5">
+            <CardBody
+              className="flex justify-center items-center pb-5 cursor-pointer hover:bg-gray-700 hover:bg-opacity-20 transition-all duration-300"
+              onClick={() => window.open(submission.sessionRewindUrl, "_blank")}
+            >
               <Play size={20} />
             </CardBody>
           </Card>

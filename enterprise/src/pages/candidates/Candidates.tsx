@@ -1,24 +1,55 @@
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { DataTable } from "./DataTable";
 import { RootState } from "@/@types/reducer";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
-
 import { useSelector } from "react-redux";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
+
+interface Candidate {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  resumeUrl: string;
+  queries?: string[];
+  status?: string;
+  receivedDate?: string;
+}
 
 const Candidates = () => {
   const org = useSelector((state: RootState) => state.organization);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const tableData = [];
-  const statuses = ["Qualified", "Disqualified", "Hired"];
-  for (let i = 1; i <= 50; i++) {
-    const record = {
-      name: `Candidate ${i}`,
-      email: `candidate${i}@example.com`,
-      received: `${Math.floor(Math.random() * 28) + 1}th July`,
-      status: statuses[Math.floor(Math.random() * 3)],
-    };
+  const { getToken } = useAuth();
+  useEffect(() => {
+    const axios = ax(getToken);
+    axios
+      .get("/organizations/candidates")
+      .then((response) => {
+        setCandidates(response.data.data || []);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error(error);
+        setError("Failed to fetch candidates");
+        setLoading(false);
+      });
+  }, []);
 
-    tableData.push(record);
-  }
+  const tableData = candidates.map((candidate) => ({
+    name: `${candidate.firstName} ${candidate.lastName}`,
+    email: candidate.email,
+    received: candidate.receivedDate || "N/A",
+    status: candidate.status || "N/A",
+  }));
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <>
@@ -30,9 +61,16 @@ const Candidates = () => {
           </BreadcrumbItem>
         </Breadcrumbs>
       </div>
-      <div className="p-5">
-        <DataTable data={tableData} />
-      </div>
+      <motion.div
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className=""
+      >
+        <div className="p-5">
+          <DataTable data={tableData} />
+        </div>
+      </motion.div>
     </>
   );
 };

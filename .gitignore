@@ -1,3 +1,12 @@
 client/.env
 /test
 enterprise/.env
+.VSCodeCounter
+
+lambda/failed-workflow/node_modules
+lambda/workflow/node_modules
+lambda/workflow/package-lock.json
+lambda/workflow/package-lock.json
+
+lambda/failed-workflow/*.zip
+lambda/workflow/*.zip

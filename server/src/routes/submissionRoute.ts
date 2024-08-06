@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import submissionController from "../controllers/submissionController";
+import submissionController from "../controllers/coding/submissionController";
 import cacheMiddleware from "../middlewares/cacheMiddleware";
 
 const app = new Hono();

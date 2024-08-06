@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { RootState } from "@/@types/reducer";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useSelector } from "react-redux";
@@ -14,12 +15,19 @@ const Documentation = () => {
           </BreadcrumbItem>
         </Breadcrumbs>
       </div>
-      <div className="p-10 flex items-center justify-center h-[100vh] flex-col">
-        <div className="p-5 border rounded-xl text-center font-neue">
-          <h4>Page Under Construction</h4>
-          <p>We are working on this page. Thankyou for your patience.</p>
+      <motion.div
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className=""
+      >
+        <div className="p-10 flex items-center justify-center flex-col">
+          <div className="p-5 border rounded-xl text-center font-neue">
+            <h4>Page Under Construction</h4>
+            <p>We are working on this page. Thankyou for your patience.</p>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </>
   );
 };

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Card, CardBody, CardHeader } from "@nextui-org/react";
-import { UsersRound, BookUser, Disc2, BookCheck } from "lucide-react";
+import { UsersRound, BookUser, BookCheck } from "lucide-react";
 
 const Dashboard = () => {
   const cards = [
@@ -15,12 +15,6 @@ const Dashboard = () => {
       icon: BookUser,
       value: 15,
       color: "text-red-500",
-    },
-    {
-      title: "Total Live Assessments",
-      icon: Disc2,
-      value: 200,
-      color: "text-green-500",
     },
     {
       title: "Assessments Taken",

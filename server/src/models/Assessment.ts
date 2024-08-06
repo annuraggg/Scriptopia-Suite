@@ -62,6 +62,7 @@ const mcqSchema = new mongoose.Schema({
     options: { type: [String] },
     correct: { type: [String] },
   },
+  grade: { type: Number, required: true },
 });
 
 const assessmentSchema = new mongoose.Schema({
@@ -69,7 +70,7 @@ const assessmentSchema = new mongoose.Schema({
   description: { type: String, required: true },
   author: { type: String, ref: "User", required: true },
   mcqs: { type: [mcqSchema] },
-  type: { type: String, enum: ["standard", "live"], required: true },
+  type: { type: String, enum: ["mcq", "code", "mcqcode"], required: true },
   timeLimit: { type: Number, required: true },
   passingPercentage: { type: Number, required: true },
   openRange: { type: openRangeSchema, required: true },
@@ -79,11 +80,12 @@ const assessmentSchema = new mongoose.Schema({
     ref: "Problem",
     required: true,
   },
-  grading: { type: gradingSchema, required: true },
+  grading: { type: gradingSchema },
   candidates: { type: candidateSchema, required: true },
   instructions: { type: String, required: true },
   security: { type: securitySchema, required: true },
   feedbackEmail: { type: String, required: true },
+  obtainableScore: { type: Number, required: true },
   createdAt: { type: Date, default: Date.now },
 });
 

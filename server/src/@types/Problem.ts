@@ -1,5 +1,3 @@
-import mongoose, { Document } from "mongoose";
-
 interface ITestCase {
   input: string[];
   output: string;
@@ -12,10 +10,10 @@ interface IFunctionArg {
   type: "string" | "number" | "boolean" | "array";
 }
 
-interface IProblem extends Document {
+interface IProblem {
   title: string;
   description: Record<string, any>;
-  author: mongoose.Types.ObjectId;
+  author: string;
   difficulty: "easy" | "medium" | "hard";
   tags: string[];
   votes: number;

@@ -1,5 +1,3 @@
-import { Document, ObjectId } from "mongoose";
-
 interface IOpenRange {
   start: Date;
   end: Date;
@@ -12,7 +10,7 @@ interface ITestCases {
 }
 
 interface IProblem {
-  problemId: ObjectId;
+  problemId: string;
   points: number;
 }
 
@@ -45,12 +43,12 @@ interface ISecurity {
 interface IAssessment extends Document {
   name: string;
   description: string;
-  type: "standard" | "live";
+  type: "mcq" | "code" | "both";
   timeLimit: number;
   passingPercentage: number;
   openRange: IOpenRange;
   languages: string[];
-  problems: ObjectId[];
+  problems: string[];
   grading: IGrading;
   candidates: ICandidates;
   instructions: string;
@@ -59,4 +57,12 @@ interface IAssessment extends Document {
 }
 
 export default IAssessment;
-export { IOpenRange, ITestCases, IProblem, IGrading, ICandidate, ICandidates, ISecurity };
+export {
+  IOpenRange,
+  ITestCases,
+  IProblem,
+  IGrading,
+  ICandidate,
+  ICandidates,
+  ISecurity,
+};

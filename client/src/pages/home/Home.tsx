@@ -21,6 +21,8 @@ const Home = () => {
 
   if (isLoading) return <Loader />;
 
+  console.log(data);
+
   return (
     <>
       <div className="flex flex-col md:flex-row gap-10 pb-10 h-screen md:h-auto overflow-y-auto md:overflow-y-visible">

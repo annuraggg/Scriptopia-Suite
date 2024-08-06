@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Table,
   TableHeader,
@@ -8,73 +8,170 @@ import {
   TableCell,
   Tab,
   Tabs,
-  Button,
   Select,
   SelectItem,
-  useDisclosure,
-  SelectSection,
+  Spinner,
 } from "@nextui-org/react";
 import InviteModal from "./InviteModal";
-import { useSelector } from "react-redux";
-import { RootState } from "@/@types/reducer";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
-
-interface Member {
-  name: string;
-  joined: string;
-  role: string;
-}
-
-interface InvitedMember {
-  email: string;
-  invited: string;
-  role: string;
-}
-
-interface Role {
-  role: string;
-}
+import { useAuth, useUser } from "@clerk/clerk-react";
+import ax from "@/config/axios";
+import { toast } from "sonner";
+import { Member } from "@/@types/Organization";
+import Role from "@/@types/Roles";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  useDisclosure,
+} from "@nextui-org/react";
+import { useDispatch } from "react-redux";
+import { setToastChanges } from "@/reducers/toastReducer";
+import UnsavedToast from "@/components/UnsavedToast";
 
 const Members: React.FC = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [members, setMembers] = useState<Member[]>([
-    { name: "John Doe", joined: "15/07/2024", role: "Admin" },
-    { name: "Jane Doe", joined: "15/07/2024", role: "Hiring Manager" },
-    { name: "Anurag Sawant", joined: "14/7/2024", role: "Finance" },
-  ]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [invitedMembers, setInvitedMembers] = useState<Member[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [changes, setChanges] = useState<boolean>(false);
+  const [selectedEmail, setSelectedEmail] = useState<string>("");
+  const [userEmails, setUserEmails] = useState<string[]>([]);
 
-  const [invitedMembers, setInvitedMembers] = useState<InvitedMember[]>([]);
+  const dispatch = useDispatch();
 
-  const roles: Role[] = [
-    { role: "Admin" },
-    { role: "Hiring Manager" },
-    { role: "Finance" },
-    { role: "Read Only" },
-  ];
+  const {
+    isOpen: removeConfirmOpen,
+    onOpen: onRemoveConfirmOpen,
+    onOpenChange: onRemoveConfirmOpenChange,
+  } = useDisclosure();
+  const {
+    isOpen: revokeConfirmOpen,
+    onOpen: onRevokeConfirmOpen,
+    onOpenChange: onRevokeConfirmOpenChange,
+  } = useDisclosure();
 
-  const org = useSelector((state: RootState) => state.organization);
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
 
-  const handleInvite = (newMember: InvitedMember) => {
+  const { user, isLoaded } = useUser();
+
+  useEffect(() => {
+    if (user && isLoaded) {
+      setUserEmails(user.emailAddresses.map((email) => email.emailAddress));
+    }
+  }, [isLoaded, user]);
+
+  useEffect(() => {
+    setLoading(true);
+    axios
+      .get("organizations/settings")
+      .then((res) => {
+        setMembers(
+          res.data.data.members.filter(
+            (member: Member) => member.status === "active"
+          )
+        );
+
+        setInvitedMembers(
+          res.data.data.members.filter(
+            (member: Member) => member.status === "pending"
+          )
+        );
+
+        setRoles(res.data.data.roles);
+        console.log(res.data.data.roles);
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Error Fetching Settings");
+      })
+      .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const saveChanges = () => {
+    const next = () => {
+      setLoading(true);
+      axios
+        .post("organizations/settings/members", {
+          screen: "members",
+          members: members.concat(invitedMembers),
+        })
+        .then(() => {
+          setChanges(false);
+          toast.success("Changes Saved");
+        })
+        .catch((err) => {
+          console.error(err);
+          toast.error("Error Saving Changes");
+        })
+        .finally(() => {
+          dispatch(setToastChanges(false));
+          setLoading(false);
+        });
+    };
+
+    next();
+  };
+
+  const triggerSaveToast = () => {
+    if (!changes) {
+      dispatch(setToastChanges(true));
+    }
+  };
+
+  const handleInvite = (newMember: Member) => {
     setInvitedMembers([...invitedMembers, newMember]);
+    triggerSaveToast();
   };
 
   const handleRoleChange = (index: number, newRole: string) => {
+    if (!newRole) return;
     const updatedMembers = [...members];
-    updatedMembers[index].role = newRole;
+    updatedMembers[index].role = roles.find(
+      (role) => role.name === newRole
+    ) as Role;
     setMembers(updatedMembers);
+    triggerSaveToast();
   };
+
+  const removeMember = (email: string) => {
+    const updatedMembers = members.filter((member) => member.email !== email);
+    setMembers(updatedMembers);
+    triggerSaveToast();
+    onRemoveConfirmOpenChange();
+  };
+
+  const revokeMember = (email: string) => {
+    const updatedInvitedMembers = invitedMembers.filter(
+      (member) => member.email !== email
+    );
+    console.log(updatedInvitedMembers);
+    setInvitedMembers(updatedInvitedMembers);
+    triggerSaveToast();
+    onRevokeConfirmOpenChange();
+  };
+
+  if (loading || !isLoaded) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <>
+      <UnsavedToast action={saveChanges} />
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem href={"/" + org._id}>Organization</BreadcrumbItem>
-          <BreadcrumbItem href={"/" + org._id + "/settings"}>
-            Settings
-          </BreadcrumbItem>
-          <BreadcrumbItem href={"/" + org._id + "/settings/members"}>
-            Members
-          </BreadcrumbItem>
+          <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
+          <BreadcrumbItem href={"/settings/members"}>Members</BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <div className="flex flex-col items-start justify-start w-full h-full p-5">
@@ -86,31 +183,47 @@ const Members: React.FC = () => {
                 <TableColumn>User</TableColumn>
                 <TableColumn>Joined</TableColumn>
                 <TableColumn>Role</TableColumn>
+                <TableColumn>Actions</TableColumn>
               </TableHeader>
               <TableBody emptyContent={<p>No Members</p>}>
                 {members.map((member, index) => (
-                  <TableRow key={member.name}>
-                    <TableCell>{member.name}</TableCell>
-                    <TableCell>{member.joined}</TableCell>
+                  <TableRow key={member.email}>
+                    <TableCell>{member.email}</TableCell>
                     <TableCell>
+                      {new Date(member.addedOn).toDateString()}
+                    </TableCell>
+                    <TableCell className="w-[200px]">
                       <Select
-                        selectedKeys={[member.role]}
+                        className="w-[200px]"
+                        selectedKeys={[member.role.name]}
+                        aria-label="Role"
+                        isDisabled={
+                          userEmails.filter((email) => email === member.email)
+                            .length !== 0
+                        }
                         onSelectionChange={(keys) =>
                           handleRoleChange(index, Array.from(keys)[0] as string)
                         }
                       >
                         {roles.map((role) => (
-                          <SelectSection className="">
-                            <SelectItem
-                              key={role.role}
-                              value={role.role}
-                              className=""
-                            >
-                              {role.role}
-                            </SelectItem>
-                          </SelectSection>
+                          <SelectItem key={role.name} value={role.name}>
+                            {role.name}
+                          </SelectItem>
                         ))}
                       </Select>
+                    </TableCell>
+                    <TableCell>
+                      {!userEmails.find((email) => email === member.email) && (
+                        <p
+                          className=" text-danger hover:text-danger-500 duration-300 transition-colors cursor-pointer py-3"
+                          onClick={() => {
+                            setSelectedEmail(member.email);
+                            onRemoveConfirmOpen();
+                          }}
+                        >
+                          Remove
+                        </p>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -126,13 +239,27 @@ const Members: React.FC = () => {
                 <TableColumn>User</TableColumn>
                 <TableColumn>Invited</TableColumn>
                 <TableColumn>Role</TableColumn>
+                <TableColumn>Actions</TableColumn>
               </TableHeader>
               <TableBody emptyContent={<p>No Invited Members</p>}>
                 {invitedMembers.map((member, index) => (
                   <TableRow key={index}>
                     <TableCell>{member.email}</TableCell>
-                    <TableCell>{member.invited}</TableCell>
-                    <TableCell>{member.role}</TableCell>
+                    <TableCell>
+                      {new Date(member.addedOn).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>{member.role.name}</TableCell>
+                    <TableCell>
+                      <p
+                        className=" text-danger hover:text-danger-500 duration-300 transition-colors cursor-pointer py-3"
+                        onClick={() => {
+                          setSelectedEmail(member.email);
+                          onRevokeConfirmOpen();
+                        }}
+                      >
+                        Revoke
+                      </p>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -146,6 +273,56 @@ const Members: React.FC = () => {
           roles={roles}
         />
       </div>
+
+      <Modal
+        isOpen={removeConfirmOpen}
+        onOpenChange={onRemoveConfirmOpenChange}
+        className="w-[400px]"
+      >
+        <ModalContent>
+          <ModalHeader>Remove Member</ModalHeader>
+          <ModalBody>
+            <p>Are you sure you want to remove this member?</p>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="default"
+              onPress={onRemoveConfirmOpenChange}
+              className="mr-2"
+            >
+              Cancel
+            </Button>
+            <Button color="danger" onClick={() => removeMember(selectedEmail)}>
+              Remove
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal
+        isOpen={revokeConfirmOpen}
+        onOpenChange={onRevokeConfirmOpen}
+        className="w-[400px]"
+      >
+        <ModalContent>
+          <ModalHeader>Revoke Invite</ModalHeader>
+          <ModalBody>
+            <p>Are you sure you want to revoke this invite?</p>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="default"
+              onPress={onRevokeConfirmOpenChange}
+              className="mr-2"
+            >
+              Cancel
+            </Button>
+            <Button color="danger" onClick={() => revokeMember(selectedEmail)}>
+              Revoke
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 };

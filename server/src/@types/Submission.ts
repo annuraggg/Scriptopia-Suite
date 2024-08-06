@@ -1,6 +1,4 @@
-import { Document } from "mongoose";
-
-export interface IResult {
+interface IResult {
   caseNo: number;
   caseId: string;
   output: string;
@@ -11,14 +9,14 @@ export interface IResult {
   console?: string;
 }
 
-export interface IDriverMeta {
+interface IDriverMeta {
   driver: string;
   timestamp: Date;
 }
 
-export interface ISubmission extends Document {
+export interface ISubmission {
   problem: string;
-  user: string; 
+  user: string;
   code: string;
   language: string;
   status: "FAILED" | "SUCCESS";
@@ -29,3 +27,6 @@ export interface ISubmission extends Document {
   meta: IDriverMeta;
   createdAt: Date;
 }
+
+export default ISubmission;
+export { IResult, IDriverMeta };

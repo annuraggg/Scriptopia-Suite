@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { RootState } from "@/@types/reducer";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useEffect, useState } from "react";
@@ -28,10 +29,17 @@ const Billing = () => {
           </BreadcrumbItem>
         </Breadcrumbs>
       </div>
-      {currentPlan === "trial" && <Trial remainingTrialDays={trialDays} />}
-      {currentPlan === "notSubscribed" && <NotSubscribed />}
-      {currentPlan === "quaterly" && <Plan plan="quaterly" renews={renews} />}
-      {currentPlan === "annual" && <Plan plan="annual" renews={renews} />}
+      <motion.div
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className=""
+      >
+        {currentPlan === "trial" && <Trial remainingTrialDays={trialDays} />}
+        {currentPlan === "notSubscribed" && <NotSubscribed />}
+        {currentPlan === "quaterly" && <Plan plan="quaterly" renews={renews} />}
+        {currentPlan === "annual" && <Plan plan="annual" renews={renews} />}
+      </motion.div>
     </>
   );
 };

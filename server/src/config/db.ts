@@ -1,6 +1,17 @@
 import mongoose from "mongoose";
 import logger from "../utils/logger.js";
 
+// import("../models/Assessment");
+// import("../models/AssessmentSubmissions");
+import("../models/Candidate");
+// import("../models/Organization");
+// import("../models/Permission");
+// import("../models/Posting");
+// import("../models/Problem");
+// import("../models/Roles");
+// import("../models/Submission");
+// import("../models/User");
+
 mongoose
   .connect(process.env.MONGO_URI!, {
     dbName: process.env.MONGO_DB,

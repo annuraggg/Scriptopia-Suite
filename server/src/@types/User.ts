@@ -1,7 +1,5 @@
-import mongoose, { Document } from "mongoose";
-
 interface IProblemReference {
-  problemId: mongoose.Types.ObjectId;
+  problemId: string;
   solvedAt: Date;
 }
 
@@ -60,10 +58,16 @@ interface IUser extends Document {
   clerkId: string;
   solvedProblems: IProblemReference[];
   streak: string[];
-  achievements: mongoose.Types.ObjectId[];
+  achievements: string[];
   resume: string[];
   portfolio: IPortfolio;
 }
 
 export default IUser;
-export { IProblemReference, IPortfolioEducation, IPortfolioExperience, IPortfolioProject, IPortfolioCertification };
+export {
+  IProblemReference,
+  IPortfolioEducation,
+  IPortfolioExperience,
+  IPortfolioProject,
+  IPortfolioCertification,
+};
