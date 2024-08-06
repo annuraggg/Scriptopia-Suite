@@ -126,15 +126,8 @@ const McqModal = ({
       correct: correctCheckboxes,
     };
 
-    // @ts-expect-error - Types Not Available
-    save(question, type, mcq, checkbox, grade);
+    save(question, type as "multiple" | "checkbox" | "text", mcq, checkbox, grade);
 
-    setTitle("");
-    setQuestionType(new Set<string>(["multiple"]));
-    setOptions([]);
-    setCorrectOption("");
-    setCheckboxes([]);
-    setCorrectCheckboxes([]);
     setError("");
   };
 

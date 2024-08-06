@@ -35,7 +35,7 @@ const McqModal = ({
   setGrade,
 }: {
   isOpen: boolean;
-  onOpenChange: any;
+  onOpenChange: (open: boolean) => void;
   save: (
     question: string,
     type: "multiple" | "checkbox" | "text",
@@ -87,7 +87,7 @@ const McqModal = ({
       return;
     }
 
-    const type = Array.from(questionType)[0];
+    const type = Array.from(questionType)[0] as "multiple" | "checkbox" | "text";
 
     if (!type) {
       setError("Question type is required.");
@@ -126,15 +126,8 @@ const McqModal = ({
       correct: correctCheckboxes,
     };
 
-    // @ts-expect-error - Types Not Available
-    save(question, type, mcq, checkbox, grade);
+    save(question, type as "multiple" | "checkbox" | "text", mcq, checkbox, grade);
 
-    setTitle("");
-    setQuestionType(new Set<string>(["multiple"]));
-    setOptions([]);
-    setCorrectOption("");
-    setCheckboxes([]);
-    setCorrectCheckboxes([]);
     setError("");
   };
 
