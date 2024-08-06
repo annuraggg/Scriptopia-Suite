@@ -7,6 +7,7 @@ import {
   ChevronUpIcon,
   PencilIcon,
   TrashIcon,
+  ImportIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -111,8 +112,9 @@ const Mcqs = ({
       transition={{ duration: 0.3 }}
     >
       <div>
-        <div>
+        <div className="flex flex-row justify-start gap-2">
           <Button onClick={handleOpen}>Add Question</Button>
+          <Button variant="ghost"><ImportIcon size={22} />Import CSV</Button>
         </div>
         <McqModal
           isOpen={isOpen}
