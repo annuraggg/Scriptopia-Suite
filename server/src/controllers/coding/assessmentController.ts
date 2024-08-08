@@ -616,7 +616,7 @@ const getAssessmentSubmission = async (c: Context) => {
     const id = c.req.param("id");
     const submissionId = c.req.param("submissionId");
 
-    const assessment = await Assessment.findById(id).lean();
+    const assessment = await Assessment.findById(id).populate("problems").lean();
     const submission = await AssessmentSubmissions.findById(
       submissionId
     ).lean();
@@ -625,6 +625,8 @@ const getAssessmentSubmission = async (c: Context) => {
       return sendError(c, 404, "Assessment not found");
     }
 
+    console.log(assessment.author);
+    console.log(auth?.userId);
     if (assessment.author !== auth?.userId) {
       return sendError(c, 403, "Unauthorized");
     }

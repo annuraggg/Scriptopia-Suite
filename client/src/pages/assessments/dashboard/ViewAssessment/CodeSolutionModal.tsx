@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Modal,
   ModalContent,
@@ -13,7 +13,7 @@ import {
   TableRow,
   TableCell,
 } from "@nextui-org/react";
-import { ClipboardListIcon, Clock, CodeXml } from "lucide-react";
+import { ClipboardListIcon, CodeXml } from "lucide-react";
 import { ArrowLeftRight, Scissors } from "lucide-react";
 import { Tabs, Tab } from "@nextui-org/tabs";
 import * as monaco from "monaco-editor";
@@ -21,26 +21,32 @@ import * as monaco from "monaco-editor";
 interface CodeSolutionModalProps {
   isOpen: boolean;
   onClose: () => void;
+  problem: Problem;
+}
+
+interface Problem {
+  solution: boolean;
+  language: string;
+  pasted: boolean;
+  windowSwitch: boolean;
+  code: string;
+  testCases: { input: string; output: string; expected: string }[];
 }
 
 const CodeSolutionModal: React.FC<CodeSolutionModalProps> = ({
   isOpen,
   onClose,
+  problem,
 }) => {
   const leftCard = [
     {
-      title: "Time Taken",
-      status: "150s",
-      icon: <Clock size={20} />,
-    },
-    {
       title: "Solution",
-      status: "Accepted",
+      status: problem?.solution ? "ACCEPTED" : "REJECTED",
       icon: <ClipboardListIcon size={20} />,
     },
     {
       title: "Programming Language",
-      status: "Javascript",
+      status: problem?.language,
       icon: <CodeXml size={20} />,
     },
   ];
@@ -48,41 +54,41 @@ const CodeSolutionModal: React.FC<CodeSolutionModalProps> = ({
   const rightCard = [
     {
       title: "Pasted Code",
-      status: "NO",
+      status: problem?.pasted ? "YES" : "NO",
       icon: <Scissors size={20} />,
     },
     {
       title: "Window Switch",
-      status: "NO",
+      status: problem?.windowSwitch ? "YES" : "NO",
       icon: <ArrowLeftRight size={20} />,
     },
   ];
 
-  const code = `function add(a, b) {
-    return a + b;
-    }`;
+  const [tab, setTab] = useState("code");
 
   const editorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isOpen && editorRef.current) {
-      const editor = monaco.editor.create(editorRef.current!, {
-        value: code,
-        language: "javascript",
-        theme: "vs-dark",
-        readOnly: true,
-        overviewRulerBorder: false,
-        minimap: {
-          enabled: false,
-        },
-        lineNumbers: "off",
-      });
+    setTimeout(() => {
+      if (isOpen && editorRef?.current) {
+        const editor = monaco?.editor?.create(editorRef.current!, {
+          value: problem?.code,
+          language: "javascript",
+          theme: "vs-dark",
+          readOnly: true,
+          overviewRulerBorder: false,
+          minimap: {
+            enabled: false,
+          },
+          lineNumbers: "off",
+        });
 
-      return () => {
-        editor.dispose();
-      };
-    }
-  }, [code, isOpen]);
+        return () => {
+          editor?.dispose();
+        };
+      }
+    }, 100);
+  }, [problem, isOpen, tab]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="min-w-[60%]">
@@ -92,17 +98,27 @@ const CodeSolutionModal: React.FC<CodeSolutionModalProps> = ({
           <div className="flex gap-3">
             <Card className="w-full border drop-shadow-sm">
               <CardBody className="flex justify-start items-start gap-3 flex-col p-8">
-                {leftCard.map((item, index) => (
+                {leftCard?.map((item, index) => (
                   <div
                     key={index}
                     className="flex justify-between items-center gap-3 flex-row w-full"
                   >
                     <div className="flex gap-2">
-                      {item.icon}
-                      <p className="text-sm">{item.title}</p>
+                      {item?.icon}
+                      <p className="text-sm">{item?.title}</p>
                     </div>
-                    <p className="text-sm text-green-500 ml-[90px]">
-                      {item.status}
+                    <p
+                      className={`text-sm  ml-[90px]
+                      ${
+                        item?.status === "ACCEPTED"
+                          ? "text-green-500"
+                          : item?.status === "REJECTED"
+                          ? "text-red-500"
+                          : ""
+                      }
+                      `}
+                    >
+                      {item?.status}
                     </p>
                   </div>
                 ))}
@@ -111,17 +127,27 @@ const CodeSolutionModal: React.FC<CodeSolutionModalProps> = ({
 
             <Card className="w-full border drop-shadow-sm">
               <CardBody className="flex justify-start items-start gap-3 flex-col p-8">
-                {rightCard.map((item, index) => (
+                {rightCard?.map((item, index) => (
                   <div
                     key={index}
                     className="flex justify-between items-center gap-3 flex-row w-full"
                   >
                     <div className="flex gap-2">
-                      {item.icon}
-                      <p className="text-sm">{item.title}</p>
+                      {item?.icon}
+                      <p className="text-sm">{item?.title}</p>
                     </div>
-                    <p className="text-sm text-green-500 ml-[90px]">
-                      {item.status}
+                    <p
+                      className={`text-sm ml-[90px]
+                      ${
+                        item?.status === "NO"
+                          ? "text-green-500"
+                          : item?.status === "YES"
+                          ? "text-red-500"
+                          : ""
+                      }
+                      `}
+                    >
+                      {item?.status}
                     </p>
                   </div>
                 ))}
@@ -129,7 +155,11 @@ const CodeSolutionModal: React.FC<CodeSolutionModalProps> = ({
             </Card>
           </div>
 
-          <Tabs aria-label="Options">
+          <Tabs
+            aria-label="Options"
+            selectedKey={tab} // @ts-expect-error - Type 'string' is not assignable to type 'TabKey'
+            onSelectionChange={setTab}
+          >
             <Tab key="code" title="Code">
               <Card>
                 <CardBody>
@@ -151,21 +181,13 @@ const CodeSolutionModal: React.FC<CodeSolutionModalProps> = ({
                       <TableColumn>Expected</TableColumn>
                     </TableHeader>
                     <TableBody>
-                      <TableRow>
-                        <TableCell>1</TableCell>
-                        <TableCell>1</TableCell>
-                        <TableCell>1</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>2</TableCell>
-                        <TableCell>2</TableCell>
-                        <TableCell>2</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>3</TableCell>
-                        <TableCell>3</TableCell>
-                        <TableCell>3</TableCell>
-                      </TableRow>
+                      {problem?.testCases?.map((testCase, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{testCase?.input}</TableCell>
+                          <TableCell>{testCase?.output}</TableCell>
+                          <TableCell>{testCase?.expected}</TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 </CardBody>

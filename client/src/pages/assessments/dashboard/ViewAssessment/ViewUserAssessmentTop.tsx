@@ -18,8 +18,8 @@ const ViewUserAssessmentTop = ({
   assessment: IAssessment;
 }) => {
   const getTimeTaken = () => {
-    const totalTime = assessment.timeLimit * 60;
-    const time = totalTime - submission.timer;
+    const totalTime = assessment?.timeLimit * 60;
+    const time = totalTime - submission?.timer;
 
     const hours = Math.floor(time / 3600);
     const minutes = Math.floor((time % 3600) / 60);
@@ -48,9 +48,9 @@ const ViewUserAssessmentTop = ({
   const calculateTotalCopies = () => {
     let totalCopies = 0;
     if (submission?.offenses?.copyPaste) {
-      totalCopies += submission.offenses.copyPaste.mcq;
-      submission.offenses.copyPaste.problem.forEach((problem) => {
-        totalCopies += problem.times;
+      totalCopies += submission?.offenses?.copyPaste?.mcq;
+      submission?.offenses?.copyPaste?.problem?.forEach((problem) => {
+        totalCopies += problem?.times;
       });
     }
     return totalCopies;
@@ -59,9 +59,9 @@ const ViewUserAssessmentTop = ({
   const calculateTotalWindowSwitch = () => {
     let totalSwitches = 0;
     if (submission?.offenses?.tabChange) {
-      totalSwitches += submission.offenses.tabChange.mcq;
-      submission.offenses.tabChange.problem.forEach((problem) => {
-        totalSwitches += problem.times;
+      totalSwitches += submission?.offenses?.tabChange?.mcq;
+      submission?.offenses?.tabChange?.problem?.forEach((problem) => {
+        totalSwitches += problem?.times;
       });
     }
 
@@ -97,29 +97,29 @@ const ViewUserAssessmentTop = ({
       <div className="w-full flex flex-row gap-3">
         <Card className="min-w-[50%] h-fit flex flex-row justify-between items-center p-6">
           <CardBody className="flex justify-center items-start gap-1 flex-col">
-            <p className="text-xl">{assessment.name}</p>
+            <p className="text-xl">{assessment?.name}</p>
             <Link isExternal showAnchorIcon href="#" className="text-sm">
-              {assessment.feedbackEmail}
+              {assessment?.feedbackEmail}
             </Link>
           </CardBody>
           <CardBody className="max-w-[35%]">
             <p className="text-xs opacity-50">Assessment Submitted On</p>
             <p className="mt-1 leading-4 text-xs">
-              {new Date(assessment.createdAt).toString()}
+              {new Date(assessment?.createdAt).toString()}
             </p>
           </CardBody>
         </Card>
-        {Cards.map((card, index) => (
+        {Cards?.map((card, index) => (
           <Card
             key={index}
-            className={`py-3 h-fit w-56 ${card.visible ? "w-full" : "hidden"}`}
+            className={`py-3 h-fit w-56 ${card?.visible ? "w-full" : "hidden"}`}
           >
             <CardHeader className="text-center flex justify-center text-gray-400">
-              {card.title}
+              {card?.title}
             </CardHeader>
             <CardBody className="flex justify-center items-center gap-2 flex-row">
-              <card.icon size={20} className={`${card.color}`} />
-              <p>{card.value}</p>
+              <card.icon size={20} className={`${card?.color}`} />
+              <p>{card?.value}</p>
             </CardBody>
           </Card>
         ))}
@@ -134,7 +134,7 @@ const ViewUserAssessmentTop = ({
             <div className="w-full">
               <p className="text-xs opacity-50 text-center">Qualifying Score</p>
               <p className="text-center mt-5 text-2xl">
-                {assessment.passingPercentage}%
+                {assessment?.passingPercentage}%
               </p>
             </div>
             <Divider orientation="vertical" />
@@ -229,7 +229,7 @@ const ViewUserAssessmentTop = ({
             </CardHeader>
             <CardBody
               className="flex justify-center items-center pb-5 cursor-pointer hover:bg-gray-700 hover:bg-opacity-20 transition-all duration-300"
-              onClick={() => window.open(submission.sessionRewindUrl, "_blank")}
+              onClick={() => window.open(submission?.sessionRewindUrl, "_blank")}
             >
               <Play size={20} />
             </CardBody>
