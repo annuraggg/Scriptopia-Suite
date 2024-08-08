@@ -561,7 +561,6 @@ const getAssessmentSubmissions = async (c: Context) => {
     const checkPassed = async (submission: any) => {
       const score = submission.obtainedGrades.total;
       const totalScore = assessment.obtainableScore;
-      console.log("Total Score " + score + " out of " + totalScore);
       const passingPercentage = assessment.passingPercentage;
       const percentage = (score / totalScore) * 100;
       return percentage >= passingPercentage;
@@ -576,11 +575,12 @@ const getAssessmentSubmissions = async (c: Context) => {
         createdAt: submission.createdAt,
         cheating: submission.cheatingStatus,
         score: submission.obtainedGrades,
-        passed: checkPassed(submission),
+        passed: await checkPassed(submission),
       });
     }
 
-    const qualified = finalSubmissions.filter((s) => s.passed).length;
+    const qualified = finalSubmissions.filter((s) => s.passed === true).length;
+    console.log("Qualified: " + qualified); 
     const totalSubmissions = finalSubmissions.length;
     const noCopy = finalSubmissions.filter(
       (s) => s.cheating === "No Copying"

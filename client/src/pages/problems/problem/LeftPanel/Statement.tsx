@@ -32,7 +32,7 @@ const Statement = ({
       });
       quill.setContents(statement);
     }, 100);
-  }, [statement]);
+  }, [statement, activeTab]);
 
   return (
     <div className="w-full">
