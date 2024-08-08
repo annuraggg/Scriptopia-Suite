@@ -31,7 +31,7 @@ const Problem = () => {
   const [languages, setLanguages] = useState<string[]>([]);
   const [language, setLanguage] = useState<string>("javascript");
 
-  const [consoleOutput, setConsoleOutput] = useState<string>("");
+  const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [cases, setCases] = useState<IRunResponseResult[]>([]);
 
   const [functionName, setFunctionName] = useState<string>("");
@@ -142,11 +142,9 @@ const Problem = () => {
         setCases(
           res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
         );
-
+        
         setConsoleOutput(
-          res.data.data.results.map((r: IRunResponseResult) =>
-            r.consoleOutput.join("\n")
-          )
+          res.data.data.results.map((r: IRunResponseResult) => r.consoleOutput)
         );
 
         return { success: true, error: "", data: {} };

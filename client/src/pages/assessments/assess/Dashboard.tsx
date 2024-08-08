@@ -308,6 +308,7 @@ const Lander = () => {
         problemsSolved={problemSolved}
         mcqsSolved={mcqSolved}
         submitAssessment={submitAssessment}
+        type={assessment?.type}
       />
       <Main
         mcqs={assessment?.mcqs}

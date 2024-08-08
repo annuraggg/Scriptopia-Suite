@@ -70,6 +70,7 @@ const CodeSolutionModal: React.FC<CodeSolutionModalProps> = ({
 
   useEffect(() => {
     setTimeout(() => {
+      console.log(problem.code)
       if (isOpen && editorRef?.current) {
         const editor = monaco?.editor?.create(editorRef.current!, {
           value: problem?.code,

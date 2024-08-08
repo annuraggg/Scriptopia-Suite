@@ -6,7 +6,7 @@ const InfoPanel = ({
   consoleOutput,
   cases,
 }: {
-  consoleOutput: string;
+  consoleOutput: string[];
   cases: IRunResponseResult[];
 }) => {
   return (
@@ -32,11 +32,10 @@ const InfoPanel = ({
                       title={
                         <div className="flex items-center gap-2">
                           <div
-                            className={`w-1 h-1 rounded-full ${
-                              c.passed
+                            className={`w-1 h-1 rounded-full ${c.passed
                                 ? "bg-green-500"
                                 : "bg-red-500"
-                            }`}
+                              }`}
                           ></div>
                           <p>Case {i + 1}</p>
                         </div>
@@ -80,14 +79,14 @@ const InfoPanel = ({
           className="h-full"
         >
           <div className="h-full bg-[#0000008b] p-3 rounded-lg">
-            {console ? (
-              <pre className="text-sm text-gray-500 h-full overflow-auto">
-                {consoleOutput || "No Output Yet."}
-              </pre>
+            {consoleOutput.length > 0 ? (
+              consoleOutput.map((output, index) => (
+                <pre key={index} className="text-sm text-gray-500 mb-2">
+                  {output}
+                </pre>
+              ))
             ) : (
-              <p className="text-sm text-gray-500 h-full overflow-auto">
-                No Output
-              </p>
+              <p className="text-sm text-gray-500 h-full overflow-auto">No Output</p>
             )}
           </div>
         </Tab>

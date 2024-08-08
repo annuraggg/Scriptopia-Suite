@@ -43,7 +43,7 @@ interface ISecurity {
 interface IAssessment extends Document {
   name: string;
   description: string;
-  type: "mcq" | "code" | "both";
+  type: "mcq" | "code" | "mcqcode";
   timeLimit: number;
   passingPercentage: number;
   openRange: IOpenRange;
