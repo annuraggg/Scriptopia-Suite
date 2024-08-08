@@ -463,6 +463,13 @@ const submitAssessment = async (c: Context) => {
           if (!assessment.grading.testcases) return { mcq, problem, total };
 
           for (const testCase of problem.testCases) {
+            if (!testCase?._id) return { mcq, problem, total };
+            const passed =
+              problemSubmission.results.find(
+                (result: any) =>
+                  result.caseId === testCase?._id.toString() && result.passed
+              ) || false;
+            if (!passed) continue;
             if (testCase.difficulty === "easy") {
               grade += assessment.grading.testcases.easy;
             } else if (testCase.difficulty === "medium") {
@@ -580,7 +587,7 @@ const getAssessmentSubmissions = async (c: Context) => {
     }
 
     const qualified = finalSubmissions.filter((s) => s.passed === true).length;
-    console.log("Qualified: " + qualified); 
+    console.log("Qualified: " + qualified);
     const totalSubmissions = finalSubmissions.length;
     const noCopy = finalSubmissions.filter(
       (s) => s.cheating === "No Copying"
@@ -616,7 +623,9 @@ const getAssessmentSubmission = async (c: Context) => {
     const id = c.req.param("id");
     const submissionId = c.req.param("submissionId");
 
-    const assessment = await Assessment.findById(id).populate("problems").lean();
+    const assessment = await Assessment.findById(id)
+      .populate("problems")
+      .lean();
     const submission = await AssessmentSubmissions.findById(
       submissionId
     ).lean();
