@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import ax from "@/config/axios";
 import { useAuth } from "@clerk/clerk-react";
 
-// Function to calculate the status of the assessment
+
 const calculateStatus = (createdAssessment: IAssessment) => {
   const startDate = new Date(createdAssessment.openRange.start);
   const endDate = new Date(createdAssessment.openRange.end);
@@ -26,7 +26,7 @@ const calculateStatus = (createdAssessment: IAssessment) => {
   return "Active";
 };
 
-// Function to copy the link to the clipboard
+
 const copyLink = (assessmentId: string) => {
   navigator.clipboard.writeText(
     `${window.location.origin}/assessments/${assessmentId}`
@@ -34,30 +34,30 @@ const copyLink = (assessmentId: string) => {
   toast.success("Link copied to clipboard");
 };
 
-// CodeAssess component definition
+
 const CodeAssess = ({ createdAssessments: initialCreatedAssessments }: { createdAssessments: IAssessment[] }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [createdAssessments, setCreatedAssessments] = useState<IAssessment[]>(initialCreatedAssessments);
 
-  // Filter assessments based on the search term
+  
   const filteredAssessments = useMemo(() => {
     return createdAssessments.filter((assessment) =>
       assessment.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [createdAssessments, searchTerm]);
 
-  // Use authentication token from Clerk
+  
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
-  // Function to handle assessment deletion
+  
   const handleDelete = async (id: string) => {
     try {
       await axios.delete(`/assessments/mcqcode/created/${id}`);
       toast.success("Assessment deleted successfully");
 
-      // Update state to remove deleted assessment
+      
       setCreatedAssessments(prevAssessments =>
         prevAssessments.filter(assessment => assessment._id !== id)
       );
