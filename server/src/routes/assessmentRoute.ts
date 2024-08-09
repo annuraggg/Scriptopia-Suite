@@ -20,4 +20,9 @@ app.post("/submit", assessmentController.submitAssessment);
 app.get("/view/:id", assessmentController.getAssessmentSubmissions);
 app.get("/view/:id/:submissionId", assessmentController.getAssessmentSubmission);
 
+app.delete("/mcq/created/:id", assessmentController.deleteAssessment);
+app.delete("/code/created/:id", assessmentController.deleteAssessment);
+app.delete("/mcqcode/created/:id", assessmentController.deleteAssessment);
+
+
 export default app;

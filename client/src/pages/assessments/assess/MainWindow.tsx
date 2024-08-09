@@ -60,7 +60,7 @@ const Main = ({
     setIsOpen(false);
   };
 
-  const [mcqAnswers, setMcqAnswers] = useState<(string | string[])[]>([]);
+  const [mcqAnswers, setMcqAnswers] = useState<(string | string[] | undefined)[]>([]);
 
   const navigate = useNavigate();
 
@@ -70,28 +70,37 @@ const Main = ({
       answer: value,
     };
 
-    // Update mcqAnswers state correctly using index
+
     setMcqAnswers((prev) => {
       const updatedAnswers = [...prev];
-      updatedAnswers[index] = value;
+      if (!value || (Array.isArray(value) && value.length === 0)) {
+        updatedAnswers[index] = undefined;
+      } else {
+        updatedAnswers[index] = value;
+      }
       return updatedAnswers;
     });
 
-    // Save submission to sessionStorage
     const submissionArray =
       (secureLocalStorage.getItem("mcqSubmissions") as string) || "[]";
     const submissions = JSON.parse(submissionArray);
+
     const exists = submissions.findIndex(
       (item: { id: string }) => item.id === mcqs[index]._id
     );
-    if (exists !== -1) {
-      submissions[exists] = saveObj;
+
+    if (!value || (Array.isArray(value) && value.length === 0)) {
+      if (exists !== -1) {
+        submissions.splice(exists, 1);
+      }
     } else {
-      submissions.push(saveObj);
+      if (exists !== -1) {
+        submissions[exists] = saveObj;
+      } else {
+        submissions.push(saveObj);
+      }
     }
     secureLocalStorage.setItem("mcqSubmissions", JSON.stringify(submissions));
-
-    // Trigger update flag
     setUpdateFlag((prev) => !prev);
   };
 

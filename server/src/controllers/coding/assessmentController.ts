@@ -539,6 +539,29 @@ const submitAssessment = async (c: Context) => {
   }
 };
 
+const deleteAssessment = async (c: Context) => {
+  try {
+    const id = c.req.param("id");
+    const auth = c.get("auth");
+
+    const assessment = await Assessment.findById(id);
+
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    if (assessment.author !== auth?.userId) {
+      return sendError(c, 403, "Unauthorized");
+    }
+
+    await Assessment.findByIdAndDelete(id);
+    return sendSuccess(c, 200, "Assessment deleted successfully");
+  } catch (error) {
+    console.log(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
 const getAssessmentSubmissions = async (c: Context) => {
   try {
     const auth = c.get("auth");
@@ -662,4 +685,5 @@ export default {
   submitAssessment,
   getAssessmentSubmissions,
   getAssessmentSubmission,
+  deleteAssessment,
 };

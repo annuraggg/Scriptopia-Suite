@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Button,
@@ -11,7 +12,10 @@ import { Eye, Link, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import IAssessment from "@/@types/Assessment";
 import { toast } from "sonner";
+import ax from "@/config/axios";
+import { useAuth } from "@clerk/clerk-react";
 
+// Function to calculate the status of the assessment
 const calculateStatus = (createdAssessment: IAssessment) => {
   const startDate = new Date(createdAssessment.openRange.start);
   const endDate = new Date(createdAssessment.openRange.end);
@@ -22,20 +26,47 @@ const calculateStatus = (createdAssessment: IAssessment) => {
   return "Active";
 };
 
+// Function to copy the link to the clipboard
 const copyLink = (assessmentId: string) => {
   navigator.clipboard.writeText(
     `${window.location.origin}/assessments/${assessmentId}`
   );
-  console.log("Link copied to clipboard");
   toast.success("Link copied to clipboard");
 };
 
-const MCQCodeAssess = ({
-  createdAssessments,
-}: {
-  createdAssessments: IAssessment[];
-}) => {
+// CodeAssess component definition
+const CodeAssess = ({ createdAssessments: initialCreatedAssessments }: { createdAssessments: IAssessment[] }) => {
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [createdAssessments, setCreatedAssessments] = useState<IAssessment[]>(initialCreatedAssessments);
+
+  // Filter assessments based on the search term
+  const filteredAssessments = useMemo(() => {
+    return createdAssessments.filter((assessment) =>
+      assessment.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [createdAssessments, searchTerm]);
+
+  // Use authentication token from Clerk
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+
+  // Function to handle assessment deletion
+  const handleDelete = async (id: string) => {
+    try {
+      await axios.delete(`/assessments/mcqcode/created/${id}`);
+      toast.success("Assessment deleted successfully");
+
+      // Update state to remove deleted assessment
+      setCreatedAssessments(prevAssessments =>
+        prevAssessments.filter(assessment => assessment._id !== id)
+      );
+    } catch (error) {
+      toast.error("Failed to delete assessment");
+      console.error("Error deleting assessment:", (error as any).response?.data || (error as any).message || error);
+    }
+  };
+
   return (
     <motion.div
       initial={{ y: 50, opacity: 0 }}
@@ -43,35 +74,37 @@ const MCQCodeAssess = ({
       transition={{ duration: 0.3 }}
       className="w-full p-10 h-[90vh]"
     >
-      <div className="">
+      <div>
         <div>
-          <Input placeholder="Search MCQ + Code Assessments" />
+          <Input
+            placeholder="Search Code Assessments"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
         <div>
           <Button
             className="mt-5"
             variant="flat"
-            onClick={() => navigate("/assessments/new/mcqcode")}
+            onClick={() => navigate("/assessments/new/code")}
           >
-            + Create MCQ + Code Assessment
+            + Create Code Assessment
           </Button>
         </div>
         <div className="mt-5 flex gap-5 flex-wrap">
-          {createdAssessments.map((CreatedAssessment) => (
-            <Card className="w-[32%]">
+          {filteredAssessments.map((CreatedAssessment) => (
+            <Card key={CreatedAssessment._id} className="w-[32%]">
               <CardHeader>{CreatedAssessment.name}</CardHeader>
               <CardBody>
-                {" "}
                 <p className="text-xs text-gray-500">
                   Status:{" "}
                   <span
-                    className={`${
-                      calculateStatus(CreatedAssessment) === "Active"
-                        ? "text-green-500"
-                        : calculateStatus(CreatedAssessment) === "Upcoming"
+                    className={`${calculateStatus(CreatedAssessment) === "Active"
+                      ? "text-green-500"
+                      : calculateStatus(CreatedAssessment) === "Upcoming"
                         ? "text-yellow-500"
                         : "text-red-500"
-                    }`}
+                      }`}
                   >
                     {calculateStatus(CreatedAssessment)}
                   </span>
@@ -89,14 +122,8 @@ const MCQCodeAssess = ({
                   </span>
                 </p>
                 <p>
-                  <span className="text-xs text-gray-500">MCQs: </span>
-                  <span className="text-xs text-white-200">
-                    {CreatedAssessment.mcqs.length}
-                  </span>
-                  <span className="text-xs text-gray-500">, </span>
                   <span className="text-xs text-gray-500">Codes: </span>
                   <span className="text-xs text-white-200">
-                    {" "}
                     {CreatedAssessment.problems.length}
                   </span>
                 </p>
@@ -118,11 +145,12 @@ const MCQCodeAssess = ({
                 <Button
                   className="w-[48%] flex items-center justify-center text-xs gap-3 bg-red-900 bg-opacity-40"
                   variant="flat"
+                  onClick={() => handleDelete(CreatedAssessment._id)}
                 >
                   <Trash2 size={18} /> <p>Delete</p>
                 </Button>
                 <Button
-                  className="w-[48%] flex items-center justify-center text-xs gap-3 w-full"
+                  className="w-full flex items-center justify-center text-xs gap-3"
                   variant="flat"
                   onClick={() => copyLink(CreatedAssessment._id)}
                 >
@@ -137,4 +165,4 @@ const MCQCodeAssess = ({
   );
 };
 
-export default MCQCodeAssess;
+export default CodeAssess;
