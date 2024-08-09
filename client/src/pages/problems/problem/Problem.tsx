@@ -45,6 +45,7 @@ const Problem = () => {
   const [problemId, setProblemId] = useState<string>("");
 
   const [editorUpdateFlag, setEditorUpdateFlag] = useState<boolean>(false);
+  const [codeError, setCodeError] = useState<string>("");
 
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
 
@@ -103,6 +104,8 @@ const Problem = () => {
             r.consoleOutput.join("\n")
           )
         );
+        setCodeError(res.data.data.error);
+        console.log(res.data.data); 
 
         return { success: true, error: "", data: {} };
       })

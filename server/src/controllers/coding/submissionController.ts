@@ -8,7 +8,7 @@ import User from "../../models/User";
 
 const runCode = async (c: Context) => {
   try {
-    const cached = c.get("cached") || false;
+    const cached = false;
     if (cached) {
       return sendSuccess(c, 200, "Success", JSON.parse(c.get("cachedData")));
     }
@@ -32,9 +32,12 @@ const runCode = async (c: Context) => {
       prob.testCases
     );
 
+    if (!result) {
+      return sendSuccess(c, 200, "Success", result);
+    }
+
     if (result?.status === "ERROR") {
       console.log(result.error);
-      return sendError(c, 500, "Internal Server Error", result.error);
     }
 
     return sendSuccess(c, 200, "Success", result);
