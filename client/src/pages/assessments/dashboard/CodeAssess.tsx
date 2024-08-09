@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Button,
@@ -11,6 +12,8 @@ import { Eye, Link, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import IAssessment from "@/@types/Assessment";
 import { toast } from "sonner";
+import ax from "@/config/axios";
+import { useAuth } from "@clerk/clerk-react";
 
 const calculateStatus = (createdAssessment: IAssessment) => {
   const startDate = new Date(createdAssessment.openRange.start);
@@ -26,16 +29,42 @@ const copyLink = (assessmentId: string) => {
   navigator.clipboard.writeText(
     `${window.location.origin}/assessments/${assessmentId}`
   );
-  console.log("Link copied to clipboard");
   toast.success("Link copied to clipboard");
 };
 
-const CodeAssess = ({
-  createdAssessments,
-}: {
-  createdAssessments: IAssessment[];
-}) => {
+
+const CodeAssess = ({ createdAssessments: initialCreatedAssessments }: { createdAssessments: IAssessment[] }) => {
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [createdAssessments, setCreatedAssessments] = useState<IAssessment[]>(initialCreatedAssessments);
+
+  
+  const filteredAssessments = useMemo(() => {
+    return createdAssessments.filter((assessment) =>
+      assessment.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [createdAssessments, searchTerm]);
+
+  
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+
+  
+  const handleDelete = async (id: string) => {
+    try {
+      await axios.delete(`/assessments/code/created/${id}`);
+      toast.success("Assessment deleted successfully");
+
+      
+      setCreatedAssessments(prevAssessments =>
+        prevAssessments.filter(assessment => assessment._id !== id)
+      );
+    } catch (error) {
+      toast.error("Failed to delete assessment");
+      console.error("Error deleting assessment:", (error as any).response?.data || (error as any).message || error);
+    }
+  };
+
   return (
     <motion.div
       initial={{ y: 50, opacity: 0 }}
@@ -43,9 +72,13 @@ const CodeAssess = ({
       transition={{ duration: 0.3 }}
       className="w-full p-10 h-[90vh]"
     >
-      <div className="">
+      <div>
         <div>
-          <Input placeholder="Search Code Assessments" />
+          <Input
+            placeholder="Search Code Assessments"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
         <div>
           <Button
@@ -57,21 +90,19 @@ const CodeAssess = ({
           </Button>
         </div>
         <div className="mt-5 flex gap-5 flex-wrap">
-          {createdAssessments.map((CreatedAssessment) => (
-            <Card className="w-[32%]">
+          {filteredAssessments.map((CreatedAssessment) => (
+            <Card key={CreatedAssessment._id} className="w-[32%]">
               <CardHeader>{CreatedAssessment.name}</CardHeader>
               <CardBody>
-                {" "}
                 <p className="text-xs text-gray-500">
                   Status:{" "}
                   <span
-                    className={`${
-                      calculateStatus(CreatedAssessment) === "Active"
+                    className={`${calculateStatus(CreatedAssessment) === "Active"
                         ? "text-green-500"
                         : calculateStatus(CreatedAssessment) === "Upcoming"
-                        ? "text-yellow-500"
-                        : "text-red-500"
-                    }`}
+                          ? "text-yellow-500"
+                          : "text-red-500"
+                      }`}
                   >
                     {calculateStatus(CreatedAssessment)}
                   </span>
@@ -91,7 +122,6 @@ const CodeAssess = ({
                 <p>
                   <span className="text-xs text-gray-500">Codes: </span>
                   <span className="text-xs text-white-200">
-                    {" "}
                     {CreatedAssessment.problems.length}
                   </span>
                 </p>
@@ -113,6 +143,7 @@ const CodeAssess = ({
                 <Button
                   className="w-[48%] flex items-center justify-center text-xs gap-3 bg-red-900 bg-opacity-40"
                   variant="flat"
+                  onClick={() => handleDelete(CreatedAssessment._id)}
                 >
                   <Trash2 size={18} /> <p>Delete</p>
                 </Button>

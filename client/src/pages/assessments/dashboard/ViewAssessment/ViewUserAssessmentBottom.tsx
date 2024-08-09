@@ -115,6 +115,7 @@ const ViewUserAssessmentBottom = ({
           code: supportingSolution?.code || "",
           testCases: testCases,
         };
+        console.log(problemObj);
         return problemObj;
       });
 
@@ -185,7 +186,7 @@ const ViewUserAssessmentBottom = ({
                     <TableColumn className="text-sm">Action</TableColumn>
                   </TableHeader>
                   <TableBody>
-                    {assessment?.problems?.map((prob: any) => (
+                    {assessment?.problems?.map((prob: any,i : number) => (
                       <TableRow className="h-14" key={prob?._id}>
                         <TableCell className="w-full md:w-auto">
                           {prob?.title}
@@ -205,7 +206,7 @@ const ViewUserAssessmentBottom = ({
                             variant="light"
                             color="success"
                             onPress={() => {
-                              setProblemIndex(prob?.index || 1);
+                              setProblemIndex(i + 1);
                               handleOpen();
                             }}
                           >

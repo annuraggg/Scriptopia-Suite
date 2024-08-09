@@ -53,7 +53,7 @@ interface IAssessment extends Document {
   _id: string;
   name: string;
   description: string;
-  type: "mcq" | "code" | "both";
+  type: "mcq" | "code" | "mcqcode";
   timeLimit: number;
   passingPercentage: number;
   openRange: IOpenRange;
