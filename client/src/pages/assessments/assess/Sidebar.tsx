@@ -71,7 +71,7 @@ const codeSteps: Step[] = [
     "Focus on solving the coding challenges. Your ability to implement solutions and write clean, efficient code will be thoroughly assessed.",
   },
   {
-    title: "Refrane from Plagiarism",
+    title: "Avoid Plagiarism",
     description:
       "Ensure that you write the code yourself. Plagiarism will not be tolerated and will result in disqualification.",
   },
@@ -102,23 +102,87 @@ const Sidebar: React.FC<SidebarProps> = ({
   submitAssessment,
   type,
 }) => {
-  const getPercentage = (solved: number, total: number) => {
-    if (!solved || !total) return 0;
-
-    if (total === 0) return 0;
-    return ((solved / total) * 100).toFixed(2);
-  };
-
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const getSteps = () => {
+    if (type === "mcq") return mcqSteps;
+    if (type === "code") return codeSteps;
+    return bothSteps;
+  };
+
+  const getCompletion = () => {
     if (type === "mcq") {
-      return mcqSteps;
-    } else if (type === "code") {
-      return codeSteps;
-    } else {
-      return bothSteps;
+      return (
+        <div>
+          <p>
+            MCQ Completion: {getPercentage(mcqsSolved.solved, mcqsSolved.total)}%
+          </p>
+          <Progress
+            value={mcqsSolved.solved}
+            maxValue={mcqsSolved.total}
+            className="mt-2"
+            size="sm"
+          />
+        </div>
+      );
     }
+    if (type === "code") {
+      return (
+        <div>
+          <p>
+            Code Completion: {getPercentage(problemsSolved.solved, problemsSolved.total)}%
+          </p>
+          <Progress
+            value={problemsSolved.solved}
+            maxValue={problemsSolved.total}
+            className="mt-2"
+            size="sm"
+          />
+        </div>
+      );
+    }
+    return (
+      <>
+        <div>
+          <p>
+            Overall Completion:{" "}
+            {getPercentage(
+              problemsSolved.solved + mcqsSolved.solved,
+              problemsSolved.total + mcqsSolved.total
+            )}
+            %
+          </p>
+          <Progress
+            value={mcqsSolved.solved + problemsSolved.solved}
+            maxValue={mcqsSolved.total + problemsSolved.total}
+            className="mt-2"
+            size="sm"
+          />
+        </div>
+        <div className="mt-3">
+          <p>
+            MCQ Completion: {getPercentage(mcqsSolved.solved, mcqsSolved.total)}%
+          </p>
+          <Progress
+            value={mcqsSolved.solved}
+            maxValue={mcqsSolved.total}
+            className="mt-2"
+            size="sm"
+          />
+        </div>
+        <div className="mt-3">
+          <p>
+            Code Completion: {getPercentage(problemsSolved.solved, problemsSolved.total)}%
+          </p>
+          <Progress
+            value={problemsSolved.solved}
+            maxValue={problemsSolved.total}
+            className="mt-2"
+            size="sm"
+          />
+        </div>
+      </>
+    );
   };
 
   return (
@@ -129,7 +193,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       className="w-[25%] h-full"
     >
       <Card className="w-full h-full">
-        <CardHeader className=" border">
+        <CardHeader className="border">
           <div className="flex gap-5 items-center justify-center w-full">
             <Clock />
             <div>{convertToTime(timer)}</div>
@@ -152,88 +216,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
               <Card className="mt-5 p-3 border">
                 <CardTitle className="text-sm">Your Progress</CardTitle>
-                <CardBody>
-                  {type === "mcq" && (
-                    <div>
-                      <p>
-                        MCQ Completion:{" "}
-                        {getPercentage(mcqsSolved?.solved, mcqsSolved?.total)}%
-                      </p>
-                      <Progress
-                        value={mcqsSolved?.solved}
-                        maxValue={mcqsSolved?.total}
-                        className="mt-2"
-                        size="sm"
-                      />
-                    </div>
-                  )}
-                  {type === "code" && (
-                    <div>
-                      <p>
-                        Code Completion:{" "}
-                        {getPercentage(
-                          problemsSolved?.solved,
-                          problemsSolved?.total
-                        )}
-                        %
-                      </p>
-                      <Progress
-                        value={problemsSolved?.solved}
-                        maxValue={problemsSolved?.total}
-                        className="mt-2"
-                        size="sm"
-                      />
-                    </div>
-                  )}
-                  {type === "mcqcode" && (
-                    <>
-                      <div>
-                        <p>
-                          Overall Completion:{" "}
-                          {getPercentage(
-                            problemsSolved?.solved + mcqsSolved?.solved,
-                            problemsSolved?.total + mcqsSolved?.total
-                          )}
-                          %
-                        </p>
-                        <Progress
-                          value={mcqsSolved?.solved + problemsSolved?.solved}
-                          maxValue={mcqsSolved?.total + problemsSolved?.total}
-                          className="mt-2"
-                          size="sm"
-                        />
-                      </div>
-                      <div className="mt-3">
-                        <p>
-                          MCQ Completion:{" "}
-                          {getPercentage(mcqsSolved?.solved, mcqsSolved?.total)}%
-                        </p>
-                        <Progress
-                          value={mcqsSolved?.solved}
-                          maxValue={mcqsSolved?.total}
-                          className="mt-2"
-                          size="sm"
-                        />
-                      </div>
-                      <div className="mt-3">
-                        <p>
-                          Code Completion:{" "}
-                          {getPercentage(
-                            problemsSolved?.solved,
-                            problemsSolved?.total
-                          )}
-                          %
-                        </p>
-                        <Progress
-                          value={problemsSolved?.solved}
-                          maxValue={problemsSolved?.total}
-                          className="mt-2"
-                          size="sm"
-                        />
-                      </div>
-                    </>
-                  )}
-                </CardBody>
+                <CardBody>{getCompletion()}</CardBody>
               </Card>
             </div>
           </div>
@@ -248,11 +231,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </Button>
       </Card>
 
-      <Modal
-        isOpen={isOpen}
-        onClose={onOpenChange}
-        backdrop="blur"
-      >
+      <Modal isOpen={isOpen} onClose={onOpenChange} backdrop="blur">
         <ModalContent>
           <ModalHeader>Do you want to submit the assessment?</ModalHeader>
           <ModalBody>
@@ -262,10 +241,14 @@ const Sidebar: React.FC<SidebarProps> = ({
             <Button onClick={onOpenChange} variant="flat" color="danger">
               Cancel
             </Button>
-            <Button onClick={() => {
-              submitAssessment();
-              onOpenChange();
-            }} variant="flat" color="success">
+            <Button
+              onClick={() => {
+                submitAssessment();
+                onOpenChange();
+              }}
+              variant="flat"
+              color="success"
+            >
               Submit
             </Button>
           </ModalFooter>
@@ -275,12 +258,19 @@ const Sidebar: React.FC<SidebarProps> = ({
   );
 };
 
+const getPercentage = (solved: number, total: number) => {
+  if (!solved || !total) return "0.00";
+  return ((solved / total) * 100).toFixed(2);
+};
+
 const convertToTime = (time: number) => {
   const hours = Math.floor(time / 3600);
   const minutes = Math.floor((time % 3600) / 60);
   const seconds = time % 60;
 
-  return `${hours}:${minutes}:${seconds}`;
+  return `${hours.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 };
 
 export default Sidebar;
