@@ -83,12 +83,13 @@ const Dashboard = () => {
       initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="w-full p-10 h-[90vh]"
+      className="w-full px-10 h-[90vh]"
     >
-    <div className="w-full h-[90vh]">
-      <div className="flex justify-between w-full flex-wrap">
+    <div className="w-full">
+    <p className="mb-3 opacity-50">Your Assesments Dashboard</p>
+      <div className="flex justify-between w-full gap-5">
         {cards.map((card, index) => (
-          <Card key={index} className="h-32 w-56">
+          <Card key={index} className="h-32 w-full">
             <CardHeader className="text-center flex justify-center text-gray-400">
               {card.title}
             </CardHeader>
