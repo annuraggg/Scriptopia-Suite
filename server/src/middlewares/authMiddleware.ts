@@ -13,12 +13,11 @@ const authMiddleware = createMiddleware(async (c, next) => {
   // }
 
   // @ts-ignore
-  const auth =  getAuth(c);
-  // if (!auth?.userId) {
-  //   console.log("NO USERID")
-  //   return sendError(c, 401, "Unauthorized");
-  // }
-
+  const auth = getAuth(c);
+  if (!auth?.userId) {
+    console.log("NO USERID");
+    return sendError(c, 401, "Unauthorized");
+  }
   c.set("auth", auth);
   return next();
 });

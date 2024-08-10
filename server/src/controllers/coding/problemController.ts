@@ -59,7 +59,7 @@ const getMyProblems = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
     // @ts-ignore
-    const auth = devAuth ? global.auth : getAuth(c);
+    const auth =  getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
@@ -104,7 +104,7 @@ const getProblem = async (c: Context) => {
 const createProblem = async (c: Context) => {
   try {
     // @ts-ignore
-    const auth = devAuth ? global.auth : getAuth(c);
+    const auth =  getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
