@@ -31,7 +31,7 @@ const getMyMcqAssessments = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
     // @ts-ignore
-    const auth = devAuth ? global.auth : getAuth(c);
+    const auth = getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
@@ -56,7 +56,7 @@ const getMyCodeAssessments = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
     // @ts-ignore
-    const auth = devAuth ? global.auth : getAuth(c);
+    const auth = getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
@@ -81,7 +81,7 @@ const getMyMcqCodeAssessments = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
     // @ts-ignore
-    const auth = devAuth ? global.auth : getAuth(c);
+    const auth =  getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
@@ -150,7 +150,7 @@ const getAssessment = async (c: Context) => {
 const createAssessment = async (c: Context) => {
   try {
     // @ts-ignore
-    const auth = devAuth ? global.auth : getAuth(c);
+    const auth =  getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
@@ -467,7 +467,8 @@ const submitAssessment = async (c: Context) => {
             const passed =
               problemSubmission.results.find(
                 (result: any) =>
-                  result.caseId === testCase?._id.toString() && result.passed
+                  { if(!testCase._id) return false;
+                     result.caseId === testCase?._id.toString() && result.passed}
               ) || false;
             if (!passed) continue;
             if (testCase.difficulty === "easy") {
