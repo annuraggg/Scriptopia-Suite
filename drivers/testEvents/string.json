@@ -1,0 +1,17 @@
+{
+  "functionSchema": {
+    "functionName": "greet",
+    "functionArgs": [],
+    "functionBody": "\n      char* greet() {\n          return \"Hello, World!\";\n      }",
+    "functionReturn": "string"
+  },
+  "testCases": [
+    {
+      "input": [],
+      "output": "Hello, World!",
+      "difficulty": "easy",
+      "isSample": false,
+      "_id": "stringTest1"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "functionSchema": {
+    "functionName": "addArrays",
+    "functionArgs": [
+      { "name": "arr1", "type": "array" },
+      { "name": "arr2", "type": "array" },
+      { "name": "size", "type": "number" },
+      { "name": "resultSize", "type": "number" }
+    ],
+    "functionBody": "\n      int* addArrays(int* arr1, int* arr2, int size, int* resultSize) {\n          static int result[100];\n          for (int i = 0; i < size; i++) {\n              result[i] = arr1[i] + arr2[i];\n          }\n          *resultSize = size;\n          return result;\n      }",
+    "functionReturn": "int*"
+  },
+  "testCases": [
+    {
+      "input": ["[1, 2, 3, 4, 5]", "[6, 7, 8, 9, 10]", 5, 3],
+      "output": [7, 9, 11, 13, 15],
+      "difficulty": "medium",
+      "isSample": false,
+      "_id": "arrayTest1"
+    }
+  ]
+}

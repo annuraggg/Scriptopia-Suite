@@ -21,7 +21,7 @@ import {
 } from "@nextui-org/react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { IFunctionArg, ITestCase } from "@/@types/Problem";
+import { ITestCase } from "@/@types/Problem";
 
 const TestCases = ({
   testCases,
@@ -32,7 +32,7 @@ const TestCases = ({
   setTestCases: (
     testCases: ITestCase[] | ((prev: ITestCase[]) => ITestCase[])
   ) => void;
-  fnArguments: IFunctionArg[];
+  fnArguments: { name: string; type: string }[];
 }) => {
   const {
     isOpen: isAddCaseOpen,

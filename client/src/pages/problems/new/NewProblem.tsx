@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import { Button, Card, CardBody, CardHeader } from "@nextui-org/react";
 import Details from "./Details";
-import Stub from "./Stub";
+// import Stub from "./Stub";
 import TestCases from "./TestCases";
 import QualityGate from "./QualityGate";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -11,16 +11,21 @@ import { toast } from "sonner";
 import { Delta } from "quill/core";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { IFunctionArg, ITestCase } from "@/@types/Problem";
+import { ITestCase } from "@/@types/Problem";
+import Scl from "./Scl";
 
 const steps = [
   {
     title: "Step 1",
     description: "Question Details",
   },
+  // {
+  //   title: "Step ",
+  //   description: "Code Stub",
+  // },
   {
     title: "Step 2",
-    description: "Code Stub",
+    description: "SCL Code Stub",
   },
   {
     title: "Step 3",
@@ -43,10 +48,10 @@ const NewProblem = () => {
   const [tags, setTags] = useState<string[]>([]);
   const [description, setDescription] = useState<Delta>({} as Delta);
 
-  // Stub State
-  const [functionName, setFunctionName] = useState("");
-  const [returnType, setReturnType] = useState("");
-  const [fnArguments, setFnArguments] = useState<IFunctionArg[]>([]);
+  // // Stub State
+  // const [functionName, setFunctionName] = useState("");
+  // const [returnType, setReturnType] = useState("");
+  // const [fnArguments, setFnArguments] = useState<IFunctionArg[]>([]);
 
   // Test Cases State
   const [testCases, setTestCases] = useState<ITestCase[]>([]);
@@ -56,6 +61,14 @@ const NewProblem = () => {
   const [minimumThreeSampleCases, setMinimumThreeSampleCases] = useState(false);
   const [minimumTwoTags, setMinimumTwoTags] = useState(false);
   const [minimum100Words, setMinimum100Words] = useState(false);
+
+  const [scl, setScl] = useState("");
+  const [variableWithDataType, setVariableWithDataType] = useState<
+    {
+      name: string;
+      type: string;
+    }[]
+  >([]);
 
   const { getToken } = useAuth();
   const buildRequestData = () => {
@@ -67,9 +80,7 @@ const NewProblem = () => {
         difficulty,
         tags,
         description,
-        functionName,
-        functionReturnType: returnType,
-        functionArgs:fnArguments,
+        scl: scl.split("\n"),
         testCases,
         minimumFiveCases,
         minimumThreeSampleCases,
@@ -99,19 +110,19 @@ const NewProblem = () => {
   }, [title, difficulty, tags, description]);
 
   useEffect(() => {
-    const step2Completed = functionName && returnType && fnArguments.length > 0;
+    const step2Completed = scl.length > 0;
     setCompleted((prev) => {
       const newCompleted = [...prev];
       newCompleted[1] = !!step2Completed;
       return newCompleted;
     });
-  }, [functionName, returnType, fnArguments]);
+  }, [scl]);
 
   useEffect(() => {
-    const step3Completed = testCases.length >= 5;
+    const step4Completed = testCases.length >= 5;
     setCompleted((prev) => {
       const newCompleted = [...prev];
-      newCompleted[2] = !!step3Completed;
+      newCompleted[2] = !!step4Completed;
       return newCompleted;
     });
   }, [testCases]);
@@ -119,16 +130,7 @@ const NewProblem = () => {
   useEffect(() => {
     calculateQualityGate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    title,
-    difficulty,
-    tags,
-    description,
-    functionName,
-    returnType,
-    fnArguments.length,
-    testCases.length,
-  ]);
+  }, [title, difficulty, tags, description, testCases.length]);
 
   const calculateQualityGate = () => {
     if (testCases.length >= 5) setMinimumFiveCases(true);
@@ -242,7 +244,7 @@ const NewProblem = () => {
                   }}
                 />
               )}
-              {activeStep === 2 && (
+              {/* {activeStep === 2 && (
                 <Stub
                   {...{
                     functionName,
@@ -253,9 +255,25 @@ const NewProblem = () => {
                     setFnArguments,
                   }}
                 />
+              )} */}
+              {activeStep === 2 && (
+                <Scl
+                  {...{
+                    scl,
+                    setScl,
+                    variableWithDataType,
+                    setVariableWithDataType,
+                  }}
+                />
               )}
               {activeStep === 3 && (
-                <TestCases {...{ testCases, setTestCases, fnArguments }} />
+                <TestCases
+                  {...{
+                    testCases,
+                    setTestCases,
+                    fnArguments: variableWithDataType,
+                  }}
+                />
               )}
               {activeStep === 4 && (
                 <QualityGate

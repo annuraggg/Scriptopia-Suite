@@ -55,6 +55,8 @@ const Problem = () => {
   const [leftPanelActiveTab, setLeftPanelActiveTab] =
     useState<string>("statement");
 
+  const [scl, setScl] = useState<string[]>([]);
+
   const { getToken } = useAuth();
   useEffect(() => {
     const axios = ax(getToken);
@@ -71,13 +73,14 @@ const Problem = () => {
         setFunctionArgs(res.data.data?.problem?.functionArgs);
         setFunctionReturnType(res.data.data?.problem?.functionReturnType);
         setProblemId(res.data.data?.problem?._id);
+        setScl(res.data.data?.problem?.scl);
 
         const starterCode = starterGenerator(
-          res.data.data?.problem?.functionName,
-          res.data.data?.problem?.functionArgs,
-          res.data.data?.problem?.functionReturnType,
+          res.data.data?.problem?.scl,
           languageEx
         );
+
+        console.log("Starter Code: ", starterCode);
         setCode(starterCode);
         setLanguage(languageEx);
       })
@@ -105,7 +108,7 @@ const Problem = () => {
           )
         );
         setCodeError(res.data.data.error);
-        console.log(res.data.data); 
+        console.log(res.data.data);
 
         return { success: true, error: "", data: {} };
       })
@@ -183,12 +186,7 @@ const Problem = () => {
   };
 
   useEffect(() => {
-    const starter = starterGenerator(
-      functionName,
-      functionArgs,
-      functionReturnType,
-      language
-    );
+    const starter = starterGenerator(scl, language);
     setCode(starter);
     console.log("Starter Code: ", starter);
     setEditorUpdateFlag((prev) => !prev);
@@ -250,7 +248,10 @@ const Problem = () => {
                   <CpuIcon size={30} />
                   <div>
                     <h5>Memory Used</h5>
-                    <p>{((currentSubmission?.avgMemory || 0) * 1000).toFixed(2)} KB</p>
+                    <p>
+                      {((currentSubmission?.avgMemory || 0) * 1000).toFixed(2)}{" "}
+                      KB
+                    </p>
                   </div>
                 </div>
               </CardBody>

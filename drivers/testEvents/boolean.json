@@ -1,0 +1,36 @@
+{
+    "functionSchema": {
+      "functionName": "isEven",
+      "functionArgs": [
+        {
+          "name": "num",
+          "type": "number",
+          "_id": {
+            "$oid": "6693b9c69482cba861854c38"
+          }
+        }
+      ],
+      "functionBody": "\n      int isEven(int num) {\n          return num % 2 == 0;\n      }",
+      "functionReturn": "boolean"
+    },
+    "testCases": [
+      {
+        "input": [
+          4
+        ],
+        "output": 1,
+        "difficulty": "easy",
+        "isSample": false,
+        "_id": "booleanTest1"
+      },
+      {
+        "input": [
+          5
+        ],
+        "output": 0,
+        "difficulty": "easy",
+        "isSample": false,
+        "_id": "booleanTest2"
+      }
+    ]
+  }

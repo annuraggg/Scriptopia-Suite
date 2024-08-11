@@ -1,0 +1,35 @@
+{
+    "functionSchema": {
+      "functionName": "multiply",
+      "functionArgs": [
+        {
+          "name": "x",
+          "type": "number",
+          "_id": {
+            "$oid": "6693b9c69482cba861854c36"
+          }
+        },
+        {
+          "name": "y",
+          "type": "number",
+          "_id": {
+            "$oid": "6693b9c69482cba861854c37"
+          }
+        }
+      ],
+      "functionBody": "int multiply(int x, int y) { return x * y; }",
+      "functionReturn": "number"
+    },
+    "testCases": [
+      {
+        "input": [
+          3,
+          4
+        ],
+        "output": 12,
+        "difficulty": "easy",
+        "isSample": false,
+        "_id": "numberTest1"
+      }
+    ]
+  }

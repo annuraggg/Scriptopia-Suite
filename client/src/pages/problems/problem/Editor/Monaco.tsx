@@ -4,15 +4,17 @@ import * as monaco from "monaco-editor";
 const Monaco = ({
   code,
   setCode,
-  loading,
+  loading = false,
   language,
-  editorUpdateFlag,
+  editorUpdateFlag = false,
+  readOnly = false,
 }: {
   code: string;
   setCode: (code: string) => void;
-  loading: boolean;
+  loading?: boolean;
   language: string;
-  editorUpdateFlag: boolean;
+  editorUpdateFlag?: boolean;
+  readOnly?: boolean;
 }) => {
   useEffect(() => {
     const editorContainer = document.getElementById("code-editor");
@@ -26,7 +28,7 @@ const Monaco = ({
       value: code,
       language: language,
       theme: "vs-dark",
-      readOnly: loading,
+      readOnly: loading || readOnly,
     });
 
     const model = editor.getModel();

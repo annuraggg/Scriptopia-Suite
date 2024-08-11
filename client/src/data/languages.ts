@@ -1,5 +1,6 @@
 const languages = [
   "cpp",
+  "c",
   "java",
   "python",
   "javascript",
