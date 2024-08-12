@@ -1,18 +1,13 @@
+import sclObjToC from "./sclToC.js";
 import convertSclToC from "./sclToC.js";
 
 const handler = async (event) => {
   const { scl, testCases, code } = event;
-  const { head, body, tail } = convertSclToC(scl.join("\n")).syntax;
 
   testCases.forEach((testCase) => {
     const { input, output } = testCase;
-    const newTail = [
-      tail,
-      `\nprintf("%s\\n", main(${input.map((item) => item).join(", ")}));`,
-    ].join("\n");
-
-    const finalCode = [head, code, newTail].join("\n");
-    console.log(finalCode);
+    const executeStatement = sclObjToC(scl.join("\n"), "scl", code);
+    console.log(executeStatement);
     console.log("******");
   });
 };
@@ -20,11 +15,12 @@ const handler = async (event) => {
 export default handler;
 
 const event = {
-  scl: ["array->integer nums 5", "integer->target", "", "return->nums"],
+  scl: ["array->integer nums 20", "integer->target"],
   testCases: [
     {
-      input: ["(int[]){2,7,11,15}, 4", "9"],
+      input: ["[2,7,11,15], 4"],
       output: "[0,1]",
+      returnLength: "2",
       difficulty: "easy",
       isSample: true,
       _id: {
@@ -32,8 +28,9 @@ const event = {
       },
     },
     {
-      input: ["(int[]){3,2,4}, 3", "6"],
-      output: "[1.2]",
+      input: ["[3,2,4], 3, 6", "&returnSize"],
+      output: "[1,2]",
+      returnLength: "2",
       difficulty: "easy",
       isSample: true,
       _id: {
@@ -41,8 +38,9 @@ const event = {
       },
     },
     {
-      input: ["(int[]){3,3}, 2", "6"],
+      input: ["[3,3], 2, 6", "&returnSize"],
       output: "[0,1]",
+      returnLength: "2",
       difficulty: "easy",
       isSample: true,
       _id: {
@@ -51,9 +49,9 @@ const event = {
     },
   ],
   code: `
-int* execute(int* nums, int numsSize, int target, int* returnSize) {
+int* execute(int* nums, int target) {
     int* result = (int*)malloc(2 * sizeof(int));
-    *returnSize = 2;
+    int numsSize = sizeof(nums);
     for (int i = 0; i < numsSize; i++) {
         for (int j = i + 1; j < numsSize; j++) {
             if (nums[i] + nums[j] == target) {

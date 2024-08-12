@@ -1,4 +1,28 @@
-import sclToObject from "./sclToObj.js";
+import sclToObject from "./sclToObject";
+
+interface SclObject {
+  name: string;
+  type:
+    | "boolean"
+    | "integer"
+    | "character"
+    | "long"
+    | "float"
+    | "double"
+    | "string"
+    | "array";
+  arrayProps?: {
+    type:
+      | "boolean"
+      | "integer"
+      | "character"
+      | "long"
+      | "float"
+      | "double"
+      | "string";
+    size: number;
+  };
+}
 
 const dataTypeMap = {
   boolean: "bool",
@@ -20,14 +44,18 @@ const variableFunctionMap = {
   string: "readline()",
 };
 
-const sclObjToC = (scl, type, body) => {
-  let parsedScl;
+const sclObjToC = (
+  scl: string | SclObject[],
+  type: "scl" | "sclObj",
+  body?: string
+) => {
+  let parsedScl: SclObject[];
   if (type === "scl" && !Array.isArray(scl))
-    parsedScl = sclToObject(scl).sclObject;
-  else parsedScl = scl;
+    parsedScl = sclToObject(scl).sclObject as SclObject[];
+  else parsedScl = scl as SclObject[];
 
   const FINAL_BODY = parseBody(body);
-  const FINAL_TAIL = parseTail(parsedScl, FINAL_BODY);
+  const FINAL_TAIL = parseTail(parsedScl);
 
   const aggregateString = [
     DEFAULT_HEAD,
@@ -38,14 +66,13 @@ const sclObjToC = (scl, type, body) => {
   return aggregateString;
 };
 
-const parseBody = (body) => {
+const parseBody = (body: string | undefined) => {
   if (!body) return "";
   return body.trim();
 };
 
-const parseTail = (parsedScl) => {
-  const finalMain = [];
-  const arrayNames = [];
+const parseTail = (parsedScl: SclObject[]) => {
+  const finalMain: string[] = [];
   finalMain.push("int main() {");
 
   parsedScl.forEach((variable) => {
@@ -59,15 +86,12 @@ const parseTail = (parsedScl) => {
     } else {
       if (!variable.arrayProps?.type) return;
       const arrayLoop = parseArrayLoop(variable);
-      arrayNames.push(variable.name);
-      finalMain.push(arrayLoop);
+      finalMain.push(arrayLoop as string);
     }
   });
 
   finalMain.push(
-    `int* result = execute(${parsedScl
-      .map((scl) => scl.name)
-      .join(", ")} ${arrayNames.map((name) => `,${name}Size`).join(", ")});`
+    `int* result = execute(${parsedScl.map((scl) => scl.name).join(", ")});`
   );
 
   finalMain.push("return 0;");
@@ -76,12 +100,10 @@ const parseTail = (parsedScl) => {
   return finalMain.join("\n");
 };
 
-const parseArrayLoop = (scl) => {
+const parseArrayLoop = (scl: SclObject) => {
   if (!scl.arrayProps) return;
 
   const tempArr = `char** ${scl.name}_temp = split_string(rtrim(readline()));`;
-
-  const arrSize = `int ${scl.name}Size = ${scl.arrayProps?.size};`;
 
   const memoryAlloc = `${dataTypeMap[scl.arrayProps?.type]}* ${
     scl.name
@@ -115,7 +137,7 @@ const parseArrayLoop = (scl) => {
 
   const loopLine = ` for (int i = 0; i < ${scl.arrayProps?.size}; i++) {
     ${dataTypeMap[scl.arrayProps?.type]} ${scl.name}_item = ${loopItemValue};
-      *(${scl.name} + i) = ${scl.name}_item;
+    *(${scl.name} + i) = ${scl.name}_item;
     }`;
 
   const finalString = [tempArr, memoryAlloc, loopLine].join("\n");

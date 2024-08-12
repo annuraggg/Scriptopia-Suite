@@ -3,6 +3,7 @@ import Monaco from "../problem/Editor/Monaco";
 import { useState } from "react";
 import languages from "@/data/languages";
 import { convertSclToC, convertSclToJs, sclReturnType } from "@/functions/scl";
+import sclObjToC from "@/functions/scl/sclObjToC";
 
 const Scl = ({
   scl,
@@ -38,7 +39,8 @@ const Scl = ({
       setError(false);
       setEditorUpdateFlag((prev) => !prev);
     } else if (language === "c") {
-      const res: sclReturnType = convertSclToC(scl);
+      const res: sclReturnType = sclObjToC(scl, "scl");
+      console.log(res);
       if (res.error) {
         setError(true);
         setErrorMessage(res?.message || "Error Generating Code");
