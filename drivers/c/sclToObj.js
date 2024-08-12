@@ -217,6 +217,7 @@ const VALID_DATATYPES = [
   "double",
   "string",
   "array",
+  "return",
 ];
 
 const sclToObject = (scl) => {
@@ -237,11 +238,7 @@ const sclToObject = (scl) => {
       return { error: true, message: "Invalid Datatype" };
     }
 
-    if (dataType !== "array") {
-      const { error, message } = validVariable(variableName);
-      if (error) return { error: true, message: message };
-      sclObject.push({ name: variableName, type: dataType });
-    } else {
+    if (dataType === "array") {
       const [arrayDataType, arrayName, arraySize] = variableName.split(" ");
       if (!arrayDataType || !arrayName || isNaN(parseInt(arraySize))) {
         return { error: true, message: "Invalid array specification" };
@@ -262,6 +259,41 @@ const sclToObject = (scl) => {
           size: parseInt(arraySize),
         },
       });
+    } else if (dataType == "return") {
+      const splitReturn = variableName.split("->")
+      const left = splitReturn[0];
+      const right = splitReturn[1];
+
+      if (left !== "array") {
+        const { error, message } = validVariable(right);
+        if (error) return { error: true, message: message };
+        sclObject.push({ name: "return", type: left });
+      } else {
+        const [arrayDataType, arrayName, arraySize] = right.split(" ");
+        if (!arrayDataType || !arrayName || isNaN(parseInt(arraySize))) {
+          return { error: true, message: "Invalid Return Array specification" };
+        }
+
+        const { error, message } = validVariable(arrayName);
+        if (error) return { error: true, message: message };
+
+        if (!VALID_DATATYPES.includes(arrayDataType)) {
+          return { error: true, message: "Invalid Datatype" };
+        }
+
+        sclObject.push({
+          name: "return",
+          type: "array",
+          arrayProps: {
+            type: arrayDataType,
+            size: parseInt(arraySize),
+          },
+        });
+      }
+    } else if (dataType !== "array") {
+      const { error, message } = validVariable(variableName);
+      if (error) return { error: true, message: message };
+      sclObject.push({ name: variableName, type: dataType });
     }
   }
 

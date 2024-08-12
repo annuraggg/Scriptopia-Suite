@@ -10,23 +10,13 @@ const dataTypeMap = {
   string: "char*",
 };
 
-const arrayDataTypeMap = {
-  boolean: "bool*",
-  character: "char**",
-  integer: "int*",
-  long: "long*",
-  float: "float*",
-  double: "double*",
-  string: "char**",
-};
-
 const variableFunctionMap = {
-  boolean: "parse_int(readline()) != 0",
+  boolean: "parse_int(ltrim(rtrim(readline()))) != 0",
   character: "*readline()",
-  integer: "parse_int(readline())",
-  long: "parse_long(readline())",
-  float: "parse_float(readline())",
-  double: "parse_double(readline())",
+  integer: "parse_int(ltrim(rtrim(readline())))",
+  long: "parse_long(ltrim(rtrim(readline())))",
+  float: "parse_float(ltrim(rtrim(readline())))",
+  double: "parse_double(ltrim(rtrim(readline())))",
   string: "readline()",
 };
 
@@ -44,8 +34,7 @@ const sclObjToC = (scl, type, body) => {
     FINAL_BODY,
     FINAL_TAIL,
     DEFAULT_FUNCTIONS,
-  ];
-
+  ].join("\n");
   return aggregateString;
 };
 
@@ -59,63 +48,27 @@ const parseTail = (parsedScl) => {
   const arrayNames = [];
   finalMain.push("int main() {");
 
-  for (const variable of parsedScl) {
-    if (variable.type === "array" && variable.name !== "return") {
-      if (!variable.arrayProps?.type) return;
-      const arrayLoop = parseArrayLoop(variable);
-      arrayNames.push(variable.name);
-
-      finalMain.push(arrayLoop);
-    } else if (variable.name === "return") {
-      continue;
-    } else {
+  parsedScl.forEach((variable) => {
+    if (variable.type !== "array") {
       const startDataType = dataTypeMap[variable.type];
       const name = variable.name;
       const endValue = variableFunctionMap[variable.type];
 
       const finalString = `${startDataType} ${name} = ${endValue};`;
       finalMain.push(finalString);
+    } else {
+      if (!variable.arrayProps?.type) return;
+      const arrayLoop = parseArrayLoop(variable);
+      arrayNames.push(variable.name);
+      finalMain.push(arrayLoop);
     }
-  }
-
-  const returnScl = parsedScl.find((scl) => scl.name === "return");
-  const returnType = returnScl?.type;
-
-  if (returnType === "array") {
-  }
-
-  let finalReturnType = dataTypeMap[returnType];
-
-  if (returnType === "array") {
-    finalReturnType = arrayDataTypeMap[returnScl.arrayProps.type];
-  }
-
-  finalMain.push(`int returnSize;`);
+  });
 
   finalMain.push(
-    `${finalReturnType} result = execute(${parsedScl
-      .map((scl) =>
-        scl.type === "array" && scl.name !== "return"
-          ? `${scl.name}, ${scl.name}Size`
-          : scl.type === "return" || scl.name === "return"
-          ? ""
-          : scl.name
-      )
-      .join(", ")}&returnSize);`
+    `int* result = execute(${parsedScl
+      .map((scl) => scl.type === 'array' ? `${scl.name}, ${scl.name}Size` : scl.name)
+      .join(", ")});`
   );
-
-  // print based on return type
-  if (returnType === "array") {
-    const returnPrintStr = `for (int i = 0; i < returnSize; i++) {
-      printf("%d ", result[i]);
-  }`;
-
-    finalMain.push(returnPrintStr);
-  } else if (returnType === "string") {
-    finalMain.push(`printf("%d\\n", result);`);
-  } else {
-    finalMain.push(`printf("%d\\n", result);`);
-  }
 
   finalMain.push("return 0;");
   finalMain.push("}");
@@ -126,54 +79,52 @@ const parseTail = (parsedScl) => {
 const parseArrayLoop = (scl) => {
   if (!scl.arrayProps) return;
 
-  // const tempArr = `char** ${scl.name}_temp = split_string(rtrim(readline()));`;
+  const tempArr = `char** ${scl.name}_temp = split_string(rtrim(readline()));`;
 
-  // const maxSize = scl.arrayProps.size;
+  const maxSize = scl.arrayProps.size;
 
-  // const arrSize = `int ${scl.name}Size = 0;
-  // while (${scl.name}_temp[${scl.name}Size] != NULL && ${scl.name}Size < ${maxSize}) {
-  //   ${scl.name}Size++;
-  // }`;
+  const arrSize = `int ${scl.name}Size = 0;
+  while (${scl.name}_temp[${scl.name}Size] != NULL && ${scl.name}Size < ${maxSize}) {
+    ${scl.name}Size++;
+  }`;
 
-  // const memoryAlloc = `${dataTypeMap[scl.arrayProps?.type]}* ${scl.name} =
-  // malloc(${scl.name}Size * sizeof(${dataTypeMap[scl.arrayProps?.type]}));`;
+  const memoryAlloc = `${dataTypeMap[scl.arrayProps?.type]}* ${scl.name} = 
+  malloc(${scl.name}Size * sizeof(${dataTypeMap[scl.arrayProps?.type]}));`;
 
-  // let loopItemValue = "";
 
-  // switch (scl.arrayProps.type) {
-  //   case "boolean":
-  //     loopItemValue = `parse_int(*(${scl.name}_temp + i)) != 0`;
-  //     break;
-  //   case "character":
-  //     loopItemValue = `**(${scl.name}_temp + i)`;
-  //     break;
-  //   case "integer":
-  //     loopItemValue = `parse_int(*(${scl.name}_temp + i))`;
-  //     break;
-  //   case "long":
-  //     loopItemValue = `parse_long(*(${scl.name}_temp + i))`;
-  //     break;
-  //   case "float":
-  //     loopItemValue = `parse_float(*(${scl.name}_temp + i))`;
-  //     break;
-  //   case "double":
-  //     loopItemValue = `parse_double(*(${scl.name}_temp + i))`;
-  //     break;
-  //   case "string":
-  //     loopItemValue = `*(${scl.name}__temp + i)`;
-  //     break;
-  // }
+  let loopItemValue = "";
 
-  // const loopLine = ` for (int i = 0; i < ${scl.arrayProps?.size}; i++) {
-  //   ${dataTypeMap[scl.arrayProps?.type]} ${scl.name}_item = ${loopItemValue};
-  //     *(${scl.name} + i) = ${scl.name}_item;
-  //   }`;
+  switch (scl.arrayProps.type) {
+    case "boolean":
+      loopItemValue = `parse_int(*(${scl.name}_temp + i)) != 0`;
+      break;
+    case "character":
+      loopItemValue = `**(${scl.name}_temp + i)`;
+      break;
+    case "integer":
+      loopItemValue = `parse_int(*(${scl.name}_temp + i))`;
+      break;
+    case "long":
+      loopItemValue = `parse_long(*(${scl.name}_temp + i))`;
+      break;
+    case "float":
+      loopItemValue = `parse_float(*(${scl.name}_temp + i))`;
+      break;
+    case "double":
+      loopItemValue = `parse_double(*(${scl.name}_temp + i))`;
+      break;
+    case "string":
+      loopItemValue = `*(${scl.name}__temp + i)`;
+      break;
+  }
 
-  // const arr =
+  const loopLine = ` for (int i = 0; i < ${scl.arrayProps?.size}; i++) {
+    ${dataTypeMap[scl.arrayProps?.type]} ${scl.name}_item = ${loopItemValue};
+      *(${scl.name} + i) = ${scl.name}_item;
+    }`;
 
-  // const finalString = [tempArr, memoryAlloc, loopLine].join("\n");
-  // return finalString;
-  return `readline();`;
+  const finalString = [tempArr, memoryAlloc, loopLine].join("\n");
+  return finalString;
 };
 
 const DEFAULT_HEAD = `
