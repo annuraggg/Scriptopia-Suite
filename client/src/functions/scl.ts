@@ -533,7 +533,7 @@ const convertSclToC = (scl: string): sclReturnType => {
   };
 
   const codeReturnType = getReturnType(
-    returnStatement.trim().split(" ")[1].slice(0, -1)
+    returnStatement.trim()?.split(" ")?.[1]?.slice(0, -1)
   );
 
   code.push("#include <stdio.h>");
