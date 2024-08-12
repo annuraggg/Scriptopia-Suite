@@ -66,8 +66,8 @@ const parseTail = (parsedScl) => {
 
   finalMain.push(
     `int* result = execute(${parsedScl
-      .map((scl) => scl.name)
-      .join(", ")} ${arrayNames.map((name) => `,${name}Size`).join(", ")});`
+      .map((scl) => scl.type === 'array' ? `${scl.name}, ${scl.name}Size` : scl.name)
+      .join(", ")});`
   );
 
   finalMain.push("return 0;");
@@ -81,11 +81,16 @@ const parseArrayLoop = (scl) => {
 
   const tempArr = `char** ${scl.name}_temp = split_string(rtrim(readline()));`;
 
-  const arrSize = `int ${scl.name}Size = ${scl.arrayProps?.size};`;
+  const maxSize = scl.arrayProps.size;
 
-  const memoryAlloc = `${dataTypeMap[scl.arrayProps?.type]}* ${
-    scl.name
-  } = malloc(10 * sizeof(${dataTypeMap[scl.arrayProps?.type]}));`;
+  const arrSize = `int ${scl.name}Size = 0;
+  while (${scl.name}_temp[${scl.name}Size] != NULL && ${scl.name}Size < ${maxSize}) {
+    ${scl.name}Size++;
+  }`;
+
+  const memoryAlloc = `${dataTypeMap[scl.arrayProps?.type]}* ${scl.name} = 
+  malloc(${scl.name}Size * sizeof(${dataTypeMap[scl.arrayProps?.type]}));`;
+
 
   let loopItemValue = "";
 
