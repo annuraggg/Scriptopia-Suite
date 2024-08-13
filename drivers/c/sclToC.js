@@ -92,6 +92,8 @@ const parseTail = (parsedScl) => {
 
   finalMain.push(`int returnSize;`);
 
+  // create struct call
+
   finalMain.push(
     `${finalReturnType} result = execute(${parsedScl
       .map((scl) =>
@@ -107,8 +109,8 @@ const parseTail = (parsedScl) => {
   // print based on return type
   if (returnType === "array") {
     const returnPrintStr = `for (int i = 0; i < returnSize; i++) {
-      printf("%d ", result[i]);
-  }`;
+        printf("%d ", result[i]);
+    }`;
 
     finalMain.push(returnPrintStr);
   } else if (returnType === "string") {
@@ -177,180 +179,193 @@ const parseArrayLoop = (scl) => {
 };
 
 const DEFAULT_HEAD = `
-#include <assert.h>
-#include <ctype.h>
-#include <limits.h>
-#include <math.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+  #include <assert.h>
+  #include <ctype.h>
+  #include <limits.h>
+  #include <math.h>
+  #include <stdbool.h>
+  #include <stddef.h>
+  #include <stdint.h>
+  #include <stdio.h>
+  #include <stdlib.h>
+  #include <string.h>
 
-char* readline();
-char* ltrim(char*);
-char* rtrim(char*);
-char** split_string(char*);
+  char* readline();
+  char* ltrim(char*);
+  char* rtrim(char*);
+  char** split_string(char*);
 
-double parse_double(char*);
-float parse_float(char*);
-int parse_int(char*);
-long parse_long(char*);
-`;
+  double parse_double(char*);
+  float parse_float(char*);
+  int parse_int(char*);
+  long parse_long(char*);
+
+
+  struct CaseStruct {
+      int caseNo;              // Type: Number
+      char caseId[256];        // Type: String (assuming a maximum length of 255 characters plus null terminator)
+      char output[256];        // Type: String (assuming a maximum length of 255 characters plus null terminator)
+      bool isSample;           // Type: Boolean
+      int memory;              // Type: Number
+      int time;                // Type: Number
+      bool passed;             // Type: Boolean
+      char console[256];       // Type: String (assuming a maximum length of 255 characters plus null terminator)
+  };
+
+  `;
 const DEFAULT_FUNCTIONS = `
-char* readline() {
-    size_t alloc_length = 1024;
-    size_t data_length = 0;
+  char* readline() {
+      size_t alloc_length = 1024;
+      size_t data_length = 0;
 
-    char* data = malloc(alloc_length);
+      char* data = malloc(alloc_length);
 
-    while (true) {
-        char* cursor = data + data_length;
-        char* line = fgets(cursor, alloc_length - data_length, stdin);
+      while (true) {
+          char* cursor = data + data_length;
+          char* line = fgets(cursor, alloc_length - data_length, stdin);
 
-        if (!line) {
-            break;
-        }
+          if (!line) {
+              break;
+          }
 
-        data_length += strlen(cursor);
+          data_length += strlen(cursor);
 
-        if (data_length < alloc_length - 1 || data[data_length - 1] == '\\n') {
-            break;
-        }
+          if (data_length < alloc_length - 1 || data[data_length - 1] == '\\n') {
+              break;
+          }
 
-        alloc_length <<= 1;
+          alloc_length <<= 1;
 
-        data = realloc(data, alloc_length);
+          data = realloc(data, alloc_length);
 
-        if (!data) {
-            data = '\\0';
+          if (!data) {
+              data = '\\0';
 
-            break;
-        }
-    }
+              break;
+          }
+      }
 
-    if (data[data_length - 1] == '\\n') {
-        data[data_length - 1] = '\\0';
+      if (data[data_length - 1] == '\\n') {
+          data[data_length - 1] = '\\0';
 
-        data = realloc(data, data_length);
+          data = realloc(data, data_length);
 
-        if (!data) {
-            data = '\\0';
-        }
-    } else {
-        data = realloc(data, data_length + 1);
+          if (!data) {
+              data = '\\0';
+          }
+      } else {
+          data = realloc(data, data_length + 1);
 
-        if (!data) {
-            data = '\\0';
-        } else {
-            data[data_length] = '\\0';
-        }
-    }
+          if (!data) {
+              data = '\\0';
+          } else {
+              data[data_length] = '\\0';
+          }
+      }
 
-    return data;
-}
+      return data;
+  }
 
-char* ltrim(char* str) {
-    if (!str) {
-        return '\\0';
-    }
+  char* ltrim(char* str) {
+      if (!str) {
+          return '\\0';
+      }
 
-    if (!*str) {
-        return str;
-    }
+      if (!*str) {
+          return str;
+      }
 
-    while (*str != '\\0' && isspace(*str)) {
-        str++;
-    }
+      while (*str != '\\0' && isspace(*str)) {
+          str++;
+      }
 
-    return str;
-}
+      return str;
+  }
 
-char* rtrim(char* str) {
-    if (!str) {
-        return '\\0';
-    }
+  char* rtrim(char* str) {
+      if (!str) {
+          return '\\0';
+      }
 
-    if (!*str) {
-        return str;
-    }
+      if (!*str) {
+          return str;
+      }
 
-    char* end = str + strlen(str) - 1;
+      char* end = str + strlen(str) - 1;
 
-    while (end >= str && isspace(*end)) {
-        end--;
-    }
+      while (end >= str && isspace(*end)) {
+          end--;
+      }
 
-    *(end + 1) = '\\0';
+      *(end + 1) = '\\0';
 
-    return str;
-}
+      return str;
+  }
 
-char** split_string(char* str) {
-    char** splits = NULL;
-    char* token = strtok(str, " ");
+  char** split_string(char* str) {
+      char** splits = NULL;
+      char* token = strtok(str, " ");
 
-    int spaces = 0;
+      int spaces = 0;
 
-    while (token) {
-        splits = realloc(splits, sizeof(char*) * ++spaces);
+      while (token) {
+          splits = realloc(splits, sizeof(char*) * ++spaces);
 
-        if (!splits) {
-            return splits;
-        }
+          if (!splits) {
+              return splits;
+          }
 
-        splits[spaces - 1] = token;
+          splits[spaces - 1] = token;
 
-        token = strtok(NULL, " ");
-    }
+          token = strtok(NULL, " ");
+      }
 
-    return splits;
-}
+      return splits;
+  }
 
-double parse_double(char* str) {
-    char* endptr;
-    double value = strtod(str, &endptr);
+  double parse_double(char* str) {
+      char* endptr;
+      double value = strtod(str, &endptr);
 
-    if (endptr == str || *endptr != '\\0') {
-        exit(EXIT_FAILURE);
-    }
+      if (endptr == str || *endptr != '\\0') {
+          exit(EXIT_FAILURE);
+      }
 
-    return value;
-}
+      return value;
+  }
 
-float parse_float(char* str) {
-    char* endptr;
-    float value = strtof(str, &endptr);
+  float parse_float(char* str) {
+      char* endptr;
+      float value = strtof(str, &endptr);
 
-    if (endptr == str || *endptr != '\\0') {
-        exit(EXIT_FAILURE);
-    }
+      if (endptr == str || *endptr != '\\0') {
+          exit(EXIT_FAILURE);
+      }
 
-    return value;
-}
+      return value;
+  }
 
-int parse_int(char* str) {
-    char* endptr;
-    int value = strtol(str, &endptr, 10);
+  int parse_int(char* str) {
+      char* endptr;
+      int value = strtol(str, &endptr, 10);
 
-    if (endptr == str || *endptr != '\\0') {
-        exit(EXIT_FAILURE);
-    }
+      if (endptr == str || *endptr != '\\0') {
+          exit(EXIT_FAILURE);
+      }
 
-    return value;
-}
+      return value;
+  }
 
-long parse_long(char* str) {
-    char* endptr;
-    long value = strtol(str, &endptr, 10);
+  long parse_long(char* str) {
+      char* endptr;
+      long value = strtol(str, &endptr, 10);
 
-    if (endptr == str || *endptr != '\\0') {
-        exit(EXIT_FAILURE);
-    }
+      if (endptr == str || *endptr != '\\0') {
+          exit(EXIT_FAILURE);
+      }
 
-    return value;
-}
-`;
+      return value;
+  }
+  `;
 
 export default sclObjToC;

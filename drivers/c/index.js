@@ -1,6 +1,16 @@
 import sclObjToC from "./sclToC.js";
-import convertSclToC from "./sclToC.js";
 import sclToObject from "./sclToObj.js";
+
+// typedef struct {
+//   int caseNo;              // Type: Number
+//   char caseId[256];        // Type: String (assuming a maximum length of 255 characters plus null terminator)
+//   char output[256];        // Type: String (assuming a maximum length of 255 characters plus null terminator)
+//   bool isSample;           // Type: Boolean
+//   int memory;              // Type: Number
+//   int time;                // Type: Number
+//   bool passed;             // Type: Boolean
+//   char console[256];       // Type: String (assuming a maximum length of 255 characters plus null terminator)
+// } CaseStruct;
 
 const dataTypeMap = {
   boolean: "bool",
@@ -16,22 +26,39 @@ const handler = async (event) => {
   const { scl, testCases, code } = event;
   const { sclObject } = sclToObject(scl.join("\n"));
 
-  testCases.forEach((testCase) => {
+  testCases.forEach((testCase, indexNo) => {
     const [DEFAULT_HEAD, FINAL_BODY, FINAL_TAIL, DEFAULT_FUNCTIONS] = sclObjToC(
       scl.join("\n"),
       "scl",
       code
     );
+
     const splitTail = FINAL_TAIL.split("\n");
     const newTail = [];
     const arraySizesWithNames = [];
 
     let index = 0;
+    let structAdded = false;
     for (const line of splitTail) {
       if (!line.includes("readline()")) {
         newTail.push(line);
         continue;
       }
+
+      if (!structAdded) {
+        newTail.push(`struct CaseStruct cs;`);
+        newTail.push(`cs.caseNo = 0;`);
+        newTail.push(`strcpy(cs.caseId, "${testCase._id.$oid}");`);
+        newTail.push(`strcpy(cs.output, "${testCase.output}");`);
+        newTail.push(`cs.isSample = ${testCase.isSample ? "true" : "false"};`);
+        newTail.push(`cs.memory = ${0};`);
+        newTail.push(`cs.time = ${0};`);
+        newTail.push(`cs.passed = ${testCase.passed ? "true" : "false"};`);
+        newTail.push(`strcpy(cs.console, "${"anurag"}");`);
+
+        structAdded = true;
+      }
+
       const input = testCase.input[index];
       if (typeof input === "object") {
         const arraySize = input.length;
@@ -63,14 +90,27 @@ const handler = async (event) => {
       }
     }
 
-    console.log(
-      [DEFAULT_HEAD, FINAL_BODY, newTail.join("\n"), DEFAULT_FUNCTIONS].join(
-        "\n"
-      )
-    );
+    const finalCode = [
+      DEFAULT_HEAD,
+      FINAL_BODY,
+      newTail.join("\n"),
+      DEFAULT_FUNCTIONS,
+    ].join("\n");
 
-    // console.log("-------------------------------");
-    // console.log(newTail.join("\n"));
+    console.log(finalCode);
+
+    fetch("https://driver.scriptopia.tech/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code: finalCode,
+        language: "c",
+      }),
+    })
+      .then(async (res) => {
+        console.log(await res.json());
+      })
+      .then((data) => console.log(data));
   });
 };
 
