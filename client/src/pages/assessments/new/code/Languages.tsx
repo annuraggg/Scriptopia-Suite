@@ -17,29 +17,32 @@ const Languages = ({
     >
       <p> Select allowed languages</p>
       <div className="grid grid-cols-5 gap-2 mt-5">
-        {availableLanguages.map((language, i) => (
-          <div key={i} className="flex items-center gap-2 mt-5">
-            <Checkbox
-              size="lg"
-              color="success"
-              isSelected={selectedLanguages.includes(language)}
-              onChange={(e) => {
-                const newSelectedLanguages = [...selectedLanguages];
-                if (e.target.checked) {
-                  newSelectedLanguages.push(language);
-                } else {
-                  newSelectedLanguages.splice(
-                    newSelectedLanguages.indexOf(language),
-                    1
-                  );
-                }
-                setSelectedLanguages(newSelectedLanguages);
-              }}
-            >
-              {language.slice(0, 1).toUpperCase() + language.slice(1)}
-            </Checkbox>
-          </div>
-        ))}
+        {availableLanguages.map(
+          (language, i) =>
+            language.available && (
+              <div key={i} className="flex items-center gap-2 mt-5">
+                <Checkbox
+                  size="lg"
+                  color="success"
+                  isSelected={selectedLanguages.includes(language.abbr)}
+                  onChange={(e) => {
+                    const newSelectedLanguages = [...selectedLanguages];
+                    if (e.target.checked) {
+                      newSelectedLanguages.push(language.abbr);
+                    } else {
+                      newSelectedLanguages.splice(
+                        newSelectedLanguages.indexOf(language.abbr),
+                        1
+                      );
+                    }
+                    setSelectedLanguages(newSelectedLanguages);
+                  }}
+                >
+                  {language.name}
+                </Checkbox>
+              </div>
+            )
+        )}
       </div>
     </motion.div>
   );

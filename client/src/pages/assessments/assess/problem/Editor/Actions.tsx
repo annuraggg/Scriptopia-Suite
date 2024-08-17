@@ -1,3 +1,4 @@
+import { Language } from "@/data/languages";
 import { Button, Select, SelectItem, Tooltip } from "@nextui-org/react";
 import { ArrowUpFromLine, Play, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -18,7 +19,7 @@ const Actions = ({
   loading: boolean;
   setLanguage: (lang: string) => void;
   language: string;
-  languages: string[];
+  languages: Language[];
 }) => {
   const [runLoading, setRunLoading] = useState<boolean>(false);
 
@@ -57,8 +58,8 @@ const Actions = ({
         }}
       >
         {languages?.map((lang) => (
-          <SelectItem key={lang} value={lang}>
-            {lang}
+          <SelectItem key={lang.name} value={lang.name}>
+            {lang.name}
           </SelectItem>
         ))}
       </Select>

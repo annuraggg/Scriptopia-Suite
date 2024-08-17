@@ -7,7 +7,6 @@ import starterGenerator from "@/functions/starterGenerator";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { Delta } from "quill/core";
-import { IFunctionArg } from "@/@types/Problem";
 import { IRunResponseResult } from "@/@types/RunResponse";
 import {
   Modal,
@@ -34,9 +33,7 @@ const Problem = () => {
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [cases, setCases] = useState<IRunResponseResult[]>([]);
 
-  const [functionName, setFunctionName] = useState<string>("");
-  const [functionArgs, setFunctionArgs] = useState<IFunctionArg[]>([]);
-  const [functionReturnType, setFunctionReturnType] = useState<string>("");
+  const [scl, setSCl] = useState([])
   const [problemId, setProblemId] = useState<string>("");
 
   const [editorUpdateFlag, setEditorUpdateFlag] = useState<boolean>(false);
@@ -75,15 +72,11 @@ const Problem = () => {
 
         setStatement(res.data.data.problem.description.ops);
         setTitle(res.data.data?.problem?.title);
-        setFunctionName(res.data.data?.problem?.functionName);
-        setFunctionArgs(res.data.data?.problem?.functionArgs);
-        setFunctionReturnType(res.data.data?.problem?.functionReturnType);
         setProblemId(res.data.data?.problem?._id);
+        setSCl(res.data.data?.problem?.scl)
 
         const starterCode = starterGenerator(
-          res.data.data?.problem?.functionName,
-          res.data.data?.problem?.functionArgs,
-          res.data.data?.problem?.functionReturnType,
+          res.data.data?.problem?.scl,
           langs[0]
         );
         setCode(starterCode);
@@ -142,7 +135,7 @@ const Problem = () => {
         setCases(
           res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
         );
-        
+
         setConsoleOutput(
           res.data.data.results.map((r: IRunResponseResult) => r.consoleOutput)
         );
@@ -178,12 +171,7 @@ const Problem = () => {
   };
 
   useEffect(() => {
-    const starter = starterGenerator(
-      functionName,
-      functionArgs,
-      functionReturnType,
-      language
-    );
+    const starter = starterGenerator(scl, language);
     setCode(starter);
     console.log("Starter Code: ", starter);
     setEditorUpdateFlag((prev) => !prev);

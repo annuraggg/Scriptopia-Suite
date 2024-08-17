@@ -10,3 +10,4 @@ lambda/workflow/package-lock.json
 
 lambda/failed-workflow/*.zip
 lambda/workflow/*.zip
+campus/.env

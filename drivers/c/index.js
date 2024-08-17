@@ -116,86 +116,86 @@ const handler = async (event) => {
 
 export default handler;
 
-// const event = {
-//   scl: [
-//     "array->integer nums 20",
-//     "integer->target",
-//     "return->array->integer result 2",
-//   ],
-//   testCases: [
-//     {
-//       input: [[2, 7, 11, 15], 4],
-//       output: "[0,1]",
-//       returnLength: "2",
-//       difficulty: "easy",
-//       isSample: true,
-//       _id: {
-//         $oid: "66b9a75a46d47620c5c61f3f",
-//       },
-//     },
-//     // {
-//     //   input: [[3, 2, 4], 6],
-//     //   output: "[1,2]",
-//     //   returnLength: "2",
-//     //   difficulty: "easy",
-//     //   isSample: true,
-//     //   _id: {
-//     //     $oid: "66b9a75a46d47620c5c61f40",
-//     //   },
-//     // },
-//     // {
-//     //   input: [[3, 3], 2],
-//     //   output: "[0,1]",
-//     //   returnLength: "2",
-//     //   difficulty: "easy",
-//     //   isSample: true,
-//     //   _id: {
-//     //     $oid: "66b9a75a46d47620c5c61f41",
-//     //   },
-//     // },
-//   ],
-//   code: `
-// int* execute(int* nums, int numsSize, int target, int* returnSize) {
-//     int* result = (int*)malloc(2 * sizeof(int));
-//     *returnSize = 2;
-
-//     for (int i = 0; i < numsSize; i++) {
-//         for (int j = i + 1; j < numsSize; j++) {
-//             if (nums[i] + nums[j] == target) {
-//                 result[0] = i;
-//                 result[1] = j;
-//                 return result;
-//             }
-//         }
-//     }
-
-//     result[0] = 0;
-//     result[1] = 1;
-//     return result;
-// }
-//   `,
-// };
-
 const event = {
-  scl: ["integer->a", "integer->b", "return->integer->sum"],
+  scl: [
+    "array->integer nums 20",
+    "integer->target",
+    "return->array->integer result 2",
+  ],
   testCases: [
     {
-      input: [2, 3],
-      output: "5",
-      returnLength: "1",
+      input: [[2, 7, 11, 15], 4],
+      output: "[0,1]",
+      returnLength: "2",
       difficulty: "easy",
       isSample: true,
       _id: {
         $oid: "66b9a75a46d47620c5c61f3f",
       },
     },
+    // {
+    //   input: [[3, 2, 4], 6],
+    //   output: "[1,2]",
+    //   returnLength: "2",
+    //   difficulty: "easy",
+    //   isSample: true,
+    //   _id: {
+    //     $oid: "66b9a75a46d47620c5c61f40",
+    //   },
+    // },
+    // {
+    //   input: [[3, 3], 2],
+    //   output: "[0,1]",
+    //   returnLength: "2",
+    //   difficulty: "easy",
+    //   isSample: true,
+    //   _id: {
+    //     $oid: "66b9a75a46d47620c5c61f41",
+    //   },
+    // },
   ],
   code: `
-int execute(int a, int b, int* returnSize) {
-    *returnSize = 1;
-    return a + b;
+int* execute(int* nums, int numsSize, int target, int* returnSize) {
+    int* result = (int*)malloc(2 * sizeof(int));
+    *returnSize = 2;
+
+    for (int i = 0; i < numsSize; i++) {
+        for (int j = i + 1; j < numsSize; j++) {
+            if (nums[i] + nums[j] == target) {
+                result[0] = i;
+                result[1] = j;
+                return result;
+            }
+        }
+    }
+
+    result[0] = 0;
+    result[1] = 1;
+    return result;
 }
   `,
 };
+
+// const event = {
+//   scl: ["integer->a", "integer->b", "return->integer->sum"],
+//   testCases: [
+//     {
+//       input: [2, 3],
+//       output: "5",
+//       returnLength: "1",
+//       difficulty: "easy",
+//       isSample: true,
+//       _id: {
+//         $oid: "66b9a75a46d47620c5c61f3f",
+//       },
+//     },
+//   ],
+//   code: `
+// int execute(int a, int b, int* returnSize) {
+//     *returnSize = 1;
+//     return a + b;
+// }
+//   `,
+// };
 
 handler(event);

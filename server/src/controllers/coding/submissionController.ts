@@ -5,6 +5,7 @@ import { runCode as runCompilerCode } from "../../aws/runCode";
 import { Console } from "console";
 import Submission from "../../models/Submission";
 import User from "../../models/User";
+import sclToObject from "../../functions/scl/sclToObject";
 
 const runCode = async (c: Context) => {
   try {
@@ -15,16 +16,23 @@ const runCode = async (c: Context) => {
 
     const body = await c.req.json();
     const prob = await Problem.findOne({ _id: body.problemId });
+
+    if (!prob) {
+      return sendError(c, 404, "Problem Not Found");
+    }
+
+    const functionArgs = sclToObject(prob.scl.join("\n")).sclObject;
+
     if (!prob) {
       return sendError(c, 404, "Problem Not Found");
     }
 
     const functionSchema = {
-      functionName: prob.functionName,
-      functionArgs: prob.functionArgs,
+      functionName: "execute",
+      functionArgs: functionArgs,
       functionBody: body.code,
-      functionReturn: prob.functionReturnType,
     };
+    
 
     const result = await runCompilerCode(
       body.language,
@@ -53,12 +61,12 @@ const submitCode = async (c: Context) => {
     if (!prob) {
       return sendError(c, 404, "Problem Not Found");
     }
+    const functionArgs = sclToObject(prob.scl.join("\n")).sclObject;
 
     const functionSchema = {
-      functionName: prob.functionName,
-      functionArgs: prob.functionArgs,
+      functionName: "execute",
+      functionArgs: functionArgs,
       functionBody: body.code,
-      functionReturn: prob.functionReturnType,
     };
 
     const result = await runCompilerCode(

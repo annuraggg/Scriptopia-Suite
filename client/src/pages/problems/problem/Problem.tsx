@@ -7,7 +7,6 @@ import starterGenerator from "@/functions/starterGenerator";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { Delta } from "quill/core";
-import { IFunctionArg } from "@/@types/Problem";
 import { IRunResponseResult } from "@/@types/RunResponse";
 import confetti from "canvas-confetti";
 import {
@@ -39,15 +38,14 @@ const Problem = () => {
   const [consoleOutput, setConsoleOutput] = useState<string>("");
   const [cases, setCases] = useState<IRunResponseResult[]>([]);
 
-  const [functionName, setFunctionName] = useState<string>("");
-  const [functionArgs, setFunctionArgs] = useState<IFunctionArg[]>([]);
-  const [functionReturnType, setFunctionReturnType] = useState<string>("");
   const [problemId, setProblemId] = useState<string>("");
 
   const [editorUpdateFlag, setEditorUpdateFlag] = useState<boolean>(false);
-  const [codeError, setCodeError] = useState<string>("");
+  const [_codeError, setCodeError] = useState<string>("");
 
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
+
+  const [runningCode, setRunningCode] = useState<boolean>("");
 
   const [currentSubmission, setCurrentSubmission] =
     useState<ISubmission | null>(null);
@@ -64,14 +62,9 @@ const Problem = () => {
     axios
       .get(`/problems/${id}`)
       .then((res) => {
-        console.log(res.data.data);
-
         setStatement(res.data.data.problem.description.ops);
         setSubmissions(res.data.data?.submissions.reverse());
         setTitle(res.data.data?.problem?.title);
-        setFunctionName(res.data.data?.problem?.functionName);
-        setFunctionArgs(res.data.data?.problem?.functionArgs);
-        setFunctionReturnType(res.data.data?.problem?.functionReturnType);
         setProblemId(res.data.data?.problem?._id);
         setScl(res.data.data?.problem?.scl);
 
@@ -79,25 +72,21 @@ const Problem = () => {
           res.data.data?.problem?.scl,
           languageEx
         );
-
-        console.log("Starter Code: ", starterCode);
         setCode(starterCode);
         setLanguage(languageEx);
       })
-      .catch((err) => {
-        console.log(err);
-      })
+      .catch((err) => {})
       .finally(() => {
         setRootLoading(false);
       });
   }, [getToken]);
 
   const runCode = async () => {
+    setRunningCode(true);
     const axios = ax(getToken);
     return axios
       .post("/submissions/run", { code, language, problemId })
       .then((res) => {
-        console.log(res.data.data);
         setCases(
           res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
         );
@@ -108,13 +97,14 @@ const Problem = () => {
           )
         );
         setCodeError(res.data.data.error);
-        console.log(res.data.data);
 
         return { success: true, error: "", data: {} };
       })
       .catch((err) => {
-        console.log(err);
         return { success: false, error: err, data: {} };
+      })
+      .finally(() => {
+        setRunningCode(false);
       });
   };
 
@@ -147,12 +137,12 @@ const Problem = () => {
   };
 
   const submitCode = async () => {
+    setRunningCode(true);
     const axios = ax(getToken);
     setLoading(true);
     return axios
       .post("/submissions/submit", { code, language, problemId })
       .then((res) => {
-        console.log(res.data.data);
         setCases(
           res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
         );
@@ -179,16 +169,16 @@ const Problem = () => {
         return { success: true, error: "", data: {} };
       })
       .catch((err) => {
-        console.log(err);
         setLoading(false);
         return { success: false, error: err, data: {} };
-      });
+      })
+      .finally(() => setRunningCode(false));
   };
 
   useEffect(() => {
     const starter = starterGenerator(scl, language);
     setCode(starter);
-    console.log("Starter Code: ", starter);
+
     setEditorUpdateFlag((prev) => !prev);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
@@ -217,7 +207,11 @@ const Problem = () => {
             setLanguage={setLanguage}
             editorUpdateFlag={editorUpdateFlag}
           />
-          <InfoPanel cases={cases} consoleOutput={consoleOutput} />
+          <InfoPanel
+            cases={cases}
+            consoleOutput={consoleOutput}
+            runningCode={runningCode}
+          />
         </Split>
       </Split>
 

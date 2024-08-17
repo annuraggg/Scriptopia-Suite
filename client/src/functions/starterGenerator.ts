@@ -39,19 +39,22 @@
 //   return starterCode;
 // };
 
-import { convertSclToC, convertSclToJs } from "./scl";
+import convertSclToC from "./scl/sclObjToC";
+import sclToObject from "./scl/sclToObject";
+import createJsTemplate from "./templates/js";
 
 const starterGenerator = (scl: string[], language: string) => {
   const joinedScl = scl?.join("\n");
+  const sclObj = sclToObject(joinedScl).sclObject;
   let statement = "";
 
   switch (language) {
     case "javascript":
-      statement = convertSclToJs(joinedScl).code as string;
+      statement = createJsTemplate(sclObj) as string;
       break;
 
     case "c":
-      statement = convertSclToC(joinedScl).code as string;
+      statement = convertSclToC(joinedScl, "scl").code as string;
       break;
 
     default:
@@ -59,18 +62,7 @@ const starterGenerator = (scl: string[], language: string) => {
       break;
   }
 
-  const splitStatement = statement.split("\n");
-  const executeFn: string[] = [];
-
-  let started = false;
-  for (const line of splitStatement) {
-    if (line.includes("execute") && started !== true) started = true;
-    if (!line.includes("main") && started) executeFn.push(line);
-    else break;
-  }
-
-  console.log(executeFn);
-  return executeFn.join("\n");
+  return statement
 };
 
 export default starterGenerator;

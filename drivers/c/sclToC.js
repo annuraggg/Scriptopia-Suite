@@ -10,6 +10,8 @@ const dataTypeMap = {
   string: "char*",
 };
 
+
+
 const arrayDataTypeMap = {
   boolean: "bool*",
   character: "char**",

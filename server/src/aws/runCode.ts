@@ -1,14 +1,12 @@
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
-import { IFunctionArg, ITestCase } from "../../@types/Problem";
+import { IFunctionArg, ITestCase } from "../@types/Problem";
 const REGION = "ap-south-1";
 
 const runCode = async (
   language: string,
   functionSchema: {
     functionName: string;
-    functionArgs: IFunctionArg[];
     functionBody: string;
-    functionReturn: string;
   },
   testCases: ITestCase[]
 ) => {
@@ -21,8 +19,9 @@ const runCode = async (
   });
 
   const data = { functionSchema, testCases };
+  console.log(JSON.stringify(data));
   const params = {
-    FunctionName: `${language}-compiler`,
+    FunctionName: `${language}-driver`,
     Payload: JSON.stringify(data),
   };
 

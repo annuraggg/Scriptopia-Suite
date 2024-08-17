@@ -8,7 +8,7 @@ import {
   ModalFooter,
   useDisclosure,
 } from "@nextui-org/modal";
-import starterGenerator from "@/functions/starterGenerator";
+// import starterGenerator from "@/functions/starterGenerator";
 import * as monaco from "monaco-editor";
 import { useEffect, useState } from "react";
 import languages from "@/data/languages";
@@ -38,12 +38,12 @@ const Stub = ({
   useEffect(() => {
     if (isOpen) {
       monaco.editor.create(document.getElementById("code-editor")!, {
-        value: starterGenerator(
-          functionName,
-          fnArguments,
-          returnType,
-          language
-        ),
+        // value: starterGenerator(
+        //   functionName,
+        //   fnArguments,
+        //   returnType,
+        //   language
+        // ),
         language: language,
         theme: "vs-dark",
         readOnly: true,
@@ -70,7 +70,11 @@ const Stub = ({
   const handleArgumentTypeChange = (index: number, newType: string) => {
     setFnArguments((prev: IFunctionArg[]) => {
       const newArgs = [...prev];
-      newArgs[index].type = newType as "string" | "number" | "boolean" | "array";
+      newArgs[index].type = newType as
+        | "string"
+        | "number"
+        | "boolean"
+        | "array";
       return newArgs;
     });
   };
@@ -196,11 +200,15 @@ const Stub = ({
                 onChange={(e) => setLanguage(e.target.value as string)}
                 size="sm"
               >
-                {languages.map((language) => (
-                  <SelectItem key={language} value={language}>
-                    {language}
-                  </SelectItem>
-                ))}
+                {/* @ts-expect-error => language.available is not defined */}
+                {languages.map(
+                  (language) =>
+                    language.available && (
+                      <SelectItem key={language.abbr} value={language.abbr}>
+                        {language.name}
+                      </SelectItem>
+                    )
+                )}
               </Select>
 
               <div

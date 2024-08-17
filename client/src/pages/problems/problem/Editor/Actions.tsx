@@ -43,11 +43,15 @@ const Actions = ({
           setLanguage(e.target.value);
         }}
       >
-        {languages.map((lang) => (
-          <SelectItem key={lang} value={lang}>
-            {lang}
-          </SelectItem>
-        ))}
+        {/* @ts-expect-error => language.available is not defined */}
+        {languages.map(
+          (language) =>
+            language.available && (
+              <SelectItem key={language.abbr} value={language.abbr}>
+                {language.name}
+              </SelectItem>
+            )
+        )}
       </Select>
 
       <Tooltip content="Explain Code">

@@ -2,7 +2,7 @@ import { Button, Select, SelectItem } from "@nextui-org/react";
 import Monaco from "../problem/Editor/Monaco";
 import { useState } from "react";
 import languages from "@/data/languages";
-import { convertSclToC, convertSclToJs, sclReturnType } from "@/functions/scl";
+import { convertSclToJs, sclReturnType } from "@/functions/scl";
 import sclObjToC from "@/functions/scl/sclObjToC";
 
 const Scl = ({
@@ -39,9 +39,10 @@ const Scl = ({
       setError(false);
       setEditorUpdateFlag((prev) => !prev);
     } else if (language === "c") {
-      const res: sclReturnType = sclObjToC(scl, "scl");
+      const res: string = sclObjToC(scl, "scl");
       console.log(res);
       if (res.error) {
+        d;
         setError(true);
         setErrorMessage(res?.message || "Error Generating Code");
         return;
@@ -76,11 +77,16 @@ const Scl = ({
               onChange={(e) => setLanguage(e.target.value as string)}
               size="sm"
             >
-              {languages.map((language) => (
-                <SelectItem key={language} value={language}>
-                  {language}
-                </SelectItem>
-              ))}
+
+              {/* @ts-expect-error => language.available is not defined */}
+              {languages.map(
+                (language) =>
+                  language.available && (
+                    <SelectItem key={language.abbr} value={language.abbr}>
+                      {language.name}
+                    </SelectItem>
+                  )
+              )}
             </Select>
             <Button
               className="w-full text-sm"

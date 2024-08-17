@@ -1,14 +1,23 @@
-import { Card, Code, Tab, Tabs } from "@nextui-org/react";
+import { Card, Code, Spinner, Tab, Tabs } from "@nextui-org/react";
 import { FlaskConical, SquareChevronRight } from "lucide-react";
 import { IRunResponseResult } from "@/@types/RunResponse";
 
 const InfoPanel = ({
   consoleOutput,
   cases,
+  runningCode,
 }: {
   consoleOutput: string;
   cases: IRunResponseResult[];
+  runningCode: boolean;
 }) => {
+  if (runningCode)
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Spinner size="md" className="text-gray-400" />
+      </div>
+    );
+
   return (
     <Card className="h-[50%] mt-2 p-2 overflow-auto">
       <Tabs>
@@ -33,9 +42,7 @@ const InfoPanel = ({
                         <div className="flex items-center gap-2">
                           <div
                             className={`w-1 h-1 rounded-full ${
-                              c.passed
-                                ? "bg-green-500"
-                                : "bg-red-500"
+                              c.passed ? "bg-green-500" : "bg-red-500"
                             }`}
                           ></div>
                           <p>Case {i + 1}</p>
