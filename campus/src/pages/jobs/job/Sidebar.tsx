@@ -10,9 +10,7 @@ import {
   Users,
   ChevronRight,
   FileText,
-  LineChartIcon,
   Workflow,
-  MonitorPlay,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -34,19 +32,9 @@ const Sidebar = () => {
       link: "/ats",
     },
     {
-      icon: LineChartIcon,
-      label: "Assessments",
-      link: "/assessments",
-    },
-    {
       icon: Users,
       label: "Candidates",
       link: "/candidates",
-    },
-    {
-      icon: MonitorPlay,
-      label: "Interviews",
-      link: "/interviews",
     },
   ];
 

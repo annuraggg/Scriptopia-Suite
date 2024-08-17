@@ -15,14 +15,14 @@ import {
 
 import { ChevronsUpDown } from "lucide-react";
 
-interface CreateJobModalProps {
+interface CreateDriveModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
 const workTypes = ["Full Time", "Part Time", "Intern"];
 
-const CreateJobModal: React.FC<CreateJobModalProps> = ({ isOpen, onClose }) => {
+const CreateDriveModal: React.FC<CreateDriveModalProps> = ({ isOpen, onClose }) => {
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [deadlineDate, setDeadlineDate] = useState("");
@@ -127,7 +127,7 @@ const CreateJobModal: React.FC<CreateJobModalProps> = ({ isOpen, onClose }) => {
 
           <div className="w-full">
             <label className="block text-sm font-medium text-white mb-1">
-              Job Posting Start Date and Time
+              Drive Posting Start Date and Time
             </label>
             <div className="flex space-x-2">
               <Input
@@ -230,4 +230,4 @@ const CreateJobModal: React.FC<CreateJobModalProps> = ({ isOpen, onClose }) => {
   );
 };
 
-export default CreateJobModal;
+export default CreateDriveModal;

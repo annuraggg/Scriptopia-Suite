@@ -11,7 +11,6 @@ import {
   Building2,
   Lock,
   SquareChevronRight,
-  Boxes,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";

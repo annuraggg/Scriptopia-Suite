@@ -26,8 +26,7 @@ const General = () => {
   const [instituteWebsite, setInstituteWebsite] = useState<string>("");
   const [instituteEmail, setInstituteEmail] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
-  const [instituteEmailDomains, setInstituteEmailDomains] = useState<string>([]);
-
+  const [instituteEmailDomains, setInstituteEmailDomains] = useState<string>("");
   const [newLogo, setNewLogo] = useState<File>({} as File);
   const [zoom, setZoom] = useState<number>(1);
 
@@ -54,6 +53,7 @@ const General = () => {
       setInstituteEmail(res.data.data.email || "");
       setInstituteWebsite(res.data.data.website || "");
       setLogo(res.data.data.logo || "/defaultOrgLogo.png");
+      setInstituteEmailDomains(res.data.data.emailDomains?.join(", ") || "");
       setChanges(false);
     } catch (err) {
       console.error(err);
@@ -76,8 +76,8 @@ const General = () => {
         name: instituteName,
         email: instituteEmail,
         website: instituteWebsite,
-
         logo: logo,
+        emailDomains: instituteEmailDomains.split(",").map(domain => domain.trim())
       });
       toast.success("Settings updated successfully");
       setChanges(false);

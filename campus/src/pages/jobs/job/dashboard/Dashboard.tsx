@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { ChevronLeftIcon } from "lucide-react";
 
-interface Posting {
+interface Drive {
   id: string;
   title: string;
   createdOn: string;
@@ -42,7 +42,7 @@ interface Participant {
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const posting = location.state?.posting as Posting;
+  const drive = location.state?.drive as Drive;
 
   const participants: Participant[] = [
     {
@@ -146,53 +146,53 @@ const Dashboard: React.FC = () => {
         <ChevronLeftIcon
           size={40}
           className="text-slate-400 mt-6"
-          onClick={() => navigate("/postings/jobs")}
+          onClick={() => navigate("/drives/drive")}
         />
         <div className="flex flex-row items-center justify-center gap-3 w-full mt-6 overflow-y-auto">
           <Card className="w-fit h-18 py-4 px-8 flex items-center justify-center border-none bg-zinc-800/25">
             <div className="flex items-center gap-8 w-full">
               <div className="flex items-center gap-2">
-                <p className="text-lg">{posting?.title}</p>
+                <p className="text-lg">{drive?.title}</p>
                 <span
                   className={`text-xs rounded-full whitespace-nowrap ${
-                    posting.category === "IT"
+                    drive.category === "IT"
                       ? "text-success-500"
-                      : posting.category === "Operations"
+                      : drive.category === "Operations"
                       ? "text-warning-500"
                       : "bg-gray-100 text-gray-800"
                   }`}
                 >
-                  {posting.category}
+                  {drive.category}
                 </span>
                 <span
                   className={`text-xs px-2 rounded-full whitespace-nowrap ${
-                    posting.status === "active"
+                    drive.status === "active"
                       ? "text-success-500 bg-success-100"
                       : "text-danger-500 bg-danger-100"
                   }`}
                 >
-                  {posting.status === "active" ? "Active" : "Closed"}
+                  {drive.status === "active" ? "Active" : "Closed"}
                 </span>
               </div>
               <div className="flex items-center gap-7 text-sm text-gray-500">
                 <div className="flex items-center gap-2">
                   <BriefcaseIcon size={18} />
-                  <p>{posting?.jobprofile}</p>
+                  <p>{drive?.jobprofile}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPinIcon size={18} />
-                  <p>{posting?.location}</p>
+                  <p>{drive?.location}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <BanknoteIcon size={18} />
                   <p>
-                    {posting?.salaryFrom} - {posting?.salaryUpto}
+                    {drive?.salaryFrom} - {drive?.salaryUpto}
                   </p>
                 </div>
                 <div className="ml-auto text-xs text-gray-300 bg-secondary bg-opacity-5 rounded-full px-2 py-1">
-                {posting.status === "active"
-                          ? `Open Until ${posting.openUntil}`
-                          : `Closed at ${posting.openUntil}`}
+                {drive.status === "active"
+                          ? `Open Until ${drive.openUntil}`
+                          : `Closed at ${drive.openUntil}`}
                 </div>
               </div>
             </div>

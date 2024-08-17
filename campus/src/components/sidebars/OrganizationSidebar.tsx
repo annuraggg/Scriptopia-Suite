@@ -26,31 +26,31 @@ const OrganizationSidebar = () => {
     {
       icon: Home,
       label: "Dashboard",
-      link: "/dashboard",
+      link: "/organization/dashboard",
       visible: true,
     },
     {
       icon: Briefcase,
-      label: "Jobs",
-      link: "/jobs",
+      label: "Drive",
+      link: "/organization/drives",
       visible: true,
     },
     {
       icon: Users,
       label: "Candidates",
-      link: "/candidates",
+      link: "/organization/candidates",
       visible: true,
     },
     {
       icon: PieChart,
       label: "Analytics",
-      link: "/analytics",
+      link: "/organization/analytics",
       visible: true,
     },
     {
       icon: Calendar,
       label: "Calendar",
-      link: "/calendar",
+      link: "/organization/calendar",
       visible: true,
     },
   ];

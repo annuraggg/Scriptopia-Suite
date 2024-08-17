@@ -25,9 +25,9 @@ import {
   PencilIcon,
 } from "lucide-react";
 import Filter from "./Filter";
-import CreateJobModal from "./CreateJobModal";
+import CreateDriveModal from "./CreateDriveModal";
 
-interface Posting {
+interface Drive {
   id: string;
   title: string;
   createdOn: string;
@@ -37,10 +37,10 @@ interface Posting {
   location: string;
   salaryFrom: string;
   salaryUpto: string;
-  jobprofile: "Full Time" | "Part Time" | "Internship";
+  driveprofile: "Full Time" | "Part Time" | "Internship";
 }
 
-const postingsSample: Posting[] = [
+const drivesSample: Drive[] = [
   {
     id: "1",
     title: "React App Developer",
@@ -51,7 +51,7 @@ const postingsSample: Posting[] = [
     location: "Mumbai",
     salaryFrom: "₹50,000",
     salaryUpto: "₹1,00,000",
-    jobprofile: "Part Time",
+    driveprofile: "Part Time",
   },
   {
     id: "2",
@@ -63,7 +63,7 @@ const postingsSample: Posting[] = [
     location: "Bangalore",
     salaryFrom: "₹1,00,000",
     salaryUpto: "₹2,00,000",
-    jobprofile: "Full Time",
+    driveprofile: "Full Time",
   },
   {
     id: "3",
@@ -75,7 +75,7 @@ const postingsSample: Posting[] = [
     location: "Delhi",
     salaryFrom: "₹80,000",
     salaryUpto: "₹1,50,000",
-    jobprofile: "Internship",
+    driveprofile: "Internship",
   },
   {
     id: "4",
@@ -87,7 +87,7 @@ const postingsSample: Posting[] = [
     location: "Chennai",
     salaryFrom: "₹90,000",
     salaryUpto: "₹1,80,000",
-    jobprofile: "Full Time",
+    driveprofile: "Full Time",
   },
   {
     id: "5",
@@ -99,7 +99,7 @@ const postingsSample: Posting[] = [
     location: "Hyderabad",
     salaryFrom: "₹70,000",
     salaryUpto: "₹1,20,000",
-    jobprofile: "Part Time",
+    driveprofile: "Part Time",
   },
   {
     id: "6",
@@ -111,7 +111,7 @@ const postingsSample: Posting[] = [
     location: "Pune",
     salaryFrom: "₹60,000",
     salaryUpto: "₹1,10,000",
-    jobprofile: "Internship",
+    driveprofile: "Internship",
   },
   {
     id: "7",
@@ -123,7 +123,7 @@ const postingsSample: Posting[] = [
     location: "Kolkata",
     salaryFrom: "₹40,000",
     salaryUpto: "₹90,000",
-    jobprofile: "Full Time",
+    driveprofile: "Full Time",
   },
   {
     id: "8",
@@ -135,7 +135,7 @@ const postingsSample: Posting[] = [
     location: "Ahmedabad",
     salaryFrom: "₹30,000",
     salaryUpto: "₹80,000",
-    jobprofile: "Part Time",
+    driveprofile: "Part Time",
   },
   {
     id: "9",
@@ -147,7 +147,7 @@ const postingsSample: Posting[] = [
     location: "Jaipur",
     salaryFrom: "₹20,000",
     salaryUpto: "₹70,000",
-    jobprofile: "Internship",
+    driveprofile: "Internship",
   },
   {
     id: "10",
@@ -159,7 +159,7 @@ const postingsSample: Posting[] = [
     location: "Lucknow",
     salaryFrom: "₹10,000",
     salaryUpto: "₹60,000",
-    jobprofile: "Full Time",
+    driveprofile: "Full Time",
   },
   {
     id: "11",
@@ -171,7 +171,7 @@ const postingsSample: Posting[] = [
     location: "Chandigarh",
     salaryFrom: "₹15,000",
     salaryUpto: "₹50,000",
-    jobprofile: "Part Time",
+    driveprofile: "Part Time",
   },
   {
     id: "12",
@@ -183,7 +183,7 @@ const postingsSample: Posting[] = [
     location: "Indore",
     salaryFrom: "₹25,000",
     salaryUpto: "₹40,000",
-    jobprofile: "Internship",
+    driveprofile: "Internship",
   },
   {
     id: "13",
@@ -195,7 +195,7 @@ const postingsSample: Posting[] = [
     location: "Bhopal",
     salaryFrom: "₹35,000",
     salaryUpto: "₹30,000",
-    jobprofile: "Full Time",
+    driveprofile: "Full Time",
   },
   {
     id: "14",
@@ -207,7 +207,7 @@ const postingsSample: Posting[] = [
     location: "Raipur",
     salaryFrom: "₹45,000",
     salaryUpto: "₹20,000",
-    jobprofile: "Part Time",
+    driveprofile: "Part Time",
   },
   {
     id: "15",
@@ -219,7 +219,7 @@ const postingsSample: Posting[] = [
     location: "Ranchi",
     salaryFrom: "₹55,000",
     salaryUpto: "₹100,000",
-    jobprofile: "Internship",
+    driveprofile: "Internship",
   },
   {
     id: "16",
@@ -231,7 +231,7 @@ const postingsSample: Posting[] = [
     location: "Patna",
     salaryFrom: "₹65,000",
     salaryUpto: "₹90,000",
-    jobprofile: "Full Time",
+    driveprofile: "Full Time",
   },
   {
     id: "17",
@@ -243,7 +243,7 @@ const postingsSample: Posting[] = [
     location: "Guwahati",
     salaryFrom: "₹75,000",
     salaryUpto: "₹80,000",
-    jobprofile: "Part Time",
+    driveprofile: "Part Time",
   },
   {
     id: "18",
@@ -255,7 +255,7 @@ const postingsSample: Posting[] = [
     location: "Shillong",
     salaryFrom: "₹85,000",
     salaryUpto: "₹70,000",
-    jobprofile: "Internship",
+    driveprofile: "Internship",
   },
   {
     id: "19",
@@ -267,7 +267,7 @@ const postingsSample: Posting[] = [
     location: "Agartala",
     salaryFrom: "₹95,000",
     salaryUpto: "₹60,000",
-    jobprofile: "Full Time",
+    driveprofile: "Full Time",
   },
   {
     id: "20",
@@ -279,32 +279,32 @@ const postingsSample: Posting[] = [
     location: "Itanagar",
     salaryFrom: "₹15,000",
     salaryUpto: "₹50,000",
-    jobprofile: "Part Time",
+    driveprofile: "Part Time",
   },
 ];
 
 const Cards = [
   {
     title: "ALL",
-    jobCount: 20,
+    driveCount: 20,
     icon: <ListIcon size={28} />,
     filter: "all",
   },
   {
     title: "Active",
-    jobCount: 10,
+    driveCount: 10,
     icon: <CirclePlayIcon size={28} />,
     filter: "active",
   },
   {
     title: "Closed",
-    jobCount: 5,
+    driveCount: 5,
     icon: <BanIcon size={28} />,
     filter: "inactive",
   },
   {
     title: "Archived",
-    jobCount: 5,
+    driveCount: 5,
     icon: <ArchiveIcon size={28} />,
     filter: "archived",
   },
@@ -329,9 +329,9 @@ const editItems = [
   },
 ];
 
-const Postings: React.FC = () => {
+const drives: React.FC = () => {
   const navigate = useNavigate();
-  const [postings] = useState<Posting[]>(postingsSample);
+  const [drives] = useState<Drive[]>(drivesSample);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [workScheduleFilter, setWorkScheduleFilter] = useState<string[]>([]);
@@ -342,7 +342,7 @@ const Postings: React.FC = () => {
   });
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  const filteredPostings = postings.filter((post) => {
+  const filtereddrives = drives.filter((post) => {
     const matchesSearch = post.title
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -350,7 +350,7 @@ const Postings: React.FC = () => {
       selectedFilter === "all" || post.status === selectedFilter;
     const matchesWorkSchedule =
       workScheduleFilter.length === 0 ||
-      workScheduleFilter.includes(post.jobprofile);
+      workScheduleFilter.includes(post.driveprofile);
     const matchesDepartment =
       !departmentFilter || post.category === departmentFilter;
     const matchesDateRange =
@@ -367,26 +367,26 @@ const Postings: React.FC = () => {
     );
   });
 
-  const handleDetailsClick = (posting: Posting) => {
-    navigate(`${posting.id}/dashboard`, { state: { posting } });
+  const handleDetailsClick = (drive: Drive) => {
+    navigate(`${drive.id}/dashboard`, { state: { drive } });
   };
 
   const handleFilterChange = (filter: string) => {
     setSelectedFilter(filter);
   };
 
-  const openCreateJobModal = () => {
+  const openCreatedriveModal = () => {
     setIsModalOpen(true);
   };
 
-  const closeCreateJobModal = () => {
+  const closeCreatedriveModal = () => {
     setIsModalOpen(false);
   };
 
   return (
     <div className="flex gap-5 w-full p-5">
       <div className="w-full">
-        <h4 className="text-2xl font-bold mb-4">Postings</h4>
+        <h4 className="text-2xl font-bold mb-4">Drives</h4>
         <div className="flex justify-between items-start w-full gap-5">
           <motion.div
             initial={{ x: -50, opacity: 0 }}
@@ -413,15 +413,15 @@ const Postings: React.FC = () => {
               <div className="flex justify-between items-center w-full gap-4">
                 <Input
                   className="4/5"
-                  placeholder="Search Postings"
+                  placeholder="Search Drives"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                <Card className="w-1/5 cursor-pointer" isPressable onClick={openCreateJobModal}>
+                <Card className="w-1/5 cursor-pointer" isPressable onClick={openCreatedriveModal}>
                   <CardBody className="flex items-center justify-between bg-success-400 text-background bg-opacity-3 py-2 px-5">
                     <div className="flex items-center gap-2">
                       <FilePlusIcon className="text-background" size={22} />
-                      <p className="text-sm text-background">Create a new job</p>
+                      <p className="text-sm text-background">Create a new Drive</p>
                     </div>
                   </CardBody>
                 </Card>
@@ -462,14 +462,14 @@ const Postings: React.FC = () => {
                         : "text-gray-500"
                         }`}
                     >
-                      {card.jobCount} Jobs
+                      {card.driveCount} Drives
                     </p>
                   </Card>
                 ))}
               </div>
 
               <div className="flex flex-col gap-3 w-full mt-6 overflow-y-auto">
-                {filteredPostings.map((posting, index) => (
+                {filtereddrives.map((drive, index) => (
                   <Card
                     className="w-full h-24 border-none p-2 grid grid-cols-2 gap-2"
                     key={index}
@@ -478,42 +478,42 @@ const Postings: React.FC = () => {
                       <div className="flex flex-row items-center justify-start gap-2 w-full">
                         <p
                           className="mr-1 cursor-pointer"
-                          onClick={() => handleDetailsClick(posting)}
+                          onClick={() => handleDetailsClick(drive)}
                         >
-                          {posting.title}
+                          {drive.title}
                         </p>
                         <span
-                          className={`text-xs mr-3 rounded-full whitespace-nowrap ${posting.category === "IT"
+                          className={`text-xs mr-3 rounded-full whitespace-nowrap ${drive.category === "IT"
                             ? "text-success-500"
-                            : posting.category === "Operations"
+                            : drive.category === "Operations"
                               ? "text-warning-500"
                               : "bg-gray-100 text-gray-800"
                             }`}
                         >
-                          {posting.category}
+                          {drive.category}
                         </span>
                         <span
-                          className={`text-xs px-2 rounded-full whitespace-nowrap ${posting.status === "active"
+                          className={`text-xs px-2 rounded-full whitespace-nowrap ${drive.status === "active"
                             ? " text-success-500 bg-success-100"
                             : " text-danger-500 bg-danger-100"
                             }`}
                         >
-                          {posting.status === "active" ? "Active" : "Closed"}
+                          {drive.status === "active" ? "Active" : "Closed"}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 w-full text-sm mt-3 text-gray-500">
                         <div className="flex items-center gap-2">
                           <BriefcaseIcon size={18} />
-                          <p>{posting.jobprofile}</p>
+                          <p>{drive.driveprofile}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <MapPinIcon size={18} />
-                          <p>{posting.location}</p>
+                          <p>{drive.location}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <BanknoteIcon size={18} />
                           <p>
-                            {posting.salaryFrom} - {posting.salaryUpto}
+                            {drive.salaryFrom} - {drive.salaryUpto}
                           </p>
                         </div>
                       </div>
@@ -522,9 +522,9 @@ const Postings: React.FC = () => {
                     <div className="flex items-center justify-between w-full">
                       <div className="text-sm rounded-full border bg-secondary bg-opacity-5 px-2 py-1">
                         <p className="text-gray-300 text-xs">
-                          {posting.status === "active"
-                            ? `Open Until ${posting.openUntil}`
-                            : `Closed at ${posting.openUntil}`}
+                          {drive.status === "active"
+                            ? `Open Until ${drive.openUntil}`
+                            : `Closed at ${drive.openUntil}`}
                         </p>
                       </div>
                       <Dropdown>
@@ -559,9 +559,9 @@ const Postings: React.FC = () => {
           </motion.div>
         </div>
       </div>
-      <CreateJobModal isOpen={isModalOpen} onClose={closeCreateJobModal} />
+      <CreateDriveModal isOpen={isModalOpen} onClose={closeCreatedriveModal} />
     </div>
   );
 };
 
-export default Postings;
+export default drives;
