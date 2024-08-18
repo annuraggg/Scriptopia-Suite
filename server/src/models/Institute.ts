@@ -44,6 +44,8 @@ const institutesSchema = new Schema({
   name: { required: true, type: String },
   email: { required: true, type: String },
   website: { required: true, type: String },
+  emailDomains: { type: [String], default: [] },
+
   logo: { type: String },
 
   members: [membersSchema],
