@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { Card, CardBody, Switch, CardFooter } from "@nextui-org/react";
 import {
   MapPinIcon,
@@ -11,19 +11,6 @@ import {
   FolderOutputIcon,
 } from "lucide-react";
 import { ChevronLeftIcon } from "lucide-react";
-
-interface Drive {
-  id: string;
-  title: string;
-  createdOn: string;
-  status: "active" | "inactive";
-  openUntil: string;
-  category: "Operations" | "IT";
-  location: string;
-  salaryFrom: string;
-  salaryUpto: string;
-  jobprofile: "Full Time" | "Part Time" | "Internship";
-}
 
 interface Participant {
   id: string;
@@ -41,8 +28,7 @@ interface Participant {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const drive = location.state?.drive as Drive;
+  const { drive } = useOutletContext();
 
   const participants: Participant[] = [
     {
@@ -140,6 +126,18 @@ const Dashboard: React.FC = () => {
       ));
   };
 
+  if (!drive?.candidates || drive?.candidates?.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center w-full h-[100vh]">
+        <p className="text-slate-400 text-xl">No Analytics Just Yet</p>
+        <p className="text-slate-400 text-sm mt-2">
+          Analytics will be available once the workflow is started and
+          candidates have applied.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-start justify-start p-10 pt-8 h-scroll w-full">
       <div className="flex flex-row items-center justify-start gap-4 w-full">
@@ -190,9 +188,9 @@ const Dashboard: React.FC = () => {
                   </p>
                 </div>
                 <div className="ml-auto text-xs text-gray-300 bg-secondary bg-opacity-5 rounded-full px-2 py-1">
-                {drive.status === "active"
-                          ? `Open Until ${drive.openUntil}`
-                          : `Closed at ${drive.openUntil}`}
+                  {drive.status === "active"
+                    ? `Open Until ${drive.openUntil}`
+                    : `Closed at ${drive.openUntil}`}
                 </div>
               </div>
             </div>

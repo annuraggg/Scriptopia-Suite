@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardBody,
@@ -17,7 +17,6 @@ import {
   ArchiveIcon,
   FilePlusIcon,
   MapPinIcon,
-  BriefcaseIcon,
   BanknoteIcon,
   Menu,
   Trash2Icon,
@@ -26,262 +25,9 @@ import {
 } from "lucide-react";
 import Filter from "./Filter";
 import CreateDriveModal from "./CreateDriveModal";
-
-interface Drive {
-  id: string;
-  title: string;
-  createdOn: string;
-  status: "active" | "inactive";
-  openUntil: string;
-  category: "Operations" | "IT";
-  location: string;
-  salaryFrom: string;
-  salaryUpto: string;
-  driveprofile: "Full Time" | "Part Time" | "Internship";
-}
-
-const drivesSample: Drive[] = [
-  {
-    id: "1",
-    title: "React App Developer",
-    createdOn: "23 May 2023",
-    status: "active",
-    openUntil: "30 June 2023",
-    category: "IT",
-    location: "Mumbai",
-    salaryFrom: "₹50,000",
-    salaryUpto: "₹1,00,000",
-    driveprofile: "Part Time",
-  },
-  {
-    id: "2",
-    title: "Full Stack Engineer",
-    createdOn: "15 June 2023",
-    status: "active",
-    openUntil: "31 July 2023",
-    category: "IT",
-    location: "Bangalore",
-    salaryFrom: "₹1,00,000",
-    salaryUpto: "₹2,00,000",
-    driveprofile: "Full Time",
-  },
-  {
-    id: "3",
-    title: "Frontend Developer",
-    createdOn: "10 July 2023",
-    status: "inactive",
-    openUntil: "15 August 2023",
-    category: "IT",
-    location: "Delhi",
-    salaryFrom: "₹80,000",
-    salaryUpto: "₹1,50,000",
-    driveprofile: "Internship",
-  },
-  {
-    id: "4",
-    title: "Backend Developer",
-    createdOn: "5 August 2023",
-    status: "active",
-    openUntil: "30 September 2023",
-    category: "IT",
-    location: "Chennai",
-    salaryFrom: "₹90,000",
-    salaryUpto: "₹1,80,000",
-    driveprofile: "Full Time",
-  },
-  {
-    id: "5",
-    title: "UI/UX Designer",
-    createdOn: "18 September 2023",
-    status: "inactive",
-    openUntil: "31 October 2023",
-    category: "IT",
-    location: "Hyderabad",
-    salaryFrom: "₹70,000",
-    salaryUpto: "₹1,20,000",
-    driveprofile: "Part Time",
-  },
-  {
-    id: "6",
-    title: "Software Engineer",
-    createdOn: "22 October 2023",
-    status: "active",
-    openUntil: "15 November 2023",
-    category: "Operations",
-    location: "Pune",
-    salaryFrom: "₹60,000",
-    salaryUpto: "₹1,10,000",
-    driveprofile: "Internship",
-  },
-  {
-    id: "7",
-    title: "Data Scientist",
-    createdOn: "9 November 2023",
-    status: "inactive",
-    openUntil: "30 December 2023",
-    category: "Operations",
-    location: "Kolkata",
-    salaryFrom: "₹40,000",
-    salaryUpto: "₹90,000",
-    driveprofile: "Full Time",
-  },
-  {
-    id: "8",
-    title: "Cloud Architect",
-    createdOn: "14 December 2023",
-    status: "active",
-    openUntil: "31 January 2024",
-    category: "Operations",
-    location: "Ahmedabad",
-    salaryFrom: "₹30,000",
-    salaryUpto: "₹80,000",
-    driveprofile: "Part Time",
-  },
-  {
-    id: "9",
-    title: "DevOps Engineer",
-    createdOn: "27 January 2024",
-    status: "inactive",
-    openUntil: "28 February 2024",
-    category: "Operations",
-    location: "Jaipur",
-    salaryFrom: "₹20,000",
-    salaryUpto: "₹70,000",
-    driveprofile: "Internship",
-  },
-  {
-    id: "10",
-    title: "Product Manager",
-    createdOn: "8 February 2024",
-    status: "active",
-    openUntil: "31 March 2024",
-    category: "Operations",
-    location: "Lucknow",
-    salaryFrom: "₹10,000",
-    salaryUpto: "₹60,000",
-    driveprofile: "Full Time",
-  },
-  {
-    id: "11",
-    title: "Machine Learning Engineer",
-    createdOn: "12 March 2024",
-    status: "inactive",
-    openUntil: "30 April 2024",
-    category: "IT",
-    location: "Chandigarh",
-    salaryFrom: "₹15,000",
-    salaryUpto: "₹50,000",
-    driveprofile: "Part Time",
-  },
-  {
-    id: "12",
-    title: "Cybersecurity Analyst",
-    createdOn: "25 April 2024",
-    status: "active",
-    openUntil: "31 May 2024",
-    category: "IT",
-    location: "Indore",
-    salaryFrom: "₹25,000",
-    salaryUpto: "₹40,000",
-    driveprofile: "Internship",
-  },
-  {
-    id: "13",
-    title: "Mobile App Developer",
-    createdOn: "7 May 2024",
-    status: "inactive",
-    openUntil: "30 June 2024",
-    category: "IT",
-    location: "Bhopal",
-    salaryFrom: "₹35,000",
-    salaryUpto: "₹30,000",
-    driveprofile: "Full Time",
-  },
-  {
-    id: "14",
-    title: "Blockchain Developer",
-    createdOn: "19 June 2024",
-    status: "active",
-    openUntil: "31 July 2024",
-    category: "IT",
-    location: "Raipur",
-    salaryFrom: "₹45,000",
-    salaryUpto: "₹20,000",
-    driveprofile: "Part Time",
-  },
-  {
-    id: "15",
-    title: "Game Developer",
-    createdOn: "2 July 2024",
-    status: "inactive",
-    openUntil: "31 August 2024",
-    category: "IT",
-    location: "Ranchi",
-    salaryFrom: "₹55,000",
-    salaryUpto: "₹100,000",
-    driveprofile: "Internship",
-  },
-  {
-    id: "16",
-    title: "Network Engineer",
-    createdOn: "14 August 2024",
-    status: "active",
-    openUntil: "30 September 2024",
-    category: "Operations",
-    location: "Patna",
-    salaryFrom: "₹65,000",
-    salaryUpto: "₹90,000",
-    driveprofile: "Full Time",
-  },
-  {
-    id: "17",
-    title: "QA Engineer",
-    createdOn: "27 September 2024",
-    status: "inactive",
-    openUntil: "31 October 2024",
-    category: "Operations",
-    location: "Guwahati",
-    salaryFrom: "₹75,000",
-    salaryUpto: "₹80,000",
-    driveprofile: "Part Time",
-  },
-  {
-    id: "18",
-    title: "Technical Writer",
-    createdOn: "8 October 2024",
-    status: "active",
-    openUntil: "30 November 2024",
-    category: "Operations",
-    location: "Shillong",
-    salaryFrom: "₹85,000",
-    salaryUpto: "₹70,000",
-    driveprofile: "Internship",
-  },
-  {
-    id: "19",
-    title: "Systems Administrator",
-    createdOn: "21 November 2024",
-    status: "inactive",
-    openUntil: "31 December 2024",
-    category: "Operations",
-    location: "Agartala",
-    salaryFrom: "₹95,000",
-    salaryUpto: "₹60,000",
-    driveprofile: "Full Time",
-  },
-  {
-    id: "20",
-    title: "AI Research Scientist",
-    createdOn: "3 December 2024",
-    status: "active",
-    openUntil: "31 January 2025",
-    category: "Operations",
-    location: "Itanagar",
-    salaryFrom: "₹15,000",
-    salaryUpto: "₹50,000",
-    driveprofile: "Part Time",
-  },
-];
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
+import { toast } from "sonner";
 
 const Cards = [
   {
@@ -329,9 +75,10 @@ const editItems = [
   },
 ];
 
-const drives: React.FC = () => {
+const Drives = () => {
   const navigate = useNavigate();
-  const [drives] = useState<Drive[]>(drivesSample);
+  const [drives, setDrives] = useState<any[]>([]);
+
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [workScheduleFilter, setWorkScheduleFilter] = useState<string[]>([]);
@@ -367,8 +114,8 @@ const drives: React.FC = () => {
     );
   });
 
-  const handleDetailsClick = (drive: Drive) => {
-    navigate(`${drive.id}/dashboard`, { state: { drive } });
+  const handleDetailsClick = (drive: any) => {
+    navigate(`${drive._id}/dashboard`, { state: { drive } });
   };
 
   const handleFilterChange = (filter: string) => {
@@ -382,6 +129,20 @@ const drives: React.FC = () => {
   const closeCreatedriveModal = () => {
     setIsModalOpen(false);
   };
+
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+  useEffect(() => {
+    axios
+      .get("/drives")
+      .then((res) => {
+        setDrives(res.data.data);
+      })
+      .catch((err) => {
+        toast.error(err.response.data.message);
+        console.log(err);
+      });
+  }, []);
 
   return (
     <div className="flex gap-5 w-full p-5">
@@ -417,50 +178,58 @@ const drives: React.FC = () => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                <Card className="w-1/5 cursor-pointer" isPressable onClick={openCreatedriveModal}>
+                <Card
+                  className="w-1/5 cursor-pointer"
+                  isPressable
+                  onClick={openCreatedriveModal}
+                >
                   <CardBody className="flex items-center justify-between bg-success-400 text-background bg-opacity-3 py-2 px-5">
                     <div className="flex items-center gap-2">
                       <FilePlusIcon className="text-background" size={22} />
-                      <p className="text-sm text-background">Create a new Drive</p>
+                      <p className="text-sm text-background">Create Drive</p>
                     </div>
                   </CardBody>
                 </Card>
               </div>
 
-              <div className="grid grid-cols-4 gap-8 mt-2 w-full">
+              <div className="grid grid-cols-4 gap-8 mt-5 w-full">
                 {Cards.map((card, index) => (
                   <Card
                     isPressable
                     key={index}
-                    className={`text-white rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${selectedFilter === card.filter
-                      ? "bg-gray-500/20 text-white"
-                      : "text-gray-500"
-                      }`}
+                    className={`text-white rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${
+                      selectedFilter === card.filter
+                        ? "bg-gray-500/20 text-white"
+                        : "text-gray-500"
+                    }`}
                     onClick={() => handleFilterChange(card.filter)}
                   >
                     <div className="flex items-center justify-center gap-2 w-full">
                       <div
-                        className={`${selectedFilter === card.filter
-                          ? "text-white"
-                          : "text-gray-500"
-                          }`}
+                        className={`${
+                          selectedFilter === card.filter
+                            ? "text-white"
+                            : "text-gray-500"
+                        }`}
                       >
                         {card.icon}
                       </div>
                       <h1
-                        className={`${selectedFilter === card.filter
-                          ? "text-white"
-                          : "text-gray-500"
-                          } text-base`}
+                        className={`${
+                          selectedFilter === card.filter
+                            ? "text-white"
+                            : "text-gray-500"
+                        } text-base`}
                       >
                         {card.title}
                       </h1>
                     </div>
                     <p
-                      className={`text-center w-full ${selectedFilter === card.filter
-                        ? "text-white"
-                        : "text-gray-500"
-                        }`}
+                      className={`text-center w-full ${
+                        selectedFilter === card.filter
+                          ? "text-white"
+                          : "text-gray-500"
+                      }`}
                     >
                       {card.driveCount} Drives
                     </p>
@@ -483,37 +252,26 @@ const drives: React.FC = () => {
                           {drive.title}
                         </p>
                         <span
-                          className={`text-xs mr-3 rounded-full whitespace-nowrap ${drive.category === "IT"
-                            ? "text-success-500"
-                            : drive.category === "Operations"
-                              ? "text-warning-500"
-                              : "bg-gray-100 text-gray-800"
-                            }`}
+                          className={`text-xs px-2 rounded-full whitespace-nowrap ${
+                            new Date(drive.applicationRange.end) < new Date()
+                              ? " text-danger-500 bg-danger-100"
+                              : " text-success-500 bg-success-100"
+                          }`}
                         >
-                          {drive.category}
-                        </span>
-                        <span
-                          className={`text-xs px-2 rounded-full whitespace-nowrap ${drive.status === "active"
-                            ? " text-success-500 bg-success-100"
-                            : " text-danger-500 bg-danger-100"
-                            }`}
-                        >
-                          {drive.status === "active" ? "Active" : "Closed"}
+                          {new Date(drive.applicationRange.end) < new Date()
+                            ? "Closed"
+                            : "Open"}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 w-full text-sm mt-3 text-gray-500">
                         <div className="flex items-center gap-2">
-                          <BriefcaseIcon size={18} />
-                          <p>{drive.driveprofile}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
                           <MapPinIcon size={18} />
                           <p>{drive.location}</p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 ml-5">
                           <BanknoteIcon size={18} />
                           <p>
-                            {drive.salaryFrom} - {drive.salaryUpto}
+                            {drive.salary.min} - {drive.salary.max} ({drive.salary.currency.toUpperCase()})
                           </p>
                         </div>
                       </div>
@@ -522,9 +280,9 @@ const drives: React.FC = () => {
                     <div className="flex items-center justify-between w-full">
                       <div className="text-sm rounded-full border bg-secondary bg-opacity-5 px-2 py-1">
                         <p className="text-gray-300 text-xs">
-                          {drive.status === "active"
-                            ? `Open Until ${drive.openUntil}`
-                            : `Closed at ${drive.openUntil}`}
+                          {new Date(drive.applicationRange.end) > new Date()
+                            ? `Open Until ${new Date(drive.applicationRange.end).toDateString()}`
+                            : `Closed at ${new Date(drive.applicationRange.end).toDateString()}`}
                         </p>
                       </div>
                       <Dropdown>
@@ -532,7 +290,7 @@ const drives: React.FC = () => {
                           <Menu
                             size={28}
                             className="mr-6 cursor-pointer"
-                          //onClick={() => handleDetailsClick()}
+                            //onClick={() => handleDetailsClick()}
                           />
                         </DropdownTrigger>
                         <DropdownMenu>
@@ -564,4 +322,4 @@ const drives: React.FC = () => {
   );
 };
 
-export default drives;
+export default Drives;

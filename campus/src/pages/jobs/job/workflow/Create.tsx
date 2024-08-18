@@ -9,12 +9,32 @@ import {
   Book,
   Copy,
 } from "lucide-react";
-import { Button, Divider } from "@nextui-org/react";
+import {
+  Button,
+  Card,
+  CardBody,
+  DateInput,
+  Divider,
+  TimeInput,
+} from "@nextui-org/react";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from "@nextui-org/react";
+import { Switch } from "@nextui-org/switch";
 
 const Create = () => {
+  const { isOpen, onOpenChange } = useDisclosure();
+
   const [addedComponents, setAddedComponents] = useState<
     { icon: React.Component; label: string; name: string; id: string }[]
   >([]);
+
+  const [auto, setAuto] = useState(false);
 
   const components = [
     {
@@ -101,9 +121,7 @@ const Create = () => {
     setAddedComponents(newComponents);
   };
 
-  const save = () => {
-   
-  };
+  const save = () => {};
 
   return (
     <div className="p-10 w-full gap-10 flex justify-between h-[92vh]">
@@ -164,11 +182,93 @@ const Create = () => {
           className="justify-self-end bottom-0 absolute w-full"
           color="success"
           variant="flat"
-          onClick={save}
+          onClick={() => onOpenChange()}
         >
-          Save
+          Next
         </Button>
       </div>
+
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="5xl">
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Choose Workflow Schedule
+              </ModalHeader>
+              <ModalBody>
+                <p className="opacity-50 text-sm">
+                  Select the workflow schedule that best fits your hiring
+                  process. Manual workflows require manual intervention to move
+                  candidates to the next stage. Automatic workflows move
+                  candidates automatically to the next stage based on the
+                  schedule.
+                </p>
+
+                <div className="flex items-center gap-5 mt-5 justify-center">
+                  <p>Manual</p>
+                  <Switch
+                    checked={auto}
+                    onChange={() => setAuto(!auto)}
+                    color="success"
+                  />
+                  <p>Automatic</p>
+                </div>
+
+                {auto && (
+                  <div className="flex flex-col gap-5 mt-5">
+                    <p>Set the schedule for automatic workflows</p>
+                    <div className="flex flex-wrap gap-5">
+                      {addedComponents.map((component, index) => (
+                        <Card className="w-[31%]" key={index}>
+                          <CardBody>
+                            <div className="flex gap-2 items-center">
+                              <p>{component.name}</p>
+                            </div>
+
+                            <div className="flex gap-2">
+                              <DateInput
+                                className="mt-2"
+                                label="Start Date"
+                                labelPlacement="outside"
+                              />
+                              <TimeInput
+                                className="mt-2"
+                                label="Start Time"
+                                labelPlacement="outside"
+                              />
+                            </div>
+
+                            <div className="flex gap-2 mt-2">
+                              <DateInput
+                                className="mt-2"
+                                label="End Date"
+                                labelPlacement="outside"
+                              />
+                              <TimeInput
+                                className="mt-2"
+                                label="End Time"
+                                labelPlacement="outside"
+                              />
+                            </div>
+                          </CardBody>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Close
+                </Button>
+                <Button color="primary" onPress={onClose}>
+                  Save Workflow
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

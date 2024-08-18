@@ -11,30 +11,54 @@ import {
   ChevronRight,
   FileText,
   Workflow,
+  LineChartIcon,
+  MonitorPlay,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const Sidebar = () => {
+const Sidebar = ({ drive }: { drive: any[] }) => {
   const topItems = [
     {
       icon: Home,
       label: "Dashboard",
       link: "/dashboard",
+      visible: true,
     },
     {
       icon: Workflow,
       label: "Workflow",
       link: "/workflow",
+      visible: true,
     },
     {
       icon: FileText,
       label: "ATS",
       link: "/ats",
+      visible: drive?.ats ? true : false,
+    },
+    {
+      icon: LineChartIcon,
+      label: "Assessments",
+      link: "/assessments",
+      visible: drive?.assessments?.length > 0,
+    },
+    {
+      icon: MonitorPlay,
+      label: "Assignments",
+      link: "/assignments",
+      visible: drive?.assignments?.length > 0,
+    },
+    {
+      icon: MonitorPlay,
+      label: "Interviews",
+      link: "/interviews",
+      visible: drive?.interview ? true : false,
     },
     {
       icon: Users,
       label: "Candidates",
       link: "/candidates",
+      visible: true,
     },
   ];
 
@@ -60,10 +84,14 @@ const Sidebar = () => {
                 <TooltipTrigger asChild>
                   <table>
                     <tbody
-                      className={` cursor-pointer h-8 ${
+                      className={`${
+                        item.visible
+                          ? "hover:text-white opacity-100 cursor-pointer"
+                          : "opacity-10 cursor-not-allowed"
+                      } h-8 ${
                         active === item.label.toLowerCase()
                           ? " text-white-500 rounded-xl"
-                          : "text-muted-foreground opacity-50 hover:text-white"
+                          : "text-muted-foreground"
                       } `}
                       onClick={() => {
                         const path = window.location.pathname.split("/");
