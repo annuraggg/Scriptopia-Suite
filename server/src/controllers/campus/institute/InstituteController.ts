@@ -606,8 +606,28 @@ const updateMembers = async (c: Context) => {
       type: "info",
     };
 
+    const finalMembers = [];
+    for (const member of members) {
+      if (!member.email || !member.role) {
+        return sendError(c, 400, "Please fill all fields");
+      }
+
+      const role = organization.roles.find(
+        (r) => r.name === member.role.name.toLowerCase()
+      );
+
+      const mem = {
+        email: member.email,
+        role: role?._id,
+        addedOn: new Date(),
+        status: member.status,
+      };
+
+      finalMembers.push(mem);
+    }
+
     const updatedOrg = await Institute.findByIdAndUpdate(orgId, {
-      $set: { members },
+      $set: { members : finalMembers },
       $push: { auditLogs: auditLog },
     });
 
