@@ -1,5 +1,5 @@
 import { Image } from "@nextui-org/image";
-import { Button, Input, Spinner } from "@nextui-org/react";
+import { Button, Input, Spinner, Chip } from "@nextui-org/react";
 import { useEffect, useRef, useState } from "react";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { Upload } from "lucide-react";
@@ -20,13 +20,45 @@ import { setToastChanges } from "@/reducers/toastReducer";
 import { useDispatch } from "react-redux";
 import UnsavedToast from "@/components/UnsavedToast";
 
+const EmailDomainInput = ({ domains, setDomains }: { domains: string[], setDomains: (domains: string[]) => void }) => {
+  const [inputValue, setInputValue] = useState("");
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && inputValue.trim()) {
+      e.preventDefault();
+      setDomains([...domains, inputValue.trim()]);
+      setInputValue("");
+    }
+  };
+
+  const removeDomain = (domain: string) => {
+    setDomains(domains.filter(d => d !== domain));
+  };
+
+  return (
+    <div className="flex flex-wrap gap-2 w-[90%] items-center mt-3">
+      {domains.map((domain, index) => (
+        <Chip key={index} onClose={() => removeDomain(domain)} variant="flat">
+          {domain}
+        </Chip>
+      ))}
+      <Input
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Add domain and press Enter"
+      />
+    </div>
+  );
+};
+
 const General = () => {
   const [instituteName, setInstituteName] = useState<string>("");
   const [logo, setLogo] = useState<string>("/defaultOrgLogo.png");
   const [instituteWebsite, setInstituteWebsite] = useState<string>("");
   const [instituteEmail, setInstituteEmail] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
-  const [instituteEmailDomains, setInstituteEmailDomains] = useState<string>("");
+  const [instituteEmailDomains, setInstituteEmailDomains] = useState<string[]>([]);
   const [newLogo, setNewLogo] = useState<File>({} as File);
   const [zoom, setZoom] = useState<number>(1);
 
@@ -53,7 +85,7 @@ const General = () => {
       setInstituteEmail(res.data.data.email || "");
       setInstituteWebsite(res.data.data.website || "");
       setLogo(res.data.data.logo || "/defaultOrgLogo.png");
-      setInstituteEmailDomains(res.data.data.emailDomains?.join(", ") || "");
+      setInstituteEmailDomains(res.data.data.emailDomains || []);
       setChanges(false);
     } catch (err) {
       console.error(err);
@@ -77,7 +109,7 @@ const General = () => {
         email: instituteEmail,
         website: instituteWebsite,
         logo: logo,
-        emailDomains: instituteEmailDomains.split(",").map(domain => domain.trim())
+        emailDomains: instituteEmailDomains
       });
       toast.success("Settings updated successfully");
       setChanges(false);
@@ -92,11 +124,11 @@ const General = () => {
 
   const handleInputChange =
     (setter: React.Dispatch<React.SetStateAction<string>>) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setter(e.target.value);
-      setChanges(true);
-      triggerSaveToast();
-    };
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setter(e.target.value);
+        setChanges(true);
+        triggerSaveToast();
+      };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -227,11 +259,15 @@ const General = () => {
           />
         </div>
 
-        <div className="flex gap-3 w-[50%] items-center mt-3">
-          <p className="w-[40%]">Company Email Domains</p>
-          <Input
-            value={instituteEmailDomains}
-            onChange={handleInputChange(setInstituteEmailDomains)}
+        <div className="flex w-[50%] items-center mt-3">
+          <p className="w-[40%]">Email Domains</p>
+          <EmailDomainInput
+            domains={instituteEmailDomains}
+            setDomains={(newDomains) => {
+              setInstituteEmailDomains(newDomains);
+              setChanges(true);
+              triggerSaveToast();
+            }}
           />
         </div>
       </div>

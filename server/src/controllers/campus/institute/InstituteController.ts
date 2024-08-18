@@ -91,7 +91,7 @@ const defaultPermissions = [
 
 const createInstitute = async (c: Context) => {
   try {
-    const { name, email, website, members } = await c.req.json();
+    const { name, email, website, members, emailDomains } = await c.req.json();
     const u = c.get("auth").userId;
 
     const clerkUser = await clerkClient.users.getUser(u);
@@ -181,6 +181,7 @@ const createInstitute = async (c: Context) => {
       email,
       website,
       members: membersArr,
+      emailDomains,
       subscription: {
         type: "trial",
         status: "active",
@@ -417,7 +418,7 @@ const updateGeneralSettings = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const { name, email, website } = await c.req.json();
+    const { name, email, website, emailDomains } = await c.req.json();
     const orgId = perms.data?.orgId;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -447,7 +448,7 @@ const updateGeneralSettings = async (c: Context) => {
     const updatedOrg = await Institute.findByIdAndUpdate(
       orgId,
       {
-        $set: { name, email, website },
+        $set: { name, email, website, emailDomains },
         $push: { auditLogs: auditLog },
       },
       { new: true }
@@ -605,16 +606,8 @@ const updateMembers = async (c: Context) => {
       type: "info",
     };
 
-    const membersWithRoleIds = members.map((member) => ({
-      ...member,
-      user: member.user || "",
-      _id: member._id || new mongoose.Types.ObjectId(),
-      addedOn: typeof member.addedOn === "string" ? new Date() : member.addedOn,
-      role: new mongoose.Types.ObjectId(member.role._id.toString()),
-    }));
-
     const updatedOrg = await Institute.findByIdAndUpdate(orgId, {
-      $set: { members: membersWithRoleIds },
+      $set: { members },
       $push: { auditLogs: auditLog },
     });
 
