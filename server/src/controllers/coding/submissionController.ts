@@ -45,7 +45,7 @@ const runCode = async (c: Context) => {
     }
 
     if (result?.status === "ERROR") {
-      console.log(result.error);
+      console.lerrorog(result.error);
     }
 
     return sendSuccess(c, 200, "Success", result);

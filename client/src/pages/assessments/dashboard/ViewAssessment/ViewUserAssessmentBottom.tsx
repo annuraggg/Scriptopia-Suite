@@ -115,7 +115,6 @@ const ViewUserAssessmentBottom = ({
           code: supportingSolution?.code || "",
           testCases: testCases,
         };
-        console.log(problemObj);
         return problemObj;
       });
 

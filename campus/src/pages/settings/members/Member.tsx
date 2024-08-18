@@ -84,7 +84,7 @@ const Members: React.FC = () => {
         );
 
         setRoles(res.data.data.roles);
-        console.log(res.data.data);
+      
       })
       .catch((err) => {
         console.error(err);
@@ -151,7 +151,7 @@ const Members: React.FC = () => {
     const updatedInvitedMembers = invitedMembers.filter(
       (member) => member.email !== email
     );
-    console.log(updatedInvitedMembers);
+
     setInvitedMembers(updatedInvitedMembers);
     triggerSaveToast();
     onRevokeConfirmOpenChange();

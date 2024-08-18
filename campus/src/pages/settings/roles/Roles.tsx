@@ -41,7 +41,7 @@ const Roles = () => {
     axios
       .get("campus/settings")
       .then((res) => {
-        console.log(res.data.data);
+     
         setBuiltInRoles(
           res.data.data.roles.filter((role: Role) => role.default)
         );

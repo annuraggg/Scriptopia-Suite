@@ -93,7 +93,6 @@ function validateInput(datatype, variable) {
     JAVASCRIPT_KEYWORDS.has(variable) ||
     !VARIABLE_NAME_REGEX.test(variable)
   ) {
-    console.log(variable);
     throw new Error("Invalid Variable Name");
   }
 

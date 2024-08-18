@@ -92,7 +92,7 @@ const Create = () => {
   };
 
   const save = () => {
-    console.log(addedComponents);
+
   };
 
   return (

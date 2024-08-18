@@ -8,14 +8,12 @@ const authMiddleware = createMiddleware(async (c, next) => {
   // if(c.req.path === "/health") return next();
 
   // if (!token) {
-  //   console.log("No token");
   //   return sendError(c, 401, "Unauthorized");
   // }
 
   // @ts-ignore
   const auth = getAuth(c);
   if (!auth?.userId) {
-    console.log("NO USERID");
     return sendError(c, 401, "Unauthorized");
   }
   c.set("auth", auth);

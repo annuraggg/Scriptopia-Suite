@@ -19,7 +19,7 @@ const runCode = async (
   });
 
   const data = { functionSchema, testCases };
-  console.log(JSON.stringify(data));
+
   const params = {
     FunctionName: `${language}-driver`,
     Payload: JSON.stringify(data),
@@ -28,7 +28,6 @@ const runCode = async (
   try {
     const data = await lambdaClient.send(new InvokeCommand(params));
     if (data.FunctionError) {
-      console.log(data.FunctionError);
       return { status: "ERROR", error: data.FunctionError };
     }
     if (data.Payload) {

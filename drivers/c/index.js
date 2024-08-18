@@ -97,8 +97,6 @@ const handler = async (event) => {
       DEFAULT_FUNCTIONS,
     ].join("\n");
 
-    console.log(finalCode);
-
     fetch("https://driver.scriptopia.tech/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -106,11 +104,7 @@ const handler = async (event) => {
         code: finalCode,
         language: "c",
       }),
-    })
-      .then(async (res) => {
-        console.log(await res.json());
-      })
-      .then((data) => console.log(data));
+    });
   });
 };
 

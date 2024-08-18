@@ -18,7 +18,6 @@ export const handler = async () => {
   try {
     // Connect to MongoDB
     connection = await mongoose.connect(MONGO_STRING);
-    console.log("Connected to MongoDB");
 
     // Fetch failed events
     const failedEvents = await FailedHook.find();
@@ -35,7 +34,6 @@ export const handler = async () => {
         });
 
         if (response.ok) {
-          console.log("Event sent");
           await FailedHook.deleteOne({ _id: event._id });
         } else {
           throw new Error(`Failed to send event, status: ${response.status}`);
@@ -51,7 +49,6 @@ export const handler = async () => {
 
         const updatedEvent = await FailedHook.findById(event._id);
         if (updatedEvent.retries >= MAX_RETRIES) {
-          console.log(`Max retries reached for event: ${event._id}`);
           await FailedHook.deleteOne({ _id: event._id });
         }
       }
@@ -64,7 +61,6 @@ export const handler = async () => {
   } finally {
     if (connection) {
       await mongoose.disconnect();
-      console.log("Disconnected from MongoDB");
     }
   }
 };

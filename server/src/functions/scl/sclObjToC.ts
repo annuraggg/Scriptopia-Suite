@@ -54,8 +54,6 @@ const sclObjToC = (
     parsedScl = sclToObject(scl).sclObject as SclObject[];
   else parsedScl = scl as SclObject[];
 
-  console.log(parsedScl)
-
   const FINAL_BODY = parseBody(body);
   const FINAL_TAIL = parseTail(parsedScl);
 

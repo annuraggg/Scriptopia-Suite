@@ -10,7 +10,6 @@ const callCompiler = (code) => {
     body: JSON.stringify({ code, language }),
   }).then(async (res) => {
     const data = await res.json();
-    console.log(data);
   });
 };
 
@@ -27,10 +26,9 @@ ${functionBody}
 
 int main() {
   ${functionArgs.forEach((arg) => {
-    arg.type
-     === "number" ? "int result = " : ""
-    functionReturn === "boolean" ? "int result = " : ""
-    functionReturn === "string" ? "char* result = " : ""
+    arg.type === "number" ? "int result = " : "";
+    functionReturn === "boolean" ? "int result = " : "";
+    functionReturn === "string" ? "char* result = " : "";
   })}
 
 
@@ -47,8 +45,6 @@ int main() {
     return 0;
 }
 `;
-
-  console.log(code);
 
   callCompiler(code);
 };
@@ -75,8 +71,5 @@ const handler = (event) => {
 const eventType = "array";
 
 import(`../testEvents/${eventType}.json`, { assert: { type: "json" } }).then(
-  (event) => {
-    console.log(event.default);
-    console.log(handler(event.default));
-  }
+  (event) => {}
 );

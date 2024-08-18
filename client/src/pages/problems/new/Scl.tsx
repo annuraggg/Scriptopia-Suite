@@ -40,7 +40,7 @@ const Scl = ({
       setEditorUpdateFlag((prev) => !prev);
     } else if (language === "c") {
       const res: string = sclObjToC(scl, "scl");
-      console.log(res);
+
       if (res.error) {
         d;
         setError(true);
@@ -77,7 +77,6 @@ const Scl = ({
               onChange={(e) => setLanguage(e.target.value as string)}
               size="sm"
             >
-
               {/* @ts-expect-error => language.available is not defined */}
               {languages.map(
                 (language) =>

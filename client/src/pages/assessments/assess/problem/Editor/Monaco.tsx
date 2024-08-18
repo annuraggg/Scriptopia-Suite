@@ -49,9 +49,8 @@ const Monaco = ({
     });
 
     editorRef.current = editor;
-    editor.onDidPaste((e) => {
+    editor.onDidPaste(() => {
       localStorage.getItem("copiedText");
-      console.log(e.clipboardEvent?.clipboardData?.getData("text"));
     });
 
     const model = editor.getModel();
@@ -76,7 +75,6 @@ const Monaco = ({
   }, [editorUpdateFlag]);
 
   useEffect(() => {
-
     // ! TODO: COMPLETE THIS
     const handleCopy = () => {
       if (editorRef.current) {
@@ -96,9 +94,6 @@ const Monaco = ({
         const clipboardData =
           event.clipboardData || (window as any).clipboardData;
         const pastedText = clipboardData.getData("text");
-
-        // Log the pasted text to console or do something else with it
-        console.log("Pasted text:", pastedText);
 
         // Optionally, insert the pasted text into the editor at the current cursor position
         const currentPosition = editor.getPosition();

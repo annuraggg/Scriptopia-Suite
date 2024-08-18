@@ -33,7 +33,7 @@ const Problem = () => {
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [cases, setCases] = useState<IRunResponseResult[]>([]);
 
-  const [scl, setSCl] = useState([])
+  const [scl, setSCl] = useState([]);
   const [problemId, setProblemId] = useState<string>("");
 
   const [editorUpdateFlag, setEditorUpdateFlag] = useState<boolean>(false);
@@ -68,12 +68,10 @@ const Problem = () => {
     axios
       .get(`/problems/${id}`)
       .then((res) => {
-        console.log(res.data.data);
-
         setStatement(res.data.data.problem.description.ops);
         setTitle(res.data.data?.problem?.title);
         setProblemId(res.data.data?.problem?._id);
-        setSCl(res.data.data?.problem?.scl)
+        setSCl(res.data.data?.problem?.scl);
 
         const starterCode = starterGenerator(
           res.data.data?.problem?.scl,
@@ -131,7 +129,6 @@ const Problem = () => {
     return axios
       .post("/submissions/run", { code, language, problemId })
       .then((res) => {
-        console.log(res.data.data);
         setCases(
           res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
         );
@@ -173,7 +170,7 @@ const Problem = () => {
   useEffect(() => {
     const starter = starterGenerator(scl, language);
     setCode(starter);
-    console.log("Starter Code: ", starter);
+
     setEditorUpdateFlag((prev) => !prev);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);

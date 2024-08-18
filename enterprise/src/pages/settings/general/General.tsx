@@ -80,7 +80,7 @@ const General = () => {
       toast.success("Settings updated successfully");
       setChanges(false);
     } catch (err) {
-      console.log(err);
+      console.error(err);
       toast.error("Error updating settings. Please try again.");
     } finally {
       setLoading(false);

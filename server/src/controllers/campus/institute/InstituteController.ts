@@ -142,9 +142,6 @@ const createInstitute = async (c: Context) => {
         (r) => r.name === member.role.toLowerCase()
       );
 
-      console.log("role2");
-      console.log(member.role.toLowerCase());
-      console.log(role);
       const mem = {
         user: user?.clerkId || "",
         email: member.email, // @ts-ignore
@@ -270,8 +267,7 @@ const verifyInvite = async (c: Context) => {
 
     return sendSuccess(c, 200, "Token verified", decoded);
   } catch (error) {
-    console.log(error);
-    // logger.error(error as string);
+    logger.error(error as string);
     return sendError(c, 500, "Failed to verify token", error);
   }
 };
@@ -387,7 +383,8 @@ const getSettings = async (c: Context) => {
         role: role,
       });
     }
-    console.log(finalMembers); // @ts-ignore
+
+    // @ts-ignore
     org.members = finalMembers;
 
     const logoUrl = org.logo;
@@ -615,8 +612,6 @@ const updateMembers = async (c: Context) => {
       addedOn: typeof member.addedOn === "string" ? new Date() : member.addedOn,
       role: new mongoose.Types.ObjectId(member.role._id.toString()),
     }));
-
-    console.log(membersWithRoleIds);
 
     const updatedOrg = await Institute.findByIdAndUpdate(orgId, {
       $set: { members: membersWithRoleIds },

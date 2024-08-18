@@ -248,9 +248,7 @@ const VALID_DATATYPES = [
   "string",
   "array",
   "return",
-
 ];
-
 
 const sclToObject = (scl: string): Response => {
   const lines = scl.split("\n");
@@ -269,7 +267,6 @@ const sclToObject = (scl: string): Response => {
       return { error: true, message: "Invalid SCL" };
 
     if (!VALID_DATATYPES.includes(dataType)) {
-      console.log("Invalid Datatype: " + dataType);
       return { error: true, message: "Invalid Datatype" };
     }
 
@@ -287,7 +284,6 @@ const sclToObject = (scl: string): Response => {
       if (error) return { error: true, message: message };
 
       if (!VALID_DATATYPES.includes(arrayDataType)) {
-        console.log("Invalid Datatype 2: " + arrayDataType);
         return { error: true, message: "Invalid Datatype" };
       }
 

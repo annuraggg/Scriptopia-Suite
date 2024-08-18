@@ -699,7 +699,7 @@ const updateDepartments = async (c: Context) => {
     }
 
     const { departments } = await c.req.json();
-    console.log(departments);
+
     const orgId = perms.data?.orgId;
 
     const user = await clerkClient.users.getUser(c.get("auth").userId);

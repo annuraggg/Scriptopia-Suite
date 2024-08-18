@@ -1,3 +1,30 @@
+// import DopplerSDK from "@dopplerhq/node-sdk";
+
+// async () => {
+//   try {
+//     console.log("Loading Doppler secrets...");
+//     const doppler = new DopplerSDK({
+//       accessToken: "dp.st.dev.JccdW03dbesctsDbN88WNH9WfdLGD3OQbeUGfxl0R0k",
+//     });
+
+//     const secrets = doppler.secrets
+//       .list("scriptopia-server", "dev")
+//       .then((res) => {
+//         return res;
+//       });
+
+//     // Load secrets into process.env
+//     Object.keys(secrets).forEach((key) => {
+//       process.env[key] = secrets[key].raw;
+//     });
+
+//     console.log("Doppler secrets loaded into process.env");
+//   } catch (error) {
+//     console.error("Error loading secrets from Doppler:", error);
+//     process.exit(1);
+//   }
+// };
+
 import "dotenv/config";
 import { Hono } from "hono";
 import { prettyJSON } from "hono/pretty-json";

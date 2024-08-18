@@ -6,13 +6,16 @@ const StreakCalendar = ({ dates = [] }: { dates: string[] }) => {
   const dateSet = new Set(
     dates.map((date) => {
       const localDate = format(parseISO(date), "yyyy-MM-dd");
-      console.log(localDate);
+
       return localDate;
     })
   );
 
   const isDateUnavailable = (date: DateValue) => {
-    const localDateString = format(date.toDate(getLocalTimeZone()), "yyyy-MM-dd");
+    const localDateString = format(
+      date.toDate(getLocalTimeZone()),
+      "yyyy-MM-dd"
+    );
     return !dateSet.has(localDateString);
   };
 

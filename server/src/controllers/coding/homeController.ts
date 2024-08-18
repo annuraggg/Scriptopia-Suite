@@ -10,11 +10,9 @@ const getHome = async (c: Context) => {
     const dupTabs = problems.map((problem) => problem.tags).flat();
     const tags = [...new Set(dupTabs)];
 
-    console.log(c.get("auth").userId);
-
     const user = await User.findOne({ clerkId: c.get("auth").userId })
       .populate("solvedProblems.problemId")
-      .lean();  
+      .lean();
 
     if (!user) {
       return sendError(c, 401, "Unauthorized");
@@ -33,7 +31,7 @@ const getHome = async (c: Context) => {
       if (!problem) {
         continue;
       }
-      console.log(problem.difficulty);
+
       if (problem.difficulty === "easy") {
         easyCount++;
       } else if (problem.difficulty === "medium") {
@@ -53,7 +51,7 @@ const getHome = async (c: Context) => {
 
     return sendSuccess(c, 200, "Success", response);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };

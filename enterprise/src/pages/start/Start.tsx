@@ -118,7 +118,7 @@ const Start = () => {
         dispatch(setOrganization(data));
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
         setSecondLoading(false);
         toast.error("Failed to create organization");
       });

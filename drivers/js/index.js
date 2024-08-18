@@ -12,8 +12,6 @@ const handler = async (event) => {
     ].join("\n");
 
     const finalCode = [head, code, newTail].join("\n");
-    console.log(finalCode);
-    console.log("******");
   });
 };
 
