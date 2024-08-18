@@ -90,7 +90,7 @@ const Sidebar = () => {
                           }, 1000);
                           return;
                         }
-                        navigate(`/settings${item.link}`);
+                        navigate(`/organization/settings${item.link}`);
                         setActive(item.label.toLowerCase());
                       }}
                     >

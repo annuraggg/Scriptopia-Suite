@@ -21,6 +21,7 @@ import assessmentRoute from "../routes/assessmentRoute";
 import submissionRoute from "../routes/submissionRoute";
 import organizationRoute from "../routes/organizationRoute";
 import userRoute from "../routes/userRoute";
+import instituteRoute from "../routes/instituteRoute";
 
 const app = new Hono();
 
@@ -37,5 +38,6 @@ app.route("/assessments", assessmentRoute);
 app.route("/submissions", submissionRoute);
 app.route("/organizations", organizationRoute);
 app.route("/users", userRoute);
+app.route("/campus", instituteRoute);
 
 export default app;

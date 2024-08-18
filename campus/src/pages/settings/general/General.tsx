@@ -48,7 +48,7 @@ const General = () => {
   const fetchSettings = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("organizations/settings");
+      const res = await axios.get("campus/settings");
       setInstituteName(res.data.data.name || "");
       setInstituteEmail(res.data.data.email || "");
       setInstituteWebsite(res.data.data.website || "");
@@ -72,7 +72,7 @@ const General = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      await axios.post("organizations/settings/general", {
+      await axios.post("campus/settings/general", {
         name: instituteName,
         email: instituteEmail,
         website: instituteWebsite,
@@ -109,7 +109,7 @@ const General = () => {
   const updateLogo = () => {
     const canvas = newLogoRef.current?.getImage().toDataURL("image/png");
     axios
-      .post("organizations/settings/logo", { logo: canvas })
+      .post("campus/settings/logo", { logo: canvas })
       .then(() => {
         setLogo(canvas || "/defaultOrgLogo.png");
         toast.success("Logo updated successfully");

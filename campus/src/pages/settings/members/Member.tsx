@@ -69,7 +69,7 @@ const Members: React.FC = () => {
   useEffect(() => {
     setLoading(true);
     axios
-      .get("organizations/settings")
+      .get("campus/settings")
       .then((res) => {
         setMembers(
           res.data.data.members.filter(
@@ -84,7 +84,7 @@ const Members: React.FC = () => {
         );
 
         setRoles(res.data.data.roles);
-        console.log(res.data.data.roles);
+        console.log(res.data.data);
       })
       .catch((err) => {
         console.error(err);
@@ -98,7 +98,7 @@ const Members: React.FC = () => {
     const next = () => {
       setLoading(true);
       axios
-        .post("organizations/settings/members", {
+        .post("campus/settings/members", {
           screen: "members",
           members: members.concat(invitedMembers),
         })

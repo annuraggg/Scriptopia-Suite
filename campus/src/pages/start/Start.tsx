@@ -46,8 +46,7 @@ const Start = () => {
   const [secondLoading, setSecondLoading] = useState(false);
 
   const roles: Role[] = [
-    { role: "Admin" },
-    { role: "Hiring Manager" },
+    { role: "Administrator" },
     { role: "Finance" },
     { role: "Read Only" },
   ];
@@ -100,7 +99,7 @@ const Start = () => {
     const axios = ax(getToken);
     setSecondLoading(true);
     axios
-      .post("/organizations/create", {
+      .post("/campus/create", {
         name: companyName,
         email: companyEmail,
         website: companyWebsite,
@@ -108,7 +107,7 @@ const Start = () => {
       })
       .then(() => {
         setSecondLoading(false);
-        toast.success("Organization created successfully");
+        toast.success("Insitute created successfully");
         navigate("/dashboard");
         const data = {
           _id: user?.publicMetadata?.orgId,
@@ -120,7 +119,7 @@ const Start = () => {
       .catch((err) => {
         console.log(err);
         setSecondLoading(false);
-        toast.error("Failed to create organization");
+        toast.error("Failed to create Insitute");
       });
   };
 
@@ -129,7 +128,7 @@ const Start = () => {
       {page === 1 && (
         <Card className="w-[500px] drop-shadow-glow-dark">
           <CardBody className="p-10 py-10">
-            <h4 className="text-center">Create a new organization</h4>
+            <h4 className="text-center">Create a new Insitute</h4>
             <p className="text-center text-xs opacity-50">
               Start your free 14-day trial. No credit card required.
             </p>
@@ -137,10 +136,10 @@ const Start = () => {
             <div className="mt-5 text-sm">
               <div className="flex gap-3 items-center">
                 <Briefcase size={18} />
-                <p>Company Name</p>
+                <p>Insitute Name</p>
               </div>
               <Input
-                placeholder="Company Name"
+                placeholder="Insitute Name"
                 className="mt-2"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
@@ -179,7 +178,7 @@ const Start = () => {
               isDisabled={firstLoading}
               isLoading={firstLoading}
             >
-              Create Organization
+              Create Insitute
             </Button>
             <p className="mt-5 text-center opacity-50 text-sm">
               By signing up for our service, you agree to our Terms & Conditions

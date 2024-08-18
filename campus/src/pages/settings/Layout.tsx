@@ -1,12 +1,10 @@
 import { Outlet } from "react-router-dom";
-import ParentSidebar from "@/components/sidebars/OrganizationSidebar";
 import Sidebar from "./Sidebar";
 
 const Layout = () => {
   return (
     <div className="">
       <div className="flex w-full">
-        <ParentSidebar />
         <Sidebar />
         <div className="h-full w-full overflow-x-auto">
           <Outlet />

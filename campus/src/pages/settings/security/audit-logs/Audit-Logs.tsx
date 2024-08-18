@@ -6,8 +6,8 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import { AuditLog } from "@/@types/Organization";
 import { Select, SelectSection, SelectItem } from "@nextui-org/react";
+import { AuditLog } from "@/@types/Organization";
 
 const AuditLogs = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
@@ -17,7 +17,7 @@ const AuditLogs = () => {
   const axios = ax(getToken);
   useEffect(() => {
     axios
-      .get("organizations/settings")
+      .get("campus/settings")
       .then((res) => {
         setAuditLogs(res.data.data.auditLogs);
         setFilteredLogs(res.data.data.auditLogs);

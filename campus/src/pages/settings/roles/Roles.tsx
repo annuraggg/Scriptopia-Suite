@@ -39,8 +39,9 @@ const Roles = () => {
   useEffect(() => {
     setLoading(true);
     axios
-      .get("organizations/settings")
+      .get("campus/settings")
       .then((res) => {
+        console.log(res.data.data);
         setBuiltInRoles(
           res.data.data.roles.filter((role: Role) => role.default)
         );
@@ -65,7 +66,7 @@ const Roles = () => {
   const save = async () => {
     setLoading(true);
     axios
-      .post("organizations/settings/roles", { roles: customRoles })
+      .post("campus/settings/roles", { roles: customRoles })
       .then(() => {
         toast.success("Roles Saved Successfully");
         setChanges(false);

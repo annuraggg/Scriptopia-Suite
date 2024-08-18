@@ -5,6 +5,11 @@ import { Spinner } from "@nextui-org/react";
 import DriveLayout from "./pages/jobs/job/Layout";
 
 import SettingsLayout from "./pages/settings/Layout";
+import Start from "./pages/start/Start";
+import Join from "./pages/join/Join";
+import Notifications from "./pages/notifications/Notifications";
+import Support from "./pages/support/Support";
+import Billing from "./pages/billing/Billing";
 
 const GeneralSettings = lazy(() => import("./pages/settings/general/General"));
 const Members = lazy(() => import("./pages/settings/members/Member"));
@@ -20,7 +25,9 @@ const Drives = lazy(() => import("./pages/jobs/Drives"));
 const Candidates = lazy(() => import("./pages/candidates/Candidates"));
 const Analytics = lazy(() => import("./pages/analytics/Analytics"));
 const Calendar = lazy(() => import("./pages/calendar/Calendar"));
-const DriveDashboard = lazy(() => import("./pages/jobs/job/dashboard/Dashboard"));
+const DriveDashboard = lazy(
+  () => import("./pages/jobs/job/dashboard/Dashboard")
+);
 const Workflow = lazy(() => import("./pages/jobs/job/workflow/Workflow"));
 const Ats = lazy(() => import("./pages/jobs/job/ats/Ats"));
 const DriveCandidates = lazy(
@@ -94,6 +101,11 @@ function App() {
           element: <Suspense fallback={<Loader />} children={<Drives />} />,
         },
         {
+          path: "drives/:id",
+          element: <DriveLayout />,
+          children: jobRoutes,
+        },
+        {
           path: "candidates",
           element: <Suspense fallback={<Loader />} children={<Candidates />} />,
         },
@@ -105,18 +117,32 @@ function App() {
           path: "calendar",
           element: <Suspense fallback={<Loader />} children={<Calendar />} />,
         },
-        
+        {
+          path: "notifications",
+          element: <Suspense fallback={<Loader />} children={<Notifications />} />,
+        },
         {
           path: "settings",
           element: <SettingsLayout />,
           children: settingsRoute,
         },
+        {
+          path: "billing",
+          element: <Suspense fallback={<Loader />} children={<Billing />} />,
+        },
+        {
+          path: "support",
+          element: <Suspense fallback={<Loader />} children={<Support />} />,
+        }
       ],
     },
     {
-      path: "/organization/drives/:id",
-      element: <DriveLayout />,
-      children: jobRoutes,
+      path: "create",
+      element: <Suspense fallback={<Loader />} children={<Start />} />,
+    },
+    {
+      path: "/join",
+      element: <Suspense fallback={<Loader />} children={<Join />} />,
     },
     {
       path: "/student-portal",

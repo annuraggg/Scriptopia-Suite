@@ -45,7 +45,7 @@ const Join = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
     axios
-      .post("/organizations/verify", { token })
+      .post("/campus/verify", { token })
       .then((data) => {
         setToken(data.data.data);
         setLoading(false);
@@ -62,16 +62,16 @@ const Join = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
     axios
-      .post("/organizations/join", { status, token })
+      .post("/campus/join", { status, token })
       .then(() => {
-        toast.success("Joined Organization");
+        toast.success("Joined Insitute");
         setTimeout(() => {
-          window.location.href = "/dashboard"
+          window.location.href = "/organization/dashboard"
         }, 1000);
       })
       .catch((err) => {
         console.error(err);
-        toast.error("Failed to join organization");
+        toast.error("Failed to join Insitute");
       })
       .finally(() => setSubmitLoading(false));
   };
@@ -94,14 +94,14 @@ const Join = () => {
               <h3 className="mt-3">Invite Invalid</h3>
               <p className="mt-5 opacity-50 text-center">
                 The Invite may have expired or you may not have permission to
-                join this organization
+                join this Institute
               </p>
             </CardBody>
           </Card>
         ) : (
           <Card>
             <CardHeader className="justify-center">
-              Organization Invite
+            Institute Invite
             </CardHeader>
             <CardBody className="items-center px-10 w-[30vw]">
               <div className="flex gap-5 items-center">
@@ -114,10 +114,10 @@ const Join = () => {
                   ? `${token.inviter} has invited you to join`
                   : "You have been invited to join"}
               </p>
-              <h3 className="mt-3">
+              <h3 className="mt-3 text-center">
                 {token?.organizationname
                   ? token.organizationname
-                  : "Organization"}
+                  : "Institute"}
               </h3>
             </CardBody>
             <CardFooter>

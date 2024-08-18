@@ -16,10 +16,12 @@ interface ReturnType {
 }
 
 interface userMeta extends UserPublicMetadata {
-  permissions: string[];
   orgId: string;
-  roleId: string;
-  roleName: string;
+  role: {
+    roleId: string;
+    roleName: string;
+    permissions: string[];
+  };
 }
 
 class checkPermission {
@@ -49,14 +51,12 @@ class checkPermission {
     }
 
     try {
-
       const userPermissions = await checkPermission.getUserPermissions(
         auth.userId
       );
 
-
       const hasPermission = permissions.every((permission) =>
-        userPermissions.permissions.includes(permission)
+        userPermissions.role.permissions.includes(permission)
       );
 
       return { allowed: hasPermission, data: userPermissions };
@@ -81,7 +81,7 @@ class checkPermission {
         auth.userId
       );
       const hasPermission = permissions.some((permission) =>
-        userPermissions.permissions.includes(permission)
+        userPermissions.role.permissions.includes(permission)
       );
 
       return { allowed: hasPermission, data: userPermissions };
