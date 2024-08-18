@@ -608,8 +608,18 @@ const updateMembers = async (c: Context) => {
       type: "info",
     };
 
+    const membersWithRoleIds = members.map((member) => ({
+      ...member,
+      user: member.user || "",
+      _id: member._id || new mongoose.Types.ObjectId(),
+      addedOn: typeof member.addedOn === "string" ? new Date() : member.addedOn,
+      role: new mongoose.Types.ObjectId(member.role._id.toString()),
+    }));
+
+    console.log(membersWithRoleIds);
+
     const updatedOrg = await Institute.findByIdAndUpdate(orgId, {
-      $set: { members },
+      $set: { members: membersWithRoleIds },
       $push: { auditLogs: auditLog },
     });
 
