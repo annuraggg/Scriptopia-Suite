@@ -29,12 +29,14 @@ import { Switch } from "@nextui-org/switch";
 
 const Create = () => {
   const { isOpen, onOpenChange } = useDisclosure();
+  const [page, setPage] = useState(0);
 
   const [addedComponents, setAddedComponents] = useState<
     { icon: React.Component; label: string; name: string; id: string }[]
   >([]);
 
   const [auto, setAuto] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
 
   const components = [
     {
@@ -121,72 +123,183 @@ const Create = () => {
     setAddedComponents(newComponents);
   };
 
-  const save = () => {};
+  const handleSave = () => {
+    setShowSaveModal(true);
+  };
+
+  const confirmSave = () => {
+    console.log("Workflow saved");
+    setShowSaveModal(false);
+  };
 
   return (
-    <div className="p-10 w-full gap-10 flex justify-between h-[92vh]">
-      <div className="w-full flex flex-col gap-5">
-        {addedComponents.map((component, index) => (
-          <div
-            key={index}
-            className="border p-5 gap-5 rounded-xl min-h-20 flex justify-start items-center relative"
-          >
-            {/* @ts-expect-error ts-migrate(2339) FIXME: Property 'icon' does not exist on type 'string'. */}
-            <component.icon />
-            <div>
-              <div className="flex gap-2 items-center">
-                <input
-                  className="border-none outline-none bg-transparent max-w-fit"
-                  value={component.name}
-                  disabled
-                  onChange={() => updateName(component.id)}
-                  id={`input-${index}`}
-                />
+    <div className="p-10 w-full h-[92vh]">
+      {
+        page === 0 && (
+          <div className="gap-10 flex justify-between">
+            <div className="w-full flex flex-col gap-5">
+              {addedComponents.map((component, index) => (
+                <div
+                  key={index}
+                  className="border p-5 gap-5 rounded-xl min-h-20 flex justify-start items-center relative"
+                >
+                  {/* @ts-expect-error ts-migrate(2339) FIXME: Property 'icon' does not exist on type 'string'. */}
+                  <component.icon />
+                  <div>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        className="border-none outline-none bg-transparent max-w-fit"
+                        value={component.name}
+                        disabled
+                        onChange={() => updateName(component.id)}
+                        id={`input-${index}`}
+                      />
+                    </div>
+                    <p className="text-sm opacity-50 mt-2">{component.label}</p>
+                  </div>
+                  <Trash
+                    className="cursor-pointer absolute right-5 text-red-500"
+                    size={14}
+                    onClick={() => deleteComponent(component.id)}
+                  />
+                  <Edit2
+                    className=" cursor-pointer absolute right-12"
+                    size={14}
+                    onClick={editName}
+                  />
+                </div>
+              ))}
+              <div
+                className="border-4 border-dashed p-5 rounded-xl opacity-50 w-full min-h-20 flex justify-center items-center"
+                onDragOver={highlight}
+                onDrop={drop}
+              >
+                + Add Component
               </div>
-              <p className="text-sm opacity-50 mt-2">{component.label}</p>
             </div>
-            <Trash
-              className="cursor-pointer absolute right-5 text-red-500"
-              size={14}
-              onClick={() => deleteComponent(component.id)}
-            />
-            <Edit2
-              className=" cursor-pointer absolute right-12"
-              size={14}
-              onClick={editName}
-            />
+            <Divider orientation="vertical" className="opacity-50" />
+            <div className="h-full w-[30%] flex flex-col gap-5 relative">
+              {components.map((component, index) => (
+                <div
+                  key={index}
+                  draggable
+                  className="p-5 border rounded-xl cursor-pointer hover:bg-gray-800 transition-colors flex items-center gap-5"
+                  onDragStart={dragStart}
+                >
+                  <component.icon />
+                  {component.label}
+                </div>
+              ))}
+              <Button
+                className="justify-self-end bottom-0 absolute w-full"
+                color="success"
+                variant="flat"
+                onClick={() => setPage(1)}
+              >
+                Next
+              </Button>
+            </div>
           </div>
-        ))}
-        <div
-          className="border-4 border-dashed p-5 rounded-xl opacity-50 w-full min-h-20 flex justify-center items-center"
-          onDragOver={highlight}
-          onDrop={drop}
-        >
-          + Add Component
+        )
+      }
+      {page === 1 && (
+        <div className="flex flex-col h-full">
+          <div className="mb-5">
+            <p className="opacity-50 text-sm mb-5">
+              Select the workflow schedule that best fits your hiring
+              process. Manual workflows require manual intervention to move
+              candidates to the next stage. Automatic workflows move
+              candidates automatically to the next stage based on the
+              schedule.
+            </p>
+
+            <div className="flex items-center gap-5 justify-center">
+              <p>Manual</p>
+              <Switch
+                checked={auto}
+                onChange={() => setAuto(!auto)}
+                color="success"
+              />
+              <p>Automatic</p>
+            </div>
+          </div>
+
+          {auto && (
+            <div className="flex-grow flex flex-col overflow-hidden">
+              <p className="mb-3">Set the schedule for automatic workflows</p>
+              <div className="flex-grow overflow-y-auto">
+                <div className="flex flex-wrap gap-5 pb-16">
+                  {addedComponents.map((component, index) => (
+                    <Card className="w-[31%]" key={index}>
+                      <CardBody>
+                        <div className="flex gap-2 items-center">
+                          <p>{component.name}</p>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <DateInput
+                            className="mt-2"
+                            label="Start Date"
+                            labelPlacement="outside"
+                          />
+                          <TimeInput
+                            className="mt-2"
+                            label="Start Time"
+                            labelPlacement="outside"
+                          />
+                        </div>
+
+                        <div className="flex gap-2 mt-2">
+                          <DateInput
+                            className="mt-2"
+                            label="End Date"
+                            labelPlacement="outside"
+                          />
+                          <TimeInput
+                            className="mt-2"
+                            label="End Time"
+                            labelPlacement="outside"
+                          />
+                        </div>
+                      </CardBody>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="sticky bottom-8 bg-background p-2 mt-auto flex justify-between">
+            <Button color="primary" variant="flat" onClick={() => setPage(0)}>
+              Back
+            </Button>
+            <Button color="success" onClick={handleSave}>
+              Save Workflow
+            </Button>
+          </div>
         </div>
-      </div>
-      <Divider orientation="vertical" className="opacity-50" />
-      <div className="h-full w-[30%] flex flex-col gap-5 relative">
-        {components.map((component, index) => (
-          <div
-            key={index}
-            draggable
-            className="p-5 border rounded-xl cursor-pointer hover:bg-gray-800 transition-colors flex items-center gap-5"
-            onDragStart={dragStart}
-          >
-            <component.icon />
-            {component.label}
-          </div>
-        ))}
-        <Button
-          className="justify-self-end bottom-0 absolute w-full"
-          color="success"
-          variant="flat"
-          onClick={() => onOpenChange()}
-        >
-          Next
-        </Button>
-      </div>
+      )}
+
+      <Modal isOpen={showSaveModal} onOpenChange={() => setShowSaveModal(false)}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader>Save Workflow</ModalHeader>
+              <ModalBody>
+                <p>Do you want to save this workflow?</p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  No
+                </Button>
+                <Button color="primary" onPress={confirmSave}>
+                  Yes
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
 
       <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="5xl">
         <ModalContent>
