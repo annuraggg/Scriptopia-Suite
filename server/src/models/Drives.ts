@@ -62,7 +62,7 @@ const workflowStepSchema = new Schema({
 });
 
 const workflowSchema = new Schema({
-  steps: [{ type: [workflowStepSchema] }],
+  steps: { type: [workflowStepSchema], required: true },
   currentStep: { type: Number, required: true },
   behavior: { type: String, enum: ["manual", "auto"], required: true },
   auto: { type: [autoSchema] },

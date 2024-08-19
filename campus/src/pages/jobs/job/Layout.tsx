@@ -12,7 +12,7 @@ const Layout = () => {
   const axios = ax(getToken);
   useEffect(() => {
     axios
-      .get("/drives")
+      .get("/drives/" + window.location.pathname.split("/")[3])
       .then((res) => {
         setDrive(res.data.data);
       })

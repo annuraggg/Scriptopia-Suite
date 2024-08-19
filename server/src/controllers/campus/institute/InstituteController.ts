@@ -613,7 +613,7 @@ const updateMembers = async (c: Context) => {
       }
 
       const role = organization.roles.find(
-        (r) => r.name === member.role.name.toLowerCase()
+        (r) => r.name! === member.role.name.toLowerCase()
       );
 
       const mem = {

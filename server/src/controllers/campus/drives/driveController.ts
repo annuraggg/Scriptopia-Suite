@@ -76,4 +76,28 @@ const createDrive = async (c: Context) => {
   }
 };
 
-export default { getDrives,getDrive, createDrive };
+const createWorkflow = async (c: Context) => {
+  try {
+    const { formattedData, _id } = await c.req.json();
+    console.log("ID", _id);
+    const perms = await checkPermission.all(c, ["manage_drive"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const drive = await Drives.findById(_id);
+    if (!drive) {
+      return sendError(c, 404, "Drive not found");
+    }
+
+    drive.workflow = formattedData;
+    await drive.save();
+
+    return sendSuccess(c, 201, "Workflow created successfully", drive);
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
+export default { getDrives, getDrive, createDrive, createWorkflow };
