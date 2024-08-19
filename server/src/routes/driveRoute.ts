@@ -8,4 +8,6 @@ app.get("/:id", driveController.getDrive);
 app.post("/create", driveController.createDrive);
 app.post("/workflow/create", driveController.createWorkflow);
 
+app.get("/:id/workflow", driveController.getWorkflow);
+
 export default app;

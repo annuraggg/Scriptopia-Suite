@@ -100,4 +100,41 @@ const createWorkflow = async (c: Context) => {
   }
 };
 
-export default { getDrives, getDrive, createDrive, createWorkflow };
+const getWorkflow = async (c: Context) => {
+  try {
+    const perms = await checkPermission.all(c, ["manage_drive"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const drive = await Drives.findById(c.req.param("id")).select("workflow title");
+    if (!drive) {
+      return sendError(c, 404, "Drive not found");
+    }
+
+    const { workflow } = drive;
+
+
+    const formattedData = [
+      ...(workflow?.steps.map((step) => ({
+        stepName: step.name,
+        startDate: '',
+        endDate: '' 
+      })) || []),
+      ...(workflow?.auto.map((autoStep) => ({
+        stepName: `Step ${autoStep.step}`,
+        startDate: autoStep.start.toISOString(),
+        endDate: autoStep.end.toISOString()
+      })) || [])
+    ];
+
+    return sendSuccess(c, 200, "Workflow fetched successfully", formattedData);
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
+
+
+export default { getDrives, getDrive, createDrive, createWorkflow, getWorkflow };

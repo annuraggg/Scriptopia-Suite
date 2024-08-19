@@ -29,32 +29,6 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 
-const Cards = [
-  {
-    title: "ALL",
-    driveCount: 20,
-    icon: <ListIcon size={28} />,
-    filter: "all",
-  },
-  {
-    title: "Active",
-    driveCount: 10,
-    icon: <CirclePlayIcon size={28} />,
-    filter: "active",
-  },
-  {
-    title: "Closed",
-    driveCount: 5,
-    icon: <BanIcon size={28} />,
-    filter: "inactive",
-  },
-  {
-    title: "Archived",
-    driveCount: 5,
-    icon: <ArchiveIcon size={28} />,
-    filter: "archived",
-  },
-];
 
 const editItems = [
   {
@@ -87,7 +61,49 @@ const Drives = () => {
     start: "",
     end: "",
   });
+  const [filteredCounts, setFilteredCounts] = useState({
+    all: 0,
+    active: 0,
+    closed: 0,
+    archived: 0,
+  });
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  const Cards = [
+    {
+      title: "ALL",
+      icon: <ListIcon size={28} />,
+      driveCount: filteredCounts.all,
+      filter: "all",
+    },
+    {
+      title: "Active",
+      driveCount: filteredCounts.active,
+      icon: <CirclePlayIcon size={28} />,
+      filter: "active",
+    },
+    {
+      title: "Closed",
+      driveCount: filteredCounts.closed,
+      icon: <BanIcon size={28} />,
+      filter: "inactive",
+    },
+    {
+      title: "Archived",
+      driveCount: filteredCounts.archived,
+      icon: <ArchiveIcon size={28} />,
+      filter: "archived",
+    },
+  ];
+
+  const updateDriveCounts = (drives: any[]) => {
+    const all = drives.length;
+    const active = drives.filter((drive) => new Date(drive.applicationRange.end) >= new Date()).length;
+    const closed = drives.filter((drive) => new Date(drive.applicationRange.end) < new Date()).length;
+    const archived = drives.filter((drive) => drive.status === "archived").length;
+  
+    setFilteredCounts({ all, active, closed, archived });
+  };
 
   const filtereddrives = drives.filter((post) => {
     const matchesSearch = post.title
@@ -137,12 +153,14 @@ const Drives = () => {
       .get("/drives")
       .then((res) => {
         setDrives(res.data.data);
+        updateDriveCounts(res.data.data);
       })
       .catch((err) => {
         toast.error(err.response.data.message);
         console.log(err);
       });
   }, []);
+  
 
   return (
     <div className="flex gap-5 w-full p-5">
