@@ -20,6 +20,7 @@ const interviewSchema = new Schema({
 
 const assessmentSchema = new Schema({
   assessmentId: { type: String, required: true, ref: "Assessment" },
+  name: { type: String, required: true },
 });
 
 const atsSchema = new Schema({
@@ -93,8 +94,8 @@ const driveSchema = new Schema({
   workflow: { type: workflowSchema },
 
   ats: { type: atsSchema },
-  assessments: [{ type: [assessmentSchema], ref: "Assessment" }],
-  assignments: [{ type: [assignmentSchema], ref: "Assignment" }],
+  assessments: { type: [assessmentSchema], ref: "Assessment" },
+  assignments: { type: [assignmentSchema], ref: "Assignment" },
   interview: { type: interviewSchema },
 
   published: { type: Boolean, default: false },

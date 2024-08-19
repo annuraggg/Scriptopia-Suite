@@ -10,6 +10,7 @@ import Join from "./pages/join/Join";
 import Notifications from "./pages/notifications/Notifications";
 import Support from "./pages/support/Support";
 import Billing from "./pages/billing/Billing";
+import Selector from "./pages/jobs/job/assessments/new/Selector";
 
 const GeneralSettings = lazy(() => import("./pages/settings/general/General"));
 const Members = lazy(() => import("./pages/settings/members/Member"));
@@ -30,6 +31,9 @@ const DriveDashboard = lazy(
 );
 const Workflow = lazy(() => import("./pages/jobs/job/workflow/Workflow"));
 const Ats = lazy(() => import("./pages/jobs/job/ats/Ats"));
+const Assessments = lazy(
+  () => import("./pages/jobs/job/assessments/Assessments")
+);
 const DriveCandidates = lazy(
   () => import("./pages/jobs/job/candidates/Candidates")
 );
@@ -81,6 +85,14 @@ const jobRoutes = [
     element: <Suspense fallback={<Loader />} children={<Ats />} />,
   },
   {
+    path: "assessments",
+    element: <Suspense fallback={<Loader />} children={<Assessments />} />,
+  },
+  {
+    path: "assessments/new/:type",
+    element: <Suspense fallback={<Loader />} children={<Selector />} />,
+  },
+  {
     path: "candidates",
     element: <Suspense fallback={<Loader />} children={<DriveCandidates />} />,
   },
@@ -119,7 +131,9 @@ function App() {
         },
         {
           path: "notifications",
-          element: <Suspense fallback={<Loader />} children={<Notifications />} />,
+          element: (
+            <Suspense fallback={<Loader />} children={<Notifications />} />
+          ),
         },
         {
           path: "settings",
@@ -133,7 +147,7 @@ function App() {
         {
           path: "support",
           element: <Suspense fallback={<Loader />} children={<Support />} />,
-        }
+        },
       ],
     },
     {
