@@ -110,7 +110,7 @@ const Start = () => {
         toast.success("Insitute created successfully");
         navigate("/dashboard");
         const data = {
-          _id: user?.publicMetadata?.orgId,
+          _id: user?.publicMetadata?.instituteId,
           role: user?.publicMetadata?.roleName,
           permissions: user?.publicMetadata?.permissions,
         };

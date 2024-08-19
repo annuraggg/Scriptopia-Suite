@@ -318,7 +318,7 @@ const joinOrganization = async (c: Context) => {
 
       clerkClient.users.updateUser(u, {
         publicMetadata: {
-          orgId: org._id,
+          instituteId: org._id,
           role: role,
         },
       });
@@ -362,7 +362,7 @@ const getSettings = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const org = await Institute.findById(perms.data?.orgId)
+    const org = await Institute.findById(perms.data?.instituteId)
       .populate("members.user")
       .populate("auditLogs.user")
       .lean();
@@ -419,7 +419,7 @@ const updateGeneralSettings = async (c: Context) => {
     }
 
     const { name, email, website, emailDomains } = await c.req.json();
-    const orgId = perms.data?.orgId;
+    const instituteId = perms.data?.instituteId;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const websiteRegex = /(http|https):\/\/[^ "]*/;
@@ -446,7 +446,7 @@ const updateGeneralSettings = async (c: Context) => {
     };
 
     const updatedOrg = await Institute.findByIdAndUpdate(
-      orgId,
+      instituteId,
       {
         $set: { name, email, website, emailDomains },
         $push: { auditLogs: auditLog },
@@ -489,10 +489,10 @@ const updateLogo = async (c: Context) => {
       "base64"
     );
 
-    const orgId = perms.data?.orgId;
+    const instituteId = perms.data?.instituteId;
     const uploadParams = {
       Bucket: process.env.R2_S3_BUCKET!,
-      Key: `inst-logos/${orgId}.png`,
+      Key: `inst-logos/${instituteId}.png`,
       Body: buffer,
       ContentEncoding: "base64",
       ContentType: "image/png",
@@ -513,8 +513,8 @@ const updateLogo = async (c: Context) => {
       type: "info",
     };
 
-    const updatedOrg = await Institute.findByIdAndUpdate(orgId, {
-      $set: { logo: `org-logos/${orgId}.png` },
+    const updatedOrg = await Institute.findByIdAndUpdate(instituteId, {
+      $set: { logo: `org-logos/${instituteId}.png` },
       $push: { auditLogs: auditLog },
     });
 
@@ -537,10 +537,10 @@ const updateMembers = async (c: Context) => {
     }
 
     const { members } = await c.req.json();
-    const orgId = perms.data?.orgId;
+    const instituteId = perms.data?.instituteId;
 
     // compare old pending members with new pending members. If there are new pending members, send them an invite
-    const organization = await Institute.findById(orgId);
+    const organization = await Institute.findById(instituteId);
 
     if (!organization) {
       return sendError(c, 404, "Institute not found");
@@ -578,7 +578,7 @@ const updateMembers = async (c: Context) => {
             .name,
           roleId: members.find((member: Member) => member.email === email).role
             ._id,
-          organization: orgId,
+          organization: instituteId,
           inviter: fName || "",
           inviterId: c.get("auth").userId,
           organizationname: organization.name,
@@ -626,7 +626,7 @@ const updateMembers = async (c: Context) => {
       finalMembers.push(mem);
     }
 
-    const updatedOrg = await Institute.findByIdAndUpdate(orgId, {
+    const updatedOrg = await Institute.findByIdAndUpdate(instituteId, {
       $set: { members : finalMembers },
       $push: { auditLogs: auditLog },
     });
@@ -663,14 +663,14 @@ const updateRoles = async (c: Context) => {
         description: role.description,
         permissions: role.permissions.map((p: PermissionType) => p._id),
         default: role.default,
-        organization: perms.data?.orgId!,
+        organization: perms.data?.instituteId!,
       };
 
       finalRoles.push(roleObj);
     }
 
-    const orgId = perms.data?.orgId;
-    const organization = await Institute.findById(orgId);
+    const instituteId = perms.data?.instituteId;
+    const organization = await Institute.findById(instituteId);
 
     if (!organization) {
       return sendError(c, 404, "Institute not found");
@@ -687,7 +687,7 @@ const updateRoles = async (c: Context) => {
       type: "info",
     };
 
-    const updatedOrg = await Institute.findByIdAndUpdate(orgId, {
+    const updatedOrg = await Institute.findByIdAndUpdate(instituteId, {
       $set: { roles: finalRoles },
       $push: { auditLogs: auditLog },
     });
@@ -715,9 +715,9 @@ const getCandidates = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const orgId = perms.data?.orgId;
+    const instituteId = perms.data?.instituteId;
 
-    const organization = await Institute.findById(orgId).populate("candidates");
+    const organization = await Institute.findById(instituteId).populate("candidates");
 
     if (!organization) {
       return sendError(c, 404, "Institute not found");
