@@ -48,6 +48,7 @@ import StudentNotifications from "./pages/student-portal/notifications/Notificat
 
 // STUDENT SETTINGS
 import StudentSettingsGeneral from "./pages/student-portal/settings/general/General";
+import Assignments from "./pages/jobs/job/assignment/Assignments";
 
 const Loader = () => (
   <div className="spinner-container">
@@ -102,6 +103,10 @@ const jobRoutes = [
   {
     path: "assessments/new/:type",
     element: <Suspense fallback={<Loader />} children={<Selector />} />,
+  },
+  {
+    path: "assignments",
+    element: <Suspense fallback={<Loader />} children={<Assignments />} />,
   },
   {
     path: "candidates",
