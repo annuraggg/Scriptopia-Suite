@@ -38,6 +38,17 @@ const DriveCandidates = lazy(
   () => import("./pages/jobs/job/candidates/Candidates")
 );
 
+// STUDENT PORTAL
+import StudentLayout from "./components/layout/StudentLayout";
+import StudentDashboard from "./pages/student-portal/dashboard/Dashboard";
+import StudentProfile from "./pages/student-portal/profile/Profile";
+import StudentDrives from "./pages/student-portal/drives/Drives";
+import StudentSettingsLayout from "./pages/student-portal/settings/Layout";
+import StudentNotifications from "./pages/student-portal/notifications/Notifications";
+
+// STUDENT SETTINGS
+import StudentSettingsGeneral from "./pages/student-portal/settings/general/General";
+
 const Loader = () => (
   <div className="spinner-container">
     <Spinner label="Loading..." color="default" />
@@ -95,6 +106,13 @@ const jobRoutes = [
   {
     path: "candidates",
     element: <Suspense fallback={<Loader />} children={<DriveCandidates />} />,
+  },
+];
+
+const studentSettingsRoute = [
+  {
+    path: "general",
+    element: <Suspense fallback={<Loader />} children={<StudentSettingsGeneral />} />,
   },
 ];
 
@@ -160,7 +178,41 @@ function App() {
     },
     {
       path: "/student-portal",
-      element: <></>,
+      element: <StudentLayout />,
+      children: [
+        {
+          path: "dashboard",
+          element: (
+            <Suspense fallback={<Loader />} children={<StudentDashboard />} />
+          ),
+        },
+        {
+          path: "drives",
+          element: (
+            <Suspense fallback={<Loader />} children={<StudentDrives />} />
+          ),
+        },
+        {
+          path: "profile",
+          element: (
+            <Suspense fallback={<Loader />} children={<StudentProfile />} />
+          ),
+        },
+        {
+          path: "settings",
+          element: <StudentSettingsLayout />,
+          children: studentSettingsRoute,
+        },
+        {
+          path: "notifications",
+          element: (
+            <Suspense
+              fallback={<Loader />}
+              children={<StudentNotifications />}
+            />
+          ),
+        },
+      ],
     },
   ]);
 
