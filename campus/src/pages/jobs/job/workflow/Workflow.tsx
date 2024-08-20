@@ -11,10 +11,14 @@ const Workflow = () => {
 
   return (
     <div>
-      {(!drive?.workflow?.steps?.length && !create) && <Blank setCreate={setCreate} />}
+      {!drive?.workflow?.steps?.length && <Blank setCreate={setCreate} />}
       {!drive.workflow?.steps?.length && create && <Create />}
 
-      {drive.workflow?.steps?.length && <Show />}
+      {drive.workflow?.steps?.length && 
+      <Show 
+      workflowData={drive.workflow.steps} 
+      driveTitle={drive.title}
+      behavior={drive.workflow.behavior}  />}
     </div>
   );
 };
