@@ -110,8 +110,8 @@ const Assignments = () => {
               <Input placeholder="Search MCQ Assessments" />
             </div>
             <div>
-              <Button className="mt-5" variant="flat">
-                + Create MCQ Assessment
+              <Button className="mt-5" variant="flat" onClick={() => setPage(0)}>
+                + Create Assignment
               </Button>
             </div>
             <div className="mt-5 flex gap-5 flex-wrap">
@@ -132,18 +132,6 @@ const Assignments = () => {
                     <span className="text-xs text-gray-500">Date: </span>
                     <span className="text-xs text-white-200">
                       {new Date().toLocaleString()} {/* Replace with actual date */}
-                    </span>
-                  </p>
-                  <p>
-                    <span className="text-xs text-gray-500">Duration: </span>
-                    <span className="text-xs text-white-200">
-                      {0} minutes {/* Replace with actual duration */}
-                    </span>
-                  </p>
-                  <p>
-                    <span className="text-xs text-gray-500">MCQs: </span>
-                    <span className="text-xs text-white-200">
-                      {0} {/* Replace with actual number of MCQs */}
                     </span>
                   </p>
                   <p className="text-xs text-gray-500 mt-2">Time Range:</p>
@@ -175,15 +163,6 @@ const Assignments = () => {
                 </CardFooter>
               </Card>
             </div>
-          </div>
-          <div className="flex gap-5 mt-10">
-            <Button
-              color="danger"
-              className="px-6 py-3 text-white"
-              onClick={() => setPage(0)}
-            >
-              Back
-            </Button>
           </div>
         </motion.div>
       )}
