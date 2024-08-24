@@ -6,7 +6,7 @@
     "prod": "tsx src/index.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-lambda": "^3.614.0",
+    "@aws-sdk/client-lambda": "^3.637.0",
     "@aws-sdk/client-s3": "^3.622.0",
     "@aws-sdk/lib-storage": "^3.622.0",
     "@axiomhq/pino": "^1.0.0",
