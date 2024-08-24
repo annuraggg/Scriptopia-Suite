@@ -3,6 +3,7 @@ import {
   Card,
   CardBody,
 } from "@nextui-org/react";
+import { Drive } from "@shared-types/Drive";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -12,7 +13,7 @@ const typeMap = {
   mcqa: "Multiple Choice Assessment",
 };
 
-const Configure = ({ drive }: { drive: any }) => {
+const Configure = ({ drive }: { drive: Drive }) => {
   const navigate = useNavigate();
   const [assessmentTitles, setAssessmentTitles] = useState<string[]>([]);
 
@@ -32,7 +33,7 @@ const Configure = ({ drive }: { drive: any }) => {
         button
       </p>
 
-      {drive?.workflow?.steps?.map((step: any, index: number) => (
+      {drive?.workflow?.steps?.map((step, index: number) => (
         <>
           {(step.type === "ca" ||
             step.type === "mcqca" ||

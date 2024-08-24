@@ -26,7 +26,7 @@ const General = ({
   setEndTime,
 }: {
   assessmentName: string;
-  setAssessmentName: (name: string) => void;
+  setAssessmentName?: (name: string) => void;
   assessmentDescription: string;
   setAssessmentDescription: (description: string) => void;
   timeLimit: number;

@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { Delta } from "quill/core";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { ITestCase } from "@/@types/Problem";
+import { ITestCase } from "@shared-types/Problem";
 import Scl from "./Scl";
 
 const steps = [

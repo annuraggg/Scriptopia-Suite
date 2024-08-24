@@ -1,6 +1,6 @@
 import { Button, useDisclosure } from "@nextui-org/react";
 import McqModal from "./McqModal";
-import { IMcq } from "@/@types/Assessment";
+import { IMcq } from "@shared-types/Assessment";
 import { useState, useRef } from "react";
 import {
   ChevronDownIcon,
@@ -98,10 +98,10 @@ const Mcqs = ({
     setIsEditing(true);
     setTitle(mcqs[editingIndex!].question);
     setQuestionType(new Set<string>([mcqs[editingIndex!].type]));
-    setOptions(mcqs[editingIndex!].mcq.options);
-    setCorrectOption(mcqs[editingIndex!].mcq.correct);
-    setCheckboxes(mcqs[editingIndex!].checkbox.options);
-    setCorrectCheckboxes(mcqs[editingIndex!].checkbox.correct);
+    setOptions(mcqs[editingIndex!]?.mcq?.options ?? []);
+    setCorrectOption(mcqs[editingIndex!]?.mcq?.correct ?? "");
+    setCheckboxes(mcqs[editingIndex!]?.checkbox?.options ?? []);
+    setCorrectCheckboxes(mcqs[editingIndex!]?.checkbox?.correct ?? []);
     setGrade(mcqs[editingIndex!].grade);
     onOpen();
   };

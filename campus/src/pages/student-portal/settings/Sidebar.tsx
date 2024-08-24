@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/@types/reducer";
+import { RootState } from "@/types/Reducer";
 import { shakeToast } from "@/reducers/toastReducer";
 
 const Sidebar = () => {

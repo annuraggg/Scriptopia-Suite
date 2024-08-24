@@ -66,7 +66,7 @@ const Lander = () => {
     {
       name: "Assessments",
       icon: <FileText size={30} className="text-gray-500" />,
-      desc: "Evaluate candidates with precision using customizable assessments. From skills tests to personality evaluations, our tools help you gain deeper insights into each candidate’s fit for your organization.",
+      desc: "Evaluate candidates with precision using customizable assessments. From skills tests to personality evaluations, our tools help you gain deeper insights into each candidate’s fit for your Institute.",
     },
     {
       name: "Candidate Management",

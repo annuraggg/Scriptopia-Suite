@@ -10,7 +10,7 @@ import {
 } from "@nextui-org/react";
 import { Eye, Link, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import IAssessment from "@/@types/Assessment";
+import { IAssessment } from "@shared-types/Assessment";
 import { toast } from "sonner";
 import ax from "@/config/axios";
 import { useAuth } from "@clerk/clerk-react";
@@ -40,24 +40,24 @@ const CodeAssess = ({ createdAssessments: initialCreatedAssessments }: { created
   const [searchTerm, setSearchTerm] = useState("");
   const [createdAssessments, setCreatedAssessments] = useState<IAssessment[]>(initialCreatedAssessments);
 
-  
+
   const filteredAssessments = useMemo(() => {
     return createdAssessments.filter((assessment) =>
       assessment.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [createdAssessments, searchTerm]);
 
-  
+
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
-  
+
   const handleDelete = async (id: string) => {
     try {
       await axios.delete(`/assessments/mcqcode/created/${id}`);
       toast.success("Assessment deleted successfully");
 
-      
+
       setCreatedAssessments(prevAssessments =>
         prevAssessments.filter(assessment => assessment._id !== id)
       );

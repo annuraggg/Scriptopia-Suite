@@ -6,7 +6,7 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import { AuditLog } from "@/@types/Organization";
+import { AuditLog } from "@shared-types/Organization";
 import { Select, SelectSection, SelectItem } from "@nextui-org/react";
 
 const AuditLogs = () => {
@@ -120,7 +120,7 @@ const AuditLogs = () => {
                 <p className="text-xs opacity-50">User: {log.user}</p>
               </div>
               <p className="absolute right-5 text-xs opacity-50">
-                {new Date(log.date).toLocaleString()}
+                {log?.date ? new Date(log.date).toLocaleString() : ""}
               </p>
             </div>
           ))}

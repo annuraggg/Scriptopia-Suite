@@ -4,13 +4,13 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import Role from "@/@types/Roles";
+import { Role } from "@shared-types/EnterpriseRole";
 import { Card, CardBody, Checkbox, Input, Spinner } from "@nextui-org/react";
-import Permission from "@/@types/Permission";
+import { Permission } from "@shared-types/EnterprisePermission";
 import UnsavedToast from "@/components/UnsavedToast";
 import { setToastChanges } from "@/reducers/toastReducer";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/@types/reducer";
+import { RootState } from "@/types/Reducer";
 
 const Roles = () => {
   const [builtInRoles, setBuiltInRoles] = useState<Role[]>([]);
@@ -22,7 +22,7 @@ const Roles = () => {
 
   const [reset, setReset] = useState(false);
 
-  const org = useSelector((state: RootState) => state.organization._id)!;
+  const org = useSelector((state: RootState) => state.institute._id)!;
 
   const dispatch = useDispatch();
 
@@ -41,7 +41,7 @@ const Roles = () => {
     axios
       .get("campus/settings")
       .then((res) => {
-     
+
         setBuiltInRoles(
           res.data.data.roles.filter((role: Role) => role.default)
         );
@@ -60,7 +60,7 @@ const Roles = () => {
         toast.error("Error Fetching Settings");
       })
       .finally(() => setLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reset]);
 
   const save = async () => {
@@ -97,10 +97,7 @@ const Roles = () => {
     if (val) {
       const newRole = {
         ...selectedRole,
-        permissions: [
-          ...selectedRole.permissions,
-          { _id: perm._id, name: perm.name },
-        ],
+
       };
 
       setSelectedRole(newRole);
@@ -110,7 +107,7 @@ const Roles = () => {
     } else {
       const newRole = {
         ...selectedRole,
-        permissions: selectedRole.permissions.filter((p) => p._id !== perm._id),
+        permissions: selectedRole.permissions.filter((p) => p !== perm._id),
       };
 
       setSelectedRole(newRole);
@@ -209,7 +206,7 @@ const Roles = () => {
                       key={perm._id}
                       isSelected={
                         selectedRole.permissions.filter(
-                          (p) => p._id === perm._id
+                          (p) => p === perm._id
                         ).length > 0
                       }
                       onValueChange={(val) => changePerm(val, perm)}

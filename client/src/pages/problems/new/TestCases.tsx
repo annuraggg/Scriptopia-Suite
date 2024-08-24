@@ -21,7 +21,7 @@ import {
 } from "@nextui-org/react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ITestCase } from "@/@types/Problem";
+import { ITestCase } from "@shared-types/Problem";
 
 const TestCases = ({
   testCases,

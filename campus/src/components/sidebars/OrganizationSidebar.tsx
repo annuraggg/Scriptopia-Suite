@@ -20,36 +20,36 @@ import {
 import { useEffect, useState } from "react";
 import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
 
-const OrganizationSidebar = () => {
+const InstituteSidebar = () => {
   const topItems = [
     {
       icon: Home,
       label: "Dashboard",
-      link: "/organization/dashboard",
+      link: "/institute/dashboard",
       visible: true,
     },
     {
       icon: Briefcase,
       label: "Drive",
-      link: "/organization/drives",
+      link: "/institute/drives",
       visible: true,
     },
     {
       icon: Users,
       label: "Candidates",
-      link: "/organization/candidates",
+      link: "/institute/candidates",
       visible: true,
     },
     {
       icon: PieChart,
       label: "Analytics",
-      link: "/organization/analytics",
+      link: "/institute/analytics",
       visible: true,
     },
     {
       icon: Calendar,
       label: "Calendar",
-      link: "/organization/calendar",
+      link: "/institute/calendar",
       visible: true,
     },
   ];
@@ -58,31 +58,31 @@ const OrganizationSidebar = () => {
     {
       icon: Bell,
       label: "Notifications",
-      link: "/organization/notifications",
+      link: "/institute/notifications",
       visible: true,
     },
     {
       icon: Settings,
       label: "Settings",
-      link: "/organization/settings/general",
+      link: "/institute/settings/general",
       visible: true,
     },
     {
       icon: CreditCard,
       label: "Billing",
-      link: "/organization/billing",
+      link: "/institute/billing",
       visible: true,
     },
     // {
     //   icon: BookOpenText,
     //   label: "Documentation",
-    //   link: "/organization/documentation",
+    //   link: "/institute/documentation",
     //   visible: true,
     // },
     {
       icon: HelpCircle,
       label: "Support",
-      link: "/organization/support",
+      link: "/institute/support",
       visible: true,
     },
   ];
@@ -206,4 +206,4 @@ const OrganizationSidebar = () => {
   );
 };
 
-export default OrganizationSidebar;
+export default InstituteSidebar;

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { RootState } from "@/@types/reducer";
+import { RootState } from "@/types/Reducer";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
@@ -8,7 +8,7 @@ import Trial from "./Trial";
 import Plan from "./Plan";
 
 const Billing = () => {
-  const org = useSelector((state: RootState) => state.organization);
+  const org = useSelector((state: RootState) => state.institute);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [trialDays, setTrialDays] = useState<number | null>(10);
   const [renews, setRenews] = useState<string | null>(null);
@@ -23,7 +23,7 @@ const Billing = () => {
     <>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem href={"/" + org._id}>Organization</BreadcrumbItem>
+          <BreadcrumbItem href={"/" + org._id}>Institute</BreadcrumbItem>
           <BreadcrumbItem href={"/" + org._id + "/billing"}>
             Billing
           </BreadcrumbItem>

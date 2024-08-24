@@ -17,8 +17,8 @@ import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { Member } from "@/@types/Organization";
-import Role from "@/@types/Roles";
+import { Member } from "@shared-types/Organization";
+import { Role } from "@shared-types/EnterpriseRole";
 import {
   Modal,
   ModalContent,
@@ -189,7 +189,7 @@ const Members: React.FC = () => {
                   <TableRow key={member.email}>
                     <TableCell>{member.email}</TableCell>
                     <TableCell>
-                      {new Date(member.addedOn).toDateString()}
+                      {member?.addedOn ? new Date(member.addedOn).toLocaleDateString() : "pending"}
                     </TableCell>
                     <TableCell className="w-[200px]">
                       <Select
@@ -245,7 +245,7 @@ const Members: React.FC = () => {
                   <TableRow key={index}>
                     <TableCell>{member.email}</TableCell>
                     <TableCell>
-                      {new Date(member.addedOn).toLocaleDateString()}
+                      {member?.addedOn ? new Date(member.addedOn).toLocaleDateString() : "pending"}
                     </TableCell>
                     <TableCell>{member.role.name}</TableCell>
                     <TableCell>

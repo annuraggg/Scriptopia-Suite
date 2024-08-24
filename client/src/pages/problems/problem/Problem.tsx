@@ -7,7 +7,7 @@ import starterGenerator from "@/functions/starterGenerator";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { Delta } from "quill/core";
-import { IRunResponseResult } from "@/@types/RunResponse";
+import { IRunResponseResult } from "@shared-types/RunResponse";
 import confetti from "canvas-confetti";
 import {
   Drawer,
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/drawer";
 import { Button, Card, CardBody } from "@nextui-org/react";
 import { CpuIcon, TimerIcon } from "lucide-react";
-import { ISubmission } from "@/@types/Submission";
+import { ISubmission } from "@shared-types/Submission";
 
 const languageEx = "javascript";
 

@@ -16,7 +16,7 @@ const Sidebar = () => {
           <div
             key={tab.label}
             className="flex gap-3 px-3 py-2 rounded-xl hover:bg-gray-800 cursor-pointer transition-all"
-            onClick={() => navigate(`/organization/settings/security/${tab.link}`)}
+            onClick={() => navigate(`/institute/settings/security/${tab.link}`)}
           >
             <tab.icon />  
             <p>{tab.label}</p>

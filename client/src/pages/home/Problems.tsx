@@ -1,4 +1,4 @@
-import IProblem from "@/@types/Problem";
+import { IProblem } from "@shared-types/Problem";
 import { Input, Select, SelectItem } from "@nextui-org/react";
 import {
   Table,
@@ -114,10 +114,9 @@ const Problems = ({
                 <TableCell
                   className={`
               ${problem.difficulty.toLowerCase() === "easy" && "text-green-400"}
-              ${
-                problem.difficulty.toLowerCase() === "medium" &&
-                "text-yellow-400"
-              }
+              ${problem.difficulty.toLowerCase() === "medium" &&
+                    "text-yellow-400"
+                    }
               ${problem.difficulty.toLowerCase() === "hard" && "text-red-400"}
             `}
                 >

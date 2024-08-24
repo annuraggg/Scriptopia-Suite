@@ -12,7 +12,7 @@ import {
 import * as monaco from "monaco-editor";
 import { useEffect, useState } from "react";
 import languages from "@/data/languages";
-import { IFunctionArg } from "@/@types/Problem";
+import { IFunctionArg } from "@shared-types/Problem";
 
 const Stub = ({
   functionName,

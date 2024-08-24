@@ -7,7 +7,7 @@ import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { Select, SelectSection, SelectItem } from "@nextui-org/react";
-import { AuditLog } from "@/@types/Organization";
+import { AuditLog } from "@shared-types/Institute";
 
 const AuditLogs = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
@@ -93,16 +93,15 @@ const AuditLogs = () => {
           {filteredLogs?.map((log) => (
             <div
               className={`flex border py-3 gap-3 px-5 mt-3 rounded-xl w-full relative items-center bg-opacity-10
-                ${
-                  log.type === "info"
-                    ? "bg-blue-500"
-                    : log.type === "warning"
+                ${log.type === "info"
+                  ? "bg-blue-500"
+                  : log.type === "warning"
                     ? "bg-yellow-500"
                     : log.type === "error"
-                    ? "bg-red-500"
-                    : log.type === "success"
-                    ? "bg-success-500"
-                    : ""
+                      ? "bg-red-500"
+                      : log.type === "success"
+                        ? "bg-success-500"
+                        : ""
                 }
                 `}
             >
@@ -120,7 +119,7 @@ const AuditLogs = () => {
                 <p className="text-xs opacity-50">User: {log.user}</p>
               </div>
               <p className="absolute right-5 text-xs opacity-50">
-                {new Date(log.date).toLocaleString()}
+                {log?.date ? new Date(log.date).toLocaleString() : ""}
               </p>
             </div>
           ))}

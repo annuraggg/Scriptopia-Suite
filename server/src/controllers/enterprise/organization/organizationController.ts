@@ -7,19 +7,19 @@ import jwt from "jsonwebtoken";
 import loops from "../../../config/loops";
 import clerkClient from "../../../config/clerk";
 import logger from "../../../utils/logger";
-import Roles from "../../../models/Roles";
+import Roles from "../../../models/EnterpriseRole";
 import checkPermission from "../../../middlewares/checkPermission";
 import PermissionType from "../../../@types/Permission";
 import { createCustomer } from "@lemonsqueezy/lemonsqueezy.js";
 import Candidate from "../../../@types/Candidate";
-import candidateModel from "../../../models/Candidate";
+import candidateModel from "../../../models/EnterpriseCandidate";
 import r2Client from "../../../config/s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import multer from "multer";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import ls from "../../../config/lemonSqueezy";
 import { AuditLog, Member, Role } from "../../../@types/Organization";
-import Permission from "../../../models/Permission";
+import Permission from "../../../models/EnterprisePermission";
 
 // const roleIdMap = {
 //   administrator: "66a6165bdc907b2eb692501b",

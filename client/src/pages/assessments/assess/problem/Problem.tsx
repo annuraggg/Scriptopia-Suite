@@ -7,7 +7,7 @@ import starterGenerator from "@/functions/starterGenerator";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { Delta } from "quill/core";
-import { IRunResponseResult } from "@/@types/RunResponse";
+import { IRunResponseResult } from "@shared-types/RunResponse";
 import {
   Modal,
   ModalContent,

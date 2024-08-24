@@ -12,8 +12,9 @@ import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { Badge } from "@nextui-org/badge";
 import { Tooltip } from "@nextui-org/react";
+import { Drive } from "@shared-types/Drive";
 
-const Sidebar = ({ drive }: { drive: any[] }) => {
+const Sidebar = ({ drive }: { drive: Drive }) => {
   const navigate = useNavigate();
   const [active, setActive] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
@@ -67,7 +68,7 @@ const Sidebar = ({ drive }: { drive: any[] }) => {
         label: "Interviews",
         link: "/interviews",
         visible: getFilteredStepsCount(["pi"]) > 0,
-        badge: getFilteredStepsCount(["pi"]) - (drive?.interview?.length || 0),
+        badge: getFilteredStepsCount(["pi"]) - (drive?.interview ? 0 : 1),
       },
       {
         icon: Users,

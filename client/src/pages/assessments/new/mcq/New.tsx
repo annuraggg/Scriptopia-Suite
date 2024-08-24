@@ -25,7 +25,7 @@ import {
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { IMcq } from "@/@types/Assessment";
+import { IMcq } from "@shared-types/Assessment";
 
 const tabsList = [
   "General",

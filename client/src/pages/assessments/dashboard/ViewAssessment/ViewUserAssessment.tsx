@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { useEffect, useState } from "react";
-import IAssessment from "@/@types/Assessment";
-import IAssessSub from "@/@types/AssessmentSubmission";
+import { IAssessment } from "@shared-types/Assessment";
+import { AssessmentSubmissionsSchema as IAssessSub } from "@shared-types/AssessmentSubmission";
 import { toast } from "sonner";
 
 const ViewUserAssessment = () => {

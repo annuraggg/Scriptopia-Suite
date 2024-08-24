@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/@types/reducer";
+import { RootState } from "@/types/Reducer";
 import { shakeToast } from "@/reducers/toastReducer";
 
 const Sidebar = () => {
@@ -90,7 +90,7 @@ const Sidebar = () => {
                           }, 1000);
                           return;
                         }
-                        navigate(`/organization/settings${item.link}`);
+                        navigate(`/institute/settings${item.link}`);
                         setActive(item.label.toLowerCase());
                       }}
                     >

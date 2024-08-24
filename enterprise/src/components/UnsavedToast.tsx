@@ -1,4 +1,4 @@
-import { RootState } from "@/@types/reducer";
+import { RootState } from "@/types/Reducer";
 import { setToastChanges } from "@/reducers/toastReducer";
 import { Button } from "@nextui-org/react";
 import { Dispatch, SetStateAction } from "react";

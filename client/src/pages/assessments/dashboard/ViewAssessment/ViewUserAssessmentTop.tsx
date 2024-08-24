@@ -7,8 +7,8 @@ import {
   ArrowLeftRight,
   Play,
 } from "lucide-react";
-import IAssessment from "@/@types/Assessment";
-import IAssessSub from "@/@types/AssessmentSubmission";
+import { IAssessment } from "@shared-types/Assessment";
+import { AssessmentSubmissionsSchema as IAssessSub } from "@shared-types/AssessmentSubmission";
 
 const ViewUserAssessmentTop = ({
   submission,
@@ -163,9 +163,8 @@ const ViewUserAssessmentTop = ({
               </div>
               <p
                 className={`text-smml-[90px]
-              ${
-                calculateTotalCopies() === 0 ? "text-green-500" : "text-red-500"
-              }
+              ${calculateTotalCopies() === 0 ? "text-green-500" : "text-red-500"
+                  }
                 `}
               >
                 {calculateTotalCopies() === 0 ? "NO" : calculateTotalCopies()}
@@ -178,11 +177,10 @@ const ViewUserAssessmentTop = ({
               </div>
               <p
                 className={`text-sm  ml-[68px]
-              ${
-                calculateTotalWindowSwitch() === 0
-                  ? "text-green-500"
-                  : "text-red-500"
-              }
+              ${calculateTotalWindowSwitch() === 0
+                    ? "text-green-500"
+                    : "text-red-500"
+                  }
                 `}
               >
                 {calculateTotalWindowSwitch() === 0
@@ -201,22 +199,21 @@ const ViewUserAssessmentTop = ({
             <CardBody className="flex justify-center items-center pb-5">
               <p
                 className={`text-xl 
-              ${
-                assessment?.passingPercentage <
-                getPercentage(
-                  submission?.obtainedGrades?.total,
-                  assessment?.obtainableScore
-                )
-                  ? "text-green-500"
-                  : "text-red-500"
-              }
+              ${assessment?.passingPercentage <
+                    getPercentage(
+                      submission?.obtainedGrades?.total,
+                      assessment?.obtainableScore
+                    )
+                    ? "text-green-500"
+                    : "text-red-500"
+                  }
                 `}
               >
                 {assessment?.passingPercentage <
-                getPercentage(
-                  submission?.obtainedGrades?.total,
-                  assessment?.obtainableScore
-                )
+                  getPercentage(
+                    submission?.obtainedGrades?.total,
+                    assessment?.obtainableScore
+                  )
                   ? "PASSED"
                   : "FAILED"}
               </p>

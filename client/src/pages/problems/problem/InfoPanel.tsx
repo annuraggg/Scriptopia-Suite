@@ -1,6 +1,6 @@
 import { Card, Code, Spinner, Tab, Tabs } from "@nextui-org/react";
 import { FlaskConical, SquareChevronRight } from "lucide-react";
-import { IRunResponseResult } from "@/@types/RunResponse";
+import { IRunResponseResult } from "@shared-types/RunResponse";
 
 const InfoPanel = ({
   consoleOutput,

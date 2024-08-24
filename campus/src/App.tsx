@@ -124,7 +124,7 @@ const studentSettingsRoute = [
 function App() {
   const routes = createBrowserRouter([
     {
-      path: "/organization",
+      path: "/institute",
       element: <OrganizationLayout />,
       children: [
         {

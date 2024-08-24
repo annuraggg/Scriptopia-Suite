@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/sheet";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { IMcq } from "@/@types/Assessment";
-import IProblem from "@/@types/Problem";
+import { IMcq } from "@shared-types/Assessment";
+import { IProblem } from "@shared-types/Problem";
 import secureLocalStorage from "react-secure-storage";
 
 const Main = ({
@@ -154,7 +154,7 @@ const Main = ({
                             }
                           >
                             {mcq.type === "multiple" &&
-                              mcq?.mcq.options?.map((option) => (
+                              mcq?.mcq?.options?.map((option) => (
                                 <ToggleGroupItem
                                   key={option}
                                   value={option}
@@ -165,7 +165,7 @@ const Main = ({
                               ))}
 
                             {mcq.type === "checkbox" &&
-                              mcq?.checkbox.options?.map((option) => (
+                              mcq?.checkbox?.options?.map((option) => (
                                 <ToggleGroupItem
                                   key={option}
                                   value={option}

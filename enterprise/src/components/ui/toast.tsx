@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 import { useSelector } from "react-redux";
-import { RootState } from "@/@types/reducer";
+import { RootState } from "@/types/Reducer";
 
 const ToastProvider = ToastPrimitives.Provider;
 

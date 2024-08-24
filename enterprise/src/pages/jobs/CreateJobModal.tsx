@@ -20,7 +20,7 @@ interface CreateJobModalProps {
   onClose: () => void;
 }
 
-const workTypes = ["Full Time", "Part Time", "Intern"];
+const workList = ["Full Time", "Part Time", "Intern"];
 
 const CreateJobModal: React.FC<CreateJobModalProps> = ({ isOpen, onClose }) => {
   const [startDate, setStartDate] = useState("");
@@ -86,7 +86,7 @@ const CreateJobModal: React.FC<CreateJobModalProps> = ({ isOpen, onClose }) => {
               disableSelectorIconRotation
               selectorIcon={<ChevronsUpDown size={16} />}
             >
-              {workTypes.map((type, index) => (
+              {workList.map((type, index) => (
                 <SelectItem key={index} value={type}>
                   {type}
                 </SelectItem>

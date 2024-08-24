@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
+import { Drive } from "@shared-types/Drive";
 
 const Layout = () => {
-  const [drive, setDrive] = useState<any[]>([]);
+  const [drive, setDrive] = useState<Drive>({} as Drive);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);

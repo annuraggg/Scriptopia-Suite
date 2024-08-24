@@ -1,4 +1,4 @@
-import { SclObject } from "@/@types/Scl";
+import { SclObject } from "@shared-types/Scl";
 
 const createJsTemplate = (scl: SclObject[]) => {
   const sclWithoutReturn = scl.filter((scl) => scl.type !== "return");

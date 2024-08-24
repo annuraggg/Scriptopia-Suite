@@ -11,7 +11,6 @@ import {
 } from "@nextui-org/react";
 import { useState } from "react";
 import General from "./General";
-import Candidates from "./Candidates";
 import Instructions from "./Instructions";
 import Security from "./Security";
 import Feedback from "./Feedback";
@@ -25,7 +24,7 @@ import {
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { IMcq } from "@/@types/Assessment";
+import { IMcq } from "@shared-types/Assessment";
 
 const tabsList = ["General", "MCQs", "Instructions", "Security", "Feedback"];
 const New = ({ assessmentName }: { assessmentName: string }) => {
@@ -47,12 +46,6 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
 
   // MCQs Tab States
   const [mcqs, setMcqs] = useState<IMcq[]>([]);
-
-  // Candidates Tab States
-  const [access, setAccess] = useState("all");
-  const [candidates, setCandidates] = useState<
-    { name: string; email: string }[]
-  >([]);
 
   // Instructions Tab States
   const [instructions, setInstructions] = useState("");

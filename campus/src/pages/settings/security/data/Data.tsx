@@ -2,15 +2,8 @@ import Sidebar from "../Sidebar";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { TrashIcon } from "lucide-react";
 import { Button, Divider } from "@nextui-org/react";
-// import { useAuth } from "@clerk/clerk-react";
-// import ax from "@/config/axios";
-// import { useEffect, useState } from "react";
-// import { AuditLog } from "@/@types/Organization";
 
 const Data = () => {
-  // const { getToken } = useAuth();
-  // const axios = ax(getToken);
-  // useEffect(() => {}, []);
 
   return (
     <div>
@@ -30,7 +23,7 @@ const Data = () => {
             <div className="flex gap-5 items-center">
               <TrashIcon />
               <div>
-                <p>Delete Organization</p>
+                <p>Delete Institute</p>
                 <p className="text-warning-500 opacity-70 text-sm">
                   Warning: This action cannot be undone
                 </p>

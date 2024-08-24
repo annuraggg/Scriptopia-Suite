@@ -10,8 +10,8 @@ import {
   Select,
   SelectItem,
 } from "@nextui-org/react";
-import { Member } from "@/@types/Organization";
-import Role from "@/@types/Roles";
+import { Member } from "@shared-types/Organization";
+import { Role } from "@shared-types/EnterpriseRole";
 
 const InviteModal = ({
   isOpen,
@@ -29,7 +29,7 @@ const InviteModal = ({
 
   const handleInvite = () => {
     if (email && selectedRole) {
-      const currentDate = new Date().toLocaleDateString("en-GB");
+      const currentDate = new Date();
       onInvite({ email, role: selectedRole, addedOn: currentDate, status: "pending" });
       setEmail("");
       setSelectedRole(roles[0]);

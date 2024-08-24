@@ -2,16 +2,9 @@ import Sidebar from "../Sidebar";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { TrashIcon } from "lucide-react";
 import { Button, Divider } from "@nextui-org/react";
-// import { useAuth } from "@clerk/clerk-react";
-// import ax from "@/config/axios";
-// import { useEffect, useState } from "react";
-// import { AuditLog } from "@/@types/Organization";
 
 const Data = () => {
-  // const { getToken } = useAuth();
-  // const axios = ax(getToken);
-  // useEffect(() => {}, []);
-
+  
   return (
     <div>
       <div className="mt-5 ml-5">

@@ -28,8 +28,8 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import IProblem from "@/@types/Problem";
-import { IProblem as IProblemAssessment } from "@/@types/Assessment";
+import {IProblem} from "@shared-types/Problem";
+import { IProblem as IProblemAssessment } from "@shared-types/Assessment";
 
 const tabsList = [
   "General",

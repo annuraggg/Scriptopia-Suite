@@ -10,7 +10,7 @@ import {
 } from "@nextui-org/react";
 import { Eye, Link, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import IAssessment from "@/@types/Assessment";
+import { IAssessment } from "@shared-types/Assessment";
 import { toast } from "sonner";
 import ax from "@/config/axios";
 import { useAuth } from "@clerk/clerk-react";
@@ -93,10 +93,10 @@ const MCQAssess: React.FC<{ createdAssessments: IAssessment[] }> = ({ createdAss
                   Status:{" "}
                   <span
                     className={`${calculateStatus(CreatedAssessment) === "Active"
-                        ? "text-green-500"
-                        : calculateStatus(CreatedAssessment) === "Upcoming"
-                          ? "text-yellow-500"
-                          : "text-red-500"
+                      ? "text-green-500"
+                      : calculateStatus(CreatedAssessment) === "Upcoming"
+                        ? "text-yellow-500"
+                        : "text-red-500"
                       }`}
                   >
                     {calculateStatus(CreatedAssessment)}

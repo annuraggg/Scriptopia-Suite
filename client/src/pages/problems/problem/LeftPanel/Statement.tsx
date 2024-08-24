@@ -4,7 +4,7 @@ import { Tabs, Tab } from "@nextui-org/tabs";
 import Submission from "./Submission";
 import Quill from "quill";
 import { Delta } from "quill/core";
-import { ISubmission } from "@/@types/Submission";
+import { ISubmission } from "@shared-types/Submission";
 
 const Statement = ({
   statement,

@@ -1,10 +1,10 @@
 import { Input, Select, SelectItem } from "@nextui-org/react";
 import { motion } from "framer-motion";
-import IProblem from "@/@types/Problem";
+import { IProblem } from "@shared-types/Problem";
 import {
   IProblem as IProblemAssessment,
   ITestCases,
-} from "@/@types/Assessment";
+} from "@shared-types/Assessment";
 
 const Grading = ({
   gradingMetric,

@@ -13,8 +13,8 @@ import {
 import { useEffect, useState } from "react";
 import CodeSolutionModal from "./CodeSolutionModal";
 import McqReportModal from "./McqReportModal";
-import IAssessSub from "@/@types/AssessmentSubmission";
-import IAssessment, { IMcq } from "@/@types/Assessment";
+import { AssessmentSubmissionsSchema as IAssessSub } from "@shared-types/AssessmentSubmission";
+import { IAssessment, IMcq } from "@shared-types/Assessment";
 
 interface MCQ {
   question: string;
@@ -61,9 +61,8 @@ const ViewUserAssessmentBottom = ({
           options:
             mcq?.type === "text"
               ? []
-              : mcq?.type === "multiple"
-              ? mcq?.mcq?.options
-              : mcq?.checkbox?.options,
+              : (mcq?.type === "multiple" && mcq?.mcq?.options) ? mcq?.mcq?.options
+                : (mcq?.checkbox?.options) ? mcq?.checkbox?.options : [],
           selected:
             submission?.mcqSubmissions?.find(
               (sub) => sub?.mcqId?.toString() === mcq?._id
@@ -71,9 +70,8 @@ const ViewUserAssessmentBottom = ({
           correct:
             mcq?.type === "text"
               ? []
-              : mcq?.type === "multiple"
-              ? [mcq?.mcq?.correct]
-              : mcq?.checkbox?.correct,
+              : (mcq?.type === "multiple" && mcq?.mcq?.options) ? mcq?.mcq?.options
+                : (mcq?.checkbox?.options) ? mcq?.checkbox?.options : [],
           grade: mcq?.grade,
         };
         return mcqObj;
@@ -185,7 +183,7 @@ const ViewUserAssessmentBottom = ({
                     <TableColumn className="text-sm">Action</TableColumn>
                   </TableHeader>
                   <TableBody>
-                    {assessment?.problems?.map((prob: any,i : number) => (
+                    {assessment?.problems?.map((prob: any, i: number) => (
                       <TableRow className="h-14" key={prob?._id}>
                         <TableCell className="w-full md:w-auto">
                           {prob?.title}

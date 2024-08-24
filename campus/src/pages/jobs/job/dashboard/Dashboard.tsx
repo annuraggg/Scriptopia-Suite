@@ -28,7 +28,8 @@ interface Participant {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { drive } = useOutletContext();
+  // ! CHANGE FROM ANY TYPE TO A SPECIFIC TYPE
+  const { drive } = useOutletContext() as { drive: any };
 
   const participants: Participant[] = [
     {

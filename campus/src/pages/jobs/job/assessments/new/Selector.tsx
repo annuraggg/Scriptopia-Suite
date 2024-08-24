@@ -3,17 +3,18 @@ import CodeNew from "./code/New";
 import CodeMcqNew from "./mcqcode/New";
 import McqNew from "./mcq/New";
 import { useOutletContext } from "react-router-dom";
+import { Drive } from "@shared-types/Drive";
 
 const Selector = () => {
   const [type, setType] = useState<string>("");
   const [name, setName] = useState<string>("");
 
-  const { drive } = useOutletContext();
+  const { drive } = useOutletContext() as { drive: Drive };
 
   useEffect(() => {
     const type = window.location.pathname.split("/").pop();
-    const step = new URLSearchParams(window.location.search).get("step");
-    const name = drive?.workflow?.steps[step]?.name;
+    const step = new URLSearchParams(window.location.search).get("step") || "0";
+    const name = drive?.workflow?.steps[parseInt(step)]?.name;
 
     setName(name || "");
     setType(type || "");

@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { RootState } from "@/@types/reducer";
+import { RootState } from "@/types/Reducer";
 import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
 
 const Sidebar = () => {

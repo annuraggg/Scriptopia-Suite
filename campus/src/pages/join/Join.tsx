@@ -25,10 +25,10 @@ const bgStyle = {
 
 interface Token {
   inviter: string;
-  organization: string;
+  institute: string;
   role: string;
   email: string;
-  organizationname: string;
+  instituteName: string;
 }
 
 const Join = () => {
@@ -66,7 +66,7 @@ const Join = () => {
       .then(() => {
         toast.success("Joined Insitute");
         setTimeout(() => {
-          window.location.href = "/organization/dashboard"
+          window.location.href = "/institute/dashboard"
         }, 1000);
       })
       .catch((err) => {
@@ -115,8 +115,8 @@ const Join = () => {
                   : "You have been invited to join"}
               </p>
               <h3 className="mt-3 text-center">
-                {token?.organizationname
-                  ? token.organizationname
+                {token?.institute
+                  ? token.instituteName
                   : "Institute"}
               </h3>
             </CardBody>

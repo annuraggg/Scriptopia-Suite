@@ -13,7 +13,6 @@ import { useEffect, useState } from "react";
 import General from "./General";
 import Questions from "./Questions";
 import Grading from "./Grading";
-import Candidates from "./Candidates";
 import Instructions from "./Instructions";
 import Security from "./Security";
 import Feedback from "./Feedback";
@@ -27,8 +26,8 @@ import Languages from "./Languages";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import IProblem from "@/@types/Problem";
-import { IProblem as IProblemAssessment } from "@/@types/Assessment";
+import { IProblem } from "@shared-types/Problem";
+import { IProblem as IProblemAssessment } from "@shared-types/Assessment";
 
 const tabsList = [
   "General",
@@ -88,11 +87,6 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
     IProblemAssessment[]
   >([]);
 
-  // Candidates Tab States
-  const [access, setAccess] = useState("all");
-  const [candidates, setCandidates] = useState<
-    { name: string; email: string }[]
-  >([]);
 
   // Instructions Tab States
   const [instructions, setInstructions] = useState("");
@@ -152,7 +146,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
 
     const axios = ax(getToken);
     axios
-    .post("/drives/assessment", reqBody)
+      .post("/drives/assessment", reqBody)
       .then(() => {
         toast.success("Assessment created successfully");
       })

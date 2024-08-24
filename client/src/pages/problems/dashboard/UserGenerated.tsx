@@ -10,7 +10,7 @@ import {
   Select,
   SelectItem,
 } from "@nextui-org/react";
-import IProblem from "@/@types/Problem";
+import { IProblem } from "@shared-types/Problem";
 import { useNavigate } from "react-router-dom";
 
 const UserGenerated = ({ userproblems }: { userproblems: IProblem[] }) => {

@@ -10,7 +10,7 @@ import checkPermission from "../../../middlewares/checkPermission";
 import PermissionType from "../../../@types/Permission";
 import { createCustomer } from "@lemonsqueezy/lemonsqueezy.js";
 import Candidate from "../../../@types/Candidate";
-import candidateModel from "../../../models/Candidate";
+import candidateModel from "../../../models/EnterpriseCandidate";
 import r2Client from "../../../config/s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import multer from "multer";

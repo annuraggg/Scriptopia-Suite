@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { DataTable } from "./DataTable";
-import { RootState } from "@/@types/reducer";
+import { RootState } from "@/types/Reducer";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useSelector } from "react-redux";
 import { useAuth } from "@clerk/clerk-react";
@@ -20,7 +20,7 @@ interface Candidate {
 }
 
 const Candidates = () => {
-  const org = useSelector((state: RootState) => state.organization);
+  const org = useSelector((state: RootState) => state.institute);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +55,7 @@ const Candidates = () => {
     <>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem href={"/" + org._id}>Organization</BreadcrumbItem>
+          <BreadcrumbItem href={"/" + org._id}>Institute</BreadcrumbItem>
           <BreadcrumbItem href={"/" + org._id + "/candidates"}>
             Candidates
           </BreadcrumbItem>

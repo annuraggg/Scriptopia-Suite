@@ -1,16 +1,16 @@
 import { motion } from "framer-motion";
 import MainCalendar from "./MainCalendar";
-import { RootState } from "@/@types/reducer";
+import { RootState } from "@/types/Reducer";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useSelector } from "react-redux";
 
 const Calendar = () => {
-  const org = useSelector((state: RootState) => state.organization);
+  const org = useSelector((state: RootState) => state.institute);
   return (
     <>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem href={"/" + org._id}>Organization</BreadcrumbItem>
+          <BreadcrumbItem href={"/" + org._id}>Institute</BreadcrumbItem>
           <BreadcrumbItem href={"/" + org._id + "/calendar"}>
             Calendar
           </BreadcrumbItem>
