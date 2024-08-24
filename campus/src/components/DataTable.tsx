@@ -36,120 +36,115 @@ import {
 import { Button, Checkbox, Input } from "@nextui-org/react";
 import { useState } from "react";
 
-interface DataTableProps<TData> {
-  data: TData[];
-}
-
-export function DataTable<TData>({ data }: DataTableProps<TData>) {
+export function DataTable<TData>({ data }: { data: TData[] }) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pageIndex, setPageIndex] = useState(0);
 
-  interface Candidates {
+
+  const columns: ColumnDef<{
     name: string;
     email: string;
     received: string;
     match: string;
-  }
+  }>[] = [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            isSelected={
+              (table.getIsAllPageRowsSelected() as boolean) ||
+              table.getIsSomePageRowsSelected()
+            }
+            onValueChange={(value) => table.toggleAllPageRowsSelected(value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            isSelected={row.getIsSelected()}
+            onValueChange={(value) => row.toggleSelected(value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        accessorKey: "name",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="light"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Name
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+      },
+      {
+        accessorKey: "email",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="light"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Email
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+      },
+      {
+        accessorKey: "received",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="light"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Received On
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+      },
+      {
+        accessorKey: "match",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="light"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Match
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+      },
+      {
+        id: "actions",
+        cell: () => {
+          return (
+            <Dropdown>
+              <DropdownTrigger>
+                <Button isIconOnly variant="light" className="h-8 w-8 p-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu>
+                <DropdownItem>View candidate</DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+          );
+        },
+      },
+    ];
 
-  const columns: ColumnDef<Candidates>[] = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          isSelected={
-            (table.getIsAllPageRowsSelected() as boolean) ||
-            table.getIsSomePageRowsSelected()
-          }
-          onValueChange={(value) => table.toggleAllPageRowsSelected(value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          isSelected={row.getIsSelected()}
-          onValueChange={(value) => row.toggleSelected(value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      accessorKey: "name",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Name
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-    },
-    {
-      accessorKey: "email",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Email
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-    },
-    {
-      accessorKey: "received",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Received On
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-    },
-    {
-      accessorKey: "match",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Match
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-    },
-    {
-      id: "actions",
-      cell: () => {
-        return (
-          <Dropdown>
-            <DropdownTrigger>
-              <Button isIconOnly variant="light" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownTrigger>
-            <DropdownMenu>
-              <DropdownItem>View candidate</DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
-        );
-      },
-    },
-  ];
-  
   const table = useReactTable({
     data, // @ts-expect-error - data is not assignable to type TData[]
     columns,
@@ -204,9 +199,9 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 );
               })}

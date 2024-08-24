@@ -45,7 +45,7 @@ const Problem = () => {
 
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
 
-  const [runningCode, setRunningCode] = useState<boolean>("");
+  const [runningCode, setRunningCode] = useState<boolean>(false);
 
   const [currentSubmission, setCurrentSubmission] =
     useState<ISubmission | null>(null);
@@ -75,7 +75,7 @@ const Problem = () => {
         setCode(starterCode);
         setLanguage(languageEx);
       })
-      .catch((err) => {})
+      .catch(() => {})
       .finally(() => {
         setRootLoading(false);
       });

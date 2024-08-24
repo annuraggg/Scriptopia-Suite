@@ -39,22 +39,17 @@
 //   return starterCode;
 // };
 
-import convertSclToC from "./scl/sclObjToC";
 import sclToObject from "./scl/sclToObject";
 import createJsTemplate from "./templates/js";
 
 const starterGenerator = (scl: string[], language: string) => {
   const joinedScl = scl?.join("\n");
-  const sclObj = sclToObject(joinedScl).sclObject;
+  const sclObj = sclToObject(joinedScl).sclObject!;
   let statement = "";
 
   switch (language) {
     case "javascript":
       statement = createJsTemplate(sclObj) as string;
-      break;
-
-    case "c":
-      statement = convertSclToC(joinedScl, "scl").code as string;
       break;
 
     default:

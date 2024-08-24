@@ -17,8 +17,8 @@ const Actions = ({
   runCode: () => Promise<object>;
   submitCode: () => void;
   loading: boolean;
-  setLanguage: (lang: string) => void;
-  language: string;
+  setLanguage: (lang: Language) => void;
+  language: Language;
   languages: Language[];
 }) => {
   const [runLoading, setRunLoading] = useState<boolean>(false);
@@ -52,9 +52,10 @@ const Actions = ({
         size="sm"
         className="w-[180px]"
         aria-label="Select Language"
-        defaultSelectedKeys={[language]}
+        defaultSelectedKeys={[language.name]}
         onChange={(e) => {
-          setLanguage(e.target.value);
+          const lang = languages.find((lang) => lang.name === e.target.value);
+          if (lang) setLanguage(lang);
         }}
       >
         {languages?.map((lang) => (

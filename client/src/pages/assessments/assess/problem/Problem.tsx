@@ -18,6 +18,7 @@ import {
 
 import { Button, useDisclosure } from "@nextui-org/react";
 import secureLocalStorage from "react-secure-storage";
+import { Language } from "@/data/languages";
 
 const Problem = () => {
   const [rootLoading, setRootLoading] = useState<boolean>(true);
@@ -27,8 +28,8 @@ const Problem = () => {
   const [title, setTitle] = useState<string>("");
 
   const [code, setCode] = useState<string>("");
-  const [languages, setLanguages] = useState<string[]>([]);
-  const [language, setLanguage] = useState<string>("javascript");
+  const [languages, setLanguages] = useState<Language[]>([]);
+  const [language, setLanguage] = useState<Language>({} as Language);
 
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [cases, setCases] = useState<IRunResponseResult[]>([]);
@@ -57,7 +58,7 @@ const Problem = () => {
     }
 
     const langs =
-      (secureLocalStorage.getItem("securityConfig") as { languages: string[] })
+      (secureLocalStorage.getItem("securityConfig") as { languages: Language[] })
         ?.languages || [];
     setLanguages(langs);
     setLanguage(langs[0]);
@@ -75,7 +76,7 @@ const Problem = () => {
 
         const starterCode = starterGenerator(
           res.data.data?.problem?.scl,
-          langs[0]
+          langs[0].abbr
         );
         setCode(starterCode);
       })
@@ -168,7 +169,7 @@ const Problem = () => {
   };
 
   useEffect(() => {
-    const starter = starterGenerator(scl, language);
+    const starter = starterGenerator(scl, language.abbr);
     setCode(starter);
 
     setEditorUpdateFlag((prev) => !prev);

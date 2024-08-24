@@ -17,10 +17,6 @@ export interface sclReturnType {
   variableWithDataType: { name: string; type: string }[];
 }
 
-const convertSclObjToJs = (scl: string): sclReturnType => {
-  
-}
-
 const convertSclToJs = (scl: string): sclReturnType => {
   const code: string[] = [];
   const names: string[] = [];

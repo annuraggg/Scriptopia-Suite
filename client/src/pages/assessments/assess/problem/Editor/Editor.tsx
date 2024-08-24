@@ -5,6 +5,7 @@ import "@/config/monaco";
 import Explain from "./Explain";
 import Monaco from "./Monaco";
 import Actions from "./Actions";
+import { Language } from "@/data/languages";
 
 const Editor = ({
   runCode,
@@ -22,10 +23,10 @@ const Editor = ({
   loading: boolean;
   code: string;
   setCode: (code: string) => void;
-  language: string;
-  setLanguage: (lang: string) => void;
+  language: Language;
+  setLanguage: (lang: Language) => void;
   editorUpdateFlag: boolean;
-  languages: string[];
+  languages: Language[];
 }) => {
   const [explainOpen, setExplainOpen] = useState<boolean>(false);
 
@@ -50,7 +51,7 @@ const Editor = ({
           </div>
         </CardHeader>
         <CardBody className="h-full p-0 overflow-visible">
-          <Monaco key={language} code={code} setCode={setCode} loading={loading} language={language} editorUpdateFlag={editorUpdateFlag} />
+          <Monaco key={language.name} code={code} setCode={setCode} loading={loading} language={language.name.toLowerCase()} editorUpdateFlag={editorUpdateFlag} />
         </CardBody>
       </Card>
 

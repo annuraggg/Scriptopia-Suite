@@ -1,4 +1,6 @@
-const createJsTemplate = (scl: any) => {
+import { SclObject } from "@/@types/Scl";
+
+const createJsTemplate = (scl: SclObject[]) => {
   const sclWithoutReturn = scl.filter((scl) => scl.type !== "return");
   const finalStatement = [];
   const inputNames = sclWithoutReturn.map((scl) => scl.name);
