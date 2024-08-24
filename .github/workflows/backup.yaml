@@ -1,0 +1,32 @@
+name: Backup
+
+on:
+  schedule:
+    - cron: '15 00 * * *'
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      URI: ${{ secrets.URI }}
+      BUCKET_NAME: ${{ vars.BUCKET_NAME }}
+      ENDPOINT: ${{ vars.ENDPOINT }}
+
+    steps:
+      - name: Checkout Code  
+        uses: actions/checkout@v2
+
+      - name: Install mongo-tools
+        run:  sudo wget https://fastdl.mongodb.org/tools/db/mongodb-database-tools-debian92-x86_64-100.3.1.deb && sudo apt install ./mongodb-database-tools-*.deb
+
+      - name: Install node.js
+        run: npm ci
+
+      - name: Run backup
+        run: node backup.js
