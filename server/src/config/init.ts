@@ -2,7 +2,6 @@ import "dotenv/config";
 import { Hono } from "hono";
 import { prettyJSON } from "hono/pretty-json";
 import { cors } from "hono/cors";
-import { clerkMiddleware } from "@hono/clerk-auth";
 
 import performanceMiddleware from "../middlewares/performanceMiddleware";
 import authMiddleware from "../middlewares/authMiddleware";
@@ -27,7 +26,6 @@ import driveRoute from "../routes/driveRoute";
 
 const app = new Hono();
 
-app.use(clerkMiddleware());
 app.use(prettyJSON());
 app.use(cors());
 app.use(authMiddleware);

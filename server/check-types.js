@@ -14,16 +14,16 @@ exec("npx tsc --noEmit", (error, stdout, stderr) => {
   if (error) {
     console.error(chalk.red.bold("Error occurred during type checking:"));
     console.error(chalk.red(stderr));
-    console.error(chalk.red(error));
+
+    if (stdout) {
+      console.log(chalk.yellow("TypeScript output:"));
+      process.stdout.write(stdout);
+    }
+
     console.error(chalk.red.bold("TypeScript type checking failed."));
     process.exit(1);
   } else {
-    if (stdout.trim()) {
-      console.log(chalk.yellow.bold("TypeScript Errors:"));
-      console.log(chalk.yellow(stdout));
-    } else {
-      console.log(chalk.green.bold("✔ No type errors found!"));
-    }
+    console.log(chalk.green.bold("✔ No type errors found!"));
     process.exit(0);
   }
 });
