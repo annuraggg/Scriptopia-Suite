@@ -21,9 +21,6 @@ jobs:
         run: npm ci
         working-directory: server
 
-      - name: Install TypeScript Globally
-        run: npm install -g typescript
-
       - name: Run TypeScript Check
         run: npm run checksilent
         working-directory: server
