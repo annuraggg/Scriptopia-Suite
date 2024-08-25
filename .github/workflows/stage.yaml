@@ -34,8 +34,6 @@ jobs:
           username: ${{ secrets.STAGE_USER }}
           script: |
             set -e
-            cd ~/scriptopia
-            git pull
 
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
@@ -43,10 +41,11 @@ jobs:
             eval "$(ssh-agent -s)"
             ssh-add ~/.ssh/github
 
+            cd ~/scriptopia
+            git pull
+
             cd server
-
             npm ci
-
             pm2 restart all
 
             echo 'Server Staged Successfully!'
