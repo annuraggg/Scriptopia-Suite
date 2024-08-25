@@ -18,7 +18,7 @@ jobs:
           node-version: "18"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
         working-directory: server
 
       - name: Run TypeScript Check
@@ -33,13 +33,14 @@ jobs:
           key: ${{ secrets.PROD_KEY }}
           username: ${{ secrets.PROD_USER }}
           script: |
+            set -e
             cd ~/scriptopia/server
             git pull
 
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-            npm install
+            npm ci
 
             pm2 restart all
 
