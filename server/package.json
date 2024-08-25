@@ -4,6 +4,7 @@
   "scripts": {
     "start": "tsx watch src/index.ts",
     "check": "node check-types.js",
+    "checksilent": "npx tsc --noEmit",
     "dev": "doppler run -- npm run start"
   },
   "dependencies": {

@@ -22,7 +22,7 @@ jobs:
         working-directory: server
 
       - name: Run TypeScript Check
-        run: npm run check
+        run: npm run checksilent
         working-directory: server
 
       - name: Deploy on Server
