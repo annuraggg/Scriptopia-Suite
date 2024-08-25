@@ -14,6 +14,7 @@ exec("tsc --noEmit", (error, stdout, stderr) => {
   if (error) {
     console.error(chalk.red.bold("Error occurred during type checking:"));
     console.error(chalk.red(stderr));
+    console.error(chalk.red(error));
     console.error(chalk.red.bold("TypeScript type checking failed."));
     process.exit(1);
   } else {
