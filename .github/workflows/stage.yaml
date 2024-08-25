@@ -34,11 +34,13 @@ jobs:
           username: ${{ secrets.STAGE_USER }}
           script: |
             set -e
-            cd ~/scriptopia/server
+            cd ~/scriptopia
             git pull
 
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+            cd server
 
             npm ci
 
