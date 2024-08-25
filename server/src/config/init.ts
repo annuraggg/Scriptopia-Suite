@@ -1,35 +1,7 @@
-// import DopplerSDK from "@dopplerhq/node-sdk";
-
-// async () => {
-//   try {
-//     console.log("Loading Doppler secrets...");
-//     const doppler = new DopplerSDK({
-//       accessToken: "",
-//     });
-
-//     const secrets = doppler.secrets
-//       .list("scriptopia-server", "dev")
-//       .then((res) => {
-//         return res;
-//       });
-
-//     // Load secrets into process.env
-//     Object.keys(secrets).forEach((key) => {
-//       process.env[key] = secrets[key].raw;
-//     });
-
-//     console.log("Doppler secrets loaded into process.env");
-//   } catch (error) {
-//     console.error("Error loading secrets from Doppler:", error);
-//     process.exit(1);
-//   }
-// };
-
 import "dotenv/config";
 import { Hono } from "hono";
 import { prettyJSON } from "hono/pretty-json";
 import { cors } from "hono/cors";
-import { clerkMiddleware } from "@hono/clerk-auth";
 
 import performanceMiddleware from "../middlewares/performanceMiddleware";
 import authMiddleware from "../middlewares/authMiddleware";
@@ -54,8 +26,6 @@ import driveRoute from "../routes/driveRoute";
 
 const app = new Hono();
 
-// @ts-expect-error - Types Not Available
-app.use(clerkMiddleware());
 app.use(prettyJSON());
 app.use(cors());
 app.use(authMiddleware);
