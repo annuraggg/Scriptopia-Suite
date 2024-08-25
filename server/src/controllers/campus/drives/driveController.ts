@@ -4,7 +4,6 @@ import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import logger from "../../../utils/logger";
 import { Context } from "hono";
 import assessmentController from "../../coding/assessmentController";
-import { getAuth } from "@hono/clerk-auth";
 
 const getDrives = async (c: Context) => {
   try {

@@ -2,7 +2,6 @@ import { Context } from "hono";
 import { sendError, sendSuccess } from "../../utils/sendResponse";
 import Problem from "../../models/Problem";
 import { runCode as runCompilerCode } from "../../aws/runCode";
-import { Console } from "console";
 import Submission from "../../models/Submission";
 import User from "../../models/User";
 import sclToObject from "../../functions/scl/sclToObject";
@@ -37,7 +36,7 @@ const runCode = async (c: Context) => {
     const result = await runCompilerCode(
       body.language,
       functionSchema,
-      prob.testCases
+      prob.scl
     );
 
     if (!result) {
@@ -45,7 +44,7 @@ const runCode = async (c: Context) => {
     }
 
     if (result?.status === "ERROR") {
-      console.lerrorog(result.error);
+      console.error(result.error);
     }
 
     return sendSuccess(c, 200, "Success", result);
@@ -72,7 +71,7 @@ const submitCode = async (c: Context) => {
     const result = await runCompilerCode(
       body.language,
       functionSchema,
-      prob.testCases
+      prob.scl
     );
 
     const results = result.results.map((r: any) => ({

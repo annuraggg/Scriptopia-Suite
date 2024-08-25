@@ -1,5 +1,4 @@
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
-import { IFunctionArg, ITestCase } from "../@types/Problem";
 const REGION = "ap-south-1";
 
 const runCode = async (
@@ -8,7 +7,7 @@ const runCode = async (
     functionName: string;
     functionBody: string;
   },
-  testCases: ITestCase[]
+  testCases: string[]
 ) => {
   const lambdaClient = new LambdaClient({
     region: REGION,

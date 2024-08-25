@@ -90,7 +90,6 @@ const Roles = () => {
     setSelectedRole(newRole);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const changePerm = (val: any, perm: any) => {
     if (selectedRole.default) return toast.error("Cannot edit built-in roles");
     setChanges(true);

@@ -1,7 +1,4 @@
-import {
-  getAuthenticatedUser,
-  lemonSqueezySetup,
-} from "@lemonsqueezy/lemonsqueezy.js";
+import { lemonSqueezySetup } from "@lemonsqueezy/lemonsqueezy.js";
 import { config } from "dotenv";
 import logger from "../utils/logger";
 config();

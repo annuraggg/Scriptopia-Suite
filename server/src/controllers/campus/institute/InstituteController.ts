@@ -1,23 +1,17 @@
 import { Context } from "hono";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import User from "../../../models/User";
-import mongoose, { Types } from "mongoose";
+import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import loops from "../../../config/loops";
 import clerkClient from "../../../config/clerk";
 import logger from "../../../utils/logger";
 import checkPermission from "../../../middlewares/checkPermission";
-import PermissionType from "../../../@types/Permission";
-import { createCustomer } from "@lemonsqueezy/lemonsqueezy.js";
-import Candidate from "../../../@types/Candidate";
-import candidateModel from "../../../models/EnterpriseCandidate";
 import r2Client from "../../../config/s3";
 import { Upload } from "@aws-sdk/lib-storage";
-import multer from "multer";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import ls from "../../../config/lemonSqueezy";
 import Institute from "../../../models/Institute";
-import { Member } from "../../../@types/Organization";
+import { Institute as IInstitute, Member } from "@shared-types/Institute";
 
 const defaultRoles = [
   {
@@ -540,7 +534,7 @@ const updateMembers = async (c: Context) => {
     const instituteId = perms.data?.instituteId;
 
     // compare old pending members with new pending members. If there are new pending members, send them an invite
-    const organization = await Institute.findById(instituteId);
+    const organization = await Institute.findById(instituteId).lean();
 
     if (!organization) {
       return sendError(c, 404, "Institute not found");
@@ -612,8 +606,8 @@ const updateMembers = async (c: Context) => {
         return sendError(c, 400, "Please fill all fields");
       }
 
-      const role = organization.roles.find(
-        (r) => r.name! === member.role.name.toLowerCase()
+      const role = (organization as unknown as IInstitute).roles!.find(
+        (r) => r.name === member.role.name.toLowerCase()
       );
 
       const mem = {
@@ -627,7 +621,7 @@ const updateMembers = async (c: Context) => {
     }
 
     const updatedOrg = await Institute.findByIdAndUpdate(instituteId, {
-      $set: { members : finalMembers },
+      $set: { members: finalMembers },
       $push: { auditLogs: auditLog },
     });
 
@@ -661,7 +655,7 @@ const updateRoles = async (c: Context) => {
       const roleObj = {
         name: role.name,
         description: role.description,
-        permissions: role.permissions.map((p: PermissionType) => p._id),
+        permissions: role.permissions,
         default: role.default,
         organization: perms.data?.instituteId!,
       };
@@ -717,7 +711,9 @@ const getCandidates = async (c: Context) => {
 
     const instituteId = perms.data?.instituteId;
 
-    const organization = await Institute.findById(instituteId).populate("candidates");
+    const organization = await Institute.findById(instituteId).populate(
+      "candidates"
+    );
 
     if (!organization) {
       return sendError(c, 404, "Institute not found");
@@ -727,7 +723,7 @@ const getCandidates = async (c: Context) => {
       c,
       200,
       "Candidates retrieved successfully",
-      organization.candidates
+      organization.students
     );
   } catch (error) {
     logger.error(error as string);

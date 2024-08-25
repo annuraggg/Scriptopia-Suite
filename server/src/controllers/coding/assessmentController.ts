@@ -5,7 +5,6 @@ import Assessment from "../../models/Assessment";
 import Problem from "../../models/Problem";
 import { runCode as runCompilerCode } from "../../aws/runCode";
 import AssessmentSubmissions from "../../models/AssessmentSubmissions";
-import AssessmentSubmissionsSchema from "../../@types/AssessmentSubmission";
 
 const LIMIT_PER_PAGE = 20;
 
@@ -306,16 +305,14 @@ const submitAssessment = async (c: Context) => {
         }
 
         const functionSchema = {
-          functionName: problem.functionName,
-          functionArgs: problem.functionArgs,
+          functionName: "execute",
           functionBody: submission.code,
-          functionReturn: problem.functionReturnType,
         };
 
         const result: any = await runCompilerCode(
           submission.language,
           functionSchema,
-          problem.testCases
+          problem.scl
         );
 
         if (result?.status === "ERROR") {

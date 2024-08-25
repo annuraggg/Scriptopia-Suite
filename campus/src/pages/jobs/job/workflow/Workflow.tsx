@@ -5,7 +5,6 @@ import { useOutletContext } from "react-router-dom";
 import Show from "./Show";
 
 const Workflow = () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { drive } = useOutletContext() as { drive: any };
   const [create, setCreate] = React.useState(false);
 

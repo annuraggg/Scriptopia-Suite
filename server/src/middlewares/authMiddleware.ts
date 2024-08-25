@@ -1,4 +1,4 @@
-import { clerkMiddleware, getAuth } from "@hono/clerk-auth";
+import { getAuth } from "@hono/clerk-auth";
 import { createMiddleware } from "hono/factory";
 import { sendError } from "../utils/sendResponse";
 

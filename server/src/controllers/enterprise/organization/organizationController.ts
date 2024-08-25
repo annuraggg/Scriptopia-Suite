@@ -2,23 +2,19 @@ import { Context } from "hono";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import Organization from "../../../models/Organization";
 import User from "../../../models/User";
-import { Types } from "mongoose";
 import jwt from "jsonwebtoken";
 import loops from "../../../config/loops";
 import clerkClient from "../../../config/clerk";
 import logger from "../../../utils/logger";
 import Roles from "../../../models/EnterpriseRole";
 import checkPermission from "../../../middlewares/checkPermission";
-import PermissionType from "../../../@types/Permission";
+import { Permission as PermissionType } from "@shared-types/EnterprisePermission";
 import { createCustomer } from "@lemonsqueezy/lemonsqueezy.js";
-import Candidate from "../../../@types/Candidate";
-import candidateModel from "../../../models/EnterpriseCandidate";
 import r2Client from "../../../config/s3";
 import { Upload } from "@aws-sdk/lib-storage";
-import multer from "multer";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import ls from "../../../config/lemonSqueezy";
-import { AuditLog, Member, Role } from "../../../@types/Organization";
+import { AuditLog, Member } from "@shared-types/Organization";
+import { Role } from "@shared-types/EnterpriseRole";
 import Permission from "../../../models/EnterprisePermission";
 
 // const roleIdMap = {
@@ -111,14 +107,13 @@ const createOrganization = async (c: Context) => {
       .populate("permissions")
       .exec();
 
-    const {
-      data: lemonSqueezyCustomer,
-      error: lsError,
-      statusCode: lsStatus,
-    } = await createCustomer(process.env.LEMON_SQUEEZY_STORE_ID!, {
-      name,
-      email,
-    });
+    const { data: lemonSqueezyCustomer } = await createCustomer(
+      process.env.LEMON_SQUEEZY_STORE_ID!,
+      {
+        name,
+        email,
+      }
+    );
 
     // Create organization
     const auditLog: AuditLog = {
@@ -291,7 +286,8 @@ const joinOrganization = async (c: Context) => {
 
       await Organization.updateOne(
         { _id: decoded.organization, "members.email": email },
-        { $set: { "members.$.status": "active", "members.$.user": u } }
+        { $set: { "members.$.status": "active", "members.$.user": u } },
+        { $push: { auditLogs: auditLog } }
       );
     } else {
       await Organization.updateOne(
@@ -591,7 +587,7 @@ const updateRoles = async (c: Context) => {
         description: role.description,
         permissions: role.permissions.map((p: PermissionType) => p._id),
         default: role.default,
-        organization: perms.data?.orgId!,
+        organization: perms.data?.orgId as string,
       };
 
       finalRoles.push(roleObj);

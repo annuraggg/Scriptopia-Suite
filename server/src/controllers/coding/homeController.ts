@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { sendError, sendSuccess } from "../../utils/sendResponse";
 import Problem from "../../models/Problem";
 import User from "../../models/User";
-import IProblem from "../../@types/Problem";
+import { IProblem } from "@shared-types/Problem";
 
 const getHome = async (c: Context) => {
   try {

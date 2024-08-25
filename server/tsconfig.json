@@ -5,10 +5,19 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "skipLibCheck": true,
-    "types": [
-      "node"
-    ],
+    "baseUrl": ".",
+    "types": ["node"],
     "jsx": "react-jsx",
+    "isolatedModules": true,
+    "moduleDetection": "force" /* Linting */,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
     "jsxImportSource": "hono/jsx",
-  }
+    "paths": {
+      "@/*": ["./src/*"],
+      "@shared-types/*": ["../common/types/*"]
+    }
+  },
+  "include": ["src", "../common/types", "check-types.js"]
 }
