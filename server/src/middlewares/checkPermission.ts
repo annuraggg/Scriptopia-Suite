@@ -15,7 +15,7 @@ interface ReturnType {
   data: userMeta | null;
 }
 
-interface userMeta extends UserPublicMetadata {
+interface userMeta {
   instituteId: string;
   role: {
     _id: string;
@@ -46,7 +46,6 @@ class checkPermission {
     c: Context,
     permissions: string[]
   ): Promise<ReturnType> => {
-    // @ts-expect-error - types not available
     const auth = getAuth(c);
     if (!auth?.userId) {
       sendError(c, 401, "Unauthorized in checkPermission");
@@ -73,7 +72,6 @@ class checkPermission {
     c: Context,
     permissions: string[]
   ): Promise<ReturnType> => {
-    // @ts-expect-error - types not available
     const auth = getAuth(c);
     if (!auth?.userId) {
       sendError(c, 401, "Unauthorized in checkPermission");

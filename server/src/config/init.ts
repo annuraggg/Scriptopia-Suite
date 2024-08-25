@@ -27,7 +27,6 @@ import driveRoute from "../routes/driveRoute";
 
 const app = new Hono();
 
-// @ts-expect-error - Types Not Available
 app.use(clerkMiddleware());
 app.use(prettyJSON());
 app.use(cors());
