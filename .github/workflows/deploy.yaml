@@ -33,8 +33,7 @@ jobs:
           key: ${{ secrets.PROD_KEY }}
           username: ${{ secrets.PROD_USER }}
           script: |
-            set -e
-
+        
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
