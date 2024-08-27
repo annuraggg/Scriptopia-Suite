@@ -23,9 +23,12 @@ import userRoute from "../routes/userRoute";
 
 import instituteRoute from "../routes/instituteRoute";
 import driveRoute from "../routes/driveRoute";
+import { clerkMiddleware } from "@hono/clerk-auth";
 
 const app = new Hono();
 
+// @ts-ignore
+app.use(clerkMiddleware());
 app.use(prettyJSON());
 app.use(cors());
 app.use(authMiddleware);

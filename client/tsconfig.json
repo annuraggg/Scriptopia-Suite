@@ -10,6 +10,9 @@
       ],
       "@types/*": [
         "src/types/*"
+      ],
+      "@shared-components/*": [
+        "../common/components/*"
       ]
     },
     "target": "ES2020",
@@ -40,7 +43,7 @@
   ],
   "include": [
     "src",
-    "../common/types"
+    "../common/types",
   ],
   "references": [
     {
