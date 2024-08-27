@@ -1,0 +1,50 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "18"
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: server
+
+      - name: Run TypeScript Check
+        run: npm run checksilent
+        working-directory: server
+
+      - name: Deploy on Server
+        if: success()
+        uses: appleboy/ssh-action@v0.1.2
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          key: ${{ secrets.PROD_KEY }}
+          username: ${{ secrets.PROD_USER }}
+          script: |
+        
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+            eval "$(ssh-agent -s)"
+            ssh-add ~/.ssh/github
+
+            cd ~/scriptopia
+            git pull
+
+            cd server
+            npm ci
+            pm2 restart all --update-env
+
+            echo 'Server Deployed Successfully!'
