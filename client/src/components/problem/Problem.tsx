@@ -69,6 +69,7 @@ const Problem = ({
     return axios
       .post("/submissions/run", { code, language, problemId: problem._id })
       .then((res) => {
+        console.log(res);
         setOutputCases(
           res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
         );
@@ -78,7 +79,9 @@ const Problem = ({
             r.consoleOutput.join("\n")
           )
         );
-        setCodeError(res.data.data.error);
+        if (res.data.data.STATUS === "ERROR") {
+          setCodeError(res.data.data.message);
+        }
 
         return { success: true, error: "", data: {} };
       })

@@ -1,12 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Editor from "./Editor/Editor";
 import InfoPanel from "./InfoPanel";
 import Statement from "./LeftPanel/Statement";
 import Split from "@uiw/react-split";
-import starterGenerator from "@/functions/starterGenerator";
-import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { Delta } from "quill/core";
 import { IRunResponseResult } from "@shared-types/RunResponse";
 import confetti from "canvas-confetti";
 import {
@@ -21,73 +18,58 @@ import {
 import { Button, Card, CardBody } from "@nextui-org/react";
 import { CpuIcon, TimerIcon } from "lucide-react";
 import { ISubmission } from "@shared-types/Submission";
+import { useAuth } from "@clerk/clerk-react";
+import defaultLanguages from "@/data/languages";
 
-const languageEx = "javascript";
+const Problem = ({
+  loading,
+  problem,
+  submissions,
+  setSubmissions,
+  defaultLanguage = "javascript",
+  languages = defaultLanguages,
 
-const Problem = () => {
-  const [rootLoading, setRootLoading] = useState<boolean>(true);
-  const [loading, setLoading] = useState<boolean>(false);
+  allowRun = true,
+  allowSubmissionsTab = true,
+  allowSubmit = true,
+  allowExplain = true,
+}: {
+  loading: boolean;
+  problem: any;
+  submissions: any;
+  setSubmissions: any;
+  defaultLanguage?: string;
+  languages?: { name: string; abbr: string; available: boolean }[];
 
-  const [statement, setStatement] = useState<Delta>({} as Delta);
-  const [submissions, setSubmissions] = useState<ISubmission[]>([]);
-  const [title, setTitle] = useState<string>("");
+  allowRun?: boolean;
+  allowSubmissionsTab?: boolean;
+  allowSubmit?: boolean;
+  allowExplain?: boolean;
+}) => {
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
 
   const [code, setCode] = useState<string>("");
-  const [language, setLanguage] = useState<string>("javascript");
+  const [language, setLanguage] = useState<string>(defaultLanguage);
 
   const [consoleOutput, setConsoleOutput] = useState<string>("");
-  const [cases, setCases] = useState<IRunResponseResult[]>([]);
-
-  const [problemId, setProblemId] = useState<string>("");
-
-  const [editorUpdateFlag, setEditorUpdateFlag] = useState<boolean>(false);
+  const [outputCases, setOutputCases] = useState<IRunResponseResult[]>([]);
   const [_codeError, setCodeError] = useState<string>("");
+  const [runningCode, setRunningCode] = useState<boolean>(false);
+  const [currentSub, setCurrentSub] = useState<ISubmission | null>(null);
 
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
 
-  const [runningCode, setRunningCode] = useState<boolean>(false);
+  const [leftPaneActTab, setLeftPaneActTab] = useState<string>("statement");
 
-  const [currentSubmission, setCurrentSubmission] =
-    useState<ISubmission | null>(null);
-
-  const [leftPanelActiveTab, setLeftPanelActiveTab] =
-    useState<string>("statement");
-
-  const [scl, setScl] = useState<string[]>([]);
-
-  const { getToken } = useAuth();
-  useEffect(() => {
-    const axios = ax(getToken);
-    const id = window.location.pathname.split("/").pop();
-    axios
-      .get(`/problems/${id}`)
-      .then((res) => {
-        setStatement(res.data.data.problem.description.ops);
-        setSubmissions(res.data.data?.submissions.reverse());
-        setTitle(res.data.data?.problem?.title);
-        setProblemId(res.data.data?.problem?._id);
-        setScl(res.data.data?.problem?.scl);
-
-        const starterCode = starterGenerator(
-          res.data.data?.problem?.scl,
-          languageEx
-        );
-        setCode(starterCode);
-        setLanguage(languageEx);
-      })
-      .catch(() => {})
-      .finally(() => {
-        setRootLoading(false);
-      });
-  }, [getToken]);
+  const [componentLoading, setComponentLoading] = useState<boolean>(false);
 
   const runCode = async () => {
     setRunningCode(true);
-    const axios = ax(getToken);
     return axios
-      .post("/submissions/run", { code, language, problemId })
+      .post("/submissions/run", { code, language, problemId: problem._id })
       .then((res) => {
-        setCases(
+        setOutputCases(
           res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
         );
 
@@ -106,6 +88,44 @@ const Problem = () => {
       .finally(() => {
         setRunningCode(false);
       });
+  };
+
+  const submitCode = async () => {
+    setRunningCode(true);
+    setComponentLoading(true);
+    return axios
+      .post("/submissions/submit", { code, language, problemId: problem._id })
+      .then((res) => {
+        setOutputCases(
+          res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
+        );
+
+        setConsoleOutput(
+          res.data.data.results.map((r: IRunResponseResult) =>
+            r?.consoleOutput?.join("\n")
+          )
+        );
+        setComponentLoading(false);
+
+        if (res.data.data.status === "FAILED") {
+          runConfetti("error");
+        } else {
+          runConfetti("success");
+        }
+
+        setDrawerOpen(true);
+        setLeftPaneActTab("submissions");
+        const newSubmissions = [...submissions];
+        newSubmissions.unshift(res.data.data);
+        setSubmissions(newSubmissions);
+        setCurrentSub(res.data.data);
+        return { success: true, error: "", data: {} };
+      })
+      .catch((err) => {
+        setComponentLoading(false);
+        return { success: false, error: err, data: {} };
+      })
+      .finally(() => setRunningCode(false));
   };
 
   const runConfetti = (type: "success" | "error") => {
@@ -136,81 +156,38 @@ const Problem = () => {
     })();
   };
 
-  const submitCode = async () => {
-    setRunningCode(true);
-    const axios = ax(getToken);
-    setLoading(true);
-    return axios
-      .post("/submissions/submit", { code, language, problemId })
-      .then((res) => {
-        setCases(
-          res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
-        );
-
-        setConsoleOutput(
-          res.data.data.results.map((r: IRunResponseResult) =>
-            r?.consoleOutput?.join("\n")
-          )
-        );
-        setLoading(false);
-
-        if (res.data.data.status === "FAILED") {
-          runConfetti("error");
-        } else {
-          runConfetti("success");
-        }
-
-        setDrawerOpen(true);
-        setLeftPanelActiveTab("submissions");
-        const newSubmissions = [...submissions];
-        newSubmissions.unshift(res.data.data);
-        setSubmissions(newSubmissions);
-        setCurrentSubmission(res.data.data);
-        return { success: true, error: "", data: {} };
-      })
-      .catch((err) => {
-        setLoading(false);
-        return { success: false, error: err, data: {} };
-      })
-      .finally(() => setRunningCode(false));
-  };
-
-  useEffect(() => {
-    const starter = starterGenerator(scl, language);
-    setCode(starter);
-
-    setEditorUpdateFlag((prev) => !prev);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [language]);
-
-  if (rootLoading) return <div>Loading...</div>;
+  if (loading) return <div>Loading...</div>;
 
   return (
     <>
       <Split className="flex h-[90vh] w-full gap-2" vaul-drawer-wrapper="">
         <Statement
-          statement={statement}
+          statement={problem.description}
           submissions={submissions}
-          title={title}
-          setActiveTab={setLeftPanelActiveTab}
-          activeTab={leftPanelActiveTab}
-          loading={loading}
+          title={problem.title}
+          setActiveTab={setLeftPaneActTab}
+          activeTab={leftPaneActTab}
+          loading={componentLoading}
+          allowSubmissionsTab={allowSubmissionsTab}
         />
         <Split mode="vertical" className="w-full">
           <Editor
             runCode={runCode}
             submitCode={submitCode}
-            loading={loading}
+            loading={componentLoading}
             code={code}
             setCode={setCode}
             language={language}
             setLanguage={setLanguage}
-            editorUpdateFlag={editorUpdateFlag}
+            languages={languages}
+            allowRun={allowRun}
+            allowExplain={allowExplain}
+            allowSubmit={allowSubmit}
           />
           <InfoPanel
-            cases={cases}
             consoleOutput={consoleOutput}
             runningCode={runningCode}
+            cases={outputCases}
           />
         </Split>
       </Split>
@@ -230,7 +207,7 @@ const Problem = () => {
                   <TimerIcon size={30} />
                   <div>
                     <h5>Time Taken</h5>
-                    <p>{currentSubmission?.avgTime.toFixed(2)} ms</p>
+                    <p>{currentSub?.avgTime.toFixed(2)} ms</p>
                   </div>
                 </div>
               </CardBody>
@@ -242,10 +219,7 @@ const Problem = () => {
                   <CpuIcon size={30} />
                   <div>
                     <h5>Memory Used</h5>
-                    <p>
-                      {((currentSubmission?.avgMemory || 0) * 1000).toFixed(2)}{" "}
-                      KB
-                    </p>
+                    <p>{((currentSub?.avgMemory || 0) * 1000).toFixed(2)} KB</p>
                   </div>
                 </div>
               </CardBody>

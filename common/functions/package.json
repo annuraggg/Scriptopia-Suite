@@ -1,6 +1,5 @@
 {
-  "name": "c",
-  "type": "module",
+  "name": "scriptopia-functions",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {

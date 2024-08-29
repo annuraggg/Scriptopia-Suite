@@ -1,3 +1,33 @@
+interface SclObject {
+  name: string;
+  type:
+    | "boolean"
+    | "integer"
+    | "character"
+    | "long"
+    | "float"
+    | "double"
+    | "string"
+    | "array";
+  arrayProps?: {
+    type:
+      | "boolean"
+      | "integer"
+      | "character"
+      | "long"
+      | "float"
+      | "double"
+      | "string";
+    size: number;
+  };
+}
+
+interface Response {
+  error: boolean;
+  sclObject?: SclObject[];
+  message?: string;
+}
+
 const VARIABLE_REGEX = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 const RESERVED_KEYWORDS = new Set([
   // JavaScript reserved keywords
@@ -220,15 +250,17 @@ const VALID_DATATYPES = [
   "return",
 ];
 
-const sclToObject = (scl) => {
+const sclToObject = (scl: string): Response => {
   const lines = scl.split("\n");
-  const sclObject = [];
+  const sclObject: SclObject[] = [];
 
   for (const line of lines) {
+    if (line.trim() === "") continue;
+    if (line.startsWith("#")) continue;
     const arrowIndex = line.indexOf("->");
     if (arrowIndex === -1) return { error: true, message: "Invalid SCL" };
 
-    const dataType = line.slice(0, arrowIndex).trim();
+    const dataType = line.slice(0, arrowIndex).trim() as SclObject["type"];
     const variableName = line.slice(arrowIndex + 2).trim();
 
     if (!dataType || !variableName)
@@ -238,7 +270,11 @@ const sclToObject = (scl) => {
       return { error: true, message: "Invalid Datatype" };
     }
 
-    if (dataType === "array") {
+    if (dataType !== "array") {
+      const { error, message } = validVariable(variableName);
+      if (error) return { error: true, message: message };
+      sclObject.push({ name: variableName, type: dataType });
+    } else {
       const [arrayDataType, arrayName, arraySize] = variableName.split(" ");
       if (!arrayDataType || !arrayName || isNaN(parseInt(arraySize))) {
         return { error: true, message: "Invalid array specification" };
@@ -255,52 +291,24 @@ const sclToObject = (scl) => {
         name: arrayName,
         type: dataType,
         arrayProps: {
-          type: arrayDataType,
+          type: arrayDataType as
+            | "boolean"
+            | "integer"
+            | "character"
+            | "long"
+            | "float"
+            | "double"
+            | "string",
           size: parseInt(arraySize),
         },
       });
-    } else if (dataType == "return") {
-      const splitReturn = variableName.split("->")
-      const left = splitReturn[0];
-      const right = splitReturn[1];
-
-      if (left !== "array") {
-        const { error, message } = validVariable(right);
-        if (error) return { error: true, message: message };
-        sclObject.push({ name: "return", type: left });
-      } else {
-        const [arrayDataType, arrayName, arraySize] = right.split(" ");
-        if (!arrayDataType || !arrayName || isNaN(parseInt(arraySize))) {
-          return { error: true, message: "Invalid Return Array specification" };
-        }
-
-        const { error, message } = validVariable(arrayName);
-        if (error) return { error: true, message: message };
-
-        if (!VALID_DATATYPES.includes(arrayDataType)) {
-          return { error: true, message: "Invalid Datatype" };
-        }
-
-        sclObject.push({
-          name: "return",
-          type: "array",
-          arrayProps: {
-            type: arrayDataType,
-            size: parseInt(arraySize),
-          },
-        });
-      }
-    } else if (dataType !== "array") {
-      const { error, message } = validVariable(variableName);
-      if (error) return { error: true, message: message };
-      sclObject.push({ name: variableName, type: dataType });
     }
   }
 
   return { error: false, sclObject };
 };
 
-const validVariable = (variable) => {
+const validVariable = (variable: string) => {
   if (!VARIABLE_REGEX.test(variable))
     return { error: true, message: "Invalid variable name" };
 

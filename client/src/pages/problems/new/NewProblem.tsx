@@ -13,6 +13,7 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { ITestCase } from "@shared-types/Problem";
 import Scl from "./Scl";
+import sclToObject from "@/functions/scl/sclToObject";
 
 const steps = [
   {
@@ -80,7 +81,7 @@ const NewProblem = () => {
         difficulty,
         tags,
         description,
-        scl: scl.split("\n"),
+        sclObject: sclToObject(scl),
         testCases,
         minimumFiveCases,
         minimumThreeSampleCases,

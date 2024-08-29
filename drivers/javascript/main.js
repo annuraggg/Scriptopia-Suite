@@ -5,14 +5,12 @@ const timestamp = Date.now();
 
 const handler = async (event) => {
   try {
-    const { functionSchema, testCases } = event;
-    const { functionName, functionBody, functionArgs } = functionSchema;
+    const { code, sclObject, testCases } = event;
 
     const { results, avgTime, avgMemory } = runTestCases(
-      functionName,
-      functionBody,
-      testCases,
-      functionArgs
+      code,
+      sclObject,
+      testCases
     );
 
     const failedCase = results.find((result) => !result.passed);
@@ -29,7 +27,6 @@ const handler = async (event) => {
       timestamp: timestamp,
     };
   } catch (error) {
-    console.error("Error executing function:", error);
     return {
       STATUS: "ERROR",
       message: error.message,
@@ -39,7 +36,7 @@ const handler = async (event) => {
   }
 };
 
-const runTestCases = (functionName, fnScript, testCases, functionArgs) => {
+const runTestCases = (code, sclObject, testCases) => {
   const results = [];
   let totalTime = 0;
   let totalMemory = 0;
@@ -55,7 +52,8 @@ const runTestCases = (functionName, fnScript, testCases, functionArgs) => {
       expected,
       _id,
       consoleOutput,
-    } = executeFn(functionName, functionArgs, fnScript, testCase);
+      error,
+    } = executeFn(code, sclObject, testCase);
 
     results.push({
       caseNo: index + 1,
@@ -66,6 +64,7 @@ const runTestCases = (functionName, fnScript, testCases, functionArgs) => {
       isSample,
       input,
       expected,
+      error,
       _id,
       consoleOutput,
     });
@@ -79,38 +78,18 @@ const runTestCases = (functionName, fnScript, testCases, functionArgs) => {
   return { results, avgTime, avgMemory };
 };
 
-const obj = {
-  functionName: "addTwo",
-  functionArgs: [
-    { name: "a", type: "number" },
-    { name: "b", type: "number" },
-  ],
-  fnScript: `function addTwo(a, b) return a + b; `,
-  testCase: { input: "[1,2]", output: "3" },
-};
-
-const executeFn = (functionName, functionArgs, fnScript, testCase) => {
+const executeFn = (code, sclObject, testCase) => {
   const { input, output, isSample, _id } = testCase;
   let consoleLogs = []; // Array to capture console logs
 
   const start = performance.now();
   const initialMemory = process.memoryUsage().heapUsed;
 
-  let actualInput = [];
-  input.forEach((arg, index) => {
-    let newInput = arg;
-    if (functionArgs[index].type === "string") {
-      newInput = arg;
-    } else if (functionArgs[index].type === "number") {
-      newInput = parseInt(arg);
-    } else if (functionArgs[index].type === "array") {
-      newInput = JSON.parse(arg);
-    } else if (functionArgs[index].type === "boolean") {
-      newInput = arg === "true";
-    }
-
-    actualInput.push(newInput);
-  });
+  // Parse the input correctly
+  const actualInput = [
+    JSON.parse(input[0]), // Convert stringified array to actual array
+    parseInt(input[1]), // Parse target to integer
+  ];
 
   // Override console.log to capture logs
   const originalConsoleLog = console.log;
@@ -119,18 +98,20 @@ const executeFn = (functionName, functionArgs, fnScript, testCase) => {
     originalConsoleLog.apply(console, args);
   };
 
+  // Build the script to evaluate
   const evalScript = `
-  ${fnScript}
-  ${functionName}(${actualInput});
+    ${code}
+    execute(${JSON.stringify(actualInput[0])}, ${actualInput[1]});
   `;
 
-  /*
-  function addTwo(a, b) return a + b;
-  addTwo(1, 2);
-  */
-
-  // Evaluate script
-  const result = eval(evalScript);
+  // Evaluate the function
+  let error;
+  let result;
+  try {
+    result = eval(evalScript); // Execute the function with parsed input
+  } catch (e) {
+    error = e;
+  }
 
   // Restore original console.log
   console.log = originalConsoleLog;
@@ -146,9 +127,10 @@ const executeFn = (functionName, functionArgs, fnScript, testCase) => {
     time,
     memory,
     passed,
-    output: result,
+    output: JSON.stringify(result) || null,
     isSample,
     input,
+    error: error || null,
     expected: output,
     _id,
     consoleOutput: consoleLogs, // Include captured console logs in the result
@@ -156,3 +138,71 @@ const executeFn = (functionName, functionArgs, fnScript, testCase) => {
 };
 
 export { handler };
+
+const event = {
+  sclObject: [
+    {
+      name: "nums",
+      type: "array",
+      arrayProps: {
+        type: "integer",
+        size: 5,
+      },
+    },
+    {
+      name: "target",
+      type: "integer",
+    },
+    {
+      name: "nums",
+      type: "return",
+    },
+  ],
+  testCases: [
+    {
+      input: ["[2,7,11,15]", "9"],
+      output: "[0,1]",
+      difficulty: "easy",
+      isSample: true,
+      _id: {
+        $oid: "66b9a75a46d47620c5c61f3f",
+      },
+    },
+    {
+      input: ["[3,2,4]", "6"],
+      output: "[1,2]",
+      difficulty: "easy",
+      isSample: true,
+      _id: {
+        $oid: "66b9a75a46d47620c5c61f40",
+      },
+    },
+    {
+      input: ["[3,3]", "6"],
+      output: "[0,1]",
+      difficulty: "easy",
+      isSample: true,
+      _id: {
+        $oid: "66b9a75a46d47620c5c61f41",
+      },
+    },
+  ],
+  code: `
+const execute = (nums, target) => {
+  const map = new Map();
+  console.log('mewo');
+  for (let i = 0; i < nums.length; i++) {
+    const complement = targe2t - nums[i];
+    if (map.has(complement)) {
+      return [map.get(complement), i];  // Return both indices
+    }
+    map.set(nums[i], i);
+  }
+  return null;
+};
+
+  `,
+};
+
+const resp = await handler(event);
+console.log(resp);

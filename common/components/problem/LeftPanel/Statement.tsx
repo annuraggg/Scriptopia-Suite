@@ -13,6 +13,8 @@ const Statement = ({
   setActiveTab,
   activeTab,
   loading,
+
+  allowSubmissionsTab,
 }: {
   statement: Delta;
   submissions: ISubmission[];
@@ -20,6 +22,8 @@ const Statement = ({
   setActiveTab: (key: string) => void;
   activeTab: string;
   loading: boolean;
+
+  allowSubmissionsTab: boolean;
 }) => {
   useEffect(() => {
     setTimeout(() => {
@@ -59,7 +63,12 @@ const Statement = ({
           </Card>
         </Tab>
 
-        <Tab key="submissions" title="Submissions" className="w-full p-0">
+        <Tab
+          key="submissions"
+          title="Submissions"
+          className="w-full p-0"
+          isDisabled={!allowSubmissionsTab}
+        >
           <Card className="w-full">
             <CardBody className="h-[84.5vh]">
               <Submission submissions={submissions} loading={loading} />

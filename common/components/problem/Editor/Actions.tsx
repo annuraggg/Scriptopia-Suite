@@ -1,7 +1,6 @@
 import { Button, Select, SelectItem, Tooltip } from "@nextui-org/react";
 import { ArrowUpFromLine, Play, Sparkles } from "lucide-react";
 import { useState } from "react";
-import languages from "@/data/languages";
 
 const Actions = ({
   setExplainOpen,
@@ -10,6 +9,11 @@ const Actions = ({
   loading,
   language,
   setLanguage,
+  languages,
+
+  allowRun,
+  allowSubmit,
+  allowExplain,
 }: {
   setExplainOpen: (open: boolean) => void;
   runCode: () => Promise<object>;
@@ -17,6 +21,11 @@ const Actions = ({
   loading: boolean;
   setLanguage: (lang: string) => void;
   language: string;
+  languages: { name: string; abbr: string; available: boolean }[];
+
+  allowRun: boolean;
+  allowSubmit: boolean;
+  allowExplain: boolean;
 }) => {
   const [runLoading, setRunLoading] = useState<boolean>(false);
   const [submitLoading, setSubmitLoading] = useState<boolean>(false);
@@ -43,21 +52,19 @@ const Actions = ({
           setLanguage(e.target.value);
         }}
       >
-        {/* @ts-expect-error => language.available is not defined */}
-        {languages.map(
-          (language) =>
-            language.available && (
-              <SelectItem key={language.abbr} value={language.abbr}>
-                {language.name}
-              </SelectItem>
-            )
-        )}
+        {languages
+          .filter((lang) => lang.available)
+          .map((lang) => (
+            <SelectItem key={lang.abbr} value={lang.abbr}>
+              {lang.name}
+            </SelectItem>
+          ))}
       </Select>
 
       <Tooltip content="Explain Code">
         <Button
           variant="flat"
-          className="p-0 max-w-2 m-0 bg-yellow-900"
+          className={`p-0 max-w-2 m-0 bg-yellow-900 ${allowExplain ? "" : "hidden"}`}
           size="sm"
           isIconOnly
           onClick={() => setExplainOpen(true)}
@@ -71,7 +78,7 @@ const Actions = ({
       <Tooltip content="Run Code">
         <Button
           variant="flat"
-          className="p-0 max-w-2 m-0 bg-green-900"
+          className={`p-0 max-w-2 m-0 bg-green-900 ${allowRun ? "" : "hidden"}`}
           size="sm"
           isIconOnly
           onClick={triggerRun}
@@ -86,7 +93,7 @@ const Actions = ({
       <Tooltip content="Submit Code">
         <Button
           variant="flat"
-          className="p-0 max-w-2 m-0 bg-blue-900"
+          className={`p-0 max-w-2 m-0 bg-blue-900 ${allowSubmit ? "" : "hidden"}`}
           size="sm"
           isIconOnly
           onClick={triggerSubmit}

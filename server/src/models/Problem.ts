@@ -11,6 +11,12 @@ const testCaseSchema = new mongoose.Schema({
   isSample: { type: Boolean, required: true },
 });
 
+const sclObject = new mongoose.Schema({
+  name: { type: String, required: true },
+  type: { type: String, required: true },
+  value: { type: String, required: true },
+});
+
 const ProblemSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: Object, required: true },
@@ -22,7 +28,7 @@ const ProblemSchema = new mongoose.Schema({
   },
   tags: { type: [String], required: true },
   votes: { type: Number, default: 0 },
-  scl: { type: [String], required: true },
+  sclObject: { type: [sclObject], required: true },
   testCases: { type: [testCaseSchema], required: true },
   isPrivate: { type: Boolean, default: false },
   allowInAssessments: { type: Boolean, default: false },
