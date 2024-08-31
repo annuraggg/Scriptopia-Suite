@@ -20,6 +20,8 @@ import { CpuIcon, TimerIcon } from "lucide-react";
 import { ISubmission } from "@shared-types/Submission";
 import { useAuth } from "@clerk/clerk-react";
 import defaultLanguages from "@/data/languages";
+import { IProblem } from "@shared-types/Problem";
+import { Delta } from "quill/core";
 
 const Problem = ({
   loading,
@@ -35,9 +37,9 @@ const Problem = ({
   allowExplain = true,
 }: {
   loading: boolean;
-  problem: any;
-  submissions: any;
-  setSubmissions: any;
+  problem: IProblem;
+  submissions: ISubmission[];
+  setSubmissions: (submissions: ISubmission[]) => void;
   defaultLanguage?: string;
   languages?: { name: string; abbr: string; available: boolean }[];
 
@@ -54,7 +56,7 @@ const Problem = ({
 
   const [consoleOutput, setConsoleOutput] = useState<string>("");
   const [outputCases, setOutputCases] = useState<IRunResponseResult[]>([]);
-  const [_codeError, setCodeError] = useState<string>("");
+  const [codeError, setCodeError] = useState<string>("");
   const [runningCode, setRunningCode] = useState<boolean>(false);
   const [currentSub, setCurrentSub] = useState<ISubmission | null>(null);
 
@@ -69,16 +71,26 @@ const Problem = ({
     return axios
       .post("/submissions/run", { code, language, problemId: problem._id })
       .then((res) => {
-        console.log(res);
         setOutputCases(
           res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
         );
 
-        setConsoleOutput(
-          res.data.data.results.map((r: IRunResponseResult) =>
-            r.consoleOutput.join("\n")
-          )
+        const firstError = res.data.data.results.find(
+          (r: IRunResponseResult) => r.error?.name && r.error?.message
         );
+
+        let firstErrorFull = "";
+        if (firstError)
+          firstErrorFull = `${firstError.error.name}: ${firstError.error.message}`;
+
+        setCodeError(firstErrorFull);
+
+        const consoleOp = res.data.data.results
+          .map((r: IRunResponseResult) => r.consoleOutput?.join("\n"))
+          .join("\n");
+
+        setConsoleOutput(consoleOp || "");
+
         if (res.data.data.STATUS === "ERROR") {
           setCodeError(res.data.data.message);
         }
@@ -103,11 +115,21 @@ const Problem = ({
           res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
         );
 
-        setConsoleOutput(
-          res.data.data.results.map((r: IRunResponseResult) =>
-            r?.consoleOutput?.join("\n")
-          )
+        const firstError = res.data.data.results.find(
+          (r: IRunResponseResult) => r.error?.name && r.error?.message
         );
+
+        let firstErrorFull = "";
+        if (firstError)
+          firstErrorFull = `${firstError.error.name}: ${firstError.error.message}`;
+
+        setCodeError(firstErrorFull);
+
+        const consoleOp = res.data.data.results
+          .map((r: IRunResponseResult) => r.consoleOutput?.join("\n"))
+          .join("\n");
+
+        setConsoleOutput(consoleOp || "");
         setComponentLoading(false);
 
         if (res.data.data.status === "FAILED") {
@@ -126,6 +148,7 @@ const Problem = ({
       })
       .catch((err) => {
         setComponentLoading(false);
+        console.log(err);
         return { success: false, error: err, data: {} };
       })
       .finally(() => setRunningCode(false));
@@ -165,7 +188,7 @@ const Problem = ({
     <>
       <Split className="flex h-[90vh] w-full gap-2" vaul-drawer-wrapper="">
         <Statement
-          statement={problem.description}
+          statement={problem.description as Delta}
           submissions={submissions}
           title={problem.title}
           setActiveTab={setLeftPaneActTab}
@@ -190,6 +213,7 @@ const Problem = ({
           <InfoPanel
             consoleOutput={consoleOutput}
             runningCode={runningCode}
+            codeError={codeError}
             cases={outputCases}
           />
         </Split>

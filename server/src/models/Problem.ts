@@ -11,10 +11,41 @@ const testCaseSchema = new mongoose.Schema({
   isSample: { type: Boolean, required: true },
 });
 
+const arraySclObject = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: [
+      "boolean",
+      "integer",
+      "character",
+      "long",
+      "float",
+      "double",
+      "string",
+    ],
+    required: true,
+  },
+  size: { type: Number, required: true },
+});
+
 const sclObject = new mongoose.Schema({
   name: { type: String, required: true },
-  type: { type: String, required: true },
-  value: { type: String, required: true },
+  type: {
+    type: String,
+    enum: [
+      "boolean",
+      "integer",
+      "character",
+      "long",
+      "float",
+      "double",
+      "string",
+      "array",
+      "return",
+    ],
+    required: true,
+  },
+  arrayProps: { type: arraySclObject, required: false },
 });
 
 const ProblemSchema = new mongoose.Schema({

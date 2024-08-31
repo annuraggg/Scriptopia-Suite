@@ -1,15 +1,17 @@
 import { Card, Code, Spinner, Tab, Tabs } from "@nextui-org/react";
-import { FlaskConical, SquareChevronRight } from "lucide-react";
+import { FlaskConical, SquareChevronRight, TriangleAlert } from "lucide-react";
 import { IRunResponseResult } from "@shared-types/RunResponse";
 
 const InfoPanel = ({
   consoleOutput,
   cases,
   runningCode,
+  codeError,
 }: {
   consoleOutput: string;
   cases: IRunResponseResult[];
   runningCode: boolean;
+  codeError: string;
 }) => {
   if (runningCode)
     return (
@@ -94,6 +96,28 @@ const InfoPanel = ({
             ) : (
               <p className="text-sm text-gray-500 h-full overflow-auto">
                 No Output
+              </p>
+            )}
+          </div>
+        </Tab>{" "}
+        <Tab
+          title={
+            <div className="flex items-center gap-2">
+              <TriangleAlert size={20} className={` ${!codeError ? "text-gray-400" : "text-red-500"}`} />{" "}
+              <p>Error</p>
+            </div>
+          }
+          key="error"
+          className="h-full"
+        >
+          <div className="h-full bg-red-950 text-red-600 p-3 rounded-lg">
+            {console ? (
+              <div className="text-sm h-full overflow-auto">
+                {codeError || "No Errors"}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 h-full overflow-auto">
+                No Error
               </p>
             )}
           </div>

@@ -74,6 +74,8 @@ const NewProblem = () => {
   const { getToken } = useAuth();
   const buildRequestData = () => {
     const axios = ax(getToken);
+    const sclObject = sclToObject(scl).sclObject
+    console.log(sclObject)
     axios
       .post("/problems", {
         title,
@@ -81,7 +83,7 @@ const NewProblem = () => {
         difficulty,
         tags,
         description,
-        sclObject: sclToObject(scl),
+        sclObject ,
         testCases,
         minimumFiveCases,
         minimumThreeSampleCases,

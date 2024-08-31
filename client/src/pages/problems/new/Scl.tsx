@@ -1,5 +1,5 @@
 import { Button, Select, SelectItem } from "@nextui-org/react";
-import Monaco from "../problem/Editor/Monaco";
+import Monaco from "@/components/problem/Editor/Monaco";
 import { useState } from "react";
 import languages from "@/data/languages";
 import { convertSclToJs, sclReturnType } from "@/functions/scl";

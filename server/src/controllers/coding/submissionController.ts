@@ -4,7 +4,8 @@ import Problem from "../../models/Problem";
 import { runCode as runCompilerCode } from "../../aws/runCode";
 import Submission from "../../models/Submission";
 import User from "../../models/User";
-import sclToObject from "../../functions/scl/sclToObject";
+import { SclObject } from "@shared-types/Scl";
+import { ITestCase } from "@shared-types/Problem";
 
 const runCode = async (c: Context) => {
   try {
@@ -20,23 +21,15 @@ const runCode = async (c: Context) => {
       return sendError(c, 404, "Problem Not Found");
     }
 
-    const functionArgs = sclToObject(prob.scl.join("\n")).sclObject;
-
     if (!prob) {
       return sendError(c, 404, "Problem Not Found");
     }
 
-    const functionSchema = {
-      functionName: "execute",
-      functionArgs: functionArgs,
-      functionBody: body.code,
-    };
-    
-
     const result = await runCompilerCode(
       body.language,
-      functionSchema,
-      prob.scl
+      prob.sclObject as SclObject[],
+      body.code,
+      prob.testCases as ITestCase[]
     );
 
     if (!result) {
@@ -60,18 +53,12 @@ const submitCode = async (c: Context) => {
     if (!prob) {
       return sendError(c, 404, "Problem Not Found");
     }
-    const functionArgs = sclToObject(prob.scl.join("\n")).sclObject;
-
-    const functionSchema = {
-      functionName: "execute",
-      functionArgs: functionArgs,
-      functionBody: body.code,
-    };
 
     const result = await runCompilerCode(
       body.language,
-      functionSchema,
-      prob.scl
+      prob.sclObject as SclObject[],
+      body.code,
+      prob.testCases as ITestCase[]
     );
 
     const results = result.results.map((r: any) => ({

@@ -5,6 +5,8 @@ import Assessment from "../../models/Assessment";
 import Problem from "../../models/Problem";
 import { runCode as runCompilerCode } from "../../aws/runCode";
 import AssessmentSubmissions from "../../models/AssessmentSubmissions";
+import { SclObject } from "@shared-types/Scl";
+import { ITestCase } from "@shared-types/Problem";
 
 const LIMIT_PER_PAGE = 20;
 
@@ -304,15 +306,11 @@ const submitAssessment = async (c: Context) => {
           return sendError(c, 404, "Problem not found");
         }
 
-        const functionSchema = {
-          functionName: "execute",
-          functionBody: submission.code,
-        };
-
         const result: any = await runCompilerCode(
           submission.language,
-          functionSchema,
-          problem.scl
+          problem.sclObject as SclObject[],
+          submission.code,
+          problem.testCases as ITestCase[]
         );
 
         if (result?.status === "ERROR") {

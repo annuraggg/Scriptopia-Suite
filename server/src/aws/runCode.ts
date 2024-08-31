@@ -1,13 +1,13 @@
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+import { ITestCase } from "@shared-types/Problem";
+import { SclObject } from "@shared-types/Scl";
 const REGION = "ap-south-1";
 
 const runCode = async (
   language: string,
-  functionSchema: {
-    functionName: string;
-    functionBody: string;
-  },
-  testCases: string[]
+  sclObject: SclObject[],
+  code: string,
+  testCases: ITestCase[]
 ) => {
   const lambdaClient = new LambdaClient({
     region: REGION,
@@ -17,7 +17,13 @@ const runCode = async (
     },
   });
 
-  const data = { functionSchema, testCases };
+  const data = {
+    testCases,
+    sclObject,
+    code,
+  };
+  
+  console.log(data);
 
   const params = {
     FunctionName: `${language}-driver`,

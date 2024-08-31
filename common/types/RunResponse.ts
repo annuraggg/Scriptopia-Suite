@@ -6,6 +6,11 @@ interface IRunResponse {
   results: IRunResponseResult[];
 }
 
+interface IError {
+  name: string;
+  message: string;
+}
+
 interface IRunResponseResult {
   input: string[];
   output: string;
@@ -14,6 +19,7 @@ interface IRunResponseResult {
   isSample: boolean;
   memory: number;
   time: number;
+  error: IError;
   consoleOutput: string[];
 }
 
