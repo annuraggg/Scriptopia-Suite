@@ -6,7 +6,7 @@
     "prod": "tsx src/index.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-lambda": "^3.614.0",
+    "@aws-sdk/client-lambda": "^3.637.0",
     "@aws-sdk/client-s3": "^3.622.0",
     "@aws-sdk/lib-storage": "^3.622.0",
     "@axiomhq/pino": "^1.0.0",
@@ -14,9 +14,9 @@
     "@hono/clerk-auth": "^2.0.0",
     "@hono/node-server": "^1.11.4",
     "@lemonsqueezy/lemonsqueezy.js": "^3.2.0",
-    "axios": "^1.7.2",
+    "axios": "^1.7.6",
     "dotenv": "^16.4.5",
-    "hono": "^4.4.12",
+    "hono": "^4.5.10",
     "ioredis": "^5.4.1",
     "jsonwebtoken": "^9.0.2",
     "loops": "^3.0.0",
