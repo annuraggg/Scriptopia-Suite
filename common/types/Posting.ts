@@ -39,7 +39,7 @@ interface Auto {
   _id?: string;
   step: number;
   start: Date;
-  end: Date;
+  end?: Date;
 }
 
 interface WorkflowStep {
@@ -63,23 +63,50 @@ interface Salary {
   currency?: string;
 }
 
+interface Assignment {
+  _id?: string;
+  name: string;
+  description: string;
+  dueDate: Date;
+}
+
 interface Posting {
   _id?: string;
   title: string;
   description: string;
   department?: string;
-  schedule: "full" | "part" | "intern";
-  openings: number;
   location: string;
-  salaryRange: Salary;
+  type: "full_time" | "part_time" | "internship";
+  openings: number;
+  salary: Salary;
   workflow?: Workflow;
+  applicationRange: {
+    start: Date;
+    end: Date;
+  };
+  qualifications: string;
+  skills: string[];
   ats: Ats;
+
   assessments: Assessment[];
+  assignments: Assignment[];
   interview: Interview;
   candidates: Candidate[];
-  publishedOn: Date;
+  published?: boolean;
+  publishedOn?: Date;
   createdOn: Date;
   updatedOn: Date;
 }
 
-export type { Interviewer, Interview, Assessment, Ats, Candidate, Auto, WorkflowStep, Workflow, Salary, Posting };
+export type {
+  Posting,
+  Salary,
+  Workflow,
+  WorkflowStep,
+  Auto,
+  Candidate,
+  Ats,
+  Assessment,
+  Interview,
+  Interviewer,
+};

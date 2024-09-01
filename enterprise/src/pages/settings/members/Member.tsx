@@ -18,7 +18,7 @@ import { useAuth, useUser } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { Member } from "@shared-types/Organization";
-import { Role } from "@shared-types/EnterpriseRole";
+import { Role } from "@shared-types/Organization";
 import {
   Modal,
   ModalContent,
@@ -129,7 +129,7 @@ const Members: React.FC = () => {
     triggerSaveToast();
   };
 
-  const handleRoleChange = (index: number, newRole: string) => {
+  const handleRoleChange = (index: number, newRole: Role | string) => {
     if (!newRole) return;
     const updatedMembers = [...members];
     updatedMembers[index].role = roles.find(
@@ -189,19 +189,26 @@ const Members: React.FC = () => {
                   <TableRow key={member.email}>
                     <TableCell>{member.email}</TableCell>
                     <TableCell>
-                      {member?.addedOn ? new Date(member.addedOn).toLocaleDateString() : "pending"}
+                      {member?.addedOn
+                        ? new Date(member.addedOn).toLocaleDateString()
+                        : "pending"}
                     </TableCell>
                     <TableCell className="w-[200px]">
                       <Select
                         className="w-[200px]"
-                        selectedKeys={[member.role.name]}
+                        selectedKeys={typeof member.role !== "string" ? [member.role.name] : []}
                         aria-label="Role"
                         isDisabled={
                           userEmails.filter((email) => email === member.email)
                             .length !== 0
                         }
                         onSelectionChange={(keys) =>
-                          handleRoleChange(index, Array.from(keys)[0] as string)
+                          handleRoleChange(
+                            index,
+                            typeof member.role === "string"
+                              ? member.role
+                              : (Array.from(keys)[0] as string)
+                          )
                         }
                       >
                         {roles.map((role) => (
@@ -245,9 +252,15 @@ const Members: React.FC = () => {
                   <TableRow key={index}>
                     <TableCell>{member.email}</TableCell>
                     <TableCell>
-                      {member?.addedOn ? new Date(member.addedOn).toLocaleDateString() : "pending"}
+                      {member?.addedOn
+                        ? new Date(member.addedOn).toLocaleDateString()
+                        : "pending"}
                     </TableCell>
-                    <TableCell>{member.role.name}</TableCell>
+                    <TableCell>
+                      {typeof member.role === "string"
+                        ? member.role
+                        : member.role.name}
+                    </TableCell>
                     <TableCell>
                       <p
                         className=" text-danger hover:text-danger-500 duration-300 transition-colors cursor-pointer py-3"
@@ -300,7 +313,7 @@ const Members: React.FC = () => {
 
       <Modal
         isOpen={revokeConfirmOpen}
-        onOpenChange={onRevokeConfirmOpen}
+        onOpenChange={onRevokeConfirmOpenChange}
         className="w-[400px]"
       >
         <ModalContent>

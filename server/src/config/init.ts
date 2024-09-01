@@ -19,6 +19,7 @@ import problemRoute from "../routes/problemsRoute";
 import assessmentRoute from "../routes/assessmentRoute";
 import submissionRoute from "../routes/submissionRoute";
 import organizationRoute from "../routes/organizationRoute";
+import postingRoutes from "../routes/postingRoute";
 import userRoute from "../routes/userRoute";
 
 import instituteRoute from "../routes/instituteRoute";
@@ -38,8 +39,10 @@ app.route("/home", homeRoute);
 app.route("/problems", problemRoute);
 app.route("/assessments", assessmentRoute);
 app.route("/submissions", submissionRoute);
-app.route("/organizations", organizationRoute);
 app.route("/users", userRoute);
+
+app.route("/organizations", organizationRoute);
+app.route("/postings", postingRoutes);
 
 app.route("/campus", instituteRoute);
 app.route("/drives", driveRoute);

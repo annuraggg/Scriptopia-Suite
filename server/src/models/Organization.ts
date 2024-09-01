@@ -4,24 +4,17 @@ const { Schema } = mongoose;
 const membersSchema = new Schema({
   user: { type: String },
   email: { type: String, required: true },
-  role: { type: mongoose.Schema.Types.ObjectId, ref: "Role", required: true },
+  role: { type: String, required: true },
   addedOn: { type: Date, default: Date.now },
   status: { type: String, enum: ["pending", "active"], default: "pending" },
 });
 
-membersSchema.virtual("userDetails", {
-  ref: "User",
-  localField: "user",
-  foreignField: "clerkId",
-  justOne: true,
-});
-
 const rolesSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  slug: { type: String, required: true },
   default: { type: Boolean, default: true },
   description: { type: String },
-  permissions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Permission" }],
-  organization: { type: mongoose.Schema.Types.ObjectId, ref: "Organization" },
+  permissions: [{ type: String, required: true }],
 });
 
 const departmentsSchema = new Schema({
@@ -40,13 +33,6 @@ const auditLogSchema = new Schema({
     default: "info",
     required: true,
   },
-});
-
-auditLogSchema.virtual("userDetails", {
-  ref: "User",
-  localField: "user",
-  foreignField: "clerkId",
-  justOne: true,
 });
 
 const subscriptionSchema = new Schema({
@@ -88,13 +74,6 @@ organizationSchema.pre("save", function (next) {
   this.updatedOn = new Date();
   next();
 });
-
-// Ensure virtual fields are included in JSON and plain object outputs
-membersSchema.set("toJSON", { virtuals: true });
-membersSchema.set("toObject", { virtuals: true });
-
-auditLogSchema.set("toJSON", { virtuals: true });
-auditLogSchema.set("toObject", { virtuals: true });
 
 const Organization = mongoose.model("Organization", organizationSchema);
 export default Organization;

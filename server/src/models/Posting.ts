@@ -61,25 +61,27 @@ const workflowSchema = new Schema({
 const salarySchema = new Schema({ min: Number, max: Number, currency: String });
 
 const postingSchema = new Schema({
+  organizationId: { type: mongoose.Types.ObjectId, ref: "Organization" },
   title: { type: String, required: true },
   description: { type: String, required: true },
   department: { type: mongoose.Types.ObjectId, ref: "Department" },
-  schedule: { type: String, enum: ["full", "part", "intern"], required: true },
-  openings: { type: Number, required: true },
   location: { type: String, required: true },
-  salaryRange: {
-    type: salarySchema,
-    required: true,
-  },
+  type: { type: String, enum: ["full_time", "part_time", "internship"], required: true },
+  openings: { type: Number, required: true },
+  salary: { type: salarySchema, required: true },
   workflow: { type: workflowSchema },
+  applicationRange: { type: { start: Date, end: Date }, required: true },
+  qualifications: { type: String, required: true },
+  skills: [{ type: String, required: true }],
 
-  ats: { type: atsSchema, required: true },
+  ats: { type: atsSchema },
   assessments: [{ type: [assessmentSchema], ref: "Assessment" }],
-  interview: { type: interviewSchema, required: true },
+  interview: { type: interviewSchema },
 
   candidates: [{ type: candidatesSchema, ref: "Candidate" }],
 
-  publishedOn: { type: Date, required: true },
+  published: { type: Boolean, default: false },
+  publishedOn: { type: Date },
   createdOn: { type: Date, default: Date.now, required: true },
   updatedOn: { type: Date, default: Date.now, required: true },
 });

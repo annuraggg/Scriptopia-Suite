@@ -141,27 +141,24 @@ const Lander = () => {
               </div>
             </div>
             <div className="relative max-w-[50vw] h-full">
-              <motion.div
+              <div
                 className="absolute top-0 left-0 transition-all duration-300 ease-in-out hover:z-10"
-                whileHover={{ scale: 1.05 }}
               >
                 <Image
                   src="/lander2.png"
                   alt="Hiring"
                   className="border min-w-[40vw] min-h-[100%] drop-shadow-glow-dark"
                 />
-              </motion.div>
-              <motion.div
+              </div>
+              <div
                 className="absolute top-10 -left-10 transition-all duration-300 ease-in-out z-0 hover:z-0"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
                 <Image
                   src="/lander1.png"
                   alt="Hiring"
                   className="border min-w-[40vw] min-h-[100%] drop-shadow-glow-dark"
                 />
-              </motion.div>
+              </div>
             </div>
           </div>
 

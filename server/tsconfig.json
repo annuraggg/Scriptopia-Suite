@@ -16,9 +16,10 @@
       "jsxImportSource": "hono/jsx",
       "paths": {
         "@/*": ["./src/*"],
-        "@shared-types/*": ["../common/types/*"]
+        "@shared-types/*": ["../common/types/*"],
+        "@shared-data/*": ["../common/data/*"]
       }
     },
-    "include": ["src", "../common/types", "check-types.js"]
+    "include": ["src", "../common/types", "check-types.js", "../commom/data"]
   }
   

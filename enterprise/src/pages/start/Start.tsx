@@ -15,7 +15,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setOrganization } from "@/reducers/organizationReducer";
 
@@ -30,7 +29,6 @@ interface Role {
 }
 
 const Start = () => {
-  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const dispatch = useDispatch();
 
@@ -109,7 +107,7 @@ const Start = () => {
       .then(() => {
         setSecondLoading(false);
         toast.success("Organization created successfully");
-        navigate("/dashboard");
+        window.location.href = "/dashboard";
         const data = {
           _id: user?.publicMetadata?.orgId,
           role: user?.publicMetadata?.roleName,
@@ -260,7 +258,7 @@ const Start = () => {
             {invitedMembers.length === 0 ? (
               <Button
                 className="absolute bottom-5 right-5"
-                onPress={() => setPage(3)}
+                onPress={submit}
                 isDisabled={secondLoading}
                 isLoading={secondLoading}
                 variant="light"

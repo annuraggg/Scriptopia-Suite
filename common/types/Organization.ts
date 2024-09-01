@@ -1,10 +1,16 @@
-import { Role } from "./EnterpriseRole";
+interface Role {
+  name: string;
+  slug: string;
+  default: boolean;
+  description: string;
+  permissions: string[];
+}
 
 interface Member {
   _id?: string;
   user?: string;
   email: string;
-  role: Role;
+  role: string | Role;
   addedOn?: Date;
   status?: "pending" | "active";
 }
@@ -50,4 +56,4 @@ interface Organization {
   updatedOn?: Date;
 }
 
-export type { Member, Department, AuditLog, Subscription, Organization };
+export type { Member, Department, AuditLog, Subscription, Organization, Role };
