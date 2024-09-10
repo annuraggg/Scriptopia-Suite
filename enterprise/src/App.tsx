@@ -39,7 +39,11 @@ const Security = lazy(() => import("./pages/settings/security/Security"));
 const AuditLogs = lazy(
   () => import("./pages/settings/security/audit-logs/Audit-Logs")
 );
-const OrgData = lazy(() => import("./pages/settings/security/data/Data"))
+const OrgData = lazy(() => import("./pages/settings/security/data/Data"));
+
+import Selector from "./pages/jobs/job/assessments/new/Selector";
+import Assignments from "./pages/jobs/job/assignment/Assignments";
+import NewAssignment from "./pages/jobs/job/assignment/New";
 
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
 const Jobs = lazy(() => import("./pages/jobs/Jobs"));
@@ -123,6 +127,18 @@ function App() {
     {
       path: "assessments",
       element: <Suspense fallback={<Loader />} children={<Assessments />} />,
+    },
+    {
+      path: "assessments/new/:type",
+      element: <Suspense fallback={<Loader />} children={<Selector />} />,
+    },
+    {
+      path: "assignments/",
+      element: <Suspense fallback={<Loader />} children={<Assignments />} />,
+    },
+    {
+      path: "assignments/new/",
+      element: <Suspense fallback={<Loader />} children={<NewAssignment />} />,
     },
     {
       path: "interviews",

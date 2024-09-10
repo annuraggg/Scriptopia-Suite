@@ -244,7 +244,7 @@ const Postings: React.FC = () => {
                 </Card>
               </div>
 
-              <div className="grid grid-cols-4 gap-8 mt-2 w-full">
+              <div className="flex gap-5 mt-5 w-full">
                 {Cards.map((card, index) => (
                   <Card
                     isPressable
@@ -282,9 +282,7 @@ const Postings: React.FC = () => {
                           ? "text-white"
                           : "text-gray-500"
                       }`}
-                    >
-                      {card.jobCount} Jobs
-                    </p>
+                    ></p>
                   </Card>
                 ))}
               </div>

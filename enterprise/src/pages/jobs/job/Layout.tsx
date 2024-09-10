@@ -14,7 +14,7 @@ const Layout = () => {
   const axios = ax(getToken);
   useEffect(() => {
     axios
-      .get("/postings/" + window.location.pathname.split("/")[3])
+      .get("/postings/" + window.location.pathname.split("/")[2])
       .then((res) => {
         setPosting(res.data.data);
       })

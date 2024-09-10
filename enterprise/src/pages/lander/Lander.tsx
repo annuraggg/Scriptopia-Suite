@@ -7,14 +7,10 @@ import {
   UserCheck,
   Users,
 } from "lucide-react";
-import {
-  Button,
-  Image,
-  Card,
-  CardHeader,
-  CardBody,
-} from "@nextui-org/react";
+import { Button, Image, Card, CardHeader, CardBody } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
+import { RootState } from "@/types/Reducer";
+import { useSelector } from "react-redux";
 
 const Lander = () => {
   const navigate = useNavigate();
@@ -97,6 +93,15 @@ const Lander = () => {
     window.scrollTo({ top: window.innerHeight, behavior: "smooth" });
   };
 
+  const organization = useSelector((state: RootState) => state.organization);
+  const redirectUser = () => {
+    if (organization) {
+      navigate("/dashboard");
+    } else {
+      navigate("/start");
+    }
+  };
+
   return (
     <>
       <motion.div
@@ -107,11 +112,7 @@ const Lander = () => {
       >
         <div className="py-10 mx-20">
           <div>
-            <img
-              src="/logo.png"
-              alt="logo"
-              className="w-10 h-10"
-            />
+            <img src="/logo.png" alt="logo" className="w-10 h-10" />
           </div>
           <div className="flex max-w-[100vw] h-[95vh] items-center">
             <div className="flex flex-col h-full mt-48">
@@ -131,7 +132,7 @@ const Lander = () => {
                   Learn More
                 </Button>
                 <Button
-                  onClick={() => navigate("/start")}
+                  onClick={() => redirectUser()}
                   className="w-full"
                   color="success"
                   variant="shadow"
@@ -141,18 +142,14 @@ const Lander = () => {
               </div>
             </div>
             <div className="relative max-w-[50vw] h-full">
-              <div
-                className="absolute top-0 left-0 transition-all duration-300 ease-in-out hover:z-10"
-              >
+              <div className="absolute top-0 left-0 transition-all duration-300 ease-in-out hover:z-10">
                 <Image
                   src="/lander2.png"
                   alt="Hiring"
                   className="border min-w-[40vw] min-h-[100%] drop-shadow-glow-dark"
                 />
               </div>
-              <div
-                className="absolute top-10 -left-10 transition-all duration-300 ease-in-out z-0 hover:z-0"
-              >
+              <div className="absolute top-10 -left-10 transition-all duration-300 ease-in-out z-0 hover:z-0">
                 <Image
                   src="/lander1.png"
                   alt="Hiring"
@@ -236,7 +233,7 @@ const Lander = () => {
             </div>
           </div>
         </div>
-      </motion.div >
+      </motion.div>
     </>
   );
 };

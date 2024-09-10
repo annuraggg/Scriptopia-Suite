@@ -45,7 +45,7 @@ interface Auto {
 interface WorkflowStep {
   _id?: string;
   name: string;
-  type: "rs" | "sa" | "ca" | "pi" | "cu";
+  type: "rs" | "mcqa" | "ca" | "mcqca" | "as" | "pi" | "cu";
 }
 
 interface Workflow {
@@ -67,7 +67,6 @@ interface Assignment {
   _id?: string;
   name: string;
   description: string;
-  dueDate: Date;
 }
 
 interface Posting {
@@ -109,4 +108,5 @@ export type {
   Assessment,
   Interview,
   Interviewer,
+  Assignment,
 };

@@ -11,7 +11,7 @@ import {
 import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { Badge } from "@nextui-org/badge";
-import { Tooltip } from "@nextui-org/react";
+import { Divider, Tooltip } from "@nextui-org/react";
 import { Posting } from "@shared-types/Posting";
 
 const Sidebar = ({ posting }: { posting: Posting }) => {
@@ -100,14 +100,51 @@ const Sidebar = ({ posting }: { posting: Posting }) => {
       return;
     }
 
-    const path = window.location.pathname.split("/").slice(0, 4);
+    const path = window.location.pathname.split("/").slice(0, 3);
     navigate(path.join("/") + item.link);
     setActive(item.label.toLowerCase());
   };
 
+  const hasCompletedAllSteps = useMemo(() => {
+    const steps = posting?.workflow?.steps || [];
+    if (steps.length === 0) {
+      return -1;
+    }
+
+    let totalCompleted = 0;
+    steps.forEach((step) => {
+      if (step.type === "rs" && posting?.ats) {
+        totalCompleted++;
+      }
+
+      if (step.type === "ca" || step.type === "mcqa" || step.type === "mcqca") {
+        if (posting?.assessments?.filter((a) => a.name === step.name).length) {
+          totalCompleted++;
+        }
+      }
+
+      if (step.type === "as") {
+        if (posting?.assignments?.filter((a) => a.name === step.name).length) {
+          totalCompleted++;
+        }
+      }
+
+      if (step.type === "pi" && posting?.interview) {
+        totalCompleted++;
+      }
+    });
+
+    // alert("TOTAL: " + totalCompleted + " STEPS: " + steps.length);
+    if (totalCompleted === steps.length) {
+      return 1;
+    }
+
+    return 0;
+  }, [posting]);
+
   return (
     <aside
-      className={`sticky h-[100vh] min-w-16 px-5 top-0 left-0 hidden transition-width flex-col border-r bg-background sm:flex overflow-x-hidden ${
+      className={`sticky h-[100vh] min-w-16 px-5 top-0 left-0  transition-width flex-col border-r bg-background sm:flex overflow-x-hidden ${
         collapsed ? "w-16" : "w-64"
       }`}
     >
@@ -150,10 +187,41 @@ const Sidebar = ({ posting }: { posting: Posting }) => {
         ))}
       </nav>
 
+      <Divider />
+      {hasCompletedAllSteps === 1 && (
+        <nav
+          className={`flex flex-col gap-4 sm:py-5 text-success-500 text-xs absolute bottom-10 pr-5 delay-200 overflow-hidden whitespace-nowrap   ${
+            !collapsed ? "visible" : "hidden"
+          } `}
+        >
+          All workflow steps completed
+        </nav>
+      )}
+
+      {hasCompletedAllSteps === 0 && (
+        <nav
+          className={`flex flex-col gap-4 sm:py-5 text-warning-500 text-xs absolute bottom-10 pr-5 delay-200 whitespace-nowrap overflow-visible  ${
+            !collapsed ? "visible" : "hidden"
+          } `}
+        >
+          Complete all the workflow steps <br /> to publish this posting
+        </nav>
+      )}
+
+      {hasCompletedAllSteps === -1 && (
+        <nav
+          className={`flex flex-col gap-4 sm:py-5 text-danger-500 text-xs absolute bottom-10 pr-5 delay-200 overflow-hidden whitespace-nowrap   ${
+            !collapsed ? "visible" : "hidden"
+          } `}
+        >
+          Workflow not initialized
+        </nav>
+      )}
+
       <div className="flex w-full mb-5 bottom-0 absolute">
         <Tooltip>
           <ChevronRight
-            className={`h-5 w-5 text-muted-foreground transition-all opacity-50 ${
+            className={`h-5 w-5 text-muted-foreground transition-all opacity-50 cursor-pointer ${
               !collapsed ? "rotate-180" : ""
             }`}
             onClick={() => setCollapsed(!collapsed)}

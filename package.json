@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "quill-delta-to-plaintext": "^1.0.0"
+  }
+}

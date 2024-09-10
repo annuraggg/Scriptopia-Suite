@@ -4,6 +4,7 @@ import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import logger from "../../../utils/logger";
 import { Context } from "hono";
 import Organization from "@/models/Organization";
+import assessmentController from "@/controllers/coding/assessmentController";
 // import assessmentController from "../../coding/assessmentController";
 
 const getPostings = async (c: Context) => {
@@ -19,7 +20,10 @@ const getPostings = async (c: Context) => {
 
     const organization = await Organization.findById(perms.data!.orgId);
 
-    return sendSuccess(c, 200, "Posting fetched successfully", { postings: posting, departments: organization?.departments });
+    return sendSuccess(c, 200, "Posting fetched successfully", {
+      postings: posting,
+      departments: organization?.departments,
+    });
   } catch (e: any) {
     logger.error(e);
     return sendError(c, 500, "Something went wrong");
@@ -33,12 +37,15 @@ const getPosting = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const posting = await Posting.findById(c.req.param("id"));
+    const posting = await Posting.findById(c.req.param("id")).populate(
+      "assessments"
+    );
+
     if (!posting) {
-      return sendError(c, 404, "Drive not found");
+      return sendError(c, 404, "job not found");
     }
 
-    return sendSuccess(c, 200, "Drive fetched successfully", posting);
+    return sendSuccess(c, 200, "job fetched successfully", posting);
   } catch (e: any) {
     logger.error(e);
     return sendError(c, 500, "Something went wrong");
@@ -81,7 +88,7 @@ const createPosting = async (c: Context) => {
 
     await posting.save();
 
-    return sendSuccess(c, 201, "Drive created successfully", posting);
+    return sendSuccess(c, 201, "job created successfully", posting);
   } catch (e: any) {
     logger.error(e);
     return sendError(c, 500, "Something went wrong");
@@ -101,6 +108,8 @@ const createWorkflow = async (c: Context) => {
       return sendError(c, 404, "Posting not found");
     }
 
+    console.log(formattedData);
+
     posting.workflow = formattedData;
     await posting.save();
 
@@ -116,7 +125,7 @@ const updateAts = async (c: Context) => {
     const { minimumScore, negativePrompts, positivePrompts, _id } =
       await c.req.json();
 
-    const perms = await checkPermission.all(c, ["manage_drive"]);
+    const perms = await checkPermission.all(c, ["manage_job"]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
@@ -147,54 +156,70 @@ const updateAts = async (c: Context) => {
   }
 };
 
-// const updateAssessment = async (c: Context) => {
-//   try {
-//     const perms = await checkPermission.all(c, ["manage_drive"]);
-//     if (!perms.allowed) {
-//       return sendError(c, 401, "Unauthorized");
-//     }
+const updateAssessment = async (c: Context) => {
+  try {
+    const perms = await checkPermission.all(c, ["manage_job"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
 
-//     const newAssessment = await assessmentController.createAssessment(c);
-//     const { assessmentDriveName, postingId } = await c.req.json();
+    const newAssessment = await assessmentController.createAssessment(c);
+    const { postingId, name } = await c.req.json();
 
-//     const resp = await newAssessment.json();
+    const resp = await newAssessment.json();
 
-//     const existingAssessments = await Posting.findOne({ _id: postingId });
-//     if (!existingAssessments) {
-//       return sendError(c, 404, "Drive not found");
-//     }
+    const existingAssessments = await Posting.findOne({
+      _id: postingId,
+    }).populate("assessments");
+    if (!existingAssessments) {
+      return sendError(c, 404, "job not found");
+    }
 
-//     console.log("Existing", existingAssessments.assessments);
+    const exists = existingAssessments.assessments.filter(
+      (a) => a.name === name
+    );
 
-//     const exists = existingAssessments.assessments.filter((a) => {
-//       console.log("A", a.name);
-//       console.log("B", assessmentDriveName);
-//       console.log("C", a.name === assessmentDriveName);
-//       return a.name === assessmentDriveName;
-//     });
+    console.log(name);
 
-//     console.log("Exists", exists);
+    if (exists.length > 0) {
+      return sendError(c, 400, "Assessment already exists");
+    }
 
-//     if (exists.length > 0) {
-//       return sendError(c, 400, "Assessment already exists");
-//     }
+    await Posting.findByIdAndUpdate(postingId, {
+      $push: { assessments: resp.data._id },
+      updatedOn: new Date(),
+    });
 
-//     await Posting.findByIdAndUpdate(driveId, {
-//       $push: {
-//         assessments: {
-//           name: assessmentDriveName,
-//           assessmentId: resp.data._id,
-//         },
-//       },
-//       updatedOn: new Date(),
-//     });
+    return sendSuccess(c, 200, "Success");
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
 
-//     return sendSuccess(c, 200, "Success");
-//   } catch (e: any) {
-//     logger.error(e);
-//     return sendError(c, 500, "Something went wrong");
-//   }
-// };
+const updateAssignment = async (c: Context) => {
+  try {
+    const { name, description, postingId } = await c.req.json();
+
+    const perms = await checkPermission.all(c, ["manage_job"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const posting = await Posting.findById(postingId);
+    if (!posting) {
+      return sendError(c, 404, "job not found");
+    }
+
+    posting.assignments.push({ name, description });
+    await posting.save();
+
+    return sendSuccess(c, 201, "Assignment created successfully", posting);
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};  
 
 export default {
   getPostings,
@@ -202,5 +227,6 @@ export default {
   createPosting,
   createWorkflow,
   updateAts,
-  // updateAssessment,
+  updateAssessment,
+  updateAssignment,
 };

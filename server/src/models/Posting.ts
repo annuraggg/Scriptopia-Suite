@@ -18,10 +18,6 @@ const interviewSchema = new Schema({
   duration: { type: Number, required: true },
 });
 
-const assessmentSchema = new Schema({
-  assessmentId: { type: String, required: true, ref: "Assessment" },
-});
-
 const atsSchema = new Schema({
   minimumScore: { type: Number, required: true },
   negativePrompts: [{ type: String, required: true }],
@@ -48,11 +44,15 @@ const autoSchema = new Schema({
 
 const workflowStepSchema = new Schema({
   name: { type: String, required: true },
-  type: { type: String, enum: ["rs", "sa", "ca", "pi", "cu"], required: true },
+  type: {
+    type: String,
+    enum: ["rs", "mcqa", "ca", "mcqca", "as", "pi", "cu"],
+    required: true,
+  },
 });
 
 const workflowSchema = new Schema({
-  steps: [{ type: [workflowStepSchema] }],
+  steps: { type: [workflowStepSchema] },
   currentStep: { type: Number, required: true },
   behavior: { type: String, enum: ["manual", "auto"], required: true },
   auto: { type: [autoSchema] },
@@ -60,22 +60,32 @@ const workflowSchema = new Schema({
 
 const salarySchema = new Schema({ min: Number, max: Number, currency: String });
 
+const assignmentSchema = new Schema({
+  name: { type: String, required: true },
+  description: { type: String, required: true },
+});
+
 const postingSchema = new Schema({
   organizationId: { type: mongoose.Types.ObjectId, ref: "Organization" },
   title: { type: String, required: true },
   description: { type: String, required: true },
   department: { type: mongoose.Types.ObjectId, ref: "Department" },
   location: { type: String, required: true },
-  type: { type: String, enum: ["full_time", "part_time", "internship"], required: true },
+  type: {
+    type: String,
+    enum: ["full_time", "part_time", "internship"],
+    required: true,
+  },
   openings: { type: Number, required: true },
   salary: { type: salarySchema, required: true },
   workflow: { type: workflowSchema },
   applicationRange: { type: { start: Date, end: Date }, required: true },
   qualifications: { type: String, required: true },
+  assignments: { type: [assignmentSchema], ref: "Assignment" },
   skills: [{ type: String, required: true }],
 
   ats: { type: atsSchema },
-  assessments: [{ type: [assessmentSchema], ref: "Assessment" }],
+  assessments: { type: [mongoose.Types.ObjectId], ref: "Assessment" },
   interview: { type: interviewSchema },
 
   candidates: [{ type: candidatesSchema, ref: "Candidate" }],

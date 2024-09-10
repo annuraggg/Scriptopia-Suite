@@ -1,16 +1,12 @@
 import { motion } from "framer-motion";
-import {
-  Accordion,
-  AccordionItem,
-  Button,
-  Input,
-} from "@nextui-org/react";
+import { Accordion, AccordionItem, Input, Textarea } from "@nextui-org/react";
 import ResumeChart from "./ResumeChart";
 import { SelectionChart } from "./SelectionChart";
 import { Tabs, Tab } from "@nextui-org/react";
 import { DataTable } from "./DataTable";
+import { Posting } from "@shared-types/Posting";
 
-const Main = ({ save }: { save: () => void }) => {
+const Main = ({ posting }: { posting: Posting }) => {
   const chartData = [
     { day: "5th July", resumes: 130 },
     { day: "6th July", resumes: 60 },
@@ -63,26 +59,67 @@ const Main = ({ save }: { save: () => void }) => {
             <div>
               <Accordion variant="splitted">
                 <AccordionItem key="config" aria-label="config" title="Config">
-                  <div className="flex items-center w-[50%] gap-5">
-                    <p>Match Threshold</p>
-                    <Input placeholder="In %" className="w-[50%]" />
+                  <div className="flex items-center w-[100%]">
+                    <div className="w-full">
+                      <p>Match Threshold (Min %)</p>
+                      <p className="text-sm opacity-50">
+                        Minimum percentage to match candidates
+                      </p>
+                    </div>
+                    <Input
+                      placeholder="In %"
+                      className="w-[50%]"
+                      isDisabled
+                      value={posting?.ats?.minimumScore.toString()}
+                    />
                   </div>
-                  <Button
-                    className="mt-5 float-right mb-5"
-                    variant="flat"
-                    color="success"
-                    onClick={save}
-                  >
-                    Save
-                  </Button>
+
+                  <div className="flex items-center w-[100%] mt-3">
+                    <div className="w-full">
+                      <p>Negative Prompts</p>
+                      <p className="text-sm opacity-50">
+                        Things you don't want to see in resumes
+                      </p>
+                    </div>
+
+                    <Textarea
+                      placeholder="No negative prompts"
+                      isDisabled
+                      value={posting.ats?.negativePrompts.join(", ")}
+                    />
+                  </div>
+
+                  <div className="flex items-center w-[100%] mt-3">
+                    <div className="w-full">
+                      <p>Positive Prompts</p>
+                      <p className="text-sm opacity-50">
+                        Things you want to see in resumes
+                      </p>
+                    </div>
+
+                    <Textarea
+                      placeholder="No positive prompts"
+                      isDisabled
+                      value={posting.ats?.positivePrompts.join(", ")}
+                    />
+                  </div>
                 </AccordionItem>
               </Accordion>
             </div>
 
-            <div className="mt-5 flex gap-5">
-              <SelectionChart chartData={selectionChartData} />
-              <ResumeChart chartData={chartData} />
-            </div>
+            {posting.candidates.length > 0 ? (
+              <div className="mt-5 flex gap-5">
+                <SelectionChart chartData={selectionChartData} />
+                <ResumeChart chartData={chartData} />
+              </div>
+            ) : (
+              <div className="mt-5 flex justify-center items-center">
+                <p className="text-center text-lg opacity-50">
+                  No analytics available yet. Please wait for candidates to
+                  apply for this posting.
+                </p>
+              </div>
+            )}
           </Tab>
           <Tab key="candidates" title="Candidates">
             <DataTable data={tableData} />

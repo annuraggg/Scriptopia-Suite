@@ -24,8 +24,6 @@ const Sidebar = () => {
     window.location.href = "/";
   }
 
-  console.log(org);
-
   const topItems = [
     {
       icon: Home,
