@@ -8,6 +8,8 @@ import logger from "@/utils/logger";
 import { sendError, sendSuccess } from "@/utils/sendResponse";
 import { Upload } from "@aws-sdk/lib-storage";
 import { Context } from "hono";
+import PDE from "pdf.js-extract";
+const PDFExtract = PDE.PDFExtract;
 
 const getPosting = async (c: Context) => {
   const { url } = c.req.param();
@@ -123,8 +125,7 @@ const getCandidate = async (c: Context) => {
 
     let firstName = candidate.firstName;
     let lastName = candidate.lastName;
-    let countryCode = candidate.phone.slice(0, 3);
-    let phone = candidate.phone.slice(3);
+    let phone = candidate.phone;
     let website = candidate.website || "";
     exists = true;
     candId = candidate._id.toString();
@@ -132,7 +133,6 @@ const getCandidate = async (c: Context) => {
       exists,
       firstName,
       lastName,
-      countryCode,
       phone,
       website,
       candId,
@@ -149,7 +149,6 @@ const apply = async (c: Context) => {
     const formData = await c.req.formData();
     const firstName = formData.get("firstName");
     const lastName = formData.get("lastName");
-    const countryCode = formData.get("countryCode");
     const phone = formData.get("phone");
     const email = formData.get("email");
     const website = formData.get("website");
@@ -161,6 +160,19 @@ const apply = async (c: Context) => {
     const userId = formData.get("userId");
 
     let finalCandId: string = candId?.toString() || "";
+
+    const posting = await Posting.findById(postingId);
+    if (!posting) {
+      return sendError(c, 404, "Posting not found");
+    }
+
+    const today = new Date();
+    if (
+      today < posting?.applicationRange?.start! ||
+      today > posting?.applicationRange?.end!
+    ) {
+      return sendError(c, 400, "Posting is closed for applications");
+    }
 
     if (exists) {
       const candidate = await Candidate.findById(candId);
@@ -178,8 +190,7 @@ const apply = async (c: Context) => {
 
       candidate.firstName = firstName?.toString() || candidate.firstName;
       candidate.lastName = lastName?.toString() || candidate.lastName;
-      candidate.phone =
-        `${countryCode?.toString()}${phone?.toString()}` || candidate.phone;
+      candidate.phone = candidate.phone;
       candidate.website = website?.toString() || candidate.website;
       candidate.email = email?.toString() || candidate.email;
 
@@ -205,7 +216,7 @@ const apply = async (c: Context) => {
         firstName,
         lastName,
         email,
-        phone: `${countryCode}${phone}`,
+        phone,
         website,
         userId,
       });
@@ -219,31 +230,73 @@ const apply = async (c: Context) => {
       finalCandId = candidate._id.toString();
     }
 
-    const uploadParams = {
-      Bucket: process.env.R2_S3_BUCKET!,
-      Key: `resumes/${finalCandId?.toString()}`,
-      Body: resume, // @ts-expect-error - Type 'File' is not assignable to type 'Body'
-      ContentType: resume.type,
-    };
+    if (resume) {
+      const uploadParams = {
+        Bucket: process.env.R2_S3_BUCKET!,
+        Key: `resumes/${finalCandId?.toString()}`,
+        Body: resume, // @ts-expect-error - Type 'File' is not assignable to type 'Body'
+        ContentType: resume.type,
+      };
 
-    const upload = new Upload({
-      client: r2Client, // @ts-expect-error - Type 'S3Client' is not assignable to type 'Client'
-      params: uploadParams,
+      const upload = new Upload({
+        client: r2Client,
+        params: uploadParams,
+      });
+
+      await upload.done();
+
+      await extractTextFromResume(resume as File, finalCandId);
+
+      await Candidate.findByIdAndUpdate(finalCandId, {
+        resumeUrl: `resumes/${finalCandId}`,
+      });
+    }
+    const postingUp = await Posting.findByIdAndUpdate(postingId, {
+      $push: {
+        candidates: finalCandId,
+      },
     });
 
-    await upload.done();
-    console.log("Resume uploaded");
-    console.log(finalCandId);
-
-    await Candidate.findByIdAndUpdate(finalCandId, {
-      resumeUrl: `https://${process.env.R2_S3_BUCKET}.s3.amazonaws.com/resumes/${finalCandId}`,
-    });
+    await postingUp?.save();
 
     return sendSuccess(c, 200, "Application submitted successfully");
   } catch (e: any) {
     console.error(e);
     return sendError(c, 500, "Something went wrong");
   }
+};
+
+const extractTextFromResume = async (resume: File, candidateId: string) => {
+  const resumeBuffer = (await resume.arrayBuffer()) as Buffer;
+  const pdfExtract = new PDFExtract();
+  const options = {}; /* see below */
+
+  let extractedText = "";
+
+  pdfExtract.extractBuffer(resumeBuffer, options, async (err, data) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+
+    if (!data) {
+      return extractedText;
+    }
+
+    for (const page of data.pages) {
+      for (const content of page.content) {
+        extractedText += content.str + " ";
+      }
+    }
+
+    await Candidate.findByIdAndUpdate(candidateId, {
+      resumeExtract: extractedText,
+    });
+
+    return extractedText;
+  });
+
+  return extractedText;
 };
 
 export default {

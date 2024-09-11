@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import {
-  Card,
   Table,
   TableCell,
   TableHeader,
@@ -9,8 +8,12 @@ import {
   TableRow,
   Button,
 } from "@nextui-org/react";
-import { FolderOutputIcon } from "lucide-react";
-import { WorkflowStep } from "@shared-types/Posting";
+import { Posting, WorkflowStep } from "@shared-types/Posting";
+import { useOutletContext } from "react-router-dom";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
+import { toast } from "sonner";
+import { useState } from "react";
 
 interface ShowProps {
   workflowData: WorkflowStep[];
@@ -18,7 +21,41 @@ interface ShowProps {
   behavior: string;
 }
 
+const stepTypeMap = {
+  rs: "Resume Screening",
+  mcqa: "MCQ Assessment",
+  ca: "Coding Assessment",
+  mcqca: "MCQ + Coding Assessment",
+  as: "Assignment",
+  pi: "Interview",
+  cu: "Custom",
+};
+
 const Show = ({ workflowData, postingTitle, behavior }: ShowProps) => {
+  const { posting } = useOutletContext() as { posting: Posting };
+  const [loading, setLoading] = useState(false);
+
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+
+  const advance = async () => {
+    setLoading(true);
+    axios
+      .post("/postings/advance-workflow", { _id: posting._id })
+      .then(() => {
+        toast.success("Workflow advanced successfully");
+        setTimeout(() => {
+          window.location.reload();
+          setLoading(false);
+        }, 500);
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to advance workflow");
+        setLoading(false);
+      });
+  };
+
   return (
     <div className="w-full h-full flex flex-col p-4">
       <div className="w-full flex flex-row items-center justify-between gap-4 mb-3">
@@ -28,13 +65,13 @@ const Show = ({ workflowData, postingTitle, behavior }: ShowProps) => {
             <p className="text-lg font-semibold">{postingTitle}</p>
           </div>
         </div>
-        <Card
+        {/* <Card
           isPressable
           className="flex flex-row h-18 mt-1 py-2 px-3 rounded-xl gap-3 items-center justify-center border-2 shadow-md ml-auto bg-success-400 text-success-foreground"
         >
           <FolderOutputIcon size={20} />
           <p className="text-xs">Export to CSV</p>
-        </Card>
+        </Card> */}
       </div>
       <div className="w-full bg-slate-700 h-[1px] rounded-full mb-4"></div>
       <div className="w-full flex flex-row gap-4">
@@ -56,16 +93,25 @@ const Show = ({ workflowData, postingTitle, behavior }: ShowProps) => {
               {workflowData.map((step, index) => (
                 <TableRow key={index}>
                   <TableCell>{step.name}</TableCell>
-                  <TableCell>{step.type}</TableCell>
+                  <TableCell>{stepTypeMap[step.type]}</TableCell>
 
-                  {behavior === "manual" ? (
-                    <TableCell>
-                      <Button variant="flat" size="sm" color="primary">
+                  {behavior === "manual" &&
+                  posting.workflow?.currentStep === index - 1 ? (
+                    <TableCell className="h-16">
+                      <Button
+                        variant="flat"
+                        size="sm"
+                        color="primary"
+                        onClick={advance}
+                        isLoading={loading}
+                      >
                         Advance
                       </Button>
                     </TableCell>
+                  ) : (posting.workflow?.currentStep ?? -1) > index - 1 ? (
+                    <TableCell className="h-16">Step Completed</TableCell>
                   ) : (
-                    <TableCell>&nbsp;</TableCell>
+                    <TableCell className="h-16">&nbsp;</TableCell>
                   )}
                 </TableRow>
               ))}

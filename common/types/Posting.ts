@@ -20,21 +20,14 @@ interface Ats {
   minimumScore: number;
   negativePrompts: string[];
   positivePrompts: string[];
-}
-
-interface Candidate {
-  _id?: string;
-  candidateId?: string;
-  disqualifiedStage?: number;
-  disqualifiedReason?: string;
-  status: "pending" | "qualified" | "rejected";
+  status: "pending" | "processing" | "finished";
 }
 
 interface Auto {
   _id?: string;
   step: number;
   start: Date;
-  end: Date;
+  end?: Date; // Changed to optional to match the Mongoose schema
 }
 
 interface WorkflowStep {
@@ -86,12 +79,7 @@ interface Posting {
   ats: Ats;
   assessments: string[];
   interview: Interview;
-  candidates: {
-    candidateId?: string;
-    disqualifiedStage?: number;
-    disqualifiedReason?: string;
-    status: "pending" | "qualified" | "rejected";
-  }[];
+  candidates: string[];
   published?: boolean;
   publishedOn?: Date;
   createdOn: Date;
@@ -104,7 +92,6 @@ export type {
   Workflow,
   WorkflowStep,
   Auto,
-  Candidate,
   Ats,
   Interview,
   Interviewer,

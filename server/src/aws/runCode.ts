@@ -22,8 +22,6 @@ const runCode = async (
     sclObject,
     code,
   };
-  
-  console.log(data);
 
   const params = {
     FunctionName: `${language}-driver`,
