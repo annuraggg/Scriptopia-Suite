@@ -1,12 +1,12 @@
-export interface IRunResponse {
+export interface RunResponse {
   STATUS: "PASSED" | "FAILED";
   avgMemory: number;
   avgTime: number;
   failedCaseNo: number;
-  results: IRunResponseResult[];
+  results: RunResponseResult[];
 }
 
-export interface IRunResponseResult {
+export interface RunResponseResult {
   input: string[];
   output: string;
   expected: string;

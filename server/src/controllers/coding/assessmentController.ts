@@ -6,7 +6,7 @@ import Problem from "../../models/Problem";
 import { runCode as runCompilerCode } from "../../aws/runCode";
 import AssessmentSubmissions from "../../models/AssessmentSubmissions";
 import { SclObject } from "@shared-types/Scl";
-import { ITestCase } from "@shared-types/Problem";
+import { TestCase } from "@shared-types/Problem";
 
 const LIMIT_PER_PAGE = 20;
 
@@ -230,8 +230,8 @@ const verifyAccess = async (c: Context) => {
       return sendError(c, 404, "Assessment not found");
     }
 
-    const assessmentStartTime = new Date(assessment.openRange.start).getTime();
-    const assessmentEndTime = new Date(assessment.openRange.end).getTime();
+    const assessmentStartTime = new Date(assessment?.openRange?.start!).getTime();
+    const assessmentEndTime = new Date(assessment?.openRange?.end!).getTime();
 
     const currentTime = new Date().getTime();
     if (currentTime < assessmentStartTime) {
@@ -310,7 +310,7 @@ const submitAssessment = async (c: Context) => {
           submission.language,
           problem.sclObject as SclObject[],
           submission.code,
-          problem.testCases as ITestCase[]
+          problem.testCases as TestCase[]
         );
 
         if (result?.status === "ERROR") {

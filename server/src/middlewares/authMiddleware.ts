@@ -6,6 +6,7 @@ const authMiddleware = createMiddleware(async (c, next) => {
   // const token = c.req.header("Authorization");
 
   if (c.req.path === "/health") return next();
+  if (c.req.path.startsWith("/candidates")) return next();
 
   // if (!token) {
   //   return sendError(c, 401, "Unauthorized");

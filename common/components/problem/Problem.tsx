@@ -4,7 +4,7 @@ import InfoPanel from "./InfoPanel";
 import Statement from "./LeftPanel/Statement";
 import Split from "@uiw/react-split";
 import ax from "@/config/axios";
-import { IRunResponseResult } from "@shared-types/RunResponse";
+import { RunResponseResult } from "@shared-types/RunResponse";
 import confetti from "canvas-confetti";
 import {
   Drawer,
@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/drawer";
 import { Button, Card, CardBody } from "@nextui-org/react";
 import { CpuIcon, TimerIcon } from "lucide-react";
-import { ISubmission } from "@shared-types/Submission";
+import { Submission } from "@shared-types/Submission";
 import { useAuth } from "@clerk/clerk-react";
 import defaultLanguages from "@/data/languages";
 
@@ -53,10 +53,10 @@ const Problem = ({
   const [language, setLanguage] = useState<string>(defaultLanguage);
 
   const [consoleOutput, setConsoleOutput] = useState<string>("");
-  const [outputCases, setOutputCases] = useState<IRunResponseResult[]>([]);
+  const [outputCases, setOutputCases] = useState<RunResponseResult[]>([]);
   const [_codeError, setCodeError] = useState<string>("");
   const [runningCode, setRunningCode] = useState<boolean>(false);
-  const [currentSub, setCurrentSub] = useState<ISubmission | null>(null);
+  const [currentSub, setCurrentSub] = useState<Submission | null>(null);
 
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
 
@@ -74,7 +74,7 @@ const Problem = ({
         );
 
         setConsoleOutput(
-          res.data.data.results.map((r: IRunResponseResult) =>
+          res.data.data.results.map((r: RunResponseResult) =>
             r.consoleOutput.join("\n")
           )
         );
@@ -101,7 +101,7 @@ const Problem = ({
         );
 
         setConsoleOutput(
-          res.data.data.results.map((r: IRunResponseResult) =>
+          res.data.data.results.map((r: RunResponseResult) =>
             r?.consoleOutput?.join("\n")
           )
         );

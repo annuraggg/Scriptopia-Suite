@@ -1,13 +1,13 @@
 import ProblemComponent from "@/components/problem/Problem";
 import ax from "@/config/axios";
 import { useAuth } from "@clerk/clerk-react";
-import { IProblem } from "@shared-types/Problem";
-import { ISubmission } from "@shared-types/Submission";
+import { Problem as ProblemType } from "@shared-types/Problem";
+import { Submission } from "@shared-types/Submission";
 import { useEffect, useState } from "react";
 
 const Problem = () => {
-  const [problem, setProblem] = useState<IProblem>({} as IProblem);
-  const [submissions, setSubmissions] = useState<ISubmission[]>([]);
+  const [problem, setProblem] = useState<ProblemType>({} as ProblemType);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   const { getToken } = useAuth();

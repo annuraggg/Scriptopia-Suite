@@ -4,13 +4,16 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import { Role } from "@shared-types/EnterpriseRole";
+import { Role } from "@shared-types/Institute";
 import { Card, CardBody, Checkbox, Input, Spinner } from "@nextui-org/react";
-import { Permission } from "@shared-types/EnterprisePermission";
 import UnsavedToast from "@/components/UnsavedToast";
 import { setToastChanges } from "@/reducers/toastReducer";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/types/Reducer";
+import { useDispatch } from "react-redux";
+interface Permission {
+  _id: string;
+  name: string;
+  description: string;
+}
 
 const Roles = () => {
   const [builtInRoles, setBuiltInRoles] = useState<Role[]>([]);
@@ -21,8 +24,6 @@ const Roles = () => {
   const [changes, setChanges] = useState<boolean>(false);
 
   const [reset, setReset] = useState(false);
-
-  const org = useSelector((state: RootState) => state.institute._id)!;
 
   const dispatch = useDispatch();
 
@@ -41,7 +42,6 @@ const Roles = () => {
     axios
       .get("campus/settings")
       .then((res) => {
-
         setBuiltInRoles(
           res.data.data.roles.filter((role: Role) => role.default)
         );
@@ -84,19 +84,17 @@ const Roles = () => {
       description: "",
       permissions: [],
       default: false,
-      organization: org,
     };
     setCustomRoles([...customRoles, newRole]);
     setSelectedRole(newRole);
   };
 
-  const changePerm = (val: any, perm: any) => {
+  const changePerm = (val: boolean, perm: Permission) => {
     if (selectedRole.default) return toast.error("Cannot edit built-in roles");
     setChanges(true);
     if (val) {
       const newRole = {
         ...selectedRole,
-
       };
 
       setSelectedRole(newRole);
@@ -204,9 +202,8 @@ const Roles = () => {
                       isDisabled={selectedRole.default}
                       key={perm._id}
                       isSelected={
-                        selectedRole.permissions.filter(
-                          (p) => p === perm._id
-                        ).length > 0
+                        selectedRole.permissions.filter((p) => p === perm._id)
+                          .length > 0
                       }
                       onValueChange={(val) => changePerm(val, perm)}
                     >

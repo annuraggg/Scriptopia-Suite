@@ -4,7 +4,7 @@ import InfoPanel from "./InfoPanel";
 import Statement from "./LeftPanel/Statement";
 import Split from "@uiw/react-split";
 import ax from "@/config/axios";
-import { IRunResponseResult } from "@shared-types/RunResponse";
+import { RunResponseResult } from "@shared-types/RunResponse";
 import confetti from "canvas-confetti";
 import {
   Drawer,
@@ -17,10 +17,10 @@ import {
 } from "@/components/ui/drawer";
 import { Button, Card, CardBody } from "@nextui-org/react";
 import { CpuIcon, TimerIcon } from "lucide-react";
-import { ISubmission } from "@shared-types/Submission";
+import { Submission } from "@shared-types/Submission";
 import { useAuth } from "@clerk/clerk-react";
 import defaultLanguages from "@/data/languages";
-import { IProblem } from "@shared-types/Problem";
+import { Problem as ProblemType } from "@shared-types/Problem";
 import { Delta } from "quill/core";
 
 const Problem = ({
@@ -37,9 +37,9 @@ const Problem = ({
   allowExplain = true,
 }: {
   loading: boolean;
-  problem: IProblem;
-  submissions: ISubmission[];
-  setSubmissions: (submissions: ISubmission[]) => void;
+  problem: ProblemType;
+  submissions: Submission[];
+  setSubmissions: (submissions: Submission[]) => void;
   defaultLanguage?: string;
   languages?: { name: string; abbr: string; available: boolean }[];
 
@@ -55,10 +55,10 @@ const Problem = ({
   const [language, setLanguage] = useState<string>(defaultLanguage);
 
   const [consoleOutput, setConsoleOutput] = useState<string>("");
-  const [outputCases, setOutputCases] = useState<IRunResponseResult[]>([]);
+  const [outputCases, setOutputCases] = useState<RunResponseResult[]>([]);
   const [codeError, setCodeError] = useState<string>("");
   const [runningCode, setRunningCode] = useState<boolean>(false);
-  const [currentSub, setCurrentSub] = useState<ISubmission | null>(null);
+  const [currentSub, setCurrentSub] = useState<Submission | null>(null);
 
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
 
@@ -76,7 +76,7 @@ const Problem = ({
         );
 
         const firstError = res.data.data.results.find(
-          (r: IRunResponseResult) => r.error?.name && r.error?.message
+          (r: RunResponseResult) => r.error?.name && r.error?.message
         );
 
         let firstErrorFull = "";
@@ -86,7 +86,7 @@ const Problem = ({
         setCodeError(firstErrorFull);
 
         const consoleOp = res.data.data.results
-          .map((r: IRunResponseResult) => r.consoleOutput?.join("\n"))
+          .map((r: RunResponseResult) => r.consoleOutput?.join("\n"))
           .join("\n");
 
         setConsoleOutput(consoleOp || "");
@@ -116,7 +116,7 @@ const Problem = ({
         );
 
         const firstError = res.data.data.results.find(
-          (r: IRunResponseResult) => r.error?.name && r.error?.message
+          (r: RunResponseResult) => r.error?.name && r.error?.message
         );
 
         let firstErrorFull = "";
@@ -126,7 +126,7 @@ const Problem = ({
         setCodeError(firstErrorFull);
 
         const consoleOp = res.data.data.results
-          .map((r: IRunResponseResult) => r.consoleOutput?.join("\n"))
+          .map((r: RunResponseResult) => r.consoleOutput?.join("\n"))
           .join("\n");
 
         setConsoleOutput(consoleOp || "");

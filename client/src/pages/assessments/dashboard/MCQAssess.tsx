@@ -10,12 +10,12 @@ import {
 } from "@nextui-org/react";
 import { Eye, Link, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { IAssessment } from "@shared-types/Assessment";
+import { Assessment } from "@shared-types/Assessment";
 import { toast } from "sonner";
 import ax from "@/config/axios";
 import { useAuth } from "@clerk/clerk-react";
 
-const calculateStatus = (createdAssessment: IAssessment) => {
+const calculateStatus = (createdAssessment: Assessment) => {
   const startDate = new Date(createdAssessment.openRange.start);
   const endDate = new Date(createdAssessment.openRange.end);
   const currentDate = new Date();
@@ -32,10 +32,10 @@ const copyLink = (assessmentId: string) => {
   toast.success("Link copied to clipboard");
 };
 
-const MCQAssess: React.FC<{ createdAssessments: IAssessment[] }> = ({ createdAssessments: initialCreatedAssessments }) => {
+const MCQAssess: React.FC<{ createdAssessments: Assessment[] }> = ({ createdAssessments: initialCreatedAssessments }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [createdAssessments, setCreatedAssessments] = useState<IAssessment[]>(initialCreatedAssessments);
+  const [createdAssessments, setCreatedAssessments] = useState<Assessment[]>(initialCreatedAssessments);
 
   const filteredAssessments = useMemo(() => {
     return createdAssessments.filter((assessment) =>

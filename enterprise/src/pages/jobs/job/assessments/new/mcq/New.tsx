@@ -24,7 +24,7 @@ import {
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { IMcq } from "@shared-types/Assessment";
+import { Mcq } from "@shared-types/Assessment";
 
 const tabsList = ["General", "MCQs", "Instructions", "Security", "Feedback"];
 const New = ({ assessmentName }: { assessmentName: string }) => {
@@ -45,7 +45,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
   );
 
   // MCQs Tab States
-  const [mcqs, setMcqs] = useState<IMcq[]>([]);
+  const [mcqs, setMcqs] = useState<Mcq[]>([]);
 
   // Instructions Tab States
   const [instructions, setInstructions] = useState("");
@@ -68,7 +68,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
     rangeEnd.setHours(endTime.hour);
     rangeEnd.setMinutes(endTime.minute);
 
-    const mcqSchema = mcqs.map((mcq: IMcq) => ({
+    const mcqSchema = mcqs.map((mcq: Mcq) => ({
       question: mcq.question,
       type: mcq.type,
       mcq: mcq.type === "multiple" ? mcq.mcq : undefined,

@@ -29,8 +29,8 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import { IProblem } from "@shared-types/Problem";
-import { IMcq, IProblem as IProblemAssessment } from "@shared-types/Assessment";
+import { Problem } from "@shared-types/Problem";
+import { Mcq, Problem as ProblemAssessment } from "@shared-types/Assessment";
 
 const tabsList = [
   "General",
@@ -65,8 +65,8 @@ const New = () => {
   // Languages Tab States
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
 
-  const [selectedQuestions, setSelectedQuestions] = useState<IProblem[]>([]);
-  const [availableQuestions, setAvailableQuestions] = useState<IProblem[]>([]);
+  const [selectedQuestions, setSelectedQuestions] = useState<Problem[]>([]);
+  const [availableQuestions, setAvailableQuestions] = useState<Problem[]>([]);
 
   const { isLoading } = useQuery({
     queryKey: ["assessment-new-questions"],
@@ -86,11 +86,11 @@ const New = () => {
     hard: 0,
   });
   const [questionsGrading, setQuestionsGrading] = useState<
-    IProblemAssessment[]
+    ProblemAssessment[]
   >([]);
 
   // MCQs Tab States
-  const [mcqs, setMcqs] = useState<IMcq[]>([]);
+  const [mcqs, setMcqs] = useState<Mcq[]>([]);
 
   // Candidates Tab States
   const [access, setAccess] = useState("all");
@@ -123,7 +123,7 @@ const New = () => {
     rangeEnd.setHours(endTime.hour);
     rangeEnd.setMinutes(endTime.minute);
 
-    const mcqSchema = mcqs.map((mcq: IMcq) => ({
+    const mcqSchema = mcqs.map((mcq: Mcq) => ({
       question: mcq.question,
       type: mcq.type,
       mcq: mcq.type === "multiple" ? mcq.mcq : undefined,

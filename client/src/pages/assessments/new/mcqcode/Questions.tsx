@@ -9,7 +9,7 @@ import { useState } from "react";
 import { ChevronDownIcon, ChevronUpIcon, TrashIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion"; // @ts-expect-error - Types Not Available
 import toPlaintext from "quill-delta-to-plaintext";
-import { IProblem } from "@shared-types/Problem";
+import { Problem } from "@shared-types/Problem";
 
 const Questions = ({
   availableQuestions,
@@ -18,13 +18,13 @@ const Questions = ({
   setSelectedQuestions,
   isLoading,
 }: {
-  availableQuestions: IProblem[];
+  availableQuestions: Problem[];
   setAvailableQuestions: (
-    questions: IProblem[] | ((prev: IProblem[]) => IProblem[])
+    questions: Problem[] | ((prev: Problem[]) => Problem[])
   ) => void;
-  selectedQuestions: IProblem[];
+  selectedQuestions: Problem[];
   setSelectedQuestions: (
-    questions: IProblem[] | ((prev: IProblem[]) => IProblem[])
+    questions: Problem[] | ((prev: Problem[]) => Problem[])
   ) => void;
   isLoading: boolean;
 }) => {

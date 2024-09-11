@@ -26,8 +26,8 @@ import Languages from "./Languages";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { IProblem } from "@shared-types/Problem";
-import { IProblem as IProblemAssessment } from "@shared-types/Assessment";
+import { Problem } from "@shared-types/Problem";
+import { Problem as ProblemAssessment } from "@shared-types/Assessment";
 
 const tabsList = [
   "General",
@@ -59,8 +59,8 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
   // Languages Tab States
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
 
-  const [selectedQuestions, setSelectedQuestions] = useState<IProblem[]>([]);
-  const [availableQuestions, setAvailableQuestions] = useState<IProblem[]>([]);
+  const [selectedQuestions, setSelectedQuestions] = useState<Problem[]>([]);
+  const [availableQuestions, setAvailableQuestions] = useState<Problem[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
@@ -84,7 +84,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
     hard: 0,
   });
   const [questionsGrading, setQuestionsGrading] = useState<
-    IProblemAssessment[]
+    ProblemAssessment[]
   >([]);
 
 

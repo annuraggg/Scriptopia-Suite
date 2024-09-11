@@ -11,7 +11,7 @@ import {
   SelectItem,
 } from "@nextui-org/react";
 import { Member } from "@shared-types/Institute";
-import { Role } from "@shared-types/EnterpriseRole";
+import { Role } from "@shared-types/Institute";
 
 const InviteModal = ({
   isOpen,

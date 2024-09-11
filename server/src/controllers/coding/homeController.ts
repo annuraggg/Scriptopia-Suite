@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { sendError, sendSuccess } from "../../utils/sendResponse";
 import Problem from "../../models/Problem";
 import User from "../../models/User";
-import { IProblem } from "@shared-types/Problem";
+import { Problem as ProblemType } from "@shared-types/Problem";
 
 const getHome = async (c: Context) => {
   try {
@@ -26,7 +26,7 @@ const getHome = async (c: Context) => {
     for (const solvedProblem of user.solvedProblems) {
       const pid = solvedProblem.problemId as string;
       solvedProblems.push(pid);
-      const problem = (await Problem.findById(pid)) as IProblem;
+      const problem = (await Problem.findById(pid)) as ProblemType;
 
       if (!problem) {
         continue;

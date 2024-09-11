@@ -1,11 +1,5 @@
-import React from 'react'
-
 const Interviews = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+  return <div></div>;
+};
 
-export default Interviews
+export default Interviews;

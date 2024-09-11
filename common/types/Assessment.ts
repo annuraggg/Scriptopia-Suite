@@ -1,36 +1,36 @@
-interface IOpenRange {
+interface OpenRange {
   start: Date;
   end: Date;
 }
 
-interface ITestCases {
+interface TestCases {
   easy: number;
   medium: number;
   hard: number;
 }
 
-interface IProblem {
+interface Problem {
   problemId: string;
   points: number;
 }
 
-interface IGrading {
+interface Grading {
   type: "testcase" | "problem";
-  testcases?: ITestCases;
-  problem?: IProblem[];
+  testcases?: TestCases;
+  problem?: Problem[];
 }
 
-interface ICandidate {
+interface Candidate {
   name: string;
   email: string;
 }
 
-interface ICandidates {
+interface Candidates {
   type: "all" | "specific";
-  candidates?: ICandidate[];
+  candidates?: Candidate[];
 }
 
-interface IMcq {
+interface Mcq {
   _id?: string;
   question: string;
   type: "multiple" | "checkbox" | "text";
@@ -39,7 +39,7 @@ interface IMcq {
   grade: number;
 }
 
-interface ISecurity {
+interface Security {
   codePlayback: boolean;
   codeExecution: boolean;
   tabChangeDetection: boolean;
@@ -49,25 +49,34 @@ interface ISecurity {
   enableSyntaxHighlighting: boolean;
 }
 
-interface IAssessment extends Document {
+interface Assessment extends Document {
   _id: string;
   name: string;
   description: string;
   type: "mcq" | "code" | "mcqcode";
   timeLimit: number;
   passingPercentage: number;
-  openRange: IOpenRange;
+  openRange: OpenRange;
   languages: string[];
   problems: string[];
-  mcqs: IMcq[];
-  grading: IGrading;
-  candidates: ICandidates;
+  mcqs: Mcq[];
+  grading: Grading;
+  candidates: Candidates;
   instructions: string;
-  security: ISecurity;
+  security: Security;
   feedbackEmail: string;
   obtainableScore: number;
   createdAt: Date;
 }
 
-export type { IAssessment, IOpenRange, ITestCases, IProblem, IGrading, ICandidate, ICandidates, IMcq, ISecurity };
-
+export type {
+  Assessment,
+  OpenRange,
+  TestCases,
+  Problem,
+  Grading,
+  Candidate,
+  Candidates,
+  Mcq,
+  Security,
+};

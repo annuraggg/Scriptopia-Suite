@@ -1,6 +1,6 @@
 
 
-interface ITestCase {
+interface TestCase {
   _id?: string;
   input: string[];
   output: string;
@@ -8,12 +8,12 @@ interface ITestCase {
   isSample: boolean;
 }
 
-interface IFunctionArg {
+interface FunctionArg {
   name: string;
   type: "string" | "number" | "boolean" | "array";
 }
 
-interface IProblem extends Document {
+interface Problem extends Document {
   _id: string;
   title: string;
   description: Record<string, any>;
@@ -22,7 +22,7 @@ interface IProblem extends Document {
   tags: string[];
   votes: number;
   scl: string[];
-  testCases: ITestCase[];
+  testCases: TestCase[];
   isPrivate: boolean;
   allowInAssessments: boolean;
   totalSubmissions?: number;
@@ -32,4 +32,4 @@ interface IProblem extends Document {
   acceptanceRate?: number;
 }
 
-export type { IProblem, ITestCase, IFunctionArg };
+export type { Problem, TestCase, FunctionArg };

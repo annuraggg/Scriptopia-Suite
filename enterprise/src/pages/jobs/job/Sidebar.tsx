@@ -11,13 +11,25 @@ import {
 import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { Badge } from "@nextui-org/badge";
-import { Divider, Tooltip } from "@nextui-org/react";
+import { Button, Divider, Tooltip } from "@nextui-org/react";
 import { Posting } from "@shared-types/Posting";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
+import { Assessment } from "@shared-types/Assessment";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from "@nextui-org/react";
 
 const Sidebar = ({ posting }: { posting: Posting }) => {
   const navigate = useNavigate();
   const [active, setActive] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const workflowSteps = useMemo(
     () => posting?.workflow?.steps || [],
@@ -118,7 +130,11 @@ const Sidebar = ({ posting }: { posting: Posting }) => {
       }
 
       if (step.type === "ca" || step.type === "mcqa" || step.type === "mcqca") {
-        if (posting?.assessments?.filter((a) => a.name === step.name).length) {
+        if (
+          posting?.assessments?.filter(
+            (a) => (a as unknown as Assessment).name === step.name
+          ).length
+        ) {
           totalCompleted++;
         }
       }
@@ -141,6 +157,29 @@ const Sidebar = ({ posting }: { posting: Posting }) => {
 
     return 0;
   }, [posting]);
+
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+  const publishPosting = () => {
+    axios
+      .post("/postings/publish", { id: posting._id })
+      .then(() => {
+        toast.success("Posting published successfully");
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      })
+      .catch(() => {
+        toast.error("Error publishing posting");
+      });
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(
+      `${window.location.origin}/postings/${posting?.url}`
+    );
+    toast.success("Link copied to clipboard");
+  };
 
   return (
     <aside
@@ -187,35 +226,78 @@ const Sidebar = ({ posting }: { posting: Posting }) => {
         ))}
       </nav>
 
-      <Divider />
-      {hasCompletedAllSteps === 1 && (
-        <nav
-          className={`flex flex-col gap-4 sm:py-5 text-success-500 text-xs absolute bottom-10 pr-5 delay-200 overflow-hidden whitespace-nowrap   ${
-            !collapsed ? "visible" : "hidden"
-          } `}
-        >
-          All workflow steps completed
-        </nav>
+      {hasCompletedAllSteps === 1 && posting.published && (
+        <>
+          <nav
+            className={`flex flex-col gap-4 w-full pr-10 py-5 text-success-500 text-xs absolute bottom-10 delay-200 whitespace-nowrap overflow-hidden ${
+              !collapsed ? "visible" : "hidden"
+            }`}
+          >
+            <Divider />
+            Posting is currently live 😊
+            <Button onClick={copyLink}>Copy link</Button>
+          </nav>
+
+          <div className={`absolute w-5 bottom-16 ${!collapsed ? "hidden" : "visible"}`}>
+            <div className="bg-success-500 blur-sm w-3 h-3 rounded-full absolute opacity-70 top-0 bottom-0 my-auto mx-auto right-0 left-0 animate-pulse"></div>
+            <div className="bg-success-500 w-2 h-2 rounded-full absolute top-0 bottom-0 my-auto mx-auto right-0 left-0"></div>
+          </div>
+        </>
       )}
 
-      {hasCompletedAllSteps === 0 && (
-        <nav
-          className={`flex flex-col gap-4 sm:py-5 text-warning-500 text-xs absolute bottom-10 pr-5 delay-200 whitespace-nowrap overflow-visible  ${
-            !collapsed ? "visible" : "hidden"
-          } `}
-        >
-          Complete all the workflow steps <br /> to publish this posting
-        </nav>
+      {hasCompletedAllSteps === 1 && !posting.published && (
+        <>
+          {" "}
+          <nav
+            className={`flex flex-col gap-4 sm:py-5 text-warning-500 text-xs absolute bottom-10 pr-5 delay-200 overflow-hidden whitespace-nowrap   ${
+              !collapsed ? "visible" : "hidden"
+            } `}
+          >
+            <Divider />
+            All workflow steps completed
+            <br /> Your Posting is ready to publish
+            <br /> <Button onClick={onOpen}> 🚀 Publish </Button>
+          </nav>
+          <div className={`absolute w-5 bottom-16 ${!collapsed ? "hidden" : "visible"}`}>
+            <div className="bg-warning-500 blur-sm w-3 h-3 rounded-full absolute opacity-70 top-0 bottom-0 my-auto mx-auto right-0 left-0 animate-pulse"></div>
+            <div className="bg-warning-500 w-2 h-2 rounded-full absolute top-0 bottom-0 my-auto mx-auto right-0 left-0"></div>
+          </div>
+        </>
       )}
 
-      {hasCompletedAllSteps === -1 && (
-        <nav
-          className={`flex flex-col gap-4 sm:py-5 text-danger-500 text-xs absolute bottom-10 pr-5 delay-200 overflow-hidden whitespace-nowrap   ${
-            !collapsed ? "visible" : "hidden"
-          } `}
-        >
-          Workflow not initialized
-        </nav>
+      {hasCompletedAllSteps === 0 && !posting.published && (
+        <>
+          {" "}
+          <nav
+            className={`flex flex-col gap-4 sm:py-5 text-danger-500 text-xs absolute bottom-10 pr-5 delay-200 whitespace-nowrap overflow-visible  ${
+              !collapsed ? "visible" : "hidden"
+            } `}
+          >
+            <Divider />
+            Complete all the workflow steps <br /> to publish this posting
+          </nav>
+          <div className={`absolute w-5 bottom-16 ${!collapsed ? "hidden" : "visible"}`}>
+            <div className="bg-danger-500 blur-sm w-3 h-3 rounded-full absolute opacity-70 top-0 bottom-0 my-auto mx-auto right-0 left-0 animate-pulse"></div>
+            <div className="bg-danger-500 w-2 h-2 rounded-full absolute top-0 bottom-0 my-auto mx-auto right-0 left-0"></div>
+          </div>
+        </>
+      )}
+
+      {hasCompletedAllSteps === -1 && !posting.published && (
+        <>
+          <nav
+            className={`flex flex-col gap-4 sm:py-5 text-danger-500 text-xs absolute bottom-10 pr-5 delay-200 overflow-hidden whitespace-nowrap   ${
+              !collapsed ? "visible" : "hidden"
+            } `}
+          >
+            <Divider />
+            Workflow not initialized
+          </nav>
+          <div className={`absolute w-5 bottom-16 ${!collapsed ? "hidden" : "visible"}`}>
+            <div className="bg-danger-500 blur-sm w-3 h-3 rounded-full absolute opacity-70 top-0 bottom-0 my-auto mx-auto right-0 left-0 animate-pulse"></div>
+            <div className="bg-danger-500 w-2 h-2 rounded-full absolute top-0 bottom-0 my-auto mx-auto right-0 left-0"></div>
+          </div>
+        </>
       )}
 
       <div className="flex w-full mb-5 bottom-0 absolute">
@@ -228,6 +310,30 @@ const Sidebar = ({ posting }: { posting: Posting }) => {
           />
         </Tooltip>
       </div>
+
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Publish Posting
+              </ModalHeader>
+              <ModalBody>
+                Are you sure you want to publish this posting? This action
+                cannot be undone.
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Close
+                </Button>
+                <Button color="success" onPress={publishPosting}>
+                  Publish
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </aside>
   );
 };

@@ -4,12 +4,12 @@ import { motion } from "framer-motion";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { useEffect, useState } from "react";
-import { IAssessment } from "@shared-types/Assessment";
+import { Assessment } from "@shared-types/Assessment";
 import { AssessmentSubmissionsSchema as IAssessSub } from "@shared-types/AssessmentSubmission";
 import { toast } from "sonner";
 
 const ViewUserAssessment = () => {
-  const [assessment, setAssessment] = useState<IAssessment>({} as IAssessment);
+  const [assessment, setAssessment] = useState<Assessment>({} as Assessment);
   const [submission, setSubmission] = useState<IAssessSub>({} as IAssessSub);
 
   const { getToken } = useAuth();

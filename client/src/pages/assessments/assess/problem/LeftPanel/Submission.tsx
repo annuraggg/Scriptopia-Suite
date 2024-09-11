@@ -7,13 +7,13 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/react";
-import { ISubmission } from "@shared-types/Submission";
+import { Submission as SubmissionType } from "@shared-types/Submission";
 
 const Submission = ({
   submissions,
   loading,
 }: {
-  submissions: ISubmission[];
+  submissions: SubmissionType[];
   loading: boolean;
 }) => {
   if (loading) {
@@ -45,16 +45,19 @@ const Submission = ({
                   className="h-16 hover:bg-accent cursor-pointer duration-200 transition-colors rounded-lg"
                 >
                   <TableCell
-                    className={`${submission?.status === "SUCCESS"
+                    className={`${
+                      submission?.status === "SUCCESS"
                         ? "text-success"
                         : "text-danger"
-                      }`}
+                    }`}
                   >
                     {submission?.status}
                   </TableCell>
                   <TableCell>{submission?.language}</TableCell>
                   <TableCell>
-                    {submission?.createdAt ? new Date(submission?.createdAt).toLocaleString() : ""}
+                    {submission?.createdAt
+                      ? new Date(submission?.createdAt).toLocaleString()
+                      : ""}
                   </TableCell>
                   <TableCell>
                     {(submission?.avgTime * 10).toFixed(2) + " ms"}

@@ -11,7 +11,7 @@ import {
   SelectItem,
 } from "@nextui-org/react";
 import { Member } from "@shared-types/Organization";
-import { Role } from "@shared-types/EnterpriseRole";
+import { Role } from "@shared-types/Organization";
 
 const InviteModal = ({
   isOpen,
@@ -30,7 +30,12 @@ const InviteModal = ({
   const handleInvite = () => {
     if (email && selectedRole) {
       const currentDate = new Date();
-      onInvite({ email, role: selectedRole, addedOn: currentDate, status: "pending" });
+      onInvite({
+        email,
+        role: selectedRole,
+        addedOn: currentDate,
+        status: "pending",
+      });
       setEmail("");
       setSelectedRole(roles[0]);
       onOpenChange(false);
@@ -57,7 +62,7 @@ const InviteModal = ({
                 onSelectionChange={(keys) => {
                   if (keys.currentKey === null) return;
 
-                  setSelectedRole( // @ts-expect-error - shutup
+                  setSelectedRole( // @ts-expect-error - TODO: Fix this
                     roles.find((role) => role.name === keys.currentKey)
                   );
                 }}

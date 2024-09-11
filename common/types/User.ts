@@ -1,9 +1,9 @@
-interface IProblemReference {
+interface ProblemReference {
   problemId: string;
   solvedAt: Date;
 }
 
-interface IPortfolioEducation {
+interface PortfolioEducation {
   institution: string;
   degree: string;
   fieldOfStudy: string;
@@ -12,7 +12,7 @@ interface IPortfolioEducation {
   grade: string;
 }
 
-interface IPortfolioExperience {
+interface PortfolioExperience {
   title: string;
   type:
   | "full-time"
@@ -29,7 +29,7 @@ interface IPortfolioExperience {
   description: string;
 }
 
-interface IPortfolioProject {
+interface PortfolioProject {
   title: string;
   description: string;
   startYear: number;
@@ -37,7 +37,7 @@ interface IPortfolioProject {
   link: string;
 }
 
-interface IPortfolioCertification {
+interface PortfolioCertification {
   title: string;
   organization: string;
   issueDate: Date;
@@ -46,30 +46,30 @@ interface IPortfolioCertification {
   credentialUrl: string;
 }
 
-interface IPortfolio {
-  education: IPortfolioEducation[];
-  experience: IPortfolioExperience[];
-  projects: IPortfolioProject[];
-  certifications: IPortfolioCertification[];
+interface Portfolio {
+  education: PortfolioEducation[];
+  experience: PortfolioExperience[];
+  projects: PortfolioProject[];
+  certifications: PortfolioCertification[];
   skills: string[];
 }
 
-interface IUser extends Document {
+interface User extends Document {
   _id: string;
   clerkId: string;
-  solvedProblems: IProblemReference[];
+  solvedProblems: ProblemReference[];
   streak: Date[];
   achievements: string[];
   resume: string[];
-  portfolio: IPortfolio;
+  portfolio: Portfolio;
 }
 
 export type {
-  IProblemReference,
-  IPortfolioEducation,
-  IPortfolioExperience,
-  IPortfolioProject,
-  IPortfolioCertification,
-  IPortfolio,
-  IUser,
+  ProblemReference,
+  PortfolioEducation,
+  PortfolioExperience,
+  PortfolioProject,
+  PortfolioCertification,
+  Portfolio,
+  User,
 }

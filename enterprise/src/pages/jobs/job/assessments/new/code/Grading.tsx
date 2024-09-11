@@ -1,9 +1,9 @@
 import { Input, Select, SelectItem } from "@nextui-org/react";
 import { motion } from "framer-motion";
-import { IProblem } from "@shared-types/Problem";
+import { Problem } from "@shared-types/Problem";
 import {
-  IProblem as IProblemAssessment,
-  ITestCases,
+  Problem as ProblemAssessment,
+  TestCases,
 } from "@shared-types/Assessment";
 
 const Grading = ({
@@ -17,14 +17,14 @@ const Grading = ({
 }: {
   gradingMetric: string;
   setGradingMetric: (gradingMetric: string) => void;
-  selectedQuestions: IProblem[];
-  testCaseGrading: ITestCases;
-  setTestCaseGrading: (testCaseGrading: ITestCases) => void;
-  questionsGrading: IProblemAssessment[];
+  selectedQuestions: Problem[];
+  testCaseGrading: TestCases;
+  setTestCaseGrading: (testCaseGrading: TestCases) => void;
+  questionsGrading: ProblemAssessment[];
   setQuestionsGrading: (
     questionsGrading:
-      | IProblemAssessment[]
-      | ((prev: IProblemAssessment[]) => IProblemAssessment[])
+      | ProblemAssessment[]
+      | ((prev: ProblemAssessment[]) => ProblemAssessment[])
   ) => void;
 }) => {
   if (selectedQuestions.length === 0) return "No Problems Selected";

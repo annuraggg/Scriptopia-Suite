@@ -1,4 +1,5 @@
 interface Role {
+  _id?: string;
   name: string;
   slug: string;
   default: boolean;

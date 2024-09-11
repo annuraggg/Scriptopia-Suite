@@ -14,7 +14,7 @@ const Selector = () => {
   useEffect(() => {
     const type = window.location.pathname.split("/").pop();
     const step = new URLSearchParams(window.location.search).get("step") || "0";
-    const name = posting?.workflow?.steps[parseInt(step)]?.name;
+    const name = posting?.workflow?.steps![parseInt(step)]?.name;
 
     setName(name || "");
     setType(type || "");

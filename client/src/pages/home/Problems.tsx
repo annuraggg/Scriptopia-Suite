@@ -1,4 +1,4 @@
-import { IProblem } from "@shared-types/Problem";
+import { Problem } from "@shared-types/Problem";
 import { Input, Select, SelectItem } from "@nextui-org/react";
 import {
   Table,
@@ -16,7 +16,7 @@ const Problems = ({
   tags,
   solvedProblems,
 }: {
-  problems: IProblem[];
+  problems: Problem[];
   tags: string[];
   solvedProblems: string[];
 }) => {
@@ -26,7 +26,7 @@ const Problems = ({
   const [search, setSearch] = React.useState("");
   const [selectedTag, setSelectedTag] = React.useState<string | null>(null);
 
-  const [filteredProblems, setFilteredProblems] = React.useState<IProblem[]>(
+  const [filteredProblems, setFilteredProblems] = React.useState<Problem[]>(
     []
   );
 
@@ -103,7 +103,7 @@ const Problems = ({
             <TableColumn className="text-sm">Status</TableColumn>
           </TableHeader>
           <TableBody>
-            {filteredProblems?.map((problem: IProblem) => (
+            {filteredProblems?.map((problem: Problem) => (
               <TableRow className="h-14" key={problem.title}>
                 <TableCell
                   className="w-full md:w-auto hover:text-blue-500 cursor-pointer"

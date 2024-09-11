@@ -5,6 +5,7 @@ import logger from "../../../utils/logger";
 import { Context } from "hono";
 import Organization from "@/models/Organization";
 import assessmentController from "@/controllers/coding/assessmentController";
+import { Assessment } from "@shared-types/Assessment";
 // import assessmentController from "../../coding/assessmentController";
 
 const getPostings = async (c: Context) => {
@@ -176,7 +177,7 @@ const updateAssessment = async (c: Context) => {
     }
 
     const exists = existingAssessments.assessments.filter(
-      (a) => a.name === name
+      (a) => (a as unknown as Assessment).name === name
     );
 
     console.log(name);
@@ -219,7 +220,35 @@ const updateAssignment = async (c: Context) => {
     logger.error(e);
     return sendError(c, 500, "Something went wrong");
   }
-};  
+};
+
+const publishPosting = async (c: Context) => {
+  try {
+    const { id } = await c.req.json();
+
+    const perms = await checkPermission.all(c, ["manage_job"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const posting = await Posting.findById(id);
+    if (!posting) {
+      return sendError(c, 404, "job not found");
+    }
+
+    posting.published = true;
+    posting.publishedOn = new Date();
+
+    const urlSlug = Math.random().toString(36).substring(7);
+    posting.url = urlSlug;
+    await posting.save();
+
+    return sendSuccess(c, 201, "Posting published successfully", posting);
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
 
 export default {
   getPostings,
@@ -229,4 +258,5 @@ export default {
   updateAts,
   updateAssessment,
   updateAssignment,
+  publishPosting,
 };

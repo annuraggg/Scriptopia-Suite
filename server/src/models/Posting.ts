@@ -76,6 +76,7 @@ const postingSchema = new Schema({
     enum: ["full_time", "part_time", "internship"],
     required: true,
   },
+  url: { type: String },
   openings: { type: Number, required: true },
   salary: { type: salarySchema, required: true },
   workflow: { type: workflowSchema },

@@ -5,7 +5,7 @@ import { runCode as runCompilerCode } from "../../aws/runCode";
 import Submission from "../../models/Submission";
 import User from "../../models/User";
 import { SclObject } from "@shared-types/Scl";
-import { ITestCase } from "@shared-types/Problem";
+import { TestCase } from "@shared-types/Problem";
 
 const runCode = async (c: Context) => {
   try {
@@ -29,7 +29,7 @@ const runCode = async (c: Context) => {
       body.language,
       prob.sclObject as SclObject[],
       body.code,
-      prob.testCases as ITestCase[]
+      prob.testCases as TestCase[]
     );
 
     if (!result) {
@@ -58,7 +58,7 @@ const submitCode = async (c: Context) => {
       body.language,
       prob.sclObject as SclObject[],
       body.code,
-      prob.testCases as ITestCase[]
+      prob.testCases as TestCase[]
     );
 
     const results = result.results.map((r: any) => ({

@@ -1,17 +1,17 @@
-interface IRunResponse {
+interface RunResponse {
   STATUS: "PASSED" | "FAILED";
   avgMemory: number;
   avgTime: number;
   failedCaseNo: number;
-  results: IRunResponseResult[];
+  results: RunResponseResult[];
 }
 
-interface IError {
+interface Error {
   name: string;
   message: string;
 }
 
-interface IRunResponseResult {
+interface RunResponseResult {
   input: string[];
   output: string;
   expected: string;
@@ -19,8 +19,8 @@ interface IRunResponseResult {
   isSample: boolean;
   memory: number;
   time: number;
-  error: IError;
+  error: Error;
   consoleOutput: string[];
 }
 
-export type { IRunResponse, IRunResponseResult };
+export type { RunResponse, RunResponseResult };

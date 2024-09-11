@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import CodeSolutionModal from "./CodeSolutionModal";
 import McqReportModal from "./McqReportModal";
 import { AssessmentSubmissionsSchema as IAssessSub } from "@shared-types/AssessmentSubmission";
-import { IAssessment, IMcq } from "@shared-types/Assessment";
+import { Assessment, Mcq } from "@shared-types/Assessment";
 
 interface MCQ {
   question: string;
@@ -39,7 +39,7 @@ const ViewUserAssessmentBottom = ({
   assessment,
 }: {
   submission: IAssessSub;
-  assessment: IAssessment;
+  assessment: Assessment;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -136,7 +136,7 @@ const ViewUserAssessmentBottom = ({
                     <TableColumn className="text-sm">Actions</TableColumn>
                   </TableHeader>
                   <TableBody>
-                    {assessment?.mcqs?.map((mcqResult: IMcq, i) => (
+                    {assessment?.mcqs?.map((mcqResult: Mcq, i) => (
                       <TableRow className="h-14" key={mcqResult?._id}>
                         <TableCell className="w-full md:w-auto">
                           {mcqResult?.question}

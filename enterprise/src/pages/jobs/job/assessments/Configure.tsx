@@ -1,5 +1,5 @@
 import { Button, Card, CardBody } from "@nextui-org/react";
-import { IAssessment } from "@shared-types/Assessment";
+import { Assessment } from "@shared-types/Assessment";
 import { Posting } from "@shared-types/Posting";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -17,7 +17,7 @@ const Configure = ({ posting }: { posting: Posting }) => {
   useEffect(() => {
     setAssessmentTitles(
       // @ts-expect-error - TS doesn't know the shape of posting
-      posting?.assessments?.map((assessment: IAssessment) => assessment.name) ||
+      posting?.assessments?.map((assessment: Assessment) => assessment.name) ||
         []
     );
   }, [posting]);

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import Main from "./MainWindow";
 import ax from "@/config/axios";
-import { IAssessment } from "@shared-types/Assessment";
+import { Assessment } from "@shared-types/Assessment";
 import { toast } from "sonner";
 import secureLocalStorage from "react-secure-storage";
 import {
@@ -18,7 +18,7 @@ import { Progress } from "@nextui-org/progress";
 
 
 const Lander = () => {
-  const [assessment, setAssessment] = useState<IAssessment>({} as IAssessment);
+  const [assessment, setAssessment] = useState<Assessment>({} as Assessment);
   const [problems, setProblems] = useState([]);
 
   const [loaded, setLoaded] = useState(false);

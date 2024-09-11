@@ -15,11 +15,6 @@ interface Interview {
   duration: number;
 }
 
-interface Assessment {
-  _id?: string;
-  assessmentId: string;
-}
-
 interface Ats {
   _id?: string;
   minimumScore: number;
@@ -39,7 +34,7 @@ interface Auto {
   _id?: string;
   step: number;
   start: Date;
-  end?: Date;
+  end: Date;
 }
 
 interface WorkflowStep {
@@ -50,7 +45,7 @@ interface WorkflowStep {
 
 interface Workflow {
   _id?: string;
-  steps: WorkflowStep[];
+  steps?: WorkflowStep[];
   currentStep: number;
   behavior: "manual" | "auto";
   auto?: Auto[];
@@ -71,11 +66,13 @@ interface Assignment {
 
 interface Posting {
   _id?: string;
+  organizationId?: string;
   title: string;
   description: string;
   department?: string;
   location: string;
   type: "full_time" | "part_time" | "internship";
+  url?: string;
   openings: number;
   salary: Salary;
   workflow?: Workflow;
@@ -84,13 +81,17 @@ interface Posting {
     end: Date;
   };
   qualifications: string;
+  assignments: Assignment[];
   skills: string[];
   ats: Ats;
-
-  assessments: Assessment[];
-  assignments: Assignment[];
+  assessments: string[];
   interview: Interview;
-  candidates: Candidate[];
+  candidates: {
+    candidateId?: string;
+    disqualifiedStage?: number;
+    disqualifiedReason?: string;
+    status: "pending" | "qualified" | "rejected";
+  }[];
   published?: boolean;
   publishedOn?: Date;
   createdOn: Date;
@@ -105,7 +106,6 @@ export type {
   Auto,
   Candidate,
   Ats,
-  Assessment,
   Interview,
   Interviewer,
   Assignment,

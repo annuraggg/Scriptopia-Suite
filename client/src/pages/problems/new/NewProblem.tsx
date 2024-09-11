@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { Delta } from "quill/core";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { ITestCase } from "@shared-types/Problem";
+import { TestCase } from "@shared-types/Problem";
 import Scl from "./Scl";
 import sclToObject from "@/functions/scl/sclToObject";
 
@@ -52,10 +52,10 @@ const NewProblem = () => {
   // // Stub State
   // const [functionName, setFunctionName] = useState("");
   // const [returnType, setReturnType] = useState("");
-  // const [fnArguments, setFnArguments] = useState<IFunctionArg[]>([]);
+  // const [fnArguments, setFnArguments] = useState<FunctionArg[]>([]);
 
   // Test Cases State
-  const [testCases, setTestCases] = useState<ITestCase[]>([]);
+  const [testCases, setTestCases] = useState<TestCase[]>([]);
 
   // Quality Gate State
   const [minimumFiveCases, setMinimumFiveCases] = useState(false);

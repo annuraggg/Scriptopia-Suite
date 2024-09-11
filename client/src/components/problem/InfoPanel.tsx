@@ -1,6 +1,6 @@
 import { Card, Code, Spinner, Tab, Tabs } from "@nextui-org/react";
 import { FlaskConical, SquareChevronRight, TriangleAlert } from "lucide-react";
-import { IRunResponseResult } from "@shared-types/RunResponse";
+import { RunResponseResult } from "@shared-types/RunResponse";
 
 const InfoPanel = ({
   consoleOutput,
@@ -9,7 +9,7 @@ const InfoPanel = ({
   codeError,
 }: {
   consoleOutput: string;
-  cases: IRunResponseResult[];
+  cases: RunResponseResult[];
   runningCode: boolean;
   codeError: string;
 }) => {
@@ -36,7 +36,7 @@ const InfoPanel = ({
           {cases.length !== 0 ? (
             <Tabs className="overflow-auto">
               {cases?.map(
-                (c: IRunResponseResult, i: number) =>
+                (c: RunResponseResult, i: number) =>
                   c.isSample && (
                     <Tab
                       key={i}

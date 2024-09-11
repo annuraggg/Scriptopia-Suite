@@ -4,7 +4,7 @@ import { Tabs, Tab } from "@nextui-org/tabs";
 import Submission from "./Submission";
 import Quill from "quill";
 import { Delta } from "quill/core";
-import { ISubmission } from "@shared-types/Submission";
+import { Submission } from "@shared-types/Submission";
 
 const Statement = ({
   statement,
@@ -17,7 +17,7 @@ const Statement = ({
   allowSubmissionsTab,
 }: {
   statement: Delta;
-  submissions: ISubmission[];
+  submissions: Submission[];
   title: string;
   setActiveTab: (key: string) => void;
   activeTab: string;

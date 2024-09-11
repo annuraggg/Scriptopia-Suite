@@ -7,13 +7,13 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/react";
-import { ISubmission } from "@shared-types/Submission";
+import { Submission } from "@shared-types/Submission";
 
 const Submission = ({
   submissions,
   loading,
 }: {
-  submissions: ISubmission[];
+  submissions: Submission[];
   loading: boolean;
 }) => {
   if (loading) {

@@ -20,6 +20,8 @@ import assessmentRoute from "../routes/assessmentRoute";
 import submissionRoute from "../routes/submissionRoute";
 import organizationRoute from "../routes/organizationRoute";
 import postingRoutes from "../routes/postingRoute";
+import candidateRoute from "../routes/candidateRoute";
+
 import userRoute from "../routes/userRoute";
 
 import instituteRoute from "../routes/instituteRoute";
@@ -43,6 +45,7 @@ app.route("/users", userRoute);
 
 app.route("/organizations", organizationRoute);
 app.route("/postings", postingRoutes);
+app.route("/candidates", candidateRoute);
 
 app.route("/campus", instituteRoute);
 app.route("/drives", driveRoute);

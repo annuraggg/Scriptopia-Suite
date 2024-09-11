@@ -12,4 +12,6 @@ app.post("/ats", postingController.updateAts);
 app.post("/assessment", postingController.updateAssessment);
 app.post("/assignment", postingController.updateAssignment);
 
+app.post("/publish", postingController.publishPosting);
+
 export default app;

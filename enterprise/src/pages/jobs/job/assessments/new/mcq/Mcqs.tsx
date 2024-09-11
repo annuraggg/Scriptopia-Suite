@@ -1,6 +1,6 @@
 import { Button, useDisclosure } from "@nextui-org/react";
 import McqModal from "./McqModal";
-import { IMcq } from "@shared-types/Assessment";
+import { Mcq } from "@shared-types/Assessment";
 import { useState, useRef } from "react";
 import {
   ChevronDownIcon,
@@ -15,8 +15,8 @@ const Mcqs = ({
   mcqs,
   setMcqs,
 }: {
-  mcqs: IMcq[];
-  setMcqs: (mcqs: IMcq[] | ((prev: IMcq[]) => IMcq[])) => void;
+  mcqs: Mcq[];
+  setMcqs: (mcqs: Mcq[] | ((prev: Mcq[]) => Mcq[])) => void;
 }) => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -114,7 +114,7 @@ const Mcqs = ({
 
   const processCSV = (csv: string) => {
     const lines = csv.split('\n');
-    const newMcqs: IMcq[] = [];
+    const newMcqs: Mcq[] = [];
 
     lines.forEach((line, index) => {
       if (index === 0) return; // Skip header row

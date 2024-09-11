@@ -27,8 +27,8 @@ import Languages from "./Languages";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { IProblem } from "@shared-types/Problem";
-import { IMcq, IProblem as IProblemAssessment } from "@shared-types/Assessment";
+import { Problem } from "@shared-types/Problem";
+import { Mcq, Problem as ProblemAssessment } from "@shared-types/Assessment";
 
 const tabsList = [
   "General",
@@ -61,8 +61,8 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
   // Languages Tab States
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
 
-  const [selectedQuestions, setSelectedQuestions] = useState<IProblem[]>([]);
-  const [availableQuestions, setAvailableQuestions] = useState<IProblem[]>([]);
+  const [selectedQuestions, setSelectedQuestions] = useState<Problem[]>([]);
+  const [availableQuestions, setAvailableQuestions] = useState<Problem[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
@@ -85,11 +85,11 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
     hard: 0,
   });
   const [questionsGrading, setQuestionsGrading] = useState<
-    IProblemAssessment[]
+    ProblemAssessment[]
   >([]);
 
   // MCQs Tab States
-  const [mcqs, setMcqs] = useState<IMcq[]>([]);
+  const [mcqs, setMcqs] = useState<Mcq[]>([]);
 
   // Instructions Tab States
   const [instructions, setInstructions] = useState("");
@@ -116,7 +116,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
     rangeEnd.setHours(endTime.hour);
     rangeEnd.setMinutes(endTime.minute);
 
-    const mcqSchema = mcqs.map((mcq: IMcq) => ({
+    const mcqSchema = mcqs.map((mcq: Mcq) => ({
       question: mcq.question,
       type: mcq.type,
       mcq: mcq.type === "multiple" ? mcq.mcq : undefined,

@@ -1,4 +1,4 @@
-interface IResult {
+interface Result {
   _id?: string;
   caseNo: number;
   caseId: string;
@@ -10,13 +10,13 @@ interface IResult {
   console?: string;
 }
 
-interface IDriverMeta {
+interface DriverMeta {
   _id?: string;
   driver: string;
   timestamp: Date;
 }
 
-interface ISubmission {
+interface Submission {
   _id?: string;
   problem: string;
   user: string;
@@ -26,9 +26,9 @@ interface ISubmission {
   avgMemory: number;
   avgTime: number;
   failedCaseNumber: number;
-  results: IResult[];
-  meta: IDriverMeta;
+  results: Result[];
+  meta: DriverMeta;
   createdAt?: Date;
 }
 
-export type { IResult, IDriverMeta, ISubmission };
+export type { Result, DriverMeta, Submission };

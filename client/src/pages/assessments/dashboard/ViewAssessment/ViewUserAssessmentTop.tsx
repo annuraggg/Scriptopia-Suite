@@ -7,7 +7,7 @@ import {
   ArrowLeftRight,
   Play,
 } from "lucide-react";
-import { IAssessment } from "@shared-types/Assessment";
+import { Assessment } from "@shared-types/Assessment";
 import { AssessmentSubmissionsSchema as IAssessSub } from "@shared-types/AssessmentSubmission";
 
 const ViewUserAssessmentTop = ({
@@ -15,7 +15,7 @@ const ViewUserAssessmentTop = ({
   assessment,
 }: {
   submission: IAssessSub;
-  assessment: IAssessment;
+  assessment: Assessment;
 }) => {
   const getTimeTaken = () => {
     const totalTime = assessment?.timeLimit * 60;

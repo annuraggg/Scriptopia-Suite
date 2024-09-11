@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/sheet";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { IMcq } from "@shared-types/Assessment";
-import { IProblem } from "@shared-types/Problem";
+import { Mcq } from "@shared-types/Assessment";
+import { Problem } from "@shared-types/Problem";
 import secureLocalStorage from "react-secure-storage";
 
 const Main = ({
@@ -21,8 +21,8 @@ const Main = ({
   languages,
   solvedProblems,
 }: {
-  mcqs: IMcq[];
-  problems: IProblem[];
+  mcqs: Mcq[];
+  problems: Problem[];
   setUpdateFlag: (flag: boolean | ((prevState: boolean) => boolean)) => void;
   languages: string[];
   solvedProblems: string[];

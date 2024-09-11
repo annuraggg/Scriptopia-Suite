@@ -7,7 +7,7 @@ import starterGenerator from "@/functions/starterGenerator";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { Delta } from "quill/core";
-import { IRunResponseResult } from "@shared-types/RunResponse";
+import { RunResponseResult } from "@shared-types/RunResponse";
 import {
   Modal,
   ModalContent,
@@ -32,7 +32,7 @@ const Problem = () => {
   const [language, setLanguage] = useState<Language>({} as Language);
 
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
-  const [cases, setCases] = useState<IRunResponseResult[]>([]);
+  const [cases, setCases] = useState<RunResponseResult[]>([]);
 
   const [scl, setSCl] = useState([]);
   const [problemId, setProblemId] = useState<string>("");
@@ -135,7 +135,7 @@ const Problem = () => {
         );
 
         setConsoleOutput(
-          res.data.data.results.map((r: IRunResponseResult) => r.consoleOutput)
+          res.data.data.results.map((r: RunResponseResult) => r.consoleOutput)
         );
 
         return { success: true, error: "", data: {} };

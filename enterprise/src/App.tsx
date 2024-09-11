@@ -44,6 +44,9 @@ const OrgData = lazy(() => import("./pages/settings/security/data/Data"));
 import Selector from "./pages/jobs/job/assessments/new/Selector";
 import Assignments from "./pages/jobs/job/assignment/Assignments";
 import NewAssignment from "./pages/jobs/job/assignment/New";
+import Apply from "./pages/candidate/apply/Apply";
+import CandidatePosting from "./pages/candidate/postings/Posting";
+import CandidateLayout from "./pages/candidate/Layout";
 
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
 const Jobs = lazy(() => import("./pages/jobs/Jobs"));
@@ -74,6 +77,17 @@ const Loader = () => (
 );
 
 function App() {
+  const candidatesRoute = [
+    {
+      path: "postings/:id",
+      element: <CandidatePosting />,
+    },
+    {
+      path: "/postings/:id/apply",
+      element: <Apply />,
+    },
+  ];
+
   const settingsRoute = [
     {
       path: "general",
@@ -232,6 +246,11 @@ function App() {
       path: "/settings",
       element: <SettingsLayout />,
       children: settingsRoute,
+    },
+    {
+      path: "/",
+      element: <CandidateLayout />,
+      children: candidatesRoute,
     },
   ]);
 

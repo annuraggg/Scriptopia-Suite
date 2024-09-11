@@ -1,5 +1,5 @@
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
-import { ITestCase } from "@shared-types/Problem";
+import { TestCase } from "@shared-types/Problem";
 import { SclObject } from "@shared-types/Scl";
 const REGION = "ap-south-1";
 
@@ -7,7 +7,7 @@ const runCode = async (
   language: string,
   sclObject: SclObject[],
   code: string,
-  testCases: ITestCase[]
+  testCases: TestCase[]
 ) => {
   const lambdaClient = new LambdaClient({
     region: REGION,
