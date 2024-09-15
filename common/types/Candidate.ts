@@ -39,6 +39,7 @@ interface AppliedPosting {
 }
 
 interface Candidate {
+  name: ReactNode;
   _id: string;
   userId?: string;
   firstName: string;

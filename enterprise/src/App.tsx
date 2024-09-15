@@ -48,6 +48,7 @@ import Apply from "./pages/candidate/apply/Apply";
 import CandidatePosting from "./pages/candidate/postings/Posting";
 import CandidateLayout from "./pages/candidate/Layout";
 import CandiateAssignment from "./pages/candidate/assignment/Assignment";
+import ViewAssignment from "./pages/jobs/job/assignment/ViewAssignment";
 
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
 const Jobs = lazy(() => import("./pages/jobs/Jobs"));
@@ -154,6 +155,10 @@ function App() {
     {
       path: "assignments/",
       element: <Suspense fallback={<Loader />} children={<Assignments />} />,
+    },
+    {
+      path: "assignments/:id",
+      element: <Suspense fallback={<Loader />} children={<ViewAssignment />} />,
     },
     {
       path: "assignments/new/",

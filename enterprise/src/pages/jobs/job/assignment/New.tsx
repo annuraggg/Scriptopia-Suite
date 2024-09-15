@@ -24,12 +24,14 @@ const New = () => {
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
+  const step = window.history.state.usr.step
   const handleCreateAssignment = () => {
     axios
       .post("/postings/assignment", {
         name,
         description,
         postingId: posting._id,
+        step
       })
       .then(() => {
         toast.success("Assignment created successfully");

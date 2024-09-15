@@ -80,6 +80,7 @@ const Assignment = () => {
     const postingId = posting?._id?.toString() || "";
     formData.append("postingId", postingId);
     formData.append("userId", user?.id || "");
+    formData.append("assignmentId", assignment?._id?.toString() || "");
     if (file) formData.append("file", file);
 
     axios
@@ -93,7 +94,7 @@ const Assignment = () => {
       })
       .catch((err) => {
         toast.error(err.response?.data.message || "An error occurred");
-        console.log(err.response.data);
+        console.log(err.response);
       })
       .finally(() => {
         setLoading(false);

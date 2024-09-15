@@ -42,7 +42,8 @@ const getPosting = async (c: Context) => {
     const posting = await Posting.findById(c.req.param("id"))
       .populate("assessments")
       .populate("candidates")
-      .populate("organizationId");
+      .populate("organizationId")
+      .populate("assignments.submissions");
 
     console.log(posting);
 
@@ -227,7 +228,7 @@ const updateAssessment = async (c: Context) => {
 
 const updateAssignment = async (c: Context) => {
   try {
-    const { name, description, postingId } = await c.req.json();
+    const { name, description, postingId, step } = await c.req.json();
 
     const perms = await checkPermission.all(c, ["manage_job"]);
     if (!perms.allowed) {
@@ -239,7 +240,15 @@ const updateAssignment = async (c: Context) => {
       return sendError(c, 404, "job not found");
     }
 
-    posting.assignments.push({ name, description });
+    if (!posting.workflow) {
+      return sendError(c, 400, "Workflow not found");
+    }
+
+    const _id = new mongoose.Types.ObjectId();
+    // @ts-expect-error - Object has no properties common
+    posting.workflow.steps[step].stepId = _id;
+
+    posting.assignments.push({ _id, name, description });
     await posting.save();
 
     return sendSuccess(c, 201, "Assignment created successfully", posting);

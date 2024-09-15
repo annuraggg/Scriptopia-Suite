@@ -55,6 +55,7 @@ interface Assignment {
   _id?: string;
   name: string;
   description: string;
+  submissions: string[];
 }
 
 interface Posting {

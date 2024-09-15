@@ -61,8 +61,10 @@ const workflowSchema = new Schema({
 const salarySchema = new Schema({ min: Number, max: Number, currency: String });
 
 const assignmentSchema = new Schema({
+  _id: { type: mongoose.Types.ObjectId, required: true },
   name: { type: String, required: true },
   description: { type: String, required: true },
+  submissions: { type: [mongoose.Types.ObjectId], ref: "Candidate" },
 });
 
 const postingSchema = new Schema({
