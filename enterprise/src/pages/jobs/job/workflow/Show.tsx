@@ -38,10 +38,10 @@ const Show = ({ workflowData, postingTitle, behavior }: ShowProps) => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
-  const advance = async () => {
+  const advance = async (step: number) => {
     setLoading(true);
     axios
-      .post("/postings/advance-workflow", { _id: posting._id })
+      .post("/postings/advance-workflow", { _id: posting._id, step })
       .then(() => {
         toast.success("Workflow advanced successfully");
         setTimeout(() => {
@@ -102,7 +102,7 @@ const Show = ({ workflowData, postingTitle, behavior }: ShowProps) => {
                         variant="flat"
                         size="sm"
                         color="primary"
-                        onClick={advance}
+                        onClick={() => advance(index)}
                         isLoading={loading}
                       >
                         Advance

@@ -1,50 +1,66 @@
 import { motion } from "framer-motion";
-import { Accordion, AccordionItem, Input, Textarea } from "@nextui-org/react";
-import ResumeChart from "./ResumeChart";
+import { Card, CardBody, CardHeader, Input, Textarea } from "@nextui-org/react";
 import { SelectionChart } from "./SelectionChart";
 import { Tabs, Tab } from "@nextui-org/react";
 import { DataTable } from "./DataTable";
 import { Posting } from "@shared-types/Posting";
+import { useEffect, useState } from "react";
+import { Candidate } from "@shared-types/Candidate";
+
+interface CandidateTable {
+  name: string;
+  email: string;
+  received: string;
+  match: string;
+}
 
 const Main = ({ posting }: { posting: Posting }) => {
-  const chartData = [
-    { day: "5th July", resumes: 130 },
-    { day: "6th July", resumes: 60 },
-    { day: "7th July", resumes: 70 },
-    { day: "9th July", resumes: 56 },
-    { day: "10th July", resumes: 100 },
-    { day: "11th July", resumes: 110 },
-    { day: "12th July", resumes: 120 },
-    { day: "13th July", resumes: 65 },
-    { day: "14th July", resumes: 140 },
-    { day: "15th July", resumes: 150 },
-    { day: "16th July", resumes: 60 },
-    { day: "17th July", resumes: 170 },
-    { day: "18th July", resumes: 32 },
-    { day: "19th July", resumes: 190 },
-  ];
+  const [tableData, setTableData] = useState<CandidateTable[]>([]);
+  const [selectionData, setSelectionData] = useState<{
+    total: number;
+    selected: number;
+  }>({ total: 0, selected: 0 });
 
-  const selectionChartData = [{ candidates: 1260 }];
+  useEffect(() => {
+    if (posting && posting.candidates) {
+      const tableDataTemp: CandidateTable[] = (
+        posting.candidates as unknown as Candidate[]
+      ).map((candidate) => {
+        const currentPosting = candidate.appliedPostings.find(
+          (appliedPosting) => appliedPosting.postingId === posting._id
+        );
+        return {
+          name: candidate.firstName + " " + candidate.lastName,
+          email: candidate.email,
+          received: new Date(
+            currentPosting?.appliedAt || Date.now()
+          ).toLocaleDateString(),
+          match: (currentPosting?.scores.rs?.score ?? 0) + "%", // Default to 0% if score is undefined
+        };
+      });
+      setTableData(tableDataTemp);
+    }
 
-  const tableData = [
-    {
-      name: "Anurag Sawant",
-      email: "anurag@example.com",
-      received: "5th July",
-      match: "60%",
-    },
-  ];
+    if (posting && posting.candidates) {
+      const minimumScore = posting.ats?.minimumScore ?? 0; // Default to 0 if minimumScore is undefined
 
-  for (let i = 1; i <= 50; i++) {
-    const record = {
-      name: `Candidate ${i}`,
-      email: `candidate${i}@example.com`,
-      received: `${Math.floor(Math.random() * 28) + 1}th July`,
-      match: `${Math.floor(Math.random() * 100)}%`,
-    };
+      const selectedCandidates = (
+        posting.candidates as unknown as Candidate[]
+      ).filter((candidate) => {
+        return candidate.appliedPostings.some((appliedPosting) => {
+          const score = appliedPosting.scores.rs?.score ?? 0;
+          return (
+            appliedPosting.postingId === posting._id && score >= minimumScore
+          );
+        });
+      });
 
-    tableData.push(record);
-  }
+      setSelectionData({
+        total: posting.candidates.length,
+        selected: selectedCandidates.length,
+      });
+    }
+  }, [posting]);
 
   return (
     <div className="p-10 py-5">
@@ -57,8 +73,9 @@ const Main = ({ posting }: { posting: Posting }) => {
         <Tabs aria-label="Options" variant="light">
           <Tab key="dashboard" title="Dashboard">
             <div>
-              <Accordion variant="splitted">
-                <AccordionItem key="config" aria-label="config" title="Config">
+              <Card>
+                <CardHeader>Config</CardHeader>
+                <CardBody>
                   <div className="flex items-center w-[100%]">
                     <div className="w-full">
                       <p>Match Threshold (Min %)</p>
@@ -73,7 +90,6 @@ const Main = ({ posting }: { posting: Posting }) => {
                       value={posting?.ats?.minimumScore.toString()}
                     />
                   </div>
-
                   <div className="flex items-center w-[100%] mt-3">
                     <div className="w-full">
                       <p>Negative Prompts</p>
@@ -88,7 +104,6 @@ const Main = ({ posting }: { posting: Posting }) => {
                       value={posting.ats?.negativePrompts.join(", ")}
                     />
                   </div>
-
                   <div className="flex items-center w-[100%] mt-3">
                     <div className="w-full">
                       <p>Positive Prompts</p>
@@ -103,14 +118,13 @@ const Main = ({ posting }: { posting: Posting }) => {
                       value={posting.ats?.positivePrompts.join(", ")}
                     />
                   </div>
-                </AccordionItem>
-              </Accordion>
+                </CardBody>
+              </Card>
             </div>
 
             {posting.candidates.length > 0 ? (
               <div className="mt-5 flex gap-5">
-                <SelectionChart chartData={selectionChartData} />
-                <ResumeChart chartData={chartData} />
+                <SelectionChart chartData={selectionData} />
               </div>
             ) : (
               <div className="mt-5 flex justify-center items-center">

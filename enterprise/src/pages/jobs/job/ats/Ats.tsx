@@ -10,6 +10,7 @@ const Ats = () => {
   const [atsConfigured, setAtsConfigured] = useState(false);
 
   const { posting } = useOutletContext() as { posting: Posting };
+  console.log(posting);
   useEffect(() => {
     const noOfAts = posting?.workflow?.steps?.filter(
       (step) => step.type === "rs"

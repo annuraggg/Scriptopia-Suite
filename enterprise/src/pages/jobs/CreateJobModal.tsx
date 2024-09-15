@@ -71,6 +71,7 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
 
   const createJob = () => {
     setLoading(true);
+
     axios
       .post("/postings/create", {
         title: jobTitle,
@@ -150,7 +151,7 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
               labelPlacement="outside"
             >
               {deparments.map((department) => (
-                <SelectItem key={department.name}>{department.name}</SelectItem>
+                <SelectItem key={department._id!}>{department.name}</SelectItem>
               ))}
             </Select>
           </div>

@@ -19,9 +19,10 @@ const interviewSchema = new Schema({
 });
 
 const atsSchema = new Schema({
+  _id: { type: mongoose.Types.ObjectId, required: false },
   minimumScore: { type: Number, required: true },
-  negativePrompts: [{ type: String, required: true }],
-  positivePrompts: [{ type: String, required: true }],
+  negativePrompts: [{ type: String, required: false, default: ["none"] }],
+  positivePrompts: [{ type: String, required: false, default: ["none"] }],
   status: {
     type: String,
     enum: ["pending", "processing", "finished"],
@@ -42,6 +43,11 @@ const workflowStepSchema = new Schema({
     type: String,
     enum: ["rs", "mcqa", "ca", "mcqca", "as", "pi", "cu"],
     required: true,
+  },
+  stepId: {
+    type: mongoose.Types.ObjectId,
+    required: true,
+    default: new mongoose.Types.ObjectId(),
   },
 });
 

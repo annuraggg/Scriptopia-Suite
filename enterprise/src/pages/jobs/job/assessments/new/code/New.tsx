@@ -83,10 +83,9 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
     medium: 0,
     hard: 0,
   });
-  const [questionsGrading, setQuestionsGrading] = useState<
-    ProblemAssessment[]
-  >([]);
-
+  const [questionsGrading, setQuestionsGrading] = useState<ProblemAssessment[]>(
+    []
+  );
 
   // Instructions Tab States
   const [instructions, setInstructions] = useState("");
@@ -113,9 +112,12 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
     rangeEnd.setHours(endTime.hour);
     rangeEnd.setMinutes(endTime.minute);
 
+    const step = window.history.state.usr.step;
+
     const reqBody = {
       assessmentpostingName: assessmentName,
       postingId: window.location.pathname.split("/")[2],
+      step: step,
       name: assessmentName,
       description: assessmentDescription,
       type: "code",

@@ -11,4 +11,6 @@ app.post("verifyOtp", candidateController.verifyOtp);
 app.get(":id", candidateController.getCandidate);
 app.post("apply", candidateController.apply);
 
+app.post("verify", candidateController.verifyCandidate);
+
 export default app;

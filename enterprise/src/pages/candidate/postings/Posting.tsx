@@ -54,7 +54,7 @@ const Posting = () => {
   }, []);
 
   return (
-    <div className="p-10 flex gap-5">
+    <div className="p-10 py-2 flex gap-5">
       <div className="w-full">
         <Card>
           <CardHeader className="opacity-50">Company Info</CardHeader>

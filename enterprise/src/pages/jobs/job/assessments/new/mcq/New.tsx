@@ -75,12 +75,12 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
       checkbox: mcq.type === "checkbox" ? mcq.checkbox : undefined,
       grade: mcq.grade,
     }));
-
-    
+    const step = window.history.state.usr.step;
     const reqBody = {
       assessmentPostingName: assessmentName,
       postingId: window.location.pathname.split("/")[2],
       name: assessmentName,
+      step: step,
       description: assessmentDescription,
       type: "mcq",
       timeLimit,

@@ -14,10 +14,9 @@ const PDFExtract = PDE.PDFExtract;
 const getPosting = async (c: Context) => {
   const { url } = c.req.param();
   try {
-    const posting = await Posting.findOne({ url: url });
+    const posting = await Posting.findOne({ url: url, published: true });
     const organization = await Organization.findOne({
       _id: posting?.organizationId,
-      published: true,
     });
 
     return sendSuccess(c, 200, "Posting fetched successfully", {
@@ -299,10 +298,35 @@ const extractTextFromResume = async (resume: File, candidateId: string) => {
   return extractedText;
 };
 
+const verifyCandidate = async (c: Context) => {
+  try {
+    const { userId, postingId } = await c.req.json();
+    const posting = await Posting.findById(postingId);
+    if (!posting) {
+      return sendError(c, 404, "Posting not found");
+    }
+
+    const candidate = await Candidate.findOne({ userId });
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    // @ts-expect-error - Type 'string' is not assignable to type 'ObjectId'
+    if (posting.candidates.includes(candidate?._id.toString())) {
+      return sendSuccess(c, 200, "Candidate verified successfully");
+    }
+    return sendError(c, 400, "Candidate not verified");
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
 export default {
   getPosting,
   sendVerificationMail,
   verifyOtp,
   apply,
   getCandidate,
+  verifyCandidate,
 };

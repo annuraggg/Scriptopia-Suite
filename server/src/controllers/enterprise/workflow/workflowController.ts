@@ -1,11 +1,12 @@
 import Posting from "../../../models/Posting";
 import checkPermission from "../../../middlewares/checkOrganizationPermission";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
-import logger from "../../../utils/logger";
 import { Context } from "hono";
 import { Posting as PostingType } from "@shared-types/Posting";
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
-import { Candidate } from "@shared-types/Candidate";
+import { AppliedPosting, Candidate } from "@shared-types/Candidate";
+import loops from "@/config/loops";
+import Organization from "@/models/Organization";
 const REGION = "ap-south-1";
 
 const advanceWorkflow = async (c: Context) => {
@@ -36,6 +37,13 @@ const advanceWorkflow = async (c: Context) => {
 
     if (workflow.steps[newStepIndex].type === "rs")
       await handleResumeScreening(c, posting as unknown as PostingType);
+
+    if (workflow.steps[newStepIndex].type === "as")
+      await handleAssignmentRound(
+        c,
+        posting as unknown as PostingType,
+        workflow.steps[newStepIndex]
+      );
 
     await posting.save();
 
@@ -87,6 +95,46 @@ const handleResumeScreening = async (c: Context, posting: PostingType) => {
   lambdaClient.send(new InvokeCommand(params));
   return;
 };
+
+const handleAssignmentRound = async (
+  c: Context,
+  posting: PostingType,
+  step: { name: string }
+) => {
+  const { name } = step;
+  const assignment = posting.assignments.find((a) => a.name === name);
+  const organization = await Organization.findById(posting.organizationId);
+
+  if (!assignment || !organization || !posting) return;
+
+  const qualifiedCandidates = posting.candidates.filter(
+    // @ts-expect-error - candidates is not defined in PostingType
+    (candidate: Candidate) => {
+      const current = candidate.appliedPostings.find(
+        (ap: AppliedPosting) =>
+          ap.postingId.toString() === posting?._id?.toString()
+      );
+
+      if (!current) return false;
+      return current.status !== "rejected";
+    }
+  );
+
+  for (const candidate of qualifiedCandidates as unknown as Candidate[]) {
+    loops.sendTransactionalEmail({
+      transactionalId: "cm0zk1vd900966e8e6czepc4d",
+      email: candidate?.email!,
+      dataVariables: {
+        name: candidate?.firstName || "",
+        postingName: posting?.title || "",
+        company: organization?.name || "",
+        assignmentLink: `${process.env.ENTERPRISE_FRONTEND_URL}/postings/${posting?.url}/assignments/${assignment._id}`,
+      },
+    });
+  }
+};
+
+const handleAssessmentRound = async (c: Context, posting: PostingType) => {};
 
 export default {
   advanceWorkflow,

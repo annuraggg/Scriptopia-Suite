@@ -84,9 +84,9 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
     medium: 0,
     hard: 0,
   });
-  const [questionsGrading, setQuestionsGrading] = useState<
-    ProblemAssessment[]
-  >([]);
+  const [questionsGrading, setQuestionsGrading] = useState<ProblemAssessment[]>(
+    []
+  );
 
   // MCQs Tab States
   const [mcqs, setMcqs] = useState<Mcq[]>([]);
@@ -123,12 +123,13 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
       checkbox: mcq.type === "checkbox" ? mcq.checkbox : undefined,
       grade: mcq.grade,
     }));
-
+    const step = window.history.state.usr.step;
     const reqBody = {
       assessmentpostingName: assessmentName,
       postingId: window.location.pathname.split("/")[2],
       name: assessmentName,
       description: assessmentDescription,
+      step: step,
       type: "mcqcode",
       timeLimit,
       passingPercentage,

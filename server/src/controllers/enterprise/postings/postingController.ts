@@ -6,6 +6,7 @@ import { Context } from "hono";
 import Organization from "@/models/Organization";
 import assessmentController from "@/controllers/coding/assessmentController";
 import { Assessment } from "@shared-types/Assessment";
+import mongoose from "mongoose";
 // import assessmentController from "../../coding/assessmentController";
 
 const getPostings = async (c: Context) => {
@@ -38,9 +39,12 @@ const getPosting = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const posting = await Posting.findById(c.req.param("id")).populate(
-      "assessments"
-    );
+    const posting = await Posting.findById(c.req.param("id"))
+      .populate("assessments")
+      .populate("candidates")
+      .populate("organizationId");
+
+    console.log(posting);
 
     if (!posting) {
       return sendError(c, 404, "job not found");
@@ -138,15 +142,31 @@ const updateAts = async (c: Context) => {
 
     if (!posting.ats) {
       posting.ats = {
+        // @ts-expect-error - Object has no properties common
+        _id: new mongoose.Types.ObjectId(),
         minimumScore: minimumScore,
         negativePrompts: negativePrompts,
         positivePrompts: positivePrompts,
+        status: "pending",
       };
     } else {
       posting.ats.minimumScore = minimumScore;
       posting.ats.negativePrompts = negativePrompts;
       posting.ats.positivePrompts = positivePrompts;
     }
+
+    if (!posting.workflow) {
+      return sendError(c, 400, "Workflow not found");
+    }
+
+    if (!posting.ats) {
+      return sendError(c, 400, "ATS not found");
+    }
+
+    console.log(posting.ats);
+
+    const atsStep = posting.workflow.steps.filter((step) => step.type === "rs");
+    atsStep[0].stepId = posting.ats._id!;
 
     await posting.save();
 
@@ -165,7 +185,7 @@ const updateAssessment = async (c: Context) => {
     }
 
     const newAssessment = await assessmentController.createAssessment(c);
-    const { postingId, name } = await c.req.json();
+    const { postingId, name, step } = await c.req.json();
 
     const resp = await newAssessment.json();
 
@@ -180,11 +200,18 @@ const updateAssessment = async (c: Context) => {
       (a) => (a as unknown as Assessment).name === name
     );
 
-    console.log(name);
-
     if (exists.length > 0) {
       return sendError(c, 400, "Assessment already exists");
     }
+
+    if (!existingAssessments.workflow) {
+      return sendError(c, 400, "Workflow not found");
+    }
+
+    console.log("step", step);
+
+    existingAssessments.workflow.steps[step].stepId = resp.data._id;
+    await existingAssessments.save();
 
     await Posting.findByIdAndUpdate(postingId, {
       $push: { assessments: resp.data._id },

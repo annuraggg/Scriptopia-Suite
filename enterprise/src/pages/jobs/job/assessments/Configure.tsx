@@ -52,7 +52,9 @@ const Configure = ({ posting }: { posting: Posting }) => {
                     variant="flat"
                     color="warning"
                     onClick={() => {
-                      navigate(`new/${step.type}?step=${index}`);
+                      navigate(`new/${step.type}?step=${index}`, {
+                        state: { step: index },
+                      });
                     }}
                   >
                     Configure
