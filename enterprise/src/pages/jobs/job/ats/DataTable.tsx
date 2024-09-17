@@ -22,35 +22,141 @@ import {
 } from "@/components/ui/table";
 
 import {
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-} from "@nextui-org/dropdown";
-import {
   ArrowUpDown,
+  Check,
   ChevronLeft,
   ChevronRight,
-  MoreHorizontal,
+  Download,
+  X,
+  UserCheck,
+  UserX,
+  Users,
 } from "lucide-react";
+import { Tooltip } from "@nextui-org/tooltip";
 import { Button, Checkbox, Input } from "@nextui-org/react";
 import { useState } from "react";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
+import { toast } from "sonner";
 
 interface DataTableProps<TData> {
   data: TData[];
+  postingId: string;
+  matchThreshold: number;
 }
 
-export function DataTable<TData>({ data }: DataTableProps<TData>) {
+export function DataTable<TData>({
+  data,
+  postingId,
+  matchThreshold = 0,
+}: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pageIndex, setPageIndex] = useState(0);
 
   interface Candidates {
+    _id: string;
     name: string;
     email: string;
     received: string;
     match: string;
+    status: string;
   }
+
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+
+  const downloadResume = (_id: string) => {
+    axios
+      .post("candidates/resume/download", { candidateId: _id, postingId })
+      .then((res) => window.open(res.data.data, "_blank"))
+      .catch((err) => {
+        toast.error(err.response.data.message || "Failed to download resume");
+        console.error(err);
+      });
+  };
+
+  const disqualify = (_id: string) => {
+    axios
+      .post("candidates/resume/disqualify", {
+        candidateId: _id,
+        postingId,
+      })
+      .then(() => {
+        toast.success("Candidate disqualified successfully");
+      })
+      .catch((err) => {
+        toast.error(
+          err.response.data.message || "Failed to disqualify candidate"
+        );
+        console.error(err);
+      });
+  };
+
+  const selectCand = (_id: string) => {
+    axios
+      .post("candidates/resume/qualify", {
+        candidateId: _id,
+        postingId,
+      })
+      .then(() => {
+        toast.success("Candidate selected successfully");
+      })
+      .catch((err) => {
+        toast.error(err.response.data.message || "Failed to select candidate");
+        console.error(err);
+      });
+  };
+
+  const disqualifyAllSelected = () => {
+    const selectedIds = table
+      .getSelectedRowModel()
+      .rows.map((row) => (row.original as Candidates)._id);
+    axios
+      .post("candidates/resume/disqualify/bulk", {
+        candidateIds: selectedIds,
+        postingId,
+      })
+      .then(() => {
+        toast.success("Selected candidates disqualified successfully");
+      })
+      .catch((err) => {
+        toast.error(
+          err.response.data.message ||
+            "Failed to disqualify selected candidates"
+        );
+        console.error(err);
+      });
+  };
+
+  const qualifyAllSelected = () => {
+    const selectedIds = table
+      .getSelectedRowModel()
+      .rows.map((row) => (row.original as Candidates)._id);
+    axios
+      .post("candidates/resume/qualify/bulk", {
+        candidateIds: selectedIds,
+        postingId,
+      })
+      .then(() => {
+        toast.success("Selected candidates qualified successfully");
+      })
+      .catch((err) => {
+        toast.error(
+          err.response.data.message || "Failed to qualify selected candidates"
+        );
+        console.error(err);
+      });
+  };
+
+  const selectAllAboveThreshold = () => {
+    table.toggleAllRowsSelected(false);
+    table.getFilteredRowModel().rows.forEach((row) => {
+      if (parseFloat((row.original as Candidates).match) > matchThreshold) {
+        row.toggleSelected(true);
+      }
+    });
+  };
 
   const columns: ColumnDef<Candidates>[] = [
     {
@@ -132,24 +238,66 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
       },
     },
     {
-      id: "actions",
-      cell: () => {
+      accessorKey: "status",
+      header: ({ column }) => {
         return (
-          <Dropdown>
-            <DropdownTrigger>
-              <Button isIconOnly variant="light" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
+          <Button
+            variant="light"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Status
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const _id = row.original._id;
+        return (
+          <div>
+            <Tooltip content="Select">
+              <Button
+                isIconOnly
+                variant="flat"
+                color="success"
+                className="ml-3"
+                onClick={() => selectCand(_id)}
+              >
+                <Check />
               </Button>
-            </DropdownTrigger>
-            <DropdownMenu>
-              <DropdownItem>View candidate</DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
+            </Tooltip>
+
+            <Tooltip content="Disqualify">
+              <Button
+                isIconOnly
+                variant="flat"
+                color="danger"
+                className="ml-3"
+                onClick={() => disqualify(_id)}
+              >
+                <X />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Download Resume">
+              <Button
+                isIconOnly
+                variant="flat"
+                color="warning"
+                className="ml-3"
+                onClick={() => downloadResume(_id)}
+              >
+                <Download />
+              </Button>
+            </Tooltip>
+          </div>
         );
       },
     },
   ];
-  
+
   const table = useReactTable({
     data, // @ts-expect-error - data is not assignable to type TData[]
     columns,
@@ -168,7 +316,7 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 
   return (
     <div className="rounded-md">
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-5 flex-wrap">
         <div className="flex items-center justify-end space-x-2 py-4">
           <Button
             onClick={() => setPageIndex(pageIndex - 1)}
@@ -193,6 +341,18 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
           }
           className="max-w-sm"
         />
+        <Button onClick={disqualifyAllSelected} color="danger">
+          <UserX className="mr-2 h-4 w-4" />
+          Disqualify Selected
+        </Button>
+        <Button onClick={qualifyAllSelected} color="success">
+          <UserCheck className="mr-2 h-4 w-4" />
+          Qualify Selected
+        </Button>
+        <Button onClick={selectAllAboveThreshold} color="primary">
+          <Users className="mr-2 h-4 w-4" />
+          Select All Above {matchThreshold}%
+        </Button>
       </div>
       <Table className="mt-5">
         <TableHeader>

@@ -45,8 +45,6 @@ const getPosting = async (c: Context) => {
       .populate("organizationId")
       .populate("assignments.submissions");
 
-    console.log(posting);
-
     if (!posting) {
       return sendError(c, 404, "job not found");
     }
@@ -114,8 +112,6 @@ const createWorkflow = async (c: Context) => {
       return sendError(c, 404, "Posting not found");
     }
 
-    console.log(formattedData);
-
     posting.workflow = formattedData;
     await posting.save();
 
@@ -164,8 +160,6 @@ const updateAts = async (c: Context) => {
       return sendError(c, 400, "ATS not found");
     }
 
-    console.log(posting.ats);
-
     const atsStep = posting.workflow.steps.filter((step) => step.type === "rs");
     atsStep[0].stepId = posting.ats._id!;
 
@@ -208,8 +202,6 @@ const updateAssessment = async (c: Context) => {
     if (!existingAssessments.workflow) {
       return sendError(c, 400, "Workflow not found");
     }
-
-    console.log("step", step);
 
     existingAssessments.workflow.steps[step].stepId = resp.data._id;
     await existingAssessments.save();

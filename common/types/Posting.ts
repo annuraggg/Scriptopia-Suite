@@ -34,6 +34,7 @@ interface WorkflowStep {
   _id?: string;
   name: string;
   type: "rs" | "mcqa" | "ca" | "mcqca" | "as" | "pi" | "cu";
+  stepId: string;
 }
 
 interface Workflow {

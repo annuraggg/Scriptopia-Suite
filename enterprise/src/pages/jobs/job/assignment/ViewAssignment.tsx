@@ -1,17 +1,9 @@
-import {
-  Card,
-  CardBody,
-  CardHeader,
-  Tabs,
-  Tab,
-  Input,
-  Button,
-} from "@nextui-org/react";
-import { Candidate } from "@shared-types/Candidate";
+import { Card, CardBody, CardHeader, Tabs, Tab } from "@nextui-org/react";
 import { Assignment, Posting } from "@shared-types/Posting";
-import { Download } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
+import DataTable from "./DataTable";
+import { Candidate } from "@shared-types/Candidate";
 
 const ViewAssignment = () => {
   const { posting } = useOutletContext() as { posting: Posting };
@@ -24,16 +16,26 @@ const ViewAssignment = () => {
         (a) => a._id === assignmentId
       );
       if (assignment) {
+        assignment.submissions.map((sub) => {
+          const currentPosting = (
+            sub as unknown as Candidate
+          ).appliedPostings.find((p) => p.postingId === posting._id);
+          const currentAssignment = currentPosting?.scores?.as?.find(
+            (a) => a?.asId === assignment._id
+          );
+          if (currentAssignment) {
+            // @ts-expect-error - Object has no properties common
+            sub.grade = currentAssignment.score; // @ts-expect-error - Object has no properties common
+            sub.submittedOn = new Date(currentAssignment.submittedOn).toLocaleString(); // @ts-expect-error - Object has no properties common
+            sub.status = currentPosting.status;
+          }
+        });
         setAssignment(assignment);
       }
     }
 
     console.log(posting);
   }, [posting]);
-
-  const download = () => {
-    console.log("Downloading...");
-  };
 
   return (
     <div className="p-5">
@@ -47,38 +49,11 @@ const ViewAssignment = () => {
         </Tab>
 
         <Tab title="Submissions">
-          <Card>
-            <Card>
-              <CardHeader>Submissions</CardHeader>
-              <CardBody>
-                {/* @ts-expect-error - TS doesn't know the shape of Candidate */}
-                {assignment.submissions?.map((submission: Candidate) => (
-                  <div
-                    key={submission._id}
-                    className="flex justify-between items-center p-2 rounded-xl"
-                  >
-                    <p>{submission.firstName + " " + submission.lastName}</p>
-                    <p>{submission.email}</p>
-                    <Button onClick={download}>
-                      <Download size={20} />
-                      <p>Download</p>
-                    </Button>
-                    <div className="flex gap-3">
-                      <Input
-                        placeholder="Grade"
-                        type="number"
-                        onChange={(e) => console.log(e.target.value)}
-                        className="w-[100px]"
-                      />
-                      <Button variant="flat" color="success">
-                        Save
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </CardBody>
-            </Card>
-          </Card>
+          <DataTable
+            data={assignment.submissions}
+            postingId={posting._id!}
+            assignmentId={assignment._id!}
+          />
         </Tab>
       </Tabs>
     </div>

@@ -86,6 +86,10 @@ const assessmentSchema = new mongoose.Schema({
   security: { type: securitySchema, required: true },
   feedbackEmail: { type: String, required: true },
   obtainableScore: { type: Number, required: true },
+
+  isEnterprise: { type: Boolean, required: true, default: false },
+  postingId: { type: mongoose.Schema.Types.ObjectId, ref: "Posting", required: false },
+
   createdAt: { type: Date, default: Date.now },
 });
 

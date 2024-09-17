@@ -9,16 +9,24 @@ const appliedPostingSchema = new Schema({
   disqualifiedReason: { type: String },
   scores: {
     rs: { type: { score: Number, reason: String } },
+    as: {
+      type: [
+        {
+          score: Number,
+          asId: String,
+          submittedOn: { type: Date, default: Date.now },
+        },
+      ],
+    },
     mcqa: { type: [{ score: Number, mcqaId: String }] },
     ca: { type: [{ score: Number, caId: String }] },
     mcqca: { type: [{ score: Number, mcqaId: String, caId: String }] },
-    as: { type: [{ score: Number, asId: String }] },
     pi: { type: { score: Number, piId: String } },
     cu: { type: [{ score: Number, cuId: String }] },
   },
   status: {
     type: String,
-    enum: ["applied", "shortlisted", "rejected", "hired"],
+    enum: ["applied", "inprogress", "rejected", "hired"],
     default: "applied",
   },
 });

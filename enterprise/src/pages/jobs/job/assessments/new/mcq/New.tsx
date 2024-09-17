@@ -80,6 +80,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
       assessmentPostingName: assessmentName,
       postingId: window.location.pathname.split("/")[2],
       name: assessmentName,
+      isEnterprise: true,
       step: step,
       description: assessmentDescription,
       type: "mcq",

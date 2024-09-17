@@ -20,10 +20,14 @@ const Assessments = () => {
     if (noOfAssessments) {
       setAssessmentsEnabled(true);
 
-      const remainingToConfig = (posting?.workflow?.steps?.length) ? posting?.workflow?.steps?.filter(
-        (step) =>
-          step.type === "ca" || step.type === "mcqca" || step.type === "mcqa"
-      ).length - (posting?.assessments?.length ?? 0) : 0;
+      const remainingToConfig = posting?.workflow?.steps?.length
+        ? posting?.workflow?.steps?.filter(
+            (step) =>
+              step.type === "ca" ||
+              step.type === "mcqca" ||
+              step.type === "mcqa"
+          ).length - (posting?.assessments?.length ?? 0)
+        : 0;
 
       if (remainingToConfig) {
         setAssessmentsConfigured(true);
@@ -39,7 +43,7 @@ const Assessments = () => {
     return <Configure posting={posting} />;
   }
 
-  return <Main posting={posting} />;
+  return <Main />;
 };
 
 export default Assessments;

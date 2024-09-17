@@ -2,11 +2,12 @@ import Posting from "../../../models/Posting";
 import checkPermission from "../../../middlewares/checkOrganizationPermission";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import { Context } from "hono";
-import { Posting as PostingType } from "@shared-types/Posting";
+import { Posting as PostingType, WorkflowStep } from "@shared-types/Posting";
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { AppliedPosting, Candidate } from "@shared-types/Candidate";
 import loops from "@/config/loops";
 import Organization from "@/models/Organization";
+import { Assessment } from "@shared-types/Assessment";
 const REGION = "ap-south-1";
 
 const advanceWorkflow = async (c: Context) => {
@@ -36,14 +37,25 @@ const advanceWorkflow = async (c: Context) => {
     workflow.currentStep = newStepIndex;
 
     if (workflow.steps[newStepIndex].type === "rs")
-      await handleResumeScreening(c, posting as unknown as PostingType);
+      await handleResumeScreening(posting as unknown as PostingType);
 
     if (workflow.steps[newStepIndex].type === "as")
       await handleAssignmentRound(
-        c,
         posting as unknown as PostingType,
-        workflow.steps[newStepIndex]
+        workflow.steps[newStepIndex] as unknown as WorkflowStep
       );
+
+    console.log(workflow.steps[newStepIndex].type);
+    if (
+      workflow.steps[newStepIndex].type === "ca" ||
+      workflow.steps[newStepIndex].type === "mcqa" ||
+      workflow.steps[newStepIndex].type === "mcqca"
+    ) {
+      await handleAssessmentRound(
+        posting as unknown as PostingType,
+        workflow.steps[newStepIndex] as unknown as WorkflowStep
+      );
+    }
 
     await posting.save();
 
@@ -54,7 +66,7 @@ const advanceWorkflow = async (c: Context) => {
   }
 };
 
-const handleResumeScreening = async (c: Context, posting: PostingType) => {
+const handleResumeScreening = async (posting: PostingType) => {
   if (posting.ats) {
     posting.ats.status = "processing";
   }
@@ -97,9 +109,8 @@ const handleResumeScreening = async (c: Context, posting: PostingType) => {
 };
 
 const handleAssignmentRound = async (
-  c: Context,
   posting: PostingType,
-  step: { name: string }
+  step: WorkflowStep
 ) => {
   const { name } = step;
   const assignment = posting.assignments.find((a) => a.name === name);
@@ -134,7 +145,64 @@ const handleAssignmentRound = async (
   }
 };
 
-const handleAssessmentRound = async (c: Context, posting: PostingType) => {};
+const handleAssessmentRound = async (
+  posting: PostingType,
+  step: WorkflowStep
+) => {
+  console.log("handleAssessmentRound");
+  const { type, stepId } = step;
+
+  const assessment = posting.assessments.find(
+    (a) => a.toString() === stepId.toString()
+  );
+
+  const organization = await Organization.findById(posting.organizationId);
+  if (!assessment || !organization || !posting) return;
+
+  const qualifiedCandidates = posting.candidates.filter(
+    // @ts-expect-error - candidates is not defined in PostingType
+    (candidate: Candidate) => {
+      const current = candidate.appliedPostings.find(
+        (ap: AppliedPosting) =>
+          ap.postingId.toString() === posting?._id?.toString()
+      );
+
+      if (!current) return false;
+      return current.status !== "rejected";
+    }
+  );
+
+  console.log(qualifiedCandidates);
+
+  let assessmentType = "";
+  if (type === "ca") {
+    assessmentType = "Coding";
+  }
+
+  if (type === "mcqa") {
+    assessmentType = "MCQ";
+  }
+
+  if (type === "mcqca") {
+    assessmentType = "MCQ + Coding";
+  }
+
+  for (const candidate of qualifiedCandidates as unknown as Candidate[]) {
+    loops.sendTransactionalEmail({
+      transactionalId: "cm16lbamn012iyfq0agp9wl54",
+      email: candidate?.email!,
+      dataVariables: {
+        name: candidate?.firstName || "",
+        postingName: posting?.title || "",
+        type: assessmentType,
+        assessmentLink: `${process.env.SCRIPTOPIA_FRONTEND_URL}/assessments/${
+          (assessment as unknown as Assessment)?._id
+        }`,
+        company: organization?.name || "",
+      },
+    });
+  }
+};
 
 export default {
   advanceWorkflow,

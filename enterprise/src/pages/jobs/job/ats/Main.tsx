@@ -8,10 +8,12 @@ import { useEffect, useState } from "react";
 import { Candidate } from "@shared-types/Candidate";
 
 interface CandidateTable {
+  _id: string;
   name: string;
   email: string;
   received: string;
   match: string;
+  status: string;
 }
 
 const Main = ({ posting }: { posting: Posting }) => {
@@ -30,12 +32,14 @@ const Main = ({ posting }: { posting: Posting }) => {
           (appliedPosting) => appliedPosting.postingId === posting._id
         );
         return {
+          _id: candidate._id,
           name: candidate.firstName + " " + candidate.lastName,
           email: candidate.email,
           received: new Date(
             currentPosting?.appliedAt || Date.now()
           ).toLocaleDateString(),
           match: (currentPosting?.scores.rs?.score ?? 0) + "%", // Default to 0% if score is undefined
+          status: currentPosting?.status || "Applied",
         };
       });
       setTableData(tableDataTemp);
@@ -136,7 +140,7 @@ const Main = ({ posting }: { posting: Posting }) => {
             )}
           </Tab>
           <Tab key="candidates" title="Candidates">
-            <DataTable data={tableData} />
+            <DataTable data={tableData} postingId={posting._id!} matchThreshold={posting?.ats?.minimumScore} />
           </Tab>
         </Tabs>
       </motion.div>

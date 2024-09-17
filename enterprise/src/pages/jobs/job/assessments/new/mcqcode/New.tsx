@@ -126,6 +126,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
     const step = window.history.state.usr.step;
     const reqBody = {
       assessmentpostingName: assessmentName,
+      isEnterprise: true,
       postingId: window.location.pathname.split("/")[2],
       name: assessmentName,
       description: assessmentDescription,
