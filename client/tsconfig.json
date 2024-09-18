@@ -2,14 +2,17 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@shared-types/*": ["../common/types/*"],
+      "@types/*": ["src/types/*"],
+      "@shared-components/*": ["../common/components/*"],
+      "@shared-functions/*": ["../common/functions/*"]
     },
     "target": "ES2020",
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
-
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -17,13 +20,17 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "typeRoots": ["./node_modules/@types", "./src/types"],
+  "include": ["src", "../common/*"],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
 }

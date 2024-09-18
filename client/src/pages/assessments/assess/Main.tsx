@@ -56,7 +56,7 @@ const Main = () => {
     toast.promise(req, {
       loading: "Validating Access",
       success: "Access Granted",
-      error: "You are not allowed to take this assessment",
+      error: (err) => err.message.toString(),
     });
   };
 
@@ -94,11 +94,7 @@ const Main = () => {
         {page === "main" && (
           <Card className="h-[70%] w-[50%] p-3  border-2">
             <CardHeader>
-              <img
-                src="/logo.png"
-                alt="logo"
-                className="w-10"
-              />
+              <img src="/logo.png" alt="logo" className="w-10" />
             </CardHeader>
             <CardBody className="flex flex-col items-center justify-center">
               <h4>Scriptopia Assessment</h4>
@@ -138,11 +134,7 @@ const Main = () => {
         {page === "instructions" && (
           <Card className="h-[70%] w-[50%] p-3  border-2">
             <CardHeader>
-              <img
-                src="/logo.png"
-                alt="logo"
-                className="w-10"
-              />
+              <img src="/logo.png" alt="logo" className="w-10" />
             </CardHeader>
             <CardBody className="flex flex-col items-center justify-center">
               <h4>Instructions</h4>

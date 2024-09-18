@@ -8,11 +8,11 @@ import {
   ModalFooter,
   useDisclosure,
 } from "@nextui-org/modal";
-import starterGenerator from "@/functions/starterGenerator";
+// import starterGenerator from "@/functions/starterGenerator";
 import * as monaco from "monaco-editor";
 import { useEffect, useState } from "react";
 import languages from "@/data/languages";
-import { IFunctionArg } from "@/@types/Problem";
+import { FunctionArg } from "@shared-types/Problem";
 
 const Stub = ({
   functionName,
@@ -26,9 +26,9 @@ const Stub = ({
   setFunctionName: (value: string) => void;
   returnType: string;
   setReturnType: (value: string) => void;
-  fnArguments: IFunctionArg[];
+  fnArguments: FunctionArg[];
   setFnArguments: (
-    value: IFunctionArg[] | ((prev: IFunctionArg[]) => IFunctionArg[])
+    value: FunctionArg[] | ((prev: FunctionArg[]) => FunctionArg[])
   ) => void;
 }) => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -38,12 +38,12 @@ const Stub = ({
   useEffect(() => {
     if (isOpen) {
       monaco.editor.create(document.getElementById("code-editor")!, {
-        value: starterGenerator(
-          functionName,
-          fnArguments,
-          returnType,
-          language
-        ),
+        // value: starterGenerator(
+        //   functionName,
+        //   fnArguments,
+        //   returnType,
+        //   language
+        // ),
         language: language,
         theme: "vs-dark",
         readOnly: true,
@@ -68,9 +68,13 @@ const Stub = ({
   };
 
   const handleArgumentTypeChange = (index: number, newType: string) => {
-    setFnArguments((prev: IFunctionArg[]) => {
+    setFnArguments((prev: FunctionArg[]) => {
       const newArgs = [...prev];
-      newArgs[index].type = newType as "string" | "number" | "boolean" | "array";
+      newArgs[index].type = newType as
+        | "string"
+        | "number"
+        | "boolean"
+        | "array";
       return newArgs;
     });
   };
@@ -118,7 +122,7 @@ const Stub = ({
             <Button
               variant="flat"
               onClick={() =>
-                setFnArguments((prev: IFunctionArg[]) => [
+                setFnArguments((prev: FunctionArg[]) => [
                   ...prev,
                   { name: "", type: "string" },
                 ])
@@ -173,7 +177,7 @@ const Stub = ({
                   variant="light"
                   color="danger"
                   onClick={() =>
-                    setFnArguments((prev: IFunctionArg[]) =>
+                    setFnArguments((prev: FunctionArg[]) =>
                       prev.filter((_, i) => i !== index)
                     )
                   }
@@ -196,11 +200,15 @@ const Stub = ({
                 onChange={(e) => setLanguage(e.target.value as string)}
                 size="sm"
               >
-                {languages.map((language) => (
-                  <SelectItem key={language} value={language}>
-                    {language}
-                  </SelectItem>
-                ))}
+                {/* @ts-expect-error => language.available is not defined */}
+                {languages.map(
+                  (language) =>
+                    language.available && (
+                      <SelectItem key={language.abbr} value={language.abbr}>
+                        {language.name}
+                      </SelectItem>
+                    )
+                )}
               </Select>
 
               <div

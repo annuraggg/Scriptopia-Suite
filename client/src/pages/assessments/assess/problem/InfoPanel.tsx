@@ -1,13 +1,13 @@
 import { Card, Code, Tab, Tabs } from "@nextui-org/react";
 import { FlaskConical, SquareChevronRight } from "lucide-react";
-import { IRunResponseResult } from "@/@types/RunResponse";
+import { RunResponseResult } from "@shared-types/RunResponse";
 
 const InfoPanel = ({
   consoleOutput,
   cases,
 }: {
-  consoleOutput: string;
-  cases: IRunResponseResult[];
+  consoleOutput: string[];
+  cases: RunResponseResult[];
 }) => {
   return (
     <Card className="h-[50%] mt-2 p-2 overflow-auto">
@@ -25,18 +25,17 @@ const InfoPanel = ({
           {cases.length !== 0 ? (
             <Tabs className="overflow-auto">
               {cases?.map(
-                (c: IRunResponseResult, i: number) =>
+                (c: RunResponseResult, i: number) =>
                   c.isSample && (
                     <Tab
                       key={i}
                       title={
                         <div className="flex items-center gap-2">
                           <div
-                            className={`w-1 h-1 rounded-full ${
-                              c.passed
+                            className={`w-1 h-1 rounded-full ${c.passed
                                 ? "bg-green-500"
                                 : "bg-red-500"
-                            }`}
+                              }`}
                           ></div>
                           <p>Case {i + 1}</p>
                         </div>
@@ -80,14 +79,14 @@ const InfoPanel = ({
           className="h-full"
         >
           <div className="h-full bg-[#0000008b] p-3 rounded-lg">
-            {console ? (
-              <pre className="text-sm text-gray-500 h-full overflow-auto">
-                {consoleOutput || "No Output Yet."}
-              </pre>
+            {consoleOutput.length > 0 ? (
+              consoleOutput.map((output, index) => (
+                <pre key={index} className="text-sm text-gray-500 mb-2">
+                  {output}
+                </pre>
+              ))
             ) : (
-              <p className="text-sm text-gray-500 h-full overflow-auto">
-                No Output
-              </p>
+              <p className="text-sm text-gray-500 h-full overflow-auto">No Output</p>
             )}
           </div>
         </Tab>

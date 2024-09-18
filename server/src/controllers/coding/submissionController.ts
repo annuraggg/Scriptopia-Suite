@@ -2,39 +2,42 @@ import { Context } from "hono";
 import { sendError, sendSuccess } from "../../utils/sendResponse";
 import Problem from "../../models/Problem";
 import { runCode as runCompilerCode } from "../../aws/runCode";
-import { Console } from "console";
 import Submission from "../../models/Submission";
 import User from "../../models/User";
+import { SclObject } from "@shared-types/Scl";
+import { TestCase } from "@shared-types/Problem";
 
 const runCode = async (c: Context) => {
   try {
-    const cached = c.get("cached") || false;
+    const cached = false;
     if (cached) {
       return sendSuccess(c, 200, "Success", JSON.parse(c.get("cachedData")));
     }
 
     const body = await c.req.json();
     const prob = await Problem.findOne({ _id: body.problemId });
+
     if (!prob) {
       return sendError(c, 404, "Problem Not Found");
     }
 
-    const functionSchema = {
-      functionName: prob.functionName,
-      functionArgs: prob.functionArgs,
-      functionBody: body.code,
-      functionReturn: prob.functionReturnType,
-    };
+    if (!prob) {
+      return sendError(c, 404, "Problem Not Found");
+    }
 
     const result = await runCompilerCode(
       body.language,
-      functionSchema,
-      prob.testCases
+      prob.sclObject as SclObject[],
+      body.code,
+      prob.testCases as TestCase[]
     );
 
+    if (!result) {
+      return sendSuccess(c, 200, "Success", result);
+    }
+
     if (result?.status === "ERROR") {
-      console.log(result.error);
-      return sendError(c, 500, "Internal Server Error", result.error);
+      console.error(result.error);
     }
 
     return sendSuccess(c, 200, "Success", result);
@@ -51,17 +54,11 @@ const submitCode = async (c: Context) => {
       return sendError(c, 404, "Problem Not Found");
     }
 
-    const functionSchema = {
-      functionName: prob.functionName,
-      functionArgs: prob.functionArgs,
-      functionBody: body.code,
-      functionReturn: prob.functionReturnType,
-    };
-
     const result = await runCompilerCode(
       body.language,
-      functionSchema,
-      prob.testCases
+      prob.sclObject as SclObject[],
+      body.code,
+      prob.testCases as TestCase[]
     );
 
     const results = result.results.map((r: any) => ({

@@ -1,17 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
+import { Tooltip } from "@nextui-org/tooltip";
 import {
   Home,
   Settings,
   Users,
   Briefcase,
   PieChart,
-  Calendar,
+  // Calendar,
   BookOpenText,
   CreditCard,
   HelpCircle,
@@ -20,7 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { RootState } from "@/@types/reducer";
+import { RootState } from "@/types/Reducer";
 import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
 
 const Sidebar = () => {
@@ -41,16 +36,16 @@ const Sidebar = () => {
       label: "Jobs",
       link: "/jobs",
       visible:
-        org?.permissions?.includes("view_jobs") ||
-        org?.permissions?.includes("manage_jobs"),
+        org?.permissions?.includes("view_job") ||
+        org?.permissions?.includes("manage_job"),
     },
     {
       icon: Users,
       label: "Candidates",
       link: "/candidates",
       visible:
-        org?.permissions?.includes("view_jobs") ||
-        org?.permissions?.includes("manage_jobs"),
+        org?.permissions?.includes("view_job") ||
+        org?.permissions?.includes("manage_job"),
     },
     {
       icon: PieChart,
@@ -58,14 +53,14 @@ const Sidebar = () => {
       link: "/analytics",
       visible:
         org?.permissions?.includes("view_analytics") ||
-        org?.permissions?.includes("manage_organizations"),
+        org?.permissions?.includes("manage_organization"),
     },
-    {
-      icon: Calendar,
-      label: "Calendar",
-      link: "/calendar",
-      visible: true,
-    },
+    // {
+    //   icon: Calendar,
+    //   label: "Calendar",
+    //   link: "/calendar",
+    //   visible: true,
+    // },
   ];
 
   const bottomItems = [
@@ -79,7 +74,7 @@ const Sidebar = () => {
       icon: Settings,
       label: "Settings",
       link: "/settings/general",
-      visible: org?.permissions?.includes("manage_organizations"),
+      visible: org?.permissions?.includes("manage_organization"),
     },
     {
       icon: CreditCard,
@@ -113,111 +108,100 @@ const Sidebar = () => {
 
   return (
     <>
-      <TooltipProvider>
-        <aside
-          className={` sticky h-[100vh] min-w-16 px-5 top-0 left-0 z-10 hidden transition-width flex-col border-r bg-background sm:flex overflow-x-hidden ${
-            collapsed ? "w-16" : "w-64"
-          }`}
-        >
-          <nav className={`flex flex-col gap-4 sm:py-5 `}>
-            <div>
-              <img
-                src="/logo.png"
-                alt="logo"
-                className="cursor-pointer h-6"
-                onClick={() => {
-                  window.location.href = "/";
-                }}
-              />
-            </div>
-
-            {topItems.map((item, index) => (
-              <Tooltip key={index}>
-                <TooltipTrigger asChild>
-                  <table className={!item.visible ? "hidden" : ""}>
-                    <tbody
-                      className={`cursor-pointer h-8 ${
-                        active === item.label.toLowerCase()
-                          ? " text-white-500 rounded-xl"
-                          : "text-muted-foreground opacity-50 hover:text-white"
-                      } `}
-                      onClick={() => {
-                        navigate(item.link);
-                        setActive(item.label.toLowerCase());
-                      }}
-                    >
-                      <tr>
-                        <td className="pr-3">
-                          {item.icon && <item.icon className="h-7 w-5" />}
-                        </td>
-                        {collapsed ? null : (
-                          <td className="text-start w-full">{item.label}</td>
-                        )}
-                      </tr>
-                    </tbody>
-                  </table>
-                </TooltipTrigger>
-                <TooltipContent side="right">{item.label}</TooltipContent>
-              </Tooltip>
-            ))}
-          </nav>
-          <nav className={`mt-auto flex flex-col gap-4 sm:py-5`}>
-            <div className="-ml-1">
-              <UserButton />
-            </div>
-            {bottomItems.map((item, index) => (
-              <Tooltip key={index}>
-                <TooltipTrigger asChild>
-                  <table className={!item.visible ? "hidden" : ""}>
-                    <tbody
-                      className={`cursor-pointer h-7 ${
-                        active === item.label.toLowerCase()
-                          ? " text-white rounded-xl"
-                          : "text-muted-foreground opacity-50 hover:text-white"
-                      } `}
-                      onClick={() => {
-                        navigate(item.link);
-
-                        setActive(item.label.toLowerCase());
-                      }}
-                    >
-                      <tr>
-                        <td className="pr-3">
-                          {item.label === "Profile" ? (
-                            <div className="flex items-center justify-center user-button-small">
-                              <UserButton />
-                            </div>
-                          ) : (
-                            item.icon && <item.icon className="h-5 w-5" />
-                          )}
-                        </td>
-                        {collapsed ? null : (
-                          <td className="text-start w-full">{item.label}</td>
-                        )}
-                      </tr>
-                    </tbody>
-                  </table>
-                </TooltipTrigger>
-                <TooltipContent side="right">{item.label}</TooltipContent>
-              </Tooltip>
-            ))}
-          </nav>
-
-          <div className={` flex w-full mb-5 `}>
-            <Tooltip>
-              <TooltipTrigger>
-                <ChevronRight
-                  className={`h-5 w-5 text-muted-foreground transition-all  opacity-50 ${
-                    !collapsed ? "rotate-180" : ""
-                  }`}
-                  onClick={() => setCollapsed(!collapsed)}
-                />
-              </TooltipTrigger>
-              <TooltipContent side="right">Collapse sidebar</TooltipContent>
-            </Tooltip>
+      <aside
+        className={` sticky h-[100vh] min-w-16 px-5 top-0 left-0 z-10 hidden transition-width flex-col border-r bg-background sm:flex overflow-x-hidden ${
+          collapsed ? "w-16" : "w-64"
+        }`}
+      >
+        <nav className={`flex flex-col gap-4 sm:py-5 `}>
+          <div>
+            <img
+              src="/logo.png"
+              alt="logo"
+              className="cursor-pointer h-6"
+              onClick={() => {
+                window.location.href = "/";
+              }}
+            />
           </div>
-        </aside>
-      </TooltipProvider>
+
+          {topItems.map((item, index) => (
+            <Tooltip key={index} content={item.label} placement="right">
+              <table className={!item.visible ? "hidden" : ""}>
+                <tbody
+                  className={`cursor-pointer h-8 ${
+                    active === item.label.toLowerCase()
+                      ? " text-white-500 rounded-xl"
+                      : "text-muted-foreground opacity-50 hover:text-white"
+                  } `}
+                  onClick={() => {
+                    navigate(item.link);
+                    setActive(item.label.toLowerCase());
+                  }}
+                >
+                  <tr>
+                    <td className="pr-3">
+                      {item.icon && <item.icon className="h-7 w-5" />}
+                    </td>
+                    {collapsed ? null : (
+                      <td className="text-start w-full">{item.label}</td>
+                    )}
+                  </tr>
+                </tbody>
+              </table>
+            </Tooltip>
+          ))}
+        </nav>
+        <nav className={`mt-auto flex flex-col gap-4 sm:py-5`}>
+          <div className="-ml-1">
+            <UserButton />
+          </div>
+          {bottomItems.map((item, index) => (
+            <Tooltip key={index} content={item.label} placement="right">
+              <table className={!item.visible ? "hidden" : ""}>
+                <tbody
+                  className={`cursor-pointer h-7 ${
+                    active === item.label.toLowerCase()
+                      ? " text-white rounded-xl"
+                      : "text-muted-foreground opacity-50 hover:text-white"
+                  } `}
+                  onClick={() => {
+                    navigate(item.link);
+
+                    setActive(item.label.toLowerCase());
+                  }}
+                >
+                  <tr>
+                    <td className="pr-3">
+                      {item.label === "Profile" ? (
+                        <div className="flex items-center justify-center user-button-small">
+                          <UserButton />
+                        </div>
+                      ) : (
+                        item.icon && <item.icon className="h-5 w-5" />
+                      )}
+                    </td>
+                    {collapsed ? null : (
+                      <td className="text-start w-full">{item.label}</td>
+                    )}
+                  </tr>
+                </tbody>
+              </table>
+            </Tooltip>
+          ))}
+        </nav>
+
+        <div className={` flex w-full mb-5 `}>
+          <Tooltip content="Collapse sidebar" placement="right">
+            <ChevronRight
+              className={`h-5 w-5 text-muted-foreground transition-all  opacity-50 ${
+                !collapsed ? "rotate-180" : ""
+              }`}
+              onClick={() => setCollapsed(!collapsed)}
+            />
+          </Tooltip>
+        </div>
+      </aside>
     </>
   );
 };

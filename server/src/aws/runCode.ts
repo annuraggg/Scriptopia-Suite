@@ -1,16 +1,13 @@
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
-import { IFunctionArg, ITestCase } from "../../@types/Problem";
+import { TestCase } from "@shared-types/Problem";
+import { SclObject } from "@shared-types/Scl";
 const REGION = "ap-south-1";
 
 const runCode = async (
   language: string,
-  functionSchema: {
-    functionName: string;
-    functionArgs: IFunctionArg[];
-    functionBody: string;
-    functionReturn: string;
-  },
-  testCases: ITestCase[]
+  sclObject: SclObject[],
+  code: string,
+  testCases: TestCase[]
 ) => {
   const lambdaClient = new LambdaClient({
     region: REGION,
@@ -20,16 +17,20 @@ const runCode = async (
     },
   });
 
-  const data = { functionSchema, testCases };
+  const data = {
+    testCases,
+    sclObject,
+    code,
+  };
+
   const params = {
-    FunctionName: `${language}-compiler`,
+    FunctionName: `${language}-driver`,
     Payload: JSON.stringify(data),
   };
 
   try {
     const data = await lambdaClient.send(new InvokeCommand(params));
     if (data.FunctionError) {
-      console.log(data.FunctionError);
       return { status: "ERROR", error: data.FunctionError };
     }
     if (data.Payload) {

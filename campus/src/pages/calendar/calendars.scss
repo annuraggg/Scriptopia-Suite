@@ -1,0 +1,23 @@
+$out-of-range-color: lighten(#535353, 40%);
+$out-of-range-bg-color: darken(#000000, 70%);
+$calendar-border: #39393e;
+$cell-border: #39393e;
+$border-color: #39393e;
+$time-selection-color: white;
+$time-selection-bg-color: rgba(0, 0, 0, 0.5);
+$date-selection-bg-color: rgba(0, 0, 0, 0.1);
+$event-bg: #0060ae;
+$event-border: darken(#0060ae, 10%);
+$event-outline: #0060ae;
+$event-color: #ffffff;
+$event-border-radius: 10px;
+$event-padding: 2px 5px;
+$event-zindex: 4;
+$btn-color: #ffffffc9;
+$btn-bg: #19181a;
+$btn-border: #19181a;
+$current-time-color: #74ad31;
+$rbc-css-prefix: rbc-i;
+$today-highlight-bg: #312f32;
+
+@import "react-big-calendar/lib/sass/styles";

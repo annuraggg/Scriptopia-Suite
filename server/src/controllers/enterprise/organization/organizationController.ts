@@ -2,31 +2,18 @@ import { Context } from "hono";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import Organization from "../../../models/Organization";
 import User from "../../../models/User";
-import { Types } from "mongoose";
 import jwt from "jsonwebtoken";
 import loops from "../../../config/loops";
 import clerkClient from "../../../config/clerk";
 import logger from "../../../utils/logger";
-import Roles from "../../../models/Roles";
-import checkPermission from "../../../middlewares/checkPermission";
-import PermissionType from "../../../@types/Permission";
-import { createCustomer } from "@lemonsqueezy/lemonsqueezy.js";
-import Candidate from "../../../@types/Candidate";
-import candidateModel from "../../../models/Candidate";
 import r2Client from "../../../config/s3";
 import { Upload } from "@aws-sdk/lib-storage";
-import multer from "multer";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import ls from "../../../config/lemonSqueezy";
-import { AuditLog, Member, Role } from "../../../@types/Organization";
-import Permission from "../../../models/Permission";
-
-// const roleIdMap = {
-//   administrator: "66a6165bdc907b2eb692501b",
-//   "read-only": "66a6165bdc907b2eb692501c",
-//   finance: "66a6165bdc907b2eb692501d",
-//   "hiring-manager": "66a6165bdc907b2eb692501e",
-// };
+import { AuditLog, Member } from "@shared-types/Organization";
+import { Role } from "@shared-types/Organization";
+import defaultOrganizationRoles from "@/data/defaultOrganizationRoles";
+import organizationPermissions from "@/data/organizationPermissions";
+import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
 
 const createOrganization = async (c: Context) => {
   try {
@@ -77,11 +64,14 @@ const createOrganization = async (c: Context) => {
       }
 
       const user = await User.findOne({ email });
-      const role = await Roles.findOne({ name: member.role.toLowerCase() });
+      const role = defaultOrganizationRoles.find(
+        (r) => r.slug === member.role.toLowerCase()
+      );
+
       const mem = {
         user: user?.clerkId || "",
-        email: member.email, // @ts-ignore
-        role: role?._id,
+        email: member.email,
+        role: role?.slug,
         addedOn: new Date(),
         status: "pending",
       };
@@ -95,32 +85,18 @@ const createOrganization = async (c: Context) => {
       return sendError(c, 404, "User not found");
     }
 
-    const adminRole = await Roles.findOne({
-      name: "adminstrator",
-      default: true,
-    }).lean();
+    const adminRole = defaultOrganizationRoles.find(
+      (role) => role.slug === "administrator"
+    );
+
     membersArr.push({
       user: clerkId,
       email: creator.emailAddresses[0].emailAddress,
-      role: adminRole?._id,
+      role: adminRole?.slug,
       addedOn: new Date(),
       status: "active",
     });
 
-    const adminPerm = await Roles.findOne({ _id: adminRole?._id })
-      .populate("permissions")
-      .exec();
-
-    const {
-      data: lemonSqueezyCustomer,
-      error: lsError,
-      statusCode: lsStatus,
-    } = await createCustomer(process.env.LEMON_SQUEEZY_STORE_ID!, {
-      name,
-      email,
-    });
-
-    // Create organization
     const auditLog: AuditLog = {
       user: fName + " " + lName,
       userId: clerkId,
@@ -138,26 +114,28 @@ const createOrganization = async (c: Context) => {
         status: "active",
         startedOn: new Date(),
         endsOn: new Date(new Date().setDate(new Date().getDate() + 15)),
-        lemonSqueezyId: lemonSqueezyCustomer?.data?.id,
+        lemonSqueezyId: " ",
       },
+      roles: defaultOrganizationRoles,
       auditLogs: [auditLog],
     });
 
     clerkClient.users.updateUser(clerkId, {
       publicMetadata: {
         orgId: org._id,
-        roleName: "admin",
-        roleId: adminRole?._id, // @ts-ignore
-        permissions: adminPerm?.permissions.map((p: PermissionType) => p.name),
+        orgRole: "administrator",
+        orgPermissions: adminRole?.permissions,
       },
     });
 
     for (const member of members) {
-      const role = await Roles.findOne({ name: member.role.toLowerCase() });
+      const role = defaultOrganizationRoles.find(
+        (r) => r.slug === member.role.toLowerCase()
+      );
+
       const reqObj = {
         email: member.email,
-        role: member.role, // @ts-ignore
-        roleId: role?._id,
+        role: role?.slug,
         organization: org._id,
         inviter: fName || "",
         inviterId: clerkId,
@@ -235,7 +213,6 @@ const joinOrganization = async (c: Context) => {
       organization: string;
     } as {
       role: string;
-      roleId: string;
       organization: string;
       inviterId: string;
     };
@@ -259,23 +236,15 @@ const joinOrganization = async (c: Context) => {
     }
 
     if (status === "accept") {
-      const perms = await Roles.findOne({ _id: decoded.roleId })
-        .populate("permissions")
-        .exec();
-
-      if (!perms) {
-        return sendError(c, 404, "Role not found");
-      }
-
-      // @ts-ignore
-      const onlyName = perms?.permissions.map((p: PermissionType) => p.name);
+      const permissions = defaultOrganizationRoles.find(
+        (role) => role.slug === decoded.role
+      )?.permissions;
 
       clerkClient.users.updateUser(u, {
         publicMetadata: {
           orgId: org._id,
-          roleName: decoded.role.toLowerCase(),
-          roleId: decoded.roleId,
-          permissions: onlyName,
+          orgRole: decoded.role,
+          orgPermissions: permissions,
         },
       });
 
@@ -291,7 +260,8 @@ const joinOrganization = async (c: Context) => {
 
       await Organization.updateOne(
         { _id: decoded.organization, "members.email": email },
-        { $set: { "members.$.status": "active", "members.$.user": u } }
+        { $set: { "members.$.status": "active", "members.$.user": u } },
+        { $push: { auditLogs: auditLog } }
       );
     } else {
       await Organization.updateOne(
@@ -311,30 +281,30 @@ const joinOrganization = async (c: Context) => {
 
 const getSettings = async (c: Context) => {
   try {
-    const perms = await checkPermission.all(c, ["view_organization"]);
+    const perms = await checkOrganizationPermission.all(c, [
+      "view_organization",
+    ]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
 
     const org = await Organization.findById(perms.data?.orgId)
-      .populate("roles")
       .populate("members.user")
       .populate("auditLogs.user")
-      .populate("members.role")
-      .populate("roles.permissions")
       .lean();
 
     if (!org) {
       return sendError(c, 404, "Organization not found");
     }
 
-    const defaultRoles = await Roles.find({ default: true })
-      .populate("permissions")
-      .lean();
+    for (const member of org.members) {
+      const role = org.roles.find((r: any) => (r as Role).slug === member.role);
 
-    defaultRoles.forEach((role) => org.roles.push(role));
-
-    const allPermissions = await Permission.find().lean();
+      if (role) {
+        // @ts-expect-error - Converting string to Role
+        member.role = role;
+      }
+    }
 
     const logoUrl = org.logo;
     if (logoUrl) {
@@ -351,7 +321,7 @@ const getSettings = async (c: Context) => {
 
     return sendSuccess(c, 200, "Success", {
       ...org,
-      permissions: allPermissions,
+      permissions: organizationPermissions,
     });
   } catch (error) {
     logger.error(error as string);
@@ -361,7 +331,9 @@ const getSettings = async (c: Context) => {
 
 const updateGeneralSettings = async (c: Context) => {
   try {
-    const perms = await checkPermission.all(c, ["manage_organizations"]);
+    const perms = await checkOrganizationPermission.all(c, [
+      "manage_organization",
+    ]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
@@ -420,7 +392,9 @@ const updateGeneralSettings = async (c: Context) => {
 
 const updateLogo = async (c: Context) => {
   try {
-    const perms = await checkPermission.all(c, ["manage_organizations"]);
+    const perms = await checkOrganizationPermission.all(c, [
+      "manage_organization",
+    ]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
@@ -479,7 +453,9 @@ const updateLogo = async (c: Context) => {
 
 const updateMembers = async (c: Context) => {
   try {
-    const perms = await checkPermission.all(c, ["manage_organizations"]);
+    const perms = await checkOrganizationPermission.all(c, [
+      "manage_organization",
+    ]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
@@ -577,7 +553,9 @@ const updateMembers = async (c: Context) => {
 
 const updateRoles = async (c: Context) => {
   try {
-    const perms = await checkPermission.all(c, ["manage_organizations"]);
+    const perms = await checkOrganizationPermission.all(c, [
+      "manage_organization",
+    ]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
@@ -588,10 +566,10 @@ const updateRoles = async (c: Context) => {
     for (const role of roles) {
       const roleObj: Role = {
         name: role.name,
+        slug: role.slug,
         description: role.description,
-        permissions: role.permissions.map((p: PermissionType) => p._id),
+        permissions: role.permissions,
         default: role.default,
-        organization: perms.data?.orgId!,
       };
 
       finalRoles.push(roleObj);
@@ -614,6 +592,8 @@ const updateRoles = async (c: Context) => {
       action: "Organization Roles Updated",
       type: "info",
     };
+
+    finalRoles.push(...defaultOrganizationRoles);
 
     const updatedOrg = await Organization.findByIdAndUpdate(orgId, {
       $set: { roles: finalRoles },
@@ -638,7 +618,7 @@ const updateRoles = async (c: Context) => {
 
 const getCandidates = async (c: Context) => {
   try {
-    const perms = await checkPermission.all(c, ["view_jobs"]);
+    const perms = await checkOrganizationPermission.all(c, ["view_job"]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
@@ -667,7 +647,9 @@ const getCandidates = async (c: Context) => {
 
 const getDepartments = async (c: Context) => {
   try {
-    const perms = await checkPermission.all(c, ["view_organization"]);
+    const perms = await checkOrganizationPermission.all(c, [
+      "view_organization",
+    ]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
@@ -693,13 +675,15 @@ const getDepartments = async (c: Context) => {
 
 const updateDepartments = async (c: Context) => {
   try {
-    const perms = await checkPermission.all(c, ["manage_organizations"]);
+    const perms = await checkOrganizationPermission.all(c, [
+      "manage_organization",
+    ]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
 
     const { departments } = await c.req.json();
-    console.log(departments);
+
     const orgId = perms.data?.orgId;
 
     const user = await clerkClient.users.getUser(c.get("auth").userId);

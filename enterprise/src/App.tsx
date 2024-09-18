@@ -39,7 +39,18 @@ const Security = lazy(() => import("./pages/settings/security/Security"));
 const AuditLogs = lazy(
   () => import("./pages/settings/security/audit-logs/Audit-Logs")
 );
-const OrgData = lazy(() => import("./pages/settings/security/data/Data"))
+const OrgData = lazy(() => import("./pages/settings/security/data/Data"));
+
+import Selector from "./pages/jobs/job/assessments/new/Selector";
+import Assignments from "./pages/jobs/job/assignment/Assignments";
+import NewAssignment from "./pages/jobs/job/assignment/New";
+import Apply from "./pages/candidate/apply/Apply";
+import CandidatePosting from "./pages/candidate/postings/Posting";
+import CandidateLayout from "./pages/candidate/Layout";
+import CandiateAssignment from "./pages/candidate/assignment/Assignment";
+import ViewAssignment from "./pages/jobs/job/assignment/ViewAssignment";
+import ViewAssessment from "./pages/jobs/job/assessments/ViewAssessment/ViewAssessment";
+import ViewUserAssessment from "./pages/jobs/job/assessments/ViewAssessment/ViewUserAssessment";
 
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
 const Jobs = lazy(() => import("./pages/jobs/Jobs"));
@@ -70,6 +81,21 @@ const Loader = () => (
 );
 
 function App() {
+  const candidatesRoute = [
+    {
+      path: "postings/:id",
+      element: <CandidatePosting />,
+    },
+    {
+      path: "/postings/:id/apply",
+      element: <Apply />,
+    },
+    {
+      path: "/postings/:id/assignments/:assignmentId",
+      element: <CandiateAssignment />,
+    },
+  ];
+
   const settingsRoute = [
     {
       path: "general",
@@ -123,6 +149,30 @@ function App() {
     {
       path: "assessments",
       element: <Suspense fallback={<Loader />} children={<Assessments />} />,
+    },
+    {
+      path: "assessments/:id/view",
+      element: <Suspense fallback={<Loader />} children={<ViewAssessment />} />,
+    },
+    {
+      path: "assessments/:id/view/:candId",
+      element: <Suspense fallback={<Loader />} children={<ViewUserAssessment />} />,
+    },
+    {
+      path: "assessments/new/:type",
+      element: <Suspense fallback={<Loader />} children={<Selector />} />,
+    },
+    {
+      path: "assignments/",
+      element: <Suspense fallback={<Loader />} children={<Assignments />} />,
+    },
+    {
+      path: "assignments/:id",
+      element: <Suspense fallback={<Loader />} children={<ViewAssignment />} />,
+    },
+    {
+      path: "assignments/new/",
+      element: <Suspense fallback={<Loader />} children={<NewAssignment />} />,
     },
     {
       path: "interviews",
@@ -217,6 +267,11 @@ function App() {
       element: <SettingsLayout />,
       children: settingsRoute,
     },
+    {
+      path: "/",
+      element: <CandidateLayout />,
+      children: candidatesRoute,
+    },
   ]);
 
   const { user, isSignedIn } = useUser();
@@ -225,8 +280,8 @@ function App() {
     if (isSignedIn) {
       const data = {
         _id: user?.publicMetadata?.orgId,
-        role: user?.publicMetadata?.roleName,
-        permissions: user?.publicMetadata?.permissions,
+        role: user?.publicMetadata?.orgRole,
+        permissions: user?.publicMetadata?.orgPermissions,
       };
       dispatch(setOrganization(data));
     }

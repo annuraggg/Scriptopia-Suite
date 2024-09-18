@@ -49,9 +49,8 @@ const Monaco = ({
     });
 
     editorRef.current = editor;
-    editor.onDidPaste((e) => {
+    editor.onDidPaste(() => {
       localStorage.getItem("copiedText");
-      console.log(e.clipboardEvent?.clipboardData?.getData("text"));
     });
 
     const model = editor.getModel();
@@ -75,60 +74,56 @@ const Monaco = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editorUpdateFlag]);
 
-  useEffect(() => {
+  // useEffect(() => {
+  //   // ! TODO: COMPLETE THIS
+  //   const handleCopy = () => {
+  //     if (editorRef.current) {
+  //       const editor = editorRef.current;
+  //       const selection = editor
+  //         .getModel() 
+  //         ?.getValueInRange(editor.getSelection());
+  //       if (selection) {
+  //         localStorage.setItem("copiedText", selection);
+  //       }
+  //     }
+  //   };
 
-    // ! TODO: COMPLETE THIS
-    const handleCopy = () => {
-      if (editorRef.current) {
-        const editor = editorRef.current;
-        const selection = editor
-          .getModel() // @ts-expect-error - Monaco types are not up-to-date
-          ?.getValueInRange(editor.getSelection());
-        if (selection) {
-          localStorage.setItem("copiedText", selection);
-        }
-      }
-    };
+  //   const handlePaste = (event: ClipboardEvent) => {
+  //     if (editorRef.current) {
+  //       const editor = editorRef.current;
+  //       const clipboardData =
+  //         event.clipboardData || (window as any).clipboardData;
+  //       const pastedText = clipboardData.getData("text");
 
-    const handlePaste = (event: ClipboardEvent) => {
-      if (editorRef.current) {
-        const editor = editorRef.current;
-        const clipboardData =
-          event.clipboardData || (window as any).clipboardData;
-        const pastedText = clipboardData.getData("text");
+  //       // Optionally, insert the pasted text into the editor at the current cursor position
+  //       const currentPosition = editor.getPosition();
+  //       if (currentPosition) {
+  //         editor.executeEdits("paste", [
+  //           {
+  //             range: new monaco.Range(
+  //               currentPosition.lineNumber,
+  //               currentPosition.column,
+  //               currentPosition.lineNumber,
+  //               currentPosition.column
+  //             ),
+  //             text: pastedText,
+  //             forceMoveMarkers: true,
+  //           },
+  //         ]);
+  //       }
+  //     }
 
-        // Log the pasted text to console or do something else with it
-        console.log("Pasted text:", pastedText);
+  //     event.preventDefault(); // Prevent default paste behavior
+  //   };
 
-        // Optionally, insert the pasted text into the editor at the current cursor position
-        const currentPosition = editor.getPosition();
-        if (currentPosition) {
-          editor.executeEdits("paste", [
-            {
-              range: new monaco.Range(
-                currentPosition.lineNumber,
-                currentPosition.column,
-                currentPosition.lineNumber,
-                currentPosition.column
-              ),
-              text: pastedText,
-              forceMoveMarkers: true,
-            },
-          ]);
-        }
-      }
+  //   document.addEventListener("copy", handleCopy);
+  //   document.addEventListener("paste", handlePaste);
 
-      event.preventDefault(); // Prevent default paste behavior
-    };
-
-    document.addEventListener("copy", handleCopy);
-    document.addEventListener("paste", handlePaste);
-
-    return () => {
-      document.removeEventListener("copy", handleCopy);
-      document.removeEventListener("paste", handlePaste);
-    };
-  }, []);
+  //   return () => {
+  //     document.removeEventListener("copy", handleCopy);
+  //     document.removeEventListener("paste", handlePaste);
+  //   };
+  // }, []);
 
   return (
     <div

@@ -21,18 +21,18 @@ import {
 } from "@nextui-org/react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { IFunctionArg, ITestCase } from "@/@types/Problem";
+import { TestCase } from "@shared-types/Problem";
 
 const TestCases = ({
   testCases,
   setTestCases,
   fnArguments,
 }: {
-  testCases: ITestCase[];
+  testCases: TestCase[];
   setTestCases: (
-    testCases: ITestCase[] | ((prev: ITestCase[]) => ITestCase[])
+    testCases: TestCase[] | ((prev: TestCase[]) => TestCase[])
   ) => void;
-  fnArguments: IFunctionArg[];
+  fnArguments: { name: string; type: string }[];
 }) => {
   const {
     isOpen: isAddCaseOpen,
@@ -65,7 +65,7 @@ const TestCases = ({
       return toast.error("Please fill all the input fields");
     if (!output) return toast.error("Please fill the output field");
     if (difficulty === "") return toast.error("Please select a difficulty");
-    const newTestCase: ITestCase = {
+    const newTestCase: TestCase = {
       input: input,
       output: output,
       difficulty: difficulty as "easy" | "medium" | "hard",

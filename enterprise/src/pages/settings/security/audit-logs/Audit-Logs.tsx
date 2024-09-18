@@ -1,17 +1,18 @@
 import Sidebar from "../Sidebar";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { CircleAlert, CircleCheck, CircleX, Info } from "lucide-react";
-import { Input } from "@nextui-org/react";
+import { Input, Spinner } from "@nextui-org/react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import { AuditLog } from "@/@types/Organization";
+import { AuditLog } from "@shared-types/Organization";
 import { Select, SelectSection, SelectItem } from "@nextui-org/react";
 
 const AuditLogs = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<AuditLog[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -25,7 +26,8 @@ const AuditLogs = () => {
       .catch((err) => {
         console.error(err);
         toast.error("Error Fetching Settings");
-      });
+      })
+      .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -55,44 +57,53 @@ const AuditLogs = () => {
       </div>
       <div className="flex p-5 gap-5 items-center h-[94vh]">
         <Sidebar />
-        <div className="h-[88vh] w-full overflow-y-auto pr-5">
-          <div className="flex gap-3">
-            <Input placeholder="Search Logs" onChange={filterInput} />
-            <Select
-              placeholder="Filter By Type"
-              onSelectionChange={(key) => {
-                if (key.currentKey === "All") {
-                  setFilteredLogs(auditLogs);
-                } else {
-                  setFilteredLogs(auditLogs.filter((log) => log.type === key.currentKey?.toLowerCase()));
-                }
-              }}
-            >
-              <SelectSection>
-                <SelectItem value="All" key={"All"}>
-                  All
-                </SelectItem>
-                <SelectItem value="Info" key={"Info"}>
-                  Info
-                </SelectItem>
-                <SelectItem value="Warning" key={"Warning"}>
-                  Warning
-                </SelectItem>
-                <SelectItem value="Error" key={"Error"}>
-                  Error
-                </SelectItem>
-                <SelectItem value="Success" key={"Success"}>
-                  Success
-                </SelectItem>
-              </SelectSection>
-            </Select>
+        {loading ? (
+          <div className="flex justify-center items-center h-screen w-full">
+            <Spinner />
           </div>
-          {filteredLogs?.length === 0 && (
-            <p className="text-center mt-5">No Logs Found</p>
-          )}
-          {filteredLogs?.map((log) => (
-            <div
-              className={`flex border py-3 gap-3 px-5 mt-3 rounded-xl w-full relative items-center bg-opacity-10
+        ) : (
+          <div className="h-[88vh] w-full overflow-y-auto pr-5">
+            <div className="flex gap-3">
+              <Input placeholder="Search Logs" onChange={filterInput} />
+              <Select
+                placeholder="Filter By Type"
+                onSelectionChange={(key) => {
+                  if (key.currentKey === "All") {
+                    setFilteredLogs(auditLogs);
+                  } else {
+                    setFilteredLogs(
+                      auditLogs.filter(
+                        (log) => log.type === key.currentKey?.toLowerCase()
+                      )
+                    );
+                  }
+                }}
+              >
+                <SelectSection>
+                  <SelectItem value="All" key={"All"}>
+                    All
+                  </SelectItem>
+                  <SelectItem value="Info" key={"Info"}>
+                    Info
+                  </SelectItem>
+                  <SelectItem value="Warning" key={"Warning"}>
+                    Warning
+                  </SelectItem>
+                  <SelectItem value="Error" key={"Error"}>
+                    Error
+                  </SelectItem>
+                  <SelectItem value="Success" key={"Success"}>
+                    Success
+                  </SelectItem>
+                </SelectSection>
+              </Select>
+            </div>
+            {filteredLogs?.length === 0 && (
+              <p className="text-center mt-5">No Logs Found</p>
+            )}
+            {filteredLogs?.reverse().map((log) => (
+              <div
+                className={`flex border py-3 gap-3 px-5 mt-3 rounded-xl w-full relative items-center bg-opacity-10
                 ${
                   log.type === "info"
                     ? "bg-blue-500"
@@ -105,26 +116,27 @@ const AuditLogs = () => {
                     : ""
                 }
                 `}
-            >
-              {log.type === "info" && <Info className="text-blue-500" />}
-              {log.type === "warning" && (
-                <CircleAlert className="text-yellow-500" />
-              )}
-              {log.type === "error" && <CircleX className="text-red-500" />}
-              {log.type === "success" && (
-                <CircleCheck className="text-green-500" />
-              )}
+              >
+                {log.type === "info" && <Info className="text-blue-500" />}
+                {log.type === "warning" && (
+                  <CircleAlert className="text-yellow-500" />
+                )}
+                {log.type === "error" && <CircleX className="text-red-500" />}
+                {log.type === "success" && (
+                  <CircleCheck className="text-green-500" />
+                )}
 
-              <div>
-                <p>{log.action}</p>
-                <p className="text-xs opacity-50">User: {log.user}</p>
+                <div>
+                  <p>{log.action}</p>
+                  <p className="text-xs opacity-50">User: {log.user}</p>
+                </div>
+                <p className="absolute right-5 text-xs opacity-50">
+                  {log?.date ? new Date(log.date).toLocaleString() : ""}
+                </p>
               </div>
-              <p className="absolute right-5 text-xs opacity-50">
-                {new Date(log.date).toLocaleString()}
-              </p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

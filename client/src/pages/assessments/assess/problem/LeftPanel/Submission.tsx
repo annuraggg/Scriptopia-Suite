@@ -7,13 +7,13 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/react";
-import { ISubmission } from "@/@types/Submission";
+import { Submission as SubmissionType } from "@shared-types/Submission";
 
 const Submission = ({
   submissions,
   loading,
 }: {
-  submissions: ISubmission[];
+  submissions: SubmissionType[];
   loading: boolean;
 }) => {
   if (loading) {
@@ -55,7 +55,9 @@ const Submission = ({
                   </TableCell>
                   <TableCell>{submission?.language}</TableCell>
                   <TableCell>
-                    {new Date(submission?.createdAt).toLocaleString()}
+                    {submission?.createdAt
+                      ? new Date(submission?.createdAt).toLocaleString()
+                      : ""}
                   </TableCell>
                   <TableCell>
                     {(submission?.avgTime * 10).toFixed(2) + " ms"}

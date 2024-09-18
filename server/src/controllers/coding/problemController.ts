@@ -15,17 +15,17 @@ const getProblems = async (c: Context) => {
       .limit(LIMIT_PER_PAGE)
       .lean();
 
-      const acceptanceRate = problems.map(problem => {
-        const problemsWithAcceptanceRate = problem.totalSubmissions > 0
+    const acceptanceRate = problems.map((problem) => {
+      const problemsWithAcceptanceRate =
+        problem.totalSubmissions > 0
           ? (problem.successfulSubmissions / problem.totalSubmissions) * 100
           : 0;
-        return { ...problem, problemsWithAcceptanceRate };
-      });
-    
+      return { ...problem, problemsWithAcceptanceRate };
+    });
 
     return sendSuccess(c, 200, "Success", acceptanceRate);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };
@@ -40,17 +40,18 @@ const getUserGeneratedProblems = async (c: Context) => {
       .skip((page - 1) * LIMIT_PER_PAGE)
       .limit(LIMIT_PER_PAGE)
       .lean();
-    
-      const problemsWithAcceptanceRate = problems.map(problem => {
-        const acceptanceRate = problem.totalSubmissions > 0
+
+    const problemsWithAcceptanceRate = problems.map((problem) => {
+      const acceptanceRate =
+        problem.totalSubmissions > 0
           ? (problem.successfulSubmissions / problem.totalSubmissions) * 100
           : 0;
-        return { ...problem, acceptanceRate };
-      });
+      return { ...problem, acceptanceRate };
+    });
 
     return sendSuccess(c, 200, "Success", problemsWithAcceptanceRate);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };
@@ -59,7 +60,7 @@ const getMyProblems = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
     // @ts-ignore
-    const auth = devAuth ? global.auth : getAuth(c);
+    const auth = getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
@@ -72,7 +73,7 @@ const getMyProblems = async (c: Context) => {
 
     return sendSuccess(c, 200, "Success", problems);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };
@@ -92,11 +93,11 @@ const getProblem = async (c: Context) => {
     const submissions = await Submission.find({
       problem: id,
       user: userId,
-    }).lean();  
+    }).lean();
 
     return sendSuccess(c, 200, "Success", { problem, submissions });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };
@@ -104,14 +105,13 @@ const getProblem = async (c: Context) => {
 const createProblem = async (c: Context) => {
   try {
     // @ts-ignore
-    const auth = devAuth ? global.auth : getAuth(c);
+    const auth = getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
     }
 
     const body = await c.req.json();
-    console.log(body);
 
     const problem = new Problem({
       ...body,
@@ -122,7 +122,7 @@ const createProblem = async (c: Context) => {
 
     return sendSuccess(c, 200, "Success", problem);
   } catch (error: any) {
-    console.log(error);
+    console.error(error);
     if (error.name === "ValidationError") {
       return sendError(c, 400, "Invalid Data", error.message);
     }

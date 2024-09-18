@@ -11,13 +11,41 @@ const testCaseSchema = new mongoose.Schema({
   isSample: { type: Boolean, required: true },
 });
 
-const functionArgSchema = new mongoose.Schema({
+const arraySclObject = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: [
+      "boolean",
+      "integer",
+      "character",
+      "long",
+      "float",
+      "double",
+      "string",
+    ],
+    required: true,
+  },
+  size: { type: Number, required: true },
+});
+
+const sclObject = new mongoose.Schema({
   name: { type: String, required: true },
   type: {
     type: String,
-    enum: ["string", "number", "boolean", "array"],
+    enum: [
+      "boolean",
+      "integer",
+      "character",
+      "long",
+      "float",
+      "double",
+      "string",
+      "array",
+      "return",
+    ],
     required: true,
   },
+  arrayProps: { type: arraySclObject, required: false },
 });
 
 const ProblemSchema = new mongoose.Schema({
@@ -31,13 +59,7 @@ const ProblemSchema = new mongoose.Schema({
   },
   tags: { type: [String], required: true },
   votes: { type: Number, default: 0 },
-  functionName: { type: String, required: true },
-  functionReturnType: {
-    type: String,
-    enum: ["string", "number", "boolean", "array"],
-    required: true,
-  },
-  functionArgs: { type: [functionArgSchema], required: true },
+  sclObject: { type: [sclObject], required: true },
   testCases: { type: [testCaseSchema], required: true },
   isPrivate: { type: Boolean, default: false },
   allowInAssessments: { type: Boolean, default: false },

@@ -18,7 +18,7 @@ import {
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { Department } from "@/@types/Organization";
+import { Department } from "@shared-types/Organization";
 import UnsavedToast from "@/components/UnsavedToast";
 import { setToastChanges } from "@/reducers/toastReducer";
 import { useDispatch } from "react-redux";

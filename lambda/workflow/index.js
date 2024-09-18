@@ -15,7 +15,6 @@ export const handler = async (event) => {
   // Connect to MongoDB
   try {
     await mongoose.connect(MONGO_STRING);
-    console.log("Connected to MongoDB");
   } catch (error) {
     console.error("Error connecting to MongoDB: ", error);
     return;
@@ -34,15 +33,11 @@ export const handler = async (event) => {
     if (!response.ok) {
       throw new Error(`Fetch failed with status ${response.status}`);
     }
-
-    console.log("Event sent");
   } catch (error) {
     console.error("Error in fetch event");
     await failedHook.create({ event, error: error.message });
-    console.log("Event saved to MongoDB");
   } finally {
     // Disconnect from MongoDB
     await mongoose.disconnect();
-    console.log("Disconnected from MongoDB");
   }
 };

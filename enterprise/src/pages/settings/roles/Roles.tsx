@@ -4,25 +4,21 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import Role from "@/@types/Roles";
+import { Role } from "@shared-types/Organization";
 import { Card, CardBody, Checkbox, Input, Spinner } from "@nextui-org/react";
-import Permission from "@/@types/Permission";
 import UnsavedToast from "@/components/UnsavedToast";
 import { setToastChanges } from "@/reducers/toastReducer";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/@types/reducer";
+import { useDispatch } from "react-redux";
 
 const Roles = () => {
   const [builtInRoles, setBuiltInRoles] = useState<Role[]>([]);
   const [customRoles, setCustomRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedRole, setSelectedRole] = useState<Role>({} as Role);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [permissions, setPermissions] = useState<string[]>([]);
   const [changes, setChanges] = useState<boolean>(false);
 
   const [reset, setReset] = useState(false);
-
-  const org = useSelector((state: RootState) => state.organization._id)!;
 
   const dispatch = useDispatch();
 
@@ -59,7 +55,7 @@ const Roles = () => {
         toast.error("Error Fetching Settings");
       })
       .finally(() => setLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reset]);
 
   const save = async () => {
@@ -80,10 +76,10 @@ const Roles = () => {
   const newRole = () => {
     const newRole: Role = {
       name: "New Role",
+      slug: "new_role",
       description: "",
       permissions: [],
       default: false,
-      organization: org,
     };
     setCustomRoles([...customRoles, newRole]);
     setSelectedRole(newRole);
@@ -93,28 +89,36 @@ const Roles = () => {
   const changePerm = (val: any, perm: any) => {
     if (selectedRole.default) return toast.error("Cannot edit built-in roles");
     setChanges(true);
-    if (val) {
-      const newRole = {
-        ...selectedRole,
-        permissions: [
-          ...selectedRole.permissions,
-          { _id: perm._id, name: perm.name },
-        ],
-      };
 
-      setSelectedRole(newRole);
+    if (val) {
+      setSelectedRole({
+        ...selectedRole,
+        permissions: [...selectedRole.permissions, perm],
+      });
       setCustomRoles(
-        customRoles.map((role) => (role._id === newRole._id ? newRole : role))
+        customRoles.map((role) =>
+          role.slug === selectedRole.slug
+            ? {
+                ...selectedRole,
+                permissions: [...selectedRole.permissions, perm],
+              }
+            : role
+        )
       );
     } else {
-      const newRole = {
+      setSelectedRole({
         ...selectedRole,
-        permissions: selectedRole.permissions.filter((p) => p._id !== perm._id),
-      };
-
-      setSelectedRole(newRole);
+        permissions: selectedRole.permissions.filter((p) => p !== perm),
+      });
       setCustomRoles(
-        customRoles.map((role) => (role._id === newRole._id ? newRole : role))
+        customRoles.map((role) =>
+          role.slug === selectedRole.slug
+            ? {
+                ...selectedRole,
+                permissions: selectedRole.permissions.filter((p) => p !== perm),
+              }
+            : role
+        )
       );
     }
 
@@ -165,7 +169,7 @@ const Roles = () => {
                     setSelectedRole({ ...selectedRole, name: e.target.value });
                     setCustomRoles(
                       customRoles.map((role) =>
-                        role._id === selectedRole._id
+                        role.slug === selectedRole.slug
                           ? { ...selectedRole, name: e.target.value }
                           : role
                       )
@@ -188,7 +192,7 @@ const Roles = () => {
                     });
                     setCustomRoles(
                       customRoles.map((role) =>
-                        role._id === selectedRole._id
+                        role.slug === selectedRole.slug
                           ? { ...selectedRole, description: e.target.value }
                           : role
                       )
@@ -205,21 +209,11 @@ const Roles = () => {
                   {permissions.map((perm) => (
                     <Checkbox
                       isDisabled={selectedRole.default}
-                      key={perm._id}
-                      isSelected={
-                        selectedRole.permissions.filter(
-                          (p) => p._id === perm._id
-                        ).length > 0
-                      }
+                      key={perm}
+                      isSelected={selectedRole.permissions.includes(perm)}
                       onValueChange={(val) => changePerm(val, perm)}
                     >
-                      <p>{permissions.find((p) => p._id === perm._id)?.name}</p>
-                      <p className="text-sm opacity-50">
-                        {
-                          permissions.find((p) => p._id === perm._id)
-                            ?.description
-                        }
-                      </p>
+                      <p className="text-sm opacity-50">{perm}</p>
                     </Checkbox>
                   ))}
                 </div>

@@ -31,7 +31,7 @@ const McqSubmissionSchema = new Schema({
 const ResultSchema = new mongoose.Schema({
   caseNo: { type: Number, required: true },
   caseId: { type: String, required: true },
-  output: { type: String, required: true },
+  output: { type: String, required: false, default: " " },
   isSample: { type: Boolean, required: true },
   memory: { type: Number, required: true },
   time: { type: Number, required: true },

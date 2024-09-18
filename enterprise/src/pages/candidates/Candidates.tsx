@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { DataTable } from "./DataTable";
-import { RootState } from "@/@types/reducer";
+import { RootState } from "@/types/Reducer";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useSelector } from "react-redux";
 import { useAuth } from "@clerk/clerk-react";

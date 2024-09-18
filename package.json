@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "quill-delta-to-plaintext": "^1.0.0"
+  }
+}

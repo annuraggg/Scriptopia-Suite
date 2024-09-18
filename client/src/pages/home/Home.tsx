@@ -12,7 +12,7 @@ import { useAuth } from "@clerk/clerk-react";
 
 const Home = () => {
   const { getToken } = useAuth();
-  const axios = ax(getToken)
+  const axios = ax(getToken);
 
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-get-problems"],
@@ -20,8 +20,6 @@ const Home = () => {
   });
 
   if (isLoading) return <Loader />;
-
-  console.log(data);
 
   return (
     <>

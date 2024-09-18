@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { Card, CardBody, Switch, CardFooter } from "@nextui-org/react";
 import {
   MapPinIcon,
@@ -11,19 +11,7 @@ import {
   FolderOutputIcon,
 } from "lucide-react";
 import { ChevronLeftIcon } from "lucide-react";
-
-interface Posting {
-  id: string;
-  title: string;
-  createdOn: string;
-  status: "active" | "inactive";
-  openUntil: string;
-  category: "Operations" | "IT";
-  location: string;
-  salaryFrom: string;
-  salaryUpto: string;
-  jobprofile: "Full Time" | "Part Time" | "Internship";
-}
+import { Posting } from "@shared-types/Posting";
 
 interface Participant {
   id: string;
@@ -41,8 +29,13 @@ interface Participant {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const posting = location.state?.posting as Posting;
+  const { posting } = useOutletContext() as { posting: Posting };
+
+  const getPostingStatus = (posting: Posting) => {
+    const currentDate = new Date();
+    const endDate = new Date(posting.applicationRange.end);
+    return currentDate < endDate ? "active" : "closed";
+  };
 
   const participants: Participant[] = [
     {
@@ -140,6 +133,18 @@ const Dashboard: React.FC = () => {
       ));
   };
 
+  if (!posting?.candidates || posting?.candidates?.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center w-full h-[100vh]">
+        <p className="text-slate-400 text-xl">No Analytics Just Yet</p>
+        <p className="text-slate-400 text-sm mt-2">
+          Analytics will be available once the workflow is started and
+          candidates have applied.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-start justify-start p-10 pt-8 h-scroll w-full">
       <div className="flex flex-row items-center justify-start gap-4 w-full">
@@ -153,31 +158,23 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center gap-8 w-full">
               <div className="flex items-center gap-2">
                 <p className="text-lg">{posting?.title}</p>
-                <span
-                  className={`text-xs rounded-full whitespace-nowrap ${
-                    posting.category === "IT"
-                      ? "text-success-500"
-                      : posting.category === "Operations"
-                      ? "text-warning-500"
-                      : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {posting.category}
-                </span>
+                <span>{posting.department}</span>
                 <span
                   className={`text-xs px-2 rounded-full whitespace-nowrap ${
-                    posting.status === "active"
+                    getPostingStatus(posting) === "active"
                       ? "text-success-500 bg-success-100"
                       : "text-danger-500 bg-danger-100"
                   }`}
                 >
-                  {posting.status === "active" ? "Active" : "Closed"}
+                  {getPostingStatus(posting) === "active"
+                    ? "Open Until"
+                    : "Closed at"}{" "}
                 </span>
               </div>
               <div className="flex items-center gap-7 text-sm text-gray-500">
                 <div className="flex items-center gap-2">
                   <BriefcaseIcon size={18} />
-                  <p>{posting?.jobprofile}</p>
+                  <p>{posting?.type}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPinIcon size={18} />
@@ -186,13 +183,14 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <BanknoteIcon size={18} />
                   <p>
-                    {posting?.salaryFrom} - {posting?.salaryUpto}
+                    {posting?.salary.min} - {posting?.salary.max} (
+                    {posting?.salary.currency?.toUpperCase() || "USD"})
                   </p>
                 </div>
                 <div className="ml-auto text-xs text-gray-300 bg-secondary bg-opacity-5 rounded-full px-2 py-1">
-                {posting.status === "active"
-                          ? `Open Until ${posting.openUntil}`
-                          : `Closed at ${posting.openUntil}`}
+                  {getPostingStatus(posting) === "active"
+                    ? `Open Until ${posting.applicationRange.end}`
+                    : `Closed at ${posting.applicationRange.end}`}
                 </div>
               </div>
             </div>
@@ -242,7 +240,7 @@ const Dashboard: React.FC = () => {
             </Card>
             <Card className="w-full h-fit flex flex-col">
               <CardBody className="flex flex-col items-center justify-center h-fit">
-                <div className="flex flex-col items-start">
+                {/* <div className="flex flex-col items-start">
                   <p className="text-sm">
                     {stage}{" "}
                     {participants.filter((p) => p.stage === stage).length}
@@ -253,7 +251,7 @@ const Dashboard: React.FC = () => {
                       30
                     </span>
                   </div>
-                </div>
+                </div> */}
               </CardBody>
             </Card>
             <Card className="w-full h-full flex flex-col gap-2">

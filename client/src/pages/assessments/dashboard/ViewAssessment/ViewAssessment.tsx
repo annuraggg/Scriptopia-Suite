@@ -24,22 +24,24 @@ const ViewAssessment = () => {
   const [qualified, setQualified] = useState(0);
   const [cheating, setCheating] = useState({ no: 0, light: 0, heavy: 0 });
 
-  const { getToken } = useAuth();
-  const axios = ax(getToken);
+  const { getToken, isLoaded } = useAuth();
   useEffect(() => {
-    const id = window.location.pathname.split("/")[2];
-    axios
-      .get(`/assessments/view/${id}`)
-      .then((res) => {
-        setAssessmentsSubmissions(res.data.data.submissions);
-        setTotalSubmissions(res.data.data.totalSubmissions);
-        setQualified(res.data.data.qualified);
-        setCheating(res.data.data.cheating);
-      })
-      .catch((err) => {
-        toast.error(err.response.data.message || "Error");
-      });
-  }, []);
+    if (isLoaded) {
+      const id = window.location.pathname.split("/")[2];
+      const axios = ax(getToken);
+      axios
+        .get(`/assessments/view/${id}`)
+        .then((res) => {
+          setAssessmentsSubmissions(res?.data?.data?.submissions);
+          setTotalSubmissions(res?.data?.data?.totalSubmissions);
+          setQualified(res?.data?.data?.qualified);
+          setCheating(res?.data?.data?.cheating);
+        })
+        .catch((err) => {
+          toast?.error(err?.response?.data?.message || "Error");
+        });
+    }
+  }, [getToken, isLoaded]);
 
   const calculateTime = (time: number) => {
     const minutes = Math.floor(time / 60);
@@ -76,9 +78,13 @@ const ViewAssessment = () => {
             <p className="text-xl">Cheating</p>
           </CardHeader>
           <CardBody className="flex justify-center items-start gap-2 flex-col">
-            <p className="text-xs text-green-500">No Copying: {cheating.no}</p>
-            <p className="text-xs text-yellow-500">Light Copying: {cheating.light}</p>
-            <p className="text-xs text-red-500">Heavy Copying: {cheating.heavy}</p>
+            <p className="text-xs text-green-500">No Copying: {cheating?.no}</p>
+            <p className="text-xs text-yellow-500">
+              Light Copying: {cheating?.light}
+            </p>
+            <p className="text-xs text-red-500">
+              Heavy Copying: {cheating?.heavy}
+            </p>
           </CardBody>
         </Card>
       </div>
@@ -94,31 +100,31 @@ const ViewAssessment = () => {
             <TableColumn className="text-sm">Action</TableColumn>
           </TableHeader>
           <TableBody>
-            {assessmentsSubmissions.map((submission: any) => (
-              <TableRow className="h-14" key={submission._id}>
+            {assessmentsSubmissions?.map((submission: any) => (
+              <TableRow className="h-14" key={submission?._id}>
                 <TableCell className="w-full md:w-auto">
-                  {submission.name}
+                  {submission?.name}
                 </TableCell>
                 <TableCell className="w-full md:w-auto">
-                  {submission.email}
+                  {submission?.email}
                 </TableCell>
                 <TableCell className="w-full md:w-auto">
-                  {submission.date}
+                  {submission?.date}
                 </TableCell>
                 <TableCell className="w-full md:w-auto">
-                  {calculateTime(submission.timer)}
+                  {calculateTime(submission?.timer)}
                 </TableCell>
                 <TableCell className="w-full md:w-auto">
-                  {submission.score.total}
+                  {submission?.score?.total}
                 </TableCell>
                 <TableCell className="w-full md:w-auto">
-                  {submission.cheating}
+                  {submission?.cheating}
                 </TableCell>
                 <TableCell className="w-full md:w-auto">
                   <Button
                     variant="light"
                     className="text-green-500"
-                    onClick={() => navigate(`${submission._id}`)}
+                    onClick={() => navigate(`${submission?._id}`)}
                   >
                     View
                   </Button>

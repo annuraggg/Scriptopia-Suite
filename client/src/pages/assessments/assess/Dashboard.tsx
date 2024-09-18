@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import Main from "./MainWindow";
 import ax from "@/config/axios";
-import IAssessment from "@/@types/Assessment";
+import { Assessment } from "@shared-types/Assessment";
 import { toast } from "sonner";
 import secureLocalStorage from "react-secure-storage";
 import {
@@ -16,8 +16,9 @@ import {
 import { Button } from "@nextui-org/react";
 import { Progress } from "@nextui-org/progress";
 
+
 const Lander = () => {
-  const [assessment, setAssessment] = useState<IAssessment>({} as IAssessment);
+  const [assessment, setAssessment] = useState<Assessment>({} as Assessment);
   const [problems, setProblems] = useState([]);
 
   const [loaded, setLoaded] = useState(false);
@@ -83,6 +84,7 @@ const Lander = () => {
           solvedSubmissions.map((item: { problemId: string }) => item.problemId)
         );
 
+        console.log(res.data.data.assessment.languages)
         const securityConfig = {
           languages: res.data.data.assessment.languages,
           codePlayback: res.data.data.assessment.security.codePlayback,
@@ -98,11 +100,9 @@ const Lander = () => {
         };
 
         if (securityConfig.codePlayback) {
-          // @ts-expect-error - Types are not available for this library
           window?.sessionRewind?.identifyUser({
             userId: localStorage.getItem("email"),
           });
-          // @ts-expect-error - Types are not available for this library
           window?.sessionRewind?.startSession();
         }
 
@@ -134,7 +134,7 @@ const Lander = () => {
         secureLocalStorage.setItem("securityConfig", securityConfig);
 
         return () => {
-          window.removeEventListener("visibilitychange", () => {});
+          window.removeEventListener("visibilitychange", () => { });
         };
       })
       .catch((err) => {
@@ -208,13 +208,12 @@ const Lander = () => {
       ),
       assessmentId: assessment._id,
       offenses: secureLocalStorage.getItem("offtrack") as string,
-      timer: timer, // @ts-expect-error - Types are not available for this library
+      timer: timer,
       sessionRewindUrl: window?.sessionRewind?.getSessionUrl(),
       name: localStorage.getItem("name"),
       email: localStorage.getItem("email"),
     };
 
-    // @ts-expect-error - Types are not available for this library
     window?.sessionRewind?.stopSession();
 
     setSubmitted(true);
@@ -308,6 +307,7 @@ const Lander = () => {
         problemsSolved={problemSolved}
         mcqsSolved={mcqSolved}
         submitAssessment={submitAssessment}
+        type={assessment?.type}
       />
       <Main
         mcqs={assessment?.mcqs}

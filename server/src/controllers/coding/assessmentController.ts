@@ -5,7 +5,10 @@ import Assessment from "../../models/Assessment";
 import Problem from "../../models/Problem";
 import { runCode as runCompilerCode } from "../../aws/runCode";
 import AssessmentSubmissions from "../../models/AssessmentSubmissions";
-import AssessmentSubmissionsSchema from "../../@types/AssessmentSubmission";
+import { SclObject } from "@shared-types/Scl";
+import { TestCase } from "@shared-types/Problem";
+import Posting from "@/models/Posting";
+import { Candidate } from "@shared-types/Candidate";
 
 const LIMIT_PER_PAGE = 20;
 
@@ -18,11 +21,9 @@ const getAssessments = async (c: Context) => {
       .limit(LIMIT_PER_PAGE)
       .lean();
 
-    console.log(c.get("auth").userId);
-    console.log(assessments);
     return sendSuccess(c, 200, "Success", assessments);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };
@@ -30,24 +31,35 @@ const getAssessments = async (c: Context) => {
 const getMyMcqAssessments = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
+    const isEnterprise = c.req.param("enterprise") === "enterprise";
+    const postingId = c.req.param("postingId");
+
     // @ts-ignore
-    const auth = devAuth ? global.auth : getAuth(c);
+    const auth = getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const assessments = await Assessment.find({
-      author: auth.userId,
-      type: "mcq",
-    })
-      .skip((page - 1) * LIMIT_PER_PAGE)
-      .limit(LIMIT_PER_PAGE)
-      .lean();
+    let assessments = [];
+    if (isEnterprise) {
+      assessments = await Assessment.find({
+        isEnterprise: true,
+        postingId: postingId,
+        type: "mcq",
+      });
+    } else {
+      assessments = await Assessment.find({
+        author: auth.userId,
+        type: "mcq",
+      })
+        .skip((page - 1) * LIMIT_PER_PAGE)
+        .limit(LIMIT_PER_PAGE)
+        .lean();
+    }
 
     return sendSuccess(c, 200, "Success", assessments);
   } catch (error) {
-    console.log(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };
@@ -55,24 +67,34 @@ const getMyMcqAssessments = async (c: Context) => {
 const getMyCodeAssessments = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
+    const isEnterprise = c.req.param("enterprise") === "enterprise";
+    const postingId = c.req.param("postingId");
+
     // @ts-ignore
-    const auth = devAuth ? global.auth : getAuth(c);
+    const auth = getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
     }
-
-    const assessments = await Assessment.find({
-      author: auth.userId,
-      type: "code",
-    })
-      .skip((page - 1) * LIMIT_PER_PAGE)
-      .limit(LIMIT_PER_PAGE)
-      .lean();
+    let assessments = [];
+    if (isEnterprise) {
+      assessments = await Assessment.find({
+        isEnterprise: true,
+        postingId: postingId,
+        type: "code",
+      });
+    } else {
+      assessments = await Assessment.find({
+        author: auth.userId,
+        type: "code",
+      })
+        .skip((page - 1) * LIMIT_PER_PAGE)
+        .limit(LIMIT_PER_PAGE)
+        .lean();
+    }
 
     return sendSuccess(c, 200, "Success", assessments);
   } catch (error) {
-    console.log(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };
@@ -80,24 +102,34 @@ const getMyCodeAssessments = async (c: Context) => {
 const getMyMcqCodeAssessments = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
+    const isEnterprise = c.req.param("enterprise") === "enterprise";
+    const postingId = c.req.param("postingId");
     // @ts-ignore
-    const auth = devAuth ? global.auth : getAuth(c);
+    const auth = getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const assessments = await Assessment.find({
-      author: auth.userId,
-      type: "mcqcode",
-    })
-      .skip((page - 1) * LIMIT_PER_PAGE)
-      .limit(LIMIT_PER_PAGE)
-      .lean();
+    let assessments = [];
+    if (isEnterprise) {
+      assessments = await Assessment.find({
+        isEnterprise: true,
+        postingId: postingId,
+        type: "mcqcode",
+      });
+    } else {
+      assessments = await Assessment.find({
+        author: auth.userId,
+        type: "mcqcode",
+      })
+        .skip((page - 1) * LIMIT_PER_PAGE)
+        .limit(LIMIT_PER_PAGE)
+        .lean();
+    }
 
     return sendSuccess(c, 200, "Success", assessments);
   } catch (error) {
-    console.log(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };
@@ -121,7 +153,7 @@ const getMyMcqCodeAssessments = async (c: Context) => {
 
 //     return sendSuccess(c, 200, "Success", assessments);
 //   } catch (error) {
-//     console.log(error);
+//     console.error(error);
 //     return sendError(c, 500, "Internal Server Error", error);
 //   }
 // };
@@ -142,7 +174,6 @@ const getAssessment = async (c: Context) => {
 
     return sendSuccess(c, 200, "Success", { assessment, problems });
   } catch (error) {
-    console.log(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };
@@ -150,7 +181,7 @@ const getAssessment = async (c: Context) => {
 const createAssessment = async (c: Context) => {
   try {
     // @ts-ignore
-    const auth = devAuth ? global.auth : getAuth(c);
+    const auth = getAuth(c);
 
     if (!auth?.userId) {
       return sendError(c, 401, "Unauthorized");
@@ -202,7 +233,7 @@ const createAssessment = async (c: Context) => {
       }
 
       score = mcqTotal + problemTotal;
-      console.log("Obtainable Score " + score);
+
       return score;
     };
 
@@ -212,15 +243,13 @@ const createAssessment = async (c: Context) => {
       author: auth.userId,
     };
 
-    console.log(assessmentObj);
-
     const newAssessment = new Assessment(assessmentObj);
 
     await newAssessment.save();
 
     return sendSuccess(c, 200, "Success", newAssessment);
   } catch (error: any) {
-    console.log(error);
+    console.error(error);
     if (error.name === "ValidationError") {
       return sendError(c, 400, "Invalid Data", error.message);
     }
@@ -237,16 +266,42 @@ const verifyAccess = async (c: Context) => {
       return sendError(c, 404, "Assessment not found");
     }
 
-    const assessmentStartTime = new Date(assessment.openRange.start).getTime();
-    const assessmentEndTime = new Date(assessment.openRange.end).getTime();
+    if (assessment.isEnterprise) {
+      const posting = await Posting.findOne({
+        _id: assessment.postingId,
+      }).populate("candidates");
+      if (!posting) {
+        return sendError(c, 404, "Posting not found");
+      }
 
-    const currentTime = new Date().getTime();
-    if (currentTime < assessmentStartTime) {
-      return sendError(c, 403, "Assessment not started yet");
-    }
+      const workflow = posting.workflow;
+      if (!workflow) {
+        return sendError(c, 400, "No workflow found");
+      }
 
-    if (currentTime > assessmentEndTime) {
-      return sendError(c, 403, "Assessment has ended");
+      const currentStep = workflow.steps[workflow.currentStep];
+      if (currentStep.stepId.toString() !== assessment._id.toString()) {
+        return sendError(c, 403, "Assessment not active");
+      }
+
+      const candidates = posting.candidates as unknown as Candidate[];
+      if (!candidates.some((candidate) => candidate.email === body.email)) {
+        return sendError(c, 403, "You are not allowed to take this assessment");
+      }
+    } else {
+      const assessmentStartTime = new Date(
+        assessment?.openRange?.start!
+      ).getTime();
+      const assessmentEndTime = new Date(assessment?.openRange?.end!).getTime();
+
+      const currentTime = new Date().getTime();
+      if (currentTime < assessmentStartTime) {
+        return sendError(c, 403, "Assessment not started yet");
+      }
+
+      if (currentTime > assessmentEndTime) {
+        return sendError(c, 403, "Assessment has ended");
+      }
     }
 
     const takenAssessment = await AssessmentSubmissions.findOne({
@@ -276,7 +331,7 @@ const verifyAccess = async (c: Context) => {
       instructions: assessment.instructions,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };
@@ -313,21 +368,15 @@ const submitAssessment = async (c: Context) => {
           return sendError(c, 404, "Problem not found");
         }
 
-        const functionSchema = {
-          functionName: problem.functionName,
-          functionArgs: problem.functionArgs,
-          functionBody: submission.code,
-          functionReturn: problem.functionReturnType,
-        };
-
         const result: any = await runCompilerCode(
           submission.language,
-          functionSchema,
-          problem.testCases
+          problem.sclObject as SclObject[],
+          submission.code,
+          problem.testCases as TestCase[]
         );
 
         if (result?.status === "ERROR") {
-          console.log(result.error);
+          console.error(result.error);
           return sendError(c, 500, "Internal Server Error", result.error);
         }
 
@@ -414,7 +463,7 @@ const submitAssessment = async (c: Context) => {
         let grade = 0;
         const mcqObj = assessment.mcqs.find((mcq) => {
           if (!mcq._id) return;
-          console.log(mcq._id.toString() === mcqSubmission.mcqId);
+
           if (!mcq._id) return false;
           return mcq._id.toString() === mcqSubmission.mcqId;
         });
@@ -463,6 +512,13 @@ const submitAssessment = async (c: Context) => {
           if (!assessment.grading.testcases) return { mcq, problem, total };
 
           for (const testCase of problem.testCases) {
+            if (!testCase?._id) return { mcq, problem, total };
+            const passed =
+              problemSubmission.results.find((result: any) => {
+                if (!testCase._id) return false;
+                result.caseId === testCase?._id.toString() && result.passed;
+              }) || false;
+            if (!passed) continue;
             if (testCase.difficulty === "easy") {
               grade += assessment.grading.testcases.easy;
             } else if (testCase.difficulty === "medium") {
@@ -527,7 +583,30 @@ const submitAssessment = async (c: Context) => {
 
     return sendSuccess(c, 200, "Success");
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const deleteAssessment = async (c: Context) => {
+  try {
+    const id = c.req.param("id");
+    const auth = c.get("auth");
+
+    const assessment = await Assessment.findById(id);
+
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    if (assessment.author !== auth?.userId) {
+      return sendError(c, 403, "Unauthorized");
+    }
+
+    await Assessment.findByIdAndDelete(id);
+    return sendSuccess(c, 200, "Assessment deleted successfully");
+  } catch (error) {
+    console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };
@@ -536,14 +615,21 @@ const getAssessmentSubmissions = async (c: Context) => {
   try {
     const auth = c.get("auth");
     const id = c.req.param("id");
+    const postingId = c.req.param("postingId");
 
     const assessment = await Assessment.findById(id).lean();
     if (!assessment) {
       return sendError(c, 404, "Assessment not found");
     }
 
-    if (assessment.author !== auth?.userId) {
-      return sendError(c, 403, "Unauthorized");
+    if (assessment.isEnterprise && postingId) {
+      if (assessment?.postingId?.toString() !== postingId) {
+        return sendError(c, 403, "Unauthorized in Posts");
+      }
+    } else {
+      if (assessment.author !== auth?.userId) {
+        return sendError(c, 403, "Unauthorized");
+      }
     }
 
     const submissions = await AssessmentSubmissions.find({
@@ -561,7 +647,6 @@ const getAssessmentSubmissions = async (c: Context) => {
     const checkPassed = async (submission: any) => {
       const score = submission.obtainedGrades.total;
       const totalScore = assessment.obtainableScore;
-      console.log("Total Score " + score + " out of " + totalScore);
       const passingPercentage = assessment.passingPercentage;
       const percentage = (score / totalScore) * 100;
       return percentage >= passingPercentage;
@@ -576,11 +661,12 @@ const getAssessmentSubmissions = async (c: Context) => {
         createdAt: submission.createdAt,
         cheating: submission.cheatingStatus,
         score: submission.obtainedGrades,
-        passed: checkPassed(submission),
+        passed: await checkPassed(submission),
       });
     }
 
-    const qualified = finalSubmissions.filter((s) => s.passed).length;
+    const qualified = finalSubmissions.filter((s) => s.passed === true).length;
+
     const totalSubmissions = finalSubmissions.length;
     const noCopy = finalSubmissions.filter(
       (s) => s.cheating === "No Copying"
@@ -605,7 +691,7 @@ const getAssessmentSubmissions = async (c: Context) => {
 
     return sendSuccess(c, 200, "Success", resObj);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };
@@ -615,8 +701,11 @@ const getAssessmentSubmission = async (c: Context) => {
     const auth = c.get("auth");
     const id = c.req.param("id");
     const submissionId = c.req.param("submissionId");
+    const postingId = c.req.param("postingId");
 
-    const assessment = await Assessment.findById(id).lean();
+    const assessment = await Assessment.findById(id)
+      .populate("problems")
+      .lean();
     const submission = await AssessmentSubmissions.findById(
       submissionId
     ).lean();
@@ -625,8 +714,14 @@ const getAssessmentSubmission = async (c: Context) => {
       return sendError(c, 404, "Assessment not found");
     }
 
-    if (assessment.author !== auth?.userId) {
-      return sendError(c, 403, "Unauthorized");
+    if (assessment.isEnterprise && postingId) {
+      if (assessment?.postingId?.toString() !== postingId) {
+        return sendError(c, 403, "Unauthorized in Posts");
+      }
+    } else {
+      if (assessment.author !== auth?.userId) {
+        return sendError(c, 403, "Unauthorized");
+      }
     }
 
     if (!submission) {
@@ -635,7 +730,7 @@ const getAssessmentSubmission = async (c: Context) => {
 
     return sendSuccess(c, 200, "Success", { submission, assessment });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };
@@ -651,4 +746,5 @@ export default {
   submitAssessment,
   getAssessmentSubmissions,
   getAssessmentSubmission,
+  deleteAssessment,
 };

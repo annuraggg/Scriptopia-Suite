@@ -1,4 +1,4 @@
-import { RootState } from "@/@types/reducer";
+import { RootState } from "@/types/Reducer";
 import Sidebar from "./Sidebar";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useSelector } from "react-redux";

@@ -12,9 +12,9 @@ import {
   Button,
 } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
-import IProblem from "@/@types/Problem";
+import {Problem} from "@shared-types/Problem";
 
-const MyProblems = ({ myproblems }: { myproblems: IProblem[] }) => {
+const MyProblems = ({ myproblems }: { myproblems: Problem[] }) => {
   const navigate = useNavigate();
 
   const openProblem = (id: string) => {

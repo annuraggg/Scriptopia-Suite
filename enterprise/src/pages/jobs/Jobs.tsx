@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardBody,
@@ -26,262 +26,11 @@ import {
 } from "lucide-react";
 import Filter from "./Filter";
 import CreateJobModal from "./CreateJobModal";
-
-interface Posting {
-  id: string;
-  title: string;
-  createdOn: string;
-  status: "active" | "inactive";
-  openUntil: string;
-  category: "Operations" | "IT";
-  location: string;
-  salaryFrom: string;
-  salaryUpto: string;
-  jobprofile: "Full Time" | "Part Time" | "Internship";
-}
-
-const postingsSample: Posting[] = [
-  {
-    id: "1",
-    title: "React App Developer",
-    createdOn: "23 May 2023",
-    status: "active",
-    openUntil: "30 June 2023",
-    category: "IT",
-    location: "Mumbai",
-    salaryFrom: "₹50,000",
-    salaryUpto: "₹1,00,000",
-    jobprofile: "Part Time",
-  },
-  {
-    id: "2",
-    title: "Full Stack Engineer",
-    createdOn: "15 June 2023",
-    status: "active",
-    openUntil: "31 July 2023",
-    category: "IT",
-    location: "Bangalore",
-    salaryFrom: "₹1,00,000",
-    salaryUpto: "₹2,00,000",
-    jobprofile: "Full Time",
-  },
-  {
-    id: "3",
-    title: "Frontend Developer",
-    createdOn: "10 July 2023",
-    status: "inactive",
-    openUntil: "15 August 2023",
-    category: "IT",
-    location: "Delhi",
-    salaryFrom: "₹80,000",
-    salaryUpto: "₹1,50,000",
-    jobprofile: "Internship",
-  },
-  {
-    id: "4",
-    title: "Backend Developer",
-    createdOn: "5 August 2023",
-    status: "active",
-    openUntil: "30 September 2023",
-    category: "IT",
-    location: "Chennai",
-    salaryFrom: "₹90,000",
-    salaryUpto: "₹1,80,000",
-    jobprofile: "Full Time",
-  },
-  {
-    id: "5",
-    title: "UI/UX Designer",
-    createdOn: "18 September 2023",
-    status: "inactive",
-    openUntil: "31 October 2023",
-    category: "IT",
-    location: "Hyderabad",
-    salaryFrom: "₹70,000",
-    salaryUpto: "₹1,20,000",
-    jobprofile: "Part Time",
-  },
-  {
-    id: "6",
-    title: "Software Engineer",
-    createdOn: "22 October 2023",
-    status: "active",
-    openUntil: "15 November 2023",
-    category: "Operations",
-    location: "Pune",
-    salaryFrom: "₹60,000",
-    salaryUpto: "₹1,10,000",
-    jobprofile: "Internship",
-  },
-  {
-    id: "7",
-    title: "Data Scientist",
-    createdOn: "9 November 2023",
-    status: "inactive",
-    openUntil: "30 December 2023",
-    category: "Operations",
-    location: "Kolkata",
-    salaryFrom: "₹40,000",
-    salaryUpto: "₹90,000",
-    jobprofile: "Full Time",
-  },
-  {
-    id: "8",
-    title: "Cloud Architect",
-    createdOn: "14 December 2023",
-    status: "active",
-    openUntil: "31 January 2024",
-    category: "Operations",
-    location: "Ahmedabad",
-    salaryFrom: "₹30,000",
-    salaryUpto: "₹80,000",
-    jobprofile: "Part Time",
-  },
-  {
-    id: "9",
-    title: "DevOps Engineer",
-    createdOn: "27 January 2024",
-    status: "inactive",
-    openUntil: "28 February 2024",
-    category: "Operations",
-    location: "Jaipur",
-    salaryFrom: "₹20,000",
-    salaryUpto: "₹70,000",
-    jobprofile: "Internship",
-  },
-  {
-    id: "10",
-    title: "Product Manager",
-    createdOn: "8 February 2024",
-    status: "active",
-    openUntil: "31 March 2024",
-    category: "Operations",
-    location: "Lucknow",
-    salaryFrom: "₹10,000",
-    salaryUpto: "₹60,000",
-    jobprofile: "Full Time",
-  },
-  {
-    id: "11",
-    title: "Machine Learning Engineer",
-    createdOn: "12 March 2024",
-    status: "inactive",
-    openUntil: "30 April 2024",
-    category: "IT",
-    location: "Chandigarh",
-    salaryFrom: "₹15,000",
-    salaryUpto: "₹50,000",
-    jobprofile: "Part Time",
-  },
-  {
-    id: "12",
-    title: "Cybersecurity Analyst",
-    createdOn: "25 April 2024",
-    status: "active",
-    openUntil: "31 May 2024",
-    category: "IT",
-    location: "Indore",
-    salaryFrom: "₹25,000",
-    salaryUpto: "₹40,000",
-    jobprofile: "Internship",
-  },
-  {
-    id: "13",
-    title: "Mobile App Developer",
-    createdOn: "7 May 2024",
-    status: "inactive",
-    openUntil: "30 June 2024",
-    category: "IT",
-    location: "Bhopal",
-    salaryFrom: "₹35,000",
-    salaryUpto: "₹30,000",
-    jobprofile: "Full Time",
-  },
-  {
-    id: "14",
-    title: "Blockchain Developer",
-    createdOn: "19 June 2024",
-    status: "active",
-    openUntil: "31 July 2024",
-    category: "IT",
-    location: "Raipur",
-    salaryFrom: "₹45,000",
-    salaryUpto: "₹20,000",
-    jobprofile: "Part Time",
-  },
-  {
-    id: "15",
-    title: "Game Developer",
-    createdOn: "2 July 2024",
-    status: "inactive",
-    openUntil: "31 August 2024",
-    category: "IT",
-    location: "Ranchi",
-    salaryFrom: "₹55,000",
-    salaryUpto: "₹100,000",
-    jobprofile: "Internship",
-  },
-  {
-    id: "16",
-    title: "Network Engineer",
-    createdOn: "14 August 2024",
-    status: "active",
-    openUntil: "30 September 2024",
-    category: "Operations",
-    location: "Patna",
-    salaryFrom: "₹65,000",
-    salaryUpto: "₹90,000",
-    jobprofile: "Full Time",
-  },
-  {
-    id: "17",
-    title: "QA Engineer",
-    createdOn: "27 September 2024",
-    status: "inactive",
-    openUntil: "31 October 2024",
-    category: "Operations",
-    location: "Guwahati",
-    salaryFrom: "₹75,000",
-    salaryUpto: "₹80,000",
-    jobprofile: "Part Time",
-  },
-  {
-    id: "18",
-    title: "Technical Writer",
-    createdOn: "8 October 2024",
-    status: "active",
-    openUntil: "30 November 2024",
-    category: "Operations",
-    location: "Shillong",
-    salaryFrom: "₹85,000",
-    salaryUpto: "₹70,000",
-    jobprofile: "Internship",
-  },
-  {
-    id: "19",
-    title: "Systems Administrator",
-    createdOn: "21 November 2024",
-    status: "inactive",
-    openUntil: "31 December 2024",
-    category: "Operations",
-    location: "Agartala",
-    salaryFrom: "₹95,000",
-    salaryUpto: "₹60,000",
-    jobprofile: "Full Time",
-  },
-  {
-    id: "20",
-    title: "AI Research Scientist",
-    createdOn: "3 December 2024",
-    status: "active",
-    openUntil: "31 January 2025",
-    category: "Operations",
-    location: "Itanagar",
-    salaryFrom: "₹15,000",
-    salaryUpto: "₹50,000",
-    jobprofile: "Part Time",
-  },
-];
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
+import { toast } from "sonner";
+import { Posting } from "@shared-types/Posting";
+import { Department } from "@shared-types/Organization";
 
 const Cards = [
   {
@@ -301,12 +50,6 @@ const Cards = [
     jobCount: 5,
     icon: <BanIcon size={28} />,
     filter: "inactive",
-  },
-  {
-    title: "Archived",
-    jobCount: 5,
-    icon: <ArchiveIcon size={28} />,
-    filter: "archived",
   },
 ];
 
@@ -331,7 +74,10 @@ const editItems = [
 
 const Postings: React.FC = () => {
   const navigate = useNavigate();
-  const [postings] = useState<Posting[]>(postingsSample);
+  const [postings, setPostings] = useState<Posting[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+
+  const [sort, setSort] = useState(new Set(["newest"]));
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [workScheduleFilter, setWorkScheduleFilter] = useState<string[]>([]);
@@ -343,32 +89,61 @@ const Postings: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const filteredPostings = postings.filter((post) => {
-    const matchesSearch = post.title
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      selectedFilter === "all" || post.status === selectedFilter;
-    const matchesWorkSchedule =
-      workScheduleFilter.length === 0 ||
-      workScheduleFilter.includes(post.jobprofile);
-    const matchesDepartment =
-      !departmentFilter || post.category === departmentFilter;
-    const matchesDateRange =
-      (!dateRange.start ||
-        new Date(post.createdOn) >= new Date(dateRange.start)) &&
-      (!dateRange.end || new Date(post.createdOn) <= new Date(dateRange.end));
+    if (searchTerm) {
+      return post.title.toLowerCase().includes(searchTerm.toLowerCase());
+    }
+    const department = departments.find((dep) => dep._id === post.department);
+    if (departmentFilter) {
+      return department?.name === departmentFilter;
+    }
+    if (workScheduleFilter.length > 0) {
+      return workScheduleFilter.includes(post.type);
+    }
+    if (dateRange.start && dateRange.end) {
+      return (
+        new Date(post.applicationRange.start) >= new Date(dateRange.start) &&
+        new Date(post.applicationRange.end) <= new Date(dateRange.end)
+      );
+    }
 
-    return (
-      matchesSearch &&
-      matchesStatus &&
-      matchesWorkSchedule &&
-      matchesDepartment &&
-      matchesDateRange
-    );
+    if (selectedFilter === "active") {
+      return new Date(post.applicationRange.end) > new Date();
+    } else if (selectedFilter === "inactive") {
+      return new Date(post.applicationRange.end) < new Date();
+    } else {
+      return post;
+    }
   });
 
+  useEffect(() => {
+    let sortedPostings = [...filteredPostings];
+
+    if (sort.has("newest")) {
+      sortedPostings = sortedPostings.sort(
+        (a, b) =>
+          new Date(b.applicationRange.start).getTime() -
+          new Date(a.applicationRange.start).getTime()
+      );
+    } else if (sort.has("oldest")) {
+      sortedPostings = sortedPostings.sort(
+        (a, b) =>
+          new Date(a.applicationRange.start).getTime() -
+          new Date(b.applicationRange.start).getTime()
+      );
+    } else if (sort.has("salary")) {
+      sortedPostings = sortedPostings.sort((a, b) => {
+        if (!a?.salary?.min || !b?.salary?.min) {
+          return 0;
+        }
+        return a?.salary?.min - b?.salary?.min;
+      });
+    }
+    setPostings(sortedPostings);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sort]);
+
   const handleDetailsClick = (posting: Posting) => {
-    navigate(`${posting.id}/dashboard`, { state: { posting } });
+    navigate(`${posting._id}/dashboard`, { state: { posting } });
   };
 
   const handleFilterChange = (filter: string) => {
@@ -382,6 +157,39 @@ const Postings: React.FC = () => {
   const closeCreateJobModal = () => {
     setIsModalOpen(false);
   };
+
+  const getPostingStatus = (posting: Posting) => {
+    if (new Date(posting.applicationRange.end) < new Date()) {
+      return "closed";
+    }
+    return "active";
+  };
+
+  const getPostingType = (posting: Posting) => {
+    if (posting.type === "full_time") {
+      return "Full Time";
+    } else if (posting.type === "part_time") {
+      return "Part Time";
+    } else {
+      return "Internship";
+    }
+  };
+
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+  useEffect(() => {
+    axios
+      .get("/postings")
+      .then((res) => {
+        setPostings(res.data.data.postings);
+        setDepartments(res.data.data.departments);
+      })
+      .catch((err) => {
+        toast.error(err.response.data.message);
+        console.log(err);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex gap-5 w-full p-5">
@@ -401,6 +209,9 @@ const Postings: React.FC = () => {
               setDepartmentFilter={setDepartmentFilter}
               dateRange={dateRange}
               setDateRange={setDateRange}
+              departments={departments}
+              sort={sort}
+              setSort={setSort}
             />
           </motion.div>
           <motion.div
@@ -417,53 +228,61 @@ const Postings: React.FC = () => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                <Card className="w-1/5 cursor-pointer" isPressable onClick={openCreateJobModal}>
+                <Card
+                  className="w-1/5 cursor-pointer"
+                  isPressable
+                  onClick={openCreateJobModal}
+                >
                   <CardBody className="flex items-center justify-between bg-success-400 text-background bg-opacity-3 py-2 px-5">
                     <div className="flex items-center gap-2">
                       <FilePlusIcon className="text-background" size={22} />
-                      <p className="text-sm text-background">Create a new job</p>
+                      <p className="text-sm text-background">
+                        Create a new job
+                      </p>
                     </div>
                   </CardBody>
                 </Card>
               </div>
 
-              <div className="grid grid-cols-4 gap-8 mt-2 w-full">
+              <div className="flex gap-5 mt-5 w-full">
                 {Cards.map((card, index) => (
                   <Card
                     isPressable
                     key={index}
-                    className={`text-white rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${selectedFilter === card.filter
-                      ? "bg-gray-500/20 text-white"
-                      : "text-gray-500"
-                      }`}
+                    className={`text-white rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${
+                      selectedFilter === card.filter
+                        ? "bg-gray-500/20 text-white"
+                        : "text-gray-500"
+                    }`}
                     onClick={() => handleFilterChange(card.filter)}
                   >
                     <div className="flex items-center justify-center gap-2 w-full">
                       <div
-                        className={`${selectedFilter === card.filter
-                          ? "text-white"
-                          : "text-gray-500"
-                          }`}
+                        className={`${
+                          selectedFilter === card.filter
+                            ? "text-white"
+                            : "text-gray-500"
+                        }`}
                       >
                         {card.icon}
                       </div>
                       <h1
-                        className={`${selectedFilter === card.filter
-                          ? "text-white"
-                          : "text-gray-500"
-                          } text-base`}
+                        className={`${
+                          selectedFilter === card.filter
+                            ? "text-white"
+                            : "text-gray-500"
+                        } text-base`}
                       >
                         {card.title}
                       </h1>
                     </div>
                     <p
-                      className={`text-center w-full ${selectedFilter === card.filter
-                        ? "text-white"
-                        : "text-gray-500"
-                        }`}
-                    >
-                      {card.jobCount} Jobs
-                    </p>
+                      className={`text-center w-full ${
+                        selectedFilter === card.filter
+                          ? "text-white"
+                          : "text-gray-500"
+                      }`}
+                    ></p>
                   </Card>
                 ))}
               </div>
@@ -483,28 +302,31 @@ const Postings: React.FC = () => {
                           {posting.title}
                         </p>
                         <span
-                          className={`text-xs mr-3 rounded-full whitespace-nowrap ${posting.category === "IT"
-                            ? "text-success-500"
-                            : posting.category === "Operations"
-                              ? "text-warning-500"
-                              : "bg-gray-100 text-gray-800"
-                            }`}
+                          className={`text-xs mr-3 rounded-full whitespace-nowrap`}
                         >
-                          {posting.category}
+                          {
+                            departments.find(
+                              (department) =>
+                                department._id === posting.department
+                            )?.name
+                          }
                         </span>
                         <span
-                          className={`text-xs px-2 rounded-full whitespace-nowrap ${posting.status === "active"
-                            ? " text-success-500 bg-success-100"
-                            : " text-danger-500 bg-danger-100"
-                            }`}
+                          className={`text-xs px-2 rounded-full whitespace-nowrap ${
+                            getPostingStatus(posting) === "active"
+                              ? " text-success-500 bg-success-100"
+                              : " text-danger-500 bg-danger-100"
+                          }`}
                         >
-                          {posting.status === "active" ? "Active" : "Closed"}
+                          {getPostingStatus(posting) === "active"
+                            ? "Active"
+                            : "Closed"}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 w-full text-sm mt-3 text-gray-500">
                         <div className="flex items-center gap-2">
                           <BriefcaseIcon size={18} />
-                          <p>{posting.jobprofile}</p>
+                          <p>{getPostingType(posting)}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <MapPinIcon size={18} />
@@ -513,7 +335,8 @@ const Postings: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <BanknoteIcon size={18} />
                           <p>
-                            {posting.salaryFrom} - {posting.salaryUpto}
+                            {posting.salary.min} - {posting.salary.max} (
+                            {posting?.salary?.currency?.toUpperCase() || "USD"})
                           </p>
                         </div>
                       </div>
@@ -522,9 +345,13 @@ const Postings: React.FC = () => {
                     <div className="flex items-center justify-between w-full">
                       <div className="text-sm rounded-full border bg-secondary bg-opacity-5 px-2 py-1">
                         <p className="text-gray-300 text-xs">
-                          {posting.status === "active"
-                            ? `Open Until ${posting.openUntil}`
-                            : `Closed at ${posting.openUntil}`}
+                          {getPostingStatus(posting) === "active"
+                            ? `Open Until ${new Date(
+                                posting.applicationRange.end
+                              ).toLocaleString()}`
+                            : `Closed at ${new Date(
+                                posting.applicationRange.end
+                              ).toLocaleString()}`}
                         </p>
                       </div>
                       <Dropdown>
@@ -532,7 +359,7 @@ const Postings: React.FC = () => {
                           <Menu
                             size={28}
                             className="mr-6 cursor-pointer"
-                          //onClick={() => handleDetailsClick()}
+                            //onClick={() => handleDetailsClick()}
                           />
                         </DropdownTrigger>
                         <DropdownMenu>
@@ -559,7 +386,11 @@ const Postings: React.FC = () => {
           </motion.div>
         </div>
       </div>
-      <CreateJobModal isOpen={isModalOpen} onClose={closeCreateJobModal} />
+      <CreateJobModal
+        isOpen={isModalOpen}
+        onClose={closeCreateJobModal}
+        deparments={departments}
+      />
     </div>
   );
 };

@@ -18,23 +18,33 @@ jobs:
           node-version: "18"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
         working-directory: server
 
-      - name: Deploy Server
+      - name: Run TypeScript Check
+        run: npm run checksilent
+        working-directory: server
+
+      - name: Deploy on Server
+        if: success()
         uses: appleboy/ssh-action@v0.1.2
         with:
-          host: ${{ secrets.DO_HOST }}
-          key: ${{ secrets.DO_SSH_KEY }}
-          username: ${{ secrets.DO_USER }}
+          host: ${{ secrets.PROD_HOST }}
+          key: ${{ secrets.PROD_KEY }}
+          username: ${{ secrets.PROD_USER }}
           script: |
-            cd ~/scriptopia/server
-            git pull
-            npm install
-            # Source NVM
+        
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            # Restart the application
-            pm2 restart server
 
-            echo 'Backend Deployed Successfully!'
+            eval "$(ssh-agent -s)"
+            ssh-add ~/.ssh/github
+
+            cd ~/scriptopia
+            git pull
+
+            cd server
+            npm ci
+            pm2 restart all --update-env
+
+            echo 'Server Deployed Successfully!'

@@ -63,61 +63,56 @@ const ConundrumCubes = () => {
   ];
   return (
     <motion.div
-    initial={{ y: 50, opacity: 0 }}
-    animate={{ y: 0, opacity: 1 }}
-    transition={{ duration: 0.5 }}
-    className=""
-  >
-    <div className="w-full">
-      <h2>Conundrum Cubes</h2>
-      <div className="mt-5 mb-5 flex gap-5 w-[70%]">
-        <Input type="Search" label="Search Problems" size="sm" />
-        <Select label="Difficulty" className="max-w-xs" size="sm">
-          <SelectItem key="easy" value="easy">
-            Easy
-          </SelectItem>
-          <SelectItem key="medium" value="medium">
-            Medium
-          </SelectItem>
-          <SelectItem key="hard" value="hard">
-            Hard
-          </SelectItem>
-        </Select>
-      </div>
-      <div className="flex flex-wrap gap-3">
-        {cubes.map((cube, index) => (
-          <Card key={index} className="w-[30%] p-4shadow-sm rounded-md">
-            <CardHeader>{cube.name}</CardHeader>
-            <CardBody>
-              <p className="text-sm text-gray-500">
-                {cube.questions} Questions
-              </p>
-              <p className="text-sm text-gray-500">
-                Difficulty: {cube.difficulty}
-              </p>
-              <p className="text-sm text-gray-500">
-                Tags: {cube.tags.join(", ")}
-              </p>
-              <p
-                className={`text-sm text-gray-500
+      initial={{ y: 50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className=""
+    >
+      <div className="w-full">
+        <h2>Conundrum Cubes</h2>
+        <div className="mt-5 mb-5 flex gap-5 w-[70%]">
+          <Input type="Search" label="Search Problems" size="sm" />
+          <Select label="Difficulty" className="max-w-xs" size="sm">
+            <SelectItem key="easy" value="easy">
+              Easy
+            </SelectItem>
+            <SelectItem key="medium" value="medium">
+              Medium
+            </SelectItem>
+            <SelectItem key="hard" value="hard">
+              Hard
+            </SelectItem>
+          </Select>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {cubes.map((cube, index) => (
+            <Card key={index} className="w-[30%] p-4shadow-sm rounded-md">
+              <CardHeader>{cube.name}</CardHeader>
+              <CardBody>
+                <p className="text-sm text-gray-500">
+                  {cube.questions} Questions
+                </p>
+                <p className="text-sm text-gray-500">
+                  Difficulty: {cube.difficulty}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Tags: {cube.tags.join(", ")}
+                </p>
+                <p
+                  className={`text-sm text-gray-500
                 ${cube.status === "Solved" ? "text-green-500" : "text-red-500"}
                 `}
-              >
-                Status: {cube.status}
-              </p>
-            </CardBody>
-            <CardFooter className="flex justify-end items-center">
-              <Button
-                variant="flat"
-                onClick={() => console.log("Opening problem: ")}
-              >
-                Open
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+                >
+                  Status: {cube.status}
+                </p>
+              </CardBody>
+              <CardFooter className="flex justify-end items-center">
+                <Button variant="flat">Open</Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
       </div>
-    </div>
     </motion.div>
   );
 };

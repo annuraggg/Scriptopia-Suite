@@ -29,7 +29,7 @@ class logger {
     console.error(
       `\x1b[37m[${new Date().toISOString()}] \x1b[31mERROR: \x1b[31m${message} \x1b[37m`
     );
-    throw new Error(message);
+    console.trace();
   }
 
   warn(message: string) {

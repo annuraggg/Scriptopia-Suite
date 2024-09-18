@@ -12,9 +12,9 @@ import {
   SelectItem,
 } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
-import IProblem from "@/@types/Problem";
+import { Problem } from "@shared-types/Problem";
 
-const ProblemsList = ({ problems }: { problems: IProblem[] }) => {
+const ProblemsList = ({ problems }: { problems: Problem[] }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState("");

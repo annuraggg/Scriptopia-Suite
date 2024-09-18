@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
 import { Card, CardBody, CardHeader, Input } from "@nextui-org/react";
-import IAssessment from "@/@types/Assessment";
+import { Assessment } from "@shared-types/Assessment";
 
 const AssessmentsTaken = ({
   takenAssessments,
 }: {
-  takenAssessments: IAssessment[];
+  takenAssessments: Assessment[];
 }) => {
   return (
     <motion.div

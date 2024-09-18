@@ -18,23 +18,14 @@ const interviewSchema = new Schema({
   duration: { type: Number, required: true },
 });
 
-const assessmentSchema = new Schema({
-  assessmentId: { type: String, required: true, ref: "Assessment" },
-});
-
 const atsSchema = new Schema({
+  _id: { type: mongoose.Types.ObjectId, required: false },
   minimumScore: { type: Number, required: true },
-  negativePrompts: [{ type: String, required: true }],
-  positivePrompts: [{ type: String, required: true }],
-});
-
-const candidatesSchema = new Schema({
-  candidateId: { type: mongoose.Types.ObjectId, ref: "Candidate" },
-  disqualifiedStage: { type: Number },
-  disqualifiedReason: { type: String },
+  negativePrompts: [{ type: String, required: false, default: ["none"] }],
+  positivePrompts: [{ type: String, required: false, default: ["none"] }],
   status: {
     type: String,
-    enum: ["pending", "qualified", "rejected"],
+    enum: ["pending", "processing", "finished"],
     required: true,
     default: "pending",
   },
@@ -48,11 +39,20 @@ const autoSchema = new Schema({
 
 const workflowStepSchema = new Schema({
   name: { type: String, required: true },
-  type: { type: String, enum: ["rs", "sa", "ca", "pi", "cu"], required: true },
+  type: {
+    type: String,
+    enum: ["rs", "mcqa", "ca", "mcqca", "as", "pi", "cu"],
+    required: true,
+  },
+  stepId: {
+    type: mongoose.Types.ObjectId,
+    required: true,
+    default: new mongoose.Types.ObjectId(),
+  },
 });
 
 const workflowSchema = new Schema({
-  steps: [{ type: [workflowStepSchema] }],
+  steps: { type: [workflowStepSchema] },
   currentStep: { type: Number, required: true },
   behavior: { type: String, enum: ["manual", "auto"], required: true },
   auto: { type: [autoSchema] },
@@ -60,26 +60,41 @@ const workflowSchema = new Schema({
 
 const salarySchema = new Schema({ min: Number, max: Number, currency: String });
 
+const assignmentSchema = new Schema({
+  _id: { type: mongoose.Types.ObjectId, required: true },
+  name: { type: String, required: true },
+  description: { type: String, required: true },
+  submissions: { type: [mongoose.Types.ObjectId], ref: "Candidate" },
+});
+
 const postingSchema = new Schema({
+  organizationId: { type: mongoose.Types.ObjectId, ref: "Organization" },
   title: { type: String, required: true },
   description: { type: String, required: true },
   department: { type: mongoose.Types.ObjectId, ref: "Department" },
-  schedule: { type: String, enum: ["full", "part", "intern"], required: true },
-  openings: { type: Number, required: true },
   location: { type: String, required: true },
-  salaryRange: {
-    type: salarySchema,
+  type: {
+    type: String,
+    enum: ["full_time", "part_time", "internship"],
     required: true,
   },
+  url: { type: String },
+  openings: { type: Number, required: true },
+  salary: { type: salarySchema, required: true },
   workflow: { type: workflowSchema },
+  applicationRange: { type: { start: Date, end: Date }, required: true },
+  qualifications: { type: String, required: true },
+  assignments: { type: [assignmentSchema], ref: "Assignment" },
+  skills: [{ type: String, required: true }],
 
-  ats: { type: atsSchema, required: true },
-  assessments: [{ type: [assessmentSchema], ref: "Assessment" }],
-  interview: { type: interviewSchema, required: true },
+  ats: { type: atsSchema },
+  assessments: { type: [mongoose.Types.ObjectId], ref: "Assessment" },
+  interview: { type: interviewSchema },
 
-  candidates: [{ type: candidatesSchema, ref: "Candidate" }],
+  candidates: { type: [mongoose.Types.ObjectId], ref: "Candidate" },
 
-  publishedOn: { type: Date, required: true },
+  published: { type: Boolean, default: false },
+  publishedOn: { type: Date },
   createdOn: { type: Date, default: Date.now, required: true },
   updatedOn: { type: Date, default: Date.now, required: true },
 });

@@ -3,7 +3,7 @@ import logger from "../utils/logger.js";
 
 // import("../models/Assessment");
 // import("../models/AssessmentSubmissions");
-import("../models/Candidate");
+import("../models/Candidate.js");
 // import("../models/Organization");
 // import("../models/Permission");
 // import("../models/Posting");

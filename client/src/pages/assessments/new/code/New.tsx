@@ -28,8 +28,8 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import IProblem from "@/@types/Problem";
-import { IProblem as IProblemAssessment } from "@/@types/Assessment";
+import {Problem} from "@shared-types/Problem";
+import { Problem as ProblemAssessment } from "@shared-types/Assessment";
 
 const tabsList = [
   "General",
@@ -63,8 +63,8 @@ const New = () => {
   // Languages Tab States
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
 
-  const [selectedQuestions, setSelectedQuestions] = useState<IProblem[]>([]);
-  const [availableQuestions, setAvailableQuestions] = useState<IProblem[]>([]);
+  const [selectedQuestions, setSelectedQuestions] = useState<Problem[]>([]);
+  const [availableQuestions, setAvailableQuestions] = useState<Problem[]>([]);
 
   const { isLoading } = useQuery({
     queryKey: ["assessment-new-questions"],
@@ -84,7 +84,7 @@ const New = () => {
     hard: 0,
   });
   const [questionsGrading, setQuestionsGrading] = useState<
-    IProblemAssessment[]
+    ProblemAssessment[]
   >([]);
 
   // Candidates Tab States

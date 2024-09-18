@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import MainCalendar from "./MainCalendar";
-import { RootState } from "@/@types/reducer";
+import { RootState } from "@/types/Reducer";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useSelector } from "react-redux";
 

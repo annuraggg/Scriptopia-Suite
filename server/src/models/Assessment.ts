@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 
 const openRangeSchema = new mongoose.Schema({
-  start: { type: Date, required: true },
-  end: { type: Date, required: true },
+  start: { type: Date, required: false },
+  end: { type: Date, required: false },
 });
 
 const gradingSchema = new mongoose.Schema({
@@ -73,7 +73,7 @@ const assessmentSchema = new mongoose.Schema({
   type: { type: String, enum: ["mcq", "code", "mcqcode"], required: true },
   timeLimit: { type: Number, required: true },
   passingPercentage: { type: Number, required: true },
-  openRange: { type: openRangeSchema, required: true },
+  openRange: { type: openRangeSchema, required: false },
   languages: { type: [String], required: true },
   problems: {
     type: [mongoose.Schema.Types.ObjectId],
@@ -86,6 +86,10 @@ const assessmentSchema = new mongoose.Schema({
   security: { type: securitySchema, required: true },
   feedbackEmail: { type: String, required: true },
   obtainableScore: { type: Number, required: true },
+
+  isEnterprise: { type: Boolean, required: true, default: false },
+  postingId: { type: mongoose.Schema.Types.ObjectId, ref: "Posting", required: false },
+
   createdAt: { type: Date, default: Date.now },
 });
 

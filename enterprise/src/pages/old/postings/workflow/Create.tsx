@@ -91,9 +91,7 @@ const Create = () => {
     setAddedComponents(newComponents);
   };
 
-  const save = () => {
-    console.log(addedComponents);
-  };
+  const save = () => {};
 
   return (
     <div className="p-10 w-full gap-10 flex justify-between h-[92vh]">

@@ -1,3 +1,4 @@
+import React from 'react';
 import { Card, CardHeader, CardBody } from "@nextui-org/card";
 import { Clock } from "lucide-react";
 import { CardTitle } from "@/components/ui/card";
@@ -12,14 +13,12 @@ import {
   useDisclosure,
 } from "@nextui-org/modal";
 
-const convertToTime = (time: number) => {
-  const hours = Math.floor(time / 3600);
-  const minutes = Math.floor((time % 3600) / 60);
-  const seconds = time % 60;
+interface Step {
+  title: string;
+  description: string;
+}
 
-  return `${hours}:${minutes}:${seconds}`;
-};
-const assessmentSteps = [
+const bothSteps: Step[] = [
   {
     title: "Choose Your Path",
     description:
@@ -42,25 +41,149 @@ const assessmentSteps = [
   },
 ];
 
-const Sidebar = ({
-  timer,
-  problemsSolved,
-  mcqsSolved,
-  submitAssessment,
-}: {
+const mcqSteps: Step[] = [
+  {
+    title: "Choose Your Question",
+    description:
+      "You have the flexibility to choose the questions to begin—either of the available MCQs. The choice is yours!",
+  },
+  {
+    title: "Complete MCQs",
+    description:
+      "Focus on completing the MCQs. Your knowledge and problem-solving skills will be evaluated through these multiple-choice questions.",
+  },
+  {
+    title: "Time Matters",
+    description:
+      "Keep an eye on the clock! Your overall time taken will be considered as part of the assessment.",
+  },
+  {
+    title: "Review Your Progress",
+    description:
+      "Track your progress as you complete the MCQs. Keep an eye on your overall MCQ completion.",
+  },
+];
+
+const codeSteps: Step[] = [
+  {
+    title: "Complete Coding Challenges",
+    description:
+    "Focus on solving the coding challenges. Your ability to implement solutions and write clean, efficient code will be thoroughly assessed.",
+  },
+  {
+    title: "Avoid Plagiarism",
+    description:
+      "Ensure that you write the code yourself. Plagiarism will not be tolerated and will result in disqualification.",
+  },
+  {
+    title: "Time Matters",
+    description:
+      "Keep an eye on the clock! Your overall time taken will be considered as part of the assessment.",
+  },
+  {
+    title: "Review Your Progress",
+    description:
+      "Track your progress as you complete the coding challenges. Keep an eye on your overall code completion.",
+  },
+];
+
+interface SidebarProps {
   timer: number;
   problemsSolved: { total: number; solved: number };
   mcqsSolved: { total: number; solved: number };
   submitAssessment: () => void;
-}) => {
-  const getPercentage = (solved: number, total: number) => {
-    if (!solved || !total) return 0;
+  type: "mcq" | "code" | "mcqcode";
+}
 
-    if (total === 0) return 0;
-    return ((solved / total) * 100).toFixed(2);
+const Sidebar: React.FC<SidebarProps> = ({
+  timer,
+  problemsSolved,
+  mcqsSolved,
+  submitAssessment,
+  type,
+}) => {
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
+  const getSteps = () => {
+    if (type === "mcq") return mcqSteps;
+    if (type === "code") return codeSteps;
+    return bothSteps;
   };
 
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const getCompletion = () => {
+    if (type === "mcq") {
+      return (
+        <div>
+          <p>
+            MCQ Completion: {getPercentage(mcqsSolved.solved, mcqsSolved.total)}%
+          </p>
+          <Progress
+            value={mcqsSolved.solved}
+            maxValue={mcqsSolved.total}
+            className="mt-2"
+            size="sm"
+          />
+        </div>
+      );
+    }
+    if (type === "code") {
+      return (
+        <div>
+          <p>
+            Code Completion: {getPercentage(problemsSolved.solved, problemsSolved.total)}%
+          </p>
+          <Progress
+            value={problemsSolved.solved}
+            maxValue={problemsSolved.total}
+            className="mt-2"
+            size="sm"
+          />
+        </div>
+      );
+    }
+    return (
+      <>
+        <div>
+          <p>
+            Overall Completion:{" "}
+            {getPercentage(
+              problemsSolved.solved + mcqsSolved.solved,
+              problemsSolved.total + mcqsSolved.total
+            )}
+            %
+          </p>
+          <Progress
+            value={mcqsSolved.solved + problemsSolved.solved}
+            maxValue={mcqsSolved.total + problemsSolved.total}
+            className="mt-2"
+            size="sm"
+          />
+        </div>
+        <div className="mt-3">
+          <p>
+            MCQ Completion: {getPercentage(mcqsSolved.solved, mcqsSolved.total)}%
+          </p>
+          <Progress
+            value={mcqsSolved.solved}
+            maxValue={mcqsSolved.total}
+            className="mt-2"
+            size="sm"
+          />
+        </div>
+        <div className="mt-3">
+          <p>
+            Code Completion: {getPercentage(problemsSolved.solved, problemsSolved.total)}%
+          </p>
+          <Progress
+            value={problemsSolved.solved}
+            maxValue={problemsSolved.total}
+            className="mt-2"
+            size="sm"
+          />
+        </div>
+      </>
+    );
+  };
 
   return (
     <motion.div
@@ -70,7 +193,7 @@ const Sidebar = ({
       className="w-[25%] h-full"
     >
       <Card className="w-full h-full">
-        <CardHeader className=" border">
+        <CardHeader className="border">
           <div className="flex gap-5 items-center justify-center w-full">
             <Clock />
             <div>{convertToTime(timer)}</div>
@@ -80,7 +203,7 @@ const Sidebar = ({
           <div>
             <p className="text-medium">How the Assessment Works:</p>
             <div>
-              {assessmentSteps.map((step, index) => (
+              {getSteps().map((step, index) => (
                 <div className="mt-5" key={index}>
                   <p className="font-bold mb-1 text-gray-300">
                     {index + 1}. {step.title}
@@ -93,52 +216,7 @@ const Sidebar = ({
 
               <Card className="mt-5 p-3 border">
                 <CardTitle className="text-sm">Your Progress</CardTitle>
-                <CardBody>
-                  <div>
-                    <p>
-                      Overall Completion:{" "}
-                      {getPercentage(
-                        problemsSolved?.solved + mcqsSolved?.solved,
-                        problemsSolved?.total + mcqsSolved?.total
-                      )}
-                      %
-                    </p>
-                    <Progress
-                      value={mcqsSolved?.solved + problemsSolved?.solved}
-                      maxValue={mcqsSolved?.total + problemsSolved?.total}
-                      className="mt-2"
-                      size="sm"
-                    />
-                  </div>
-                  <div className="mt-3">
-                    <p>
-                      MCQ Completion:{" "}
-                      {getPercentage(mcqsSolved?.solved, mcqsSolved?.total)}%
-                    </p>
-                    <Progress
-                      value={mcqsSolved?.solved}
-                      maxValue={mcqsSolved?.total}
-                      className="mt-2"
-                      size="sm"
-                    />
-                  </div>
-                  <div className="mt-3">
-                    <p>
-                      Code Completion:{" "}
-                      {getPercentage(
-                        problemsSolved?.solved,
-                        problemsSolved?.total
-                      )}
-                      %
-                    </p>
-                    <Progress
-                      value={problemsSolved?.solved}
-                      maxValue={problemsSolved?.total}
-                      className="mt-2"
-                      size="sm"
-                    />
-                  </div>
-                </CardBody>
+                <CardBody>{getCompletion()}</CardBody>
               </Card>
             </div>
           </div>
@@ -153,11 +231,7 @@ const Sidebar = ({
         </Button>
       </Card>
 
-      <Modal
-        isOpen={isOpen}
-        onClose={onOpenChange}
-        backdrop="blur"
-      >
+      <Modal isOpen={isOpen} onClose={onOpenChange} backdrop="blur">
         <ModalContent>
           <ModalHeader>Do you want to submit the assessment?</ModalHeader>
           <ModalBody>
@@ -167,10 +241,14 @@ const Sidebar = ({
             <Button onClick={onOpenChange} variant="flat" color="danger">
               Cancel
             </Button>
-            <Button onClick={() => {
-              submitAssessment();
-              onOpenChange();
-            }} variant="flat" color="success">
+            <Button
+              onClick={() => {
+                submitAssessment();
+                onOpenChange();
+              }}
+              variant="flat"
+              color="success"
+            >
               Submit
             </Button>
           </ModalFooter>
@@ -178,6 +256,21 @@ const Sidebar = ({
       </Modal>
     </motion.div>
   );
+};
+
+const getPercentage = (solved: number, total: number) => {
+  if (!solved || !total) return "0.00";
+  return ((solved / total) * 100).toFixed(2);
+};
+
+const convertToTime = (time: number) => {
+  const hours = Math.floor(time / 3600);
+  const minutes = Math.floor((time % 3600) / 60);
+  const seconds = time % 60;
+
+  return `${hours.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 };
 
 export default Sidebar;
