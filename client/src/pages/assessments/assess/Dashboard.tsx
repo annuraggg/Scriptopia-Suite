@@ -84,6 +84,7 @@ const Lander = () => {
           solvedSubmissions.map((item: { problemId: string }) => item.problemId)
         );
 
+        console.log(res.data.data.assessment.languages)
         const securityConfig = {
           languages: res.data.data.assessment.languages,
           codePlayback: res.data.data.assessment.security.codePlayback,

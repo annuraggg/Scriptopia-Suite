@@ -11,7 +11,7 @@ import {
 import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { Badge } from "@nextui-org/badge";
-import { Button, Divider, Tooltip } from "@nextui-org/react";
+import { Button, Skeleton, Tooltip } from "@nextui-org/react";
 import { Posting } from "@shared-types/Posting";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
@@ -25,7 +25,13 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 
-const Sidebar = ({ posting }: { posting: Posting }) => {
+const Sidebar = ({
+  posting,
+  loading,
+}: {
+  posting: Posting;
+  loading: boolean;
+}) => {
   const navigate = useNavigate();
   const [active, setActive] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
@@ -183,132 +189,153 @@ const Sidebar = ({ posting }: { posting: Posting }) => {
 
   return (
     <aside
-      className={`sticky h-[100vh] min-w-16 px-5 top-0 left-0  transition-width flex-col border-r bg-background sm:flex overflow-x-hidden ${
+      className={`sticky h-[100vh]  left-0  transition-width flex-col flex justify-between border-r bg-background sm:flex ${
         collapsed ? "w-16" : "w-64"
       }`}
     >
-      <nav className="flex flex-col gap-4 sm:py-5">
+      <nav className="flex flex-col gap-4 sm:py-5 px-5">
         {topItems.map((item, index) => (
-          <Tooltip
-            key={index}
-            content={item.label}
-            placement="right"
-            color="secondary"
-          >
-            <table>
-              <tbody
-                className={`${
-                  item.visible
-                    ? "hover:text-white opacity-100 cursor-pointer"
-                    : "opacity-10 cursor-not-allowed"
-                } h-8 ${
-                  active === item.label.toLowerCase()
-                    ? "text-white-500 rounded-xl"
-                    : "text-muted-foreground"
-                }`}
-                onClick={() => handleNavigation(item)}
-              >
-                <td className="pr-3">
-                  <Badge
-                    content={item.badge || 0}
-                    color="danger"
-                    className={!item.badge || item.badge < 0 ? "hidden" : ""}
-                  >
-                    {item.icon && <item.icon className="h-7 w-5" />}
-                  </Badge>
-                </td>
-                {!collapsed && (
-                  <td className="text-start w-full">{item.label}</td>
-                )}
-              </tbody>
-            </table>
-          </Tooltip>
+          <Skeleton isLoaded={!loading}>
+            <Tooltip
+              key={index}
+              content={item.label}
+              placement="right"
+              color="secondary"
+            >
+              <table>
+                <tbody
+                  className={`${
+                    item.visible
+                      ? "hover:text-white opacity-100 cursor-pointer"
+                      : "opacity-10 cursor-not-allowed"
+                  } h-8 ${
+                    active === item.label.toLowerCase()
+                      ? "text-white-500 rounded-xl"
+                      : "text-muted-foreground"
+                  }`}
+                  onClick={() => handleNavigation(item)}
+                >
+                  <td className="pr-3">
+                    <Badge
+                      content={item.badge || 0}
+                      color="danger"
+                      className={!item.badge || item.badge < 0 ? "hidden" : ""}
+                    >
+                      {item.icon && <item.icon className="h-7 w-5" />}
+                    </Badge>
+                  </td>
+                  {!collapsed && (
+                    <td className="text-start w-full">{item.label}</td>
+                  )}
+                </tbody>
+              </table>
+            </Tooltip>
+          </Skeleton>
         ))}
       </nav>
 
-      {hasCompletedAllSteps === 1 && posting.published && (
-        <>
-          <nav
-            className={`flex flex-col gap-4 w-full pr-10 py-5 text-success-500 text-xs absolute bottom-10 delay-200 whitespace-nowrap overflow-hidden ${
-              !collapsed ? "visible" : "hidden"
-            }`}
-          >
-            <Divider />
-            Posting is currently live 😊
-            <Button onClick={copyLink}>Copy link</Button>
-          </nav>
+      <div>
+        <div className="w-full mb-5 px-5">
+          <Skeleton isLoaded={!loading}>
+            {hasCompletedAllSteps === 1 && posting.published && (
+              <>
+                <nav
+                  className={`flex flex-col gap-4 w-full text-success-500 text-xs delay-200 whitespace-nowrap overflow-hidden ${
+                    !collapsed ? "visible" : "hidden"
+                  }`}
+                >
+                  Posting is currently live 😊
+                  <Button onClick={copyLink}>Copy link</Button>
+                </nav>
 
-          <div className={`absolute w-5 bottom-16 ${!collapsed ? "hidden" : "visible"}`}>
-            <div className="bg-success-500 blur-sm w-3 h-3 rounded-full absolute opacity-70 top-0 bottom-0 my-auto mx-auto right-0 left-0 animate-pulse"></div>
-            <div className="bg-success-500 w-2 h-2 rounded-full absolute top-0 bottom-0 my-auto mx-auto right-0 left-0"></div>
-          </div>
-        </>
-      )}
+                <div
+                  className={`w-5 relative ${
+                    !collapsed ? "hidden" : "visible"
+                  }`}
+                >
+                  <div className="bg-success-500 absolute top-0 bottom-0 blur-sm w-3 h-3 rounded-full  opacity-70   my-auto mx-auto right-0 left-0 animate-pulse"></div>
+                  <div className="bg-success-500 w-2 h-2 rounded-full    my-auto mx-auto right-0 left-0"></div>
+                </div>
+              </>
+            )}
 
-      {hasCompletedAllSteps === 1 && !posting.published && (
-        <>
-          {" "}
-          <nav
-            className={`flex flex-col gap-4 sm:py-5 text-warning-500 text-xs absolute bottom-10 pr-5 delay-200 overflow-hidden whitespace-nowrap   ${
-              !collapsed ? "visible" : "hidden"
-            } `}
-          >
-            <Divider />
-            All workflow steps completed
-            <br /> Your Posting is ready to publish
-            <br /> <Button onClick={onOpen}> 🚀 Publish </Button>
-          </nav>
-          <div className={`absolute w-5 bottom-16 ${!collapsed ? "hidden" : "visible"}`}>
-            <div className="bg-warning-500 blur-sm w-3 h-3 rounded-full absolute opacity-70 top-0 bottom-0 my-auto mx-auto right-0 left-0 animate-pulse"></div>
-            <div className="bg-warning-500 w-2 h-2 rounded-full absolute top-0 bottom-0 my-auto mx-auto right-0 left-0"></div>
-          </div>
-        </>
-      )}
+            {hasCompletedAllSteps === 1 && !posting.published && (
+              <>
+                {" "}
+                <nav
+                  className={`flex flex-col gap-4 w-full text-warning-500 text-xs delay-200 whitespace-nowrap overflow-hidden  ${
+                    !collapsed ? "visible" : "hidden"
+                  } `}
+                >
+                  All workflow steps completed
+                  <br /> Your Posting is ready to publish
+                  <br /> <Button onClick={onOpen}> 🚀 Publish </Button>
+                </nav>
+                <div
+                  className={` w-5 relative ${
+                    !collapsed ? "hidden" : "visible"
+                  }`}
+                >
+                  <div className="bg-warning-500 absolute top-0 bottom-0 blur-sm w-3 h-3 rounded-full opacity-70  my-auto mx-auto right-0 left-0 animate-pulse"></div>
+                  <div className="bg-warning-500 w-2 h-2 rounded-full   my-auto mx-auto right-0 left-0"></div>
+                </div>
+              </>
+            )}
 
-      {hasCompletedAllSteps === 0 && !posting.published && (
-        <>
-          {" "}
-          <nav
-            className={`flex flex-col gap-4 sm:py-5 text-danger-500 text-xs absolute bottom-10 pr-5 delay-200 whitespace-nowrap overflow-visible  ${
-              !collapsed ? "visible" : "hidden"
-            } `}
-          >
-            <Divider />
-            Complete all the workflow steps <br /> to publish this posting
-          </nav>
-          <div className={`absolute w-5 bottom-16 ${!collapsed ? "hidden" : "visible"}`}>
-            <div className="bg-danger-500 blur-sm w-3 h-3 rounded-full absolute opacity-70 top-0 bottom-0 my-auto mx-auto right-0 left-0 animate-pulse"></div>
-            <div className="bg-danger-500 w-2 h-2 rounded-full absolute top-0 bottom-0 my-auto mx-auto right-0 left-0"></div>
-          </div>
-        </>
-      )}
+            {hasCompletedAllSteps === 0 && !posting.published && (
+              <>
+                {" "}
+                <nav
+                  className={`flex flex-col gap-4 w-full text-danger-500 text-xs delay-200 whitespace-nowrap overflow-hidden  ${
+                    !collapsed ? "visible" : "hidden"
+                  } `}
+                >
+                  Complete all the workflow <br />
+                  steps to publish this posting
+                </nav>
+                <div
+                  className={` w-5 relative ${
+                    !collapsed ? "hidden" : "visible"
+                  }`}
+                >
+                  <div className="bg-danger-500 absolute top-0 bottom-0 blur-sm w-3 h-3 rounded-full  opacity-70   my-auto mx-auto right-0 left-0 animate-pulse"></div>
+                  <div className="bg-danger-500 w-2 h-2 rounded-full    my-auto mx-auto right-0 left-0"></div>
+                </div>
+              </>
+            )}
 
-      {hasCompletedAllSteps === -1 && !posting.published && (
-        <>
-          <nav
-            className={`flex flex-col gap-4 sm:py-5 text-danger-500 text-xs absolute bottom-10 pr-5 delay-200 overflow-hidden whitespace-nowrap   ${
-              !collapsed ? "visible" : "hidden"
-            } `}
-          >
-            <Divider />
-            Workflow not initialized
-          </nav>
-          <div className={`absolute w-5 bottom-16 ${!collapsed ? "hidden" : "visible"}`}>
-            <div className="bg-danger-500 blur-sm w-3 h-3 rounded-full absolute opacity-70 top-0 bottom-0 my-auto mx-auto right-0 left-0 animate-pulse"></div>
-            <div className="bg-danger-500 w-2 h-2 rounded-full absolute top-0 bottom-0 my-auto mx-auto right-0 left-0"></div>
-          </div>
-        </>
-      )}
+            {hasCompletedAllSteps === -1 && !posting.published && (
+              <>
+                <nav
+                  className={`flex flex-col gap-4 w-full text-danger-500 text-xs delay-200 whitespace-nowrap overflow-hidden  ${
+                    !collapsed ? "visible" : "hidden"
+                  } `}
+                >
+                  Workflow not initialized
+                </nav>
+                <div
+                  className={` w-5 relative ${
+                    !collapsed ? "hidden" : "visible"
+                  }`}
+                >
+                  <div className="bg-danger-500 blur-sm w-3 h-3 absolute top-0 bottom-0 rounded-full  opacity-70   my-auto mx-auto right-0 left-0 animate-pulse"></div>
+                  <div className="bg-danger-500 w-2 h-2 rounded-full    my-auto mx-auto right-0 left-0"></div>
+                </div>
+              </>
+            )}
+          </Skeleton>
+        </div>
 
-      <div className="flex w-full mb-5 bottom-0 absolute">
-        <Tooltip>
-          <ChevronRight
-            className={`h-5 w-5 text-muted-foreground transition-all opacity-50 cursor-pointer ${
-              !collapsed ? "rotate-180" : ""
-            }`}
-            onClick={() => setCollapsed(!collapsed)}
-          />
-        </Tooltip>
+        <div className="flex w-full mb-5 px-5">
+          <Tooltip>
+            <ChevronRight
+              className={`h-5 w-5 text-muted-foreground transition-all opacity-50 cursor-pointer ${
+                !collapsed ? "rotate-180" : ""
+              }`}
+              onClick={() => setCollapsed(!collapsed)}
+            />
+          </Tooltip>
+        </div>
       </div>
 
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>

@@ -35,11 +35,13 @@ const Problem = ({
   allowSubmissionsTab = true,
   allowSubmit = true,
   allowExplain = true,
+
+  submitOverride,
 }: {
   loading: boolean;
   problem: ProblemType;
-  submissions: Submission[];
-  setSubmissions: (submissions: Submission[]) => void;
+  submissions?: Submission[];
+  setSubmissions?: (submissions: Submission[]) => void;
   defaultLanguage?: string;
   languages?: { name: string; abbr: string; available: boolean }[];
 
@@ -47,6 +49,8 @@ const Problem = ({
   allowSubmissionsTab?: boolean;
   allowSubmit?: boolean;
   allowExplain?: boolean;
+
+  submitOverride?: (code: string, language: string, problemId: string) => void;
 }) => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -106,8 +110,16 @@ const Problem = ({
   };
 
   const submitCode = async () => {
+    if (submitOverride) {
+      submitOverride(code, language, problem._id);
+      return new Promise<object>((resolve) =>
+        resolve({ success: true, error: "", data: {} })
+      );
+    }
+
     setRunningCode(true);
     setComponentLoading(true);
+
     return axios
       .post("/submissions/submit", { code, language, problemId: problem._id })
       .then((res) => {
@@ -140,9 +152,11 @@ const Problem = ({
 
         setDrawerOpen(true);
         setLeftPaneActTab("submissions");
-        const newSubmissions = [...submissions];
+        const newSubmissions = [...(submissions || [])];
         newSubmissions.unshift(res.data.data);
-        setSubmissions(newSubmissions);
+        if (setSubmissions) {
+          setSubmissions(newSubmissions || []);
+        }
         setCurrentSub(res.data.data);
         return { success: true, error: "", data: {} };
       })
@@ -189,7 +203,7 @@ const Problem = ({
       <Split className="flex h-[90vh] w-full gap-2" vaul-drawer-wrapper="">
         <Statement
           statement={problem.description as Delta}
-          submissions={submissions}
+          submissions={submissions || []}
           title={problem.title}
           setActiveTab={setLeftPaneActTab}
           activeTab={leftPaneActTab}

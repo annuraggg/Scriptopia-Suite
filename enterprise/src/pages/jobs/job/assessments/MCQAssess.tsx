@@ -7,23 +7,14 @@ import {
   CardHeader,
 } from "@nextui-org/react";
 import { Eye, Link } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { Assessment } from "@shared-types/Assessment";
 import { toast } from "sonner";
-
-const calculateStatus = (createdAssessment: Assessment) => {
-  const startDate = new Date(createdAssessment.openRange.start);
-  const endDate = new Date(createdAssessment.openRange.end);
-  const currentDate = new Date();
-
-  if (currentDate < startDate) return "Upcoming";
-  if (currentDate > endDate) return "Expired";
-  return "Active";
-};
+import { Posting } from "@shared-types/Posting";
 
 const copyLink = (assessmentId: string) => {
   navigator.clipboard.writeText(
-    `${window.location.origin}/assessments/${assessmentId}`
+    `${import.meta.env.VITE_SCRIPTOPIA_URL}/assessments/${assessmentId}`
   );
   toast.success("Link copied to clipboard");
 };
@@ -34,6 +25,20 @@ const MCQAssess = ({
   createdAssessments: Assessment[];
 }) => {
   const navigate = useNavigate();
+  const { posting } = useOutletContext() as { posting: Posting };
+
+  const calculateStatus = (createdAssessment: Assessment) => {
+    const currentStep = posting.workflow?.currentStep || 0;
+    if (!posting?.workflow?.steps || !posting?.workflow?.steps[currentStep])
+      return "Inactive";
+
+    const currentStepId = posting?.workflow?.steps[currentStep].stepId;
+    if (currentStepId?.toString() !== createdAssessment._id.toString()) {
+      return "Inactive";
+    }
+
+    return "Active";
+  };
 
   return (
     <motion.div
@@ -54,8 +59,6 @@ const MCQAssess = ({
                     className={`${
                       calculateStatus(CreatedAssessment) === "Active"
                         ? "text-green-500"
-                        : calculateStatus(CreatedAssessment) === "Upcoming"
-                        ? "text-yellow-500"
                         : "text-red-500"
                     }`}
                   >
@@ -80,9 +83,7 @@ const MCQAssess = ({
                 <Button
                   className="w-[48%] flex items-center justify-center text-xs gap-3"
                   variant="flat"
-                  onClick={() =>
-                    navigate(`${CreatedAssessment._id}/view`)
-                  }
+                  onClick={() => navigate(`${CreatedAssessment._id}/view`)}
                 >
                   <Eye size={18} /> <p>View</p>
                 </Button>

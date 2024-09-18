@@ -8,6 +8,7 @@ import AssessmentSubmissions from "../../models/AssessmentSubmissions";
 import { SclObject } from "@shared-types/Scl";
 import { TestCase } from "@shared-types/Problem";
 import Posting from "@/models/Posting";
+import { Candidate } from "@shared-types/Candidate";
 
 const LIMIT_PER_PAGE = 20;
 
@@ -266,7 +267,9 @@ const verifyAccess = async (c: Context) => {
     }
 
     if (assessment.isEnterprise) {
-      const posting = await Posting.findOne({ _id: assessment.postingId });
+      const posting = await Posting.findOne({
+        _id: assessment.postingId,
+      }).populate("candidates");
       if (!posting) {
         return sendError(c, 404, "Posting not found");
       }
@@ -279,6 +282,11 @@ const verifyAccess = async (c: Context) => {
       const currentStep = workflow.steps[workflow.currentStep];
       if (currentStep.stepId.toString() !== assessment._id.toString()) {
         return sendError(c, 403, "Assessment not active");
+      }
+
+      const candidates = posting.candidates as unknown as Candidate[];
+      if (!candidates.some((candidate) => candidate.email === body.email)) {
+        return sendError(c, 403, "You are not allowed to take this assessment");
       }
     } else {
       const assessmentStartTime = new Date(

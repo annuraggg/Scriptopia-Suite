@@ -6,7 +6,7 @@ import {
   Users,
   Briefcase,
   PieChart,
-  Calendar,
+  // Calendar,
   BookOpenText,
   CreditCard,
   HelpCircle,
@@ -55,12 +55,12 @@ const Sidebar = () => {
         org?.permissions?.includes("view_analytics") ||
         org?.permissions?.includes("manage_organization"),
     },
-    {
-      icon: Calendar,
-      label: "Calendar",
-      link: "/calendar",
-      visible: true,
-    },
+    // {
+    //   icon: Calendar,
+    //   label: "Calendar",
+    //   link: "/calendar",
+    //   visible: true,
+    // },
   ];
 
   const bottomItems = [

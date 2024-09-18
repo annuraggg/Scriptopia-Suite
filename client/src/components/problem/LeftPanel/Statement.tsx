@@ -66,7 +66,7 @@ const Statement = ({
         <Tab
           key="submissions"
           title="Submissions"
-          className="w-full p-0"
+          className={`w-full p-0 ${allowSubmissionsTab ? "" : "hidden"}`}
           isDisabled={!allowSubmissionsTab}
         >
           <Card className="w-full">

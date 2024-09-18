@@ -1,53 +1,56 @@
-import { useEffect, useState } from "react";
-import Editor from "./Editor/Editor";
-import InfoPanel from "./InfoPanel";
-import Statement from "./LeftPanel/Statement";
-import Split from "@uiw/react-split";
-import starterGenerator from "@/functions/starterGenerator";
-import { useAuth } from "@clerk/clerk-react";
+import ProblemComponent from "@/components/problem/Problem";
 import ax from "@/config/axios";
-import { Delta } from "quill/core";
-import { RunResponseResult } from "@shared-types/RunResponse";
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-} from "@nextui-org/modal";
-
-import { Button, useDisclosure } from "@nextui-org/react";
+import { useAuth } from "@clerk/clerk-react";
+import { Problem as ProblemType } from "@shared-types/Problem";
+import { useEffect, useState } from "react";
+import TimerBar from "./TimerBar";
+import { Security } from "@shared-types/Assessment";
 import secureLocalStorage from "react-secure-storage";
-import { Language } from "@/data/languages";
+import {
+  Button,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  useDisclosure,
+} from "@nextui-org/react";
 
 const Problem = () => {
-  const [rootLoading, setRootLoading] = useState<boolean>(true);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [problem, setProblem] = useState<ProblemType>({} as ProblemType);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [securityConfig, setSecurityConfig] = useState<Security>(
+    {} as Security
+  );
 
-  const [statement, setStatement] = useState<Delta>({} as Delta);
-  const [title, setTitle] = useState<string>("");
-
-  const [code, setCode] = useState<string>("");
-  const [languages, setLanguages] = useState<Language[]>([]);
-  const [language, setLanguage] = useState<Language>({} as Language);
-
-  const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
-  const [cases, setCases] = useState<RunResponseResult[]>([]);
-
-  const [scl, setSCl] = useState([]);
-  const [problemId, setProblemId] = useState<string>("");
-
-  const [editorUpdateFlag, setEditorUpdateFlag] = useState<boolean>(false);
-  const [pid, setPid] = useState<string>("");
-
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const {
     isOpen: isTabChangeOpen,
-    onOpen: onTabChangeOpen,
-    onOpenChange: onTabChangeOpenChange,
+    onOpen: onTabChangeOpenChange,
+    onClose: onTabChangeCloseChange,
   } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const { getToken } = useAuth();
+  useEffect(() => {
+    const axios = ax(getToken);
+    const id = window.location.pathname.split("/").pop();
+    axios
+      .get(`/problems/${id}`)
+      .then((res) => {
+        setProblem(res.data.data.problem);
+        console.log(res.data.data);
+      })
+      .catch(() => {})
+      .finally(() => {
+        setLoading(false);
+      });
+
+    secureLocalStorage.getItem("securityConfig") &&
+      setSecurityConfig(
+        secureLocalStorage.getItem("securityConfig") as Security
+      );
+  }, [getToken]);
+
   useEffect(() => {
     const name = localStorage.getItem("name") as string;
     const email = localStorage.getItem("email") as string;
@@ -57,61 +60,28 @@ const Problem = () => {
       window.location.href = redirectPath.join("/");
     }
 
-    const langs =
-      (secureLocalStorage.getItem("securityConfig") as { languages: Language[] })
-        ?.languages || [];
-    setLanguages(langs);
-    setLanguage(langs[0]);
-
-    const axios = ax(getToken);
-    const id = window.location.pathname.split("/").pop() as string;
-    setPid(id);
-    axios
-      .get(`/problems/${id}`)
-      .then((res) => {
-        setStatement(res.data.data.problem.description.ops);
-        setTitle(res.data.data?.problem?.title);
-        setProblemId(res.data.data?.problem?._id);
-        setSCl(res.data.data?.problem?.scl);
-
-        const starterCode = starterGenerator(
-          res.data.data?.problem?.scl,
-          langs[0].abbr
-        );
-        setCode(starterCode);
-      })
-      .catch((err) => {
-        console.log(err);
-      })
-      .finally(() => {
-        setRootLoading(false);
-      });
-
-    const securityConfig = secureLocalStorage.getItem("securityConfig") as {
-      languages: string[];
-      codePlayback: boolean;
-      codeExecution: boolean;
-      tabChangeDetection: boolean;
-      copyPasteDetection: boolean;
-      allowAutoComplete: boolean;
-      syntaxHighlighting: boolean;
-    };
+    const securityConfig = secureLocalStorage.getItem(
+      "securityConfig"
+    ) as Security;
 
     if (securityConfig.tabChangeDetection) {
       window.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") {
-          onTabChangeOpen();
+          onTabChangeOpenChange();
           const offtrack = (secureLocalStorage.getItem("offtrack") as {
             tabChange: { problem: { problemId: string; times: number }[] };
           }) || { tabChange: { problem: [] } };
 
-          const problem = offtrack.tabChange.problem.find(
-            (p: { problemId: string }) => p.problemId === problemId
+          const problemSt = offtrack.tabChange.problem.find(
+            (p: { problemId: string }) => p.problemId === problem._id
           );
-          if (problem) {
-            problem.times = problem.times ? problem.times + 1 : 1;
+          if (problemSt) {
+            problemSt.times = problemSt.times ? problemSt.times + 1 : 1;
           } else {
-            offtrack.tabChange.problem.push({ problemId: pid || id, times: 1 });
+            offtrack.tabChange.problem.push({
+              problemId: problem._id,
+              times: 1,
+            });
           }
 
           secureLocalStorage.setItem("offtrack", offtrack);
@@ -124,32 +94,18 @@ const Problem = () => {
     };
   }, [getToken]);
 
-  const runCode = async () => {
-    setLoading(true);
-    const axios = ax(getToken);
-    return axios
-      .post("/submissions/run", { code, language, problemId })
-      .then((res) => {
-        setCases(
-          res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
-        );
-
-        setConsoleOutput(
-          res.data.data.results.map((r: RunResponseResult) => r.consoleOutput)
-        );
-
-        return { success: true, error: "", data: {} };
-      })
-      .catch((err) => {
-        console.log(err);
-        return { success: false, error: err, data: {} };
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
-
-  const submitCode = async () => {
+  const [code, setCode] = useState<string>("");
+  const [language, setLanguage] = useState<string>("javascript");
+  const [problemId, setProblemId] = useState<string>("");
+  
+  const submitCode = async (
+    code: string,
+    language: string,
+    problemId: string
+  ) => {
+    setCode(code);
+    setLanguage(language);
+    setProblemId(problemId);
     onOpen();
   };
 
@@ -168,44 +124,26 @@ const Problem = () => {
     window.history.back();
   };
 
-  useEffect(() => {
-    const starter = starterGenerator(scl, language.abbr);
-    setCode(starter);
-
-    setEditorUpdateFlag((prev) => !prev);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [language]);
-
-  if (rootLoading) return <div>Loading...</div>;
-
   return (
-    <>
-      <Split className="flex h-[100vh] w-full gap-2 p-5" vaul-drawer-wrapper="">
-        <Statement statement={statement} title={title} />
-        <Split mode="vertical" className="w-full">
-          <Editor
-            runCode={runCode}
-            submitCode={submitCode}
-            loading={loading}
-            code={code}
-            setCode={setCode}
-            language={language}
-            setLanguage={setLanguage}
-            languages={languages}
-            editorUpdateFlag={editorUpdateFlag}
-          />
-          <InfoPanel cases={cases} consoleOutput={consoleOutput} />
-        </Split>
-      </Split>
+    <div className="px-5">
+      <TimerBar />
+      <ProblemComponent
+        loading={loading}
+        problem={problem}
+        allowSubmissionsTab={false}
+        allowRun={securityConfig?.allowRunningCode}
+        allowExplain={false}
+        submitOverride={submitCode}
+      />
 
-      <Modal isOpen={isOpen} onClose={onOpenChange}>
+      <Modal isOpen={isOpen} onClose={onClose}>
         <ModalContent>
           <ModalHeader>Are You Sure?</ModalHeader>
           <ModalBody>
             You won't be able to make changes after submission.
           </ModalBody>
           <ModalFooter>
-            <Button onClick={onOpenChange} variant="flat" color="danger">
+            <Button onClick={onClose} variant="flat" color="danger">
               Cancel
             </Button>
             <Button onClick={saveCode} variant="flat" color="success">
@@ -217,7 +155,7 @@ const Problem = () => {
 
       <Modal
         isOpen={isTabChangeOpen}
-        onClose={onTabChangeOpenChange}
+        onClose={onTabChangeCloseChange}
         classNames={{
           backdrop:
             "bg-gradient-to-t from-red-900/50 to-red-900/5 backdrop-opacity-5",
@@ -230,7 +168,7 @@ const Problem = () => {
           </ModalBody>
           <ModalFooter>
             <Button
-              onClick={onTabChangeOpenChange}
+              onClick={onTabChangeCloseChange}
               variant="flat"
               color="danger"
             >
@@ -239,7 +177,7 @@ const Problem = () => {
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </>
+    </div>
   );
 };
 

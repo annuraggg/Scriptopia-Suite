@@ -108,8 +108,10 @@ const Show = ({ workflowData, postingTitle, behavior }: ShowProps) => {
                         Advance
                       </Button>
                     </TableCell>
+                  ) : (posting.workflow?.currentStep ?? -1) > index ? (
+                    <TableCell className="h-16 text-success-500">Step Completed</TableCell>
                   ) : (posting.workflow?.currentStep ?? -1) > index - 1 ? (
-                    <TableCell className="h-16">Step Completed</TableCell>
+                    <TableCell className="h-16 text-warning-500">Ongoing</TableCell>
                   ) : (
                     <TableCell className="h-16">&nbsp;</TableCell>
                   )}

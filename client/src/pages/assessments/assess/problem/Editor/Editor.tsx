@@ -51,7 +51,14 @@ const Editor = ({
           </div>
         </CardHeader>
         <CardBody className="h-full p-0 overflow-visible">
-          <Monaco key={language.name} code={code} setCode={setCode} loading={loading} language={language.name.toLowerCase()} editorUpdateFlag={editorUpdateFlag} />
+          <Monaco
+            key={language.name}
+            code={code}
+            setCode={setCode}
+            loading={loading}
+            language={language?.name?.toLowerCase()}
+            editorUpdateFlag={editorUpdateFlag}
+          />
         </CardBody>
       </Card>
 
