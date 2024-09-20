@@ -15,8 +15,8 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       URI: ${{ secrets.URI }}
-      BUCKET_NAME: ${{ vars.BUCKET_NAME }}
-      ENDPOINT: ${{ vars.ENDPOINT }}
+      BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+      ENDPOINT: ${{ secrets.ENDPOINT }}
 
     steps:
       - name: Checkout Code  
@@ -28,5 +28,7 @@ jobs:
       - name: Install node.js
         run: npm ci
 
-      - name: Run backup
-        run: node backup.js
+      - name: Change to backups folder and run backup
+        run: |
+          cd backups
+          node makeBackup.js
