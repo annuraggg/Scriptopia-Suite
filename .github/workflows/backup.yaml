@@ -3,10 +3,6 @@ name: Backup
 on:
   schedule:
     - cron: '21 15 * * *'
-  push:
-    branches:
-      - main
-
 jobs:
   backup:
     runs-on: ubuntu-latest
