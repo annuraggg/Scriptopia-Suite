@@ -24,14 +24,17 @@ jobs:
     steps:
       - name: Checkout Code  
         uses: actions/checkout@v2
+        with:
+          path: backups
 
       - name: Install mongo-tools
         run:  sudo wget https://fastdl.mongodb.org/tools/db/mongodb-database-tools-debian92-x86_64-100.3.1.deb && sudo apt install ./mongodb-database-tools-*.deb
+        working-directory: backups
 
       - name: Install node.js
         run: npm ci
+        working-directory: backups
 
-      - name: Change to backups folder and run backup
-        run: |
-          cd backups
-          node makeBackup.js
+      - name: Run backup
+        run: node makeBackup.js
+        working-directory: backups
