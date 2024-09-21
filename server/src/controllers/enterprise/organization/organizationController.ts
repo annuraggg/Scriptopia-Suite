@@ -20,6 +20,8 @@ const createOrganization = async (c: Context) => {
     const { name, email, website, members } = await c.req.json();
     const u = c.get("auth").userId;
 
+    console.log(members)
+
     const clerkUser = await clerkClient.users.getUser(u);
     const fName = clerkUser.firstName;
     const lName = clerkUser.lastName;

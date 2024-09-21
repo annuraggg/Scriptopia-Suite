@@ -51,6 +51,7 @@ import CandiateAssignment from "./pages/candidate/assignment/Assignment";
 import ViewAssignment from "./pages/jobs/job/assignment/ViewAssignment";
 import ViewAssessment from "./pages/jobs/job/assessments/ViewAssessment/ViewAssessment";
 import ViewUserAssessment from "./pages/jobs/job/assessments/ViewAssessment/ViewUserAssessment";
+import Onboarding from "./pages/onboarding/Onboarding";
 
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
 const Jobs = lazy(() => import("./pages/jobs/Jobs"));
@@ -156,7 +157,9 @@ function App() {
     },
     {
       path: "assessments/:id/view/:candId",
-      element: <Suspense fallback={<Loader />} children={<ViewUserAssessment />} />,
+      element: (
+        <Suspense fallback={<Loader />} children={<ViewUserAssessment />} />
+      ),
     },
     {
       path: "assessments/new/:type",
@@ -191,6 +194,19 @@ function App() {
         <>
           <SignedIn>
             <Start />
+          </SignedIn>
+          <SignedOut>
+            <RedirectToSignIn />
+          </SignedOut>
+        </>
+      ),
+    },
+    {
+      path: "/onboarding",
+      element: (
+        <>
+          <SignedIn>
+            <Onboarding />
           </SignedIn>
           <SignedOut>
             <RedirectToSignIn />
