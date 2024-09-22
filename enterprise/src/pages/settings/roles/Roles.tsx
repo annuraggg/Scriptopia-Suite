@@ -10,11 +10,12 @@ import UnsavedToast from "@/components/UnsavedToast";
 import { setToastChanges } from "@/reducers/toastReducer";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/types/Reducer";
+import { useOutletContext } from "react-router-dom";
 
 const Roles = () => {
   const [builtInRoles, setBuiltInRoles] = useState<Role[]>([]);
   const [customRoles, setCustomRoles] = useState<Role[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [selectedRole, setSelectedRole] = useState<Role>({} as Role);
   const [permissions, setPermissions] = useState<string[]>([]);
   const [changes, setChanges] = useState<boolean>(false);
@@ -35,30 +36,14 @@ const Roles = () => {
 
   const org = useSelector((state: RootState) => state.organization);
 
+  const res = useOutletContext() as { roles: Role[]; permissions: string[] };
   useEffect(() => {
-    setLoading(true);
-    axios
-      .get("organizations/settings")
-      .then((res) => {
-        setBuiltInRoles(
-          res.data.data.roles.filter((role: Role) => role.default)
-        );
-        setCustomRoles(
-          res.data.data.roles.filter((role: Role) => !role.default)
-        );
+    setBuiltInRoles(res.roles.filter((role: Role) => role.default));
+    setCustomRoles(res.roles.filter((role: Role) => !role.default));
 
-        setSelectedRole(
-          res.data.data.roles.filter((role: Role) => role.default)[0]
-        );
+    setSelectedRole(res.roles.filter((role: Role) => role.default)[0]);
 
-        setPermissions(res.data.data.permissions);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error("Error Fetching Settings");
-      })
-      .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setPermissions(res.permissions);
   }, [reset]);
 
   const save = async () => {

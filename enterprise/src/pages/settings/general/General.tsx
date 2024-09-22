@@ -20,13 +20,21 @@ import { setToastChanges } from "@/reducers/toastReducer";
 import { useDispatch, useSelector } from "react-redux";
 import UnsavedToast from "@/components/UnsavedToast";
 import { RootState } from "@/types/Reducer";
+import { useOutletContext } from "react-router-dom";
+
+interface SettingsInterface {
+  name: string;
+  email: string;
+  website: string;
+  logo: string;
+}
 
 const General = () => {
   const [companyName, setCompanyName] = useState<string>("");
   const [logo, setLogo] = useState<string>("");
   const [companyWebsite, setCompanyWebsite] = useState<string>("");
   const [companyEmail, setCompanyEmail] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [newLogo, setNewLogo] = useState<File>({} as File);
   const [zoom, setZoom] = useState<number>(1);
@@ -41,34 +49,23 @@ const General = () => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
-  useEffect(() => {
-    fetchSettings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const fetchSettings = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get("organizations/settings");
-      setCompanyName(res.data.data.name || "");
-      setCompanyEmail(res.data.data.email || "");
-      setCompanyWebsite(res.data.data.website || "");
-      setLogo(res.data.data.logo);
-      setChanges(false);
-    } catch (err) {
-      console.error(err);
-      toast.error("Error fetching settings. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const org = useSelector((state: RootState) => state.organization);
   const triggerSaveToast = () => {
     if (!changes) {
       dispatch(setToastChanges(true));
     }
   };
+
+  const settings = useOutletContext() as SettingsInterface;
+  useEffect(() => {
+    console.log(settings);
+    if (settings) {
+      setCompanyName(settings.name);
+      setCompanyEmail(settings.email);
+      setCompanyWebsite(settings.website);
+      setLogo(settings.logo);
+    }
+  }, [settings]);
 
   const handleSave = async () => {
     setLoading(true);

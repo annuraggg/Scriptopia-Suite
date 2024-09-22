@@ -192,7 +192,7 @@ const AuditLogs: React.FC = () => {
         toast.error("Error Fetching Settings");
       })
       .finally(() => setLoading(false));
-  }, [axios]);
+  }, []);
 
   const filterInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;

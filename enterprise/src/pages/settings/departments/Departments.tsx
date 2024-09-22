@@ -23,6 +23,7 @@ import UnsavedToast from "@/components/UnsavedToast";
 import { setToastChanges } from "@/reducers/toastReducer";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/types/Reducer";
+import { useOutletContext } from "react-router-dom";
 
 const Departments: React.FC = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -33,7 +34,7 @@ const Departments: React.FC = () => {
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(
     null
   );
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [changes, setChanges] = useState<boolean>(false);
 
   const org = useSelector((state: RootState) => state.organization);
@@ -50,23 +51,10 @@ const Departments: React.FC = () => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
+  const res = useOutletContext() as { departments: Department[] };
   useEffect(() => {
-    fetchDepartments();
+    setDepartments(res.departments);
   }, []);
-
-  const fetchDepartments = () => {
-    setLoading(true);
-    axios
-      .get("organizations/settings")
-      .then((res) => {
-        setDepartments(res.data.data.departments);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error("Error Fetching Departments");
-      })
-      .finally(() => setLoading(false));
-  };
 
   const triggerSaveToast = () => {
     if (!changes) {

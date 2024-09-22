@@ -32,13 +32,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { setToastChanges } from "@/reducers/toastReducer";
 import UnsavedToast from "@/components/UnsavedToast";
 import { RootState } from "@/types/Reducer";
+import { useOutletContext } from "react-router-dom";
 
 const Members: React.FC = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [members, setMembers] = useState<Member[]>([]);
   const [invitedMembers, setInvitedMembers] = useState<Member[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [changes, setChanges] = useState<boolean>(false);
   const [selectedEmail, setSelectedEmail] = useState<string>("");
   const [userEmails, setUserEmails] = useState<string[]>([]);
@@ -67,31 +68,24 @@ const Members: React.FC = () => {
     }
   }, [isLoaded, user]);
 
+  const res = useOutletContext() as {
+    members: Member[];
+    roles: Role[];
+  };
   useEffect(() => {
-    setLoading(true);
-    axios
-      .get("organizations/settings")
-      .then((res) => {
-        setMembers(
-          res.data.data.members.filter(
-            (member: Member) => member.status === "active"
-          )
-        );
+    setMembers(
+      res.members.filter(
+        (member: Member) => member.status === "active"
+      )
+    );
 
-        setInvitedMembers(
-          res.data.data.members.filter(
-            (member: Member) => member.status === "pending"
-          )
-        );
+    setInvitedMembers(
+      res.members.filter(
+        (member: Member) => member.status === "pending"
+      )
+    );
 
-        setRoles(res.data.data.roles);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error("Error Fetching Settings");
-      })
-      .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setRoles(res.roles);
   }, []);
 
   const saveChanges = () => {
