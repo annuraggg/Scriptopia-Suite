@@ -8,6 +8,8 @@ import { AppliedPosting, Candidate } from "@shared-types/Candidate";
 import loops from "@/config/loops";
 import Organization from "@/models/Organization";
 import { Assessment } from "@shared-types/Assessment";
+import clerkClient from "@/config/clerk";
+import { AuditLog } from "@shared-types/Organization";
 const REGION = "ap-south-1";
 
 const advanceWorkflow = async (c: Context) => {
@@ -58,6 +60,18 @@ const advanceWorkflow = async (c: Context) => {
     }
 
     await posting.save();
+
+    const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+    const auditLog: AuditLog = {
+      user: clerkUser.firstName + " " + clerkUser.lastName,
+      userId: clerkUser.id,
+      action: `Advanced Workflow for ${posting.title} to step ${newStepIndex}`,
+      type: "info",
+    };
+
+    await Organization.findByIdAndUpdate(perms.data!.orgId, {
+      $push: { auditLogs: auditLog },
+    });
 
     return sendSuccess(c, 200, "Workflow advanced successfully", posting);
   } catch (error) {

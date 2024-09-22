@@ -1,3 +1,4 @@
+import clerkClient from "@/config/clerk";
 import loops from "@/config/loops";
 import r2Client from "@/config/s3";
 import Candidate from "@/models/Candidate";
@@ -7,6 +8,7 @@ import Posting from "@/models/Posting";
 import logger from "@/utils/logger";
 import { sendError, sendSuccess } from "@/utils/sendResponse";
 import { Upload } from "@aws-sdk/lib-storage";
+import { AuditLog } from "@shared-types/Organization";
 import { Context } from "hono";
 import PDE from "pdf.js-extract";
 const PDFExtract = PDE.PDFExtract;
@@ -257,6 +259,17 @@ const apply = async (c: Context) => {
     });
 
     await postingUp?.save();
+
+    const auditLog: AuditLog = {
+      user: "System",
+      userId: "system",
+      action: `Received application for ${posting.title}`,
+      type: "info",
+    };
+
+    await Organization.findByIdAndUpdate(posting.organizationId, {
+      $push: { auditLogs: auditLog },
+    });
 
     return sendSuccess(c, 200, "Application submitted successfully");
   } catch (e: any) {
