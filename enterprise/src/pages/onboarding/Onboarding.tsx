@@ -122,7 +122,7 @@ const Onboarding = () => {
       <div className="min-w-[60%] h-full pr-10">
         <img src="logo.png" alt="logo" className="w-14 h-14" />
         <div className="flex gap-3 mt-10">
-          {steps.map((s, i) => (
+          {steps.map((_s, i) => (
             <div
               className={`w-14 h-3 rounded-full transition-colors
               ${

@@ -17,8 +17,9 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/types/Reducer";
 import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
+import { Badge } from "@nextui-org/react";
 
-const Sidebar = () => {
+const Sidebar = ({ notifications }: { notifications: Notification[] }) => {
   const org = useSelector((state: RootState) => state.organization);
   if (!org || !org.permissions) {
     window.location.href = "/";
@@ -69,6 +70,7 @@ const Sidebar = () => {
       label: "Notifications",
       link: "/notifications",
       visible: true,
+      length: notifications.length,
     },
     {
       icon: Settings,
@@ -167,20 +169,26 @@ const Sidebar = () => {
                   } `}
                   onClick={() => {
                     navigate(item.link);
-
                     setActive(item.label.toLowerCase());
                   }}
                 >
                   <tr>
                     <td className="pr-3">
-                      {item.label === "Profile" ? (
-                        <div className="flex items-center justify-center user-button-small">
-                          <UserButton />
-                        </div>
-                      ) : (
-                        item.icon && <item.icon className="h-5 w-5" />
-                      )}
+                      <Badge
+                        content={item?.length}
+                        color="warning"
+                        className={!item.length ? "hidden" : ""}
+                      >
+                        {item.label === "Profile" ? (
+                          <div className="flex items-center justify-center user-button-small">
+                            <UserButton />
+                          </div>
+                        ) : (
+                          item.icon && <item.icon className="h-5 w-5" />
+                        )}{" "}
+                      </Badge>
                     </td>
+
                     {collapsed ? null : (
                       <td className="text-start w-full">{item.label}</td>
                     )}

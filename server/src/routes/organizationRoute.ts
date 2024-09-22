@@ -1,7 +1,11 @@
 import { Hono } from "hono";
 import organizationController from "../controllers/enterprise/organization/organizationController";
+import notificationController from "../controllers/enterprise/notification/notifcationController";
 
 const app = new Hono();
+
+app.get("/notifications", notificationController.getNotifications);
+app.post("/notifications/read", notificationController.readNotification);
 
 app.post("/create", organizationController.createOrganization);
 app.post("/verify", organizationController.verifyInvite);

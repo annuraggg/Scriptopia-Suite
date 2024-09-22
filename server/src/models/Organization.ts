@@ -1,11 +1,19 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
+const notificationSchema = new Schema({
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  date: { type: Date, default: Date.now },
+  read: { type: Boolean, default: false },
+});
+
 const membersSchema = new Schema({
   user: { type: String },
   email: { type: String, required: true },
   role: { type: String, required: true },
   addedOn: { type: Date, default: Date.now },
+  notifications: { type: [notificationSchema] },
   status: { type: String, enum: ["pending", "active"], default: "pending" },
 });
 
