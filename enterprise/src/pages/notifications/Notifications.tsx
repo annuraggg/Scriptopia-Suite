@@ -133,10 +133,8 @@ const Notifications = () => {
     <>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem href={"/" + org._id}>Organization</BreadcrumbItem>
-          <BreadcrumbItem href={"/" + org._id + "/notifications"}>
-            Notifications
-          </BreadcrumbItem>
+          <BreadcrumbItem>{org.name}</BreadcrumbItem>
+          <BreadcrumbItem href={"/notifications"}>Notifications</BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <div className="p-5 flex flex-col items-center justify-center w-full">

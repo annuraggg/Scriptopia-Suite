@@ -8,6 +8,8 @@ export const organizationSlice = createSlice({
 
     role: null,
     organization: null,
+
+    name: null,
   },
   reducers: {
     setOrganization: (state, action) => {
@@ -15,6 +17,7 @@ export const organizationSlice = createSlice({
       state.permissions = action?.payload?.permissions || [""];
       state.role = action?.payload?.role || null;
       state.organization = action?.payload?.organization || null;
+      state.name = action?.payload?.name || null;
     },
   },
 });

@@ -8,7 +8,8 @@ import { Role } from "@shared-types/Organization";
 import { Card, CardBody, Checkbox, Input, Spinner } from "@nextui-org/react";
 import UnsavedToast from "@/components/UnsavedToast";
 import { setToastChanges } from "@/reducers/toastReducer";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/types/Reducer";
 
 const Roles = () => {
   const [builtInRoles, setBuiltInRoles] = useState<Role[]>([]);
@@ -31,6 +32,8 @@ const Roles = () => {
       dispatch(setToastChanges(true));
     }
   };
+
+  const org = useSelector((state: RootState) => state.organization);
 
   useEffect(() => {
     setLoading(true);
@@ -133,11 +136,19 @@ const Roles = () => {
     );
   }
 
+  const getWords = (str: string) => {
+    return str
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   return (
     <div>
       <UnsavedToast action={save} reset={setReset} />
       <div className="mt-5 ml-5">
         <Breadcrumbs>
+          <BreadcrumbItem>{org.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/roles"}>Roles</BreadcrumbItem>
         </Breadcrumbs>
@@ -213,7 +224,7 @@ const Roles = () => {
                       isSelected={selectedRole.permissions.includes(perm)}
                       onValueChange={(val) => changePerm(val, perm)}
                     >
-                      <p className="text-sm opacity-50">{perm}</p>
+                      <p className="text-sm opacity-50">{getWords(perm)}</p>
                     </Checkbox>
                   ))}
                 </div>

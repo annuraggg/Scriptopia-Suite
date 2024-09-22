@@ -20,7 +20,7 @@ const createOrganization = async (c: Context) => {
     const { name, email, website, members } = await c.req.json();
     const u = c.get("auth").userId;
 
-    console.log(members)
+    console.log(members);
 
     const clerkUser = await clerkClient.users.getUser(u);
     const fName = clerkUser.firstName;
@@ -126,6 +126,7 @@ const createOrganization = async (c: Context) => {
       publicMetadata: {
         orgId: org._id,
         orgRole: "administrator",
+        orgName: org.name,
         orgPermissions: adminRole?.permissions,
       },
     });
@@ -245,6 +246,7 @@ const joinOrganization = async (c: Context) => {
       clerkClient.users.updateUser(u, {
         publicMetadata: {
           orgId: org._id,
+          orgName: organization.name,
           orgRole: decoded.role,
           orgPermissions: permissions,
         },
@@ -367,24 +369,36 @@ const updateGeneralSettings = async (c: Context) => {
       type: "info",
     };
 
-    const updatedOrg = await Organization.findByIdAndUpdate(
-      orgId,
-      {
-        $set: { name, email, website },
-        $push: { auditLogs: auditLog },
-      },
-      { new: true }
-    );
-
-    if (!updatedOrg) {
+    const org = await Organization.findById(orgId);
+    if (!org) {
       return sendError(c, 404, "Organization not found");
     }
+
+    if (name !== org.name) {
+      for (const member of org.members) {
+        if (!member.user) continue;
+        const u = await clerkClient.users.getUser(member.user);
+        const publicMetadata = u.publicMetadata;
+        publicMetadata.orgName = name;
+
+        await clerkClient.users.updateUser(member.user, {
+          publicMetadata,
+        });
+      }
+    }
+
+    org.name = name;
+    org.email = email;
+    org.website = website;
+    org.auditLogs.push(auditLog);
+
+    await org.save();
 
     return sendSuccess(
       c,
       200,
       "Organization settings updated successfully",
-      updatedOrg
+      org
     );
   } catch (error) {
     logger.error(error as string);

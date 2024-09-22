@@ -105,6 +105,10 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
       .post("/postings/assessment", reqBody)
       .then(() => {
         toast.success("Assessment created successfully");
+        window.location.href = window.location.pathname
+          .split("/")
+          .slice(0, -2)
+          .join("/");
       })
       .catch((err) => {
         console.error(err);

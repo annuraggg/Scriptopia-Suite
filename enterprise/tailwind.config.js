@@ -27,6 +27,7 @@ export default {
       neue: ["neue-montreal", "sans-serif"],
       gloock: ["Gloock", "sans-serif"],
       poly: ["Polysans", "sans-serif"],
+      caveat: ["Caveat", "cursive"],
     },
     extend: {
       dropShadow: {

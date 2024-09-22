@@ -298,6 +298,7 @@ function App() {
         _id: user?.publicMetadata?.orgId,
         role: user?.publicMetadata?.orgRole,
         permissions: user?.publicMetadata?.orgPermissions,
+        name: user?.publicMetadata?.orgName,
       };
       dispatch(setOrganization(data));
     }

@@ -232,7 +232,7 @@ const apply = async (c: Context) => {
     if (resume) {
       const uploadParams = {
         Bucket: process.env.R2_S3_RESUME_BUCKET!,
-        Key: `${finalCandId?.toString()}`,
+        Key: `${finalCandId?.toString()}.pdf`,
         Body: resume, // @ts-expect-error - Type 'File' is not assignable to type 'Body'
         ContentType: resume.type,
       };
