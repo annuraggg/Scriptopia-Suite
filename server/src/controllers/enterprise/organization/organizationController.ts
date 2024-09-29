@@ -14,6 +14,8 @@ import { Role } from "@shared-types/Organization";
 import defaultOrganizationRoles from "@/data/defaultOrganizationRoles";
 import organizationPermissions from "@/data/organizationPermissions";
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
+import Posting from "@/models/Posting";
+import { Candidate } from "@shared-types/Candidate";
 
 const createOrganization = async (c: Context) => {
   try {
@@ -641,19 +643,30 @@ const getCandidates = async (c: Context) => {
 
     const orgId = perms.data?.orgId;
 
-    const organization = await Organization.findById(orgId).populate(
-      "candidates"
-    );
+    const posting = await Posting.find({ organizationId: orgId })
+      .populate("candidates")
+      .lean();
 
-    if (!organization) {
-      return sendError(c, 404, "Organization not found");
+    const candidates = new Set<Candidate>();
+    const emails = new Set<string>();
+
+    for (const post of posting) {
+      const postCandidates = post.candidates;
+      for (const candidate of postCandidates) {
+        const cand: Candidate = candidate as unknown as Candidate;
+
+        if (!emails.has(cand.email)) {
+          emails.add(cand.email);
+          candidates.add(cand);
+        }
+      }
     }
 
     return sendSuccess(
       c,
       200,
-      "Candidates retrieved successfully",
-      organization.candidates
+      "Candidates fetched successfully",
+      Array.from(candidates)
     );
   } catch (error) {
     logger.error(error as string);

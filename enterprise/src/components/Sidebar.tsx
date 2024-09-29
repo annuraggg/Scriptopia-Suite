@@ -70,7 +70,7 @@ const Sidebar = ({ notifications }: { notifications: Notification[] }) => {
       label: "Notifications",
       link: "/notifications",
       visible: true,
-      length: notifications.length,
+      length: notifications?.length,
     },
     {
       icon: Settings,
@@ -177,7 +177,7 @@ const Sidebar = ({ notifications }: { notifications: Notification[] }) => {
                       <Badge
                         content={item?.length}
                         color="warning"
-                        className={!item.length ? "hidden" : ""}
+                        className={!item?.length ? "hidden" : ""}
                       >
                         {item.label === "Profile" ? (
                           <div className="flex items-center justify-center user-button-small">

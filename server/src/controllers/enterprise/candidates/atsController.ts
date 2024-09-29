@@ -7,18 +7,10 @@ import { Context } from "hono";
 
 const getResume = async (c: Context) => {
   try {
-    const { candidateId, postingId } = await c.req.json();
+    const { candidateId } = await c.req.json();
     const perms = await checkOrganizationPermission.all(c, ["view_job"]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
-    }
-
-    const posting = await Posting.findOne({ _id: postingId }).populate(
-      "organizationId"
-    );
-
-    if (!posting) {
-      return sendError(c, 404, "Posting not found");
     }
 
     const candidate = await Candidate.findOne({ _id: candidateId });
