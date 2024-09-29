@@ -295,12 +295,18 @@ const getSettings = async (c: Context) => {
     }
 
     const org = await Organization.findById(perms.data?.orgId)
-      .populate("members.user")
       .populate("auditLogs.user")
       .lean();
 
     if (!org) {
       return sendError(c, 404, "Organization not found");
+    }
+
+    for (const member of org?.members) {
+      const user = await clerkClient.users.getUser(member?.user || "");
+      if (user) { // @ts-expect-error - Converting string to User
+        member.user = user;
+      }
     }
 
     for (const member of org.members) {

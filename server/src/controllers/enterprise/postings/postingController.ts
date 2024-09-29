@@ -121,6 +121,8 @@ const createWorkflow = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
+    console.log(formattedData);
+
     const posting = await Posting.findById(_id);
     if (!posting) {
       return sendError(c, 404, "Posting not found");
@@ -312,6 +314,50 @@ const updateAssignment = async (c: Context) => {
   }
 };
 
+const updateInterview = async (c: Context) => {
+  try {
+    const { postingId, step, interview } = await c.req.json();
+
+    const perms = await checkPermission.all(c, ["manage_job"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const posting = await Posting.findById(postingId);
+    if (!posting) {
+      return sendError(c, 404, "job not found");
+    }
+
+    if (!posting.workflow) {
+      return sendError(c, 400, "Workflow not found");
+    }
+
+    const _id = new mongoose.Types.ObjectId();
+    // @ts-expect-error - Object has no properties common
+    posting.workflow.steps[step].stepId = _id;
+
+    posting.interview = interview;
+    await posting.save();
+
+    const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+    const auditLog: AuditLog = {
+      user: clerkUser.firstName + " " + clerkUser.lastName,
+      userId: clerkUser.id,
+      action: `Created New Interview for Job Posting: ${posting.title}`,
+      type: "info",
+    };
+
+    await Organization.findByIdAndUpdate(perms.data!.orgId, {
+      $push: { auditLogs: auditLog },
+    });
+
+    return sendSuccess(c, 201, "Interview created successfully", posting);
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
 const publishPosting = async (c: Context) => {
   try {
     const { id } = await c.req.json();
@@ -360,5 +406,6 @@ export default {
   updateAts,
   updateAssessment,
   updateAssignment,
+  updateInterview,
   publishPosting,
 };

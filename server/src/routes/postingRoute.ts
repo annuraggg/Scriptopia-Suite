@@ -12,6 +12,7 @@ app.post("/workflow/create", postingController.createWorkflow);
 app.post("/ats", postingController.updateAts);
 app.post("/assessment", postingController.updateAssessment);
 app.post("/assignment", postingController.updateAssignment);
+app.post("/interview", postingController.updateInterview);
 
 app.post("/publish", postingController.publishPosting);
 

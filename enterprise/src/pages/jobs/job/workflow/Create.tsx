@@ -112,14 +112,51 @@ const Create = () => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
+  const componentMap = {
+    ATS: "rs",
+    "MCQ Assessment": "mcqa",
+    "Code Assessment": "ca",
+    "MCQ + Code Assessment": "mcqca",
+    Assignment: "as",
+    Interview: "pi",
+  };
+
   const handleSave = () => {
+    let formattedAutoSchedule = null;
+    if (auto && autoSchedule) {
+      formattedAutoSchedule = autoSchedule.map((schedule) => {
+        const startDate = new Date(
+          schedule.start!.year,
+          schedule.start!.month - 1, // Months are zero-indexed in JS Date
+          schedule.start!.day,
+          schedule.startTime?.hour || 0,
+          schedule.startTime?.minute || 0
+        );
+
+        const endDate = new Date(
+          schedule.end!.year,
+          schedule.end!.month - 1,
+          schedule.end!.day,
+          schedule.endTime?.hour || 0,
+          schedule.endTime?.minute || 0
+        );
+
+        return {
+          step: 0,
+          start: startDate.getTime(), // Convert to timestamp
+          end: endDate.getTime(), // Convert to timestamp
+        };
+      });
+    }
+
     const formattedData = {
       steps: addedComponents.map((component) => ({
-        name: component.label,
-        type: component.label,
+        name: component.label, // @ts-expect-error - TS doesn't know the keys of componentMap
+        type: componentMap[component.label] as string,
       })),
+      currentStep: -1,
       behavior: auto ? "auto" : "manual",
-      auto: autoSchedule,
+      auto: formattedAutoSchedule,
     };
 
     axios

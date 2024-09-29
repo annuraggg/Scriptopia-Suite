@@ -90,7 +90,7 @@ const Sidebar = ({
         label: "Interviews",
         link: "/interviews",
         visible: getFilteredStepsCount(["pi"]) > 0,
-        badge: getFilteredStepsCount(["pi"]) - (posting?.interview ? 0 : 1),
+        badge: getFilteredStepsCount(["pi"]) - (posting?.interview ? 1 : 0),
       },
       {
         icon: Users,
@@ -195,7 +195,7 @@ const Sidebar = ({
     >
       <nav className="flex flex-col gap-4 sm:py-5 px-5">
         {topItems.map((item, index) => (
-          <Skeleton isLoaded={!loading}>
+          <Skeleton isLoaded={!loading} key={index}>
             <Tooltip
               key={index}
               content={item.label}
@@ -215,18 +215,22 @@ const Sidebar = ({
                   }`}
                   onClick={() => handleNavigation(item)}
                 >
-                  <td className="pr-3">
-                    <Badge
-                      content={item.badge || 0}
-                      color="danger"
-                      className={!item.badge || item.badge < 0 ? "hidden" : ""}
-                    >
-                      {item.icon && <item.icon className="h-7 w-5" />}
-                    </Badge>
-                  </td>
-                  {!collapsed && (
-                    <td className="text-start w-full">{item.label}</td>
-                  )}
+                  <tr>
+                    <td className="pr-3">
+                      <Badge
+                        content={item.badge || 0}
+                        color="danger"
+                        className={
+                          !item.badge || item.badge < 0 ? "hidden" : ""
+                        }
+                      >
+                        {item.icon && <item.icon className="h-7 w-5" />}
+                      </Badge>
+                    </td>
+                    {!collapsed && (
+                      <td className="text-start w-full">{item.label}</td>
+                    )}
+                  </tr>
                 </tbody>
               </table>
             </Tooltip>

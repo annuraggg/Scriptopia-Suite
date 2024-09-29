@@ -1,21 +1,19 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-const interviewerSchema = new Schema({
-  interviewer: { type: String, required: true },
-  candidates: [{ type: String, required: true }],
-  meetingLink: { type: String, required: true },
-  timeSlot: {
-    type: {
-      start: { type: Date, required: true },
-      end: { type: Date, required: false },
-    },
-  },
+const slotSchema = new Schema({
+  candidate: { type: mongoose.Types.ObjectId, ref: "Candidate" },
+  start: { type: Date, required: true },
+  end: { type: Date, required: true },
 });
 
 const interviewSchema = new Schema({
-  assignees: { type: [interviewerSchema], required: true },
+  assignees: { type: [mongoose.Types.ObjectId], ref: "User" },
   duration: { type: Number, required: true },
+  slots: { type: [slotSchema], required: true },
+  days: { type: [String], required: true },
+  timeSlotStart: { type: String, required: true },
+  timeSlotEnd: { type: String, required: true },
 });
 
 const atsSchema = new Schema({
