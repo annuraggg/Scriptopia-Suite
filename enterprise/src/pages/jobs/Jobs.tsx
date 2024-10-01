@@ -8,6 +8,7 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  Spinner,
 } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -76,6 +77,8 @@ const Postings: React.FC = () => {
   const navigate = useNavigate();
   const [postings, setPostings] = useState<Posting[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
 
   const [sort, setSort] = useState(new Set(["newest"]));
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -181,11 +184,15 @@ const Postings: React.FC = () => {
     axios
       .get("/postings")
       .then((res) => {
-        setPostings(res.data.data.postings);
-        setDepartments(res.data.data.departments);
+        setTimeout(() => {
+          setPostings(res.data.data.postings);
+          setDepartments(res.data.data.departments);
+          setIsLoading(false); // End loading after 1.5 seconds
+        }, 1500);
       })
       .catch((err) => {
         toast.error(err.response.data.message);
+        setIsLoading(false); // End loading even on error
         console.log(err);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -214,6 +221,7 @@ const Postings: React.FC = () => {
               setSort={setSort}
             />
           </motion.div>
+
           <motion.div
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -236,9 +244,7 @@ const Postings: React.FC = () => {
                   <CardBody className="flex items-center justify-between bg-success-400 text-background bg-opacity-3 py-2 px-5">
                     <div className="flex items-center gap-2">
                       <FilePlusIcon className="text-background" size={22} />
-                      <p className="text-sm text-background">
-                        Create a new job
-                      </p>
+                      <p className="text-sm text-background">Create a new job</p>
                     </div>
                   </CardBody>
                 </Card>
@@ -249,138 +255,136 @@ const Postings: React.FC = () => {
                   <Card
                     isPressable
                     key={index}
-                    className={`text-white rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${
-                      selectedFilter === card.filter
-                        ? "bg-gray-500/20 text-white"
-                        : "text-gray-500"
-                    }`}
+                    className={`text-white rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${selectedFilter === card.filter
+                      ? "bg-gray-500/20 text-white"
+                      : "text-gray-500"
+                      }`}
                     onClick={() => handleFilterChange(card.filter)}
                   >
                     <div className="flex items-center justify-center gap-2 w-full">
                       <div
-                        className={`${
-                          selectedFilter === card.filter
-                            ? "text-white"
-                            : "text-gray-500"
-                        }`}
+                        className={`${selectedFilter === card.filter
+                          ? "text-white"
+                          : "text-gray-500"
+                          }`}
                       >
                         {card.icon}
                       </div>
                       <h1
-                        className={`${
-                          selectedFilter === card.filter
-                            ? "text-white"
-                            : "text-gray-500"
-                        } text-base`}
+                        className={`${selectedFilter === card.filter
+                          ? "text-white"
+                          : "text-gray-500"
+                          } text-base`}
                       >
                         {card.title}
                       </h1>
                     </div>
                     <p
-                      className={`text-center w-full ${
-                        selectedFilter === card.filter
-                          ? "text-white"
-                          : "text-gray-500"
-                      }`}
+                      className={`text-center w-full ${selectedFilter === card.filter
+                        ? "text-white"
+                        : "text-gray-500"
+                        }`}
                     ></p>
                   </Card>
                 ))}
               </div>
 
               <div className="flex flex-col gap-3 w-full mt-6 overflow-y-auto">
-                {filteredPostings.map((posting, index) => (
-                  <Card
-                    className="w-full h-24 border-none p-2 grid grid-cols-2 gap-2"
-                    key={index}
-                  >
-                    <div className="flex flex-col items-start justify-start gap-3 w-full p-2">
-                      <div className="flex flex-row items-center justify-start gap-2 w-full">
-                        <p
-                          className="mr-1 cursor-pointer"
-                          onClick={() => handleDetailsClick(posting)}
-                        >
-                          {posting.title}
-                        </p>
-                        <span
-                          className={`text-xs mr-3 rounded-full whitespace-nowrap`}
-                        >
-                          {
-                            departments.find(
-                              (department) =>
-                                department._id === posting.department
-                            )?.name
-                          }
-                        </span>
-                        <span
-                          className={`text-xs px-2 rounded-full whitespace-nowrap ${
-                            getPostingStatus(posting) === "active"
+                {isLoading ? (
+                  <div className="flex justify-center items-center w-full h-full">
+                    <Spinner color="primary" />
+                  </div>
+                ) : (
+                  filteredPostings.map((posting, index) => (
+                    <Card
+                      className="w-full h-24 border-none p-2 grid grid-cols-2 gap-2"
+                      key={index}
+                    >
+                      <div className="flex flex-col items-start justify-start gap-3 w-full p-2">
+                        <div className="flex flex-row items-center justify-start gap-2 w-full">
+                          <p
+                            className="mr-1 cursor-pointer"
+                            onClick={() => handleDetailsClick(posting)}
+                          >
+                            {posting.title}
+                          </p>
+                          <span
+                            className={`text-xs mr-3 rounded-full whitespace-nowrap`}
+                          >
+                            {
+                              departments.find(
+                                (department) =>
+                                  department._id === posting.department
+                              )?.name
+                            }
+                          </span>
+                          <span
+                            className={`text-xs px-2 rounded-full whitespace-nowrap ${getPostingStatus(posting) === "active"
                               ? " text-success-500 bg-success-100"
                               : " text-danger-500 bg-danger-100"
-                          }`}
-                        >
-                          {getPostingStatus(posting) === "active"
-                            ? "Active"
-                            : "Closed"}
-                        </span>
+                              }`}
+                          >
+                            {getPostingStatus(posting) === "active"
+                              ? "Active"
+                              : "Closed"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 w-full text-sm mt-3 text-gray-500">
+                          <div className="flex items-center gap-2">
+                            <BriefcaseIcon size={18} />
+                            <p>{getPostingType(posting)}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <MapPinIcon size={18} />
+                            <p>{posting.location}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <BanknoteIcon size={18} />
+                            <p>
+                              {posting.salary.min} - {posting.salary.max} (
+                              {posting?.salary?.currency?.toUpperCase() || "USD"})
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 w-full text-sm mt-3 text-gray-500">
-                        <div className="flex items-center gap-2">
-                          <BriefcaseIcon size={18} />
-                          <p>{getPostingType(posting)}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <MapPinIcon size={18} />
-                          <p>{posting.location}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <BanknoteIcon size={18} />
-                          <p>
-                            {posting.salary.min} - {posting.salary.max} (
-                            {posting?.salary?.currency?.toUpperCase() || "USD"})
-                          </p>
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="flex items-center justify-between w-full">
-                      <div className="text-sm rounded-full border bg-secondary bg-opacity-5 px-2 py-1">
-                        <p className="text-gray-300 text-xs">
-                          {getPostingStatus(posting) === "active"
-                            ? `Open Until ${new Date(
+                      <div className="flex items-center justify-between w-full">
+                        <div className="text-sm rounded-full border bg-secondary bg-opacity-5 px-2 py-1">
+                          <p className="text-gray-300 text-xs">
+                            {getPostingStatus(posting) === "active"
+                              ? `Open Until ${new Date(
                                 posting.applicationRange.end
                               ).toLocaleString()}`
-                            : `Closed at ${new Date(
+                              : `Closed at ${new Date(
                                 posting.applicationRange.end
                               ).toLocaleString()}`}
-                        </p>
+                          </p>
+                        </div>
+                        <Dropdown>
+                          <DropdownTrigger>
+                            <Menu
+                              size={28}
+                              className="mr-6 cursor-pointer"
+                            />
+                          </DropdownTrigger>
+                          <DropdownMenu>
+                            {editItems.map((item, index) => (
+                              <DropdownItem
+                                key={index}
+                                className={item.title === "Delete" ? "text-danger" : ""}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {item.icon}
+                                  <p>{item.title}</p>
+                                </div>
+                              </DropdownItem>
+                            ))}
+                          </DropdownMenu>
+                        </Dropdown>
                       </div>
-                      <Dropdown>
-                        <DropdownTrigger>
-                          <Menu
-                            size={28}
-                            className="mr-6 cursor-pointer"
-                            //onClick={() => handleDetailsClick()}
-                          />
-                        </DropdownTrigger>
-                        <DropdownMenu>
-                          {editItems.map((item, index) => (
-                            <DropdownItem
-                              key={index}
-                              className={
-                                item.title === "Delete" ? "text-danger" : ""
-                              }
-                            >
-                              <div className="flex items-center gap-2">
-                                {item.icon}
-                                <p>{item.title}</p>
-                              </div>
-                            </DropdownItem>
-                          ))}
-                        </DropdownMenu>
-                      </Dropdown>
-                    </div>
-                  </Card>
-                ))}
+                    </Card>
+                  ))
+                )}
               </div>
             </div>
           </motion.div>

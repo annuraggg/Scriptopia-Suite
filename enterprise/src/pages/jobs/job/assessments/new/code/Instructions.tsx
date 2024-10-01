@@ -1,12 +1,17 @@
+import React from "react";
 import { Textarea } from "@nextui-org/react";
 import { motion } from "framer-motion";
 
-const Instructions = ({
-  instructions,
-  setInstructions,
-}: {
+interface InstructionsProps {
   instructions: string;
   setInstructions: (instructions: string) => void;
+  errors: { [key: string]: string };
+}
+
+const Instructions: React.FC<InstructionsProps> = ({
+  instructions,
+  setInstructions,
+  errors,
 }) => {
   return (
     <motion.div
@@ -16,7 +21,7 @@ const Instructions = ({
       transition={{ duration: 0.3 }}
     >
       <p>
-        Defaut Instructions will be provided to the candidates. However, you can
+        Default Instructions will be provided to the candidates. However, you can
         add your own instructions here.
       </p>
       <Textarea
@@ -24,7 +29,11 @@ const Instructions = ({
         value={instructions}
         onChange={(e) => setInstructions(e.target.value)}
         className="mt-5"
+        isInvalid={!!errors.instructions}
       />
+      {errors.instructions && (
+        <p className="text-red-500 mt-2">{errors.instructions}</p>
+      )}
     </motion.div>
   );
 };
