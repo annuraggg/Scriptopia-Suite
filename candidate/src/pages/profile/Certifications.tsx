@@ -1,11 +1,5 @@
-import React from 'react'
-
 const Certifications = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+  return <div></div>;
+};
 
-export default Certifications
+export default Certifications;

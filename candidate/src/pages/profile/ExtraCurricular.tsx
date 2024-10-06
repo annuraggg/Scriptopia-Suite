@@ -1,11 +1,5 @@
-import React from 'react'
-
 const ExtraCurricular = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+  return <div></div>;
+};
 
-export default ExtraCurricular
+export default ExtraCurricular;

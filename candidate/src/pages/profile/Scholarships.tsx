@@ -1,11 +1,5 @@
-import React from 'react'
-
 const Scholarships = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+  return <div></div>;
+};
 
-export default Scholarships
+export default Scholarships;
