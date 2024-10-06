@@ -592,13 +592,16 @@ const submitAssessment = async (c: Context) => {
           posting?.postingId?.toString() == assessment?.postingId?.toString()
       );
 
+      console.log("currentPosting", currentPosting);
+
       if (!currentPosting) {
         return sendError(c, 400, "Posting not found");
       }
 
-      const posting = await Posting.findById(currentPosting?._id);
+      const posting = await Posting.findById(currentPosting?.postingId);
+      console.log("posting", posting);
       if (!posting) {
-        return sendError(c, 400, "Posting not found");
+        return sendError(c, 400, "Posting not found 2");
       }
 
       const score = grades?.total || 0;
