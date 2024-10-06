@@ -6,15 +6,7 @@ import {
   TestCases,
 } from "@shared-types/Assessment";
 
-const Grading = ({
-  gradingMetric,
-  setGradingMetric,
-  selectedQuestions,
-  testCaseGrading,
-  setTestCaseGrading,
-  questionsGrading,
-  setQuestionsGrading,
-}: {
+interface GradingProps {
   gradingMetric: string;
   setGradingMetric: (gradingMetric: string) => void;
   selectedQuestions: Problem[];
@@ -26,8 +18,27 @@ const Grading = ({
       | ProblemAssessment[]
       | ((prev: ProblemAssessment[]) => ProblemAssessment[])
   ) => void;
+}
+
+const Grading: React.FC<GradingProps> = ({
+  gradingMetric,
+  setGradingMetric,
+  selectedQuestions,
+  testCaseGrading,
+  setTestCaseGrading,
+  questionsGrading,
+  setQuestionsGrading,
 }) => {
   if (selectedQuestions.length === 0) return "No Problems Selected";
+
+  const isTestCaseGradingValid = () => {
+    return testCaseGrading.easy > 0 && testCaseGrading.medium > 0 && testCaseGrading.hard > 0;
+  };
+
+  const isQuestionGradingValid = () => {
+    return questionsGrading.length === selectedQuestions.length && 
+           questionsGrading.every(q => q.points > 0);
+  };
 
   return (
     <motion.div
@@ -73,6 +84,8 @@ const Grading = ({
                   easy: parseInt(e?.target?.value),
                 })
               }
+              isInvalid={testCaseGrading.easy <= 0}
+              errorMessage={testCaseGrading.easy <= 0 ? "Score must be greater than 0" : ""}
             />
             <Input
               type="number"
@@ -88,6 +101,8 @@ const Grading = ({
                   medium: parseInt(e.target.value),
                 })
               }
+              isInvalid={testCaseGrading.medium <= 0}
+              errorMessage={testCaseGrading.medium <= 0 ? "Score must be greater than 0" : ""}
             />
             <Input
               type="number"
@@ -103,7 +118,12 @@ const Grading = ({
                   hard: parseInt(e.target.value),
                 })
               }
+              isInvalid={testCaseGrading.hard <= 0}
+              errorMessage={testCaseGrading.hard <= 0 ? "Score must be greater than 0" : ""}
             />
+            {!isTestCaseGradingValid() && (
+              <p className="text-red-500 mt-4">Please enter valid scores for all test case difficulties</p>
+            )}
           </div>
         )}
 
@@ -150,10 +170,18 @@ const Grading = ({
                         ];
                       });
                     }}
+                    isInvalid={!questionsGrading.find((q) => q.problemId === question._id)?.points || 
+                               (questionsGrading.find((q) => q.problemId === question._id)?.points ?? 0) <= 0}
+                    errorMessage={!questionsGrading.find((q) => q.problemId === question._id)?.points || 
+                                  (questionsGrading.find((q) => q.problemId === question._id)?.points ?? 0) <= 0
+                                  ? "Score must be greater than 0" : ""}
                   />
                 </div>
               ))}
             </div>
+            {!isQuestionGradingValid() && (
+              <p className="text-red-500 mt-4">Please enter valid scores for all questions</p>
+            )}
           </div>
         )}
       </div>

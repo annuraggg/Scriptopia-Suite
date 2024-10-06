@@ -8,6 +8,8 @@ import { AppliedPosting, Candidate } from "@shared-types/Candidate";
 import loops from "@/config/loops";
 import Organization from "@/models/Organization";
 import { Assessment } from "@shared-types/Assessment";
+import clerkClient from "@/config/clerk";
+import { AuditLog, Role } from "@shared-types/Organization";
 const REGION = "ap-south-1";
 
 const advanceWorkflow = async (c: Context) => {
@@ -58,6 +60,40 @@ const advanceWorkflow = async (c: Context) => {
     }
 
     await posting.save();
+
+    const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+    const auditLog: AuditLog = {
+      user: clerkUser.firstName + " " + clerkUser.lastName,
+      userId: clerkUser.id,
+      action: `Advanced Workflow for ${posting.title} to step ${newStepIndex}`,
+      type: "info",
+    };
+
+    const notification = {
+      title: "Workflow Advanced",
+      description: `Workflow for ${posting.title} has been advanced to step ${workflow.steps[newStepIndex].name}`,
+    };  
+
+    const organization = await Organization.findById(perms.data!.orgId);
+    if (!organization) {
+      return sendError(c, 404, "Organization not found");
+    }
+
+    for (const member of organization.members) {
+      const memberRole = organization.roles.find(
+        (role) => role?._id?.toString() == member.role.toString()
+      ) as unknown as Role;
+
+      console.log(memberRole);
+
+      if (!memberRole) continue;
+      if (!memberRole.permissions.includes("manage_job")) continue;
+
+      member.notifications.push(notification);
+    }
+
+    organization.auditLogs.push(auditLog);
+    await organization.save();
 
     return sendSuccess(c, 200, "Workflow advanced successfully", posting);
   } catch (error) {

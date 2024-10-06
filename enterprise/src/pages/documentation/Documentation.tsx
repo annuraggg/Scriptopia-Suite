@@ -9,10 +9,8 @@ const Documentation = () => {
     <>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem href={"/" + org._id}>Organization</BreadcrumbItem>
-          <BreadcrumbItem href={"/" + org._id + "/documentation"}>
-            Documentation
-          </BreadcrumbItem>
+          <BreadcrumbItem>{org.name}</BreadcrumbItem>
+          <BreadcrumbItem href={"/documentation"}>Documentation</BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <motion.div

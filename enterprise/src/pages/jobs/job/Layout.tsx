@@ -41,7 +41,7 @@ const Layout = () => {
   return (
     <div className="">
       <div className="flex w-full">
-        <ParentSidebar />
+        <ParentSidebar notifications={[]} />
         <Sidebar posting={posting} loading={postingLoading} />
         <div className="h-full w-full overflow-x-auto">
           {postingLoading ? <Loader /> : <Outlet context={{ posting }} />}

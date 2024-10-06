@@ -28,16 +28,18 @@ import {
   Button,
   useDisclosure,
 } from "@nextui-org/react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setToastChanges } from "@/reducers/toastReducer";
 import UnsavedToast from "@/components/UnsavedToast";
+import { RootState } from "@/types/Reducer";
+import { useOutletContext } from "react-router-dom";
 
 const Members: React.FC = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [members, setMembers] = useState<Member[]>([]);
   const [invitedMembers, setInvitedMembers] = useState<Member[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [changes, setChanges] = useState<boolean>(false);
   const [selectedEmail, setSelectedEmail] = useState<string>("");
   const [userEmails, setUserEmails] = useState<string[]>([]);
@@ -66,31 +68,24 @@ const Members: React.FC = () => {
     }
   }, [isLoaded, user]);
 
+  const res = useOutletContext() as {
+    members: Member[];
+    roles: Role[];
+  };
   useEffect(() => {
-    setLoading(true);
-    axios
-      .get("organizations/settings")
-      .then((res) => {
-        setMembers(
-          res.data.data.members.filter(
-            (member: Member) => member.status === "active"
-          )
-        );
+    setMembers(
+      res.members.filter(
+        (member: Member) => member.status === "active"
+      )
+    );
 
-        setInvitedMembers(
-          res.data.data.members.filter(
-            (member: Member) => member.status === "pending"
-          )
-        );
+    setInvitedMembers(
+      res.members.filter(
+        (member: Member) => member.status === "pending"
+      )
+    );
 
-        setRoles(res.data.data.roles);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error("Error Fetching Settings");
-      })
-      .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setRoles(res.roles);
   }, []);
 
   const saveChanges = () => {
@@ -132,9 +127,10 @@ const Members: React.FC = () => {
   const handleRoleChange = (index: number, newRole: Role | string) => {
     if (!newRole) return;
     const updatedMembers = [...members];
-    updatedMembers[index].role = roles.find(
-      (role) => role.name === newRole
-    ) as Role;
+    const newRoleId = roles.find((role) => role._id === newRole)?._id;
+    if (!newRoleId) return;
+    updatedMembers[index].role = newRoleId;
+
     setMembers(updatedMembers);
     triggerSaveToast();
   };
@@ -156,6 +152,8 @@ const Members: React.FC = () => {
     onRevokeConfirmOpenChange();
   };
 
+  const org = useSelector((state: RootState) => state.organization);
+
   if (loading || !isLoaded) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -169,12 +167,12 @@ const Members: React.FC = () => {
       <UnsavedToast action={saveChanges} />
       <div className="mt-5 ml-5">
         <Breadcrumbs>
+          <BreadcrumbItem>{org.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/members"}>Members</BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <div className="flex flex-col items-start justify-start w-full h-full p-5">
-        <h1 className="text-3xl">Members</h1>
         <Tabs aria-label="Options" className="w-full pt-7" variant="underlined">
           <Tab key="members" title="Members" className="w-full">
             <Table aria-label="Members" className="w-full">
@@ -196,23 +194,18 @@ const Members: React.FC = () => {
                     <TableCell className="w-[200px]">
                       <Select
                         className="w-[200px]"
-                        selectedKeys={typeof member.role !== "string" ? [member.role.name] : []}
+                        selectedKeys={[member.role] as string[]}
                         aria-label="Role"
                         isDisabled={
                           userEmails.filter((email) => email === member.email)
                             .length !== 0
                         }
-                        onSelectionChange={(keys) =>
-                          handleRoleChange(
-                            index,
-                            typeof member.role === "string"
-                              ? member.role
-                              : (Array.from(keys)[0] as string)
-                          )
-                        }
+                        onSelectionChange={(keys) => {
+                          handleRoleChange(index, keys.currentKey as string);
+                        }}
                       >
                         {roles.map((role) => (
-                          <SelectItem key={role.name} value={role.name}>
+                          <SelectItem key={role._id!} value={role._id}>
                             {role.name}
                           </SelectItem>
                         ))}

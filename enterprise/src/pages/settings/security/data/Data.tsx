@@ -2,13 +2,16 @@ import Sidebar from "../Sidebar";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { TrashIcon } from "lucide-react";
 import { Button, Divider } from "@nextui-org/react";
+import { RootState } from "@/types/Reducer";
+import { useSelector } from "react-redux";
 
 const Data = () => {
-  
+  const org = useSelector((state: RootState) => state.organization);
   return (
     <div>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
+          <BreadcrumbItem>{org.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/security"}>Security</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/security/data"}>Data</BreadcrumbItem>

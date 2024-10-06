@@ -9,6 +9,7 @@ import { SclObject } from "@shared-types/Scl";
 import { TestCase } from "@shared-types/Problem";
 import Posting from "@/models/Posting";
 import { Candidate } from "@shared-types/Candidate";
+import CandidateDoc from "@/models/Candidate";
 
 const LIMIT_PER_PAGE = 20;
 
@@ -580,6 +581,38 @@ const submitAssessment = async (c: Context) => {
 
     const newSubmission = new AssessmentSubmissions(assessmentSubmission);
     await newSubmission.save();
+
+    if (assessment.isEnterprise) {
+      const candidate = await CandidateDoc.findOne({
+        email,
+      });
+
+      const currentPosting = candidate?.appliedPostings.find(
+        (posting) =>
+          posting?._id?.toString() == assessment?.postingId?.toString()
+      );
+
+      if (!currentPosting) {
+        return sendError(c, 400, "Posting not found");
+      }
+
+      const posting = await Posting.findById(currentPosting?._id);
+      if (!posting) {
+        return sendError(c, 400, "Posting not found");
+      }
+
+      const score = grades?.total || 0;
+      const totalScore = assessment.obtainableScore;
+      const passingPercentage = assessment.passingPercentage;
+      const percentage = (score / totalScore) * 100;
+      if (percentage < passingPercentage) {
+        currentPosting.status = "rejected";
+        currentPosting.disqualifiedStage = posting?.workflow?.currentStep;
+        currentPosting.disqualifiedReason = "Failed Assessment";
+
+        await candidate?.save();
+      }
+    }
 
     return sendSuccess(c, 200, "Success");
   } catch (error) {

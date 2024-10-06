@@ -8,12 +8,14 @@ import { Role } from "@shared-types/Organization";
 import { Card, CardBody, Checkbox, Input, Spinner } from "@nextui-org/react";
 import UnsavedToast from "@/components/UnsavedToast";
 import { setToastChanges } from "@/reducers/toastReducer";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/types/Reducer";
+import { useOutletContext } from "react-router-dom";
 
 const Roles = () => {
   const [builtInRoles, setBuiltInRoles] = useState<Role[]>([]);
   const [customRoles, setCustomRoles] = useState<Role[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [selectedRole, setSelectedRole] = useState<Role>({} as Role);
   const [permissions, setPermissions] = useState<string[]>([]);
   const [changes, setChanges] = useState<boolean>(false);
@@ -32,30 +34,16 @@ const Roles = () => {
     }
   };
 
+  const org = useSelector((state: RootState) => state.organization);
+
+  const res = useOutletContext() as { roles: Role[]; permissions: string[] };
   useEffect(() => {
-    setLoading(true);
-    axios
-      .get("organizations/settings")
-      .then((res) => {
-        setBuiltInRoles(
-          res.data.data.roles.filter((role: Role) => role.default)
-        );
-        setCustomRoles(
-          res.data.data.roles.filter((role: Role) => !role.default)
-        );
+    setBuiltInRoles(res.roles.filter((role: Role) => role.default));
+    setCustomRoles(res.roles.filter((role: Role) => !role.default));
 
-        setSelectedRole(
-          res.data.data.roles.filter((role: Role) => role.default)[0]
-        );
+    setSelectedRole(res.roles.filter((role: Role) => role.default)[0]);
 
-        setPermissions(res.data.data.permissions);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error("Error Fetching Settings");
-      })
-      .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setPermissions(res.permissions);
   }, [reset]);
 
   const save = async () => {
@@ -133,11 +121,19 @@ const Roles = () => {
     );
   }
 
+  const getWords = (str: string) => {
+    return str
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   return (
     <div>
       <UnsavedToast action={save} reset={setReset} />
       <div className="mt-5 ml-5">
         <Breadcrumbs>
+          <BreadcrumbItem>{org.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/roles"}>Roles</BreadcrumbItem>
         </Breadcrumbs>
@@ -213,7 +209,7 @@ const Roles = () => {
                       isSelected={selectedRole.permissions.includes(perm)}
                       onValueChange={(val) => changePerm(val, perm)}
                     >
-                      <p className="text-sm opacity-50">{perm}</p>
+                      <p className="text-sm opacity-50">{getWords(perm)}</p>
                     </Checkbox>
                   ))}
                 </div>

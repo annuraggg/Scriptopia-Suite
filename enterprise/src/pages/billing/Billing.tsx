@@ -14,7 +14,7 @@ const Billing = () => {
   const [renews, setRenews] = useState<string | null>(null);
 
   useEffect(() => {
-    setCurrentPlan("trial");
+    setCurrentPlan("quaterly");
     setTrialDays(10);
     setRenews("2024-10-10");
   }, []);
@@ -23,10 +23,8 @@ const Billing = () => {
     <>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem href={"/" + org._id}>Organization</BreadcrumbItem>
-          <BreadcrumbItem href={"/" + org._id + "/billing"}>
-            Billing
-          </BreadcrumbItem>
+          <BreadcrumbItem>{org.name}</BreadcrumbItem>
+          <BreadcrumbItem href={"/billing"}>Billing</BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <motion.div

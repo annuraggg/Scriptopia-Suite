@@ -40,10 +40,6 @@ const Feedback = ({
 
     try {
       buildAssessmentData();
-      window.location.href = window.location.pathname
-        .split("/")
-        .slice(0, -2)
-        .join("/");
     } catch (error) {
       console.error("Error during buildAssessmentData:", error);
     }

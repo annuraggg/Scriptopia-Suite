@@ -4,10 +4,12 @@ import Main from "./Main";
 import { useOutletContext } from "react-router-dom";
 import Configure from "./Configure";
 import { Posting } from "@shared-types/Posting";
+import InProgressComp from "./InProgress";
 
 const Ats = () => {
   const [atsEnabled, setAtsEnabled] = useState(false);
   const [atsConfigured, setAtsConfigured] = useState(false);
+  const [InProgress, setInProgress] = useState(false);
 
   const { posting } = useOutletContext() as { posting: Posting };
   console.log(posting);
@@ -21,6 +23,7 @@ const Ats = () => {
 
       const ats = posting?.ats;
       if (ats) {
+        setInProgress(ats.status === "processing");
         setAtsConfigured(true);
       }
     }
@@ -32,6 +35,10 @@ const Ats = () => {
 
   if (!atsConfigured) {
     return <Configure />;
+  }
+
+  if (InProgress) {
+    return <InProgressComp />;
   }
 
   return <Main posting={posting} />;

@@ -10,12 +10,14 @@ import {
   TableRow,
   TableCell,
   Button,
+  Tooltip,
 } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
+import { Check, Eye, X } from "lucide-react";
 
 interface Submission {
   _id: string;
@@ -134,13 +136,35 @@ const ViewAssessment = () => {
                   {submission?.cheating}
                 </TableCell>
                 <TableCell className="w-full md:w-auto">
-                  <Button
-                    variant="light"
-                    className="text-green-500"
-                    onClick={() => navigate(`${submission?._id}`)}
-                  >
-                    View
-                  </Button>
+                  <Tooltip content="View">
+                    <Button
+                      onClick={() => navigate(`${submission?._id}`)}
+                      color="default"
+                      isIconOnly
+                    >
+                      <Eye />
+                    </Button>
+                  </Tooltip>
+                  <Tooltip content="Qualify">
+                    <Button
+                      onClick={() => navigate(`${submission?._id}`)}
+                      isIconOnly
+                      className="ml-2"
+                      color="success"
+                    >
+                      <Check />
+                    </Button>
+                  </Tooltip>
+                  <Tooltip content="Disqualify">
+                    <Button
+                      onClick={() => navigate(`${submission?._id}`)}
+                      isIconOnly
+                      className="ml-2"
+                      color="danger"
+                    >
+                      <X />
+                    </Button>
+                  </Tooltip>
                 </TableCell>
               </TableRow>
             ))}

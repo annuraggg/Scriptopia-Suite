@@ -55,10 +55,8 @@ const Candidates = () => {
     <>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem href={"/" + org._id}>Organization</BreadcrumbItem>
-          <BreadcrumbItem href={"/" + org._id + "/candidates"}>
-            Candidates
-          </BreadcrumbItem>
+          <BreadcrumbItem>{org.name}</BreadcrumbItem>
+          <BreadcrumbItem href={"/candidates"}>Candidates</BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <motion.div

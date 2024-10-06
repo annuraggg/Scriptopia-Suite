@@ -9,7 +9,7 @@ import {
   Tabs,
   TimeInputValue,
 } from "@nextui-org/react";
-import { useEffect, useState } from "react";
+import { Key, useEffect, useState } from "react";
 import General from "./General";
 import Questions from "./Questions";
 import Grading from "./Grading";
@@ -106,6 +106,53 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
   // Feedback Tab States
   const [feedbackEmail, setFeedbackEmail] = useState("");
 
+  const isTabValid = (tabIndex: number): boolean => {
+    switch (tabIndex) {
+      case 0: // General
+        return (
+          assessmentDescription.trim() !== "" &&
+          timeLimit > 0 &&
+          passingPercentage > 0 &&
+          testOpenRange.start !== null &&
+          testOpenRange.end !== null &&
+          startTime !== null &&
+          endTime !== null
+        );
+      case 1: // Languages
+        return selectedLanguages.length > 0;
+      case 2: // Problems
+        return selectedQuestions.length > 0;
+      case 3: // MCQs
+        return mcqs.length > 0;
+      case 4: // Grading
+        if (gradingMetric === "testcase") {
+          return testCaseGrading.easy > 0 && testCaseGrading.medium > 0 && testCaseGrading.hard > 0;
+        } else {
+          return questionsGrading.length === selectedQuestions.length && questionsGrading.every(q => q.points > 0);
+        }
+      case 5: // Instructions
+        return instructions.trim() !== "";
+      case 6: // Security
+        return true; // All fields are optional
+      case 7: // Feedback
+        return feedbackEmail.trim() !== "";
+      default:
+        return true;
+    }
+  };
+
+  const handleTabChange = (key: Key) => {
+    const currentTabIndex = parseInt(activeTab);
+    const newTabIndex = typeof key === "string" ? parseInt(key) : key;
+
+    if (typeof newTabIndex === "number" && newTabIndex > currentTabIndex && !isTabValid(currentTabIndex)) {
+      toast.error("Please complete all required fields before proceeding.");
+      return;
+    }
+
+    setActiveTab(newTabIndex.toString());
+  };
+
   const { getToken } = useAuth();
 
   const buildAssessmentData = () => {
@@ -163,6 +210,10 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
       .post("/postings/assessment", reqBody)
       .then(() => {
         toast.success("Assessment created successfully");
+        window.location.href = window.location.pathname
+          .split("/")
+          .slice(0, -2)
+          .join("/");
       })
       .catch((err) => {
         console.error(err);
@@ -250,7 +301,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
     <div className="flex items-center justify-center flex-col relative w-full">
       <Tabs
         selectedKey={activeTab}
-        onSelectionChange={(e) => setActiveTab(e as string)}
+        onSelectionChange={handleTabChange}
       >
         {tabsList.map((tabItem, i) => (
           <Tab key={i} title={tabItem} className="w-full">
@@ -262,9 +313,8 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
                     variant="shadow"
                     size="sm"
                     isIconOnly
-                    onClick={() =>
-                      setActiveTab((parseInt(activeTab) - 1).toString())
-                    }
+                    onClick={() => handleTabChange((parseInt(activeTab) - 1).toString())}
+                    isDisabled={parseInt(activeTab) === 0}
                   >
                     <ChevronLeft />
                   </Button>
@@ -272,9 +322,8 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
                     variant="shadow"
                     size="sm"
                     isIconOnly
-                    onClick={() =>
-                      setActiveTab((parseInt(activeTab) + 1).toString())
-                    }
+                    onClick={() => handleTabChange((parseInt(activeTab) + 1).toString())}
+                    isDisabled={parseInt(activeTab) === tabsList.length - 1 || !isTabValid(parseInt(activeTab))}
                   >
                     <ChevronRight />
                   </Button>

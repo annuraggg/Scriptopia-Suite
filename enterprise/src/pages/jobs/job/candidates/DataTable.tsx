@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -11,7 +11,6 @@ import {
   getSortedRowModel,
   SortingState,
   useReactTable,
-  FilterFn,
 } from "@tanstack/react-table";
 
 import {
@@ -23,50 +22,29 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import {
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-} from "@nextui-org/dropdown";
-import {
-  ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
-  MoreHorizontal,
-} from "lucide-react";
-import { Button, Checkbox, Input, Select, SelectItem } from "@nextui-org/react";
+import { ArrowUpDown, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { Button, Checkbox } from "@nextui-org/react";
 
 interface Candidate {
-  name: string;
-  applyDate: string;
-  avgScore: number;
-  stage: string;
-  assignee: string;
-  status: string;
+  _id: string;
+  firstname: string;
+  lastname: string;
+  email: string;
+  phone: string;
+  resume: string; // Assume this is a URL for downloading
+  website: string;
 }
 
 interface DataTableProps {
   data: Candidate[];
+  downloadResume: (url: string) => void;
 }
 
-// const stages = ["ATS", "Problem Solving", "Technical", "Interview", "Evaluation"];
-// const assignees = ["John Doe", "Jane Smith", "Mike Johnson", "Emily Brown", "Alex Lee", "Sarah Wilson"];
-
-export function DataTable({ data }: DataTableProps) {
-  const [candidates, setCandidates] = useState(data);
+export function DataTable({ data, downloadResume }: DataTableProps) {
+  const [candidates] = useState(data);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pageIndex, setPageIndex] = useState(0);
-
-  const exactTextFilter: FilterFn<Candidate> = (row, columnId, filterValue) => {
-    const rowValue = row.getValue(columnId) as string;
-    return rowValue.toLowerCase() === filterValue.toLowerCase();
-  };
-
-  const handleDeleteCandidate = (candidate: Candidate) => {
-    setCandidates(candidates.filter((c) => c !== candidate));
-  };
 
   const columns: ColumnDef<Candidate>[] = [
     {
@@ -89,114 +67,88 @@ export function DataTable({ data }: DataTableProps) {
       enableHiding: false,
     },
     {
-      accessorKey: "name",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Name
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
+      accessorKey: "firstName",
+      header: ({ column }) => (
+        <Button
+          variant="light"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          First Name
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
     },
     {
-      accessorKey: "applyDate",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Apply Date
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
+      accessorKey: "lastName",
+      header: ({ column }) => (
+        <Button
+          variant="light"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Last Name
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
     },
     {
-      accessorKey: "avgScore",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Avg.Score
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
+      accessorKey: "email",
+      header: ({ column }) => (
+        <Button
+          variant="light"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Email
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+    },
+    {
+      accessorKey: "phone",
+      header: ({ column }) => (
+        <Button
+          variant="light"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Phone
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+    },
+    {
+      accessorKey: "resume",
+      header: () => <span>Resume</span>,
       cell: ({ row }) => {
-        const score = row.getValue("avgScore") as number;
-        return <div>{score}%</div>;
-      },
-    },
-    {
-      accessorKey: "stage",
-      header: ({ column }) => {
         return (
           <Button
-            variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            variant="flat"
+            onClick={() => downloadResume(row.original._id as string)}
           >
-            Stage
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <Download size={16} />
+            Resume
           </Button>
         );
       },
     },
     {
-      accessorKey: "assignee",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Assignee
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Status
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      filterFn: exactTextFilter,
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        const candidate = row.original;
-        return (
-          <Dropdown>
-            <DropdownTrigger>
-              <Button isIconOnly variant="light" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownTrigger>
-            <DropdownMenu>
-              <DropdownItem>View candidate</DropdownItem>
-              <DropdownItem color="danger" onClick={() => handleDeleteCandidate(candidate)}>
-                Delete candidate
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
-        );
-      },
+      accessorKey: "website",
+      header: ({ column }) => (
+        <Button
+          variant="light"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Website
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+
+      cell: ({ row }) => (
+        <p
+          className="text-blue-500 hover:text-blue-300 transition-colors cursor-pointer"
+          onClick={() => window.open(row.original.website, "_blank")}
+        >
+          {row.original.website}
+        </p>
+      ),
     },
   ];
 
@@ -219,32 +171,6 @@ export function DataTable({ data }: DataTableProps) {
   return (
     <div className="w-full">
       <div className="flex items-center justify-between w-full mb-4">
-        <div className="flex items-center gap-2 w-full">
-          <Input
-            placeholder="Filter names..."
-            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("name")?.setFilterValue(event.target.value)
-            }
-            className="max-w-xs"
-          />
-          <Select
-            onChange={(event) => {
-              if (event.target.value === "all") {
-                table.getColumn("status")?.setFilterValue(undefined);
-              } else {
-                table.getColumn("status")?.setFilterValue(event.target.value);
-              }
-            }}
-            size="sm"
-            className="max-w-xs"
-          >
-            <SelectItem key="all" value="all">All</SelectItem>
-            <SelectItem key="qualified" value="qualified">Qualified</SelectItem>
-            <SelectItem key="disqualified" value="disqualified">Disqualified</SelectItem>
-            <SelectItem key="hired" value="hired">Hired</SelectItem>
-          </Select>
-        </div>
         <div className="flex items-center space-x-2">
           <Button
             onClick={() => setPageIndex(pageIndex - 1)}
@@ -282,7 +208,7 @@ export function DataTable({ data }: DataTableProps) {
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody >
+          <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
@@ -301,7 +227,10 @@ export function DataTable({ data }: DataTableProps) {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No results.
                 </TableCell>
               </TableRow>

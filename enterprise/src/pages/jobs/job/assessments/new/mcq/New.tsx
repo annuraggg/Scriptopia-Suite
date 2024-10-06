@@ -9,7 +9,7 @@ import {
   Tabs,
   TimeInputValue,
 } from "@nextui-org/react";
-import { useState } from "react";
+import { useState, Key } from "react";
 import General from "./General";
 import Instructions from "./Instructions";
 import Security from "./Security";
@@ -58,6 +58,43 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
   // Feedback Tab States
   const [feedbackEmail, setFeedbackEmail] = useState("");
 
+  const isTabValid = (tabIndex: number): boolean => {
+    switch (tabIndex) {
+      case 0: // General
+        return (
+          assessmentDescription.trim() !== "" &&
+          timeLimit > 0 &&
+          passingPercentage > 0 &&
+          testOpenRange.start !== null &&
+          testOpenRange.end !== null &&
+          startTime !== null &&
+          endTime !== null
+        );
+      case 1: // MCQs
+        return mcqs.length > 0;
+      case 2: // Instructions
+        return instructions.trim() !== "";
+      case 3: // Security
+        return true; // All fields are optional
+      case 4: // Feedback
+        return feedbackEmail.trim() !== "";
+      default:
+        return true;
+    }
+  };
+
+  const handleTabChange = (key: Key) => {
+    const currentTabIndex = parseInt(activeTab);
+    const newTabIndex = parseInt(key.toString());
+
+    if (newTabIndex > currentTabIndex && !isTabValid(currentTabIndex)) {
+      toast.error("Please complete all required fields before proceeding.");
+      return;
+    }
+
+    setActiveTab(key.toString());
+  };
+
   const { getToken } = useAuth();
 
   const buildAssessmentData = () => {
@@ -105,6 +142,10 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
       .post("/postings/assessment", reqBody)
       .then(() => {
         toast.success("Assessment created successfully");
+        window.location.href = window.location.pathname
+          .split("/")
+          .slice(0, -2)
+          .join("/");
       })
       .catch((err) => {
         console.error(err);
@@ -160,7 +201,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
     <div className="flex items-center justify-center flex-col relative w-full">
       <Tabs
         selectedKey={activeTab}
-        onSelectionChange={(e) => setActiveTab(e as string)}
+        onSelectionChange={handleTabChange}
       >
         {tabsList.map((tabItem, i) => (
           <Tab key={i} title={tabItem} className="w-full">
@@ -172,9 +213,8 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
                     variant="shadow"
                     size="sm"
                     isIconOnly
-                    onClick={() =>
-                      setActiveTab((parseInt(activeTab) - 1).toString())
-                    }
+                    onClick={() => handleTabChange((parseInt(activeTab) - 1).toString())}
+                    isDisabled={parseInt(activeTab) === 0}
                   >
                     <ChevronLeft />
                   </Button>
@@ -182,9 +222,8 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
                     variant="shadow"
                     size="sm"
                     isIconOnly
-                    onClick={() =>
-                      setActiveTab((parseInt(activeTab) + 1).toString())
-                    }
+                    onClick={() => handleTabChange((parseInt(activeTab) + 1).toString())}
+                    isDisabled={parseInt(activeTab) === tabsList.length - 1 || !isTabValid(parseInt(activeTab))}
                   >
                     <ChevronRight />
                   </Button>

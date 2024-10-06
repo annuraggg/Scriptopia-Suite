@@ -8,10 +8,8 @@ const Support = () => {
     <>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem href={"/" + org._id}>Organization</BreadcrumbItem>
-          <BreadcrumbItem href={"/" + org._id + "/support"}>
-            Support
-          </BreadcrumbItem>
+          <BreadcrumbItem>{org.name}</BreadcrumbItem>
+          <BreadcrumbItem href={"/support"}>Support</BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <div className="p-10 flex items-center justify-center flex-col">

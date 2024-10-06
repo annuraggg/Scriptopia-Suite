@@ -7,6 +7,8 @@ import Organization from "@/models/Organization";
 import assessmentController from "@/controllers/coding/assessmentController";
 import { Assessment } from "@shared-types/Assessment";
 import mongoose from "mongoose";
+import clerkClient from "@/config/clerk";
+import { AuditLog } from "@shared-types/Organization";
 // import assessmentController from "../../coding/assessmentController";
 
 const getPostings = async (c: Context) => {
@@ -92,6 +94,18 @@ const createPosting = async (c: Context) => {
 
     await posting.save();
 
+    const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+    const auditLog: AuditLog = {
+      user: clerkUser.firstName + " " + clerkUser.lastName,
+      userId: clerkUser.id,
+      action: `Created New Job Posting: ${title}`,
+      type: "info",
+    };
+
+    await Organization.findByIdAndUpdate(perms.data!.orgId, {
+      $push: { auditLogs: auditLog },
+    });
+
     return sendSuccess(c, 201, "job created successfully", posting);
   } catch (e: any) {
     logger.error(e);
@@ -107,6 +121,8 @@ const createWorkflow = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
+    console.log(formattedData);
+
     const posting = await Posting.findById(_id);
     if (!posting) {
       return sendError(c, 404, "Posting not found");
@@ -114,6 +130,18 @@ const createWorkflow = async (c: Context) => {
 
     posting.workflow = formattedData;
     await posting.save();
+
+    const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+    const auditLog: AuditLog = {
+      user: clerkUser.firstName + " " + clerkUser.lastName,
+      userId: clerkUser.id,
+      action: `Created New Workflow for Job Posting: ${posting.title}`,
+      type: "info",
+    };
+
+    await Organization.findByIdAndUpdate(perms.data!.orgId, {
+      $push: { auditLogs: auditLog },
+    });
 
     return sendSuccess(c, 201, "Workflow created successfully", posting);
   } catch (e: any) {
@@ -165,6 +193,18 @@ const updateAts = async (c: Context) => {
 
     await posting.save();
 
+    const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+    const auditLog: AuditLog = {
+      user: clerkUser.firstName + " " + clerkUser.lastName,
+      userId: clerkUser.id,
+      action: `Updated ATS for Job Posting: ${posting.title}`,
+      type: "info",
+    };
+
+    await Organization.findByIdAndUpdate(perms.data!.orgId, {
+      $push: { auditLogs: auditLog },
+    });
+
     return sendSuccess(c, 201, "ATS updated successfully", posting);
   } catch (e: any) {
     logger.error(e);
@@ -211,6 +251,18 @@ const updateAssessment = async (c: Context) => {
       updatedOn: new Date(),
     });
 
+    const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+    const auditLog: AuditLog = {
+      user: clerkUser.firstName + " " + clerkUser.lastName,
+      userId: clerkUser.id,
+      action: `Created New Assessment for Job Posting: ${existingAssessments.title}`,
+      type: "info",
+    };
+
+    await Organization.findByIdAndUpdate(perms.data!.orgId, {
+      $push: { auditLogs: auditLog },
+    });
+
     return sendSuccess(c, 200, "Success");
   } catch (e: any) {
     logger.error(e);
@@ -243,7 +295,63 @@ const updateAssignment = async (c: Context) => {
     posting.assignments.push({ _id, name, description });
     await posting.save();
 
+    const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+    const auditLog: AuditLog = {
+      user: clerkUser.firstName + " " + clerkUser.lastName,
+      userId: clerkUser.id,
+      action: `Created New Assignment for Job Posting: ${posting.title}`,
+      type: "info",
+    };
+
+    await Organization.findByIdAndUpdate(perms.data!.orgId, {
+      $push: { auditLogs: auditLog },
+    });
+
     return sendSuccess(c, 201, "Assignment created successfully", posting);
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
+const updateInterview = async (c: Context) => {
+  try {
+    const { postingId, step, interview } = await c.req.json();
+
+    const perms = await checkPermission.all(c, ["manage_job"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const posting = await Posting.findById(postingId);
+    if (!posting) {
+      return sendError(c, 404, "job not found");
+    }
+
+    if (!posting.workflow) {
+      return sendError(c, 400, "Workflow not found");
+    }
+
+    const _id = new mongoose.Types.ObjectId();
+    // @ts-expect-error - Object has no properties common
+    posting.workflow.steps[step].stepId = _id;
+
+    posting.interview = interview;
+    await posting.save();
+
+    const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+    const auditLog: AuditLog = {
+      user: clerkUser.firstName + " " + clerkUser.lastName,
+      userId: clerkUser.id,
+      action: `Created New Interview for Job Posting: ${posting.title}`,
+      type: "info",
+    };
+
+    await Organization.findByIdAndUpdate(perms.data!.orgId, {
+      $push: { auditLogs: auditLog },
+    });
+
+    return sendSuccess(c, 201, "Interview created successfully", posting);
   } catch (e: any) {
     logger.error(e);
     return sendError(c, 500, "Something went wrong");
@@ -271,6 +379,18 @@ const publishPosting = async (c: Context) => {
     posting.url = urlSlug;
     await posting.save();
 
+    const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+    const auditLog: AuditLog = {
+      user: clerkUser.firstName + " " + clerkUser.lastName,
+      userId: clerkUser.id,
+      action: `Published Job Posting: ${posting.title}`,
+      type: "info",
+    };
+
+    await Organization.findByIdAndUpdate(perms.data!.orgId, {
+      $push: { auditLogs: auditLog },
+    });
+
     return sendSuccess(c, 201, "Posting published successfully", posting);
   } catch (e: any) {
     logger.error(e);
@@ -286,5 +406,6 @@ export default {
   updateAts,
   updateAssessment,
   updateAssignment,
+  updateInterview,
   publishPosting,
 };

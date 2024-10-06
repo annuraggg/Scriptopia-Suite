@@ -17,15 +17,24 @@ import {
 } from "@nextui-org/react";
 import AvatarEditor from "react-avatar-editor";
 import { setToastChanges } from "@/reducers/toastReducer";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import UnsavedToast from "@/components/UnsavedToast";
+import { RootState } from "@/types/Reducer";
+import { useOutletContext } from "react-router-dom";
+
+interface SettingsInterface {
+  name: string;
+  email: string;
+  website: string;
+  logo: string;
+}
 
 const General = () => {
   const [companyName, setCompanyName] = useState<string>("");
-  const [logo, setLogo] = useState<string>("/defaultOrgLogo.png");
+  const [logo, setLogo] = useState<string>("");
   const [companyWebsite, setCompanyWebsite] = useState<string>("");
   const [companyEmail, setCompanyEmail] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [newLogo, setNewLogo] = useState<File>({} as File);
   const [zoom, setZoom] = useState<number>(1);
@@ -40,33 +49,23 @@ const General = () => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
-  useEffect(() => {
-    fetchSettings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const fetchSettings = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get("organizations/settings");
-      setCompanyName(res.data.data.name || "");
-      setCompanyEmail(res.data.data.email || "");
-      setCompanyWebsite(res.data.data.website || "");
-      setLogo(res.data.data.logo || "/defaultOrgLogo.png");
-      setChanges(false);
-    } catch (err) {
-      console.error(err);
-      toast.error("Error fetching settings. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  const org = useSelector((state: RootState) => state.organization);
   const triggerSaveToast = () => {
     if (!changes) {
       dispatch(setToastChanges(true));
     }
   };
+
+  const settings = useOutletContext() as SettingsInterface;
+  useEffect(() => {
+    console.log(settings);
+    if (settings) {
+      setCompanyName(settings.name);
+      setCompanyEmail(settings.email);
+      setCompanyWebsite(settings.website);
+      setLogo(settings.logo);
+    }
+  }, [settings]);
 
   const handleSave = async () => {
     setLoading(true);
@@ -79,11 +78,11 @@ const General = () => {
       });
       toast.success("Settings updated successfully");
       setChanges(false);
+      window.location.reload();
     } catch (err) {
       console.error(err);
       toast.error("Error updating settings. Please try again.");
     } finally {
-      setLoading(false);
       dispatch(setToastChanges(false));
     }
   };
@@ -109,7 +108,7 @@ const General = () => {
     axios
       .post("organizations/settings/logo", { logo: canvas })
       .then(() => {
-        setLogo(canvas || "/defaultOrgLogo.png");
+        setLogo(canvas || "");
         toast.success("Logo updated successfully");
         onOpenChange();
       })
@@ -132,13 +131,20 @@ const General = () => {
       <UnsavedToast action={handleSave} />
       <div className="mt-5 ml-5">
         <Breadcrumbs>
+          <BreadcrumbItem>{org.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/general"}>General</BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <div className="p-5 px-10">
         <div className="w-fit">
-          <Image src={logo} width={200} height={200} />
+          {logo ? (
+            <Image src={logo} width={200} height={200} />
+          ) : (
+            <p className="mt-5 text-center text-sm opacity-50">
+              No Logo Found. Upload one to make your organization look better.
+            </p>
+          )}
           <input
             type="file"
             accept="image/*"
@@ -147,7 +153,7 @@ const General = () => {
             ref={fileInputRef}
           />
           <Button
-            className="mt-2 w-full"
+            className="mt-2 w-[200px]"
             variant="ghost"
             onClick={() => fileInputRef.current?.click()}
           >

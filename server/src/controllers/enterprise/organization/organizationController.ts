@@ -14,11 +14,15 @@ import { Role } from "@shared-types/Organization";
 import defaultOrganizationRoles from "@/data/defaultOrganizationRoles";
 import organizationPermissions from "@/data/organizationPermissions";
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
+import Posting from "@/models/Posting";
+import { Candidate } from "@shared-types/Candidate";
 
 const createOrganization = async (c: Context) => {
   try {
     const { name, email, website, members } = await c.req.json();
     const u = c.get("auth").userId;
+
+    console.log(members);
 
     const clerkUser = await clerkClient.users.getUser(u);
     const fName = clerkUser.firstName;
@@ -124,6 +128,7 @@ const createOrganization = async (c: Context) => {
       publicMetadata: {
         orgId: org._id,
         orgRole: "administrator",
+        orgName: org.name,
         orgPermissions: adminRole?.permissions,
       },
     });
@@ -243,6 +248,7 @@ const joinOrganization = async (c: Context) => {
       clerkClient.users.updateUser(u, {
         publicMetadata: {
           orgId: org._id,
+          orgName: organization.name,
           orgRole: decoded.role,
           orgPermissions: permissions,
         },
@@ -289,12 +295,18 @@ const getSettings = async (c: Context) => {
     }
 
     const org = await Organization.findById(perms.data?.orgId)
-      .populate("members.user")
       .populate("auditLogs.user")
       .lean();
 
     if (!org) {
       return sendError(c, 404, "Organization not found");
+    }
+
+    for (const member of org?.members) {
+      const user = await clerkClient.users.getUser(member?.user || "");
+      if (user) { // @ts-expect-error - Converting string to User
+        member.user = user;
+      }
     }
 
     for (const member of org.members) {
@@ -365,24 +377,36 @@ const updateGeneralSettings = async (c: Context) => {
       type: "info",
     };
 
-    const updatedOrg = await Organization.findByIdAndUpdate(
-      orgId,
-      {
-        $set: { name, email, website },
-        $push: { auditLogs: auditLog },
-      },
-      { new: true }
-    );
-
-    if (!updatedOrg) {
+    const org = await Organization.findById(orgId);
+    if (!org) {
       return sendError(c, 404, "Organization not found");
     }
+
+    if (name !== org.name) {
+      for (const member of org.members) {
+        if (!member.user) continue;
+        const u = await clerkClient.users.getUser(member.user);
+        const publicMetadata = u.publicMetadata;
+        publicMetadata.orgName = name;
+
+        await clerkClient.users.updateUser(member.user, {
+          publicMetadata,
+        });
+      }
+    }
+
+    org.name = name;
+    org.email = email;
+    org.website = website;
+    org.auditLogs.push(auditLog);
+
+    await org.save();
 
     return sendSuccess(
       c,
       200,
       "Organization settings updated successfully",
-      updatedOrg
+      org
     );
   } catch (error) {
     logger.error(error as string);
@@ -625,19 +649,30 @@ const getCandidates = async (c: Context) => {
 
     const orgId = perms.data?.orgId;
 
-    const organization = await Organization.findById(orgId).populate(
-      "candidates"
-    );
+    const posting = await Posting.find({ organizationId: orgId })
+      .populate("candidates")
+      .lean();
 
-    if (!organization) {
-      return sendError(c, 404, "Organization not found");
+    const candidates = new Set<Candidate>();
+    const emails = new Set<string>();
+
+    for (const post of posting) {
+      const postCandidates = post.candidates;
+      for (const candidate of postCandidates) {
+        const cand: Candidate = candidate as unknown as Candidate;
+
+        if (!emails.has(cand.email)) {
+          emails.add(cand.email);
+          candidates.add(cand);
+        }
+      }
     }
 
     return sendSuccess(
       c,
       200,
-      "Candidates retrieved successfully",
-      organization.candidates
+      "Candidates fetched successfully",
+      Array.from(candidates)
     );
   } catch (error) {
     logger.error(error as string);
