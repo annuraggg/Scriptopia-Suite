@@ -304,7 +304,8 @@ const getSettings = async (c: Context) => {
 
     for (const member of org?.members) {
       const user = await clerkClient.users.getUser(member?.user || "");
-      if (user) { // @ts-expect-error - Converting string to User
+      if (user) {
+        // @ts-expect-error - Converting string to User
         member.user = user;
       }
     }
@@ -319,16 +320,21 @@ const getSettings = async (c: Context) => {
     }
 
     const logoUrl = org.logo;
-    if (logoUrl) {
-      const command = new GetObjectCommand({
-        Bucket: process.env.R2_S3_BUCKET!,
-        Key: logoUrl,
-      });
+    try {
+      if (logoUrl) {
+        const command = new GetObjectCommand({
+          Bucket: process.env.R2_S3_BUCKET!,
+          Key: logoUrl,
+        });
 
-      const data = await r2Client.send(command);
-      const buffer = await data.Body?.transformToByteArray();
-      const base64 = Buffer.from(buffer as ArrayBuffer).toString("base64");
-      org.logo = `data:image/png;base64,${base64}`;
+        const data = await r2Client.send(command);
+        const buffer = await data.Body?.transformToByteArray();
+        const base64 = Buffer.from(buffer as ArrayBuffer).toString("base64");
+        org.logo = `data:image/png;base64,${base64}`;
+      }
+    } catch (e) {
+      console.log("Failed to fetch logo", e); 
+      console.log(e);
     }
 
     return sendSuccess(c, 200, "Success", {
