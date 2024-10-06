@@ -1,11 +1,5 @@
-import React from 'react'
-
 const Volunteering = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+  return <div></div>;
+};
 
-export default Volunteering
+export default Volunteering;

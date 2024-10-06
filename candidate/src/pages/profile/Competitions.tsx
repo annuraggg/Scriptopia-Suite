@@ -1,11 +1,5 @@
-import React from 'react'
-
 const Competitions = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+  return <div></div>;
+};
 
-export default Competitions
+export default Competitions;
