@@ -10,6 +10,7 @@ const authMiddleware = createMiddleware(async (c, next) => {
   if (c.req.path.startsWith("/assessments")) return next();
   if (c.req.path.startsWith("/problems")) return next();
   if (c.req.path.startsWith("/submissions")) return next();
+  if (c.req.path.startsWith("/users")) return next();
 
   // if (!token) {
   //   return sendError(c, 401, "Unauthorized");
