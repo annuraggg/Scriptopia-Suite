@@ -589,7 +589,7 @@ const submitAssessment = async (c: Context) => {
 
       const currentPosting = candidate?.appliedPostings.find(
         (posting) =>
-          posting?._id?.toString() == assessment?.postingId?.toString()
+          posting?.postingId?.toString() == assessment?.postingId?.toString()
       );
 
       if (!currentPosting) {
