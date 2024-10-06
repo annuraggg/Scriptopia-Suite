@@ -31,11 +31,12 @@ const Departments: React.FC = () => {
     name: "",
     description: "",
   });
-  const [editingDepartment, setEditingDepartment] = useState<Department | null>(
-    null
-  );
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [changes, setChanges] = useState<boolean>(false);
+
+  const [addError, setAddError] = useState<string>("");
+  const [editError, setEditError] = useState<string>("");
 
   const org = useSelector((state: RootState) => state.organization);
 
@@ -47,7 +48,6 @@ const Departments: React.FC = () => {
   } = useDisclosure();
 
   const dispatch = useDispatch();
-
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
@@ -80,14 +80,25 @@ const Departments: React.FC = () => {
   };
 
   const addDepartment = () => {
+    if (!newDepartment.name || !newDepartment.description) {
+      setAddError("Please fill in all fields.");
+      return;
+    }
+    
     setDepartments([...departments, { ...newDepartment }]);
     setNewDepartment({ name: "", description: "" });
     onOpenChange();
     triggerSaveToast();
+    setAddError(""); 
   };
 
   const updateDepartment = () => {
     if (editingDepartment) {
+      if (!editingDepartment.name || !editingDepartment.description) {
+        setEditError("Please fill in all fields.");
+        return;
+      }
+
       const updatedDepartments = departments.map((dept) =>
         dept._id === editingDepartment._id ? editingDepartment : dept
       );
@@ -95,6 +106,7 @@ const Departments: React.FC = () => {
       setEditingDepartment(null);
       onEditOpenChange();
       triggerSaveToast();
+      setEditError("");
     }
   };
 
@@ -118,49 +130,25 @@ const Departments: React.FC = () => {
         <Breadcrumbs>
           <BreadcrumbItem>{org.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
-          <BreadcrumbItem href={"/settings/departments"}>
-            Departments
-          </BreadcrumbItem>
+          <BreadcrumbItem href={"/settings/departments"}>Departments</BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <div className="flex p-5 h-full w-full">
         <div className="flex-grow ml-4 h-full">
           <div className="p-4">
-            <Button onPress={onOpen} className="mb-4">
-              + Add Department
-            </Button>
+            <Button onPress={onOpen} className="mb-4">+ Add Department</Button>
             <div className="space-y-4 h-full">
               {departments.map((dept) => (
-                <Card
-                  key={dept._id}
-                  className="bg-gray-500 bg-opacity-10 border-gray-800"
-                >
+                <Card key={dept._id} className="bg-gray-500 bg-opacity-10 border-gray-800">
                   <CardBody>
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-xl">{dept.name}</p>
-                        <p className="text-sm text-gray-400">
-                          {dept.description}
-                        </p>
+                        <p className="text-sm text-gray-400">{dept.description}</p>
                       </div>
                       <div>
-                        <Button
-                          onPress={() => {
-                            setEditingDepartment(dept);
-                            onEditOpen();
-                          }}
-                          className="mr-2"
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          color="danger"
-                          onPress={() => {
-                            if (dept._id) deleteDepartment(dept._id);
-                          }}
-                        >
-                          Delete
-                        </Button>
+                        <Button onPress={() => { setEditingDepartment(dept); onEditOpen(); }} className="mr-2">Edit</Button>
+                        <Button color="danger" onPress={() => { if (dept._id) deleteDepartment(dept._id); }}>Delete</Button>
                       </div>
                     </div>
                   </CardBody>
@@ -178,28 +166,18 @@ const Departments: React.FC = () => {
             <Input
               label="Name"
               value={newDepartment.name}
-              onChange={(e) =>
-                setNewDepartment({ ...newDepartment, name: e.target.value })
-              }
+              onChange={(e) => setNewDepartment({ ...newDepartment, name: e.target.value })}
             />
             <Textarea
               label="Description"
               value={newDepartment.description}
-              onChange={(e) =>
-                setNewDepartment({
-                  ...newDepartment,
-                  description: e.target.value,
-                })
-              }
+              onChange={(e) => setNewDepartment({ ...newDepartment, description: e.target.value })}
             />
+            {addError && <p className="text-red-500 mt-2 text-sm">{addError}</p>}
           </ModalBody>
           <ModalFooter>
-            <Button color="danger" variant="light" onPress={onOpenChange}>
-              Cancel
-            </Button>
-            <Button color="primary" onPress={addDepartment}>
-              Add
-            </Button>
+            <Button color="danger" variant="light" onPress={onOpenChange}>Cancel</Button>
+            <Button color="primary" onPress={addDepartment}>Add</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -211,31 +189,18 @@ const Departments: React.FC = () => {
             <Input
               label="Name"
               value={editingDepartment?.name}
-              onChange={(e) =>
-                setEditingDepartment({
-                  ...editingDepartment!,
-                  name: e.target.value,
-                })
-              }
+              onChange={(e) => setEditingDepartment({ ...editingDepartment!, name: e.target.value })}
             />
             <Textarea
               label="Description"
               value={editingDepartment?.description}
-              onChange={(e) =>
-                setEditingDepartment({
-                  ...editingDepartment!,
-                  description: e.target.value,
-                })
-              }
+              onChange={(e) => setEditingDepartment({ ...editingDepartment!, description: e.target.value })}
             />
+            {editError && <p className="text-red-500 mt-2 text-sm">{editError}</p>}
           </ModalBody>
           <ModalFooter>
-            <Button color="danger" variant="light" onPress={onEditOpenChange}>
-              Cancel
-            </Button>
-            <Button color="primary" onPress={updateDepartment}>
-              Save
-            </Button>
+            <Button color="danger" variant="light" onPress={onEditOpenChange}>Cancel</Button>
+            <Button color="primary" onPress={updateDepartment}>Save</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

@@ -119,7 +119,7 @@ const Mcqs = ({
     lines.forEach((line, index) => {
       if (index === 0) return; // Skip header row
       const [question, type, options, correct, gradeStr] = line.split(',');
-      
+
       const mcqOptions = options.split(';');
       const grade = parseInt(gradeStr, 10) || 1;
 
@@ -177,6 +177,9 @@ const Mcqs = ({
             accept=".csv"
             style={{ display: 'none' }}
           />
+          {mcqs.length === 0 && (
+            <p className="text-red-500 mt-4">Please add at least one question</p>
+          )}
         </div>
         <McqModal
           isOpen={isOpen}
