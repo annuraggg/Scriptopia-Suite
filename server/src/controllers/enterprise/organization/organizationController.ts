@@ -303,6 +303,7 @@ const getSettings = async (c: Context) => {
     }
 
     for (const member of org?.members) {
+      if (!member.user) continue;
       const user = await clerkClient.users.getUser(member?.user || "");
       if (user) {
         // @ts-expect-error - Converting string to User
@@ -333,7 +334,7 @@ const getSettings = async (c: Context) => {
         org.logo = `data:image/png;base64,${base64}`;
       }
     } catch (e) {
-      console.log("Failed to fetch logo", e); 
+      console.log("Failed to fetch logo", e);
       console.log(e);
     }
 
