@@ -37,6 +37,7 @@ const Roles = () => {
   const org = useSelector((state: RootState) => state.organization);
 
   const res = useOutletContext() as { roles: Role[]; permissions: string[] };
+
   useEffect(() => {
     setBuiltInRoles(res.roles.filter((role: Role) => role.default));
     setCustomRoles(res.roles.filter((role: Role) => !role.default));
