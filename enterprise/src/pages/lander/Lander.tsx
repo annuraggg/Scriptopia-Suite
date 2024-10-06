@@ -1,3 +1,4 @@
+import { RootState } from "@/types/Reducer";
 import { Button, Card, CardBody, Image, Switch } from "@nextui-org/react";
 import {
   BriefcaseBusiness,
@@ -10,7 +11,20 @@ import {
   PieChart,
 } from "lucide-react";
 import { useState } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+
 const Lander = () => {
+  const navigate = useNavigate();
+  const organization = useSelector((state: RootState) => state.organization);
+  const redirectUser = () => {
+    if (organization) {
+      navigate("/dashboard");
+    } else {
+      navigate("/start");
+    }
+  };
+
   const features = [
     { icon: <BriefcaseBusiness size={30} />, title: "Jobs" },
     { icon: <UserCheck size={30} />, title: "Candidates" },
@@ -58,7 +72,12 @@ const Lander = () => {
             Industry Grade Screening and Hiring Platform.
           </h1>
           <div className="flex flex-row gap-5  w-[30vw] mt-10">
-            <Button className="w-full" color="success" variant="shadow">
+            <Button
+              className="w-full"
+              color="success"
+              variant="shadow"
+              onClick={() => redirectUser()}
+            >
               Get Started
             </Button>
           </div>
