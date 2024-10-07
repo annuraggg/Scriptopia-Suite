@@ -1,27 +1,26 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-const interviewerSchema = new Schema({
-  interviewer: { type: String, required: true },
-  candidates: [{ type: String, required: true }],
-  meetingLink: { type: String, required: true },
-  timeSlot: {
-    type: {
-      start: { type: Date, required: true },
-      end: { type: Date, required: false },
-    },
-  },
+const slotSchema = new Schema({
+  candidate: { type: mongoose.Types.ObjectId, ref: "Candidate" },
+  start: { type: Date, required: true },
+  end: { type: Date, required: true },
 });
 
 const interviewSchema = new Schema({
-  assignees: { type: [interviewerSchema], required: true },
+  assignees: { type: [mongoose.Types.ObjectId], ref: "User" },
   duration: { type: Number, required: true },
+  slots: { type: [slotSchema], required: true },
+  days: { type: [String], required: true },
+  timeSlotStart: { type: String, required: true },
+  timeSlotEnd: { type: String, required: true },
 });
 
 const atsSchema = new Schema({
+  _id: { type: mongoose.Types.ObjectId, required: false },
   minimumScore: { type: Number, required: true },
-  negativePrompts: [{ type: String, required: true }],
-  positivePrompts: [{ type: String, required: true }],
+  negativePrompts: [{ type: String, required: false, default: ["none"] }],
+  positivePrompts: [{ type: String, required: false, default: ["none"] }],
   status: {
     type: String,
     enum: ["pending", "processing", "finished"],
@@ -43,6 +42,11 @@ const workflowStepSchema = new Schema({
     enum: ["rs", "mcqa", "ca", "mcqca", "as", "pi", "cu"],
     required: true,
   },
+  stepId: {
+    type: mongoose.Types.ObjectId,
+    required: true,
+    default: new mongoose.Types.ObjectId(),
+  },
 });
 
 const workflowSchema = new Schema({
@@ -55,8 +59,10 @@ const workflowSchema = new Schema({
 const salarySchema = new Schema({ min: Number, max: Number, currency: String });
 
 const assignmentSchema = new Schema({
+  _id: { type: mongoose.Types.ObjectId, required: true },
   name: { type: String, required: true },
   description: { type: String, required: true },
+  submissions: { type: [mongoose.Types.ObjectId], ref: "Candidate" },
 });
 
 const postingSchema = new Schema({

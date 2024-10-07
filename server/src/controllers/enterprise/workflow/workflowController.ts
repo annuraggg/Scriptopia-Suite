@@ -70,11 +70,11 @@ const advanceWorkflow = async (c: Context) => {
 
       if (!appliedPosting) continue;
 
-      if (appliedPosting.currentStepStatus === "disqualified") appliedPosting.status = "rejected";
-      else if (appliedPosting.currentStepStatus === "qualified") appliedPosting.status = "inprogress";
+      if (appliedPosting.currentStepStatus === "disqualified")
+        appliedPosting.status = "rejected";
+      else if (appliedPosting.currentStepStatus === "qualified")
+        appliedPosting.status = "inprogress";
       appliedPosting.currentStepStatus = "pending";
-
-      console.log(appliedPosting);
 
       await cand.save();
     }
@@ -104,8 +104,6 @@ const advanceWorkflow = async (c: Context) => {
         (role) => role?._id?.toString() == member.role.toString()
       ) as unknown as Role;
 
-      console.log(memberRole);
-
       if (!memberRole) continue;
       if (!memberRole.permissions.includes("manage_job")) continue;
 
@@ -123,10 +121,6 @@ const advanceWorkflow = async (c: Context) => {
 };
 
 const handleResumeScreening = async (posting: PostingType) => {
-  if (posting.ats) {
-    posting.ats.status = "processing";
-  }
-
   const lambdaClient = new LambdaClient({
     region: REGION,
     credentials: {
@@ -214,7 +208,6 @@ const handleAssessmentRound = async (
   posting: PostingType,
   step: WorkflowStep
 ) => {
-  console.log("handleAssessmentRound");
   const { type, stepId } = step;
 
   const assessment = posting.assessments.find(
@@ -236,8 +229,6 @@ const handleAssessmentRound = async (
       return current.status !== "rejected";
     }
   );
-
-  console.log(qualifiedCandidates);
 
   let assessmentType = "";
   if (type === "ca") {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -24,16 +24,9 @@ import {
 
 import { ArrowUpDown, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { Button, Checkbox } from "@nextui-org/react";
-
-interface Candidate {
-  _id: string;
-  firstname: string;
-  lastname: string;
-  email: string;
-  phone: string;
-  resume: string; // Assume this is a URL for downloading
-  website: string;
-}
+import { useOutletContext } from "react-router-dom";
+import { Posting as PostingType } from "@shared-types/Posting";
+import { AppliedPosting, Candidate } from "@shared-types/Candidate";
 
 interface DataTableProps {
   data: Candidate[];
@@ -45,6 +38,16 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pageIndex, setPageIndex] = useState(0);
+  const [currentPostingId, setCurrentPostingId] = useState<string | null>(null);
+
+  const { posting } = useOutletContext() as { posting: PostingType };
+  useEffect(() => {
+    if (posting) {
+      setCurrentPostingId(posting?._id as string);
+      console.log(candidates);
+      console.log(posting?._id);
+    }
+  }, [currentPostingId, posting]);
 
   const columns: ColumnDef<Candidate>[] = [
     {
@@ -147,6 +150,32 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
           onClick={() => window.open(row.original.website, "_blank")}
         >
           {row.original.website}
+        </p>
+      ),
+    },
+    {
+      accessorKey: "website",
+      header: ({ column }) => (
+        <Button
+          variant="light"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Status
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+
+      cell: ({ row }) => (
+        <p
+          className="text-blue-500 hover:text-blue-300 transition-colors cursor-pointer"
+          onClick={() => window.open(row.original.website, "_blank")}
+        >
+          {
+            (row.original as Candidate).appliedPostings.find(
+              (ap: AppliedPosting) =>
+                ap.postingId.toString() === currentPostingId?.toString()
+            )?.currentStepStatus
+          }
         </p>
       ),
     },
