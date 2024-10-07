@@ -159,6 +159,7 @@ const ViewAssessment = () => {
             <TableColumn className="text-sm">Time Taken</TableColumn>
             <TableColumn className="text-sm">Score</TableColumn>
             <TableColumn className="text-sm">Cheating</TableColumn>
+            <TableColumn className="text-sm">Status</TableColumn>
             <TableColumn className="text-sm">Action</TableColumn>
           </TableHeader>
           <TableBody>
@@ -182,6 +183,7 @@ const ViewAssessment = () => {
                 <TableCell className="w-full md:w-auto">
                   {submission?.cheating}
                 </TableCell>
+                <TableCell className="w-full md:w-auto">Pending</TableCell>
                 <TableCell className="w-full md:w-auto">
                   <Tooltip content="View">
                     <Button

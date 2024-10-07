@@ -398,6 +398,25 @@ const publishPosting = async (c: Context) => {
   }
 };
 
+const deletePosting = async (c: Context) => {
+  try {
+    const perms = await checkPermission.all(c, ["manage_job"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const posting = await Posting.findByIdAndDelete(c.req.param("id"));
+    if (!posting) {
+      return sendError(c, 404, "job not found");
+    }
+
+    return sendSuccess(c, 200, "job deleted successfully");
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
 export default {
   getPostings,
   getPosting,
@@ -408,4 +427,5 @@ export default {
   updateAssignment,
   updateInterview,
   publishPosting,
+  deletePosting,
 };

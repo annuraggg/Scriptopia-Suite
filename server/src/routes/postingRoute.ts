@@ -18,4 +18,6 @@ app.post("/publish", postingController.publishPosting);
 
 app.post("/advance-workflow", workflowController.advanceWorkflow);
 
+app.delete("/:id", postingController.deletePosting);
+
 export default app;

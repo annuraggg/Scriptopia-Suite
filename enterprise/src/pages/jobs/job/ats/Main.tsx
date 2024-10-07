@@ -41,6 +41,7 @@ const Main = ({ posting }: { posting: Posting }) => {
           ).toLocaleDateString(),
           match: (currentPosting?.scores.rs?.score ?? 0) + "%", // Default to 0% if score is undefined
           status: currentPosting?.status || "Applied",
+          currentStepStatus: currentPosting?.currentStepStatus || "Pending",
         };
       });
       setTableData(tableDataTemp);
@@ -154,6 +155,7 @@ const Main = ({ posting }: { posting: Posting }) => {
               postingId={posting._id!}
               matchThreshold={posting?.ats?.minimumScore}
               stepNo={stepNo}
+              setData={setTableData}
             />
           </Tab>
         </Tabs>

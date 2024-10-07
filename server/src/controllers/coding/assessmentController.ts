@@ -458,124 +458,11 @@ const submitAssessment = async (c: Context) => {
       return "Heavy Copying";
     };
 
-    const getScore = async () => {
-      let total = 0;
-      let mcq = [];
-      let problem = [];
-
-      for (const mcqSubmission of submission.mcqSubmissions) {
-        let grade = 0;
-        const mcqObj = assessment.mcqs.find((mcq) => {
-          if (!mcq._id) return;
-
-          if (!mcq._id) return false;
-          return mcq._id.toString() === mcqSubmission.mcqId;
-        });
-
-        if (!mcqObj) return;
-
-        if (mcqObj.type === "multiple") {
-          if (!mcqObj.mcq) return;
-          if (mcqObj.mcq.correct === mcqSubmission.selectedOptions[0]) {
-            grade = mcqObj.grade;
-          }
-        }
-
-        if (mcqObj.type === "checkbox") {
-          if (!mcqObj.checkbox) return;
-          const correct = mcqObj.checkbox.correct;
-          const selected = mcqSubmission.selectedOptions;
-
-          if (
-            correct.length === selected.length &&
-            correct.every((value) => selected.includes(value))
-          ) {
-            grade = mcqObj.grade;
-          }
-        }
-
-        mcq.push({
-          mcqId: mcqSubmission.mcqId,
-          obtainedMarks: grade,
-        });
-      }
-
-      for (const problemSubmission of submission.submissions) {
-        let grade = 0;
-
-        const problemObj = assessment.problems.find(
-          (problem) => problem._id.toString() === problemSubmission.problemId
-        );
-
-        if (!problemObj) return;
-        if (!assessment.grading) return;
-
-        if (assessment.grading.type === "testcase") {
-          const problem = await Problem.findById(problemSubmission.problemId);
-          if (!problem) return { mcq, problem, total };
-          if (!assessment.grading.testcases) return { mcq, problem, total };
-
-          for (const testCase of problem.testCases) {
-            if (!testCase?._id) return { mcq, problem, total };
-            const passed =
-              problemSubmission.results.find((result: any) => {
-                if (!testCase._id) return false;
-                result.caseId === testCase?._id.toString() && result.passed;
-              }) || false;
-            if (!passed) continue;
-            if (testCase.difficulty === "easy") {
-              grade += assessment.grading.testcases.easy;
-            } else if (testCase.difficulty === "medium") {
-              grade += assessment.grading.testcases.medium;
-            } else {
-              grade += assessment.grading.testcases.hard;
-            }
-          }
-        }
-
-        if (assessment.grading.type === "problem") {
-          const problemObj = assessment.grading.problem.find(
-            (p) =>
-              p.problemId?.toString() === problemSubmission.problemId.toString()
-          );
-
-          if (!problemObj) return;
-
-          problemSubmission.results.forEach((result: any) => {
-            if (!result.passed) {
-              problem.push({
-                problemId: problemSubmission.problemId,
-                obtainedMarks: 0,
-              });
-              return;
-            }
-          });
-
-          grade = problemObj.points;
-        }
-
-        problem.push({
-          problemId: problemSubmission.problemId,
-          obtainedMarks: grade,
-        });
-      }
-
-      mcq.forEach((m) => {
-        total += m.obtainedMarks;
-      });
-
-      problem.forEach((p) => {
-        total += p.obtainedMarks;
-      });
-
-      return {
-        mcq,
-        problem,
-        total,
-      };
-    };
-
-    const grades = await getScore();
+    const grades = getScore(
+      submission.mcqSubmissions,
+      submission.submissions,
+      assessment
+    );
     const assessmentSubmission = {
       ...submission,
       cheatingStatus: getCheatingStatus(offenses),
@@ -858,6 +745,118 @@ const disqualifyCandidate = async (c: Context) => {
     logger.error(err as string);
     return sendError(c, 500, "Internal server error");
   }
+};
+
+const getScore = (
+  mcqSubmissions: { mcqId: string; selectedOptions: string[] }[],
+  problemSubmissions: { problemId: string; results: any[] }[],
+  assessment: any
+) => {
+  let total = 0;
+  let mcq = [];
+  let problem = [];
+
+  for (const mcqSubmission of mcqSubmissions) {
+    let grade = 0;
+    const mcqObj = assessment.mcqs.find((mcq: any) => {
+      if (!mcq._id) return false;
+      return mcq._id.toString() === mcqSubmission.mcqId;
+    });
+
+    if (!mcqObj) continue;
+
+    if (mcqObj.type === "multiple") {
+      if (!mcqObj.mcq) continue;
+      if (mcqObj.mcq.correct === mcqSubmission.selectedOptions[0]) {
+        grade = mcqObj.grade;
+      }
+    }
+
+    if (mcqObj.type === "checkbox") {
+      if (!mcqObj.checkbox) continue;
+      const correct = mcqObj.checkbox.correct;
+      const selected = mcqSubmission.selectedOptions;
+
+      if (
+        correct.length === selected.length &&
+        correct.every((value: string) => selected.includes(value))
+      ) {
+        grade = mcqObj.grade;
+      }
+    }
+
+    mcq.push({
+      mcqId: mcqSubmission.mcqId,
+      obtainedMarks: grade,
+    });
+  }
+
+  for (const problemSubmission of problemSubmissions) {
+    let grade = 0;
+
+    const problemObj = assessment.problems.find(
+      (problem: any) => problem._id.toString() === problemSubmission.problemId
+    );
+
+    if (!problemObj) continue;
+    if (!assessment.grading) continue;
+
+    if (assessment.grading.type === "testcase") {
+      if (!assessment.grading.testcases) continue;
+
+      for (const testCase of problemObj.testCases) {
+        if (!testCase?._id) continue;
+        const passed = problemSubmission.results.find(
+          (result: any) =>
+            result.caseId.toString() === testCase._id.toString() &&
+            result.passed
+        );
+        if (!passed) continue;
+        if (testCase.difficulty === "easy") {
+          grade += assessment.grading.testcases.easy;
+        } else if (testCase.difficulty === "medium") {
+          grade += assessment.grading.testcases.medium;
+        } else {
+          grade += assessment.grading.testcases.hard;
+        }
+      }
+    }
+
+    if (assessment.grading.type === "problem") {
+      const gradingProblemObj = assessment.grading.problem.find(
+        (p: any) =>
+          p.problemId?.toString() === problemSubmission.problemId.toString()
+      );
+
+      if (!gradingProblemObj) continue;
+
+      const allPassed = problemSubmission.results.every(
+        (result: any) => result.passed
+      );
+      if (allPassed) {
+        grade = gradingProblemObj.points;
+      }
+    }
+
+    problem.push({
+      problemId: problemSubmission.problemId,
+      obtainedMarks: grade,
+    });
+  }
+
+  mcq.forEach((m: any) => {
+    total += m.obtainedMarks;
+  });
+
+  problem.forEach((p: any) => {
+    total += p.obtainedMarks;
+  });
+
+  return {
+    mcq,
+    problem,
+    total,
+  };
 };
 
 export default {

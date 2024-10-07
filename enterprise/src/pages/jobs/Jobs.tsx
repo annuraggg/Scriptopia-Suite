@@ -15,15 +15,12 @@ import {
   ListIcon,
   CirclePlayIcon,
   BanIcon,
-  ArchiveIcon,
   FilePlusIcon,
   MapPinIcon,
   BriefcaseIcon,
   BanknoteIcon,
   Menu,
   Trash2Icon,
-  ShareIcon,
-  PencilIcon,
 } from "lucide-react";
 import Filter from "./Filter";
 import CreateJobModal from "./CreateJobModal";
@@ -32,6 +29,15 @@ import ax from "@/config/axios";
 import { toast } from "sonner";
 import { Posting } from "@shared-types/Posting";
 import { Department } from "@shared-types/Organization";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  useDisclosure,
+} from "@nextui-org/react";
 
 const Cards = [
   {
@@ -54,25 +60,6 @@ const Cards = [
   },
 ];
 
-const editItems = [
-  {
-    title: "Edit",
-    icon: <PencilIcon size={18} />,
-  },
-  {
-    title: "Share",
-    icon: <ShareIcon size={18} />,
-  },
-  {
-    title: "Archive",
-    icon: <ArchiveIcon size={18} />,
-  },
-  {
-    title: "Delete",
-    icon: <Trash2Icon size={18} />,
-  },
-];
-
 const Postings: React.FC = () => {
   const navigate = useNavigate();
   const [postings, setPostings] = useState<Posting[]>([]);
@@ -89,6 +76,21 @@ const Postings: React.FC = () => {
     end: "",
   });
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
+  const [deleteId, setDeleteId] = useState<string>();
+  const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
+
+  const editItems = [
+    {
+      title: "Delete",
+      icon: <Trash2Icon size={18} />,
+      onClick: (a: string) => {
+        setDeleteId(a);
+        onOpen();
+      },
+    },
+  ];
 
   const filteredPostings = postings.filter((post) => {
     if (searchTerm) {
@@ -200,6 +202,24 @@ const Postings: React.FC = () => {
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleDelete = () => {
+    setDeleteLoading(true);
+    axios
+      .delete(`/postings/${deleteId}`)
+      .then((res) => {
+        toast.success(res.data.message);
+        setPostings((prev) => prev.filter((p) => p._id !== deleteId));
+        onOpenChange();
+      })
+      .catch((err) => {
+        toast.error(err.response.data.message);
+        onOpenChange();
+      })
+      .finally(() => {
+        setDeleteLoading(false);
+      });
+  };
 
   return (
     <div className="flex gap-5 w-full p-5">
@@ -384,7 +404,10 @@ const Postings: React.FC = () => {
                                   item.title === "Delete" ? "text-danger" : ""
                                 }
                               >
-                                <div className="flex items-center gap-2">
+                                <div
+                                  className="flex items-center gap-2"
+                                  onClick={() => item.onClick(posting._id!)}
+                                >
                                   {item.icon}
                                   <p>{item.title}</p>
                                 </div>
@@ -406,6 +429,30 @@ const Postings: React.FC = () => {
         onClose={closeCreateJobModal}
         deparments={departments}
       />
+
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Are you sure?
+              </ModalHeader>
+              <ModalBody>
+                This action cannot be undone. Are you sure you want to delete
+                this posting?F
+              </ModalBody>
+              <ModalFooter>
+                <Button color="primary" variant="light" onPress={onClose} isDisabled={deleteLoading}>
+                  Close
+                </Button>
+                <Button color="danger" onPress={handleDelete} isLoading={deleteLoading}>
+                  Delete
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 };
