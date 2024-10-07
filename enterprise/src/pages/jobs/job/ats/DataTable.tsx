@@ -38,17 +38,21 @@ import { useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
+import { useOutletContext } from "react-router-dom";
+import { Posting } from "@shared-types/Posting";
 
 interface DataTableProps<TData> {
   data: TData[];
   postingId: string;
   matchThreshold: number;
+  stepNo: number;
 }
 
 export function DataTable<TData>({
   data,
   postingId,
   matchThreshold = 0,
+  stepNo,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -65,6 +69,9 @@ export function DataTable<TData>({
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
+
+  const { posting } = useOutletContext() as { posting: Posting };
+  console.log(posting.workflow?.currentStep, stepNo);
 
   const downloadResume = (_id: string) => {
     axios
@@ -169,6 +176,7 @@ export function DataTable<TData>({
           }
           onValueChange={(value) => table.toggleAllPageRowsSelected(value)}
           aria-label="Select all"
+          isDisabled={posting.workflow?.currentStep !== stepNo}
         />
       ),
       cell: ({ row }) => (
@@ -264,6 +272,7 @@ export function DataTable<TData>({
                 color="success"
                 className="ml-3"
                 onClick={() => selectCand(_id)}
+                isDisabled={posting.workflow?.currentStep !== stepNo}
               >
                 <Check />
               </Button>
@@ -276,6 +285,7 @@ export function DataTable<TData>({
                 color="danger"
                 className="ml-3"
                 onClick={() => disqualify(_id)}
+                isDisabled={posting.workflow?.currentStep !== stepNo}
               >
                 <X />
               </Button>
@@ -340,16 +350,29 @@ export function DataTable<TData>({
             table.getColumn("email")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
+          isDisabled={posting.workflow?.currentStep !== stepNo}
         />
-        <Button onClick={disqualifyAllSelected} color="danger">
+        <Button
+          onClick={disqualifyAllSelected}
+          color="danger"
+          isDisabled={posting.workflow?.currentStep !== stepNo}
+        >
           <UserX className="mr-2 h-4 w-4" />
           Disqualify Selected
         </Button>
-        <Button onClick={qualifyAllSelected} color="success">
+        <Button
+          onClick={qualifyAllSelected}
+          color="success"
+          isDisabled={posting.workflow?.currentStep !== stepNo}
+        >
           <UserCheck className="mr-2 h-4 w-4" />
           Qualify Selected
         </Button>
-        <Button onClick={selectAllAboveThreshold} color="primary">
+        <Button
+          onClick={selectAllAboveThreshold}
+          color="primary"
+          isDisabled={posting.workflow?.currentStep !== stepNo}
+        >
           <Users className="mr-2 h-4 w-4" />
           Select All Above {matchThreshold}%
         </Button>

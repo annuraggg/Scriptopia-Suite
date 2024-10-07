@@ -39,6 +39,9 @@ const ViewAssessment = () => {
   const [qualified, setQualified] = useState(0);
   const [cheating, setCheating] = useState({ no: 0, light: 0, heavy: 0 });
 
+  const [currentStepId, setCurrentStepId] = useState<number>(-1);
+  const [assessmentStepId, setAssessmentStepId] = useState<number>(-1);
+
   const { getToken, isLoaded } = useAuth();
   useEffect(() => {
     if (isLoaded) {
@@ -58,6 +61,14 @@ const ViewAssessment = () => {
           toast?.error(err?.response?.data?.message || "Error");
         });
     }
+
+    setCurrentStepId(posting?.workflow?.currentStep as number);
+    const stepId = window.location.pathname.split("/")[4];
+    if (!posting?.workflow?.steps) return;
+    const step = posting?.workflow?.steps.findIndex(
+      (step) => step.stepId === stepId
+    );
+    setAssessmentStepId(step);
   }, [getToken, isLoaded]);
 
   const calculateTime = (time: number) => {
@@ -187,6 +198,7 @@ const ViewAssessment = () => {
                       isIconOnly
                       className="ml-2"
                       color="success"
+                      isDisabled={currentStepId !== assessmentStepId}
                     >
                       <Check />
                     </Button>
@@ -197,6 +209,7 @@ const ViewAssessment = () => {
                       isIconOnly
                       className="ml-2"
                       color="danger"
+                      isDisabled={currentStepId !== assessmentStepId}
                     >
                       <X />
                     </Button>

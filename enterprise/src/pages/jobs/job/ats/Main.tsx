@@ -18,6 +18,7 @@ interface CandidateTable {
 
 const Main = ({ posting }: { posting: Posting }) => {
   const [tableData, setTableData] = useState<CandidateTable[]>([]);
+  const [stepNo, setStepNo] = useState<number>(-1);
   const [selectionData, setSelectionData] = useState<{
     total: number;
     selected: number;
@@ -63,6 +64,14 @@ const Main = ({ posting }: { posting: Posting }) => {
         total: posting.candidates.length,
         selected: selectedCandidates.length,
       });
+
+      const stepNumber = posting?.workflow?.steps?.findIndex(
+        (step) => step.type === "rs"
+      ) as number;
+
+      console.log("Step number: ", stepNumber);
+
+      setStepNo(stepNumber);
     }
   }, [posting]);
 
@@ -140,7 +149,12 @@ const Main = ({ posting }: { posting: Posting }) => {
             )}
           </Tab>
           <Tab key="candidates" title="Candidates">
-            <DataTable data={tableData} postingId={posting._id!} matchThreshold={posting?.ats?.minimumScore} />
+            <DataTable
+              data={tableData}
+              postingId={posting._id!}
+              matchThreshold={posting?.ats?.minimumScore}
+              stepNo={stepNo}
+            />
           </Tab>
         </Tabs>
       </motion.div>
