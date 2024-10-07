@@ -68,40 +68,32 @@ const ViewAssessment = () => {
 
   const { posting } = useOutletContext() as { posting: Posting };
 
-  const acceptCandidate = (id: string) => {
+  const acceptCandidate = (email: string) => {
     const axios = ax(getToken);
     axios
       .post("/assessments/candidates/qualify", {
-        candidateId: id,
+        email: email,
         postingId: posting?._id,
       })
       .then((res) => {
         toast?.success(res?.data?.message);
-        setAssessmentsSubmissions(
-          assessmentsSubmissions.filter(
-            (submission: Submission) => submission?._id !== id
-          )
-        );
+        window.location.reload();
       })
       .catch((err) => {
         toast?.error(err?.response?.data?.message || "Error");
       });
   };
 
-  const rejectCandidate = (id: string) => {
+  const rejectCandidate = (email: string) => {
     const axios = ax(getToken);
     axios
       .post("/assessments/candidates/disqualify", {
-        candidateId: id,
+        email: email,
         postingId: posting?._id,
       })
       .then((res) => {
         toast?.success(res?.data?.message);
-        setAssessmentsSubmissions(
-          assessmentsSubmissions.filter(
-            (submission: Submission) => submission?._id !== id
-          )
-        );
+        window.location.reload();
       })
       .catch((err) => {
         toast?.error(err?.response?.data?.message || "Error");
@@ -191,7 +183,7 @@ const ViewAssessment = () => {
                   </Tooltip>
                   <Tooltip content="Qualify">
                     <Button
-                      onClick={() => acceptCandidate(submission?._id)}
+                      onClick={() => acceptCandidate(submission?.email)}
                       isIconOnly
                       className="ml-2"
                       color="success"
@@ -201,7 +193,7 @@ const ViewAssessment = () => {
                   </Tooltip>
                   <Tooltip content="Disqualify">
                     <Button
-                      onClick={() => rejectCandidate(submission?._id)}
+                      onClick={() => rejectCandidate(submission?.email)}
                       isIconOnly
                       className="ml-2"
                       color="danger"

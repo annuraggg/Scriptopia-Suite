@@ -776,8 +776,7 @@ const getAssessmentSubmission = async (c: Context) => {
 
 const qualifyCandidate = async (c: Context) => {
   try {
-    const { candidateId, postingId } = await c.req.json();
-    console.log(candidateId, postingId);
+    const { email, postingId } = await c.req.json();
     const perms = await checkOrganizationPermission.all(c, ["view_job"]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
@@ -791,7 +790,7 @@ const qualifyCandidate = async (c: Context) => {
       return sendError(c, 404, "Posting not found");
     }
 
-    const candidate = await CandidateModel.findOne({ _id: candidateId });
+    const candidate = await CandidateModel.findOne({ email });
     if (!candidate) {
       return sendError(c, 404, "Candidate not found");
     }
@@ -817,7 +816,7 @@ const qualifyCandidate = async (c: Context) => {
 
 const disqualifyCandidate = async (c: Context) => {
   try {
-    const { candidateId, postingId } = await c.req.json();
+    const { email, postingId } = await c.req.json();
     const perms = await checkOrganizationPermission.all(c, ["view_job"]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
@@ -831,7 +830,7 @@ const disqualifyCandidate = async (c: Context) => {
       return sendError(c, 404, "Posting not found");
     }
 
-    const candidate = await CandidateModel.findOne({ _id: candidateId });
+    const candidate = await CandidateModel.findOne({ email });
     if (!candidate) {
       return sendError(c, 404, "Candidate not found");
     }
