@@ -69,12 +69,9 @@ const advanceWorkflow = async (c: Context) => {
       );
 
       if (!appliedPosting) continue;
-      if (appliedPosting.currentStepStatus === "disqualified")
-        appliedPosting.status = "rejected";
-      else if (appliedPosting.currentStepStatus === "qualified")
-        appliedPosting.status = "inprogress";
-      else appliedPosting.status = "applied";
 
+      if (appliedPosting.currentStepStatus === "disqualified") appliedPosting.status = "rejected";
+      else if (appliedPosting.currentStepStatus === "qualified") appliedPosting.status = "inprogress";
       appliedPosting.currentStepStatus = "pending";
 
       console.log(appliedPosting);
