@@ -10,7 +10,7 @@
 .scrolling-wrapper {
   display: flex;
   white-space: nowrap;
-  animation: scroll 120s linear infinite;
+  animation: scroll 10s linear infinite;
 }
 
 @keyframes scroll {
