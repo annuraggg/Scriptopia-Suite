@@ -10,6 +10,7 @@ import Organization from "@/models/Organization";
 import { Assessment } from "@shared-types/Assessment";
 import clerkClient from "@/config/clerk";
 import { AuditLog, Role } from "@shared-types/Organization";
+import CandidateModel from "@/models/Candidate";
 const REGION = "ap-south-1";
 
 const advanceWorkflow = async (c: Context) => {
@@ -60,18 +61,25 @@ const advanceWorkflow = async (c: Context) => {
     }
 
     for (const candidate of posting.candidates) {
-      // @ts-expect-error - candidates is not defined in PostingType
-      const appliedPosting = candidate.appliedPostings.find(
-        (ap: AppliedPosting) =>
-          ap.postingId.toString() === posting._id.toString()
+      const cand = await CandidateModel.findById(candidate._id);
+      if (!cand) continue;
+
+      const appliedPosting = cand.appliedPostings.find(
+        (ap) => ap.postingId.toString() === posting._id.toString()
       );
 
       if (!appliedPosting) continue;
-      if (appliedPosting.currentStepStatus === "disqualified") appliedPosting.status = "rejected";
-      else if (appliedPosting.currentStepStatus === "qualified") appliedPosting.status = "inprogress";
+      if (appliedPosting.currentStepStatus === "disqualified")
+        appliedPosting.status = "rejected";
+      else if (appliedPosting.currentStepStatus === "qualified")
+        appliedPosting.status = "inprogress";
       else appliedPosting.status = "applied";
 
       appliedPosting.currentStepStatus = "pending";
+
+      console.log(appliedPosting);
+
+      await cand.save();
     }
 
     await posting.save();
