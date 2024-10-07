@@ -777,6 +777,7 @@ const getAssessmentSubmission = async (c: Context) => {
 const qualifyCandidate = async (c: Context) => {
   try {
     const { candidateId, postingId } = await c.req.json();
+    console.log(candidateId, postingId);
     const perms = await checkOrganizationPermission.all(c, ["view_job"]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
