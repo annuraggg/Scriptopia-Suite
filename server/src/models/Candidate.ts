@@ -29,6 +29,11 @@ const appliedPostingSchema = new Schema({
     enum: ["applied", "inprogress", "rejected", "hired"],
     default: "applied",
   },
+  currentStepStatus: {
+    type: String,
+    enum: ["qualified", "disqualified", "pending"],
+    default: "pending",
+  },
 });
 
 const candidateSchema = new Schema({

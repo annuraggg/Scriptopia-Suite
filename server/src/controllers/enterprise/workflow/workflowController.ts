@@ -59,6 +59,21 @@ const advanceWorkflow = async (c: Context) => {
       );
     }
 
+    for (const candidate of posting.candidates) {
+      // @ts-expect-error - candidates is not defined in PostingType
+      const appliedPosting = candidate.appliedPostings.find(
+        (ap: AppliedPosting) =>
+          ap.postingId.toString() === posting._id.toString()
+      );
+
+      if (!appliedPosting) continue;
+      if (appliedPosting.currentStepStatus === "disqualified") appliedPosting.status = "rejected";
+      else if (appliedPosting.currentStepStatus === "qualified") appliedPosting.status = "inprogress";
+      else appliedPosting.status = "applied";
+
+      appliedPosting.currentStepStatus = "pending";
+    }
+
     await posting.save();
 
     const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
@@ -72,7 +87,7 @@ const advanceWorkflow = async (c: Context) => {
     const notification = {
       title: "Workflow Advanced",
       description: `Workflow for ${posting.title} has been advanced to step ${workflow.steps[newStepIndex].name}`,
-    };  
+    };
 
     const organization = await Organization.findById(perms.data!.orgId);
     if (!organization) {
@@ -118,6 +133,14 @@ const handleResumeScreening = async (posting: PostingType) => {
   const resumes = [];
 
   for (const candidate of posting.candidates as unknown as Candidate[]) {
+    const currentPosting = candidate.appliedPostings.find(
+      (ap: AppliedPosting) =>
+        ap.postingId.toString() === posting?._id?.toString()
+    );
+
+    if (!currentPosting) continue;
+    if (currentPosting.currentStepStatus === "disqualified") continue;
+
     const data = {
       candidateId: candidate._id.toString(),
       resume: candidate.resumeExtract,
@@ -163,6 +186,7 @@ const handleAssignmentRound = async (
       );
 
       if (!current) return false;
+
       return current.status !== "rejected";
     }
   );

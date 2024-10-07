@@ -99,7 +99,7 @@ const Filter: React.FC<FilterProps> = ({
               value={departmentFilter}
               onChange={(e) => setDepartmentFilter(e.target.value)}
             >
-              {departments.map((department) => (
+              {departments?.map((department) => (
                 <SelectItem key={department.name}>{department.name}</SelectItem>
               ))}
             </Select>

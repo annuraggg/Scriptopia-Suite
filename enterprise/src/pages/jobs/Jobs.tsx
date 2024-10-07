@@ -79,7 +79,6 @@ const Postings: React.FC = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-
   const [sort, setSort] = useState(new Set(["newest"]));
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
@@ -154,6 +153,10 @@ const Postings: React.FC = () => {
   };
 
   const openCreateJobModal = () => {
+    if (!departments.length) {
+      toast.error("Please create a department first");
+      return;
+    }
     setIsModalOpen(true);
   };
 
@@ -244,7 +247,9 @@ const Postings: React.FC = () => {
                   <CardBody className="flex items-center justify-between bg-success-400 text-background bg-opacity-3 py-2 px-5">
                     <div className="flex items-center gap-2">
                       <FilePlusIcon className="text-background" size={22} />
-                      <p className="text-sm text-background">Create a new job</p>
+                      <p className="text-sm text-background">
+                        Create a new job
+                      </p>
                     </div>
                   </CardBody>
                 </Card>
@@ -255,35 +260,39 @@ const Postings: React.FC = () => {
                   <Card
                     isPressable
                     key={index}
-                    className={`text-white rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${selectedFilter === card.filter
-                      ? "bg-gray-500/20 text-white"
-                      : "text-gray-500"
-                      }`}
+                    className={`text-white rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${
+                      selectedFilter === card.filter
+                        ? "bg-gray-500/20 text-white"
+                        : "text-gray-500"
+                    }`}
                     onClick={() => handleFilterChange(card.filter)}
                   >
                     <div className="flex items-center justify-center gap-2 w-full">
                       <div
-                        className={`${selectedFilter === card.filter
-                          ? "text-white"
-                          : "text-gray-500"
-                          }`}
+                        className={`${
+                          selectedFilter === card.filter
+                            ? "text-white"
+                            : "text-gray-500"
+                        }`}
                       >
                         {card.icon}
                       </div>
                       <h1
-                        className={`${selectedFilter === card.filter
-                          ? "text-white"
-                          : "text-gray-500"
-                          } text-base`}
+                        className={`${
+                          selectedFilter === card.filter
+                            ? "text-white"
+                            : "text-gray-500"
+                        } text-base`}
                       >
                         {card.title}
                       </h1>
                     </div>
                     <p
-                      className={`text-center w-full ${selectedFilter === card.filter
-                        ? "text-white"
-                        : "text-gray-500"
-                        }`}
+                      className={`text-center w-full ${
+                        selectedFilter === card.filter
+                          ? "text-white"
+                          : "text-gray-500"
+                      }`}
                     ></p>
                   </Card>
                 ))}
@@ -319,10 +328,11 @@ const Postings: React.FC = () => {
                             }
                           </span>
                           <span
-                            className={`text-xs px-2 rounded-full whitespace-nowrap ${getPostingStatus(posting) === "active"
-                              ? " text-success-500 bg-success-100"
-                              : " text-danger-500 bg-danger-100"
-                              }`}
+                            className={`text-xs px-2 rounded-full whitespace-nowrap ${
+                              getPostingStatus(posting) === "active"
+                                ? " text-success-500 bg-success-100"
+                                : " text-danger-500 bg-danger-100"
+                            }`}
                           >
                             {getPostingStatus(posting) === "active"
                               ? "Active"
@@ -342,7 +352,9 @@ const Postings: React.FC = () => {
                             <BanknoteIcon size={18} />
                             <p>
                               {posting.salary.min} - {posting.salary.max} (
-                              {posting?.salary?.currency?.toUpperCase() || "USD"})
+                              {posting?.salary?.currency?.toUpperCase() ||
+                                "USD"}
+                              )
                             </p>
                           </div>
                         </div>
@@ -353,25 +365,24 @@ const Postings: React.FC = () => {
                           <p className="text-gray-300 text-xs">
                             {getPostingStatus(posting) === "active"
                               ? `Open Until ${new Date(
-                                posting.applicationRange.end
-                              ).toLocaleString()}`
+                                  posting.applicationRange.end
+                                ).toLocaleString()}`
                               : `Closed at ${new Date(
-                                posting.applicationRange.end
-                              ).toLocaleString()}`}
+                                  posting.applicationRange.end
+                                ).toLocaleString()}`}
                           </p>
                         </div>
                         <Dropdown>
                           <DropdownTrigger>
-                            <Menu
-                              size={28}
-                              className="mr-6 cursor-pointer"
-                            />
+                            <Menu size={28} className="mr-6 cursor-pointer" />
                           </DropdownTrigger>
                           <DropdownMenu>
                             {editItems.map((item, index) => (
                               <DropdownItem
                                 key={index}
-                                className={item.title === "Delete" ? "text-danger" : ""}
+                                className={
+                                  item.title === "Delete" ? "text-danger" : ""
+                                }
                               >
                                 <div className="flex items-center gap-2">
                                   {item.icon}

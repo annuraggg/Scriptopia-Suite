@@ -36,6 +36,7 @@ interface AppliedPosting {
     }[];
   };
   status?: "applied" | "shortlisted" | "rejected" | "hired";
+  currentStepStatus?: "qualified" | "disqualified" | "pending";
 }
 
 interface Candidate {

@@ -40,6 +40,11 @@ const Show = ({ workflowData, behavior }: ShowProps) => {
 
   const advance = async (step: number) => {
     setLoading(true);
+    if (!posting.published) {
+      toast.error("Posting is not published");
+      setLoading(false);
+      return;
+    }
     axios
       .post("/postings/advance-workflow", { _id: posting._id, step })
       .then(() => {
@@ -86,6 +91,7 @@ const Show = ({ workflowData, behavior }: ShowProps) => {
                         variant="flat"
                         size="sm"
                         color="primary"
+                        className={posting.published ? "" : "hidden"}
                         onClick={() => advance(index)}
                         isLoading={loading}
                       >

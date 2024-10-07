@@ -10,6 +10,9 @@ import { TestCase } from "@shared-types/Problem";
 import Posting from "@/models/Posting";
 import { Candidate } from "@shared-types/Candidate";
 import CandidateDoc from "@/models/Candidate";
+import CandidateModel from "@/models/Candidate";
+import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
+import logger from "@/utils/logger";
 
 const LIMIT_PER_PAGE = 20;
 
@@ -771,6 +774,91 @@ const getAssessmentSubmission = async (c: Context) => {
   }
 };
 
+const qualifyCandidate = async (c: Context) => {
+  try {
+    const { candidateId, postingId } = await c.req.json();
+    const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const posting = await Posting.findOne({ _id: postingId }).populate(
+      "organizationId"
+    );
+
+    if (!posting) {
+      return sendError(c, 404, "Posting not found");
+    }
+
+    const candidate = await CandidateModel.findOne({ _id: candidateId });
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const appliedPosting = candidate.appliedPostings.find(
+      (ap) => ap.postingId.toString() === postingId
+    );
+
+    if (!appliedPosting) {
+      return sendError(c, 404, "Candidate not applied to this posting");
+    }
+
+    appliedPosting.status = "inprogress";
+    appliedPosting.currentStepStatus = "qualified";
+    await candidate.save();
+
+    return sendSuccess(c, 200, "Success");
+  } catch (err) {
+    logger.error(err as string);
+    return sendError(c, 500, "Internal server error");
+  }
+};
+
+const disqualifyCandidate = async (c: Context) => {
+  try {
+    const { candidateId, postingId } = await c.req.json();
+    const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const posting = await Posting.findOne({ _id: postingId }).populate(
+      "organizationId"
+    );
+
+    if (!posting) {
+      return sendError(c, 404, "Posting not found");
+    }
+
+    const candidate = await CandidateModel.findOne({ _id: candidateId });
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const appliedPosting = candidate.appliedPostings.find(
+      (ap) => ap.postingId.toString() === postingId
+    );
+
+    if (!appliedPosting) {
+      return sendError(c, 404, "Candidate not applied to this posting");
+    }
+
+    const step = posting.workflow?.currentStep;
+
+    appliedPosting.status = "rejected";
+    appliedPosting.currentStepStatus = "disqualified";
+    appliedPosting.disqualifiedStage = step;
+    appliedPosting.disqualifiedReason = "Disqualified at Assessment Round";
+
+    await candidate.save();
+
+    return sendSuccess(c, 200, "Success");
+  } catch (err) {
+    logger.error(err as string);
+    return sendError(c, 500, "Internal server error");
+  }
+};
+
 export default {
   getAssessments,
   getMyMcqAssessments,
@@ -783,4 +871,6 @@ export default {
   getAssessmentSubmissions,
   getAssessmentSubmission,
   deleteAssessment,
+  qualifyCandidate,
+  disqualifyCandidate,
 };

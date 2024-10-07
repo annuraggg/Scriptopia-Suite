@@ -54,13 +54,13 @@ const Posting = () => {
       .get(`/candidates/${user?.id}`)
       .then((res) => {
         const posted = res.data.data.posted;
-        if (posted.some((p: AppliedPosting) => p.postingId === posting._id)) {
+        if (posted?.some((p: AppliedPosting) => p.postingId === posting._id)) {
           setApplied(true);
         }
       })
       .catch((err) => {
         toast.error("Failed to fetch candidate details");
-        console.error(err.response.data);
+        console.error(err);
       });
   }, [axios, user, posting._id]);
 

@@ -12,18 +12,19 @@ import {
   Button,
   Tooltip,
 } from "@nextui-org/react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { Check, Eye, X } from "lucide-react";
+import { Posting } from "@shared-types/Posting";
 
 interface Submission {
   _id: string;
   name: string;
   email: string;
-  date: string;
+  createdAt: string;
   timer: number;
   score: {
     total: number;
@@ -47,6 +48,7 @@ const ViewAssessment = () => {
       axios
         .get(`/assessments/view/${id}/${postingid}`)
         .then((res) => {
+          console.log(res?.data?.data);
           setAssessmentsSubmissions(res?.data?.data?.submissions);
           setTotalSubmissions(res?.data?.data?.totalSubmissions);
           setQualified(res?.data?.data?.qualified);
@@ -62,6 +64,48 @@ const ViewAssessment = () => {
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
     return `${minutes}m ${seconds}s`;
+  };
+
+  const { posting } = useOutletContext() as { posting: Posting };
+
+  const acceptCandidate = (id: string) => {
+    const axios = ax(getToken);
+    axios
+      .post("/assessments/candidates/qualify", {
+        candidateId: id,
+        postingId: posting?._id,
+      })
+      .then((res) => {
+        toast?.success(res?.data?.message);
+        setAssessmentsSubmissions(
+          assessmentsSubmissions.filter(
+            (submission: Submission) => submission?._id !== id
+          )
+        );
+      })
+      .catch((err) => {
+        toast?.error(err?.response?.data?.message || "Error");
+      });
+  };
+
+  const rejectCandidate = (id: string) => {
+    const axios = ax(getToken);
+    axios
+      .post("/assessments/candidates/disqualify", {
+        candidateId: id,
+        postingId: posting?._id,
+      })
+      .then((res) => {
+        toast?.success(res?.data?.message);
+        setAssessmentsSubmissions(
+          assessmentsSubmissions.filter(
+            (submission: Submission) => submission?._id !== id
+          )
+        );
+      })
+      .catch((err) => {
+        toast?.error(err?.response?.data?.message || "Error");
+      });
   };
 
   return (
@@ -124,7 +168,7 @@ const ViewAssessment = () => {
                   {submission?.email}
                 </TableCell>
                 <TableCell className="w-full md:w-auto">
-                  {submission?.date}
+                  {new Date(submission?.createdAt).toDateString()}
                 </TableCell>
                 <TableCell className="w-full md:w-auto">
                   {calculateTime(submission?.timer)}
@@ -147,7 +191,7 @@ const ViewAssessment = () => {
                   </Tooltip>
                   <Tooltip content="Qualify">
                     <Button
-                      onClick={() => navigate(`${submission?._id}`)}
+                      onClick={() => acceptCandidate(submission?._id)}
                       isIconOnly
                       className="ml-2"
                       color="success"
@@ -157,7 +201,7 @@ const ViewAssessment = () => {
                   </Tooltip>
                   <Tooltip content="Disqualify">
                     <Button
-                      onClick={() => navigate(`${submission?._id}`)}
+                      onClick={() => rejectCandidate(submission?._id)}
                       isIconOnly
                       className="ml-2"
                       color="danger"

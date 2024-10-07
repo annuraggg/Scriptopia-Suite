@@ -230,6 +230,7 @@ const qualifyCandidate = async (c: Context) => {
     }
 
     appliedPosting.status = "inprogress";
+    appliedPosting.currentStepStatus = "qualified";
     await candidate.save();
 
     return sendSuccess(c, 200, "Success");
@@ -271,6 +272,7 @@ const disqualifyCandidate = async (c: Context) => {
     const step = posting.workflow?.currentStep;
 
     appliedPosting.status = "rejected";
+    appliedPosting.currentStepStatus = "disqualified";
     appliedPosting.disqualifiedStage = step;
     appliedPosting.disqualifiedReason = "Disqualified at Assignment Round";
 

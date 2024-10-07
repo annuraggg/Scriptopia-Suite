@@ -12,7 +12,6 @@ import "./db";
 import "./cache";
 import "./loops";
 import "./clerk";
-import "newrelic";
 
 import homeRoute from "../routes/homeRoute";
 import problemRoute from "../routes/problemsRoute";

@@ -218,7 +218,7 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
               labelPlacement="outside"
               isRequired
             >
-              {deparments.map((department) => (
+              {deparments?.map((department) => (
                 <SelectItem key={department._id!}>{department.name}</SelectItem>
               ))}
             </Select>
