@@ -331,7 +331,7 @@ function DataTable<TData>({
                 variant="flat"
                 color="danger"
                 onClick={() => disqualifyCandidate(_id)}
-                isDisabled={currentStepId !== assessmentStepId}
+                isDisabled={currentStepId !== assessmentStepId }
               >
                 <X />
               </Button>

@@ -13,6 +13,7 @@ import CandidateDoc from "@/models/Candidate";
 import CandidateModel from "@/models/Candidate";
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
 import logger from "@/utils/logger";
+import { Candidates } from "@shared-types/Assessment";
 
 const LIMIT_PER_PAGE = 20;
 
@@ -578,17 +579,53 @@ const getAssessmentSubmissions = async (c: Context) => {
       return percentage >= passingPercentage;
     };
 
-    for (const submission of submissions) {
-      finalSubmissions.push({
-        _id: submission._id,
-        name: submission.name,
-        email: submission.email,
-        timer: getTimeUsed(submission.timer),
-        createdAt: submission.createdAt,
-        cheating: submission.cheatingStatus,
-        score: submission.obtainedGrades,
-        passed: await checkPassed(submission),
-      });
+    if (!postingId) {
+      for (const submission of submissions) {
+        finalSubmissions.push({
+          _id: submission._id,
+          name: submission.name,
+          email: submission.email,
+          timer: getTimeUsed(submission.timer),
+          createdAt: submission.createdAt,
+          cheating: submission.cheatingStatus,
+          score: submission.obtainedGrades,
+          passed: await checkPassed(submission),
+        });
+      }
+    } else {
+      for (const submission of submissions) {
+        const posting = await Posting.findById(postingId).populate(
+          "candidates"
+        );
+
+        if (!posting) {
+          return sendError(c, 404, "Posting not found");
+        }
+
+        const candidate = (posting.candidates as unknown as Candidate[]).find(
+          (candidate) => candidate.email === submission.email
+        );
+
+        if (!candidate) {
+          return sendError(c, 404, "Candidate not found");
+        }
+
+        const status = candidate.appliedPostings.find(
+          (ap) => ap.postingId.toString() === postingId
+        )?.currentStepStatus;
+
+        finalSubmissions.push({
+          _id: submission._id,
+          name: submission.name,
+          email: submission.email,
+          timer: getTimeUsed(submission.timer),
+          createdAt: submission.createdAt,
+          cheating: submission.cheatingStatus,
+          score: submission.obtainedGrades,
+          passed: await checkPassed(submission),
+          status: status,
+        });
+      }
     }
 
     const qualified = finalSubmissions.filter((s) => s.passed === true).length;

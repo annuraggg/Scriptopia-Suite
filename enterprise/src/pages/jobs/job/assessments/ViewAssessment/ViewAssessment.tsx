@@ -30,11 +30,14 @@ interface Submission {
     total: number;
   };
   cheating: string;
+  status: string;
 }
 
 const ViewAssessment = () => {
   const navigate = useNavigate();
-  const [assessmentsSubmissions, setAssessmentsSubmissions] = useState([]);
+  const [assessmentsSubmissions, setAssessmentsSubmissions] = useState<
+    Submission[]
+  >([]);
   const [totalSubmissions, setTotalSubmissions] = useState(0);
   const [qualified, setQualified] = useState(0);
   const [cheating, setCheating] = useState({ no: 0, light: 0, heavy: 0 });
@@ -43,6 +46,7 @@ const ViewAssessment = () => {
   const [assessmentStepId, setAssessmentStepId] = useState<number>(-1);
 
   const { getToken, isLoaded } = useAuth();
+
   useEffect(() => {
     if (isLoaded) {
       const id = window.location.pathname.split("/")[4];
@@ -51,7 +55,6 @@ const ViewAssessment = () => {
       axios
         .get(`/assessments/view/${id}/${postingid}`)
         .then((res) => {
-          console.log(res?.data?.data);
           setAssessmentsSubmissions(res?.data?.data?.submissions);
           setTotalSubmissions(res?.data?.data?.totalSubmissions);
           setQualified(res?.data?.data?.qualified);
@@ -62,8 +65,8 @@ const ViewAssessment = () => {
         });
     }
 
-    setCurrentStepId(posting?.workflow?.currentStep as number);
     const stepId = window.location.pathname.split("/")[4];
+    setCurrentStepId(posting?.workflow?.currentStep as number);
     if (!posting?.workflow?.steps) return;
     const step = posting?.workflow?.steps.findIndex(
       (step) => step.stepId === stepId
@@ -81,33 +84,61 @@ const ViewAssessment = () => {
 
   const acceptCandidate = (email: string) => {
     const axios = ax(getToken);
+
+    // Optimistic UI update
+    const newData = assessmentsSubmissions.map((submission) =>
+      submission.email === email
+        ? { ...submission, status: "qualified" }
+        : submission
+    );
+    setAssessmentsSubmissions(newData);
+
     axios
       .post("/assessments/candidates/qualify", {
         email: email,
         postingId: posting?._id,
       })
-      .then((res) => {
-        toast?.success(res?.data?.message);
-        window.location.reload();
-      })
+
       .catch((err) => {
         toast?.error(err?.response?.data?.message || "Error");
+
+        // Revert the optimistic update
+        const revertedData = assessmentsSubmissions.map((submission) =>
+          submission.email === email
+            ? { ...submission, status: "pending" }
+            : submission
+        );
+        setAssessmentsSubmissions(revertedData);
       });
   };
 
   const rejectCandidate = (email: string) => {
     const axios = ax(getToken);
+
+    // Optimistic UI update
+    const newData = assessmentsSubmissions.map((submission) =>
+      submission.email === email
+        ? { ...submission, status: "disqualified" }
+        : submission
+    );
+    setAssessmentsSubmissions(newData);
+
     axios
       .post("/assessments/candidates/disqualify", {
         email: email,
         postingId: posting?._id,
       })
-      .then((res) => {
-        toast?.success(res?.data?.message);
-        window.location.reload();
-      })
+
       .catch((err) => {
         toast?.error(err?.response?.data?.message || "Error");
+
+        // Revert the optimistic update
+        const revertedData = assessmentsSubmissions.map((submission) =>
+          submission.email === email
+            ? { ...submission, status: "pending" }
+            : submission
+        );
+        setAssessmentsSubmissions(revertedData);
       });
   };
 
@@ -183,13 +214,16 @@ const ViewAssessment = () => {
                 <TableCell className="w-full md:w-auto">
                   {submission?.cheating}
                 </TableCell>
-                <TableCell className="w-full md:w-auto">Pending</TableCell>
+                <TableCell className="w-full md:w-auto min-w-28">
+                  {submission?.status}
+                </TableCell>
                 <TableCell className="w-full md:w-auto">
                   <Tooltip content="View">
                     <Button
                       onClick={() => navigate(`${submission?._id}`)}
                       color="default"
                       isIconOnly
+                      variant="flat"
                     >
                       <Eye />
                     </Button>
@@ -200,7 +234,8 @@ const ViewAssessment = () => {
                       isIconOnly
                       className="ml-2"
                       color="success"
-                      isDisabled={currentStepId !== assessmentStepId}
+                      isDisabled={currentStepId !== assessmentStepId || submission?.status === "qualified"}
+                      variant="flat"
                     >
                       <Check />
                     </Button>
@@ -211,7 +246,8 @@ const ViewAssessment = () => {
                       isIconOnly
                       className="ml-2"
                       color="danger"
-                      isDisabled={currentStepId !== assessmentStepId}
+                      isDisabled={currentStepId !== assessmentStepId || submission?.status === "disqualified"}
+                      variant="flat"
                     >
                       <X />
                     </Button>
