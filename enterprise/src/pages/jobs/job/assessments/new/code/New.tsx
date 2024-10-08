@@ -108,7 +108,62 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
   }, []);
 
   const buildAssessmentData = () => {
-    // ... (rest of the function remains the same)
+    const rangeStart = testOpenRange.start.toDate("UTC");
+    const rangeEnd = testOpenRange.end.toDate("UTC");
+    rangeStart.setHours(startTime.hour);
+    rangeStart.setMinutes(startTime.minute);
+    rangeEnd.setHours(endTime.hour);
+    rangeEnd.setMinutes(endTime.minute);
+
+    const step = window.history.state.usr.step;
+
+    const reqBody = {
+      assessmentpostingName: assessmentName,
+      postingId: window.location.pathname.split("/")[2],
+      step: step,
+      isEnterprise: true,
+      name: assessmentName,
+      description: assessmentDescription,
+      type: "code",
+      timeLimit,
+      passingPercentage,
+      openRange: { start: rangeStart, end: rangeEnd },
+      languages: selectedLanguages,
+      problems: selectedQuestions.map((q) => q._id),
+      grading:
+        gradingMetric === "testcase"
+          ? { type: "testcase", testcases: testCaseGrading }
+          : { type: "problem", problem: questionsGrading },
+      candidates: {
+        type: "all",
+      },
+      instructions,
+      security: {
+        codePlayback,
+        codeExecution,
+        tabChangeDetection,
+        copyPasteDetection,
+        allowAutocomplete: autocomplete,
+        allowRunningCode: runCode,
+        enableSyntaxHighlighting: syntaxHighlighting,
+      },
+      feedbackEmail,
+    };
+
+    const axios = ax(getToken);
+    axios
+      .post("/postings/assessment", reqBody)
+      .then(() => {
+        toast.success("Assessment created successfully");
+        window.location.href = window.location.pathname
+          .split("/")
+          .slice(0, -2)
+          .join("/");
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Error creating assessment");
+      });
   };
 
   const isTabValid = (tabIndex: number): boolean => {
@@ -129,9 +184,16 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
         return selectedQuestions.length > 0;
       case 3: // Grading
         if (gradingMetric === "testcase") {
-          return testCaseGrading.easy > 0 && testCaseGrading.medium > 0 && testCaseGrading.hard > 0;
+          return (
+            testCaseGrading.easy > 0 &&
+            testCaseGrading.medium > 0 &&
+            testCaseGrading.hard > 0
+          );
         } else {
-          return questionsGrading.length === selectedQuestions.length && questionsGrading.every(q => q.points > 0);
+          return (
+            questionsGrading.length === selectedQuestions.length &&
+            questionsGrading.every((q) => q.points > 0)
+          );
         }
       case 4: // Instructions
         return instructions.trim() !== "";
@@ -145,12 +207,16 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
   const handleTabChange = (key: Key) => {
     const currentTabIndex = parseInt(activeTab);
     const newTabIndex = typeof key === "string" ? parseInt(key) : key;
-  
-    if (typeof newTabIndex === "number" && newTabIndex > currentTabIndex && !isTabValid(currentTabIndex)) {
+
+    if (
+      typeof newTabIndex === "number" &&
+      newTabIndex > currentTabIndex &&
+      !isTabValid(currentTabIndex)
+    ) {
       toast.error("Please complete all required fields before proceeding.");
       return;
     }
-  
+
     setActiveTab(newTabIndex.toString());
   };
 
@@ -225,10 +291,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
 
   return (
     <div className="flex items-center justify-center flex-col relative w-full">
-      <Tabs
-        selectedKey={activeTab}
-        onSelectionChange={handleTabChange}
-      >
+      <Tabs selectedKey={activeTab} onSelectionChange={handleTabChange}>
         {tabsList.map((tabItem, i) => (
           <Tab key={i} title={tabItem} className="w-full">
             <Card className="w-full h-[80vh]">
@@ -239,7 +302,9 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
                     variant="shadow"
                     size="sm"
                     isIconOnly
-                    onClick={() => handleTabChange((parseInt(activeTab) - 1).toString())}
+                    onClick={() =>
+                      handleTabChange((parseInt(activeTab) - 1).toString())
+                    }
                     isDisabled={parseInt(activeTab) === 0}
                   >
                     <ChevronLeft />
@@ -248,8 +313,13 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
                     variant="shadow"
                     size="sm"
                     isIconOnly
-                    onClick={() => handleTabChange((parseInt(activeTab) + 1).toString())}
-                    isDisabled={parseInt(activeTab) === tabsList.length - 1 || !isTabValid(parseInt(activeTab))}
+                    onClick={() =>
+                      handleTabChange((parseInt(activeTab) + 1).toString())
+                    }
+                    isDisabled={
+                      parseInt(activeTab) === tabsList.length - 1 ||
+                      !isTabValid(parseInt(activeTab))
+                    }
                   >
                     <ChevronRight />
                   </Button>

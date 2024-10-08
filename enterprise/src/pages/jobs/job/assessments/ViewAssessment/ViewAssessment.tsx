@@ -12,33 +12,41 @@ import {
   Button,
   Tooltip,
 } from "@nextui-org/react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { Check, Eye, X } from "lucide-react";
+import { Posting } from "@shared-types/Posting";
 
 interface Submission {
   _id: string;
   name: string;
   email: string;
-  date: string;
+  createdAt: string;
   timer: number;
   score: {
     total: number;
   };
   cheating: string;
+  status: string;
 }
 
 const ViewAssessment = () => {
   const navigate = useNavigate();
-  const [assessmentsSubmissions, setAssessmentsSubmissions] = useState([]);
+  const [assessmentsSubmissions, setAssessmentsSubmissions] = useState<
+    Submission[]
+  >([]);
   const [totalSubmissions, setTotalSubmissions] = useState(0);
   const [qualified, setQualified] = useState(0);
   const [cheating, setCheating] = useState({ no: 0, light: 0, heavy: 0 });
 
+  const [currentStepId, setCurrentStepId] = useState<number>(-1);
+  const [assessmentStepId, setAssessmentStepId] = useState<number>(-1);
+
   const { getToken, isLoaded } = useAuth();
+
   useEffect(() => {
     if (isLoaded) {
       const id = window.location.pathname.split("/")[4];
@@ -56,12 +64,82 @@ const ViewAssessment = () => {
           toast?.error(err?.response?.data?.message || "Error");
         });
     }
+
+    const stepId = window.location.pathname.split("/")[4];
+    setCurrentStepId(posting?.workflow?.currentStep as number);
+    if (!posting?.workflow?.steps) return;
+    const step = posting?.workflow?.steps.findIndex(
+      (step) => step.stepId === stepId
+    );
+    setAssessmentStepId(step);
   }, [getToken, isLoaded]);
 
   const calculateTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
     return `${minutes}m ${seconds}s`;
+  };
+
+  const { posting } = useOutletContext() as { posting: Posting };
+
+  const acceptCandidate = (email: string) => {
+    const axios = ax(getToken);
+
+    // Optimistic UI update
+    const newData = assessmentsSubmissions.map((submission) =>
+      submission.email === email
+        ? { ...submission, status: "qualified" }
+        : submission
+    );
+    setAssessmentsSubmissions(newData);
+
+    axios
+      .post("/assessments/candidates/qualify", {
+        email: email,
+        postingId: posting?._id,
+      })
+
+      .catch((err) => {
+        toast?.error(err?.response?.data?.message || "Error");
+
+        // Revert the optimistic update
+        const revertedData = assessmentsSubmissions.map((submission) =>
+          submission.email === email
+            ? { ...submission, status: "pending" }
+            : submission
+        );
+        setAssessmentsSubmissions(revertedData);
+      });
+  };
+
+  const rejectCandidate = (email: string) => {
+    const axios = ax(getToken);
+
+    // Optimistic UI update
+    const newData = assessmentsSubmissions.map((submission) =>
+      submission.email === email
+        ? { ...submission, status: "disqualified" }
+        : submission
+    );
+    setAssessmentsSubmissions(newData);
+
+    axios
+      .post("/assessments/candidates/disqualify", {
+        email: email,
+        postingId: posting?._id,
+      })
+
+      .catch((err) => {
+        toast?.error(err?.response?.data?.message || "Error");
+
+        // Revert the optimistic update
+        const revertedData = assessmentsSubmissions.map((submission) =>
+          submission.email === email
+            ? { ...submission, status: "pending" }
+            : submission
+        );
+        setAssessmentsSubmissions(revertedData);
+      });
   };
 
   return (
@@ -112,6 +190,7 @@ const ViewAssessment = () => {
             <TableColumn className="text-sm">Time Taken</TableColumn>
             <TableColumn className="text-sm">Score</TableColumn>
             <TableColumn className="text-sm">Cheating</TableColumn>
+            <TableColumn className="text-sm">Status</TableColumn>
             <TableColumn className="text-sm">Action</TableColumn>
           </TableHeader>
           <TableBody>
@@ -124,7 +203,7 @@ const ViewAssessment = () => {
                   {submission?.email}
                 </TableCell>
                 <TableCell className="w-full md:w-auto">
-                  {submission?.date}
+                  {new Date(submission?.createdAt).toDateString()}
                 </TableCell>
                 <TableCell className="w-full md:w-auto">
                   {calculateTime(submission?.timer)}
@@ -135,32 +214,40 @@ const ViewAssessment = () => {
                 <TableCell className="w-full md:w-auto">
                   {submission?.cheating}
                 </TableCell>
+                <TableCell className="w-full md:w-auto min-w-28">
+                  {submission?.status}
+                </TableCell>
                 <TableCell className="w-full md:w-auto">
                   <Tooltip content="View">
                     <Button
                       onClick={() => navigate(`${submission?._id}`)}
                       color="default"
                       isIconOnly
+                      variant="flat"
                     >
                       <Eye />
                     </Button>
                   </Tooltip>
                   <Tooltip content="Qualify">
                     <Button
-                      onClick={() => navigate(`${submission?._id}`)}
+                      onClick={() => acceptCandidate(submission?.email)}
                       isIconOnly
                       className="ml-2"
                       color="success"
+                      isDisabled={currentStepId !== assessmentStepId || submission?.status === "qualified"}
+                      variant="flat"
                     >
                       <Check />
                     </Button>
                   </Tooltip>
                   <Tooltip content="Disqualify">
                     <Button
-                      onClick={() => navigate(`${submission?._id}`)}
+                      onClick={() => rejectCandidate(submission?.email)}
                       isIconOnly
                       className="ml-2"
                       color="danger"
+                      isDisabled={currentStepId !== assessmentStepId || submission?.status === "disqualified"}
+                      variant="flat"
                     >
                       <X />
                     </Button>

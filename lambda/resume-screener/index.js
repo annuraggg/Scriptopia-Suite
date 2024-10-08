@@ -12,7 +12,9 @@ export const handler = async (event) => {
 
   await Promise.all(processingPromises);
 
-  await updatePosting(event.postingId);
+  const posting = await Posting.findById(event.postingId);
+  posting.ats.status = "finished";
+  await posting.save();
 
   return {
     statusCode: 200,
@@ -117,14 +119,6 @@ const processResume = async (resume, event) => {
   } catch (e) {
     throw e;
   }
-};
-
-const updatePosting = async (postingId) => {
-  await Posting.findByIdAndUpdate(postingId, {
-    $set: {
-      "ats.status": "finished",
-    },
-  });
 };
 
 // Sample invocation for testing purposes

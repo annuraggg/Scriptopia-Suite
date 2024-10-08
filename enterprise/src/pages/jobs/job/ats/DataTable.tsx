@@ -1,5 +1,3 @@
-"use client";
-
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -38,17 +36,23 @@ import { useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
+import { useOutletContext } from "react-router-dom";
+import { Posting } from "@shared-types/Posting";
 
 interface DataTableProps<TData> {
   data: TData[];
   postingId: string;
   matchThreshold: number;
+  stepNo: number;
+  setData: (data: TData[]) => void;
 }
 
 export function DataTable<TData>({
   data,
   postingId,
   matchThreshold = 0,
+  stepNo,
+  setData,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -61,10 +65,14 @@ export function DataTable<TData>({
     received: string;
     match: string;
     status: string;
+    currentStepStatus: string;
   }
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
+
+  const { posting } = useOutletContext() as { posting: Posting };
+  console.log(posting.workflow?.currentStep, stepNo);
 
   const downloadResume = (_id: string) => {
     axios
@@ -77,34 +85,49 @@ export function DataTable<TData>({
   };
 
   const disqualify = (_id: string) => {
+    const newData = [...data] as Candidates[];
+    const index = newData.findIndex((c) => c._id === _id);
+    newData[index].currentStepStatus = "disqualified";
+    setData(newData as TData[]);
+
     axios
       .post("candidates/resume/disqualify", {
         candidateId: _id,
         postingId,
       })
-      .then(() => {
-        toast.success("Candidate disqualified successfully");
-      })
+
       .catch((err) => {
         toast.error(
           err.response.data.message || "Failed to disqualify candidate"
         );
         console.error(err);
+
+        const newData = [...data] as Candidates[];
+        const index = newData.findIndex((c) => c._id === _id);
+        newData[index].currentStepStatus = "pending";
+        setData(newData as TData[]);
       });
   };
 
   const selectCand = (_id: string) => {
+    const newData = [...data] as Candidates[];
+    const index = newData.findIndex((c) => c._id === _id);
+    newData[index].currentStepStatus = "qualified";
+    setData(newData as TData[]);
+
     axios
       .post("candidates/resume/qualify", {
         candidateId: _id,
         postingId,
       })
-      .then(() => {
-        toast.success("Candidate selected successfully");
-      })
       .catch((err) => {
         toast.error(err.response.data.message || "Failed to select candidate");
         console.error(err);
+
+        const newData = [...data] as Candidates[];
+        const index = newData.findIndex((c) => c._id === _id);
+        newData[index].currentStepStatus = "pending";
+        setData(newData as TData[]);
       });
   };
 
@@ -112,6 +135,17 @@ export function DataTable<TData>({
     const selectedIds = table
       .getSelectedRowModel()
       .rows.map((row) => (row.original as Candidates)._id);
+
+    // Optimistically update the state
+    const newData = [...data] as Candidates[];
+    selectedIds.forEach((id) => {
+      const index = newData.findIndex((c) => c._id === id);
+      if (index !== -1) {
+        newData[index].currentStepStatus = "disqualified";
+      }
+    });
+    setData(newData as TData[]);
+
     axios
       .post("candidates/resume/disqualify/bulk", {
         candidateIds: selectedIds,
@@ -126,6 +160,16 @@ export function DataTable<TData>({
             "Failed to disqualify selected candidates"
         );
         console.error(err);
+
+        // Revert the optimistic update if the API call fails
+        const revertedData = [...data] as Candidates[];
+        selectedIds.forEach((id) => {
+          const index = revertedData.findIndex((c) => c._id === id);
+          if (index !== -1) {
+            revertedData[index].currentStepStatus = "pending"; // or any other original status
+          }
+        });
+        setData(revertedData as TData[]);
       });
   };
 
@@ -133,6 +177,17 @@ export function DataTable<TData>({
     const selectedIds = table
       .getSelectedRowModel()
       .rows.map((row) => (row.original as Candidates)._id);
+
+    // Optimistically update the state
+    const newData = [...data] as Candidates[];
+    selectedIds.forEach((id) => {
+      const index = newData.findIndex((c) => c._id === id);
+      if (index !== -1) {
+        newData[index].currentStepStatus = "qualified";
+      }
+    });
+    setData(newData as TData[]);
+
     axios
       .post("candidates/resume/qualify/bulk", {
         candidateIds: selectedIds,
@@ -146,6 +201,16 @@ export function DataTable<TData>({
           err.response.data.message || "Failed to qualify selected candidates"
         );
         console.error(err);
+
+        // Revert the optimistic update if the API call fails
+        const revertedData = [...data] as Candidates[];
+        selectedIds.forEach((id) => {
+          const index = revertedData.findIndex((c) => c._id === id);
+          if (index !== -1) {
+            revertedData[index].currentStepStatus = "pending"; // or any other original status
+          }
+        });
+        setData(revertedData as TData[]);
       });
   };
 
@@ -169,6 +234,7 @@ export function DataTable<TData>({
           }
           onValueChange={(value) => table.toggleAllPageRowsSelected(value)}
           aria-label="Select all"
+          isDisabled={posting.workflow?.currentStep !== stepNo}
         />
       ),
       cell: ({ row }) => (
@@ -238,7 +304,7 @@ export function DataTable<TData>({
       },
     },
     {
-      accessorKey: "status",
+      accessorKey: "currentStepStatus",
       header: ({ column }) => {
         return (
           <Button
@@ -264,6 +330,10 @@ export function DataTable<TData>({
                 color="success"
                 className="ml-3"
                 onClick={() => selectCand(_id)}
+                isDisabled={
+                  posting.workflow?.currentStep !== stepNo ||
+                  row.original.currentStepStatus === "qualified"
+                }
               >
                 <Check />
               </Button>
@@ -276,6 +346,10 @@ export function DataTable<TData>({
                 color="danger"
                 className="ml-3"
                 onClick={() => disqualify(_id)}
+                isDisabled={
+                  posting.workflow?.currentStep !== stepNo ||
+                  row.original.currentStepStatus === "disqualified"
+                }
               >
                 <X />
               </Button>
@@ -340,16 +414,29 @@ export function DataTable<TData>({
             table.getColumn("email")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
+          isDisabled={posting.workflow?.currentStep !== stepNo}
         />
-        <Button onClick={disqualifyAllSelected} color="danger">
+        <Button
+          onClick={disqualifyAllSelected}
+          color="danger"
+          isDisabled={posting.workflow?.currentStep !== stepNo}
+        >
           <UserX className="mr-2 h-4 w-4" />
           Disqualify Selected
         </Button>
-        <Button onClick={qualifyAllSelected} color="success">
+        <Button
+          onClick={qualifyAllSelected}
+          color="success"
+          isDisabled={posting.workflow?.currentStep !== stepNo}
+        >
           <UserCheck className="mr-2 h-4 w-4" />
           Qualify Selected
         </Button>
-        <Button onClick={selectAllAboveThreshold} color="primary">
+        <Button
+          onClick={selectAllAboveThreshold}
+          color="primary"
+          isDisabled={posting.workflow?.currentStep !== stepNo}
+        >
           <Users className="mr-2 h-4 w-4" />
           Select All Above {matchThreshold}%
         </Button>

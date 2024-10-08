@@ -75,8 +75,8 @@ const Apply = () => {
       .get(`/candidates/${user?.id}`)
       .then((res) => {
         const data = res.data.data;
-        setExists(data.exists);
-        setCandId(data.candId);
+        setExists(data?.exists);
+        setCandId(data?.candId);
 
         if (data.exists) {
           setFirstName(data.firstName);

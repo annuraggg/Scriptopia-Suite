@@ -16,6 +16,7 @@ import organizationPermissions from "@/data/organizationPermissions";
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
 import Posting from "@/models/Posting";
 import { Candidate } from "@shared-types/Candidate";
+import { UserJSON } from "@clerk/backend";
 
 const createOrganization = async (c: Context) => {
   try {
@@ -303,32 +304,32 @@ const getSettings = async (c: Context) => {
     }
 
     for (const member of org?.members) {
+      if (!member.user) continue;
       const user = await clerkClient.users.getUser(member?.user || "");
-      if (user) { // @ts-expect-error - Converting string to User
-        member.user = user;
-      }
-    }
-
-    for (const member of org.members) {
       const role = org.roles.find((r: any) => (r as Role).slug === member.role);
 
-      if (role) {
-        // @ts-expect-error - Converting string to Role
-        member.role = role;
-      }
+      // @ts-expect-error - Converting string to User
+      if (user) member.user = user;
+      // @ts-expect-error - Converting string to Role
+      if (role) member.role = role;
     }
 
     const logoUrl = org.logo;
-    if (logoUrl) {
-      const command = new GetObjectCommand({
-        Bucket: process.env.R2_S3_BUCKET!,
-        Key: logoUrl,
-      });
+    try {
+      if (logoUrl) {
+        const command = new GetObjectCommand({
+          Bucket: process.env.R2_S3_BUCKET!,
+          Key: logoUrl,
+        });
 
-      const data = await r2Client.send(command);
-      const buffer = await data.Body?.transformToByteArray();
-      const base64 = Buffer.from(buffer as ArrayBuffer).toString("base64");
-      org.logo = `data:image/png;base64,${base64}`;
+        const data = await r2Client.send(command);
+        const buffer = await data.Body?.transformToByteArray();
+        const base64 = Buffer.from(buffer as ArrayBuffer).toString("base64");
+        org.logo = `data:image/png;base64,${base64}`;
+      }
+    } catch (e) {
+      console.log("Failed to fetch logo", e);
+      console.log(e);
     }
 
     return sendSuccess(c, 200, "Success", {
@@ -554,8 +555,18 @@ const updateMembers = async (c: Context) => {
       type: "info",
     };
 
+    const finalUpdatedMembers = members.map((member: Member) => {
+      return {
+        user: (member.user as unknown as UserJSON)?.id,
+        email: member.email,
+        role: member.role,
+        addedOn: member.addedOn,
+        status: member.status,
+      };
+    });
+
     const updatedOrg = await Organization.findByIdAndUpdate(orgId, {
-      $set: { members },
+      $set: { members: finalUpdatedMembers },
       $push: { auditLogs: auditLog },
     });
 
@@ -567,7 +578,7 @@ const updateMembers = async (c: Context) => {
       c,
       200,
       "Organization settings updated successfully",
-      updatedOrg
+      members
     );
   } catch (error) {
     logger.error(error as string);

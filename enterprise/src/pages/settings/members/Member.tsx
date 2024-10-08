@@ -72,17 +72,14 @@ const Members: React.FC = () => {
     members: Member[];
     roles: Role[];
   };
+  console.log(res);
   useEffect(() => {
     setMembers(
-      res.members.filter(
-        (member: Member) => member.status === "active"
-      )
+      res.members.filter((member: Member) => member.status === "active")
     );
 
     setInvitedMembers(
-      res.members.filter(
-        (member: Member) => member.status === "pending"
-      )
+      res.members.filter((member: Member) => member.status === "pending")
     );
 
     setRoles(res.roles);
@@ -99,6 +96,7 @@ const Members: React.FC = () => {
         .then(() => {
           setChanges(false);
           toast.success("Changes Saved");
+          window.location.reload();
         })
         .catch((err) => {
           console.error(err);
@@ -106,7 +104,6 @@ const Members: React.FC = () => {
         })
         .finally(() => {
           dispatch(setToastChanges(false));
-          setLoading(false);
         });
     };
 
@@ -127,7 +124,7 @@ const Members: React.FC = () => {
   const handleRoleChange = (index: number, newRole: Role | string) => {
     if (!newRole) return;
     const updatedMembers = [...members];
-    const newRoleId = roles.find((role) => role._id === newRole)?._id;
+    const newRoleId = roles.find((role) => role.slug === newRole)?.slug;
     if (!newRoleId) return;
     updatedMembers[index].role = newRoleId;
 
@@ -194,7 +191,7 @@ const Members: React.FC = () => {
                     <TableCell className="w-[200px]">
                       <Select
                         className="w-[200px]"
-                        selectedKeys={[member.role] as string[]}
+                        defaultSelectedKeys={[(member.role as Role).slug!]}
                         aria-label="Role"
                         isDisabled={
                           userEmails.filter((email) => email === member.email)
@@ -205,7 +202,7 @@ const Members: React.FC = () => {
                         }}
                       >
                         {roles.map((role) => (
-                          <SelectItem key={role._id!} value={role._id}>
+                          <SelectItem key={role.slug!} value={role.slug}>
                             {role.name}
                           </SelectItem>
                         ))}

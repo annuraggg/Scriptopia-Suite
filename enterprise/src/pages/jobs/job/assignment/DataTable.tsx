@@ -33,6 +33,8 @@ import { Button, Input, Checkbox } from "@nextui-org/react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
+import { useOutletContext } from "react-router-dom";
+import { Posting } from "@shared-types/Posting";
 
 interface DataTableProps<TData> {
   data: TData[];
@@ -49,6 +51,11 @@ function DataTable<TData>({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [threshold, setThreshold] = useState(0);
   const [grades, setGrades] = useState<Record<string, number>>({});
+
+  const [currentStepId, setCurrentStepId] = useState<number>(-1);
+  const [assessmentStepId, setAssessmentStepId] = useState<number>(-1);
+
+  const { posting } = useOutletContext() as { posting: Posting };
 
   interface Submission {
     _id: string;
@@ -70,6 +77,14 @@ function DataTable<TData>({
       }
     });
     setGrades(initialGrades);
+
+    setCurrentStepId(posting?.workflow?.currentStep as number);
+    const stepId = window.location.pathname.split("/")[4];
+    if (!posting?.workflow?.steps) return;
+    const step = posting?.workflow?.steps.findIndex(
+      (step) => step.stepId === stepId
+    );
+    setAssessmentStepId(step);
   }, [data]);
 
   const downloadAssignment = (_id: string) => {
@@ -254,6 +269,7 @@ function DataTable<TData>({
               type="number"
               min="1"
               max="100"
+              isDisabled={currentStepId !== assessmentStepId}
               value={grades[_id]?.toString() || ""}
               onChange={(e) => {
                 const newGrade = parseInt(e.target.value);
@@ -269,6 +285,7 @@ function DataTable<TData>({
             <Button
               variant="flat"
               color="success"
+              isDisabled={currentStepId !== assessmentStepId}
               onClick={() => gradeCandidate(_id, grades[_id] || 0)}
             >
               Save
@@ -303,6 +320,7 @@ function DataTable<TData>({
                 variant="flat"
                 color="success"
                 onClick={() => qualifyCandidate(_id)}
+                isDisabled={currentStepId !== assessmentStepId}
               >
                 <Check />
               </Button>
@@ -313,6 +331,7 @@ function DataTable<TData>({
                 variant="flat"
                 color="danger"
                 onClick={() => disqualifyCandidate(_id)}
+                isDisabled={currentStepId !== assessmentStepId }
               >
                 <X />
               </Button>
@@ -368,8 +387,13 @@ function DataTable<TData>({
             value={threshold.toString()}
             onChange={(e) => setThreshold(parseInt(e.target.value))}
             className="w-[100px]"
+            isDisabled={currentStepId !== assessmentStepId}
           />
-          <Button onClick={selectAboveThreshold} color="primary">
+          <Button
+            onClick={selectAboveThreshold}
+            color="primary"
+            isDisabled={currentStepId !== assessmentStepId}
+          >
             <Users className="mr-2 h-4 w-4" />
             Select Above Threshold
           </Button>
@@ -385,7 +409,10 @@ function DataTable<TData>({
         <Button
           onClick={bulkQualifyCandidates}
           color="success"
-          isDisabled={table.getFilteredSelectedRowModel().rows.length === 0}
+          isDisabled={
+            table.getFilteredSelectedRowModel().rows.length === 0 ||
+            currentStepId !== assessmentStepId
+          }
         >
           <Check className="mr-2 h-4 w-4" />
           Bulk Qualify
@@ -393,7 +420,10 @@ function DataTable<TData>({
         <Button
           onClick={bulkDisqualifyCandidates}
           color="danger"
-          isDisabled={table.getFilteredSelectedRowModel().rows.length === 0}
+          isDisabled={
+            table.getFilteredSelectedRowModel().rows.length === 0 ||
+            currentStepId !== assessmentStepId
+          }
         >
           <X className="mr-2 h-4 w-4" />
           Bulk Disqualify

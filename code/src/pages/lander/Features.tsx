@@ -5,8 +5,8 @@ const Features = () => {
   const ribbonItems = ["CODE", "LEARN", "COMPETE", "ASSESS", "INTERVIEW"];
 
   return (
-    <div className="px-48 py-10 flex flex-col items-center justify-center">
-      <div className="flex gap-5 w-full justify-between">
+    <div className="py-10 flex flex-col items-center justify-center">
+      <div className="flex gap-5 w-full justify-between px-48 ">
         <div className="max-w-[40%]">
           <h1 className="font-poly text-4xl">Extensive List of Problems</h1>
           <p className="mt-5">
@@ -24,7 +24,7 @@ const Features = () => {
         />
       </div>
 
-      <div className="flex gap-5 w-full justify-between mt-20 flex-row-reverse">
+      <div className="flex gap-5 w-full justify-between mt-20 flex-row-reverse px-48 ">
         <div className="max-w-[40%]">
           <h1 className="font-poly text-4xl">An Easy Way to Assess Everyone</h1>
           <p className="mt-5">
@@ -42,7 +42,7 @@ const Features = () => {
         />
       </div>
 
-      <div className="flex gap-5 w-full justify-between mt-20">
+      <div className="flex gap-5 w-full justify-between mt-20 px-48 ">
         <div className="max-w-[40%]">
           <h1 className="font-poly text-4xl">
             Enterprise Ready Hiring Solution
@@ -63,7 +63,7 @@ const Features = () => {
         />
       </div>
 
-      <div className="flex gap-5 w-full justify-between mt-20 flex-row-reverse">
+      <div className="flex gap-5 w-full justify-between mt-20 flex-row-reverse px-48 ">
         <div className="max-w-[40%]">
           <h1 className="font-poly text-4xl">Interviewing Made Easy</h1>
           <p className="mt-5">
@@ -72,7 +72,7 @@ const Features = () => {
           </p>
         </div>
         <Image
-          src="/interview.png"
+          src="/enterprise.png"
           alt="Interview"
           width={600}
           className="border bg-red-400"
@@ -80,7 +80,7 @@ const Features = () => {
         />
       </div>
 
-      <div className="overflow-hidden mt-20 ribbon-parent">
+      <div className="overflow-hidden mt-20 ribbon-parent overflow-y-hidden max-w-full">
         <div className="flex scrolling-wrapper py-5">
           {ribbonItems
             .concat(ribbonItems)

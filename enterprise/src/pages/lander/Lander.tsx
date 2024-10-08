@@ -18,10 +18,10 @@ const Lander = () => {
   const navigate = useNavigate();
   const organization = useSelector((state: RootState) => state.organization);
   const redirectUser = () => {
-    if (organization) {
+    if (organization._id) {
       navigate("/dashboard");
     } else {
-      navigate("/start");
+      navigate("/onboarding");
     }
   };
 

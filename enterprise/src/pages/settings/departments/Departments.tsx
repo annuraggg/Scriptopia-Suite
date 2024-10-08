@@ -99,7 +99,7 @@ const Departments: React.FC = () => {
         return;
       }
 
-      const updatedDepartments = departments.map((dept) =>
+      const updatedDepartments = departments?.map((dept) =>
         dept._id === editingDepartment._id ? editingDepartment : dept
       );
       setDepartments(updatedDepartments);
@@ -138,7 +138,7 @@ const Departments: React.FC = () => {
           <div className="p-4">
             <Button onPress={onOpen} className="mb-4">+ Add Department</Button>
             <div className="space-y-4 h-full">
-              {departments.map((dept) => (
+              {departments?.map((dept) => (
                 <Card key={dept._id} className="bg-gray-500 bg-opacity-10 border-gray-800">
                   <CardBody>
                     <div className="flex justify-between items-center">

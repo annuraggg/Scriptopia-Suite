@@ -293,13 +293,14 @@ const Create = () => {
               className="w-full mt-5"
               color="success"
               variant="flat"
-              onClick={() => setPage(1)}
+              onClick={() => setShowSaveModal(true)}
             >
               Next
             </Button>
           </div>
         </div>
       )}
+
       {page === 1 && (
         <div className="flex flex-col h-full">
           <div className="mb-5">
@@ -352,27 +353,27 @@ const Create = () => {
               Save Workflow
             </Button>
           </div>
-
-          <Modal isOpen={showSaveModal} onClose={() => setShowSaveModal(false)}>
-            <ModalContent>
-              <ModalHeader>
-                <h2>Save Workflow</h2>
-              </ModalHeader>
-              <ModalBody>
-                <p>Are you sure you want to save this workflow?</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button onClick={() => setShowSaveModal(false)} color="danger">
-                  Cancel
-                </Button>
-                <Button onClick={handleSave} color="success">
-                  Confirm
-                </Button>
-              </ModalFooter>
-            </ModalContent>
-          </Modal>
         </div>
       )}
+
+      <Modal isOpen={showSaveModal} onClose={() => setShowSaveModal(false)}>
+        <ModalContent>
+          <ModalHeader>
+            <h2>Save Workflow</h2>
+          </ModalHeader>
+          <ModalBody>
+            <p>Are you sure you want to save this workflow?</p>
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={() => setShowSaveModal(false)} color="danger">
+              Cancel
+            </Button>
+            <Button onClick={handleSave} color="success">
+              Confirm
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

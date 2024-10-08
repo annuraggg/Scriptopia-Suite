@@ -15,15 +15,12 @@ import {
   ListIcon,
   CirclePlayIcon,
   BanIcon,
-  ArchiveIcon,
   FilePlusIcon,
   MapPinIcon,
   BriefcaseIcon,
   BanknoteIcon,
   Menu,
   Trash2Icon,
-  ShareIcon,
-  PencilIcon,
 } from "lucide-react";
 import Filter from "./Filter";
 import CreateJobModal from "./CreateJobModal";
@@ -32,6 +29,15 @@ import ax from "@/config/axios";
 import { toast } from "sonner";
 import { Posting } from "@shared-types/Posting";
 import { Department } from "@shared-types/Organization";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  useDisclosure,
+} from "@nextui-org/react";
 
 const Cards = [
   {
@@ -54,31 +60,11 @@ const Cards = [
   },
 ];
 
-const editItems = [
-  {
-    title: "Edit",
-    icon: <PencilIcon size={18} />,
-  },
-  {
-    title: "Share",
-    icon: <ShareIcon size={18} />,
-  },
-  {
-    title: "Archive",
-    icon: <ArchiveIcon size={18} />,
-  },
-  {
-    title: "Delete",
-    icon: <Trash2Icon size={18} />,
-  },
-];
-
 const Postings: React.FC = () => {
   const navigate = useNavigate();
   const [postings, setPostings] = useState<Posting[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-
 
   const [sort, setSort] = useState(new Set(["newest"]));
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -90,6 +76,21 @@ const Postings: React.FC = () => {
     end: "",
   });
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
+  const [deleteId, setDeleteId] = useState<string>();
+  const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
+
+  const editItems = [
+    {
+      title: "Delete",
+      icon: <Trash2Icon size={18} />,
+      onClick: (a: string) => {
+        setDeleteId(a);
+        onOpen();
+      },
+    },
+  ];
 
   const filteredPostings = postings.filter((post) => {
     if (searchTerm) {
@@ -154,6 +155,10 @@ const Postings: React.FC = () => {
   };
 
   const openCreateJobModal = () => {
+    if (!departments.length) {
+      toast.error("Please create a department first");
+      return;
+    }
     setIsModalOpen(true);
   };
 
@@ -197,6 +202,24 @@ const Postings: React.FC = () => {
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleDelete = () => {
+    setDeleteLoading(true);
+    axios
+      .delete(`/postings/${deleteId}`)
+      .then((res) => {
+        toast.success(res.data.message);
+        setPostings((prev) => prev.filter((p) => p._id !== deleteId));
+        onOpenChange();
+      })
+      .catch((err) => {
+        toast.error(err.response.data.message);
+        onOpenChange();
+      })
+      .finally(() => {
+        setDeleteLoading(false);
+      });
+  };
 
   return (
     <div className="flex gap-5 w-full p-5">
@@ -244,7 +267,9 @@ const Postings: React.FC = () => {
                   <CardBody className="flex items-center justify-between bg-success-400 text-background bg-opacity-3 py-2 px-5">
                     <div className="flex items-center gap-2">
                       <FilePlusIcon className="text-background" size={22} />
-                      <p className="text-sm text-background">Create a new job</p>
+                      <p className="text-sm text-background">
+                        Create a new job
+                      </p>
                     </div>
                   </CardBody>
                 </Card>
@@ -255,35 +280,39 @@ const Postings: React.FC = () => {
                   <Card
                     isPressable
                     key={index}
-                    className={`text-white rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${selectedFilter === card.filter
-                      ? "bg-gray-500/20 text-white"
-                      : "text-gray-500"
-                      }`}
+                    className={`text-white rounded-xl flex flex-col items-start justify-center w-full h-26 p-4 gap-2 cursor-pointer transition-colors duration-300 ${
+                      selectedFilter === card.filter
+                        ? "bg-gray-500/20 text-white"
+                        : "text-gray-500"
+                    }`}
                     onClick={() => handleFilterChange(card.filter)}
                   >
                     <div className="flex items-center justify-center gap-2 w-full">
                       <div
-                        className={`${selectedFilter === card.filter
-                          ? "text-white"
-                          : "text-gray-500"
-                          }`}
+                        className={`${
+                          selectedFilter === card.filter
+                            ? "text-white"
+                            : "text-gray-500"
+                        }`}
                       >
                         {card.icon}
                       </div>
                       <h1
-                        className={`${selectedFilter === card.filter
-                          ? "text-white"
-                          : "text-gray-500"
-                          } text-base`}
+                        className={`${
+                          selectedFilter === card.filter
+                            ? "text-white"
+                            : "text-gray-500"
+                        } text-base`}
                       >
                         {card.title}
                       </h1>
                     </div>
                     <p
-                      className={`text-center w-full ${selectedFilter === card.filter
-                        ? "text-white"
-                        : "text-gray-500"
-                        }`}
+                      className={`text-center w-full ${
+                        selectedFilter === card.filter
+                          ? "text-white"
+                          : "text-gray-500"
+                      }`}
                     ></p>
                   </Card>
                 ))}
@@ -319,10 +348,11 @@ const Postings: React.FC = () => {
                             }
                           </span>
                           <span
-                            className={`text-xs px-2 rounded-full whitespace-nowrap ${getPostingStatus(posting) === "active"
-                              ? " text-success-500 bg-success-100"
-                              : " text-danger-500 bg-danger-100"
-                              }`}
+                            className={`text-xs px-2 rounded-full whitespace-nowrap ${
+                              getPostingStatus(posting) === "active"
+                                ? " text-success-500 bg-success-100"
+                                : " text-danger-500 bg-danger-100"
+                            }`}
                           >
                             {getPostingStatus(posting) === "active"
                               ? "Active"
@@ -342,7 +372,9 @@ const Postings: React.FC = () => {
                             <BanknoteIcon size={18} />
                             <p>
                               {posting.salary.min} - {posting.salary.max} (
-                              {posting?.salary?.currency?.toUpperCase() || "USD"})
+                              {posting?.salary?.currency?.toUpperCase() ||
+                                "USD"}
+                              )
                             </p>
                           </div>
                         </div>
@@ -353,27 +385,29 @@ const Postings: React.FC = () => {
                           <p className="text-gray-300 text-xs">
                             {getPostingStatus(posting) === "active"
                               ? `Open Until ${new Date(
-                                posting.applicationRange.end
-                              ).toLocaleString()}`
+                                  posting.applicationRange.end
+                                ).toLocaleString()}`
                               : `Closed at ${new Date(
-                                posting.applicationRange.end
-                              ).toLocaleString()}`}
+                                  posting.applicationRange.end
+                                ).toLocaleString()}`}
                           </p>
                         </div>
                         <Dropdown>
                           <DropdownTrigger>
-                            <Menu
-                              size={28}
-                              className="mr-6 cursor-pointer"
-                            />
+                            <Menu size={28} className="mr-6 cursor-pointer" />
                           </DropdownTrigger>
                           <DropdownMenu>
                             {editItems.map((item, index) => (
                               <DropdownItem
                                 key={index}
-                                className={item.title === "Delete" ? "text-danger" : ""}
+                                className={
+                                  item.title === "Delete" ? "text-danger" : ""
+                                }
                               >
-                                <div className="flex items-center gap-2">
+                                <div
+                                  className="flex items-center gap-2"
+                                  onClick={() => item.onClick(posting._id!)}
+                                >
                                   {item.icon}
                                   <p>{item.title}</p>
                                 </div>
@@ -395,6 +429,30 @@ const Postings: React.FC = () => {
         onClose={closeCreateJobModal}
         deparments={departments}
       />
+
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Are you sure?
+              </ModalHeader>
+              <ModalBody>
+                This action cannot be undone. Are you sure you want to delete
+                this posting?F
+              </ModalBody>
+              <ModalFooter>
+                <Button color="primary" variant="light" onPress={onClose} isDisabled={deleteLoading}>
+                  Close
+                </Button>
+                <Button color="danger" onPress={handleDelete} isLoading={deleteLoading}>
+                  Delete
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

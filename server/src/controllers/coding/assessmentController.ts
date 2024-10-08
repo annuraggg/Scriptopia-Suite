@@ -10,6 +10,10 @@ import { TestCase } from "@shared-types/Problem";
 import Posting from "@/models/Posting";
 import { Candidate } from "@shared-types/Candidate";
 import CandidateDoc from "@/models/Candidate";
+import CandidateModel from "@/models/Candidate";
+import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
+import logger from "@/utils/logger";
+import { Candidates } from "@shared-types/Assessment";
 
 const LIMIT_PER_PAGE = 20;
 
@@ -455,124 +459,11 @@ const submitAssessment = async (c: Context) => {
       return "Heavy Copying";
     };
 
-    const getScore = async () => {
-      let total = 0;
-      let mcq = [];
-      let problem = [];
-
-      for (const mcqSubmission of submission.mcqSubmissions) {
-        let grade = 0;
-        const mcqObj = assessment.mcqs.find((mcq) => {
-          if (!mcq._id) return;
-
-          if (!mcq._id) return false;
-          return mcq._id.toString() === mcqSubmission.mcqId;
-        });
-
-        if (!mcqObj) return;
-
-        if (mcqObj.type === "multiple") {
-          if (!mcqObj.mcq) return;
-          if (mcqObj.mcq.correct === mcqSubmission.selectedOptions[0]) {
-            grade = mcqObj.grade;
-          }
-        }
-
-        if (mcqObj.type === "checkbox") {
-          if (!mcqObj.checkbox) return;
-          const correct = mcqObj.checkbox.correct;
-          const selected = mcqSubmission.selectedOptions;
-
-          if (
-            correct.length === selected.length &&
-            correct.every((value) => selected.includes(value))
-          ) {
-            grade = mcqObj.grade;
-          }
-        }
-
-        mcq.push({
-          mcqId: mcqSubmission.mcqId,
-          obtainedMarks: grade,
-        });
-      }
-
-      for (const problemSubmission of submission.submissions) {
-        let grade = 0;
-
-        const problemObj = assessment.problems.find(
-          (problem) => problem._id.toString() === problemSubmission.problemId
-        );
-
-        if (!problemObj) return;
-        if (!assessment.grading) return;
-
-        if (assessment.grading.type === "testcase") {
-          const problem = await Problem.findById(problemSubmission.problemId);
-          if (!problem) return { mcq, problem, total };
-          if (!assessment.grading.testcases) return { mcq, problem, total };
-
-          for (const testCase of problem.testCases) {
-            if (!testCase?._id) return { mcq, problem, total };
-            const passed =
-              problemSubmission.results.find((result: any) => {
-                if (!testCase._id) return false;
-                result.caseId === testCase?._id.toString() && result.passed;
-              }) || false;
-            if (!passed) continue;
-            if (testCase.difficulty === "easy") {
-              grade += assessment.grading.testcases.easy;
-            } else if (testCase.difficulty === "medium") {
-              grade += assessment.grading.testcases.medium;
-            } else {
-              grade += assessment.grading.testcases.hard;
-            }
-          }
-        }
-
-        if (assessment.grading.type === "problem") {
-          const problemObj = assessment.grading.problem.find(
-            (p) =>
-              p.problemId?.toString() === problemSubmission.problemId.toString()
-          );
-
-          if (!problemObj) return;
-
-          problemSubmission.results.forEach((result: any) => {
-            if (!result.passed) {
-              problem.push({
-                problemId: problemSubmission.problemId,
-                obtainedMarks: 0,
-              });
-              return;
-            }
-          });
-
-          grade = problemObj.points;
-        }
-
-        problem.push({
-          problemId: problemSubmission.problemId,
-          obtainedMarks: grade,
-        });
-      }
-
-      mcq.forEach((m) => {
-        total += m.obtainedMarks;
-      });
-
-      problem.forEach((p) => {
-        total += p.obtainedMarks;
-      });
-
-      return {
-        mcq,
-        problem,
-        total,
-      };
-    };
-
-    const grades = await getScore();
+    const grades = getScore(
+      submission.mcqSubmissions,
+      submission.submissions,
+      assessment
+    );
     const assessmentSubmission = {
       ...submission,
       cheatingStatus: getCheatingStatus(offenses),
@@ -589,16 +480,19 @@ const submitAssessment = async (c: Context) => {
 
       const currentPosting = candidate?.appliedPostings.find(
         (posting) =>
-          posting?._id?.toString() == assessment?.postingId?.toString()
+          posting?.postingId?.toString() == assessment?.postingId?.toString()
       );
+
+      console.log("currentPosting", currentPosting);
 
       if (!currentPosting) {
         return sendError(c, 400, "Posting not found");
       }
 
-      const posting = await Posting.findById(currentPosting?._id);
+      const posting = await Posting.findById(currentPosting?.postingId);
+      console.log("posting", posting);
       if (!posting) {
-        return sendError(c, 400, "Posting not found");
+        return sendError(c, 400, "Posting not found 2");
       }
 
       const score = grades?.total || 0;
@@ -685,17 +579,53 @@ const getAssessmentSubmissions = async (c: Context) => {
       return percentage >= passingPercentage;
     };
 
-    for (const submission of submissions) {
-      finalSubmissions.push({
-        _id: submission._id,
-        name: submission.name,
-        email: submission.email,
-        timer: getTimeUsed(submission.timer),
-        createdAt: submission.createdAt,
-        cheating: submission.cheatingStatus,
-        score: submission.obtainedGrades,
-        passed: await checkPassed(submission),
-      });
+    if (!postingId) {
+      for (const submission of submissions) {
+        finalSubmissions.push({
+          _id: submission._id,
+          name: submission.name,
+          email: submission.email,
+          timer: getTimeUsed(submission.timer),
+          createdAt: submission.createdAt,
+          cheating: submission.cheatingStatus,
+          score: submission.obtainedGrades,
+          passed: await checkPassed(submission),
+        });
+      }
+    } else {
+      for (const submission of submissions) {
+        const posting = await Posting.findById(postingId).populate(
+          "candidates"
+        );
+
+        if (!posting) {
+          return sendError(c, 404, "Posting not found");
+        }
+
+        const candidate = (posting.candidates as unknown as Candidate[]).find(
+          (candidate) => candidate.email === submission.email
+        );
+
+        if (!candidate) {
+          return sendError(c, 404, "Candidate not found");
+        }
+
+        const status = candidate.appliedPostings.find(
+          (ap) => ap.postingId.toString() === postingId
+        )?.currentStepStatus;
+
+        finalSubmissions.push({
+          _id: submission._id,
+          name: submission.name,
+          email: submission.email,
+          timer: getTimeUsed(submission.timer),
+          createdAt: submission.createdAt,
+          cheating: submission.cheatingStatus,
+          score: submission.obtainedGrades,
+          passed: await checkPassed(submission),
+          status: status,
+        });
+      }
     }
 
     const qualified = finalSubmissions.filter((s) => s.passed === true).length;
@@ -768,6 +698,204 @@ const getAssessmentSubmission = async (c: Context) => {
   }
 };
 
+const qualifyCandidate = async (c: Context) => {
+  try {
+    const { email, postingId } = await c.req.json();
+    console.log(email, postingId);
+    const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const posting = await Posting.findOne({ _id: postingId }).populate(
+      "organizationId"
+    );
+
+    if (!posting) {
+      return sendError(c, 404, "Posting not found");
+    }
+
+    const candidate = await CandidateModel.findOne({ email });
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const appliedPosting = candidate.appliedPostings.find(
+      (ap) => ap.postingId.toString() === postingId
+    );
+
+    if (!appliedPosting) {
+      return sendError(c, 404, "Candidate not applied to this posting");
+    }
+
+    appliedPosting.status = "inprogress";
+    appliedPosting.currentStepStatus = "qualified";
+    await candidate.save();
+
+    return sendSuccess(c, 200, "Success");
+  } catch (err) {
+    logger.error(err as string);
+    return sendError(c, 500, "Internal server error");
+  }
+};
+
+const disqualifyCandidate = async (c: Context) => {
+  try {
+    const { email, postingId } = await c.req.json();
+    const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const posting = await Posting.findOne({ _id: postingId }).populate(
+      "organizationId"
+    );
+
+    if (!posting) {
+      return sendError(c, 404, "Posting not found");
+    }
+
+    const candidate = await CandidateModel.findOne({ email });
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const appliedPosting = candidate.appliedPostings.find(
+      (ap) => ap.postingId.toString() === postingId
+    );
+
+    if (!appliedPosting) {
+      return sendError(c, 404, "Candidate not applied to this posting");
+    }
+
+    const step = posting.workflow?.currentStep;
+
+    appliedPosting.status = "rejected";
+    appliedPosting.currentStepStatus = "disqualified";
+    appliedPosting.disqualifiedStage = step;
+    appliedPosting.disqualifiedReason = "Disqualified at Assessment Round";
+
+    await candidate.save();
+
+    return sendSuccess(c, 200, "Success");
+  } catch (err) {
+    logger.error(err as string);
+    return sendError(c, 500, "Internal server error");
+  }
+};
+
+const getScore = (
+  mcqSubmissions: { mcqId: string; selectedOptions: string[] }[],
+  problemSubmissions: { problemId: string; results: any[] }[],
+  assessment: any
+) => {
+  let total = 0;
+  let mcq = [];
+  let problem = [];
+
+  for (const mcqSubmission of mcqSubmissions) {
+    let grade = 0;
+    const mcqObj = assessment.mcqs.find((mcq: any) => {
+      if (!mcq._id) return false;
+      return mcq._id.toString() === mcqSubmission.mcqId;
+    });
+
+    if (!mcqObj) continue;
+
+    if (mcqObj.type === "multiple") {
+      if (!mcqObj.mcq) continue;
+      if (mcqObj.mcq.correct === mcqSubmission.selectedOptions[0]) {
+        grade = mcqObj.grade;
+      }
+    }
+
+    if (mcqObj.type === "checkbox") {
+      if (!mcqObj.checkbox) continue;
+      const correct = mcqObj.checkbox.correct;
+      const selected = mcqSubmission.selectedOptions;
+
+      if (
+        correct.length === selected.length &&
+        correct.every((value: string) => selected.includes(value))
+      ) {
+        grade = mcqObj.grade;
+      }
+    }
+
+    mcq.push({
+      mcqId: mcqSubmission.mcqId,
+      obtainedMarks: grade,
+    });
+  }
+
+  for (const problemSubmission of problemSubmissions) {
+    let grade = 0;
+
+    const problemObj = assessment.problems.find(
+      (problem: any) => problem._id.toString() === problemSubmission.problemId
+    );
+
+    if (!problemObj) continue;
+    if (!assessment.grading) continue;
+
+    if (assessment.grading.type === "testcase") {
+      if (!assessment.grading.testcases) continue;
+
+      for (const testCase of problemObj.testCases) {
+        if (!testCase?._id) continue;
+        const passed = problemSubmission.results.find(
+          (result: any) =>
+            result.caseId.toString() === testCase._id.toString() &&
+            result.passed
+        );
+        if (!passed) continue;
+        if (testCase.difficulty === "easy") {
+          grade += assessment.grading.testcases.easy;
+        } else if (testCase.difficulty === "medium") {
+          grade += assessment.grading.testcases.medium;
+        } else {
+          grade += assessment.grading.testcases.hard;
+        }
+      }
+    }
+
+    if (assessment.grading.type === "problem") {
+      const gradingProblemObj = assessment.grading.problem.find(
+        (p: any) =>
+          p.problemId?.toString() === problemSubmission.problemId.toString()
+      );
+
+      if (!gradingProblemObj) continue;
+
+      const allPassed = problemSubmission.results.every(
+        (result: any) => result.passed
+      );
+      if (allPassed) {
+        grade = gradingProblemObj.points;
+      }
+    }
+
+    problem.push({
+      problemId: problemSubmission.problemId,
+      obtainedMarks: grade,
+    });
+  }
+
+  mcq.forEach((m: any) => {
+    total += m.obtainedMarks;
+  });
+
+  problem.forEach((p: any) => {
+    total += p.obtainedMarks;
+  });
+
+  return {
+    mcq,
+    problem,
+    total,
+  };
+};
+
 export default {
   getAssessments,
   getMyMcqAssessments,
@@ -780,4 +908,6 @@ export default {
   getAssessmentSubmissions,
   getAssessmentSubmission,
   deleteAssessment,
+  qualifyCandidate,
+  disqualifyCandidate,
 };
