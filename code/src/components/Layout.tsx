@@ -7,7 +7,7 @@ const Layout = () => {
     <div>
       <SignedIn>
         <Navbar />
-        <div className="h-[90vh] px-10">
+        <div className="h-[92vh] px-10">
           <Outlet />
         </div>
       </SignedIn>

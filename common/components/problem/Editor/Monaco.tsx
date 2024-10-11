@@ -27,7 +27,7 @@ const Monaco = ({
     const editor = monaco.editor.create(editorContainer, {
       value: code,
       language: language,
-      theme: "vs-dark",
+      theme: "vs",
       readOnly: loading || readOnly,
     });
 

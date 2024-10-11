@@ -1,8 +1,9 @@
-import { UserButton, /*useAuth*/ } from "@clerk/clerk-react";
+import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
 import Logo from "../assets/logo.png";
 import { Link, Button } from "@nextui-org/react";
-import { EllipsisVertical, Menu, X, } from "lucide-react";
+import { EllipsisVertical, Menu, Moon, Sun, X } from "lucide-react";
 import { useState } from "react";
+import { useTheme } from "./theme-provider";
 // import { useNavigate } from "react-router-dom";
 // import {
 //   Dropdown,
@@ -35,6 +36,8 @@ const Navbar = () => {
   //   if (orgId === null) window.location.href = "/organization/intro";
   //   else window.location.href = "/organization";
   // };
+
+  const { theme, setTheme } = useTheme();
 
   return (
     <>
@@ -74,6 +77,14 @@ const Navbar = () => {
                 <DropdownItem onClick={() => navigate("/profile")}>Profile</DropdownItem>
               </DropdownMenu>
             </Dropdown> */}
+            <Button
+              isIconOnly
+              size="sm"
+              variant="flat"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            >
+              {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+            </Button>
             <UserButton />
           </div>
           <div className="flex md:hidden" onClick={handleMenu}>

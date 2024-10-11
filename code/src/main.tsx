@@ -11,7 +11,7 @@ import { Toaster } from "sonner";
 
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
-
+import { ThemeProvider } from "./components/theme-provider.jsx";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -22,22 +22,24 @@ if (!PUBLISHABLE_KEY) {
 const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <ErrorBoundary FallbackComponent={ErrorPage}>
-    <QueryClientProvider client={queryClient}>
-      <NextUIProvider>
-        <ClerkProvider
-          publishableKey={PUBLISHABLE_KEY}
-          appearance={{
-            baseTheme: dark,
-          }}
-        >
-          <App />
+  <ThemeProvider defaultTheme="dark" storageKey="ui-theme">
+    <ErrorBoundary FallbackComponent={ErrorPage}>
+      <QueryClientProvider client={queryClient}>
+        <NextUIProvider>
+          <ClerkProvider
+            publishableKey={PUBLISHABLE_KEY}
+            appearance={{
+              baseTheme: dark,
+            }}
+          >
+            <App />
 
-          <SpeedInsights debug={false} />
-          <Analytics debug={false} />
-          <Toaster richColors theme="dark" />
-        </ClerkProvider>
-      </NextUIProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
+            <SpeedInsights debug={false} />
+            <Analytics debug={false} />
+            <Toaster richColors theme="dark" />
+          </ClerkProvider>
+        </NextUIProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  </ThemeProvider>
 );

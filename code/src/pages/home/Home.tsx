@@ -23,25 +23,12 @@ const Home = () => {
 
   return (
     <>
-      <div className="flex flex-col md:flex-row gap-10 pb-10 h-screen md:h-auto overflow-y-auto md:overflow-y-visible">
-        <motion.div
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="w-full md:w-[80%] order-1 md:order-1 h-screen"
-        >
-          <Problems
-            problems={data?.data?.problems}
-            tags={data?.data?.tags}
-            solvedProblems={data?.data?.solvedProblems}
-          />
-        </motion.div>
-
+      <div className="flex flex-col md:flex-row gap-10 mt-3">
         <motion.div
           initial={{ x: -50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="w-full md:w-[20%] flex gap-5 flex-col order-2 md:order-2 h-screen"
+          className="w-full md:w-[260px] flex gap-5 flex-col"
         >
           {data?.data?.streak ? (
             <StreakCalender dates={data?.data?.streak} />
@@ -53,6 +40,19 @@ const Home = () => {
             easyNo={data?.data?.problemsCount.easy}
             mediumNo={data?.data?.problemsCount.medium}
             hardNo={data?.data?.problemsCount.hard}
+          />
+        </motion.div>
+
+        <motion.div
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="w-full md:w-[80%]"
+        >
+          <Problems
+            problems={data?.data?.problems}
+            tags={data?.data?.tags}
+            solvedProblems={data?.data?.solvedProblems}
           />
         </motion.div>
       </div>

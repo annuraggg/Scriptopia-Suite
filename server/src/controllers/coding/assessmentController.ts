@@ -13,7 +13,7 @@ import CandidateDoc from "@/models/Candidate";
 import CandidateModel from "@/models/Candidate";
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
 import logger from "@/utils/logger";
-import { Candidates } from "@shared-types/Assessment";
+
 
 const LIMIT_PER_PAGE = 20;
 

@@ -24,6 +24,7 @@ import Result from "./pages/assessments/assess/result/Result";
 import ViewAssessment from "./pages/assessments/dashboard/ViewAssessment/ViewAssessment";
 import ViewUserAssessment from "./pages/assessments/dashboard/ViewAssessment/ViewUserAssessment";
 import Lander from "./pages/lander/Lander";
+import { useTheme } from "./components/theme-provider";
 
 const router = createBrowserRouter([
   {
@@ -114,7 +115,16 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  const { theme } = useTheme();
+  return (
+    <main
+      className={`${
+        theme === "dark" ? "dark" : ""
+      } text-foreground bg-background`}
+    >
+      <RouterProvider router={router} />
+    </main>
+  );
 }
 
 export default App;
