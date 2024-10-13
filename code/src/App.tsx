@@ -1,73 +1,72 @@
+import { Suspense, lazy } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./App.css";
-import SignIn from "./pages/signIn/SignIn";
-import SignUp from "./pages/signUp/SignUp";
-import Home from "./pages/home/Home";
-import AssessmentDashboard from "./pages/assessments/dashboard/Assessments";
-import Problems from "./pages/problems/dashboard/Problems";
-import Problem from "./pages/problems/problem/Problem";
-import NewProblem from "./pages/problems/new/NewProblem";
-
 import Layout from "./components/Layout";
-// import ErrorPage from "./components/ErrorPage";
-import OrgIntro from "./pages/organization/intro/Intro";
-import OrgMain from "./pages/organization/main/Main";
-
-import NewMCQ from "./pages/assessments/new/mcq/New";
-import NewCode from "./pages/assessments/new/code/New";
-import NewMCQCode from "./pages/assessments/new/mcqcode/New";
-
-import MainAssessment from "./pages/assessments/assess/Main";
-import AssessmentCurrent from "./pages/assessments/assess/Dashboard";
-import AssessmentCurrentProblem from "./pages/assessments/assess/problem/Problem";
-import Result from "./pages/assessments/assess/result/Result";
-import ViewAssessment from "./pages/assessments/dashboard/ViewAssessment/ViewAssessment";
-import ViewUserAssessment from "./pages/assessments/dashboard/ViewAssessment/ViewUserAssessment";
-import Lander from "./pages/lander/Lander";
+import ErrorPage from "./components/ErrorPage";
 import { useTheme } from "./components/theme-provider";
+import Loader from "./components/Loader"; // Import Loader component
+// Lazy loading components
+const Home = lazy(() => import("./pages/home/Home"));
+// const AssessmentDashboard = lazy(
+//   () => import("./pages/assessments/dashboard/Assessments")
+// );
+const Problems = lazy(() => import("./pages/problems/dashboard/Problems"));
+const Problem = lazy(() => import("./pages/problems/problem/Problem"));
+const NewProblem = lazy(() => import("./pages/problems/new/NewProblem"));
+// const NewMCQ = lazy(() => import("./pages/assessments/new/mcq/New"));
+// const NewCode = lazy(() => import("./pages/assessments/new/code/New"));
+// const NewMCQCode = lazy(() => import("./pages/assessments/new/mcqcode/New"));
+const MainAssessment = lazy(() => import("./pages/assessments/assess/Main"));
+const AssessmentCurrent = lazy(
+  () => import("./pages/assessments/assess/Dashboard")
+);
+const AssessmentCurrentProblem = lazy(
+  () => import("./pages/assessments/assess/problem/Problem")
+);
+const Result = lazy(() => import("./pages/assessments/assess/result/Result"));
+const ViewAssessment = lazy(
+  () => import("./pages/assessments/dashboard/ViewAssessment/ViewAssessment")
+);
+const ViewUserAssessment = lazy(
+  () =>
+    import("./pages/assessments/dashboard/ViewAssessment/ViewUserAssessment")
+);
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Lander />,
-  },
-  {
-    path: "/",
     element: <Layout />,
+    errorElement: <ErrorPage />,
 
     children: [
       {
         path: "/dashboard",
         element: <Home />,
       },
-
-      // Assessments
-      {
-        path: "/assessments",
-        element: <AssessmentDashboard />,
-      },
-      {
-        path: "/assessments/:id/view",
-        element: <ViewAssessment />,
-      },
-      {
-        path: "/assessments/:id/view/:cid",
-        element: <ViewUserAssessment />,
-      },
-      {
-        path: "/assessments/new/mcq",
-        element: <NewMCQ />,
-      },
-      {
-        path: "/assessments/new/code",
-        element: <NewCode />,
-      },
-      {
-        path: "/assessments/new/mcqcode",
-        element: <NewMCQCode />,
-      },
-
-      // Problems
+      // {
+      //   path: "/assessments",
+      //   element: <AssessmentDashboard />,
+      // },
+      // {
+      //   path: "/assessments/:id/view",
+      //   element: <ViewAssessment />,
+      // },
+      // {
+      //   path: "/assessments/:id/view/:cid",
+      //   element: <ViewUserAssessment />,
+      // },
+      // {
+      //   path: "/assessments/new/mcq",
+      //   element: <NewMCQ />,
+      // },
+      // {
+      //   path: "/assessments/new/code",
+      //   element: <NewCode />,
+      // },
+      // {
+      //   path: "/assessments/new/mcqcode",
+      //   element: <NewMCQCode />,
+      // },
       {
         path: "/problems",
         element: <Problems />,
@@ -80,21 +79,7 @@ const router = createBrowserRouter([
         path: "/problems/:id",
         element: <Problem />,
       },
-
-      {
-        path: "/organization/intro",
-        element: <OrgIntro />,
-      },
-      { path: "/organization", element: <OrgMain /> },
     ],
-  },
-  {
-    path: "/sign-in",
-    element: <SignIn />,
-  },
-  {
-    path: "/sign-up",
-    element: <SignUp />,
   },
   {
     path: "/assessments/:id",
@@ -122,7 +107,9 @@ function App() {
         theme === "dark" ? "dark" : ""
       } text-foreground bg-background`}
     >
-      <RouterProvider router={router} />
+      <Suspense fallback={<Loader />}>
+        <RouterProvider router={router} />
+      </Suspense>
     </main>
   );
 }

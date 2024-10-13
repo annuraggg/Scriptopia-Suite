@@ -15,13 +15,13 @@ const InfoPanel = ({
 }) => {
   if (runningCode)
     return (
-      <div className="h-full flex items-center justify-center">
+      <div className="min-h-full flex items-center justify-center">
         <Spinner size="md" className="text-gray-400" />
       </div>
     );
 
   return (
-    <Card className="h-[50%] mt-2 p-2 overflow-auto">
+    <Card className="min-h-[39vh] mt-2 p-2 overflow-auto">
       <Tabs>
         {" "}
         <Tab

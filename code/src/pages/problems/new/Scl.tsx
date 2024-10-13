@@ -41,7 +41,7 @@ const Scl = ({
   };
 
   return (
-    <>
+    <div className="h-[90%] p-2">
       <p className="text-sm mb-2">
         Read More About Scriptopia Code Language (SCL){" "}
         <span className="underline cursor-pointer text-warning-500">Here</span>
@@ -49,12 +49,12 @@ const Scl = ({
       <div className="flex gap-5 h-full">
         <div className="w-full h-full relative">
           <textarea
-            className="h-[90%] w-full bg-[#26262a] rounded-xl p-5 outline-none resize-none"
+            className="h-[90%] w-full bg-input rounded-xl p-5 outline-none resize-none"
             placeholder="Enter Your SCL Here"
             value={scl}
             onChange={(e) => setScl(e.target.value)}
           />
-          <div className="flex gap-3 items-center">
+          <div className="flex gap-3 items-center mt-3">
             <Select
               label="Language"
               selectedKeys={[language]}
@@ -95,7 +95,7 @@ const Scl = ({
           {error && <p className="text-red-500 mt-2">{errorMessage}</p>}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

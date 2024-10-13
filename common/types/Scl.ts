@@ -1,32 +1,24 @@
-interface SclObject {
-    name: string;
-    type:
-    | "boolean"
-    | "integer"
-    | "character"
-    | "long"
-    | "float"
-    | "double"
-    | "string"
-    | "array"
-    | "return";
-    arrayProps?: {
-        type:
-        | "boolean"
-        | "integer"
-        | "character"
-        | "long"
-        | "float"
-        | "double"
-        | "string";
-        size: number;
-    };
+export interface SCLInput {
+  type: string;
+  name: string;
+  elementType: string;
+  size?: number | null;
 }
 
-interface SclObjResponse {
-    error: boolean;
-    sclObject?: SclObject[];
-    message?: string;
+export interface ParsedSCL {
+  inputs: SCLInput[];
+  returnType: string;
 }
 
-export type { SclObject, SclObjResponse };
+export interface LanguageTypeMap {
+  [key: string]: string;
+}
+
+export interface TypeMap {
+  [key: string]: LanguageTypeMap;
+}
+
+export type LanguageGenerator = (
+  inputs: SCLInput[],
+  returnType: string
+) => string;

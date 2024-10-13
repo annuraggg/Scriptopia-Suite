@@ -36,7 +36,7 @@ const Editor = ({
   const [explainOpen, setExplainOpen] = useState<boolean>(false);
 
   return (
-    <div className="h-[50%] mb-2 w-full">
+    <div className="mb-2 w-full">
       <Card className="h-full overflow-visible">
         <CardHeader className="border-b justify-between">
           <div className="flex items-center gap-3">
@@ -59,7 +59,7 @@ const Editor = ({
             />
           </div>
         </CardHeader>
-        <CardBody className="h-full p-0 overflow-visible">
+        <CardBody className="h-[40vh] p-0 overflow-visible">
           <Monaco
             key={language}
             code={code}

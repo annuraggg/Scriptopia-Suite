@@ -58,7 +58,7 @@ const QualityGate = ({
           label="Quality Gate"
           classNames={{
             svg: "w-24 h-24 drop-shadow-md",
-            value: "text-xl font-semibold text-white",
+            value: "text-xl font-semibold text-foreground",
           }}
           value={value}
           color={value === 100 ? "success" : "danger"}

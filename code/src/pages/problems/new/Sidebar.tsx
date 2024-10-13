@@ -15,7 +15,7 @@ const Sidebar = ({
         {steps.map((step, index) => (
           <div
             key={index}
-            className={`flex gap-10 items-center justify-start px-5 border transition-all duration-200 w-[270px] h-full cursor-pointer rounded-lg bg-card border-l-8          
+            className={`flex gap-10 items-center bg-inherit justify-start px-5 border transition-all duration-200 w-[270px] h-full cursor-pointer rounded-lg border-l-8          
               ${activeStep === index + 1 && "bg-card-foreground scale-105"}
               ${
                 completed[index]

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import * as monaco from "monaco-editor";
+import { useTheme } from "@/components/theme-provider";
 
 const Monaco = ({
   code,
@@ -16,6 +17,7 @@ const Monaco = ({
   editorUpdateFlag?: boolean;
   readOnly?: boolean;
 }) => {
+  const { theme } = useTheme();
   useEffect(() => {
     const editorContainer = document.getElementById("code-editor");
     if (!editorContainer) return;
@@ -27,7 +29,7 @@ const Monaco = ({
     const editor = monaco.editor.create(editorContainer, {
       value: code,
       language: language,
-      theme: "vs-dark",
+      theme: theme === "dark" ? "vs-dark" : "vs",
       readOnly: loading || readOnly,
     });
 
@@ -50,7 +52,7 @@ const Monaco = ({
       editor.dispose();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editorUpdateFlag]);
+  }, [editorUpdateFlag, theme]);
   return (
     <div
       id="code-editor"
