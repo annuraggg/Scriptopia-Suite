@@ -3,6 +3,9 @@ import Monaco from "@/components/problem/Editor/Monaco";
 import { useState } from "react";
 import languages from "@/data/languages";
 import { convertSclToJs, sclReturnType } from "@/functions/scl";
+import { parseSCL, generateCode as generateSclCode } from "@/functions/scl/scl";
+
+type SupportedLanguages = "python" | "javascript" | "java";
 
 const Scl = ({
   scl,
@@ -15,7 +18,7 @@ const Scl = ({
     variableWithDataType: { name: string; type: string }[]
   ) => void;
 }) => {
-  const [language, setLanguage] = useState("javascript");
+  const [language, setLanguage] = useState<SupportedLanguages>("javascript");
   const [code, setCode] = useState("");
 
   const [error, setError] = useState(false);
@@ -24,20 +27,30 @@ const Scl = ({
   const [editorUpdateFlag, setEditorUpdateFlag] = useState(false);
 
   const generateCode = () => {
-    if (language === "javascript") {
-      const res: sclReturnType = convertSclToJs(scl);
-      if (res.error) {
-        setError(true);
-        setErrorMessage(res?.message || "Error Generating Code");
-        return;
-      }
-      if (res.code) {
-        setCode(res.code);
-        setVariableWithDataType(res.variableWithDataType);
-      }
-      setError(false);
-      setEditorUpdateFlag((prev) => !prev);
+    // if (language === "javascript") {
+    //   const res: sclReturnType = convertSclToJs(scl);
+    //   if (res.error) {
+    //     setError(true);
+    //     setErrorMessage(res?.message || "Error Generating Code");
+    //     return;
+    //   }
+    //   if (res.code) {
+    //     setCode(res.code);
+    //     setVariableWithDataType(res.variableWithDataType);
+    //   }
+    //   setError(false);
+    //   setEditorUpdateFlag((prev) => !prev);
+    // }
+
+    const code = generateSclCode(scl, language);
+    if (code.error || !code.success || !code.code) {
+      setError(true);
+      setErrorMessage(code.error || "Error Generating Code");
+      return;
     }
+
+    setCode(code.code);
+    setEditorUpdateFlag((prev) => !prev);
   };
 
   return (
@@ -58,7 +71,7 @@ const Scl = ({
             <Select
               label="Language"
               selectedKeys={[language]}
-              onChange={(e) => setLanguage(e.target.value as string)}
+              onChange={(e) => setLanguage(e.target.value as SupportedLanguages)}
               size="sm"
             >
               {/* @ts-expect-error => language.available is not defined */}

@@ -1,9 +1,4 @@
-import {
-  LanguageGenerator,
-  ParsedSCL,
-  SCLInput,
-  TypeMap,
-} from "@shared-types/Scl";
+import { LanguageGenerator, TypeMap } from "@shared-types/Scl";
 
 const typeMap: TypeMap = {
   integer: {
@@ -128,78 +123,197 @@ const typeMap: TypeMap = {
   },
 };
 
-function parseSCL(sclCode: string): ParsedSCL {
-  const lines = sclCode
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line !== "");
-  const inputs: SCLInput[] = [];
-  let returnType: string | null = null;
+type SupportedLanguages = "python" | "javascript" | "java";
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const [type, rest] = line.split("->");
-
-    if (!type || !rest) {
-      throw new Error(`Invalid SCL syntax at line ${i + 1}: ${line}`);
-    }
-
-    if (rest === "return") {
-      if (returnType !== null) {
-        throw new Error(`Multiple return types defined at line ${i + 1}`);
-      }
-      returnType = type;
-    } else if (type === "array" || type === "map" || type === "set") {
-      const [elementType, name, size] = rest.split(" ");
-      if (!elementType || !name) {
-        throw new Error(
-          `Invalid ${type} declaration at line ${i + 1}: ${line}`
-        );
-      }
-      inputs.push({
-        type,
-        elementType,
-        name,
-        size: size ? parseInt(size) : null,
-      });
-    } else {
-      const name = rest;
-      if (!Object.keys(typeMap).includes(type)) {
-        throw new Error(`Unknown type "${type}" at line ${i + 1}`);
-      }
-      inputs.push({ type, name, elementType: "", size: null });
-    }
-  }
-
-  if (returnType === null) {
-    throw new Error("No return type specified in SCL");
-  }
-
-  return { inputs, returnType };
+export interface ParsedSCL {
+  inputs: SCLInput[];
+  returnType: string;
 }
 
-type SupportedLanguages = "python" | "javascript" | "java"; // Add other languages as needed
-
-function generateCode(parsedSCL: ParsedSCL, language: SupportedLanguages) {
-  const generators: Record<SupportedLanguages, LanguageGenerator> = {
-    python: generatePython,
-    javascript: generateJavaScript,
-    java: generateJava,
-    // cpp: generateCpp,
-    // csharp: generateCSharp,
-    // php: generatePhp,
-    // r: generateR,
-    // typescript: generateTypeScript,
-    // swift: generateSwift,
-    // go: generateGo,
+export interface GeneratorResult {
+  success: boolean;
+  code: string | null;
+  error: string | null;
+  language?: string;
+  metadata?: {
+    inputCount: number;
+    hasArrayInputs: boolean;
+    returnType: string;
+    timestamp: number;
+    generatedAt?: number;
   };
+}
 
-  const generator = generators[language];
-  if (!generator) {
-    throw new Error(`Unsupported language: ${language}`);
+export interface SCLInput {
+  type: string;
+  elementType: string;
+  name: string;
+  size: number | null;
+}
+
+export interface ParseResult {
+  success: boolean;
+  error: string | null;
+  data: ParsedSCL | null;
+  metadata?: {
+    inputCount: number;
+    hasArrayInputs: boolean;
+    returnType: string;
+    timestamp: number;
+  };
+}
+
+function parseSCL(sclCode: string): ParseResult {
+  try {
+    const lines = sclCode
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line !== "");
+    const inputs: SCLInput[] = [];
+    let returnType: string | null = null;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const [type, rest] = line.split("->");
+
+      if (!type || !rest) {
+        return {
+          success: false,
+          error: `Invalid SCL syntax at line ${i + 1}: ${line}`,
+          data: null,
+        };
+      }
+
+      if (rest === "return") {
+        if (returnType !== null) {
+          return {
+            success: false,
+            error: `Multiple return types defined at line ${i + 1}`,
+            data: null,
+          };
+        }
+        returnType = type;
+      } else if (type === "array" || type === "map" || type === "set") {
+        const [elementType, name, size] = rest.split(" ");
+        if (!elementType || !name) {
+          return {
+            success: false,
+            error: `Invalid ${type} declaration at line ${i + 1}: ${line}`,
+            data: null,
+          };
+        }
+        inputs.push({
+          type,
+          elementType,
+          name,
+          size: size ? parseInt(size) : null,
+        });
+      } else {
+        const name = rest;
+        if (!Object.keys(typeMap).includes(type)) {
+          return {
+            success: false,
+            error: `Unknown type "${type}" at line ${i + 1}`,
+            data: null,
+          };
+        }
+        inputs.push({ type, name, elementType: "", size: null });
+      }
+    }
+
+    if (returnType === null) {
+      return {
+        success: false,
+        error: "No return type specified in SCL",
+        data: null,
+      };
+    }
+
+    return {
+      success: true,
+      error: null,
+      data: { inputs, returnType },
+      metadata: {
+        inputCount: inputs.length,
+        hasArrayInputs: inputs.some((input) => input.type === "array"),
+        returnType,
+        timestamp: Date.now(),
+      },
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: `Unexpected error while parsing SCL: ${error.message}`,
+      data: null,
+    };
   }
+}
 
-  return generator(parsedSCL.inputs, parsedSCL.returnType);
+function generateCode(
+  sclCode: string,
+  language: SupportedLanguages
+): GeneratorResult {
+  try {
+    // First parse the SCL
+    const parseResult = parseSCL(sclCode);
+    if (!parseResult.success || !parseResult.data) {
+      return {
+        success: false,
+        code: null,
+        error: parseResult.error,
+        metadata: parseResult.metadata,
+      };
+    }
+
+    const generators: Record<SupportedLanguages, LanguageGenerator> = {
+      python: generatePython,
+      javascript: generateJavaScript,
+      java: generateJava,
+    };
+
+    const generator = generators[language];
+    if (!generator) {
+      return {
+        success: false,
+        code: null,
+        error: `Unsupported language: ${language}`,
+        language,
+      };
+    }
+
+    // Generate the code
+    const generatedCode = generator(
+      parseResult.data.inputs,
+      parseResult.data.returnType
+    );
+
+    if (!parseResult.metadata) {
+      return {
+        success: true,
+        code: generatedCode,
+        error: null,
+        language,
+      };
+    }
+
+    return {
+      success: true,
+      code: generatedCode,
+      error: null,
+      language,
+      metadata: {
+        ...parseResult.metadata,
+        generatedAt: Date.now(),
+      },
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      code: null,
+      error: `Error generating code: ${error?.message}`,
+      language,
+    };
+  }
 }
 
 function generatePython(inputs: SCLInput[], returnType: string) {

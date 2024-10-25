@@ -20,6 +20,6 @@
         "@shared-data/*": ["../common/data/*"]
       }
     },
-    "include": ["src", "../common/types", "check-types.js", "../commom/data"]
+    "include": ["src", "../common/types", "check-types.js", "../common/data"]
   }
   

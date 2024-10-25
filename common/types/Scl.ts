@@ -1,8 +1,8 @@
 export interface SCLInput {
   type: string;
-  name: string;
   elementType: string;
-  size?: number | null;
+  name: string;
+  size: number | null;
 }
 
 export interface ParsedSCL {
@@ -22,3 +22,29 @@ export type LanguageGenerator = (
   inputs: SCLInput[],
   returnType: string
 ) => string;
+
+export interface GeneratorResult {
+  success: boolean;
+  code: string | null;
+  error: string | null;
+  language?: string;
+  metadata?: {
+    inputCount: number;
+    hasArrayInputs: boolean;
+    returnType: string;
+    timestamp: number;
+    generatedAt?: number;
+  };
+}
+
+export interface ParseResult {
+  success: boolean;
+  error: string | null;
+  data: ParsedSCL | null;
+  metadata?: {
+    inputCount: number;
+    hasArrayInputs: boolean;
+    returnType: string;
+    timestamp: number;
+  };
+}

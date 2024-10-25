@@ -1,6 +1,6 @@
 interface OpenRange {
-  start: Date;
-  end: Date;
+  start?: Date;
+  end?: Date;
 }
 
 interface TestCases {
@@ -16,8 +16,8 @@ interface Problem {
 
 interface Grading {
   type: "testcase" | "problem";
-  testcases?: TestCases;
-  problem?: Problem[];
+  testcases?: TestCases; // Make optional but depending on the type logic.
+  problem?: Problem[]; // Make optional but depending on the type logic.
 }
 
 interface Candidate {
@@ -27,7 +27,7 @@ interface Candidate {
 
 interface Candidates {
   type: "all" | "specific";
-  candidates?: Candidate[];
+  candidates: Candidate[];
 }
 
 interface Mcq {
@@ -53,10 +53,11 @@ interface Assessment extends Document {
   _id: string;
   name: string;
   description: string;
+  author: string;
   type: "mcq" | "code" | "mcqcode";
   timeLimit: number;
   passingPercentage: number;
-  openRange: OpenRange;
+  openRange?: OpenRange;
   languages: string[];
   problems: string[];
   mcqs: Mcq[];
@@ -66,6 +67,8 @@ interface Assessment extends Document {
   security: Security;
   feedbackEmail: string;
   obtainableScore: number;
+  isEnterprise: boolean;
+  postingId?: string;
   createdAt: Date;
 }
 
