@@ -2,15 +2,13 @@ import { Button, Select, SelectItem } from "@nextui-org/react";
 import Monaco from "@/components/problem/Editor/Monaco";
 import { useState } from "react";
 import languages from "@/data/languages";
-import { convertSclToJs, sclReturnType } from "@/functions/scl";
-import { parseSCL, generateCode as generateSclCode } from "@/functions/scl/scl";
+import { generateCode as generateSclCode } from "@/functions/scl/scl";
 
 type SupportedLanguages = "python" | "javascript" | "java";
 
 const Scl = ({
   scl,
   setScl,
-  setVariableWithDataType,
 }: {
   scl: string;
   setScl: (scl: string) => void;
@@ -71,7 +69,9 @@ const Scl = ({
             <Select
               label="Language"
               selectedKeys={[language]}
-              onChange={(e) => setLanguage(e.target.value as SupportedLanguages)}
+              onChange={(e) =>
+                setLanguage(e.target.value as SupportedLanguages)
+              }
               size="sm"
             >
               {/* @ts-expect-error => language.available is not defined */}

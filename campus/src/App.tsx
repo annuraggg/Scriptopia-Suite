@@ -25,7 +25,6 @@ const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
 const Drives = lazy(() => import("./pages/jobs/Drives"));
 const Candidates = lazy(() => import("./pages/candidates/Candidates"));
 const Analytics = lazy(() => import("./pages/analytics/Analytics"));
-const Calendar = lazy(() => import("./pages/calendar/Calendar"));
 const DriveDashboard = lazy(
   () => import("./pages/jobs/job/dashboard/Dashboard")
 );
@@ -117,7 +116,9 @@ const jobRoutes = [
 const studentSettingsRoute = [
   {
     path: "general",
-    element: <Suspense fallback={<Loader />} children={<StudentSettingsGeneral />} />,
+    element: (
+      <Suspense fallback={<Loader />} children={<StudentSettingsGeneral />} />
+    ),
   },
 ];
 
@@ -148,10 +149,7 @@ function App() {
           path: "analytics",
           element: <Suspense fallback={<Loader />} children={<Analytics />} />,
         },
-        {
-          path: "calendar",
-          element: <Suspense fallback={<Loader />} children={<Calendar />} />,
-        },
+
         {
           path: "notifications",
           element: (

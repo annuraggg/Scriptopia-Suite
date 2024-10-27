@@ -130,6 +130,7 @@ const Grading = ({
                       ?.points?.toString()}
                     onChange={(e) => {
                       const value = parseInt(e.target.value, 10);
+                      // @ts-ignore
                       setQuestionsGrading((prev) => {
                         const exists = prev.find(
                           (q) => q.problemId === question._id

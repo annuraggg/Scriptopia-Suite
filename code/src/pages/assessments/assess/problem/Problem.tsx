@@ -79,7 +79,7 @@ const Problem = () => {
             problemSt.times = problemSt.times ? problemSt.times + 1 : 1;
           } else {
             offtrack.tabChange.problem.push({
-              problemId: problem._id,
+              problemId: problem._id as string,
               times: 1,
             });
           }

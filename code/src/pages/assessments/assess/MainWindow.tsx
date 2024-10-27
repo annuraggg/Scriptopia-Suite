@@ -229,7 +229,7 @@ const Main = ({
                     >
                       <div>{problem.title}</div>
                       <div className="flex gap-3 items-center">
-                        {solvedProblems.includes(problem._id) && (
+                        {solvedProblems.includes(problem._id as string) && (
                           <Check size={16} className="text-green-500" />
                         )}
                         <Button
@@ -238,7 +238,7 @@ const Main = ({
                               state: { languages: languages },
                             })
                           }
-                          isDisabled={solvedProblems.includes(problem._id)}
+                          isDisabled={solvedProblems.includes(problem._id as string)}
                         >
                           Attempt
                         </Button>

@@ -115,7 +115,7 @@ const Main = ({ posting }: { posting: Posting }) => {
                     <Textarea
                       placeholder="No negative prompts"
                       isDisabled
-                      value={posting.ats?.negativePrompts.join(", ")}
+                      value={posting.ats?.negativePrompts?.join(", ")}
                     />
                   </div>
                   <div className="flex items-center w-[100%] mt-3">
@@ -129,14 +129,14 @@ const Main = ({ posting }: { posting: Posting }) => {
                     <Textarea
                       placeholder="No positive prompts"
                       isDisabled
-                      value={posting.ats?.positivePrompts.join(", ")}
+                      value={posting.ats?.positivePrompts?.join(", ")}
                     />
                   </div>
                 </CardBody>
               </Card>
             </div>
 
-            {posting.candidates.length > 0 ? (
+            {posting?.candidates?.length && posting?.candidates?.length > 0 ? (
               <div className="mt-5 flex gap-5">
                 <SelectionChart chartData={selectionData} />
               </div>
@@ -153,7 +153,7 @@ const Main = ({ posting }: { posting: Posting }) => {
             <DataTable
               data={tableData}
               postingId={posting._id!}
-              matchThreshold={posting?.ats?.minimumScore}
+              matchThreshold={posting?.ats?.minimumScore ?? 0}
               stepNo={stepNo}
               setData={setTableData}
             />

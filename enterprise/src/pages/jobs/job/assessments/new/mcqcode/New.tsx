@@ -27,8 +27,13 @@ import Languages from "./Languages";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { Problem } from "@shared-types/Problem";
+import { Problem as VanillaProblem } from "@shared-types/Problem";
 import { Mcq, Problem as ProblemAssessment } from "@shared-types/Assessment";
+import { Delta } from "quill/core";
+
+interface Problem extends VanillaProblem {
+  description: Delta;
+}
 
 const tabsList = [
   "General",
@@ -126,9 +131,16 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
         return mcqs.length > 0;
       case 4: // Grading
         if (gradingMetric === "testcase") {
-          return testCaseGrading.easy > 0 && testCaseGrading.medium > 0 && testCaseGrading.hard > 0;
+          return (
+            testCaseGrading.easy > 0 &&
+            testCaseGrading.medium > 0 &&
+            testCaseGrading.hard > 0
+          );
         } else {
-          return questionsGrading.length === selectedQuestions.length && questionsGrading.every(q => q.points > 0);
+          return (
+            questionsGrading.length === selectedQuestions.length &&
+            questionsGrading.every((q) => q.points > 0)
+          );
         }
       case 5: // Instructions
         return instructions.trim() !== "";
@@ -145,7 +157,11 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
     const currentTabIndex = parseInt(activeTab);
     const newTabIndex = typeof key === "string" ? parseInt(key) : key;
 
-    if (typeof newTabIndex === "number" && newTabIndex > currentTabIndex && !isTabValid(currentTabIndex)) {
+    if (
+      typeof newTabIndex === "number" &&
+      newTabIndex > currentTabIndex &&
+      !isTabValid(currentTabIndex)
+    ) {
       toast.error("Please complete all required fields before proceeding.");
       return;
     }
@@ -299,10 +315,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
 
   return (
     <div className="flex items-center justify-center flex-col relative w-full">
-      <Tabs
-        selectedKey={activeTab}
-        onSelectionChange={handleTabChange}
-      >
+      <Tabs selectedKey={activeTab} onSelectionChange={handleTabChange}>
         {tabsList.map((tabItem, i) => (
           <Tab key={i} title={tabItem} className="w-full">
             <Card className="w-full h-[80vh]">
@@ -313,7 +326,9 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
                     variant="shadow"
                     size="sm"
                     isIconOnly
-                    onClick={() => handleTabChange((parseInt(activeTab) - 1).toString())}
+                    onClick={() =>
+                      handleTabChange((parseInt(activeTab) - 1).toString())
+                    }
                     isDisabled={parseInt(activeTab) === 0}
                   >
                     <ChevronLeft />
@@ -322,8 +337,13 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
                     variant="shadow"
                     size="sm"
                     isIconOnly
-                    onClick={() => handleTabChange((parseInt(activeTab) + 1).toString())}
-                    isDisabled={parseInt(activeTab) === tabsList.length - 1 || !isTabValid(parseInt(activeTab))}
+                    onClick={() =>
+                      handleTabChange((parseInt(activeTab) + 1).toString())
+                    }
+                    isDisabled={
+                      parseInt(activeTab) === tabsList.length - 1 ||
+                      !isTabValid(parseInt(activeTab))
+                    }
                   >
                     <ChevronRight />
                   </Button>

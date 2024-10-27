@@ -1,6 +1,5 @@
 import ViewUserAssessmentTop from "./ViewUserAssessmentTop";
 import ViewUserAssessmentBottom from "./ViewUserAssessmentBottom";
-import { motion } from "framer-motion";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { useEffect, useState } from "react";
@@ -33,18 +32,13 @@ const ViewUserAssessment = () => {
   }, []);
 
   return (
-    <motion.div
-      initial={{ y: 50, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="p-10"
-    >
+    <div className="p-10">
       <ViewUserAssessmentTop submission={submission} assessment={assessment} />
       <ViewUserAssessmentBottom
         submission={submission}
         assessment={assessment}
       />
-    </motion.div>
+    </div>
   );
 };
 

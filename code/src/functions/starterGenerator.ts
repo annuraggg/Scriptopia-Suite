@@ -39,25 +39,15 @@
 //   return starterCode;
 // };
 
-import sclToObject from "./scl/sclToObject";
-import createJsTemplate from "./templates/js";
+// import sclToObject from "./scl/sclToObject";
 
 const starterGenerator = (scl: string[], language: string) => {
-  const joinedScl = scl?.join("\n");
-  const sclObj = sclToObject(joinedScl).sclObject!;
+  console.log(scl, language);
+  // const joinedScl = scl?.join("\n");
+  // const sclObj = sclToObject(joinedScl).sclObject!;
   let statement = "";
 
-  switch (language) {
-    case "javascript":
-      statement = createJsTemplate(sclObj) as string;
-      break;
-
-    default:
-      statement = `// Write your code here`;
-      break;
-  }
-
-  return statement
+  return statement;
 };
 
 export default starterGenerator;

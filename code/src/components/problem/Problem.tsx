@@ -111,7 +111,7 @@ const Problem = ({
 
   const submitCode = async () => {
     if (submitOverride) {
-      submitOverride(code, language, problem._id);
+      submitOverride(code, language, problem._id as string);
       return new Promise<object>((resolve) =>
         resolve({ success: true, error: "", data: {} })
       );

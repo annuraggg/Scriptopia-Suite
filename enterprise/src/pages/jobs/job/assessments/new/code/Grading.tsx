@@ -150,6 +150,7 @@ const Grading: React.FC<GradingProps> = ({
                       ?.points?.toString()}
                     onChange={(e) => {
                       const value = parseInt(e.target.value, 10);
+                      // @ts-expect-error - TS doesn't know that the value is a number
                       setQuestionsGrading((prev) => {
                         const exists = prev.find(
                           (q) => q.problemId === question._id

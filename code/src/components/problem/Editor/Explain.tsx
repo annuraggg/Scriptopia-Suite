@@ -47,7 +47,7 @@ const Explain = ({
       setTimeout(() => {
         const expl =
           "This is a sample explaination of the code. In this code, we are trying to find the sum of two numbers. The code is written in  JavaScript and uses the + operator to add the two numbers. The result is then stored in a variable called sum. Finally, the sum is printed to the console using the console.log() function.";
-
+          
         setExplaination(expl);
         setExplainationLoading(false);
       }, 3000);

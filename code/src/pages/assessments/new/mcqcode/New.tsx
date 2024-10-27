@@ -29,8 +29,9 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import { Problem } from "@shared-types/Problem";
+import { Problem as VanillaProblem } from "@shared-types/Problem";
 import { Mcq, Problem as ProblemAssessment } from "@shared-types/Assessment";
+import { Delta } from "quill/core";
 
 const tabsList = [
   "General",
@@ -43,6 +44,11 @@ const tabsList = [
   "Security",
   "Feedback",
 ];
+
+interface Problem extends VanillaProblem {
+  description: Delta;
+}
+
 const New = () => {
   const [activeTab, setActiveTab] = useState("0");
 
@@ -85,9 +91,9 @@ const New = () => {
     medium: 0,
     hard: 0,
   });
-  const [questionsGrading, setQuestionsGrading] = useState<
-    ProblemAssessment[]
-  >([]);
+  const [questionsGrading, setQuestionsGrading] = useState<ProblemAssessment[]>(
+    []
+  );
 
   // MCQs Tab States
   const [mcqs, setMcqs] = useState<Mcq[]>([]);

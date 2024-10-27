@@ -24,13 +24,13 @@ const AssessmentCurrentProblem = lazy(
   () => import("./pages/assessments/assess/problem/Problem")
 );
 const Result = lazy(() => import("./pages/assessments/assess/result/Result"));
-const ViewAssessment = lazy(
-  () => import("./pages/assessments/dashboard/ViewAssessment/ViewAssessment")
-);
-const ViewUserAssessment = lazy(
-  () =>
-    import("./pages/assessments/dashboard/ViewAssessment/ViewUserAssessment")
-);
+// const ViewAssessment = lazy(
+//   () => import("./pages/assessments/dashboard/ViewAssessment/ViewAssessment")
+// );
+// const ViewUserAssessment = lazy(
+//   () =>
+//     import("./pages/assessments/dashboard/ViewAssessment/ViewUserAssessment")
+// );
 
 const router = createBrowserRouter([
   {

@@ -12,7 +12,12 @@ import {
   SelectItem,
 } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
-import { Problem } from "@shared-types/Problem";
+import { Problem as VanillaProblem } from "@shared-types/Problem";
+
+interface Problem extends VanillaProblem {
+  _id: string;
+  status: string;
+}
 
 const ProblemsList = ({ problems }: { problems: Problem[] }) => {
   const navigate = useNavigate();

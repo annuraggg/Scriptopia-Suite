@@ -26,9 +26,14 @@ import Languages from "./Languages";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { Problem } from "@shared-types/Problem";
+import { Problem as VanillaProblem } from "@shared-types/Problem";
 import { Problem as ProblemAssessment } from "@shared-types/Assessment";
 import { Key } from "react";
+import { Delta } from "quill/core";
+
+interface Problem extends VanillaProblem {
+  description: Delta;
+}
 
 const tabsList = [
   "General",

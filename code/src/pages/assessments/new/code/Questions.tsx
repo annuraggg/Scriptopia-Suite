@@ -9,7 +9,12 @@ import { useState } from "react";
 import { ChevronDownIcon, ChevronUpIcon, TrashIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion"; // @ts-expect-error - Types Not Available
 import toPlaintext from "quill-delta-to-plaintext";
-import {Problem} from "@shared-types/Problem";
+import { Problem as VanillaProblem } from "@shared-types/Problem";
+import { Delta } from "quill/core";
+
+interface Problem extends VanillaProblem {
+  description: Delta;
+}
 
 const Questions = ({
   availableQuestions,
@@ -78,7 +83,7 @@ const Questions = ({
                         </div>
                         <div className="w-full">
                           <p className="text-sm text-gray-400 line-clamp-3">
-                          {toPlaintext(question.description.ops)}
+                            {toPlaintext(question.description.ops)}
                           </p>
                           <div className="flex gap-2 flex-wrap mt-5 text-xs line-clamp-1 text-ellipsis h-7">
                             {question.tags.map((tag: string) => (
