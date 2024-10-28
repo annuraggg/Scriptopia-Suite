@@ -87,7 +87,7 @@ const AssessmentSubmissionsSchema = new Schema({
   timer: { type: Number, required: true },
   sessionRewindUrl: { type: String, required: false },
   createdAt: { type: Date, default: Date.now },
-  obtainedGrades: { type: obtainedGradeSchema, required: true },
+  obtainedGrades: { type: obtainedGradeSchema, required: false },
   cheatingStatus: { type: String, enum: ["No Copying", "Light Copying", "Heavy Copying"], required: false },
 });
 

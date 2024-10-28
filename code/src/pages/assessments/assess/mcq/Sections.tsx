@@ -29,7 +29,7 @@ interface Question {
   question: string;
   points: number;
   options?: string[];
-  correctAnswer?: string | boolean;
+  correctAnswer?: string | boolean | [string];
   blanks?: string[];
   expectedLength?: number;
   pairs?: Pair[];
@@ -277,7 +277,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           </div>
         ));
 
-      case "code":
+      case "written-code":
         return (
           <div className="space-y-4">
             <Textarea

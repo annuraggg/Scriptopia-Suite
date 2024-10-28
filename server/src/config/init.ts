@@ -27,7 +27,34 @@ import instituteRoute from "../routes/instituteRoute";
 import driveRoute from "../routes/driveRoute";
 import { clerkMiddleware } from "@hono/clerk-auth";
 
+import { Server } from "socket.io";
+import { serve } from "@hono/node-server";
+import { Server as HttpServer } from "http";
+import logger from "../utils/logger";
+
+const port = parseInt(process.env.PORT!);
+
 const app = new Hono();
+
+//  Hono Server
+const server = serve({
+  fetch: app.fetch,
+  port: port,
+});
+
+// Socket.io
+const ioServer = new Server(server as HttpServer, {
+  path: "/socket.io",
+  serveClient: false,
+  allowEIO3: true,
+  cors: {
+    origin: "*",
+  },
+});
+
+ioServer.on("error", (err) => {
+  logger.error(err);
+});
 
 // @ts-ignore
 app.use(clerkMiddleware());
@@ -50,3 +77,4 @@ app.route("/campus", instituteRoute);
 app.route("/drives", driveRoute);
 
 export default app;
+export { ioServer };

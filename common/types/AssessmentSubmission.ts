@@ -64,7 +64,7 @@ interface AssessmentSubmissionsSchema {
   submissions?: ProblemSubmissionSchema[];  // Optional
   timer: number;  // Required
   sessionRewindUrl?: string;
-  obtainedGrades: ObtainedGradeSchema;  // Required
+  obtainedGrades?: ObtainedGradeSchema;  // Required
   cheatingStatus?: "No Copying" | "Light Copying" | "Heavy Copying";
   createdAt?: Date;
   updatedAt?: Date;  // Missing in interface, added here

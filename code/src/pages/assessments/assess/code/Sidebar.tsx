@@ -5,13 +5,21 @@ const Sidebar = ({
   problems,
   currentProblem,
   setCurrentProblem,
-  isInsideSheet = true,
+  isInsideSheet,
+  timer,
 }: {
   problems: Problem[];
   currentProblem: Problem | null;
   setCurrentProblem: (problem: Problem) => void;
   isInsideSheet?: boolean;
+  timer: number;
 }) => {
+  const getTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds}`;
+  };
+
   return (
     <Card
       className={`min-h-full w-full overflow-y-auto
@@ -23,7 +31,7 @@ const Sidebar = ({
           Submit Assessment
         </Button>
         <Progress value={50} label="Progress" />
-        <p className="mt-5 text-center">Time Left: 30:00</p>
+        <p className="mt-5 text-center">Time Left: {getTime(timer)}</p>
       </div>
       <CardBody
         className={`h-full      ${

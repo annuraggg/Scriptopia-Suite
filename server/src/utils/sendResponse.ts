@@ -30,7 +30,7 @@ const sendError = (
     {
       success: false,
       message: message,
-      data: null,
+      data: data,
       error: data || null,
     },
     status

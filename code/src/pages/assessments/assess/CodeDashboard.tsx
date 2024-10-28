@@ -2,11 +2,10 @@ import { useState } from "react";
 import Sidebar from "./code/Sidebar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Problem } from "@shared-types/Problem";
-import { HamburgerMenuIcon } from "@radix-ui/react-icons";
 import { Card } from "@nextui-org/react";
 import { ChevronRight } from "lucide-react";
 
-const CodeDashboard = () => {
+const CodeDashboard = ({ timer }: { timer: number }) => {
   const [problems, setProblems] = useState([
     {
       _id: 1,
@@ -33,8 +32,8 @@ const CodeDashboard = () => {
       <div className="mt-5 h-[93%] flex gap-2">
         {currentProblem ? (
           <>
-            <Sheet open={sheetOpen} onOpenChange={setSheetOpen} >
-              <SheetContent side="left" >
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+              <SheetContent side="left">
                 <Sidebar
                   problems={problems as unknown as Problem[]}
                   currentProblem={currentProblem}
@@ -57,6 +56,7 @@ const CodeDashboard = () => {
               problems={problems as unknown as Problem[]}
               currentProblem={currentProblem}
               setCurrentProblem={setCurrentProblem}
+              timer={timer}
             />
           </div>
         )}

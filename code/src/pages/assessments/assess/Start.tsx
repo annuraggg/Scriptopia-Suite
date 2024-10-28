@@ -4,18 +4,18 @@ import {
   CardBody,
   CardFooter,
   CardHeader,
+  Divider,
   Input,
 } from "@nextui-org/react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { CircleAlert, CircleCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import ax from "@/config/axios";
+import { Assessment } from "@shared-types/Assessment";
 
 const divStyle = {
-  background: "url('/wave.svg')",
-  backgroundSize: "cover",
-  backgroundRepeat: "no-repeat",
-  backgroundPosition: "center",
+  background: "url('/wave.svg') center/cover no-repeat",
 };
 
 const mcqDefaultInstructions = `
@@ -41,15 +41,20 @@ Good Luck!
 `;
 
 const Start = ({
-  parentScreen,
-  setParentScreen,
   assessmentType,
+  setAssessmentType,
+  setAssessment,
+  startAssessment,
 }: {
   parentScreen: "start" | "dashboard" | "problem" | "result";
   setParentScreen: React.Dispatch<
     React.SetStateAction<"start" | "dashboard" | "problem" | "result">
   >;
   assessmentType: "mcq" | "code";
+  setAssessmentType: React.Dispatch<React.SetStateAction<"mcq" | "code">>;
+  assessment: Assessment;
+  setAssessment: React.Dispatch<React.SetStateAction<Assessment>>;
+  startAssessment: (email: string, name: string) => void;
 }) => {
   const [currentScreen, setCurrentScreen] = useState<
     "input" | "verifying" | "instructions"
@@ -57,47 +62,81 @@ const Start = ({
   const [allowedForTest, setAllowedForTest] = useState(0);
   const [compatibleBrowser, setCompatibleBrowser] = useState(0);
   const [testActive, setTestActive] = useState(0);
-  const [isExiting, setIsExiting] = useState(false);
-  const [exitStart, setExitStart] = useState(false);
-
-  const startChecks = () => {
-    setTimeout(() => setAllowedForTest(1), 500);
-    setTimeout(() => setCompatibleBrowser(1), 1000);
-    setTimeout(() => setTestActive(1), 1500);
-  };
-
-  useEffect(() => {
-    if (currentScreen === "verifying") {
-      startChecks();
-    }
-  }, [currentScreen]);
-
-  const getStatusClass = (status: number) => {
-    if (status === 1) return "text-green-500";
-    if (status === -1) return "text-red-500";
-    return "text-gray-500";
-  };
-
-  useEffect(() => {
-    if (currentScreen !== "verifying") return;
-    if (!allowedForTest || !compatibleBrowser || !testActive) return;
-    if (allowedForTest === 1 && compatibleBrowser === 1 && testActive === 1) {
-      setExitStart(true);
-      setTimeout(() => {
-        setIsExiting(true);
-        setCurrentScreen("instructions");
-        setTimeout(() => setIsExiting(false), 500);
-      }, 1000);
-    } else {
-      toast.error("Error: You are not allowed to proceed to the test.");
-    }
-  }, [allowedForTest, compatibleBrowser, testActive]);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [instructions, setInstructions] = useState("");
 
   const fadeInUp = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
     exit: { opacity: 0, y: -20 },
   };
+
+  const submitData = async () => {
+    if (!name || !email) return toast.error("Please fill in all the fields");
+
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    if (!emailRegex.test(email))
+      return toast.error("Please enter a valid email address");
+
+    setCurrentScreen("verifying");
+    const compatible = checkBrowser();
+
+    setTimeout(() => {
+      ax()
+        .post("/assessments/verify", {
+          id: window.location.pathname.split("/").pop(),
+          email,
+        })
+        .then((res) => {
+          setAssessmentType(res.data.data.type);
+          setInstructions(res.data.data.instructions);
+          setAssessment(res.data.data.assessment);
+          setAllowedForTest(1);
+          setTestActive(1);
+
+          setCompatibleBrowser(compatible ? 1 : -1);
+          if (!compatible) {
+            toast.error("Please use a compatible browser");
+            return;
+          }
+
+          setTimeout(() => setCurrentScreen("instructions"), 1000);
+        })
+        .catch((error) => {
+          const errData = error?.response?.data?.data;
+          setAllowedForTest(errData?.allowedForTest ? 1 : -1);
+          setTestActive(errData?.testActive ? 1 : -1);
+          setCompatibleBrowser(checkBrowser() ? 1 : -1);
+          if (!errData?.allowedForTest || !errData?.testActive)
+            toast.error(error.response.data.message);
+        });
+    }, 1000);
+  };
+
+  function checkBrowser() {
+    if (document.documentElement.requestFullscreen)
+      document.documentElement.requestFullscreen();
+
+    const isFullscreenSupported =
+      document.fullscreenEnabled || // @ts-expect-error - mozFullScreenEnabled is not in document
+      document.webkitFullscreenEnabled || // @ts-expect-error - mozFullScreenEnabled is not in document
+      document.mozFullScreenEnabled || // @ts-expect-error - mozFullScreenEnabled is not in document
+      document.msFullscreenEnabled;
+
+    const isTabChangeSupported = "visibilityState" in document;
+
+    const isDevToolsOpen = () => {
+      const threshold = 160;
+      const { outerWidth, outerHeight, innerWidth, innerHeight } = window;
+      return (
+        Math.abs(outerWidth - innerWidth) > threshold ||
+        Math.abs(outerHeight - innerHeight) > threshold
+      );
+    };
+
+    return isFullscreenSupported && isTabChangeSupported && !isDevToolsOpen();
+  }
 
   return (
     <div
@@ -109,7 +148,7 @@ const Start = ({
           <CardHeader>
             <img src="/logo.svg" alt="Scriptopia" className="h-8 w-8" />
           </CardHeader>
-          <CardBody className="flex flex-col items-center justify-center overflow-hidden">
+          <CardBody className="flex flex-col items-center justify-center">
             <motion.div
               variants={fadeInUp}
               initial="initial"
@@ -121,7 +160,6 @@ const Start = ({
                 Please Enter Your Details to Continue
               </p>
             </motion.div>
-
             <motion.div
               className="w-full flex flex-col items-center"
               variants={fadeInUp}
@@ -133,9 +171,16 @@ const Start = ({
                 placeholder="Full Name"
                 className="mt-5 w-[300px]"
                 size="lg"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
               />
-              <Input placeholder="Email" className="mt-5 w-[300px]" size="lg" />
-
+              <Input
+                placeholder="Email"
+                className="mt-5 w-[300px]"
+                size="lg"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -144,12 +189,11 @@ const Start = ({
                   variant="flat"
                   color="success"
                   className="mt-5"
-                  onClick={() => setCurrentScreen("verifying")}
+                  onClick={submitData}
                 >
                   Start Test
                 </Button>
               </motion.div>
-
               <motion.p
                 className="mt-5 text-sm text-gray-500"
                 variants={fadeInUp}
@@ -173,23 +217,15 @@ const Start = ({
       {(currentScreen === "verifying" || currentScreen === "instructions") && (
         <>
           <motion.div
-            className={`h-screen w-full flex items-center justify-center absolute z-10 backdrop-blur-xl  ${
-              isExiting ? "opacity-0" : ""
-            } {${
-              currentScreen === "instructions" && !isExiting
-                ? "opacity-0 hidden"
-                : ""
+            className={`h-screen w-full flex items-center justify-center absolute z-10 backdrop-blur-xl ${
+              currentScreen === "instructions" && "opacity-0 hidden"
             }`}
             initial={{ opacity: 0, y: -100 }}
-            animate={{ opacity: isExiting ? 0 : 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <Card
-              className={`p-4 w-screen h-screen shadow-lg transition-all ${
-                exitStart ? " bg-opacity-100" : " bg-opacity-20"
-              }`}
-            >
+            <Card className={`p-4 w-screen h-screen shadow-lg transition-all`}>
               <CardHeader>
                 <img
                   src="/logo.svg"
@@ -200,46 +236,15 @@ const Start = ({
               <CardBody className="flex flex-col items-center justify-center">
                 <h4 className="text-lg font-semibold">Verifying Details</h4>
                 <div className="mt-10">
-                  <div className="flex gap-3 items-center">
-                    {allowedForTest === 0 && (
-                      <Loader2 className="animate-spin" />
-                    )}
-                    {allowedForTest === 1 && <CircleCheck />}
-                    {allowedForTest === -1 && <CircleAlert />}
-                    <p
-                      className={`font-semibold ${getStatusClass(
-                        allowedForTest
-                      )}`}
-                    >
-                      Allowed for Test
-                    </p>
-                  </div>
-
-                  <div className="flex gap-3 items-center mt-3">
-                    {compatibleBrowser === 0 && (
-                      <Loader2 className="animate-spin" />
-                    )}
-                    {compatibleBrowser === 1 && <CircleCheck />}
-                    {compatibleBrowser === -1 && <CircleAlert />}
-                    <p
-                      className={`font-semibold ${getStatusClass(
-                        compatibleBrowser
-                      )}`}
-                    >
-                      Compatible Browser
-                    </p>
-                  </div>
-
-                  <div className="flex gap-3 items-center mt-3">
-                    {testActive === 0 && <Loader2 className="animate-spin" />}
-                    {testActive === 1 && <CircleCheck />}
-                    {testActive === -1 && <CircleAlert />}
-                    <p
-                      className={`font-semibold ${getStatusClass(testActive)}`}
-                    >
-                      Test Active
-                    </p>
-                  </div>
+                  <VerificationStep
+                    status={allowedForTest}
+                    label="Allowed for Test"
+                  />
+                  <VerificationStep
+                    status={compatibleBrowser}
+                    label="Compatible Browser"
+                  />
+                  <VerificationStep status={testActive} label="Test Active" />
                 </div>
               </CardBody>
             </Card>
@@ -247,24 +252,24 @@ const Start = ({
 
           {currentScreen === "instructions" && (
             <div className="h-screen w-full flex items-center justify-center relative">
-              <Card className="p-4 h-[60vh] w-[50vw]">
-                <CardHeader> Instructions for the Test</CardHeader>
+              <Card className="p-4 h-[70vh] w-[70vw]">
+                <CardHeader>Instructions for the Test</CardHeader>
                 <CardBody>
                   <p className="px-5 overflow-y-auto">
                     Please follow the instructions carefully. Make sure to read
                     each question thoroughly before answering.
                     <pre>
                       {assessmentType === "mcq"
-                        ? mcqDefaultInstructions +
-                          mcqDefaultInstructions +
-                          mcqDefaultInstructions
+                        ? mcqDefaultInstructions
                         : codeDefaultInstructions}
                     </pre>
+                    <Divider className="my-3 mt-5" />
+                    <p>Notes from Assessment Admin:</p>
+                    {instructions}
                   </p>
                 </CardBody>
-
                 <CardFooter className="items-center justify-center">
-                  <Button onClick={() => setParentScreen("dashboard")}>
+                  <Button onClick={() => startAssessment(email, name)}>
                     Start Test
                   </Button>
                 </CardFooter>
@@ -273,6 +278,36 @@ const Start = ({
           )}
         </>
       )}
+    </div>
+  );
+};
+
+const VerificationStep = ({
+  status,
+  label,
+}: {
+  status: number;
+  label: string;
+}) => {
+  const statusIcons = {
+    "-1": <CircleAlert className="text-red-500" />,
+    "0": <Loader2 className="animate-spin text-gray-500" />,
+    "1": <CircleCheck className="text-green-500" />,
+  };
+
+  const getStatusClass = (status: number) =>
+    status === 1
+      ? "text-green-500"
+      : status === -1
+      ? "text-red-500"
+      : "text-gray-500";
+
+  return (
+    <div className="flex items-center space-x-4 mt-3">
+      {" "}
+      {/* @ts-expect-error - statusIcon map is error */}
+      <span className="flex-shrink-0">{statusIcons[status]}</span>
+      <span className={getStatusClass(status)}>{label}</span>
     </div>
   );
 };

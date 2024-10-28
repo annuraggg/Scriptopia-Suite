@@ -1,7 +1,7 @@
 import Sections from "./mcq/Sections";
 import Sidebar from "./mcq/Sidebar";
 
-const MCQDashboard = () => {
+const MCQDashboard = ({  }: { timer: number }) => {
   return (
     <div className="h-full p-5">
       <p>MCQ Assessment</p>
