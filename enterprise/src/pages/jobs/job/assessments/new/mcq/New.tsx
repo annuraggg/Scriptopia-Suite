@@ -14,7 +14,7 @@ import General from "./General";
 import Instructions from "./Instructions";
 import Security from "./Security";
 import Feedback from "./Feedback";
-import Mcqs from "./Mcqs";
+//import Mcqs from "./createmcq/Mcqs";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   today,
@@ -24,7 +24,7 @@ import {
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { Mcq } from "@shared-types/Assessment";
+// import { Mcq } from "@shared-types/Assessment"; 
 
 const tabsList = ["General", "MCQs", "Instructions", "Security", "Feedback"];
 const New = ({ assessmentName }: { assessmentName: string }) => {
@@ -45,7 +45,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
   );
 
   // MCQs Tab States
-  const [mcqs, setMcqs] = useState<Mcq[]>([]);
+ // const [mcqs, setMcqs] = useState<Mcq[]>([]);
 
   // Instructions Tab States
   const [instructions, setInstructions] = useState("");
@@ -71,7 +71,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
           endTime !== null
         );
       case 1: // MCQs
-        return mcqs.length > 0;
+        //return mcqs.length > 0;
       case 2: // Instructions
         return instructions.trim() !== "";
       case 3: // Security
@@ -105,13 +105,13 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
     rangeEnd.setHours(endTime.hour);
     rangeEnd.setMinutes(endTime.minute);
 
-    const mcqSchema = mcqs.map((mcq: Mcq) => ({
-      question: mcq.question,
-      type: mcq.type,
-      mcq: mcq.type === "multiple" ? mcq.mcq : undefined,
-      checkbox: mcq.type === "checkbox" ? mcq.checkbox : undefined,
-      grade: mcq.grade,
-    }));
+    // const mcqSchema = mcqs.map((mcq: Mcq) => ({
+    //   question: mcq.question,
+    //   type: mcq.type,
+    //   mcq: mcq.type === "multiple" ? mcq.mcq : undefined,
+    //   checkbox: mcq.type === "checkbox" ? mcq.checkbox : undefined,
+    //   grade: mcq.grade,
+    // }));
     const step = window.history.state.usr.step;
     const reqBody = {
       assessmentPostingName: assessmentName,
@@ -124,7 +124,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
       timeLimit,
       passingPercentage,
       openRange: { start: rangeStart, end: rangeEnd },
-      mcqs: mcqSchema,
+      //mcqs: mcqSchema,
       candidates: {
         type: "all",
       },
@@ -171,12 +171,12 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
         setEndTime,
       }}
     />,
-    <Mcqs
-      {...{
-        mcqs,
-        setMcqs,
-      }}
-    />,
+    // <Mcqs
+    //   {...{
+    //     mcqs,
+    //     setMcqs,
+    //   }}
+    // />,
     <Instructions {...{ instructions, setInstructions }} />,
     <Security
       {...{
