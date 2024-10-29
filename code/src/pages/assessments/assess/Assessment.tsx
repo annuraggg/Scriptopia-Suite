@@ -1,115 +1,145 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, Dispatch, SetStateAction } from "react";
 import Start from "./Start";
 import MCQDashboard from "./MCQDashboard";
 import CodeDashboard from "./CodeDashboard";
 import { Assessment as IAssessment } from "@shared-types/Assessment";
-import { io } from "socket.io-client";
-import { AssessmentSubmissionsSchema as ASS } from "@shared-types/AssessmentSubmission";
+import { io, Socket } from "socket.io-client";
+import { AssessmentSubmissionsSchema as ASS, AssessmentSubmissionsSchema } from "@shared-types/AssessmentSubmission";
 import secureLocalStorage from "react-secure-storage";
 import ax from "@/config/axios";
+import { Problem } from "@shared-types/Problem";
 
-const socket = io("http://localhost:4000");
+// Constants moved to top level
+const SOCKET_URL = "http://localhost:4000";
+const SYNC_INTERVAL = 8;
+const TIMER_INTERVAL = 1000;
 
-type Screens = "start" | "dashboard" | "problem" | "result";
+// Types moved to separate block for better organization
+type Screen = "start" | "dashboard" | "problem" | "result";
+type AssessmentType = "mcq" | "code";
+
+interface PopulatedAssessment extends Omit<IAssessment, "problems"> {
+  problems: Problem[];
+}
+
+interface StorageCredentials {
+  email: string;
+  name: string;
+}
+
+// Initialize socket outside component to prevent recreation
+const socket: Socket = io(SOCKET_URL);
 
 const Assessment = () => {
-  const [currentScreen, setCurrentScreen] = useState<Screens>("start");
-  const [assessmentType, setAssessmentType] = useState<"mcq" | "code">("mcq");
-  const [assessment, setAssessment] = useState<IAssessment>({} as IAssessment);
-  const [assessmentSubmission, setAssessmentSubmission] = useState<ASS>(
-    {} as ASS
+  // State management with proper typing
+  const [currentScreen, setCurrentScreen] = useState<Screen>("start");
+  const [assessmentType, setAssessmentType] = useState<AssessmentType>("mcq");
+  const [assessment, setAssessment] = useState<PopulatedAssessment | null>(
+    null
   );
+  const [assessmentSub, setAssessmentSub] = useState<ASS | null>(null);
+  const [loading, setLoading] = useState(true);
   const [timer, setTimer] = useState<number>(0);
+  const [assessmentStarted, setAssessmentStarted] = useState(false);
 
-  const startAssessment = (email: string, name: string) => {
-    const assessmentSubmission: ASS = {
-      assessmentId: assessment._id,
-      name: name,
-      email: email,
-      timer: timer * 60,
-    };
-
-    secureLocalStorage.setItem("cred-track", { email, name });
-
-    socket.emit("start-assessment", assessmentSubmission);
-
-    setCurrentScreen("dashboard");
+  // Utility functions
+  const getStorageCredentials = (): StorageCredentials | null => {
+    return secureLocalStorage.getItem(
+      "cred-track"
+    ) as StorageCredentials | null;
   };
 
-  // Initialize timer based on assessment
-  useEffect(() => {
-    if (!assessment._id || currentScreen === "start") return;
-    setTimer(assessment.timeLimit * 60); // Set timer in seconds
-  }, [assessment, currentScreen]);
+  const getAssessmentIdFromUrl = (): string | null => {
+    return window.location.pathname.split("/").pop() || null;
+  };
 
-  // Main timer logic
+  // Handler functions
+  const startAssessment = useCallback(
+    (email: string, name: string) => {
+      if (!assessment) return;
+
+      const assessmentSubmission: ASS = {
+        assessmentId: assessment._id,
+        name,
+        email,
+        timer: assessment.timeLimit * 60,
+      };
+
+      secureLocalStorage.setItem("cred-track", { email, name });
+      socket.emit("start-assessment", assessmentSubmission);
+
+      setAssessmentType(assessment.type);
+      setTimer(assessment.timeLimit * 60);
+      setCurrentScreen("dashboard");
+      setLoading(false);
+      setAssessmentStarted(true);
+    },
+    [assessment]
+  );
+
+  // Timer effect
   useEffect(() => {
-    if (!assessment) return;
+    if (!assessment || currentScreen === "start" || !assessmentStarted) return;
 
     const timerInterval = setInterval(() => {
-      setTimer((prev) => {
-        const newTime = prev - 1;
+      setTimer((prev) => Math.max(prev - 1, 0));
+    }, TIMER_INTERVAL);
 
-        // Emit timeSync with the updated timer value
-        const email = (
-          secureLocalStorage.getItem("cred-track") as { email?: string }
-        )?.email;
-        socket.emit("timeSync", {
-          time: newTime,
-          assessmentId: window.location.pathname.split("/").pop(),
-          email,
+    return () => clearInterval(timerInterval);
+  }, [assessment, currentScreen, assessmentStarted]);
+
+  // Timer sync effect
+  useEffect(() => {
+    if (!assessment || currentScreen === "start" || !assessmentStarted) return;
+    if (timer % SYNC_INTERVAL !== 0) return;
+
+    const credentials = getStorageCredentials();
+    const assessmentId = getAssessmentIdFromUrl();
+
+    if (!credentials?.email || !assessmentId) return;
+
+    socket.emit("timeSync", {
+      time: timer,
+      assessmentId,
+      email: credentials.email,
+    });
+  }, [timer, assessment, currentScreen, assessmentStarted]);
+
+  // Progress check effect
+  useEffect(() => {
+    const checkExistingProgress = async () => {
+      const credentials = getStorageCredentials();
+      const assessmentId = getAssessmentIdFromUrl();
+
+      if (!credentials?.email || !assessmentId) return;
+
+      try {
+        const axios = ax();
+        const response = await axios.post("/assessments/checkProgress", {
+          email: credentials.email,
+          assessmentId,
         });
 
-        return newTime >= 0 ? newTime : 0; // Prevent negative timer
-      });
-    }, 1000);
+        if (response.data?.exists === false) return;
 
-    return () => clearInterval(timerInterval); // Clean up the interval
-  }, [assessment]);
+        const { submission, assessment: assessmentData } = response.data.data;
 
-  // Sync timer every 10 seconds
-  useEffect(() => {
-    const syncInterval = setInterval(() => {
-      const email = (
-        secureLocalStorage.getItem("cred-track") as { email?: string }
-      )?.email;
-
-      socket.emit("timeSync", {
-        time: timer,
-        assessmentId: window.location.pathname.split("/").pop(),
-        email,
-      });
-    }, 10000);
-
-    return () => clearInterval(syncInterval); // Clean up the sync interval
-  }, [timer]);
-
-  // Check for existing assessment progress
-  useEffect(() => {
-    const email = (
-      secureLocalStorage.getItem("cred-track") as { email?: string }
-    )?.email;
-    const assessmentId = window.location.pathname.split("/").pop();
-    if (!email) return;
-
-    const axios = ax();
-    axios
-      .post("/assessments/checkProgress", {
-        email,
-        assessmentId,
-      })
-      .then((res) => {
-        if (res.data?.exists === false) return;
-        
-        setAssessmentSubmission(res.data.data.submission);
-        setTimer(res.data.data.submission.timer);
-        setAssessment(res.data.data.assessment);
-        setAssessmentType(res.data.data.assessment.type as "mcq" | "code");
-
+        setAssessmentSub(submission);
+        setTimer(submission.timer);
+        setAssessment(assessmentData);
+        setAssessmentType(assessmentData.type as AssessmentType);
         setCurrentScreen("dashboard");
-      });
+        setLoading(false);
+        setAssessmentStarted(true);
+      } catch (error) {
+        console.error("Failed to check assessment progress:", error);
+      }
+    };
+
+    checkExistingProgress();
   }, []);
 
+  // Render logic
   return (
     <div className="h-screen">
       {currentScreen === "start" && (
@@ -118,16 +148,24 @@ const Assessment = () => {
           setParentScreen={setCurrentScreen}
           assessmentType={assessmentType}
           setAssessmentType={setAssessmentType}
-          assessment={assessment}
-          setAssessment={setAssessment}
+          assessment={assessment as PopulatedAssessment}
+          setAssessment={setAssessment as Dispatch<SetStateAction<PopulatedAssessment>>}
           startAssessment={startAssessment}
         />
       )}
 
-      {currentScreen === "dashboard" && (
+      {currentScreen === "dashboard" && assessment && (
         <>
           {assessmentType === "mcq" && <MCQDashboard timer={timer} />}
-          {assessmentType === "code" && <CodeDashboard timer={timer} />}
+          {assessmentType === "code" && (
+            <CodeDashboard
+              timer={timer}
+              assessment={assessment}
+              loading={loading}
+              setAssessmentSub={setAssessmentSub}
+              assessmentSub={assessmentSub as AssessmentSubmissionsSchema}
+            />
+          )}
         </>
       )}
     </div>

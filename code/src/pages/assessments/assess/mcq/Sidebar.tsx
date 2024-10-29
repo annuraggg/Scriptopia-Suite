@@ -2,6 +2,7 @@ import { Button, Card, CardBody, Progress } from "@nextui-org/react";
 import { useState } from "react";
 
 const Sidebar = () => {
+  // @ts-expect-error
   const [sections, setSections] = useState([
     {
       id: 1,

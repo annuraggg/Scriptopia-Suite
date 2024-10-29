@@ -59,11 +59,7 @@ const obtainedGradeSchema = new Schema({
   problem: {
     type: [
       {
-        problemId: {
-          type: Schema.Types.ObjectId,
-          ref: "Problem",
-          required: true,
-        },
+        problemId: { type: Schema.Types.ObjectId, ref: "Problem", required: true},
         obtainedMarks: { type: Number, required: true },
       },
     ],
@@ -78,6 +74,11 @@ const AssessmentSubmissionsSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Assessment",
     required: true,
+  },
+  status: {
+    type: String,
+    enum: ["in-progress", "completed"],
+    required: false,
   },
   name: { type: String, required: true },
   email: { type: String, required: true },

@@ -270,7 +270,9 @@ const verifyAccess = async (c: Context) => {
   try {
     const body = await c.req.json();
 
-    const assessment = await Assessment.findOne({ _id: body.id });
+    const assessment = await Assessment.findOne({ _id: body.id }).populate(
+      "problems"
+    );
     if (!assessment) {
       return sendError(c, 404, "Assessment not found");
     }
@@ -538,6 +540,47 @@ const submitAssessment = async (c: Context) => {
     }
 
     return sendSuccess(c, 200, "Success");
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const codeSubmit = async (c: Context) => {
+  try {
+    const { assessmentId, email, timer } = await c.req.json();
+    console.log(assessmentId, email);
+    const assessment = await Assessment.findById(assessmentId).populate(
+      "problems"
+    );
+
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    const submission = await AssessmentSubmissions.findOne({
+      assessmentId,
+      email,
+    });
+
+    if (!submission) {
+      return sendError(c, 404, "Submission not found");
+    }
+
+    const grades = getScore(
+      [], // @ts-ignore
+      submission?.submissions || [],
+      assessment
+    );
+
+    // @ts-ignore
+    submission.obtainedGrades = grades;
+    submission.timer = timer;
+    submission.status = "completed";
+
+    await submission.save();
+
+    return sendSuccess(c, 200, "Success", grades);
   } catch (error) {
     console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
@@ -861,7 +904,8 @@ const getScore = (
     let grade = 0;
 
     const problemObj = assessment.problems.find(
-      (problem: any) => problem._id.toString() === problemSubmission.problemId
+      (problem: any) =>
+        problem._id.toString() === problemSubmission.problemId.toString()
     );
 
     if (!problemObj) continue;
@@ -871,7 +915,7 @@ const getScore = (
       if (!assessment.grading.testcases) continue;
 
       for (const testCase of problemObj.testCases) {
-        if (!testCase?._id) continue;
+        if (!testCase?._id?.toString()) continue;
         const passed = problemSubmission.results.find(
           (result: any) =>
             result.caseId.toString() === testCase._id.toString() &&
@@ -938,6 +982,13 @@ const checkProgress = async (c: Context) => {
       return sendSuccess(c, 200, "Submission not found", { exists: false });
     }
 
+    if (submission.status === "completed") {
+      return sendSuccess(c, 200, "Submission completed", {
+        exists: false,
+        status: "completed",
+      });
+    }
+
     const assessment = await Assessment.findById(body.assessmentId)
       .populate("problems")
       .lean();
@@ -952,6 +1003,76 @@ const checkProgress = async (c: Context) => {
   }
 };
 
+const submitIndividualProblem = async (c: Context) => {
+  try {
+    const data = await c.req.json();
+    const problem = await Problem.findById(data.problemId);
+    if (!problem) {
+      return;
+    }
+
+    const result = await runCompilerCode(
+      data.language,
+      problem.sclObject as SclObject[],
+      data.code,
+      problem.testCases as TestCase[]
+    );
+
+    if (result?.status === "ERROR") {
+      console.error(result.error);
+      return;
+    }
+
+    const r = result.results.map((r: any) => ({
+      caseNo: r.caseNo,
+      caseId: r._id,
+      output: r.output,
+      isSample: r.isSample,
+      memory: r.memory,
+      time: r.time,
+      passed: r.passed,
+      console: r.console,
+    }));
+
+    const submission = await AssessmentSubmissions.findOne({
+      email: data.email,
+      assessmentId: data.assessmentId,
+    });
+
+    if (!submission) {
+      return;
+    }
+
+    const problemSubmission = {
+      problemId: data.problemId,
+      code: data.code,
+      language: data.language,
+      results: r,
+    };
+
+    // @ts-ignore - replace the existing submission with the new one or add a new one
+    const existingSubmission = submission.submissions.find(
+      (s) => s.problemId.toString() === data.problemId
+    );
+
+    if (existingSubmission) {
+      existingSubmission.code = data.code;
+      existingSubmission.language = data.language;
+      existingSubmission.results = r;
+    } else {
+      // @ts-ignore
+      submission.submissions.push(problemSubmission);
+    }
+
+    await submission.save();
+
+    return sendSuccess(c, 200, "Success", submission);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error as string);
+  }
+};
+
 getIoServer().then((server) => {
   server.on("connection", (socket) => {
     logger.info("A user connected with id: " + socket.id);
@@ -961,17 +1082,21 @@ getIoServer().then((server) => {
 
     socket.on("start-assessment", async (data) => {
       const newSubmission = new AssessmentSubmissions(data);
+      newSubmission.status = "in-progress";
       await newSubmission.save();
     });
 
     socket.on("timeSync", async (data) => {
-      console.log("Time Sync", data);
       const submission = await AssessmentSubmissions.findOne({
         email: data.email,
         assessmentId: data.assessmentId,
       });
 
       if (!submission) {
+        return;
+      }
+
+      if (submission.status === "completed") {
         return;
       }
 
@@ -996,4 +1121,6 @@ export default {
   qualifyCandidate,
   disqualifyCandidate,
   checkProgress,
+  codeSubmit,
+  submitIndividualProblem,
 };

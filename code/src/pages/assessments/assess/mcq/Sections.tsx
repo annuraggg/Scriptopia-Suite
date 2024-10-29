@@ -415,7 +415,7 @@ const Sections = () => {
     }));
   };
 
-  // Optional: Function to get all answers for submission
+  // @ts-ignore - Optional: Function to get all answers for submission 
   const getAllAnswers = () => {
     return answers;
   };

@@ -54,7 +54,7 @@ interface Assessment extends Document {
   name: string;
   description: string;
   author: string;
-  type: "mcq" | "code" | "mcqcode";
+  type: "mcq" | "code";
   timeLimit: number;
   passingPercentage: number;
   openRange?: OpenRange;

@@ -51,4 +51,7 @@ app.post("/candidates/disqualify", assessmentController.disqualifyCandidate);
 
 app.post("/checkProgress", assessmentController.checkProgress);
 
+app.post("/submit/code", assessmentController.codeSubmit);
+app.post("/submit/code/individual", assessmentController.submitIndividualProblem);
+
 export default app;
