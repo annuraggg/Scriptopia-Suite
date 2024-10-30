@@ -20,7 +20,10 @@ import { AssessmentSubmissionsSchema } from "@shared-types/AssessmentSubmission"
 import secureLocalStorage from "react-secure-storage";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import Submit from "./Submit";;
+import Submit from "./Submit";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:4000");
 
 // Types
 interface CodeDashboardProps {
@@ -49,6 +52,8 @@ const getStorageCredentials = (): StorageCredentials | null => {
   return secureLocalStorage.getItem("cred-track") as StorageCredentials;
 };
 
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
 const CodeDashboard: React.FC<CodeDashboardProps> = ({
   timer,
   assessment,
@@ -67,6 +72,8 @@ const CodeDashboard: React.FC<CodeDashboardProps> = ({
   const [assessmentCompleted, setAssessmentCompleted] = useState(false);
   const [assessmentSubmitted, setAssessmentSubmitted] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  const [sessionPlaybackStarted, setSessionPlaybackStarted] = useState(false);
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
@@ -117,6 +124,57 @@ const CodeDashboard: React.FC<CodeDashboardProps> = ({
     },
     [submitData, assessment._id, setAssessmentSub]
   );
+
+  // Security Features - Tab Change Detection
+  useEffect(() => {
+    if (!assessment) return;
+    if (!currentProblem) return;
+
+    if (assessment.security.tabChangeDetection) {
+      window.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          socket.emit("tab-change-code", {
+            assessmentId: assessment._id,
+            email: getStorageCredentials()?.email || "anonymous",
+            problem: currentProblem?._id,
+          });
+        }
+      });
+    }
+  }, [assessment, currentProblem]);
+
+  // Security Features - Code Playback
+  useEffect(() => {
+    const startSession = async () => {
+      if (!assessment.security.codePlayback) return;
+
+      if (assessmentCompleted) {
+        window?.sessionRewind?.stopSession();
+      }
+
+      if (!assessment) return;
+      if (sessionPlaybackStarted) return;
+
+      if (assessment.security.codePlayback) {
+        window?.sessionRewind?.identifyUser({
+          userId: getStorageCredentials()?.email || "anonymous",
+        });
+        window?.sessionRewind?.startSession();
+        await delay(10000);
+
+        socket.emit("session-url", {
+          assessmentId: assessment._id,
+          email: getStorageCredentials()?.email || "anonymous",
+          sessionUrl: window?.sessionRewind?.getSessionUrl(),
+        });
+
+        console.log("Session started");
+        setSessionPlaybackStarted(true);
+      }
+    };
+
+    startSession();
+  }, [assessment, assessmentCompleted]);
 
   // Early return for completed assessment
   if (assessmentCompleted) {
@@ -176,6 +234,7 @@ const CodeDashboard: React.FC<CodeDashboardProps> = ({
               allowSubmissionsTab={false}
               allowExplain={false}
               submitOverride={openModal}
+              allowHighlighting={assessment.security.enableSyntaxHighlighting}
             />
           </>
         ) : (

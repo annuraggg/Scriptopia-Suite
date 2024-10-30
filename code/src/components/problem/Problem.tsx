@@ -35,6 +35,7 @@ const Problem = ({
   allowSubmissionsTab = true,
   allowSubmit = true,
   allowExplain = true,
+  allowHighlighting = true,
 
   submitOverride,
 }: {
@@ -49,6 +50,7 @@ const Problem = ({
   allowSubmissionsTab?: boolean;
   allowSubmit?: boolean;
   allowExplain?: boolean;
+  allowHighlighting?: boolean;
 
   submitOverride?: (code: string, language: string, problemId: string) => void;
 }) => {
@@ -223,6 +225,7 @@ const Problem = ({
             allowRun={allowRun}
             allowExplain={allowExplain}
             allowSubmit={allowSubmit}
+            allowHighlighting={allowHighlighting}
           />
           <InfoPanel
             consoleOutput={consoleOutput}

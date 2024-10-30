@@ -6,7 +6,7 @@ const offenseSchema = new Schema({
       mcq: { type: Number, required: true },
       problem: {
         type: [{ problemId: Schema.Types.ObjectId, times: Number }],
-        required: true,
+        required: false,
       },
     },
     required: false,

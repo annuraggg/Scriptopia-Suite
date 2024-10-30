@@ -1103,6 +1103,53 @@ getIoServer().then((server) => {
       submission.timer = data.time;
       await submission.save();
     });
+
+    socket.on("tab-change-code", async ({ assessmentId, email, problem }) => {
+      if (!assessmentId || !email || !problem) return;
+
+      const submission = await AssessmentSubmissions.findOne({
+        email,
+        assessmentId,
+      });
+
+      if (!submission) return;
+
+      if (!submission.offenses) {
+        submission.offenses = {};
+      }
+      if (!submission.offenses.tabChange) {
+        submission.offenses.tabChange = { mcq: 0, problem };
+      }
+
+      const { tabChange } = submission.offenses;
+
+      const problemEntry = tabChange?.problem?.find(
+        (p) => p?.problemId?.toString() === problem
+      );
+
+      if (problemEntry) {
+        problemEntry.times = (problemEntry.times || 0) + 1;
+      } else {
+        tabChange?.problem?.push({ problemId: problem, times: 1 });
+      }
+
+      await submission.save();
+    });
+
+    socket.on("session-url", async ({ assessmentId, email, sessionUrl }) => {
+      console.log("session-url", assessmentId, email, sessionUrl);
+      if (!assessmentId || !email || !sessionUrl) return;
+
+      const submission = await AssessmentSubmissions.findOne({
+        email,
+        assessmentId,
+      });
+
+      if (!submission) return;
+
+      submission.sessionRewindUrl = sessionUrl;
+      await submission.save();
+    });
   });
 });
 

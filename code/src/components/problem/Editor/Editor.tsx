@@ -18,7 +18,8 @@ const Editor = ({
 
   allowRun,
   allowSubmit,
-  allowExplain
+  allowExplain,
+  allowHighlighting,
 }: {
   runCode: () => Promise<object>;
   submitCode: () => Promise<object>;
@@ -29,9 +30,10 @@ const Editor = ({
   setLanguage: (lang: string) => void;
   languages: { name: string; abbr: string; available: boolean }[];
 
-  allowRun: boolean,
-  allowSubmit: boolean,
-  allowExplain: boolean
+  allowRun: boolean;
+  allowSubmit: boolean;
+  allowExplain: boolean;
+  allowHighlighting: boolean;
 }) => {
   const [explainOpen, setExplainOpen] = useState<boolean>(false);
 
@@ -52,7 +54,6 @@ const Editor = ({
               language={language}
               setLanguage={setLanguage}
               languages={languages}
-
               allowRun={allowRun}
               allowExplain={allowExplain}
               allowSubmit={allowSubmit}
@@ -66,6 +67,7 @@ const Editor = ({
             setCode={setCode}
             loading={loading}
             language={language}
+            allowHighlighting={allowHighlighting}
           />
         </CardBody>
       </Card>
