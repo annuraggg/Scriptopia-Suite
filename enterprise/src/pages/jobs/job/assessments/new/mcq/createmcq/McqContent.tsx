@@ -4,7 +4,9 @@ import { Plus, Upload } from "lucide-react";
 import { motion } from "framer-motion";
 import QuestionModal from "./AddQuestionModal";
 import QuestionList from "./QuestionList";
+import CSVImportModal from "./CsvImportModal";
 import { Question, McqContentProps } from "../../../../../../../types/mcq.types";
+import { toast } from "@/components/ui/use-toast";
 
 interface SectionQuestions {
     [sectionId: number]: Question[];
@@ -12,10 +14,11 @@ interface SectionQuestions {
 
 const McqContent: React.FC<McqContentProps> = ({ selectedSection }) => {
     const [isModalOpen, setModalOpen] = useState(false);
+    const [isCSVOpen, setCSVOpen] = useState(false);
     const [sectionQuestions, setSectionQuestions] = useState<SectionQuestions>({});
     const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
 
-    const currentQuestions = selectedSection 
+    const currentQuestions = selectedSection
         ? sectionQuestions[selectedSection.id] || []
         : [];
 
@@ -93,6 +96,97 @@ const McqContent: React.FC<McqContentProps> = ({ selectedSection }) => {
         }));
     };
 
+    const validateAndParseCSV = (text: string): Question[] => {
+        const rows = text.split('\n').filter(row => row.trim() !== '');
+        if (rows.length < 2) {
+            toast({ description: "Invalid CSV format. Ensure you have a header and at least one data row.", variant: 'destructive' });
+            return [];
+        }
+
+        const headers = rows[0].split(',');
+        const requiredHeaders = ['type', 'text'];
+
+        if (!requiredHeaders.every(header => headers.includes(header))) {
+            toast({ description: "CSV must contain 'type' and 'text' columns.", variant: 'destructive' });
+            return [];
+        }
+
+        try {
+            return rows.slice(1).map((row, index) => {
+                const values = row.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g) || [];
+
+                const cleanValue = (val: string) =>
+                    val.trim().replace(/^"|"$/g, '').replace(/""/g, '"');
+
+                const type = cleanValue(values[0] || '') as Question['type'];
+                const text = cleanValue(values[1]);
+
+                const baseQuestion: Question = {
+                    id: Date.now() + index,
+                    type,
+                    text,
+                };
+
+                switch (type) {
+                    case "single-select":
+                    case "multi-select":
+                    case "matching":
+                    case "output":
+                        if (values[2]) {
+                            try {
+                                baseQuestion.options = JSON.parse(cleanValue(values[2]));
+                            } catch (e) {
+                                toast({ description: `Invalid options for ${type} question`, variant: 'destructive' });
+                            }
+                        }
+                        break;
+
+                    case "true-false":
+                        baseQuestion.options = [
+                            { id: 1, text: "True", isCorrect: false },
+                            { id: 2, text: "False", isCorrect: false }
+                        ];
+                        break;
+
+                    case "short-answer":
+                    case "long-answer":
+                        if (values[2]) {
+                            baseQuestion.maxLimit = parseInt(cleanValue(values[2]), 10);
+                        }
+                        break;
+
+                    case "visual":
+                        if (values[2]) {
+                            baseQuestion.imageUrl = cleanValue(values[2]);
+                        }
+                        break;
+
+                    case "peer-review":
+                        if (values[2]) {
+                            baseQuestion.code = cleanValue(values[2]);
+                        }
+                        break;
+
+                    case "fill-in-blanks":
+                        if (values[2] && values[3]) {
+                            baseQuestion.blankText = cleanValue(values[2]);
+                            try {
+                                baseQuestion.blanksAnswers = JSON.parse(cleanValue(values[3]));
+                            } catch (e) {
+                                toast({ description: "Invalid blanks answers", variant: 'destructive' });
+                            }
+                        }
+                        break;
+                }
+
+                return baseQuestion;
+            });
+        } catch (error) {
+            toast({ description: "Error parsing CSV. Please check your format.", variant: 'destructive' });
+            return [];
+        }
+    };
+
     const handleImportCSV = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!selectedSection) return;
 
@@ -101,25 +195,18 @@ const McqContent: React.FC<McqContentProps> = ({ selectedSection }) => {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const text = e.target?.result as string;
-                const rows = text.split('\n');
+                const newQuestions = validateAndParseCSV(text);
 
-                const newQuestions = rows.slice(1).map((row, index) => {
-                    const values = row.split(',');
-                    return {
-                        id: Date.now() + index,
-                        type: values[0] as Question["type"],
-                        text: values[1],
-                        options: values[2] ? JSON.parse(values[2]) : undefined,
-                    };
-                });
-
-                setSectionQuestions(prev => ({
-                    ...prev,
-                    [selectedSection.id]: [
-                        ...(prev[selectedSection.id] || []),
-                        ...newQuestions
-                    ]
-                }));
+                if (newQuestions.length > 0) {
+                    setSectionQuestions(prev => ({
+                        ...prev,
+                        [selectedSection.id]: [
+                            ...(prev[selectedSection.id] || []),
+                            ...newQuestions
+                        ]
+                    }));
+                    toast({ description: `Successfully imported ${newQuestions.length} questions`, variant: 'default' });
+                }
             };
             reader.readAsText(file);
         }
@@ -137,7 +224,11 @@ const McqContent: React.FC<McqContentProps> = ({ selectedSection }) => {
                     <div className="p-1">
                         <CardHeader className="flex flex-row items-center justify-between px-2">
                             <div>
-                                <h2 className="text-xl font-semibold">{selectedSection.name}</h2>
+                                <h2 className="text-xl font-semibold">{selectedSection.name}
+                                    <span className="text-sm text-gray-500 ml-2">
+                                        ({currentQuestions.length})
+                                    </span>
+                                </h2>
                                 <p className="text-sm text-gray-500">
                                     Setup MCQ questions for {selectedSection.name}
                                 </p>
@@ -208,6 +299,11 @@ const McqContent: React.FC<McqContentProps> = ({ selectedSection }) => {
                 }}
                 onAddQuestion={handleAddQuestion}
                 editingQuestion={editingQuestion}
+            />
+
+            <CSVImportModal
+                isOpen={isCSVOpen}
+                onClose={() => setCSVOpen(false)}
             />
         </motion.div>
     );
