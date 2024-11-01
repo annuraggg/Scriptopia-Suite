@@ -6,35 +6,6 @@ interface TestCase {
   isSample: boolean;
 }
 
-interface ArraySclObject {
-  _id?: string;
-  type:
-    | "boolean"
-    | "integer"
-    | "character"
-    | "long"
-    | "float"
-    | "double"
-    | "string";
-  size: number;
-}
-
-interface SclObject {
-  _id?: string;
-  name: string;
-  type:
-    | "boolean"
-    | "integer"
-    | "character"
-    | "long"
-    | "float"
-    | "double"
-    | "string"
-    | "array"
-    | "return";
-  arrayProps?: ArraySclObject;
-}
-
 interface Problem {
   _id?: string;
   title: string;
@@ -43,7 +14,7 @@ interface Problem {
   difficulty: "easy" | "medium" | "hard";
   tags: string[];
   votes?: number;
-  sclObject: SclObject[];
+  sclObject: string[];
   testCases: TestCase[];
   isPrivate?: boolean;
   allowInAssessments?: boolean;
@@ -51,4 +22,4 @@ interface Problem {
   successfulSubmissions?: number;
 }
 
-export type { Problem, SclObject, ArraySclObject, TestCase };
+export type { Problem, TestCase };

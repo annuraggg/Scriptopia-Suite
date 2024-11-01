@@ -8,14 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorPage from "./components/ErrorPage.tsx";
 import { Toaster } from "sonner";
-<<<<<<< HEAD
-import { ThemeProvider } from "./components/theme-provider.jsx";
-=======
-
-import { SpeedInsights } from "@vercel/speed-insights/react";
-import { Analytics } from "@vercel/analytics/react";
-
->>>>>>> parent of cb5cc9b (refactor: Update layout height and theme toggle)
+import { ThemeProvider } from "./components/theme-provider.tsx";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -27,7 +20,6 @@ const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <ErrorBoundary FallbackComponent={ErrorPage}>
-<<<<<<< HEAD
     <ThemeProvider defaultTheme="dark" storageKey="ui-theme">
       <NextUIProvider>
         <QueryClientProvider client={queryClient}>
@@ -43,23 +35,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         </QueryClientProvider>
       </NextUIProvider>
     </ThemeProvider>
-=======
-    <QueryClientProvider client={queryClient}>
-      <NextUIProvider>
-        <ClerkProvider
-          publishableKey={PUBLISHABLE_KEY}
-          appearance={{
-            baseTheme: dark,
-          }}
-        >
-          <App />
-
-          <SpeedInsights debug={false} />
-          <Analytics debug={false} />
-          <Toaster richColors theme="dark" />
-        </ClerkProvider>
-      </NextUIProvider>
-    </QueryClientProvider>
->>>>>>> parent of cb5cc9b (refactor: Update layout height and theme toggle)
   </ErrorBoundary>
 );

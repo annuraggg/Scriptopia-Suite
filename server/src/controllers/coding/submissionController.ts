@@ -4,7 +4,6 @@ import Problem from "../../models/Problem";
 import { runCode as runCompilerCode } from "../../aws/runCode";
 import Submission from "../../models/Submission";
 import User from "../../models/User";
-import { ParsedSCL as SclObject } from "@shared-types/Sdsl";
 import { TestCase } from "@shared-types/Problem";
 import { getAuth } from "@hono/clerk-auth";
 
@@ -28,7 +27,7 @@ const runCode = async (c: Context) => {
 
     const result = await runCompilerCode(
       body.language,
-      prob.sclObject as unknown as SclObject[],
+      prob.scl,
       body.code,
       prob.testCases as TestCase[]
     );
@@ -57,7 +56,7 @@ const submitCode = async (c: Context) => {
 
     const result = await runCompilerCode(
       body.language,
-      prob.sclObject as unknown as SclObject[],
+      prob.scl,
       body.code,
       prob.testCases as TestCase[]
     );

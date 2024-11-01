@@ -1,11 +1,10 @@
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import { TestCase } from "@shared-types/Problem";
-import { ParsedSdsl as SclObject } from "@shared-types/Sdsl";
 const REGION = "ap-south-1";
 
 const runCode = async (
   language: string,
-  sclObject: SclObject[],
+  scl: string[],
   code: string,
   testCases: TestCase[]
 ) => {
@@ -19,7 +18,7 @@ const runCode = async (
 
   const data = {
     testCases,
-    sclObject,
+    scl,
     code,
   };
 

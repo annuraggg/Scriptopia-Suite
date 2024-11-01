@@ -5,7 +5,6 @@ import Assessment from "../../models/Assessment";
 import Problem from "../../models/Problem";
 import { runCode as runCompilerCode } from "../../aws/runCode";
 import AssessmentSubmissions from "../../models/AssessmentSubmissions";
-import { ParsedSCL as SclObject } from "@shared-types/Sdsl";
 import { TestCase } from "@shared-types/Problem";
 import Posting from "@/models/Posting";
 import { Candidate } from "@shared-types/Candidate";
@@ -405,8 +404,8 @@ const submitAssessment = async (c: Context) => {
         }
 
         const result: any = await runCompilerCode(
-          submission.language, // ! FIX W/O UNKNOWN
-          problem.sclObject as unknown as SclObject[],
+          submission.language, 
+          problem.scl,
           submission.code,
           problem.testCases as TestCase[]
         );
@@ -1013,7 +1012,7 @@ const submitIndividualProblem = async (c: Context) => {
 
     const result = await runCompilerCode(
       data.language,
-      problem.sclObject as unknown as SclObject[],
+      problem.scl,
       data.code,
       problem.testCases as TestCase[]
     );

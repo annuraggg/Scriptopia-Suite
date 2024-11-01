@@ -1,9 +1,4 @@
-<<<<<<< HEAD
 import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
-=======
-import { UserButton, /*useAuth*/ } from "@clerk/clerk-react";
-import Logo from "../assets/logo.png";
->>>>>>> parent of cb5cc9b (refactor: Update layout height and theme toggle)
 import { Link, Button } from "@nextui-org/react";
 import { EllipsisVertical, Menu, X, } from "lucide-react";
 import { useState } from "react";
