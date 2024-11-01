@@ -405,8 +405,8 @@ const submitAssessment = async (c: Context) => {
         }
 
         const result: any = await runCompilerCode(
-          submission.language,
-          problem.sclObject as SclObject[],
+          submission.language, // ! FIX W/O UNKNOWN
+          problem.sclObject as unknown as SclObject[],
           submission.code,
           problem.testCases as TestCase[]
         );
@@ -1013,7 +1013,7 @@ const submitIndividualProblem = async (c: Context) => {
 
     const result = await runCompilerCode(
       data.language,
-      problem.sclObject as SclObject[],
+      problem.sclObject as unknown as SclObject[],
       data.code,
       problem.testCases as TestCase[]
     );

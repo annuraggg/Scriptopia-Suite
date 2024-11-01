@@ -1,6 +1,6 @@
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import { TestCase } from "@shared-types/Problem";
-import { SclObject } from "@shared-types/Scl";
+import { ParsedSCL as SclObject } from "@shared-types/Scl";
 const REGION = "ap-south-1";
 
 const runCode = async (
