@@ -4,7 +4,7 @@ import Problem from "../../models/Problem";
 import { runCode as runCompilerCode } from "../../aws/runCode";
 import Submission from "../../models/Submission";
 import User from "../../models/User";
-import { ParsedSCL as SclObject } from "@shared-types/Scl";
+import { ParsedSCL as SclObject } from "@shared-types/Sdsl";
 import { TestCase } from "@shared-types/Problem";
 import { getAuth } from "@hono/clerk-auth";
 

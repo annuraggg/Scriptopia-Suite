@@ -1,12 +1,12 @@
-export interface SCLInput {
+export interface SdslInput {
   type: string;
   elementType: string;
   name: string;
   size: number | null;
 }
 
-export interface ParsedSCL {
-  inputs: SCLInput[];
+export interface ParsedSdsl {
+  inputs: SdslInput[];
   returnType: string;
 }
 
@@ -19,7 +19,7 @@ export interface TypeMap {
 }
 
 export type LanguageGenerator = (
-  inputs: SCLInput[],
+  inputs: SdslInput[],
   returnType: string
 ) => string;
 
@@ -40,7 +40,7 @@ export interface GeneratorResult {
 export interface ParseResult {
   success: boolean;
   error: string | null;
-  data: ParsedSCL | null;
+  data: ParsedSdsl | null;
   metadata?: {
     inputCount: number;
     hasArrayInputs: boolean;

@@ -12,8 +12,8 @@ import { Delta } from "quill/core";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { TestCase } from "@shared-types/Problem";
-import Scl from "./Scl";
-import sclToObject from "@/functions/scl/sclToObject";
+import Sdsl from "./Sdsl";
+import { parseSdsl } from "@/functions/sdsl";
 
 const steps = [
   {
@@ -26,7 +26,7 @@ const steps = [
   // },
   {
     title: "Step 2",
-    description: "SCL Code Stub",
+    description: "SDSL Code Stub",
   },
   {
     title: "Step 3",
@@ -63,7 +63,7 @@ const NewProblem = () => {
   const [minimumTwoTags, setMinimumTwoTags] = useState(false);
   const [minimum100Words, setMinimum100Words] = useState(false);
 
-  const [scl, setScl] = useState("");
+  const [sdsl, setsdsl] = useState("");
   const [variableWithDataType, setVariableWithDataType] = useState<
     {
       name: string;
@@ -74,8 +74,8 @@ const NewProblem = () => {
   const { getToken } = useAuth();
   const buildRequestData = () => {
     const axios = ax(getToken);
-    const sclObject = sclToObject(scl).sclObject
-    console.log(sclObject)
+    const sdslObject = parseSdsl(sdsl).data
+    console.log(sdslObject)
     axios
       .post("/problems", {
         title,
@@ -83,7 +83,7 @@ const NewProblem = () => {
         difficulty,
         tags,
         description,
-        sclObject ,
+        sdslObject ,
         testCases,
         minimumFiveCases,
         minimumThreeSampleCases,
@@ -113,13 +113,13 @@ const NewProblem = () => {
   }, [title, difficulty, tags, description]);
 
   useEffect(() => {
-    const step2Completed = scl.length > 0;
+    const step2Completed = sdsl.length > 0;
     setCompleted((prev) => {
       const newCompleted = [...prev];
       newCompleted[1] = !!step2Completed;
       return newCompleted;
     });
-  }, [scl]);
+  }, [sdsl]);
 
   useEffect(() => {
     const step4Completed = testCases.length >= 5;
@@ -260,10 +260,10 @@ const NewProblem = () => {
                 />
               )} */}
               {activeStep === 2 && (
-                <Scl
+                <Sdsl
                   {...{
-                    scl,
-                    setScl,
+                    sdsl,
+                    setsdsl,
                     variableWithDataType,
                     setVariableWithDataType,
                   }}

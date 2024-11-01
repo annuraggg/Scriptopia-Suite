@@ -5,7 +5,7 @@ import Assessment from "../../models/Assessment";
 import Problem from "../../models/Problem";
 import { runCode as runCompilerCode } from "../../aws/runCode";
 import AssessmentSubmissions from "../../models/AssessmentSubmissions";
-import { ParsedSCL as SclObject } from "@shared-types/Scl";
+import { ParsedSCL as SclObject } from "@shared-types/Sdsl";
 import { TestCase } from "@shared-types/Problem";
 import Posting from "@/models/Posting";
 import { Candidate } from "@shared-types/Candidate";

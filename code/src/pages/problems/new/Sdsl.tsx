@@ -2,16 +2,24 @@ import { Button, Select, SelectItem } from "@nextui-org/react";
 import Monaco from "@/components/problem/Editor/Monaco";
 import { useState } from "react";
 import languages from "@/data/languages";
-import { generateCode as generateSclCode } from "@/functions/scl/scl";
+import { generateSdslCode } from "@/functions/sdsl";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from "@nextui-org/react";
 
 type SupportedLanguages = "python" | "javascript" | "java";
 
-const Scl = ({
-  scl,
-  setScl,
+const Sdsl = ({
+  sdsl,
+  setsdsl,
 }: {
-  scl: string;
-  setScl: (scl: string) => void;
+  sdsl: string;
+  setsdsl: (sdsl: string) => void;
   setVariableWithDataType: (
     variableWithDataType: { name: string; type: string }[]
   ) => void;
@@ -26,7 +34,7 @@ const Scl = ({
 
   const generateCode = () => {
     // if (language === "javascript") {
-    //   const res: sclReturnType = convertSclToJs(scl);
+    //   const res: sdslReturnType = convertsdslToJs(sdsl);
     //   if (res.error) {
     //     setError(true);
     //     setErrorMessage(res?.message || "Error Generating Code");
@@ -40,30 +48,44 @@ const Scl = ({
     //   setEditorUpdateFlag((prev) => !prev);
     // }
 
-    const code = generateSclCode(scl, language);
-    if (code.error || !code.success || !code.code) {
+    const code = generateSdslCode(sdsl, language);
+    if (code.error || !code.code) {
+      setCode("");
       setError(true);
       setErrorMessage(code.error || "Error Generating Code");
       return;
     }
+    setError(false);
+    setErrorMessage("");
 
     setCode(code.code);
     setEditorUpdateFlag((prev) => !prev);
   };
 
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
   return (
     <div className="h-[90%] p-2">
       <p className="text-sm mb-2">
-        Read More About Scriptopia Code Language (SCL){" "}
-        <span className="underline cursor-pointer text-warning-500">Here</span>
+        Read More About Scriptopia Domain Specific Language (SDSL){" "}
+        <span
+          className="underline cursor-pointer text-warning-500"
+          onClick={() =>
+            window.open(
+              "https://docs.scriptopia.tech/creating-a-problem/writing-the-sdsl-code-stub"
+            )
+          }
+        >
+          Here
+        </span>
       </p>
       <div className="flex gap-5 h-full">
         <div className="w-full h-full relative">
           <textarea
             className="h-[90%] w-full bg-input rounded-xl p-5 outline-none resize-none"
-            placeholder="Enter Your SCL Here"
-            value={scl}
-            onChange={(e) => setScl(e.target.value)}
+            placeholder="Enter Your SDSL Here"
+            value={sdsl}
+            onChange={(e) => setsdsl(e.target.value)}
           />
           <div className="flex gap-3 items-center mt-3">
             <Select
@@ -96,7 +118,7 @@ const Scl = ({
           </div>
         </div>
         <div className="w-full">
-          <div className="h-[90%]">
+          <div className="h-[79%]">
             <Monaco
               code={code}
               setCode={setCode}
@@ -105,11 +127,48 @@ const Scl = ({
               editorUpdateFlag={editorUpdateFlag}
             />
           </div>
-          {error && <p className="text-red-500 mt-2">{errorMessage}</p>}
+          <Button
+            className="w-full text-xs text-start justify-start border rounded-none"
+            size="lg"
+            color="warning"
+            variant="light"
+            onClick={onOpen}
+          >
+            or write Custom Driver Code (Advanced) - Optional
+          </Button>
+          {error && <p className="text-red-500 mt-3">{errorMessage}</p>}
         </div>
       </div>
+
+      <Modal size="full" isOpen={isOpen} onClose={onClose}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Write Custom Driver Code
+              </ModalHeader>
+              <ModalBody>
+                <p className="text-sm">
+                  You can write custom driver code here. This is optional. If
+                  you don't write any code here, the code will be generated
+                  automatically. This can be useful if you want to write custom
+                  driver code and SDSL is not enough.
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Close
+                </Button>
+                <Button color="primary" onPress={onClose}>
+                  Action
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 };
 
-export default Scl;
+export default Sdsl;

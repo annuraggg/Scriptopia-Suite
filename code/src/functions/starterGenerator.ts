@@ -39,12 +39,12 @@
 //   return starterCode;
 // };
 
-// import sclToObject from "./scl/sclToObject";
+// import sdslToObject from "./sdsl/sdslToObject";
 
-const starterGenerator = (scl: string[], language: string) => {
-  console.log(scl, language);
-  // const joinedScl = scl?.join("\n");
-  // const sclObj = sclToObject(joinedScl).sclObject!;
+const starterGenerator = (sdsl: string[], language: string) => {
+  console.log(sdsl, language);
+  // const joinedsdsl = sdsl?.join("\n");
+  // const sdslObj = sdslToObject(joinedsdsl).sdslObject!;
   let statement = "";
 
   return statement;
