@@ -29,7 +29,7 @@ const runCode = async (c: Context) => {
       body.language,
       prob.scl,
       body.code,
-      prob.testCases as TestCase[]
+      prob.testCases as unknown as TestCase[]
     );
 
     if (!result) {
@@ -58,7 +58,7 @@ const submitCode = async (c: Context) => {
       body.language,
       prob.scl,
       body.code,
-      prob.testCases as TestCase[]
+      prob.testCases as unknown as TestCase[]
     );
 
     const results = result.results.map((r: any) => ({

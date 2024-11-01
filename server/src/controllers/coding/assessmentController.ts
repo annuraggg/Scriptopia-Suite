@@ -407,7 +407,7 @@ const submitAssessment = async (c: Context) => {
           submission.language, 
           problem.scl,
           submission.code,
-          problem.testCases as TestCase[]
+          problem.testCases as unknown as TestCase[]
         );
 
         if (result?.status === "ERROR") {
@@ -1014,7 +1014,7 @@ const submitIndividualProblem = async (c: Context) => {
       data.language,
       problem.scl,
       data.code,
-      problem.testCases as TestCase[]
+      problem.testCases as unknown as TestCase[]
     );
 
     if (result?.status === "ERROR") {

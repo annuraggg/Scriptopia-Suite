@@ -3,8 +3,8 @@ name: Backup
 on:
   schedule:
     - cron: '21 15 * * *'  # Schedule: Runs at 15:21 UTC every day
-  push:
-    branches: [main, dev]
+  # push:
+  #   branches: [main, dev]
 
 jobs:
   backup:
