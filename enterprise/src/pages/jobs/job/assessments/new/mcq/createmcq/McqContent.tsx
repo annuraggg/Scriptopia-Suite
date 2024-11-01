@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Card, CardHeader, Button } from "@nextui-org/react";
-import { Upload, HelpCircle } from "lucide-react";
+import { Plus, Upload, HelpCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import QuestionModal from "./AddQuestionModal";
 import QuestionList from "./QuestionList";
@@ -259,6 +259,16 @@ const McqContent: React.FC<McqContentProps> = ({ selectedSection }) => {
                                         Import CSV
                                     </Button>
                                 </div>
+                                <Button
+                                    startContent={<Plus size={16} />}
+                                    color="primary"
+                                    onClick={() => {
+                                        setEditingQuestion(null);
+                                        setModalOpen(true);
+                                    }}
+                                >
+                                    Add Question
+                                </Button>
                             </div>
                         </CardHeader>
 
