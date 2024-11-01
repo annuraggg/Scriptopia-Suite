@@ -29,7 +29,8 @@
     "ora": "^8.0.1",
     "pdf.js-extract": "^0.2.1",
     "pino": "^9.2.0",
-    "scriptopia-types": "file:../common/types"
+    "scriptopia-types": "file:../common/types",
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.6",

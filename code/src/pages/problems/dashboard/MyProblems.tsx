@@ -61,7 +61,7 @@ const MyProblems = ({ myproblems }: { myproblems: Problem[] }) => {
               <TableRow className="h-14" key={problem.title}>
                 <TableCell
                   className="w-[550px]  cursor-pointer hover:text-blue-500"
-                  onClick={() => openProblem(problem._id)}
+                  onClick={() => openProblem(problem?._id || "")}
                 >
                   <p className="truncate max-w-[500px]">{problem.title}</p>
                 </TableCell>

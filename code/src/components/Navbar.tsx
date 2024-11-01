@@ -1,5 +1,4 @@
 import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
-import Logo from "../assets/logo.png";
 import { Link, Button } from "@nextui-org/react";
 import { EllipsisVertical, Menu, Moon, Sun, X } from "lucide-react";
 import { useState } from "react";
@@ -26,10 +25,10 @@ const Navbar = () => {
       path: "/problems",
       label: "Problems",
     },
-    {
-      path: "/assessments",
-      label: "Assessments",
-    },
+    // {
+    //   path: "/assessments",
+    //   label: "Assessments",
+    // },
   ];
 
   // const openOrg = () => {
@@ -48,7 +47,7 @@ const Navbar = () => {
       >
         <div className="flex items-center gap-2 sm:gap-5">
           <img
-            src={Logo}
+            src="../logo.svg"
             alt="logo"
             className="h-6 w-6 sm:h-8 sm:w-8 mr-2 sm:mr-5 cursor-pointer"
             onClick={() => {

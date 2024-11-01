@@ -15,12 +15,12 @@ interface PortfolioEducation {
 interface PortfolioExperience {
   title: string;
   type:
-  | "full-time"
-  | "part-time"
-  | "internship"
-  | "freelance"
-  | "self-employed"
-  | "trainee";
+    | "full-time"
+    | "part-time"
+    | "internship"
+    | "freelance"
+    | "self-employed"
+    | "trainee";
   company: string;
   location: string;
   locationType: "remote" | "onsite" | "hybrid";
@@ -54,13 +54,13 @@ interface Portfolio {
   skills: string[];
 }
 
-interface User extends Document {
-  _id: string;
+interface User {
+  _id?: string;
   clerkId: string;
   solvedProblems: ProblemReference[];
-  streak: Date[];
-  achievements: string[];
-  resume: string[];
+  streak?: Date[];
+  achievements?: string[];
+  resume?: string[];
   portfolio: Portfolio;
 }
 
@@ -72,4 +72,4 @@ export type {
   PortfolioCertification,
   Portfolio,
   User,
-}
+};

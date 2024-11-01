@@ -6,7 +6,7 @@ const offenseSchema = new Schema({
       mcq: { type: Number, required: true },
       problem: {
         type: [{ problemId: Schema.Types.ObjectId, times: Number }],
-        required: true,
+        required: false,
       },
     },
     required: false,
@@ -59,11 +59,7 @@ const obtainedGradeSchema = new Schema({
   problem: {
     type: [
       {
-        problemId: {
-          type: Schema.Types.ObjectId,
-          ref: "Problem",
-          required: true,
-        },
+        problemId: { type: Schema.Types.ObjectId, ref: "Problem", required: true},
         obtainedMarks: { type: Number, required: true },
       },
     ],
@@ -79,6 +75,11 @@ const AssessmentSubmissionsSchema = new Schema({
     ref: "Assessment",
     required: true,
   },
+  status: {
+    type: String,
+    enum: ["in-progress", "completed"],
+    required: false,
+  },
   name: { type: String, required: true },
   email: { type: String, required: true },
   offenses: { type: offenseSchema, required: false },
@@ -87,7 +88,7 @@ const AssessmentSubmissionsSchema = new Schema({
   timer: { type: Number, required: true },
   sessionRewindUrl: { type: String, required: false },
   createdAt: { type: Date, default: Date.now },
-  obtainedGrades: { type: obtainedGradeSchema, required: true },
+  obtainedGrades: { type: obtainedGradeSchema, required: false },
   cheatingStatus: { type: String, enum: ["No Copying", "Light Copying", "Heavy Copying"], required: false },
 });
 

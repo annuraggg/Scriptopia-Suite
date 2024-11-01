@@ -70,7 +70,7 @@ const assessmentSchema = new mongoose.Schema({
   description: { type: String, required: true },
   author: { type: String, ref: "User", required: true },
   mcqs: { type: [mcqSchema] },
-  type: { type: String, enum: ["mcq", "code", "mcqcode"], required: true },
+  type: { type: String, enum: ["mcq", "code"], required: true },
   timeLimit: { type: Number, required: true },
   passingPercentage: { type: Number, required: true },
   openRange: { type: openRangeSchema, required: false },
@@ -88,7 +88,11 @@ const assessmentSchema = new mongoose.Schema({
   obtainableScore: { type: Number, required: true },
 
   isEnterprise: { type: Boolean, required: true, default: false },
-  postingId: { type: mongoose.Schema.Types.ObjectId, ref: "Posting", required: false },
+  postingId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Posting",
+    required: false,
+  },
 
   createdAt: { type: Date, default: Date.now },
 });

@@ -5,7 +5,7 @@ import Assessment from "../../models/Assessment";
 import Problem from "../../models/Problem";
 import { runCode as runCompilerCode } from "../../aws/runCode";
 import AssessmentSubmissions from "../../models/AssessmentSubmissions";
-import { SclObject } from "@shared-types/Scl";
+import { ParsedSCL as SclObject } from "@shared-types/Sdsl";
 import { TestCase } from "@shared-types/Problem";
 import Posting from "@/models/Posting";
 import { Candidate } from "@shared-types/Candidate";
@@ -14,6 +14,10 @@ import CandidateModel from "@/models/Candidate";
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
 import logger from "@/utils/logger";
 
+async function getIoServer() {
+  const { ioServer } = await import("@/config/init");
+  return ioServer;
+}
 
 const LIMIT_PER_PAGE = 20;
 
@@ -266,7 +270,9 @@ const verifyAccess = async (c: Context) => {
   try {
     const body = await c.req.json();
 
-    const assessment = await Assessment.findOne({ _id: body.id });
+    const assessment = await Assessment.findOne({ _id: body.id }).populate(
+      "problems"
+    );
     if (!assessment) {
       return sendError(c, 404, "Assessment not found");
     }
@@ -286,12 +292,23 @@ const verifyAccess = async (c: Context) => {
 
       const currentStep = workflow.steps[workflow.currentStep];
       if (currentStep.stepId.toString() !== assessment._id.toString()) {
-        return sendError(c, 403, "Assessment not active");
+        return sendError(c, 403, "Assessment not active", {
+          allowedForTest: false,
+          testActive: false,
+        });
       }
 
       const candidates = posting.candidates as unknown as Candidate[];
       if (!candidates.some((candidate) => candidate.email === body.email)) {
-        return sendError(c, 403, "You are not allowed to take this assessment");
+        return sendError(
+          c,
+          403,
+          "You are not allowed to take this assessment",
+          {
+            allowedForTest: false,
+            testActive: true,
+          }
+        );
       }
     } else {
       const assessmentStartTime = new Date(
@@ -301,11 +318,17 @@ const verifyAccess = async (c: Context) => {
 
       const currentTime = new Date().getTime();
       if (currentTime < assessmentStartTime) {
-        return sendError(c, 403, "Assessment not started yet");
+        return sendError(c, 403, "Assessment not started yet", {
+          allowedForTest: false,
+          testActive: false,
+        });
       }
 
       if (currentTime > assessmentEndTime) {
-        return sendError(c, 403, "Assessment has ended");
+        return sendError(c, 403, "Assessment has ended", {
+          allowedForTest: false,
+          testActive: false,
+        });
       }
     }
 
@@ -315,12 +338,17 @@ const verifyAccess = async (c: Context) => {
     });
 
     if (takenAssessment) {
-      return sendError(c, 403, "You have already taken this assessment");
+      return sendError(c, 403, "You have already taken this assessment", {
+        allowedForTest: false,
+        testActive: true,
+      });
     }
 
     if (assessment.candidates.type === "all") {
       return sendSuccess(c, 200, "Access Granted", {
         instructions: assessment.instructions,
+        type: assessment.type,
+        assessment: assessment,
       });
     }
 
@@ -329,7 +357,10 @@ const verifyAccess = async (c: Context) => {
     );
 
     if (!candidate) {
-      return sendError(c, 403, "You are not allowed to take this assessment");
+      return sendError(c, 403, "You are not allowed to take this assessment", {
+        allowedForTest: false,
+        testActive: true,
+      });
     }
 
     return sendSuccess(c, 200, "Access Granted", {
@@ -374,8 +405,8 @@ const submitAssessment = async (c: Context) => {
         }
 
         const result: any = await runCompilerCode(
-          submission.language,
-          problem.sclObject as SclObject[],
+          submission.language, // ! FIX W/O UNKNOWN
+          problem.sclObject as unknown as SclObject[],
           submission.code,
           problem.testCases as TestCase[]
         );
@@ -509,6 +540,47 @@ const submitAssessment = async (c: Context) => {
     }
 
     return sendSuccess(c, 200, "Success");
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const codeSubmit = async (c: Context) => {
+  try {
+    const { assessmentId, email, timer } = await c.req.json();
+    console.log(assessmentId, email);
+    const assessment = await Assessment.findById(assessmentId).populate(
+      "problems"
+    );
+
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    const submission = await AssessmentSubmissions.findOne({
+      assessmentId,
+      email,
+    });
+
+    if (!submission) {
+      return sendError(c, 404, "Submission not found");
+    }
+
+    const grades = getScore(
+      [], // @ts-ignore
+      submission?.submissions || [],
+      assessment
+    );
+
+    // @ts-ignore
+    submission.obtainedGrades = grades;
+    submission.timer = timer;
+    submission.status = "completed";
+
+    await submission.save();
+
+    return sendSuccess(c, 200, "Success", grades);
   } catch (error) {
     console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
@@ -832,7 +904,8 @@ const getScore = (
     let grade = 0;
 
     const problemObj = assessment.problems.find(
-      (problem: any) => problem._id.toString() === problemSubmission.problemId
+      (problem: any) =>
+        problem._id.toString() === problemSubmission.problemId.toString()
     );
 
     if (!problemObj) continue;
@@ -842,7 +915,7 @@ const getScore = (
       if (!assessment.grading.testcases) continue;
 
       for (const testCase of problemObj.testCases) {
-        if (!testCase?._id) continue;
+        if (!testCase?._id?.toString()) continue;
         const passed = problemSubmission.results.find(
           (result: any) =>
             result.caseId.toString() === testCase._id.toString() &&
@@ -896,6 +969,190 @@ const getScore = (
   };
 };
 
+const checkProgress = async (c: Context) => {
+  try {
+    const body = await c.req.json();
+
+    const submission = await AssessmentSubmissions.findOne({
+      email: body.email,
+      assessmentId: body.assessmentId,
+    });
+
+    if (!submission) {
+      return sendSuccess(c, 200, "Submission not found", { exists: false });
+    }
+
+    if (submission.status === "completed") {
+      return sendSuccess(c, 200, "Submission completed", {
+        exists: false,
+        status: "completed",
+      });
+    }
+
+    const assessment = await Assessment.findById(body.assessmentId)
+      .populate("problems")
+      .lean();
+
+    return sendSuccess(c, 200, "Success", {
+      assessment,
+      submission,
+    });
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const submitIndividualProblem = async (c: Context) => {
+  try {
+    const data = await c.req.json();
+    const problem = await Problem.findById(data.problemId);
+    if (!problem) {
+      return;
+    }
+
+    const result = await runCompilerCode(
+      data.language,
+      problem.sclObject as unknown as SclObject[],
+      data.code,
+      problem.testCases as TestCase[]
+    );
+
+    if (result?.status === "ERROR") {
+      console.error(result.error);
+      return;
+    }
+
+    const r = result.results.map((r: any) => ({
+      caseNo: r.caseNo,
+      caseId: r._id,
+      output: r.output,
+      isSample: r.isSample,
+      memory: r.memory,
+      time: r.time,
+      passed: r.passed,
+      console: r.console,
+    }));
+
+    const submission = await AssessmentSubmissions.findOne({
+      email: data.email,
+      assessmentId: data.assessmentId,
+    });
+
+    if (!submission) {
+      return;
+    }
+
+    const problemSubmission = {
+      problemId: data.problemId,
+      code: data.code,
+      language: data.language,
+      results: r,
+    };
+
+    // @ts-ignore - replace the existing submission with the new one or add a new one
+    const existingSubmission = submission.submissions.find(
+      (s) => s.problemId.toString() === data.problemId
+    );
+
+    if (existingSubmission) {
+      existingSubmission.code = data.code;
+      existingSubmission.language = data.language;
+      existingSubmission.results = r;
+    } else {
+      // @ts-ignore
+      submission.submissions.push(problemSubmission);
+    }
+
+    await submission.save();
+
+    return sendSuccess(c, 200, "Success", submission);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error as string);
+  }
+};
+
+getIoServer().then((server) => {
+  server.on("connection", (socket) => {
+    logger.info("A user connected with id: " + socket.id);
+    socket.on("disconnect", () => {
+      logger.info("User disconnected");
+    });
+
+    socket.on("start-assessment", async (data) => {
+      const newSubmission = new AssessmentSubmissions(data);
+      newSubmission.status = "in-progress";
+      await newSubmission.save();
+    });
+
+    socket.on("timeSync", async (data) => {
+      const submission = await AssessmentSubmissions.findOne({
+        email: data.email,
+        assessmentId: data.assessmentId,
+      });
+
+      if (!submission) {
+        return;
+      }
+
+      if (submission.status === "completed") {
+        return;
+      }
+
+      submission.timer = data.time;
+      await submission.save();
+    });
+
+    socket.on("tab-change-code", async ({ assessmentId, email, problem }) => {
+      if (!assessmentId || !email || !problem) return;
+
+      const submission = await AssessmentSubmissions.findOne({
+        email,
+        assessmentId,
+      });
+
+      if (!submission) return;
+
+      if (!submission.offenses) {
+        submission.offenses = {};
+      }
+      if (!submission.offenses.tabChange) {
+        submission.offenses.tabChange = { mcq: 0, problem };
+      }
+
+      const { tabChange } = submission.offenses;
+
+      const problemEntry = tabChange?.problem?.find(
+        (p) => p?.problemId?.toString() === problem
+      );
+
+      if (problemEntry) {
+        problemEntry.times = (problemEntry.times || 0) + 1;
+      } else {
+        tabChange?.problem?.push({ problemId: problem, times: 1 });
+      }
+
+      await submission.save();
+    });
+
+    socket.on("session-url", async ({ assessmentId, email, sessionUrl }) => {
+      console.log("session-url", assessmentId, email, sessionUrl);
+      if (!assessmentId || !email || !sessionUrl) return;
+
+      const submission = await AssessmentSubmissions.findOne({
+        email,
+        assessmentId,
+      });
+
+      if (!submission) return;
+
+      submission.sessionRewindUrl = sessionUrl;
+      await submission.save();
+    });
+  });
+});
+
 export default {
   getAssessments,
   getMyMcqAssessments,
@@ -910,4 +1167,7 @@ export default {
   deleteAssessment,
   qualifyCandidate,
   disqualifyCandidate,
+  checkProgress,
+  codeSubmit,
+  submitIndividualProblem,
 };

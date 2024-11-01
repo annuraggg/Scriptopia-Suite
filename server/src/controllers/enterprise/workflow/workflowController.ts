@@ -151,8 +151,8 @@ const handleResumeScreening = async (posting: PostingType) => {
   const event = {
     jobDescription: posting.description,
     skills: posting?.skills?.join(","),
-    negativePrompts: posting?.ats?.negativePrompts.join(","),
-    positivePrompts: posting?.ats?.positivePrompts.join(","),
+    negativePrompts: posting?.ats?.negativePrompts?.join(","),
+    positivePrompts: posting?.ats?.positivePrompts?.join(","),
     postingId: posting?._id?.toString(),
     resumes: resumes,
   };
@@ -176,7 +176,7 @@ const handleAssignmentRound = async (
 
   if (!assignment || !organization || !posting) return;
 
-  const qualifiedCandidates = posting.candidates.filter(
+  const qualifiedCandidates = posting?.candidates?.filter(
     // @ts-expect-error - candidates is not defined in PostingType
     (candidate: Candidate) => {
       const current = candidate.appliedPostings.find(
@@ -210,14 +210,14 @@ const handleAssessmentRound = async (
 ) => {
   const { type, stepId } = step;
 
-  const assessment = posting.assessments.find(
+  const assessment = posting?.assessments?.find(
     (a) => a.toString() === stepId.toString()
   );
 
   const organization = await Organization.findById(posting.organizationId);
   if (!assessment || !organization || !posting) return;
 
-  const qualifiedCandidates = posting.candidates.filter(
+  const qualifiedCandidates = posting?.candidates?.filter(
     // @ts-expect-error - candidates is not defined in PostingType
     (candidate: Candidate) => {
       const current = candidate.appliedPostings.find(

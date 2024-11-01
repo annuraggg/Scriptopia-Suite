@@ -14,7 +14,6 @@ import React, { useEffect } from "react";
 
 const Problems = ({
   problems,
-  tags,
   solvedProblems,
 }: {
   problems: Problem[];
@@ -25,7 +24,7 @@ const Problems = ({
 
   const [difficulty, setDifficulty] = React.useState("");
   const [search, setSearch] = React.useState("");
-  const [selectedTag, setSelectedTag] = React.useState<string | null>(null);
+  const [selectedTag] = React.useState<string | null>(null);
 
   const [filteredProblems, setFilteredProblems] = React.useState<Problem[]>(
     []

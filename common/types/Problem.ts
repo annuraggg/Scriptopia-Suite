@@ -1,5 +1,3 @@
-
-
 interface TestCase {
   _id?: string;
   input: string[];
@@ -8,28 +6,49 @@ interface TestCase {
   isSample: boolean;
 }
 
-interface FunctionArg {
-  name: string;
-  type: "string" | "number" | "boolean" | "array";
+interface ArraySclObject {
+  _id?: string;
+  type:
+    | "boolean"
+    | "integer"
+    | "character"
+    | "long"
+    | "float"
+    | "double"
+    | "string";
+  size: number;
 }
 
-interface Problem extends Document {
-  _id: string;
+interface SclObject {
+  _id?: string;
+  name: string;
+  type:
+    | "boolean"
+    | "integer"
+    | "character"
+    | "long"
+    | "float"
+    | "double"
+    | "string"
+    | "array"
+    | "return";
+  arrayProps?: ArraySclObject;
+}
+
+interface Problem {
+  _id?: string;
   title: string;
-  description: Record<string, any>;
-  author: string;
+  description: object;
+  author?: string;
   difficulty: "easy" | "medium" | "hard";
   tags: string[];
-  votes: number;
-  scl: string[];
+  votes?: number;
+  sclObject: SclObject[];
   testCases: TestCase[];
-  isPrivate: boolean;
-  allowInAssessments: boolean;
+  isPrivate?: boolean;
+  allowInAssessments?: boolean;
   totalSubmissions?: number;
   successfulSubmissions?: number;
-
-  status?: "Solved" | "Unsolved";
-  acceptanceRate?: number;
 }
 
-export type { Problem, TestCase, FunctionArg };
+export type { Problem, SclObject, ArraySclObject, TestCase };
