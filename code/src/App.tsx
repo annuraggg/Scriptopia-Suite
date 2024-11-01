@@ -2,6 +2,7 @@ import { Suspense, lazy } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./App.css";
 import Layout from "./components/Layout";
+<<<<<<< HEAD
 import ErrorPage from "./components/ErrorPage";
 import { useTheme } from "./components/theme-provider";
 import Loader from "./components/Loader"; // Import Loader component
@@ -31,6 +32,23 @@ const ViewUserAssessment = lazy(
   () =>
     import("./pages/assessments/dashboard/ViewAssessment/ViewUserAssessment")
 );
+=======
+// import ErrorPage from "./components/ErrorPage";
+import OrgIntro from "./pages/organization/intro/Intro";
+import OrgMain from "./pages/organization/main/Main";
+
+import NewMCQ from "./pages/assessments/new/mcq/New";
+import NewCode from "./pages/assessments/new/code/New";
+import NewMCQCode from "./pages/assessments/new/mcqcode/New";
+
+import MainAssessment from "./pages/assessments/assess/Main";
+import AssessmentCurrent from "./pages/assessments/assess/Dashboard";
+import AssessmentCurrentProblem from "./pages/assessments/assess/problem/Problem";
+import Result from "./pages/assessments/assess/result/Result";
+import ViewAssessment from "./pages/assessments/dashboard/ViewAssessment/ViewAssessment";
+import ViewUserAssessment from "./pages/assessments/dashboard/ViewAssessment/ViewUserAssessment";
+import Lander from "./pages/lander/Lander";
+>>>>>>> parent of cb5cc9b (refactor: Update layout height and theme toggle)
 
 const router = createBrowserRouter([
   {
@@ -100,6 +118,7 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
+<<<<<<< HEAD
   const { theme } = useTheme();
   return (
     <main
@@ -112,6 +131,9 @@ function App() {
       </Suspense>
     </main>
   );
+=======
+  return <RouterProvider router={router} />;
+>>>>>>> parent of cb5cc9b (refactor: Update layout height and theme toggle)
 }
 
 export default App;

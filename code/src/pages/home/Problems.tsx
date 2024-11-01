@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Problem } from "@shared-types/Problem";
 import { Input, Select, SelectItem } from "@nextui-org/react";
 import {
@@ -54,7 +53,7 @@ const Problems = ({
       <h6 className="text-md md:text-md mt-4 md:mt-2 text-gray-500 mb-5">
         Problems
       </h6>
-      {/* <div className="flex gap-5 line-clamp-1 flex-wrap h-5 w-[100%] md:block">
+      <div className="flex gap-5 line-clamp-1 flex-wrap h-5 w-[100%] md:block">
         {tags?.map((tag, i) => (
           <div
             className="hover:text-blue-500 duration-200 transition-colors cursor-pointer text-sm"
@@ -64,7 +63,7 @@ const Problems = ({
             {tag}
           </div>
         ))}
-      </div> */}
+      </div>
       <div className="md:mt-5 flex flex-col md:flex-row gap-3 w-full">
         <Input
           type="Search"
