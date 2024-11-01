@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Card, CardHeader, Button } from "@nextui-org/react";
-import { Plus, Upload } from "lucide-react";
+import { Upload, HelpCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import QuestionModal from "./AddQuestionModal";
 import QuestionList from "./QuestionList";
@@ -234,6 +234,14 @@ const McqContent: React.FC<McqContentProps> = ({ selectedSection }) => {
                                 </p>
                             </div>
                             <div className="flex gap-2">
+                                <Button
+                                    isIconOnly
+                                    variant="light"
+                                    color="primary"
+                                    onClick={() => setCSVOpen(true)}
+                                >
+                                    <HelpCircle size={18} />
+                                </Button>
                                 <div className="relative">
                                     <input
                                         type="file"
@@ -251,16 +259,6 @@ const McqContent: React.FC<McqContentProps> = ({ selectedSection }) => {
                                         Import CSV
                                     </Button>
                                 </div>
-                                <Button
-                                    startContent={<Plus size={16} />}
-                                    color="primary"
-                                    onClick={() => {
-                                        setEditingQuestion(null);
-                                        setModalOpen(true);
-                                    }}
-                                >
-                                    Add Question
-                                </Button>
                             </div>
                         </CardHeader>
 
