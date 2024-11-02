@@ -27,7 +27,7 @@ const runCode = async (c: Context) => {
 
     const result = await runCompilerCode(
       body.language,
-      prob.scl,
+      prob.sdsl,
       body.code,
       prob.testCases as unknown as TestCase[]
     );
@@ -56,7 +56,7 @@ const submitCode = async (c: Context) => {
 
     const result = await runCompilerCode(
       body.language,
-      prob.scl,
+      prob.sdsl,
       body.code,
       prob.testCases as unknown as TestCase[]
     );

@@ -20,7 +20,8 @@ export interface TypeMap {
 
 export type LanguageGenerator = (
   inputs: SdslInput[],
-  returnType: string
+  returnType: string,
+  fullCode: boolean
 ) => string;
 
 export interface GeneratorResult {

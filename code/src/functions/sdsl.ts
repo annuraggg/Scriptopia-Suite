@@ -386,7 +386,8 @@ function parseSdsl(sdslCode: string): ParseResult {
 
 function generateCode(
   sdslCode: string,
-  language: SupportedLanguages
+  language: SupportedLanguages,
+  fullCode: boolean = true
 ): GeneratorResult {
   try {
     // First parse the sdsl
@@ -420,7 +421,8 @@ function generateCode(
     // Generate the code
     const generatedCode = generator(
       parseResult.data.inputs,
-      parseResult.data.returnType
+      parseResult.data.returnType,
+      fullCode
     );
 
     if (!parseResult.metadata) {
@@ -455,7 +457,8 @@ function generateCode(
 function generatePython(
   inputs: SdslInput[],
   returnType: string,
-  returnArrayType: ArrayType | null
+  returnArrayType: ArrayType | null,
+  fullCode: boolean = true
 ) {
   const typeHints = inputs
     .map((input) => {
@@ -484,19 +487,28 @@ function generatePython(
       }${"]".repeat(returnArrayType.dimensions)}`
     : typeMap[returnType].python;
 
-  return `
+  let finalCode = `
   from typing import List, Dict, Set, Any
   
   def execute(${typeHints}) -> ${returnTypeStr}:
       # Your code here
       ${returnArrayType ? "return []" : "pass"}
-  
-  def main(input_data: List[str]) -> ${returnTypeStr}:
+  `;
+
+  if (!fullCode) return finalCode;
+
+  finalCode += `def main(input_data: List[str]) -> ${returnTypeStr}:
       # ... rest of the Python generator code ...
   `.trim();
+
+  return finalCode;
 }
 
-function generateJavaScript(inputs: SdslInput[], returnType: string) {
+function generateJavaScript(
+  inputs: SdslInput[],
+  returnType: string,
+  fullCode: boolean = true
+) {
   // Clean variable names by removing comments and trimming whitespace
   const cleanInputs = inputs.map((input) => ({
     ...input,
@@ -597,7 +609,7 @@ function generateJavaScript(inputs: SdslInput[], returnType: string) {
 
   const jsReturnType = typeMap[returnType]?.javascript || "unknown";
 
-  return `
+  let finalCode = `
 /**
  ${typeComments}
  * @returns {${jsReturnType}}
@@ -607,7 +619,11 @@ function execute(${paramList}) {
   // Your code here
   ${getDefaultReturn(returnType)}
 }
+  `;
 
+  if (!fullCode) return finalCode.trim();
+
+  finalCode += `
 /**
  * @param {string[]} inputData
  * @returns {${jsReturnType}}
@@ -631,9 +647,15 @@ function main(inputData) {
 
   return execute(${paramList});
 }`.trim();
+
+  return finalCode;
 }
 
-function generateJava(inputs: SdslInput[], returnType: string) {
+function generateJava(
+  inputs: SdslInput[],
+  returnType: string,
+  fullCode: boolean = true
+) {
   const paramList = inputs
     .map((input) => {
       if (input.type === "array") {
@@ -653,7 +675,7 @@ function generateJava(inputs: SdslInput[], returnType: string) {
     })
     .join(", ");
 
-  return `
+  let finalCode = `
   import java.util.*;
   
   public class Solution {
@@ -663,8 +685,14 @@ function generateJava(inputs: SdslInput[], returnType: string) {
             returnType === "boolean" ? "false" : "0"
           }; // Placeholder return
       }
-  
-      public static void main(String[] args) {
+
+      `;
+
+  if (!fullCode) {
+    return finalCode;
+  }
+
+  finalCode += `public static void main(String[] args) {
           Scanner scanner = new Scanner(System.in);
           ${inputs
             .map((input) => {
@@ -713,10 +741,16 @@ function generateJava(inputs: SdslInput[], returnType: string) {
       }
   }
     `.trim();
+
+  return finalCode;
 }
 
-const generateSdslCode = (sdsl: string, language: string) => {
-  const result = generateCode(sdsl, language as SupportedLanguages);
+const generateSdslCode = (
+  sdsl: string,
+  language: string,
+  fullCode: boolean = true
+) => {
+  const result = generateCode(sdsl, language as SupportedLanguages, fullCode);
   if (!result.success || !result.code) {
     return { error: result.error || "Error generating code" };
   }

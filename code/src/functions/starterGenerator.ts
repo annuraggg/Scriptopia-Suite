@@ -39,15 +39,15 @@
 //   return starterCode;
 // };
 
+import { generateSdslCode } from "./sdsl";
+
 // import sdslToObject from "./sdsl/sdslToObject";
 
 const starterGenerator = (sdsl: string[], language: string) => {
   console.log(sdsl, language);
-  // const joinedsdsl = sdsl?.join("\n");
-  // const sdslObj = sdslToObject(joinedsdsl).sdslObject!;
-  let statement = "";
-
-  return statement;
+  const code = generateSdslCode(sdsl.join("\n"), language, false);
+  console.log(code);
+  return code.code;
 };
 
 export default starterGenerator;

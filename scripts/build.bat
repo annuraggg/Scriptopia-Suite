@@ -10,7 +10,7 @@ set "RED=%ESC%[31m"
 set "RESET=%ESC%[0m"
 
 :: Apps to build
-set "apps=("..\\code" "..\\meet" "..\\main" "..\\enterprise" "..\\candidate" "..\\campus")"
+set "apps=("..\\code" "..\\meet" "..\\main" "..\\enterprise" "..\\candidate" "..\\campus" "..\\server")"
 
 cls
 echo %CYAN%===============================================

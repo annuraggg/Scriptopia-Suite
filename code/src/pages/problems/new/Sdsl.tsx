@@ -50,6 +50,7 @@ const Sdsl = ({
       setCode("");
       setError(true);
       setErrorMessage(code.error || "Error Generating Code");
+      console.error(code.error);
       return;
     }
     setError(false);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Editor from "./Editor/Editor";
 import InfoPanel from "./InfoPanel";
 import Statement from "./LeftPanel/Statement";
@@ -22,6 +22,7 @@ import { useAuth } from "@clerk/clerk-react";
 import defaultLanguages from "@/data/languages";
 import { Problem as ProblemType } from "@shared-types/Problem";
 import { Delta } from "quill/core";
+import starterGenerator from "@/functions/starterGenerator";
 
 const Problem = ({
   loading,
@@ -71,6 +72,12 @@ const Problem = ({
   const [leftPaneActTab, setLeftPaneActTab] = useState<string>("statement");
 
   const [componentLoading, setComponentLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!problem.sdsl) return;
+    const code = starterGenerator(problem.sdsl, language);
+    if (code) setCode(code);
+  }, [problem]);
 
   const runCode = async () => {
     setRunningCode(true);
@@ -212,7 +219,7 @@ const Problem = ({
           loading={componentLoading}
           allowSubmissionsTab={allowSubmissionsTab}
         />
-        <Split mode="vertical" className="w-full">
+        <Split mode="vertical" className="w-full max-w-[45vw] overflow-y-auto max-h-[90vh]">
           <Editor
             runCode={runCode}
             submitCode={submitCode}
