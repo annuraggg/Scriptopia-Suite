@@ -16,13 +16,10 @@ type SupportedLanguages = "python" | "javascript" | "java";
 
 const Sdsl = ({
   sdsl,
-  setsdsl,
+  setSdsl,
 }: {
   sdsl: string;
-  setsdsl: (sdsl: string) => void;
-  setVariableWithDataType: (
-    variableWithDataType: { name: string; type: string }[]
-  ) => void;
+  setSdsl: (sdsl: string) => void;
 }) => {
   const [language, setLanguage] = useState<SupportedLanguages>("javascript");
   const [code, setCode] = useState("");
@@ -85,7 +82,7 @@ const Sdsl = ({
             className="h-[90%] w-full bg-input rounded-xl p-5 outline-none resize-none"
             placeholder="Enter Your SDSL Here"
             value={sdsl}
-            onChange={(e) => setsdsl(e.target.value)}
+            onChange={(e) => setSdsl(e.target.value)}
           />
           <div className="flex gap-3 items-center mt-3">
             <Select

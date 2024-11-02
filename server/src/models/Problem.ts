@@ -22,7 +22,7 @@ const ProblemSchema = new mongoose.Schema({
   },
   tags: { type: [String], required: true },
   votes: { type: Number, default: 0 },
-  scl: { type: [String], required: true },
+  sdsl: { type: [String], required: true },
   testCases: { type: [testCaseSchema], required: true },
   isPrivate: { type: Boolean, default: false },
   allowInAssessments: { type: Boolean, default: false },

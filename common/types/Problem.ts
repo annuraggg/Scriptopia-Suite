@@ -14,7 +14,7 @@ interface Problem {
   difficulty: "easy" | "medium" | "hard";
   tags: string[];
   votes?: number;
-  sclObject: string[];
+  sdsl: string[];
   testCases: TestCase[];
   isPrivate?: boolean;
   allowInAssessments?: boolean;

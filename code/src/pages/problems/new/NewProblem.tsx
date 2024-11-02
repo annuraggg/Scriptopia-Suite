@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import { Button, Card, CardBody, CardHeader } from "@nextui-org/react";
 import Details from "./Details";
-// import Stub from "./Stub";
 import TestCases from "./TestCases";
 import QualityGate from "./QualityGate";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -13,17 +12,12 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { TestCase } from "@shared-types/Problem";
 import Sdsl from "./Sdsl";
-import { parseSdsl } from "@/functions/sdsl";
 
 const steps = [
   {
     title: "Step 1",
     description: "Question Details",
   },
-  // {
-  //   title: "Step ",
-  //   description: "Code Stub",
-  // },
   {
     title: "Step 2",
     description: "SDSL Code Stub",
@@ -49,10 +43,8 @@ const NewProblem = () => {
   const [tags, setTags] = useState<string[]>([]);
   const [description, setDescription] = useState<Delta>({} as Delta);
 
-  // // Stub State
-  // const [functionName, setFunctionName] = useState("");
-  // const [returnType, setReturnType] = useState("");
-  // const [fnArguments, setFnArguments] = useState<FunctionArg[]>([]);
+  // SDSL State
+  const [sdsl, setSdsl] = useState("");
 
   // Test Cases State
   const [testCases, setTestCases] = useState<TestCase[]>([]);
@@ -63,19 +55,10 @@ const NewProblem = () => {
   const [minimumTwoTags, setMinimumTwoTags] = useState(false);
   const [minimum100Words, setMinimum100Words] = useState(false);
 
-  const [sdsl, setsdsl] = useState("");
-  const [variableWithDataType, setVariableWithDataType] = useState<
-    {
-      name: string;
-      type: string;
-    }[]
-  >([]);
-
   const { getToken } = useAuth();
   const buildRequestData = () => {
     const axios = ax(getToken);
-    const sdslObject = parseSdsl(sdsl).data
-    console.log(sdslObject)
+
     axios
       .post("/problems", {
         title,
@@ -83,8 +66,8 @@ const NewProblem = () => {
         difficulty,
         tags,
         description,
-        sdslObject ,
-        testCases,
+        sdsl: sdsl.split("\n"),
+        testCases: testCases,
         minimumFiveCases,
         minimumThreeSampleCases,
         minimumTwoTags,
@@ -156,36 +139,6 @@ const NewProblem = () => {
     else setMinimum100Words(false);
   };
 
-  //   const handleSubmit = async (e: any) => {
-  //     e.preventDefault();
-
-  //     if (true) {
-  //       try {
-  //         await createProblemMutation.mutate();
-  //       } catch (error) {}
-  //     }
-  //   };
-  // };
-
-  // const { getToken } = useAuth();
-  // const axios = ax(getToken);
-
-  // const createProblemMutation = useMutation(
-  //   () => {
-  //     const requestData = buildRequestData();
-  //     const response = await axios.post("/problems", requestData);
-  //     return response.data;
-  //   },
-  //   {
-  //     onSuccess: (data: any) => {
-  //       console.log("Problem created successfully:", data);
-  //     },
-  //     onError: (error: any) => {
-  //       console.error("Error creating problem:", error);
-  //     },
-  //   }
-  // );
-
   return (
     <motion.div
       initial={{ x: -50, opacity: 0 }}
@@ -247,25 +200,11 @@ const NewProblem = () => {
                   }}
                 />
               )}
-              {/* {activeStep === 2 && (
-                <Stub
-                  {...{
-                    functionName,
-                    setFunctionName,
-                    returnType,
-                    setReturnType,
-                    fnArguments,
-                    setFnArguments,
-                  }}
-                />
-              )} */}
               {activeStep === 2 && (
                 <Sdsl
                   {...{
                     sdsl,
-                    setsdsl,
-                    variableWithDataType,
-                    setVariableWithDataType,
+                    setSdsl,
                   }}
                 />
               )}
@@ -274,7 +213,7 @@ const NewProblem = () => {
                   {...{
                     testCases,
                     setTestCases,
-                    fnArguments: variableWithDataType,
+                    sdsl,
                   }}
                 />
               )}

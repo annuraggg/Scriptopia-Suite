@@ -228,7 +228,6 @@ export interface ParsedSdsl {
     tags?: string[];
   };
 }
-
 export interface ParseResult {
   success: boolean;
   error: string | null;
@@ -244,7 +243,6 @@ export interface ParseResult {
   };
   warnings?: string[];
 }
-
 interface ArrayType {
   baseType: string;
   dimensions: number;
@@ -570,7 +568,8 @@ function generateJavaScript(inputs: SdslInput[], returnType: string) {
       char: "String",
       long: "BigInt",
     };
-    return `inputData[${inputIndex}].split(',').map(${ // @ts-expect-error - TS doesn't like the type of parsers
+    return `inputData[${inputIndex}].split(',').map(${
+      // @ts-expect-error - TS doesn't like the type of parsers
       parsers[input.elementType] || "String"
     })`;
   }
@@ -725,6 +724,25 @@ const generateSdslCode = (sdsl: string, language: string) => {
   return { code: result.code };
 };
 
+// function: getInputs - returns in the format: { success: boolean, inputs: SdslInput[], error: string }
+const getInputs = (sdsl: string) => {
+  const result = parseSdsl(sdsl);
+  if (!result.success || !result.data) {
+    return {
+      success: false,
+      inputs: [],
+      error: result.error || "Error parsing SDSL",
+      length: 0,
+    };
+  }
+
+  return {
+    success: true,
+    inputs: result.data.inputs,
+    length: result.data.inputs.length,
+  };
+};
+
 export {
   parseSdsl,
   generateCode,
@@ -732,4 +750,5 @@ export {
   generateJavaScript,
   generateJava,
   generateSdslCode,
+  getInputs,
 };
