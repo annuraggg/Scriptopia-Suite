@@ -1,17 +1,13 @@
 import { Card, Code, Spinner, Tab, Tabs } from "@nextui-org/react";
-import { FlaskConical, SquareChevronRight, TriangleAlert } from "lucide-react";
+import { FlaskConical } from "lucide-react";
 import { RunResponseResult } from "@shared-types/RunResponse";
 
 const InfoPanel = ({
-  consoleOutput,
   cases,
   runningCode,
-  codeError,
 }: {
-  consoleOutput: string;
   cases: RunResponseResult[];
   runningCode: boolean;
-  codeError: string;
 }) => {
   if (runningCode)
     return (
@@ -23,7 +19,6 @@ const InfoPanel = ({
   return (
     <Card className="min-h-[39vh] mt-2 p-2 overflow-auto">
       <Tabs>
-        {" "}
         <Tab
           title={
             <div className="flex items-center gap-2">
@@ -37,7 +32,7 @@ const InfoPanel = ({
             <Tabs className="overflow-auto">
               {cases?.map(
                 (c: RunResponseResult, i: number) =>
-                  c.isSample && (
+                  (c.isSample || (!c.isSample && !c.passed)) && (
                     <Tab
                       key={i}
                       title={
@@ -47,23 +42,43 @@ const InfoPanel = ({
                               c.passed ? "bg-green-500" : "bg-red-500"
                             }`}
                           ></div>
-                          <p>Case {i + 1}</p>
+                          <p>{c.isSample ? `Case ${i + 1}` : "Hidden Case"}</p>
                         </div>
                       }
                       className="h-full"
                     >
                       <div className="overflow-auto h-full">
-                        <Code className="border p-2 rounded-lg w-full">
+                        {c?.error && (
+                          <Code className="border p-2 rounded-lg w-full mt-2 bg-red-500 bg-opacity-20 text-red-300">
+                            <p className="mb-2">Stderr</p>
+                            <Code className="w-full min-h-7 text-red-300">
+                              <pre>{c?.error}</pre>
+                            </Code>
+                          </Code>
+                        )}
+                        <Code className="border p-2 rounded-lg w-full mt-2">
                           <p className="mb-2">Input</p>
-                          <Code className="w-full">{c?.input?.join(",")}</Code>
+                          <Code className="w-full min-h-7">
+                            <pre>{c?.input?.join(", ")}</pre>
+                          </Code>
                         </Code>
                         <Code className="border p-2 rounded-lg w-full mt-2">
                           <p className="mb-2">Expected Output</p>
-                          <Code className="w-full">{c?.expected}</Code>
+                          <Code className="w-full min-h-7">
+                            <pre>{c?.expected}</pre>
+                          </Code>
                         </Code>
                         <Code className="border p-2 rounded-lg w-full mt-2">
                           <p className="mb-2">Output</p>
-                          <Code className="w-full">{c.output}</Code>
+                          <Code className="w-full min-h-7">
+                            <pre>{c?.output}</pre>
+                          </Code>
+                        </Code>
+                        <Code className="border p-2 rounded-lg w-full mt-2">
+                          <p className="mb-2">Stdout</p>
+                          <Code className="w-full min-h-7">
+                            <pre>{c?.consoleOutput?.join("\n")}</pre>
+                          </Code>
                         </Code>
                       </div>
                     </Tab>
@@ -77,50 +92,6 @@ const InfoPanel = ({
               </p>
             </div>
           )}
-        </Tab>
-        <Tab
-          title={
-            <div className="flex items-center gap-2">
-              <SquareChevronRight size={20} className="text-gray-400" />{" "}
-              <p>Console</p>
-            </div>
-          }
-          key="console"
-          className="h-full"
-        >
-          <div className="h-full bg-[#0000008b] p-3 rounded-lg">
-            {console ? (
-              <pre className="text-sm text-gray-500 h-full overflow-auto">
-                {consoleOutput || "No Output Yet."}
-              </pre>
-            ) : (
-              <p className="text-sm text-gray-500 h-full overflow-auto">
-                No Output
-              </p>
-            )}
-          </div>
-        </Tab>{" "}
-        <Tab
-          title={
-            <div className="flex items-center gap-2">
-              <TriangleAlert size={20} className={` ${!codeError ? "text-gray-400" : "text-red-500"}`} />{" "}
-              <p>Error</p>
-            </div>
-          }
-          key="error"
-          className="h-full"
-        >
-          <div className="h-full bg-red-950 text-red-600 p-3 rounded-lg">
-            {console ? (
-              <div className="text-sm h-full overflow-auto">
-                {codeError || "No Errors"}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500 h-full overflow-auto">
-                No Error
-              </p>
-            )}
-          </div>
         </Tab>
       </Tabs>
     </Card>

@@ -110,9 +110,12 @@ const submitCode = async (c: Context) => {
 
     await prob.save();
 
-    await submission.save();
+    console.log("Passed", result.STATUS);
+    if (result.STATUS === "SUCCESS") {
+      await submission.save();
+    }
 
-    return sendSuccess(c, 200, "Success", submission);
+    return sendSuccess(c, 200, "Success", {submission, result});
   } catch (error) {
     console.log(error);
     return sendError(c, 500, "Internal Server Error", error);

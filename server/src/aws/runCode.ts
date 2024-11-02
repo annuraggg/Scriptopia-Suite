@@ -18,7 +18,7 @@ const runCode = async (
 
   const data = {
     testCases,
-    scl,
+    sdsl: scl.join("\n"),
     code,
   };
 
@@ -28,7 +28,9 @@ const runCode = async (
   };
 
   try {
+    console.log("Running Code: ");
     const data = await lambdaClient.send(new InvokeCommand(params));
+
     if (data.FunctionError) {
       return { status: "ERROR", error: data.FunctionError };
     }
@@ -39,6 +41,7 @@ const runCode = async (
 
     return { status: "ERROR" };
   } catch (err) {
+    console.error(err);
     return { status: "ERROR" };
   }
 };
