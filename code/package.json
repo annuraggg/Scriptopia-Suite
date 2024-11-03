@@ -56,6 +56,8 @@
     "vaul": "^0.9.1"
   },
   "devDependencies": {
+    "@rollup/rollup-win32-ia32-msvc": "^4.24.3",
+    "@swc/core": "^1.7.42",
     "@types/canvas-confetti": "^1.6.4",
     "@types/node": "^20.14.1",
     "@types/react": "^18.2.66",

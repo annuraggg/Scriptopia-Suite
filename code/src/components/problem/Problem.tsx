@@ -63,7 +63,7 @@ const Problem = ({
   const [language, setLanguage] = useState<string>(defaultLanguage);
 
   const [outputCases, setOutputCases] = useState<RunResponseResult[]>([]);
-  const [codeError, setCodeError] = useState<string>("");
+  const [/*codeError*/, setCodeError] = useState<string>("");
   const [runningCode, setRunningCode] = useState<boolean>(false);
   const [currentSub, setCurrentSub] = useState<Submission | null>(null);
 

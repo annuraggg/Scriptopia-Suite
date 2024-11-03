@@ -2,17 +2,23 @@ import { Button, Select, SelectItem } from "@nextui-org/react";
 import Monaco from "@/components/problem/Editor/Monaco";
 import { useState } from "react";
 import languages from "@/data/languages";
+import CustomSdsl from "./CustomSdsl";
 import { generateSdslCode } from "@/functions/sdsl";
 import {
   Modal,
   ModalContent,
-  ModalHeader,
   ModalBody,
-  ModalFooter,
   useDisclosure,
 } from "@nextui-org/react";
 
 type SupportedLanguages = "python" | "javascript" | "java";
+
+interface CodeState {
+  [key: string]: {
+    code: string;
+    lastEdited: Date;
+  };
+}
 
 const Sdsl = ({
   sdsl,
@@ -26,8 +32,21 @@ const Sdsl = ({
 
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
   const [editorUpdateFlag, setEditorUpdateFlag] = useState(false);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const [customCodeState, setCustomCodeState] = useState<CodeState>(() => ({
+    javascript: { code: "", lastEdited: new Date() },
+    python: { code: "", lastEdited: new Date() },
+    java: { code: "", lastEdited: new Date() },
+    c: { code: "", lastEdited: new Date() },
+    cpp: { code: "", lastEdited: new Date() },
+    typescript: { code: "", lastEdited: new Date() },
+  }));
+
+  const handleModalClose = () => {
+    onClose();
+  };
 
   const generateCode = () => {
     // if (language === "javascript") {
@@ -59,8 +78,6 @@ const Sdsl = ({
     setCode(code.code);
     setEditorUpdateFlag((prev) => !prev);
   };
-
-  const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
     <div className="h-[90%] p-2">
@@ -138,31 +155,20 @@ const Sdsl = ({
         </div>
       </div>
 
-      <Modal size="full" isOpen={isOpen} onClose={onClose}>
+      <Modal 
+        size="full" 
+        isOpen={isOpen} 
+        onClose={handleModalClose}
+        hideCloseButton
+      >
         <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                Write Custom Driver Code
-              </ModalHeader>
-              <ModalBody>
-                <p className="text-sm">
-                  You can write custom driver code here. This is optional. If
-                  you don't write any code here, the code will be generated
-                  automatically. This can be useful if you want to write custom
-                  driver code and SDSL is not enough.
-                </p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Close
-                </Button>
-                <Button color="primary" onPress={onClose}>
-                  Action
-                </Button>
-              </ModalFooter>
-            </>
-          )}
+          <ModalBody className="p-0">
+            <CustomSdsl 
+              onClose={handleModalClose} 
+              codeState={customCodeState}
+              setCodeState={setCustomCodeState}
+            />
+          </ModalBody>
         </ModalContent>
       </Modal>
     </div>
