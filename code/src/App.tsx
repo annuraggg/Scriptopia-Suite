@@ -10,6 +10,7 @@ const Home = lazy(() => import("./pages/home/Home"));
 // const AssessmentDashboard = lazy(
 //   () => import("./pages/assessments/dashboard/Assessments")
 // );
+const Lander = lazy(() => import("./pages/landing/Lander"));
 const Problems = lazy(() => import("./pages/problems/dashboard/Problems"));
 const Problem = lazy(() => import("./pages/problems/problem/Problem"));
 const NewProblem = lazy(() => import("./pages/problems/new/NewProblem"));
@@ -35,12 +36,16 @@ const MainAssessment = lazy(() => import("./pages/assessments/assess/Assessment"
 const router = createBrowserRouter([
   {
     path: "/",
+    element: <Lander />,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "/app",
     element: <Layout />,
     errorElement: <ErrorPage />,
-
     children: [
       {
-        path: "/dashboard",
+        path: "dashboard",
         element: <Home />,
       },
       // {
@@ -68,15 +73,15 @@ const router = createBrowserRouter([
       //   element: <NewMCQCode />,
       // },
       {
-        path: "/problems",
+        path: "problems",
         element: <Problems />,
       },
       {
-        path: "/problems/new",
+        path: "problems/new",
         element: <NewProblem />,
       },
       {
-        path: "/problems/:id",
+        path: "problems/:id",
         element: <Problem />,
       },
     ],

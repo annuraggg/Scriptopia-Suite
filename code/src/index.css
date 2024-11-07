@@ -282,3 +282,62 @@ html {
   color: #a1a1aa !important;
   margin-left: 2px !important;
 }
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.33%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 20s linear infinite;
+  display: flex;
+}
+
+.shine {
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  width: 100px;
+  height: 100%;
+  transform: skewX(-45deg) translateX(-150%);
+  animation: shine 2s infinite;
+}
+
+@keyframes glow {
+  0% {
+    text-shadow: 0 0 0px #B4F4E3;
+  }
+  50% {
+    text-shadow: 0 0 2px #B4F4E3, 0 0 6px #B4F4E3;
+  }
+  100% {
+    text-shadow: 0 0 0px #B4F4E3;
+  }
+}
+
+.glow-effect {
+  animation: glow 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.floating-image {
+  animation: float 6s ease-in-out infinite;
+}
