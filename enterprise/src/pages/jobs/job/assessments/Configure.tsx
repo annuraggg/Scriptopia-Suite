@@ -1,8 +1,6 @@
 import { Button, Card, CardBody } from "@nextui-org/react";
-import { Assessment } from "@shared-types/Assessment";
 import { Posting } from "@shared-types/Posting";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 const typeMap = {
   ca: "Coding Assessment",
@@ -10,15 +8,22 @@ const typeMap = {
   mcqa: "Multiple Choice Assessment",
 };
 
+const codeStepMap: { [key: string]: string } = {
+  ca: "code",
+  mcqca: "mcq_coding",
+  mcqa: "mcq",
+  rs: "rs",
+  as: "as",
+  pi: "pi",
+  cu: "cu",
+};
+
 const Configure = ({ posting }: { posting: Posting }) => {
-  const navigate = useNavigate();
   const [assessmentTitles, setAssessmentTitles] = useState<string[]>([]);
 
   useEffect(() => {
     setAssessmentTitles(
-      // @ts-expect-error - TS doesn't know the shape of posting
-      posting?.assessments?.map((assessment: Assessment) => assessment.name) ||
-        []
+      posting?.assessments?.map((assessment) => assessment.assessmentId) || []
     );
   }, [posting]);
 
@@ -32,12 +37,12 @@ const Configure = ({ posting }: { posting: Posting }) => {
         configure button
       </p>
 
-      {posting?.workflow?.steps?.map((step, index: number) => (
-        <>
-          {(step.type === "ca" ||
+      {posting?.workflow?.steps?.map(
+        (step, index: number) =>
+          (step.type === "ca" ||
             step.type === "mcqca" ||
             step.type === "mcqa") && (
-            <Card className="w-[50%] mt-3">
+            <Card className="w-[50%] mt-3" key={step._id}>
               <CardBody className="flex flex-row items-center justify-between">
                 <div>
                   {step?.name}
@@ -45,16 +50,20 @@ const Configure = ({ posting }: { posting: Posting }) => {
                     {typeMap[step?.type]}
                   </div>
                 </div>
-                {assessmentTitles.includes(step?.name) ? (
+                {assessmentTitles.includes(step?.stepId) ? (
                   <div className="text-green-500">Configured</div>
                 ) : (
                   <Button
                     variant="flat"
                     color="warning"
                     onClick={() => {
-                      navigate(`new/${step.type}?step=${index}`, {
-                        state: { step: index },
-                      });
+                      window.location.href = `${
+                        import.meta.env.VITE_CODE_URL
+                      }/assessments/new/${
+                        codeStepMap[step.type]
+                      }?isPosting=true&postingId=${
+                        posting._id
+                      }&step=${index}&returnUrl=${window.location.href}`;
                     }}
                   >
                     Configure
@@ -62,9 +71,8 @@ const Configure = ({ posting }: { posting: Posting }) => {
                 )}
               </CardBody>
             </Card>
-          )}
-        </>
-      ))}
+          )
+      )}
     </div>
   );
 };

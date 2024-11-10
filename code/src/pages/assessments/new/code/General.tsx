@@ -1,11 +1,4 @@
-import {
-  Input,
-  RangeCalendar,
-  Textarea,
-  TimeInput,
-  TimeInputValue,
-} from "@nextui-org/react";
-import { today, getLocalTimeZone } from "@internationalized/date";
+import { Input, Textarea } from "@nextui-org/react";
 import { motion } from "framer-motion";
 import type { DateValue } from "@react-types/calendar";
 import type { RangeValue } from "@react-types/shared";
@@ -19,12 +12,6 @@ const General = ({
   setTimeLimit,
   passingPercentage,
   setPassingPercentage,
-  testOpenRange,
-  setTestOpenRange,
-  startTime,
-  setStartTime,
-  endTime,
-  setEndTime,
 }: {
   assessmentName: string;
   setAssessmentName: (name: string) => void;
@@ -35,15 +22,10 @@ const General = ({
   passingPercentage: number;
   setPassingPercentage: (passingPercentage: number) => void;
   testOpenRange: RangeValue<DateValue>;
-  setTestOpenRange: (testOpenRange: RangeValue<DateValue>) => void;
-  startTime: TimeInputValue;
-  setStartTime: (startTime: TimeInputValue) => void;
-  endTime: TimeInputValue;
-  setEndTime: (endTime: TimeInputValue) => void;
 }) => {
   return (
     <div className="flex gap-10 h-full">
-     <motion.div
+      <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -83,34 +65,6 @@ const General = ({
             onChange={(e) => setPassingPercentage(Number(e.target.value))}
           />
         </div>
-      </motion.div>
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.1 }} // Added a delay for staggered animation
-      >
-        <p className="text-sm">Test Open Range</p>
-        <RangeCalendar
-          aria-label="Open Range"
-          className="mt-2"
-          minValue={today(getLocalTimeZone())}
-          value={testOpenRange}
-          onChange={setTestOpenRange}
-        />
-        <TimeInput
-          label="From Time"
-          className="mt-3"
-          size="sm"
-          value={startTime}
-          onChange={setStartTime}
-        />
-        <TimeInput
-          label="To Time"
-          className="mt-3"
-          size="sm"
-          value={endTime}
-          onChange={setEndTime}
-        />
       </motion.div>
     </div>
   );

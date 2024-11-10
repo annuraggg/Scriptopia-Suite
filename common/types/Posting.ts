@@ -70,6 +70,12 @@ interface Assignment {
   submissions: string[]; // Array of candidate IDs who submitted
 }
 
+interface Assessment {
+  assessmentId: string; // Assessment ID
+  stepId: string; // Step ID
+  _id?: string; // Optional ID
+}
+
 interface Posting {
   _id?: string; // Optional ID
   organizationId?: string; // Organization ID
@@ -90,7 +96,7 @@ interface Posting {
   assignments: Assignment[]; // Array of assignments related to the job
   skills: string[]; // Required skills
   ats?: Ats; // ATS configuration
-  assessments?: string[]; // Array of assessment IDs
+  assessments?: Assessment[]; // Array of assessment IDs
   interview?: Interview; // Interview details
   candidates?: string[]; // Array of candidate IDs
   published?: boolean; // Published status

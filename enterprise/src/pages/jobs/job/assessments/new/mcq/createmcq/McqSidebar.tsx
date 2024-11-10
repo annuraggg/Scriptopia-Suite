@@ -1,14 +1,38 @@
 import { useState, useEffect } from "react";
-import {
-  Card,
-  Button,
-  Input,
-  CardHeader,
-  CardFooter,
-} from "@nextui-org/react";
+import { Card, Button, Input, CardHeader, CardFooter } from "@nextui-org/react";
 import { motion } from "framer-motion";
 import { Pencil, Trash2, Plus, Save } from "lucide-react";
-import { Section } from "../../../../../../../types/mcq.types";
+
+export type QuestionType =
+  | "single-select"
+  | "multi-select"
+  | "true-false"
+  | "short-answer"
+  | "long-answer"
+  | "fill-in-blanks"
+  | "matching"
+  | "output"
+  | "visual"
+  | "peer-review";
+
+  interface Question {
+    id: number;
+    type: QuestionType;
+    text: string;
+    options?: { id: number; text: string; isCorrect: boolean }[];
+    maxLimit?: number;
+    imageUrl?: string;
+    code?: string;
+    blankText?: string;
+    blanksAnswers?: string[];
+  }
+
+interface Section {
+  id: number;
+  name: string;
+  questions: Question[];
+  isEditing: boolean;
+}
 
 interface McqSidebarProps {
   sections: Section[];
@@ -21,7 +45,7 @@ const McqSidebar = ({
   sections,
   setSections,
   onSectionSelect,
-  selectedSectionId
+  selectedSectionId,
 }: McqSidebarProps) => {
   const [newSectionName, setNewSectionName] = useState("");
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -29,23 +53,24 @@ const McqSidebar = ({
   const [originalSections, setOriginalSections] = useState<Section[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
-  const sectionsWithEditing = sections.map(section => ({
+  const sectionsWithEditing = sections.map((section) => ({
     ...section,
-    isEditing: false
+    isEditing: false,
   }));
 
   useEffect(() => {
-    const sectionsChanged = JSON.stringify(sectionsWithEditing) !== JSON.stringify(originalSections);
+    const sectionsChanged =
+      JSON.stringify(sectionsWithEditing) !== JSON.stringify(originalSections);
     setHasChanges(sectionsChanged);
   }, [sectionsWithEditing, originalSections]);
 
   const handleAddSection = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && newSectionName.trim()) {
+    if (e.key === "Enter" && newSectionName.trim()) {
       const newSection: Section = {
         id: Date.now(),
         name: newSectionName,
         questions: [],
-        isEditing: false
+        isEditing: false,
       };
       setSections([...sections, newSection]);
       setNewSectionName("");
@@ -54,22 +79,28 @@ const McqSidebar = ({
   };
 
   const handleDeleteSection = (id: number) => {
-    setSections(sections.filter(section => section.id !== id));
+    setSections(sections.filter((section) => section.id !== id));
   };
 
   const startEditing = (id: number) => {
-    setSections(sections.map(section =>
-      section.id === id ? { ...section, isEditing: true } : section
-    ));
+    setSections(
+      sections.map((section) =>
+        section.id === id ? { ...section, isEditing: true } : section
+      )
+    );
   };
 
   const handleEdit = (id: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       const newName = (e.target as HTMLInputElement).value.trim();
       if (newName) {
-        setSections(sections.map(section =>
-          section.id === id ? { ...section, name: newName, isEditing: false } : section
-        ));
+        setSections(
+          sections.map((section) =>
+            section.id === id
+              ? { ...section, name: newName, isEditing: false }
+              : section
+          )
+        );
       }
     }
   };
@@ -110,8 +141,9 @@ const McqSidebar = ({
               key={section.id}
               isHoverable
               isPressable
-              className={`w-full h-10 flex items-center justify-center px-3 cursor-pointer ${selectedSectionId === section.id ? 'bg-primary/10' : ''
-                }`}
+              className={`w-full h-10 flex items-center justify-center px-3 cursor-pointer ${
+                selectedSectionId === section.id ? "bg-primary/10" : ""
+              }`}
               onClick={() => handleSectionClick(section)}
             >
               {section.isEditing ? (
@@ -125,8 +157,11 @@ const McqSidebar = ({
               ) : (
                 <div className="flex items-center justify-between w-full">
                   <div className="overflow-hidden">
-                    <div className={`text-sm whitespace-nowrap ${section.name.length > 20 ? 'animate-marquee' : ''
-                      }`}>
+                    <div
+                      className={`text-sm whitespace-nowrap ${
+                        section.name.length > 20 ? "animate-marquee" : ""
+                      }`}
+                    >
                       {section.name}
                     </div>
                   </div>
@@ -183,12 +218,13 @@ const McqSidebar = ({
             color="primary"
             size="sm"
             startContent={<Save size={16} />}
-            className={`transition-all duration-300 ${hasChanges
-                ? 'opacity-100 hover:shadow-glow-primary'
+            className={`transition-all duration-300 ${
+              hasChanges
+                ? "opacity-100 hover:shadow-glow-primary"
                 : isSaving
-                  ? 'shadow-glow-primary'
-                  : 'opacity-50'
-              }`}
+                ? "shadow-glow-primary"
+                : "opacity-50"
+            }`}
             onClick={handleSave}
             isDisabled={!hasChanges}
           >

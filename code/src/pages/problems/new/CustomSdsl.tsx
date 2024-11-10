@@ -3,12 +3,6 @@ import { Button } from "@nextui-org/react";
 import Monaco from "@/components/problem/Editor/Monaco";
 import { Save, HelpCircle, X } from "lucide-react";
 
-import JSIcon from "./assets/js-icon.svg";
-import PythonIcon from "./assets/python-icon.svg";
-import CIcon from "./assets/c-icon.svg";
-import CppIcon from "./assets/cpp-icon.svg";
-import TSIcon from "./assets/ts-icon.svg";
-
 interface Language {
   id: string;
   name: string;

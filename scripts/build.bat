@@ -10,7 +10,7 @@ set "RED=%ESC%[31m"
 set "RESET=%ESC%[0m"
 
 :: Apps to build
-set "apps=("..\\code" "..\\meet" "..\\main" "..\\enterprise" "..\\candidate" "..\\campus" "..\\server")"
+set "apps=("..\\code" "..\\enterprise" "..\\server" "..\\candidate" "..\\campus" "..\\meet" "..\\main")"
 
 cls
 echo %CYAN%===============================================
@@ -47,9 +47,9 @@ for %%a in %apps% do (
     
     pushd %%~a
     
-    :: Run npm install
-    echo %YELLOW%Installing dependencies...%RESET%
-    call npm install >nul 2>&1
+    @REM :: Run npm install
+    @REM echo %YELLOW%Installing dependencies...%RESET%
+    @REM call npm install >nul 2>&1
     
     :: Run build
     call npm run build

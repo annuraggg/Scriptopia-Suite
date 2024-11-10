@@ -5,7 +5,6 @@ import logger from "../../../utils/logger";
 import { Context } from "hono";
 import Organization from "@/models/Organization";
 import assessmentController from "@/controllers/coding/assessmentController";
-import { Assessment } from "@shared-types/Assessment";
 import mongoose from "mongoose";
 import clerkClient from "@/config/clerk";
 import { AuditLog } from "@shared-types/Organization";
@@ -42,7 +41,7 @@ const getPosting = async (c: Context) => {
     }
 
     const posting = await Posting.findById(c.req.param("id"))
-      .populate("assessments")
+      .populate("assessments.assessmentId")
       .populate("candidates")
       .populate("organizationId")
       .populate("assignments.submissions");
@@ -220,7 +219,9 @@ const updateAssessment = async (c: Context) => {
     }
 
     const newAssessment = await assessmentController.createAssessment(c);
-    const { postingId, name, step } = await c.req.json();
+    const { postingId, step } = await c.req.json();
+
+    console.log(postingId, step);
 
     const resp = await newAssessment.json();
 
@@ -231,14 +232,6 @@ const updateAssessment = async (c: Context) => {
       return sendError(c, 404, "job not found");
     }
 
-    const exists = existingAssessments.assessments.filter(
-      (a) => (a as unknown as Assessment).name === name
-    );
-
-    if (exists.length > 0) {
-      return sendError(c, 400, "Assessment already exists");
-    }
-
     if (!existingAssessments.workflow) {
       return sendError(c, 400, "Workflow not found");
     }
@@ -247,7 +240,10 @@ const updateAssessment = async (c: Context) => {
     await existingAssessments.save();
 
     await Posting.findByIdAndUpdate(postingId, {
-      $push: { assessments: resp.data._id },
+      $push: { assessments: {
+        assessmentId: resp.data._id,
+        stepId: existingAssessments.workflow.steps[step].stepId,
+      } },
       updatedOn: new Date(),
     });
 
@@ -263,7 +259,8 @@ const updateAssessment = async (c: Context) => {
       $push: { auditLogs: auditLog },
     });
 
-    return sendSuccess(c, 200, "Success");
+    console.log(resp.data._id);
+    return sendSuccess(c, 200, "Success", resp.data._id);
   } catch (e: any) {
     logger.error(e);
     return sendError(c, 500, "Something went wrong");

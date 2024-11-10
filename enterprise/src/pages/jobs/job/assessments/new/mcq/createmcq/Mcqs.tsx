@@ -1,10 +1,43 @@
 import { motion } from "framer-motion";
 import McqSidebar from "./McqSidebar";
 import McqContent from "./McqContent";
-import { Section } from "../../../../../../../types/mcq.types";
 
+interface Section {
+  id: number;
+  name: string;
+  questions: Question[];
+  isEditing: boolean;
+}
 
-const Mcqs = ({ sections, setSections, selectedSection, setSelectedSection }: {
+export type QuestionType =
+  | "single-select"
+  | "multi-select"
+  | "true-false"
+  | "short-answer"
+  | "long-answer"
+  | "fill-in-blanks"
+  | "matching"
+  | "output"
+  | "visual"
+  | "peer-review";
+
+interface Question {
+  id: number;
+  type: QuestionType;
+  text: string;
+  options?: { id: number; text: string; isCorrect: boolean }[];
+  maxLimit?: number;
+  imageUrl?: string;
+  code?: string;
+  blankText?: string;
+  blanksAnswers?: string[];
+}
+const Mcqs = ({
+  sections,
+  setSections,
+  selectedSection,
+  setSelectedSection,
+}: {
   sections: Section[];
   setSections: React.Dispatch<React.SetStateAction<Section[]>>;
   selectedSection: Section | null;

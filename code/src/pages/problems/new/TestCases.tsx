@@ -342,7 +342,7 @@ const TestCases = ({
             return validatedValue;
           });
 
-          const output = row["Output"];
+          const output = row["output"];
           if (output === null || output === undefined) {
             toast.error(`Row ${index + 1}: Missing output value`);
             hasErrors = true;
@@ -350,8 +350,9 @@ const TestCases = ({
           const validatedOutput =
             typeof output === "object" ? JSON.stringify(output) : output;
 
-          const difficulty = row["Difficulty"]?.toLowerCase();
+          const difficulty = row["difficulty"]?.toLowerCase();
           if (!["easy", "medium", "hard"].includes(difficulty)) {
+            console.log(difficulty)
             toast.error(
               `Row ${
                 index + 1
@@ -360,7 +361,7 @@ const TestCases = ({
             hasErrors = true;
           }
 
-          const isSampleStr = row["Is Sample"];
+          const isSampleStr = row["isSample"];
           const isSample = isSampleStr?.toLowerCase() === "true";
           if (
             isSampleStr &&

@@ -1,18 +1,18 @@
 import { Button, Input } from "@nextui-org/react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 const Feedback = ({
   feedbackEmail,
   setFeedbackEmail,
   buildAssessmentData,
+  submitting
 }: {
   feedbackEmail: string;
   setFeedbackEmail: (feedbackEmail: string) => void;
   buildAssessmentData: () => void;
+  submitting: boolean;
 }) => {
-  const navigate = useNavigate();
   const [emailError, setEmailError] = useState("");
 
   const validateEmail = (email: string) => {
@@ -42,7 +42,6 @@ const Feedback = ({
 
     try {
       buildAssessmentData();
-      navigate("/assessments");
     } catch (error) {
       console.error("Error during buildAssessmentData:", error);
     }
@@ -72,11 +71,12 @@ const Feedback = ({
         />
       </div>
       <Button
-        className="mt-5 absolute right-5 bottom-5"
+        className="mt-5 float-right"
         color="success"
         variant="flat"
         onClick={handleClick}
         isDisabled={!!emailError || !feedbackEmail}
+        isLoading={submitting}
       >
         Submit
       </Button>

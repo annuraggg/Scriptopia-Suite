@@ -47,7 +47,7 @@ const Navbar = () => {
       >
         <div className="flex items-center gap-2 sm:gap-5">
           <img
-            src="../logo.svg"
+            src="/logo.svg"
             alt="logo"
             className="h-6 w-6 sm:h-8 sm:w-8 mr-2 sm:mr-5 cursor-pointer"
             onClick={() => {

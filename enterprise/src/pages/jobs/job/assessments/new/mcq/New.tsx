@@ -16,7 +16,6 @@ import Security from "./Security";
 import Feedback from "./Feedback";
 import Mcqs from "../mcq/createmcq/Mcqs";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Question, QuestionType } from "../../../../../../types/mcq.types";
 import {
   today,
   getLocalTimeZone,
@@ -26,10 +25,35 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 
+interface Question {
+  id: number;
+  type: QuestionType;
+  text: string;
+  options?: { id: number; text: string; isCorrect: boolean }[];
+  maxLimit?: number;
+  imageUrl?: string;
+  code?: string;
+  blankText?: string;
+  blanksAnswers?: string[];
+}
+
+export type QuestionType =
+  | "single-select"
+  | "multi-select"
+  | "true-false"
+  | "short-answer"
+  | "long-answer"
+  | "fill-in-blanks"
+  | "matching"
+  | "output"
+  | "visual"
+  | "peer-review";
+
 interface Section {
   id: number;
   name: string;
   questions: Question[];
+  isEditing: boolean;
 }
 
 const tabsList = ["General", "MCQs", "Instructions", "Security", "Feedback"];
@@ -55,7 +79,6 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
 
   // MCQs Tab States
 
-
   // Instructions Tab States
   const [instructions, setInstructions] = useState("");
 
@@ -80,7 +103,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
           endTime !== null
         );
       case 1: // MCQs
-        return sections.some(section => section.questions.length > 0);
+        return sections.some((section) => section.questions.length > 0);
       case 2: // Instructions
         return instructions.trim() !== "";
       case 3: // Security
@@ -114,8 +137,8 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
     rangeEnd.setHours(endTime.hour);
     rangeEnd.setMinutes(endTime.minute);
 
-    const formattedMcqs = sections.flatMap(section =>
-      section.questions.map(question => ({
+    const formattedMcqs = sections.flatMap((section) =>
+      section.questions.map((question) => ({
         sectionName: section.name,
         question: question.text,
         type: mapQuestionType(question.type),
@@ -156,7 +179,6 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
           return "checkbox";
         default:
           return "multiple";
-
       }
     };
 
@@ -222,10 +244,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
 
   return (
     <div className="flex items-center justify-center flex-col relative w-full">
-      <Tabs
-        selectedKey={activeTab}
-        onSelectionChange={handleTabChange}
-      >
+      <Tabs selectedKey={activeTab} onSelectionChange={handleTabChange}>
         {tabsList.map((tabItem, i) => (
           <Tab key={i} title={tabItem} className="w-full">
             <Card className="w-full h-[80vh]">
@@ -236,7 +255,9 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
                     variant="shadow"
                     size="sm"
                     isIconOnly
-                    onClick={() => handleTabChange((parseInt(activeTab) - 1).toString())}
+                    onClick={() =>
+                      handleTabChange((parseInt(activeTab) - 1).toString())
+                    }
                     isDisabled={parseInt(activeTab) === 0}
                   >
                     <ChevronLeft />
@@ -245,8 +266,13 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
                     variant="shadow"
                     size="sm"
                     isIconOnly
-                    onClick={() => handleTabChange((parseInt(activeTab) + 1).toString())}
-                    isDisabled={parseInt(activeTab) === tabsList.length - 1 || !isTabValid(parseInt(activeTab))}
+                    onClick={() =>
+                      handleTabChange((parseInt(activeTab) + 1).toString())
+                    }
+                    isDisabled={
+                      parseInt(activeTab) === tabsList.length - 1 ||
+                      !isTabValid(parseInt(activeTab))
+                    }
                   >
                     <ChevronRight />
                   </Button>

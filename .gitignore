@@ -2,6 +2,7 @@ client/.env
 /test
 enterprise/.env
 .VSCodeCounter
+.idea
 
 lambda/failed-workflow/node_modules
 lambda/workflow/node_modules

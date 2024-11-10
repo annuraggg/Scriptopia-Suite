@@ -5,6 +5,7 @@ import "./index.css";
 import { NextUIProvider } from "@nextui-org/react";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { dark } from "@clerk/themes";
+import { Toaster } from "sonner";
 
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 if (!publishableKey) {
@@ -21,6 +22,7 @@ createRoot(document.getElementById("root")!).render(
         publishableKey={publishableKey}
       >
         <App />
+        <Toaster richColors theme="dark" />
       </ClerkProvider>
     </NextUIProvider>
   </StrictMode>
