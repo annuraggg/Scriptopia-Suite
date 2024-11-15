@@ -16,7 +16,7 @@ import {
 import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
 import { CalendarDate, today } from "@internationalized/date";
-import { Edit2, Trash2, Plus, Briefcase } from "lucide-react";
+import { Edit2, Trash2, Plus, BriefcaseBusiness } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -188,29 +188,32 @@ const Responsibilities = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
+              className="flex flex-col items-center justify-center gap-4 p-10"
             >
-              <Card className="py-10">
-                <div className="flex flex-col items-center justify-center gap-4">
-                  <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center">
-                    <Briefcase size={48} className="text-gray-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold">
-                    No Positions of Responsibility Added Yet
-                  </h3>
-                  <p className="text-gray-500">
-                    Add your first position to showcase your leadership
-                    experience.
-                  </p>
-                  <Button
-                    color="primary"
-                    onPress={handleAdd}
-                    startContent={<Plus size={20} />}
-                  >
-                    Add Position
-                  </Button>
-                </div>
-              </Card>
+              <motion.div
+                animate={{
+                  scale: [1, 1.1, 1],
+                  rotate: [0, 5, -5, 0],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                }}
+              >
+                <BriefcaseBusiness size={50} />
+              </motion.div>
+
+              <h3 className="text-xl mt-3">No Responsibilies Added Yet</h3>
+              <p className="text-gray-500">
+                Start by adding your first position of responsibility!
+              </p>
+              <Button
+                onClick={() => onOpen()}
+                startContent={<Plus size={18} />}
+              >
+                Add new
+              </Button>
             </motion.div>
           ) : (
             <motion.div

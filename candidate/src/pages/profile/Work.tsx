@@ -19,7 +19,8 @@ import {
 } from "@nextui-org/react";
 import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
-import { Edit2, Trash2, Download, Plus } from "lucide-react";
+import { Edit2, Trash2, Download, Plus, BriefcaseBusiness } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface Experience {
   id: string;
@@ -64,27 +65,7 @@ const salaryRanges = ["0-10k", "10k-20k", "20k-30k", "30k-40k", "40k+"];
 
 export default function InternshipExperience() {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [experiences, setExperiences] = useState<Experience[]>([
-    {
-      id: "1",
-      companyName: "Playtheory Labs",
-      sector: "Technology",
-      jobTitle: "Full Stack Developer",
-      location: "Work From Home",
-      positionType: "Internship",
-      jobFunction: "Engineering - Web / Software",
-      startDate: "2024-06",
-      endDate: "",
-      currentlyWork: true,
-      salary: "20k-30k",
-      description:
-        "- Developer Multiple Data Based Products using the MERN Stack.\n- Handled Testing and Deployment to various Cloud Providers like AWS, DigitalOcean and OVHCloud.\n- Integrated Tools like Kafka, R2, Cloudflare Workers into Existing Apps\n- Created 3 Data Based Products from Scratch and Served Updates to 2 live apps",
-      tags: [
-        "Engineering - Web / Software",
-        "Computer Science - Software - IT",
-      ],
-    },
-  ]);
+  const [experiences, setExperiences] = useState<Experience[]>([]);
 
   const [editingExperience, setEditingExperience] = useState<Experience | null>(
     null
@@ -155,70 +136,105 @@ export default function InternshipExperience() {
         <BreadcrumbItem href="/profile/experience">Experience</BreadcrumbItem>
       </Breadcrumbs>
 
-      <div className="py-5 flex justify-between items-center">
-        <p>Internship and Work Experience</p>
-        <Button
-          variant="flat"
-          onClick={handleAdd}
-          startContent={<Plus size={18} />}
-        >
-          Add New
-        </Button>
+      <div className="py-5 flex justify-end items-center">
+        {experiences.length > 0 && (
+          <Button
+            variant="flat"
+            onClick={handleAdd}
+            startContent={<Plus size={18} />}
+          >
+            Add New
+          </Button>
+        )}
       </div>
 
       <div className="space-y-6">
-        {experiences.map((experience) => (
-          <Card key={experience.id}>
-            <CardBody>
-              <div className="flex items-start justify-between">
-                <div className="flex gap-5">
-                  <div className="w-12 h-12 bg-default-100 rounded-full flex items-center justify-center">
-                    {experience.companyName.charAt(0)}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold">
-                      {experience.jobTitle}
-                    </h3>
-                    <p className="text-default-500 text-sm">
-                      {experience.companyName} | {experience.startDate} -{" "}
-                      {experience.currentlyWork
-                        ? "Present"
-                        : experience.endDate}{" "}
-                      | {experience.location}
-                    </p>
-                    <div className="flex gap-2 mt-2">
-                      {experience.tags.map((tag) => (
-                        <Chip key={tag}>{tag}</Chip>
-                      ))}
+        {experiences.length === 0 ? (
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex flex-col items-center justify-center gap-4 p-10"
+          >
+            <motion.div
+              animate={{
+                scale: [1, 1.1, 1],
+                rotate: [0, 5, -5, 0],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                repeatType: "reverse",
+              }}
+            >
+              <BriefcaseBusiness size={50} />
+            </motion.div>
+
+            <h3 className="text-xl mt-3">No Work Experience Added Yet</h3>
+            <p className="text-gray-500">
+              Start by adding your first work experience!
+            </p>
+            <Button onClick={() => onOpen()} startContent={<Plus size={18} />}>
+              Add new
+            </Button>
+          </motion.div>
+        ) : (
+          <>
+            {experiences.map((experience) => (
+              <Card key={experience.id}>
+                <CardBody>
+                  <div className="flex items-start justify-between">
+                    <div className="flex gap-5">
+                      <div className="w-12 h-12 bg-default-100 rounded-full flex items-center justify-center">
+                        {experience.companyName.charAt(0)}
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold">
+                          {experience.jobTitle}
+                        </h3>
+                        <p className="text-default-500 text-sm">
+                          {experience.companyName} | {experience.startDate} -{" "}
+                          {experience.currentlyWork
+                            ? "Present"
+                            : experience.endDate}{" "}
+                          | {experience.location}
+                        </p>
+                        <div className="flex gap-2 mt-2">
+                          {experience.tags.map((tag) => (
+                            <Chip key={tag}>{tag}</Chip>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        isIconOnly
+                        variant="light"
+                        onClick={() => handleEdit(experience)}
+                      >
+                        <Edit2 size={18} />
+                      </Button>
+                      <Button
+                        isIconOnly
+                        variant="light"
+                        onClick={() => handleDelete(experience.id)}
+                      >
+                        <Trash2 size={18} />
+                      </Button>
+                      <Button isIconOnly variant="light">
+                        <Download size={18} />
+                      </Button>
                     </div>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    isIconOnly
-                    variant="light"
-                    onClick={() => handleEdit(experience)}
-                  >
-                    <Edit2 size={18} />
-                  </Button>
-                  <Button
-                    isIconOnly
-                    variant="light"
-                    onClick={() => handleDelete(experience.id)}
-                  >
-                    <Trash2 size={18} />
-                  </Button>
-                  <Button isIconOnly variant="light">
-                    <Download size={18} />
-                  </Button>
-                </div>
-              </div>
-              <div className="mt-4 whitespace-pre-line">
-                {experience.description}
-              </div>
-            </CardBody>
-          </Card>
-        ))}
+                  <div className="mt-4 whitespace-pre-line">
+                    {experience.description}
+                  </div>
+                </CardBody>
+              </Card>
+            ))}
+          </>
+        )}
       </div>
 
       <Modal isOpen={isOpen} onClose={onClose} size="2xl">

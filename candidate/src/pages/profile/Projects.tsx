@@ -18,7 +18,7 @@ import {
 } from "@nextui-org/react";
 import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
-import { Plus, Edit2, Trash2 } from "lucide-react";
+import { Plus, Edit2, Trash2, PanelsTopLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { parseDate, CalendarDate, today } from "@internationalized/date";
@@ -189,26 +189,25 @@ const Projects = () => {
               exit={{ opacity: 0, y: -20 }}
               className="flex flex-col items-center justify-center gap-4 p-10"
             >
-              <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center">
-                <motion.div
-                  animate={{
-                    scale: [1, 1.1, 1],
-                    rotate: [0, 5, -5, 0],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    repeatType: "reverse",
-                  }}
-                  className="w-16 h-16 bg-gray-200 rounded-lg"
-                />
-              </div>
-              <h3 className="text-xl">No Projects Added Yet</h3>
+              <motion.div
+                animate={{
+                  scale: [1, 1.1, 1],
+                  rotate: [0, 5, -5, 0],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                }}
+              >
+                <PanelsTopLeft size={50} />
+              </motion.div>
+
+              <h3 className="text-xl mt-3">No Projects Added Yet</h3>
               <p className="text-gray-500">
                 Start by adding your first project!
               </p>
               <Button
-                color="primary"
                 onClick={() => handleOpenModal()}
                 startContent={<Plus size={18} />}
               >

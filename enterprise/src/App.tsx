@@ -81,6 +81,8 @@ const AuditLogs = lazy(
 );
 const OrgData = lazy(() => import("./pages/settings/security/data/Data"));
 
+const StartOnboarding = lazy(() => import("./pages/onboarding/start/Start"));
+
 // Loader component for Suspense fallback
 const Loader = () => (
   <div className="spinner-container">
@@ -134,6 +136,19 @@ function App() {
         <Suspense fallback={<Loader />}>
           <SignedIn>
             <Onboarding />
+          </SignedIn>
+          <SignedOut>
+            <RedirectToSignIn />
+          </SignedOut>
+        </Suspense>
+      ),
+    },
+    {
+      path: "/onboarding/start",
+      element: (
+        <Suspense fallback={<Loader />}>
+          <SignedIn>
+            <StartOnboarding />
           </SignedIn>
           <SignedOut>
             <RedirectToSignIn />

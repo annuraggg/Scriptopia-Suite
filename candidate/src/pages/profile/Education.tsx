@@ -13,8 +13,9 @@ import {
   Select,
   SelectItem,
 } from "@nextui-org/react";
-import { Pencil, Calendar, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Pencil, Calendar, Plus, GraduationCap } from "lucide-react";
+import { useState } from "react";
+import { motion } from "framer-motion";
 
 interface Education {
   institution: string;
@@ -56,21 +57,21 @@ const Education = () => {
     "Electronics",
   ]);
 
-  useEffect(() => {
-    // Sample data
-    setEducations([
-      {
-        institution: "A P shah Institute of Technology,Thane",
-        board: "Department of Engineering",
-        program: "B.E. (Hons.)",
-        branch: "Information Technology",
-        startYear: "2022",
-        endYear: "2025",
-        educationType: "Full Time",
-        percentage: "72.7",
-      },
-    ]);
-  }, []);
+  // useEffect(() => {
+  //   // Sample data
+  //   setEducations([
+  //     {
+  //       institution: "A P shah Institute of Technology,Thane",
+  //       board: "Department of Engineering",
+  //       program: "B.E. (Hons.)",
+  //       branch: "Information Technology",
+  //       startYear: "2022",
+  //       endYear: "2025",
+  //       educationType: "Full Time",
+  //       percentage: "72.7",
+  //     },
+  //   ]);
+  // }, []);
 
   const programs = ["B.E.", "B.Tech", "Diploma", "HSC", "SSC"];
 
@@ -304,91 +305,130 @@ const Education = () => {
       </Breadcrumbs>
 
       <div className="py-5">
-        <div className="flex justify-between items-center mb-4">
-          <p>Education</p>
-          <Button
-            variant="flat"
-            onPress={() => {
-              setCurrentEducation({
-                institution: "",
-                board: "",
-                program: "",
-                branch: "",
-                startYear: "",
-                endYear: "",
-                educationType: "",
-                percentage: "",
-              });
-              onOpen();
-            }}
-            startContent={<Plus size={18} />}
-          >
-            Add New
-          </Button>
+        <div className="flex justify-end items-center mb-4">
+          {educations.length > 0 && (
+            <Button
+              variant="flat"
+              onPress={() => {
+                setCurrentEducation({
+                  institution: "",
+                  board: "",
+                  program: "",
+                  branch: "",
+                  startYear: "",
+                  endYear: "",
+                  educationType: "",
+                  percentage: "",
+                });
+                onOpen();
+              }}
+              startContent={<Plus size={18} />}
+            >
+              Add New
+            </Button>
+          )}
         </div>
 
-        {educations.map((edu, index) => (
-          <Card key={index} className="p-4 mb-4">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">{edu.program}</span>
-                <span className="text-small">
-                  {edu.startYear} - {edu.endYear}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xl text-green-500">
-                  {edu.percentage}%
-                </span>
-                <Button
-                  isIconOnly
-                  size="sm"
-                  onPress={() => {
-                    setCurrentEducation(edu);
-                    onOpen();
-                  }}
-                >
-                  <Pencil size={16} />
-                </Button>
-              </div>
-            </div>
+        {educations.length === 0 ? (
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex flex-col items-center justify-center gap-4 p-10"
+          >
+            <motion.div
+              animate={{
+                scale: [1, 1.1, 1],
+                rotate: [0, 5, -5, 0],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                repeatType: "reverse",
+              }}
+            >
+              <GraduationCap size={50} />
+            </motion.div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="mb-2">
-                  <span className="text-default-500 text-sm">Institution:</span>
-                  <p>{edu.institution}</p>
+            <h3 className="text-xl mt-3">No Education Added Yet</h3>
+            <p className="text-gray-500">
+              Start by adding your first education!
+            </p>
+            <Button onClick={() => onOpen()} startContent={<Plus size={18} />}>
+              Add new
+            </Button>
+          </motion.div>
+        ) : (
+          <>
+            {educations.map((edu, index) => (
+              <Card key={index} className="p-4 mb-4">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{edu.program}</span>
+                    <span className="text-small">
+                      {edu.startYear} - {edu.endYear}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl text-green-500">
+                      {edu.percentage}%
+                    </span>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      onPress={() => {
+                        setCurrentEducation(edu);
+                        onOpen();
+                      }}
+                    >
+                      <Pencil size={16} />
+                    </Button>
+                  </div>
                 </div>
-                <div className="mb-2">
-                  <span className="text-default-500 text-sm">
-                    Board/University:
-                  </span>
-                  <p>{edu.board}</p>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="mb-2">
+                      <span className="text-default-500 text-sm">
+                        Institution:
+                      </span>
+                      <p>{edu.institution}</p>
+                    </div>
+                    <div className="mb-2">
+                      <span className="text-default-500 text-sm">
+                        Board/University:
+                      </span>
+                      <p>{edu.board}</p>
+                    </div>
+                    <div className="mb-2">
+                      <span className="text-default-500 text-sm">
+                        Education Type:
+                      </span>
+                      <p>{edu.educationType}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="mb-2">
+                      <span className="text-default-500 text-sm">
+                        Branch/Specialization:
+                      </span>
+                      <p>{edu.branch}</p>
+                    </div>
+                    <div className="mb-2">
+                      <span className="text-default-500 text-sm">
+                        Duration:
+                      </span>
+                      <p>
+                        {edu.startYear} - {edu.endYear}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="mb-2">
-                  <span className="text-default-500 text-sm">
-                    Education Type:
-                  </span>
-                  <p>{edu.educationType}</p>
-                </div>
-              </div>
-              <div>
-                <div className="mb-2">
-                  <span className="text-default-500 text-sm">
-                    Branch/Specialization:
-                  </span>
-                  <p>{edu.branch}</p>
-                </div>
-                <div className="mb-2">
-                  <span className="text-default-500 text-sm">Duration:</span>
-                  <p>
-                    {edu.startYear} - {edu.endYear}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Card>
-        ))}
+              </Card>
+            ))}
+          </>
+        )}
       </div>
     </div>
   );

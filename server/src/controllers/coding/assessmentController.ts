@@ -643,7 +643,7 @@ const getAssessmentSubmissions = async (c: Context) => {
     };
 
     const checkPassed = async (submission: any) => {
-      const score = submission.obtainedGrades.total;
+      const score = submission?.obtainedGrades?.total || 0;
       const totalScore = assessment.obtainableScore;
       const passingPercentage = assessment.passingPercentage;
       const percentage = (score / totalScore) * 100;
