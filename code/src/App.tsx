@@ -51,27 +51,27 @@ const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: "/assessments",
+        path: "assessments",
         element: <AssessmentDashboard />,
       },
       {
-        path: "/assessments/:id/view",
+        path: "assessments/:id/view",
         element: <ViewAssessment />,
       },
       {
-        path: "/assessments/:id/view/:cid",
+        path: "assessments/:id/view/:cid",
         element: <ViewUserAssessment />,
       },
       {
-        path: "/assessments/new/mcq",
+        path: "assessments/new/mcq",
         element: <NewMCQ />,
       },
       {
-        path: "/assessments/new/code",
+        path: "assessments/new/code",
         element: <NewCode />,
       },
       {
-        path: "/assessments/new/mcqcode",
+        path: "assessments/new/mcqcode",
         element: <NewMCQCode />,
       },
       {
