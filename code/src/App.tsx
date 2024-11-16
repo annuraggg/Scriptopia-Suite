@@ -11,6 +11,7 @@ const AssessmentDashboard = lazy(
   () => import("./pages/assessments/dashboard/Assessments")
 );
 const Lander = lazy(() => import("./pages/landing/Lander"));
+const UnderConstruction = lazy(() => import("./pages/landing/UnderConstruction"));
 const Problems = lazy(() => import("./pages/problems/dashboard/Problems"));
 const Problem = lazy(() => import("./pages/problems/problem/Problem"));
 const NewProblem = lazy(() => import("./pages/problems/new/NewProblem"));
@@ -37,6 +38,10 @@ const ViewUserAssessment = lazy(
 
 const router = createBrowserRouter([
   {
+    path: "/under-construction",
+    element: <UnderConstruction />,
+  },
+  {
     path: "/",
     element: <Lander />,
     errorElement: <ErrorPage />,
@@ -46,6 +51,7 @@ const router = createBrowserRouter([
     element: <Layout />,
     errorElement: <ErrorPage />,
     children: [
+      
       {
         path: "dashboard",
         element: <Home />,

@@ -63,9 +63,6 @@ const ProblemsList = ({ problems }: { problems: Problem[] }) => {
             value={selectedDifficulty}
             onChange={(event) => handleDifficultyChange(event.target.value)}
           >
-            <SelectItem key="all" value="">
-              All
-            </SelectItem>
             <SelectItem key="easy" value="easy">
               Easy
             </SelectItem>

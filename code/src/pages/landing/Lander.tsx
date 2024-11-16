@@ -1,6 +1,8 @@
 import { Button } from "@nextui-org/react";
 import { useTheme } from "@/components/theme-provider";
 import { ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@clerk/clerk-react";
 import Navbar from "./Navbar"
 import Logo from "../../assets/logo.png";
 import img1 from "../../assets/IMG 1.png"
@@ -14,6 +16,17 @@ interface RibbonItem {
 
 const Lander = () => {
   const { theme } = useTheme();
+  const navigate = useNavigate();
+  const { isSignedIn } = useAuth();
+
+  const handleGetStarted = () => {
+    if (isSignedIn) {
+      navigate("/dashboard");
+    } else {
+      navigate("/sign-in");
+    }
+  };
+
   const ribbonItems: RibbonItem[] = [
     { text: "CODE" },
     { text: "LEARN" },
@@ -59,6 +72,7 @@ const Lander = () => {
               <Button
                 className="bg-[#4A5D53] text-white hover:bg-[#3A4D43] transition-colors relative overflow-hidden"
                 endContent={<ArrowRight className="w-4 h-4" />}
+                onClick={handleGetStarted}
               >
                 <span className="relative z-10">Get Started</span>
                 <div className="absolute inset-0 shine"></div>
@@ -131,6 +145,7 @@ const Lander = () => {
                 <Button
                   className="bg-black text-white px-6 py-3"
                   endContent={<ArrowRight className="w-4 h-4" />}
+                  onClick={handleGetStarted}
                 >
                   Start Assessing
                 </Button>
@@ -156,6 +171,7 @@ const Lander = () => {
                   <Button
                     className="bg-black text-white px-6 py-3"
                     endContent={<ArrowRight className="w-4 h-4" />}
+                    onClick={handleGetStarted}
                   >
                     Start Solving Now
                   </Button>
@@ -198,6 +214,7 @@ const Lander = () => {
                 <Button
                   className="bg-[#B4F4E3] text-black hover:bg-[#A3E3D2] transition-colors px-6 py-2 drop-shadow-glow"
                   endContent={<ArrowRight className="w-4 h-4" />}
+                  onClick={handleGetStarted}
                 >
                   Get Started
                 </Button>

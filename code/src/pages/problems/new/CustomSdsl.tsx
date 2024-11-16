@@ -2,11 +2,16 @@ import { useState } from "react";
 import { Button } from "@nextui-org/react";
 import Monaco from "@/components/problem/Editor/Monaco";
 import { Save, HelpCircle, X } from "lucide-react";
+import Js from "../../../assets/js.png"
+import C from "../../../assets/c.png"
+import Python from "../../../assets/python.png"
+import Cpp from "../../../assets/c++.png"
+import Ts from "../../../assets/ts.png"
 
 interface Language {
   id: string;
   name: string;
-  icon: string;
+  logo: string;
 }
 
 interface CodeState {
@@ -26,27 +31,27 @@ const languages: Language[] = [
   {
     id: "javascript",
     name: "JavaScript",
-    icon: "JS",
+    logo: Js,
   },
   {
     id: "python",
     name: "Python",
-    icon: "PY",
+    logo: Python, 
   },
   {
     id: "c",
     name: "C",
-    icon: "C",
+    logo: C,
   },
   {
     id: "cpp",
     name: "C++",
-    icon: "C++",
+    logo: Cpp,
   },
   {
     id: "typescript",
     name: "TypeScript",
-    icon: "TS",
+    logo: Ts,
   },
 ];
 
@@ -140,9 +145,10 @@ const CustomSdslEditor = ({
                 }`}
                 onClick={() => handleLanguageChange(lang.id)}
               >
-                <div className="w-8 h-8 flex items-center justify-center rounded bg-muted">
+                <div className="w-8 h-8 flex items-center justify-center rounded">
                   <img
-                    src={lang.icon}
+                    src={lang.logo}
+                    typeof="image/svg+xml"
                     alt={`${lang.name} Icon`}
                     className="w-6 h-6"
                   />
