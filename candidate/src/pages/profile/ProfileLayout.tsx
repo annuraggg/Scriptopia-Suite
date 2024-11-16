@@ -1,7 +1,10 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useOutletContext } from "react-router-dom";
 import Sidebar from "./Sidebar";
+import { Candidate } from "@shared-types/Candidate";
 
 const Layout = () => {
+  const { user, setUser } = useOutletContext() as { user: Candidate, setUser: (user: Candidate) => void };
+
   return (
     <>
       <div className="">
@@ -9,7 +12,7 @@ const Layout = () => {
           <Sidebar />
 
           <div className="h-full w-full">
-            <Outlet />
+            <Outlet context={{ user, setUser }} />
           </div>
         </div>
       </div>
