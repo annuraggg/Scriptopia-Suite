@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import problemController from "../controllers/coding/problemController";
+import assessmentController from "../controllers/coding/assessmentController";
 
 const app = new Hono();
 
@@ -12,5 +13,7 @@ app.get("/:id", problemController.getProblem);
 app.post("/", problemController.createProblem);
 
 app.post("/explain", problemController.explain);
+
+app.get("/problems/:id/check-dependencies", assessmentController.checkProblemDependencies);
 
 export default app;

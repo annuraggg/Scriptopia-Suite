@@ -142,6 +142,24 @@ const getMyMcqCodeAssessments = async (c: Context) => {
   }
 };
 
+const checkProblemDependencies = async (c: Context) => {
+  try {
+    const problemId = c.req.param("problemId");
+    
+    const assessments = await Assessment.find({
+      problems: problemId,
+      type: { $in: ['code', 'mcqcode'] },
+    })
+    .select('name type openRange')
+    .lean();
+    
+    return sendSuccess(c, 200, "Success", { assessments });
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
 // ! NEED TO BE REMADE AFTER CANDIDATE ASSESSMENT TAKEN SCHEMA IS MADE
 // const getTakenAssessments = async (c: Context) => {
 //   try {
@@ -1169,4 +1187,5 @@ export default {
   checkProgress,
   codeSubmit,
   submitIndividualProblem,
+  checkProblemDependencies,
 };
