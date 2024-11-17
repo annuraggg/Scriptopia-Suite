@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Input, Select, SelectItem, Switch } from "@nextui-org/react";
+import { Input, Select, SelectItem, /*Switch*/ } from "@nextui-org/react";
 import { useEffect } from "react";
 import TagsInput from "react-tagsinput";
 import Quill from "quill";
@@ -10,8 +10,8 @@ import "react-tagsinput/react-tagsinput.css";
 const Details = ({
   title,
   setTitle,
-  isPrivate,
-  setIsPrivate,
+  // isPrivate,
+  //setIsPrivate,
   difficulty,
   setDifficulty,
   tags,
@@ -70,14 +70,14 @@ const Details = ({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
-          <Switch
+          {/* <Switch
             className="w-full"
             size="sm"
             isSelected={isPrivate}
             onValueChange={(e) => setIsPrivate(e)}
           >
             Is this a Private Question
-          </Switch>
+          </Switch> */}
         </div>
         <div className="flex gap-5 mt-5">
           <Select

@@ -381,3 +381,61 @@ html {
 .animation-delay-4000 {
   animation-delay: 4s;
 }
+
+.ql-snow .ql-picker {
+  color: #ffffff;
+}
+
+.ql-snow .ql-picker-options {
+  background-color: #1a1a1a !important; /* Dark background */
+  border: 1px solid #404040 !important;
+  width: 120px !important; /* Fixed width for dropdown */
+}
+
+.ql-snow .ql-picker-item {
+  color: #ffffff !important;
+  padding: 5px 8px !important;
+}
+
+.ql-snow .ql-picker-item:hover {
+  background-color: #333333 !important;
+  color: skyblue !important;
+}
+
+.ql-snow .ql-picker-item.ql-selected,
+.ql-snow .ql-picker-item.ql-selected:hover {
+  color: skyblue !important;
+}
+
+.ql-snow .ql-picker-label {
+  color: #ffffff !important;
+  background-color: transparent !important;
+  border: none !important;
+}
+
+.ql-snow .ql-picker-label::before {
+  border-color: #ffffff transparent transparent transparent !important;
+}
+
+.ql-snow .ql-picker.ql-expanded .ql-picker-label {
+  color: skyblue !important;
+}
+
+.ql-snow .ql-picker.ql-expanded .ql-picker-label::before {
+  border-color: skyblue transparent transparent transparent !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="1"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before {
+  font-size: 1.1em !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="2"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before {
+  font-size: 1em !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="3"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before {
+  font-size: 0.85em !important;
+}
