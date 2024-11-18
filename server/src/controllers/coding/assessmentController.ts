@@ -160,29 +160,49 @@ const checkProblemDependencies = async (c: Context) => {
   }
 };
 
-// ! NEED TO BE REMADE AFTER CANDIDATE ASSESSMENT TAKEN SCHEMA IS MADE
-// const getTakenAssessments = async (c: Context) => {
-//   try {
-//     const page = parseInt(c.req.param("page")) || 1;
-//     const auth = getAuth(c);
+const getTakenAssessments = async (c: Context) => {
+  try {
+    const page = parseInt(c.req.param("page")) || 1;
+    // @ts-ignore
+    const auth = getAuth(c);
 
-//     if (!auth?.userId) {
-//       return sendError(c, 401, "Unauthorized");
-//     }
+    if (!auth?.userId) {
+      return sendError(c, 401, "Unauthorized");
+    }
 
-//     const assessments = await Assessment.find({
-//       "candidates.candidates.email": auth.email,
-//     })
-//       .skip((page - 1) * LIMIT_PER_PAGE)
-//       .limit(LIMIT_PER_PAGE)
-//       .lean();
+    const submissions = await AssessmentSubmissions.find({
+      userId: auth.userId
+    })
+    .sort({ submittedAt: -1 })
+    .skip((page - 1) * LIMIT_PER_PAGE)
+    .limit(LIMIT_PER_PAGE)
+    .lean();
 
-//     return sendSuccess(c, 200, "Success", assessments);
-//   } catch (error) {
-//     console.error(error);
-//     return sendError(c, 500, "Internal Server Error", error);
-//   }
-// };
+    const assessmentIds = submissions.map(sub => sub.assessmentId);
+    const assessments = await Assessment.find({
+      _id: { $in: assessmentIds }
+    }).lean();
+
+    const takenAssessments = submissions.map(submission => {
+      const assessment = assessments.find(
+        a => a._id.toString() === submission.assessmentId.toString()
+      );
+      return {
+        ...assessment,
+        submissionDetails: {
+          score: submission.obtainedGrades?.total ?? 0,
+          status: submission.status,
+          timeSpent: submission.timer,
+        }
+      };
+    });
+
+    return sendSuccess(c, 200, "Success", takenAssessments);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
 
 const getAssessment = async (c: Context) => {
   try {
@@ -1175,6 +1195,7 @@ export default {
   getMyMcqAssessments,
   getMyCodeAssessments,
   getMyMcqCodeAssessments,
+  getTakenAssessments,
   getAssessment,
   createAssessment,
   verifyAccess,

@@ -8,6 +8,7 @@ app.get("/all/:page", assessmentController.getAssessments);
 app.get("/mcq/created/:page", assessmentController.getMyMcqAssessments);
 app.get("/code/created/:page", assessmentController.getMyCodeAssessments);
 app.get("/mcqcode/created/:page", assessmentController.getMyMcqCodeAssessments);
+app.get("/taken/:page", assessmentController.getTakenAssessments); // !CHANGE
 
 app.get(
   "/mcq/created/:page/:enterprise/:postingId",
@@ -22,7 +23,7 @@ app.get(
   assessmentController.getMyMcqCodeAssessments
 );
 
-app.get("/taken/:page", assessmentController.getMyMcqCodeAssessments); // !CHANGE
+// app.get("/taken/:page", assessmentController.getMyMcqCodeAssessments); // !CHANGE
 
 app.get("/:id", assessmentController.getAssessment);
 app.post("/", assessmentController.createAssessment);
