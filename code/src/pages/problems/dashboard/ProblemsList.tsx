@@ -17,6 +17,8 @@ import { Problem as VanillaProblem } from "@shared-types/Problem";
 interface Problem extends VanillaProblem {
   _id: string;
   status: string;
+  solved: boolean;
+  acceptanceRate: number;
 }
 
 const ProblemsList = ({ problems }: { problems: Problem[] }) => {
@@ -127,6 +129,7 @@ const ProblemsList = ({ problems }: { problems: Problem[] }) => {
             <TableColumn>Problem</TableColumn>
             <TableColumn>Difficulty</TableColumn>
             <TableColumn>Tags</TableColumn>
+            <TableColumn>Acceptance Rate</TableColumn>
             <TableColumn>Status</TableColumn>
           </TableHeader>
           <TableBody>
@@ -155,7 +158,10 @@ const ProblemsList = ({ problems }: { problems: Problem[] }) => {
                     {problem.tags.join(", ")}
                   </p>
                 </TableCell>
-                <TableCell>{problem.status}</TableCell>
+                <TableCell className="justify-center items-center">
+                  {Number(problem.acceptanceRate.toFixed(1)).toString()}%
+                </TableCell>
+                <TableCell>{problem.solved ? "Solved" : "Unsolved"}</TableCell>
               </TableRow>
             ))}
           </TableBody>

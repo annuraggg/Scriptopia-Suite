@@ -96,6 +96,11 @@ const submitCode = async (c: Context) => {
     });
 
     if (result.failedCaseNo === -1) {
+      if (!prob.solvedBy.includes(u)) {
+        prob.solvedBy.push(u);
+        await prob.save();
+      }
+
       const date = new Date();
       const user = await User.findOne({ clerkId: u });
 

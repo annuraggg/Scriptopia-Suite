@@ -12,6 +12,8 @@ interface Problem {
   description: object;
   author?: string;
   difficulty: "easy" | "medium" | "hard";
+  solved: boolean;
+  acceptanceRate: number;
   tags: string[];
   votes?: number;
   sdsl: string[];
