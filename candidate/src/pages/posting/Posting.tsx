@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useAuth, useUser } from "@clerk/clerk-react";
+import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import ax from "@/config/axios";
@@ -13,7 +13,6 @@ import {
   Link,
   Tooltip,
   ScrollShadow,
-  Progress,
 } from "@nextui-org/react";
 import {
   Briefcase,
@@ -29,11 +28,7 @@ import {
   Tags,
   Building2,
   Users,
-  Calendar,
-  Award,
   Workflow,
-  BookOpen,
-  Timer,
 } from "lucide-react";
 import { Posting as PostingType } from "@shared-types/Posting";
 import { Organization } from "@shared-types/Organization";
@@ -49,10 +44,9 @@ interface PostingOrganization extends Omit<PostingType, "organizationId"> {
 }
 
 const Posting = () => {
-  const [applied, setApplied] = useState(false);
+  const [applied] = useState(false);
   const navigate = useNavigate();
   const { getToken } = useAuth();
-  const { user } = useUser();
   const axios = ax(getToken);
   const [posting, setPosting] = useState<PostingOrganization>(
     {} as PostingOrganization

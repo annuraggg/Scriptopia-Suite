@@ -1,7 +1,7 @@
 {
   "name": "enterprise",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "doppler run -- npm run start",
@@ -44,6 +44,7 @@
     "react-tagsinput": "^3.20.3",
     "recharts": "^2.12.7",
     "scriptopia-types": "file:../common/types",
+    "scriptopia-data": "file:../common/data",
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",

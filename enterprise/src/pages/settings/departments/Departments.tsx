@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Breadcrumbs,
   BreadcrumbItem,
@@ -7,7 +7,6 @@ import {
   CardBody,
   Input,
   Textarea,
-  Spinner,
   Modal,
   ModalContent,
   ModalHeader,
@@ -15,30 +14,25 @@ import {
   ModalFooter,
   useDisclosure,
 } from "@nextui-org/react";
-import { useAuth } from "@clerk/clerk-react";
-import ax from "@/config/axios";
-import { toast } from "sonner";
 import { Department } from "@shared-types/Organization";
-import UnsavedToast from "@/components/UnsavedToast";
-import { setToastChanges } from "@/reducers/toastReducer";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/types/Reducer";
 import { useOutletContext } from "react-router-dom";
+import { SettingsContext } from "@/types/SettingsContext";
 
 const Departments: React.FC = () => {
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const { organization, setOrganization } =
+    useOutletContext() as SettingsContext;
+
   const [newDepartment, setNewDepartment] = useState<Omit<Department, "_id">>({
     name: "",
     description: "",
   });
-  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [changes, setChanges] = useState<boolean>(false);
+
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(
+    null
+  );
 
   const [addError, setAddError] = useState<string>("");
   const [editError, setEditError] = useState<string>("");
-
-  const org = useSelector((state: RootState) => state.organization);
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const {
@@ -47,108 +41,100 @@ const Departments: React.FC = () => {
     onOpenChange: onEditOpenChange,
   } = useDisclosure();
 
-  const dispatch = useDispatch();
-  const { getToken } = useAuth();
-  const axios = ax(getToken);
-
-  const res = useOutletContext() as { departments: Department[] };
-  useEffect(() => {
-    setDepartments(res.departments);
-  }, []);
-
-  const triggerSaveToast = () => {
-    if (!changes) {
-      dispatch(setToastChanges(true));
-      setChanges(true);
-    }
-  };
-
-  const save = async () => {
-    setLoading(true);
-    axios
-      .post("organizations/settings/departments", { departments })
-      .then(() => {
-        setChanges(false);
-        dispatch(setToastChanges(false));
-        toast.success("Changes Saved");
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error("Error Saving Changes");
-      })
-      .finally(() => setLoading(false));
-  };
-
   const addDepartment = () => {
     if (!newDepartment.name || !newDepartment.description) {
       setAddError("Please fill in all fields.");
       return;
     }
-    
-    setDepartments([...departments, { ...newDepartment }]);
-    setNewDepartment({ name: "", description: "" });
+
+    const newOrg = { ...organization };
+    newOrg.departments = [...(newOrg.departments || []), newDepartment];
+    setOrganization(newOrg);
     onOpenChange();
-    triggerSaveToast();
-    setAddError(""); 
+    setNewDepartment({ name: "", description: "" });
   };
 
   const updateDepartment = () => {
-    if (editingDepartment) {
-      if (!editingDepartment.name || !editingDepartment.description) {
-        setEditError("Please fill in all fields.");
-        return;
-      }
-
-      const updatedDepartments = departments?.map((dept) =>
-        dept._id === editingDepartment._id ? editingDepartment : dept
-      );
-      setDepartments(updatedDepartments);
-      setEditingDepartment(null);
-      onEditOpenChange();
-      triggerSaveToast();
-      setEditError("");
+    if (!editingDepartment) return;
+    if (!editingDepartment.name || !editingDepartment.description) {
+      setEditError("Please fill in all fields.");
+      return;
     }
-  };
 
-  const deleteDepartment = (id: string) => {
-    setDepartments(departments.filter((dept) => dept._id !== id));
-    triggerSaveToast();
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" />
-      </div>
+    const newOrg = { ...organization };
+    newOrg.departments = newOrg.departments?.map((dept) =>
+      dept._id === editingDepartment._id ? editingDepartment : dept
     );
-  }
+    setOrganization(newOrg);
+    onEditOpenChange();
+    setNewDepartment({ name: "", description: "" });
+  };
+
+  const deleteDepartment = (id: string, name: string) => {
+
+    const newOrg = { ...organization };
+
+    if (id) {
+      newOrg.departments = newOrg.departments?.filter(
+        (dept) => dept._id !== id
+      );
+    } else {
+      newOrg.departments = newOrg.departments?.filter(
+        (dept) => dept.name !== name
+      );
+    }
+
+    setOrganization(newOrg);
+  };
 
   return (
     <div>
-      <UnsavedToast action={save} />
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem>{org.name}</BreadcrumbItem>
+          <BreadcrumbItem>{organization.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
-          <BreadcrumbItem href={"/settings/departments"}>Departments</BreadcrumbItem>
+          <BreadcrumbItem href={"/settings/departments"}>
+            Departments
+          </BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <div className="flex p-5 h-full w-full">
         <div className="flex-grow ml-4 h-full">
           <div className="p-4">
-            <Button onPress={onOpen} className="mb-4" variant="flat">+ Add Department</Button>
+            <Button onPress={onOpen} className="mb-4" variant="flat">
+              + Add Department
+            </Button>
             <div className="space-y-4 h-full">
-              {departments?.map((dept) => (
+              {organization?.departments?.map((dept) => (
                 <Card key={dept._id}>
                   <CardBody>
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-lg">{dept.name}</p>
-                        <p className="text-sm text-gray-400">{dept.description}</p>
+                        <p className="text-sm text-gray-400">
+                          {dept.description}
+                        </p>
                       </div>
                       <div>
-                        <Button onPress={() => { setEditingDepartment(dept); onEditOpen(); }} className="mr-2" variant="flat">Edit</Button>
-                        <Button color="danger" variant="flat" onPress={() => { if (dept._id) deleteDepartment(dept._id); }}>Delete</Button>
+                        <Button
+                          onPress={() => {
+                            setEditingDepartment(dept);
+                            onEditOpen();
+                          }}
+                          className="mr-2"
+                          variant="flat"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          color="danger"
+                          variant="flat"
+                          onClick={() => {
+                            deleteDepartment(dept._id || "", dept.name);
+                          }}
+                        >
+                          Delete
+                        </Button>
                       </div>
                     </div>
                   </CardBody>
@@ -166,18 +152,31 @@ const Departments: React.FC = () => {
             <Input
               label="Name"
               value={newDepartment.name}
-              onChange={(e) => setNewDepartment({ ...newDepartment, name: e.target.value })}
+              onChange={(e) =>
+                setNewDepartment({ ...newDepartment, name: e.target.value })
+              }
             />
             <Textarea
               label="Description"
               value={newDepartment.description}
-              onChange={(e) => setNewDepartment({ ...newDepartment, description: e.target.value })}
+              onChange={(e) =>
+                setNewDepartment({
+                  ...newDepartment,
+                  description: e.target.value,
+                })
+              }
             />
-            {addError && <p className="text-red-500 mt-2 text-sm">{addError}</p>}
+            {addError && (
+              <p className="text-red-500 mt-2 text-sm">{addError}</p>
+            )}
           </ModalBody>
           <ModalFooter>
-            <Button color="danger" variant="light" onPress={onOpenChange}>Cancel</Button>
-            <Button color="primary" onPress={addDepartment}>Add</Button>
+            <Button color="danger" variant="light" onPress={onOpenChange}>
+              Cancel
+            </Button>
+            <Button color="primary" onPress={addDepartment}>
+              Add
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -189,18 +188,34 @@ const Departments: React.FC = () => {
             <Input
               label="Name"
               value={editingDepartment?.name}
-              onChange={(e) => setEditingDepartment({ ...editingDepartment!, name: e.target.value })}
+              onChange={(e) =>
+                setEditingDepartment({
+                  ...editingDepartment!,
+                  name: e.target.value,
+                })
+              }
             />
             <Textarea
               label="Description"
               value={editingDepartment?.description}
-              onChange={(e) => setEditingDepartment({ ...editingDepartment!, description: e.target.value })}
+              onChange={(e) =>
+                setEditingDepartment({
+                  ...editingDepartment!,
+                  description: e.target.value,
+                })
+              }
             />
-            {editError && <p className="text-red-500 mt-2 text-sm">{editError}</p>}
+            {editError && (
+              <p className="text-red-500 mt-2 text-sm">{editError}</p>
+            )}
           </ModalBody>
           <ModalFooter>
-            <Button color="danger" variant="light" onPress={onEditOpenChange}>Cancel</Button>
-            <Button color="primary" onPress={updateDepartment}>Save</Button>
+            <Button color="danger" variant="light" onPress={onEditOpenChange}>
+              Cancel
+            </Button>
+            <Button color="primary" onPress={updateDepartment}>
+              Save
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

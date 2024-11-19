@@ -1,7 +1,6 @@
 import { Outlet, useOutletContext } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import { Candidate } from "@shared-types/Candidate";
-import { useEffect } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";

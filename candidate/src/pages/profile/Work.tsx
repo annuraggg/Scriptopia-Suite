@@ -20,11 +20,8 @@ import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
 import { Edit2, Trash2, Download, Plus, BriefcaseBusiness } from "lucide-react";
 import { motion } from "framer-motion";
-import { useAuth } from "@clerk/clerk-react";
-import ax from "@/config/axios";
 import { Candidate, Work as Experience } from "@shared-types/Candidate";
 import { useOutletContext } from "react-router-dom";
-import { toast } from "sonner";
 import { parseDate, today } from "@internationalized/date";
 
 const positionTypes = [

@@ -141,7 +141,7 @@ const handleResumeScreening = async (posting: PostingType) => {
     if (currentPosting.currentStepStatus === "disqualified") continue;
 
     const data = {
-      candidateId: candidate._id.toString(),
+      candidateId: candidate?._id?.toString() || "",
       resume: candidate.resumeExtract,
     };
 
@@ -195,7 +195,7 @@ const handleAssignmentRound = async (
       transactionalId: "cm0zk1vd900966e8e6czepc4d",
       email: candidate?.email!,
       dataVariables: {
-        name: candidate?.firstName || "",
+        name: candidate?.name || "",
         postingName: posting?.title || "",
         company: organization?.name || "",
         assignmentLink: `${process.env.ENTERPRISE_FRONTEND_URL}/postings/${posting?.url}/assignments/${assignment._id}`,
@@ -248,7 +248,7 @@ const handleAssessmentRound = async (
       transactionalId: "cm16lbamn012iyfq0agp9wl54",
       email: candidate?.email!,
       dataVariables: {
-        name: candidate?.firstName || "",
+        name: candidate?.name || "",
         postingName: posting?.title || "",
         type: assessmentType,
         assessmentLink: `${process.env.SCRIPTOPIA_FRONTEND_URL}/assessments/${

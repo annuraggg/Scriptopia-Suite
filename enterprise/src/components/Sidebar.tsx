@@ -6,7 +6,6 @@ import {
   Users,
   Briefcase,
   PieChart,
-  // Calendar,
   BookOpenText,
   CreditCard,
   HelpCircle,
@@ -14,17 +13,20 @@ import {
   Bell,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "@/types/Reducer";
 import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
 import { Badge } from "@nextui-org/react";
+import { Organization } from "@shared-types/Organization";
+import { MemberWithPermission } from "@shared-types/MemberWithPermission";
+import { Notification } from "@shared-types/Organization";
 
-const Sidebar = ({ notifications }: { notifications: Notification[] }) => {
-  const org = useSelector((state: RootState) => state.organization);
-  if (!org || !org.permissions) {
-    window.location.href = "/";
-  }
-
+const Sidebar = ({
+  notifications,
+  user,
+}: {
+  notifications: Notification[];
+  org: Organization;
+  user: MemberWithPermission;
+}) => {
   const topItems = [
     {
       icon: Home,
@@ -37,24 +39,24 @@ const Sidebar = ({ notifications }: { notifications: Notification[] }) => {
       label: "Jobs",
       link: "/jobs",
       visible:
-        org?.permissions?.includes("view_job") ||
-        org?.permissions?.includes("manage_job"),
+        user?.permissions?.includes("view_job") ||
+        user?.permissions?.includes("manage_job"),
     },
     {
       icon: Users,
       label: "Candidates",
       link: "/candidates",
       visible:
-        org?.permissions?.includes("view_job") ||
-        org?.permissions?.includes("manage_job"),
+        user?.permissions?.includes("view_job") ||
+        user?.permissions?.includes("manage_job"),
     },
     {
       icon: PieChart,
       label: "Analytics",
       link: "/analytics",
       visible:
-        org?.permissions?.includes("view_analytics") ||
-        org?.permissions?.includes("manage_organization"),
+        user?.permissions?.includes("view_analytics") ||
+        user?.permissions?.includes("manage_organization"),
     },
     // {
     //   icon: Calendar,
@@ -76,15 +78,15 @@ const Sidebar = ({ notifications }: { notifications: Notification[] }) => {
       icon: Settings,
       label: "Settings",
       link: "/settings/general",
-      visible: org?.permissions?.includes("manage_organization"),
+      visible: user?.permissions?.includes("manage_organization"),
     },
     {
       icon: CreditCard,
       label: "Billing",
       link: "/billing",
       visible:
-        org?.permissions?.includes("view_billing") ||
-        org?.permissions?.includes("manage_billing"),
+        user?.permissions?.includes("view_billing") ||
+        user?.permissions?.includes("manage_billing"),
     },
     {
       icon: BookOpenText,

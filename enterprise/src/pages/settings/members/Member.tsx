@@ -10,15 +10,10 @@ import {
   Tabs,
   Select,
   SelectItem,
-  Spinner,
 } from "@nextui-org/react";
 import InviteModal from "./InviteModal";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
-import { useAuth, useUser } from "@clerk/clerk-react";
-import ax from "@/config/axios";
-import { toast } from "sonner";
 import { Member } from "@shared-types/Organization";
-import { Role } from "@shared-types/Organization";
 import {
   Modal,
   ModalContent,
@@ -28,23 +23,15 @@ import {
   Button,
   useDisclosure,
 } from "@nextui-org/react";
-import { useDispatch, useSelector } from "react-redux";
-import { setToastChanges } from "@/reducers/toastReducer";
-import UnsavedToast from "@/components/UnsavedToast";
-import { RootState } from "@/types/Reducer";
 import { useOutletContext } from "react-router-dom";
+import { SettingsContext } from "@/types/SettingsContext";
 
 const Members: React.FC = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
   const [members, setMembers] = useState<Member[]>([]);
   const [invitedMembers, setInvitedMembers] = useState<Member[]>([]);
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [changes, setChanges] = useState<boolean>(false);
   const [selectedEmail, setSelectedEmail] = useState<string>("");
-  const [userEmails, setUserEmails] = useState<string[]>([]);
-
-  const dispatch = useDispatch();
 
   const {
     isOpen: removeConfirmOpen,
@@ -57,114 +44,65 @@ const Members: React.FC = () => {
     onOpenChange: onRevokeConfirmOpenChange,
   } = useDisclosure();
 
-  const { getToken } = useAuth();
-  const axios = ax(getToken);
-
-  const { user, isLoaded } = useUser();
+  const { organization, setOrganization, user, rerender } =
+    useOutletContext() as SettingsContext;
 
   useEffect(() => {
-    if (user && isLoaded) {
-      setUserEmails(user.emailAddresses.map((email) => email.emailAddress));
-    }
-  }, [isLoaded, user]);
+    if (!organization.members) return;
+    console.log(organization.members);
 
-  const res = useOutletContext() as {
-    members: Member[];
-    roles: Role[];
-  };
-  console.log(res);
-  useEffect(() => {
-    setMembers(
-      res.members.filter((member: Member) => member.status === "active")
+    const finalMembers = organization.members.filter(
+      (member: Member) => member.status === "active"
     );
 
-    setInvitedMembers(
-      res.members.filter((member: Member) => member.status === "pending")
+    const finalInvitedMembers = organization.members.filter(
+      (member: Member) => member.status === "pending"
     );
 
-    setRoles(res.roles);
-  }, []);
-
-  const saveChanges = () => {
-    const next = () => {
-      setLoading(true);
-      axios
-        .post("organizations/settings/members", {
-          screen: "members",
-          members: members.concat(invitedMembers),
-        })
-        .then(() => {
-          setChanges(false);
-          toast.success("Changes Saved");
-          window.location.reload();
-        })
-        .catch((err) => {
-          console.error(err);
-          toast.error("Error Saving Changes");
-        })
-        .finally(() => {
-          dispatch(setToastChanges(false));
-        });
-    };
-
-    next();
-  };
-
-  const triggerSaveToast = () => {
-    if (!changes) {
-      dispatch(setToastChanges(true));
-    }
-  };
+    setMembers(finalMembers);
+    setInvitedMembers(finalInvitedMembers);
+  }, [rerender]);
 
   const handleInvite = (newMember: Member) => {
+    const newOrganization = { ...organization };
+    newOrganization.members = [...(newOrganization.members || []), newMember];
+    setOrganization(newOrganization);
     setInvitedMembers([...invitedMembers, newMember]);
-    triggerSaveToast();
   };
 
-  const handleRoleChange = (index: number, newRole: Role | string) => {
+  const handleRoleChange = (index: number, newRole: string) => {
     if (!newRole) return;
-    const updatedMembers = [...members];
-    const newRoleId = roles.find((role) => role.slug === newRole)?.slug;
-    if (!newRoleId) return;
-    updatedMembers[index].role = newRoleId;
+    const newOrganization = { ...organization };
+    const updatedMembers = [...(newOrganization.members || [])];
+    updatedMembers[index].role = newRole;
+    setOrganization({ ...newOrganization, members: updatedMembers });
 
-    setMembers(updatedMembers);
-    triggerSaveToast();
-  };
-
-  const removeMember = (email: string) => {
-    const updatedMembers = members.filter((member) => member.email !== email);
-    setMembers(updatedMembers);
-    triggerSaveToast();
     onRemoveConfirmOpenChange();
   };
 
-  const revokeMember = (email: string) => {
-    const updatedInvitedMembers = invitedMembers.filter(
+  const removeMember = (email: string) => {
+    const newOrganization = { ...organization };
+    const updatedMembers = newOrganization.members?.filter(
       (member) => member.email !== email
     );
+    setOrganization({ ...newOrganization, members: updatedMembers });
+  };
 
-    setInvitedMembers(updatedInvitedMembers);
-    triggerSaveToast();
+  const revokeMember = (email: string) => {
+    const newOrganization = { ...organization };
+    const updatedMembers = newOrganization.members?.filter(
+      (member) => member.email !== email
+    );
+    setOrganization({ ...newOrganization, members: updatedMembers });
+
     onRevokeConfirmOpenChange();
   };
 
-  const org = useSelector((state: RootState) => state.organization);
-
-  if (loading || !isLoaded) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
   return (
     <>
-      <UnsavedToast action={saveChanges} />
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem>{org.name}</BreadcrumbItem>
+          <BreadcrumbItem>{organization?.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/members"}>Members</BreadcrumbItem>
         </Breadcrumbs>
@@ -180,7 +118,7 @@ const Members: React.FC = () => {
                 <TableColumn>Actions</TableColumn>
               </TableHeader>
               <TableBody emptyContent={<p>No Members</p>}>
-                {members.map((member, index) => (
+                {members?.map((member, index) => (
                   <TableRow key={member.email}>
                     <TableCell>{member.email}</TableCell>
                     <TableCell>
@@ -188,28 +126,26 @@ const Members: React.FC = () => {
                         ? new Date(member.addedOn).toLocaleDateString()
                         : "pending"}
                     </TableCell>
+
                     <TableCell className="w-[200px]">
                       <Select
                         className="w-[200px]"
-                        defaultSelectedKeys={[(member.role as Role).slug!]}
+                        defaultSelectedKeys={[member.role]}
                         aria-label="Role"
-                        isDisabled={
-                          userEmails.filter((email) => email === member.email)
-                            .length !== 0
-                        }
                         onSelectionChange={(keys) => {
                           handleRoleChange(index, keys.currentKey as string);
                         }}
+                        isDisabled={member._id === user._id}
                       >
-                        {roles.map((role) => (
-                          <SelectItem key={role.slug!} value={role.slug}>
+                        {(organization?.roles || []).map((role) => (
+                          <SelectItem key={role?.slug!} value={role?.slug}>
                             {role.name}
                           </SelectItem>
                         ))}
                       </Select>
                     </TableCell>
                     <TableCell>
-                      {!userEmails.find((email) => email === member.email) && (
+                      {member._id !== user._id && (
                         <p
                           className=" text-danger hover:text-danger-500 duration-300 transition-colors cursor-pointer py-3"
                           onClick={() => {
@@ -238,7 +174,7 @@ const Members: React.FC = () => {
                 <TableColumn>Actions</TableColumn>
               </TableHeader>
               <TableBody emptyContent={<p>No Invited Members</p>}>
-                {invitedMembers.map((member, index) => (
+                {invitedMembers?.map((member, index) => (
                   <TableRow key={index}>
                     <TableCell>{member.email}</TableCell>
                     <TableCell>
@@ -246,11 +182,7 @@ const Members: React.FC = () => {
                         ? new Date(member.addedOn).toLocaleDateString()
                         : "pending"}
                     </TableCell>
-                    <TableCell>
-                      {typeof member.role === "string"
-                        ? member.role
-                        : member.role.name}
-                    </TableCell>
+                    <TableCell>{member.role}</TableCell>
                     <TableCell>
                       <p
                         className=" text-danger hover:text-danger-500 duration-300 transition-colors cursor-pointer py-3"
@@ -272,7 +204,7 @@ const Members: React.FC = () => {
           isOpen={isOpen}
           onOpenChange={onOpenChange}
           onInvite={handleInvite}
-          roles={roles}
+          roles={organization?.roles || []}
         />
       </div>
 

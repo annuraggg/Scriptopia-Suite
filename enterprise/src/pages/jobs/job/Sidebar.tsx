@@ -15,7 +15,6 @@ import { Button, Skeleton, Tooltip } from "@nextui-org/react";
 import { Posting } from "@shared-types/Posting";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { Assessment } from "@shared-types/Assessment";
 import {
   Modal,
   ModalContent,

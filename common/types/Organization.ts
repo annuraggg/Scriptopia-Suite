@@ -19,7 +19,7 @@ interface Member {
   _id?: string;
   user?: string;
   email: string;
-  role: string | Role;
+  role: string;
   addedOn?: Date;
   notifications?: Notification[]; // Updated to include notifications
   status?: "pending" | "active";

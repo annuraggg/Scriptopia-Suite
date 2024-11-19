@@ -34,11 +34,16 @@
       ],
       "@types/*": [
         "src/types/*"
-      ]
+      ],
+      "@shared-data/*": [
+        "../common/data/*"
+      ],
+      
     },
   },
   "include": [
     "src",
-    "../common/types"
+    "../common/types",
+    "../common/data"
   ]
 }

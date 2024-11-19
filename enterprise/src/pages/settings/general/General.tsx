@@ -1,6 +1,6 @@
 import { Image } from "@nextui-org/image";
-import { Button, Input, Spinner } from "@nextui-org/react";
-import { useEffect, useRef, useState } from "react";
+import { Button, Input } from "@nextui-org/react";
+import { useRef, useState } from "react";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { Upload } from "lucide-react";
 import { useAuth } from "@clerk/clerk-react";
@@ -16,26 +16,10 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import AvatarEditor from "react-avatar-editor";
-import { setToastChanges } from "@/reducers/toastReducer";
-import { useDispatch, useSelector } from "react-redux";
-import UnsavedToast from "@/components/UnsavedToast";
-import { RootState } from "@/types/Reducer";
 import { useOutletContext } from "react-router-dom";
-
-interface SettingsInterface {
-  name: string;
-  email: string;
-  website: string;
-  logo: string;
-}
+import { SettingsContext } from "@/types/SettingsContext";
 
 const General = () => {
-  const [companyName, setCompanyName] = useState<string>("");
-  const [logo, setLogo] = useState<string>("");
-  const [companyWebsite, setCompanyWebsite] = useState<string>("");
-  const [companyEmail, setCompanyEmail] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
-
   const [newLogo, setNewLogo] = useState<File>({} as File);
   const [zoom, setZoom] = useState<number>(1);
 
@@ -43,56 +27,16 @@ const General = () => {
   const newLogoRef = useRef<AvatarEditor>(null);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  const [changes, setChanges] = useState<boolean>(false);
-  const dispatch = useDispatch();
+  const { organization, setOrganization } =
+    useOutletContext() as SettingsContext;
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
-  const org = useSelector((state: RootState) => state.organization);
-  const triggerSaveToast = () => {
-    if (!changes) {
-      dispatch(setToastChanges(true));
-    }
-  };
-
-  const settings = useOutletContext() as SettingsInterface;
-  useEffect(() => {
-    console.log(settings);
-    if (settings) {
-      setCompanyName(settings.name);
-      setCompanyEmail(settings.email);
-      setCompanyWebsite(settings.website);
-      setLogo(settings.logo);
-    }
-  }, [settings]);
-
-  const handleSave = async () => {
-    setLoading(true);
-    try {
-      await axios.post("organizations/settings/general", {
-        name: companyName,
-        email: companyEmail,
-        website: companyWebsite,
-        logo: logo,
-      });
-      toast.success("Settings updated successfully");
-      setChanges(false);
-      window.location.reload();
-    } catch (err) {
-      console.error(err);
-      toast.error("Error updating settings. Please try again.");
-    } finally {
-      dispatch(setToastChanges(false));
-    }
-  };
-
   const handleInputChange =
-    (setter: React.Dispatch<React.SetStateAction<string>>) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setter(e.target.value);
-      setChanges(true);
-      triggerSaveToast();
+    (key: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      console.log(key, e.target.value);
+      setOrganization({ ...organization, [key]: e.target.value });
     };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,7 +52,6 @@ const General = () => {
     axios
       .post("organizations/settings/logo", { logo: canvas })
       .then(() => {
-        setLogo(canvas || "");
         toast.success("Logo updated successfully");
         onOpenChange();
       })
@@ -118,28 +61,19 @@ const General = () => {
       });
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
   return (
     <>
-      <UnsavedToast action={handleSave} />
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem>{org.name}</BreadcrumbItem>
+          <BreadcrumbItem>{organization.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/general"}>General</BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <div className="p-5 px-10">
         <div className="w-fit">
-          {logo ? (
-            <Image src={logo} width={200} height={200} />
+          {organization.logo ? (
+            <Image src={organization.logo} width={200} height={200} />
           ) : (
             <p className="mt-5 text-center text-sm opacity-50">
               No Logo Found. Upload one to make your organization look better.
@@ -210,24 +144,24 @@ const General = () => {
         <div className="flex gap-3 w-[50%] items-center mt-10">
           <p className="w-[40%]">Company Name</p>
           <Input
-            value={companyName}
-            onChange={handleInputChange(setCompanyName)}
+            value={organization.name}
+            onChange={handleInputChange("name")}
           />
         </div>
 
         <div className="flex gap-3 w-[50%] items-center mt-3">
           <p className="w-[40%]">Company Email</p>
           <Input
-            value={companyEmail}
-            onChange={handleInputChange(setCompanyEmail)}
+            value={organization.email}
+            onChange={handleInputChange("email")}
           />
         </div>
 
         <div className="flex gap-3 w-[50%] items-center mt-3">
           <p className="w-[40%]">Company Website</p>
           <Input
-            value={companyWebsite}
-            onChange={handleInputChange(setCompanyWebsite)}
+            value={organization.website}
+            onChange={handleInputChange("website")}
           />
         </div>
       </div>
