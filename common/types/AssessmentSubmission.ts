@@ -6,8 +6,8 @@ interface OffenseEntry {
 
 interface OffenseType {
   _id?: string;
-  mcq: number;
-  problem: OffenseEntry[];
+  mcq: number;   // Required
+  problem: OffenseEntry[];  // Required
 }
 
 interface OffenseSchema {
@@ -18,15 +18,15 @@ interface OffenseSchema {
 
 interface McqSubmissionSchema {
   _id?: string;
-  mcqId: string;
-  selectedOptions: string[];
+  mcqId: string;  // Required
+  selectedOptions: string[];  // Required
 }
 
 interface ResultSchema {
   _id?: string;
   caseNo: number;
   caseId: string;
-  output?: string;
+  output?: string;  // Optional, default is " "
   isSample: boolean;
   memory: number;
   time: number;
@@ -36,10 +36,10 @@ interface ResultSchema {
 
 interface ProblemSubmissionSchema {
   _id?: string;
-  problemId: string;
-  code: string;
-  language: string;
-  results: ResultSchema[];
+  problemId: string;  // Required
+  code: string;  // Required
+  language: string;  // Required
+  results: ResultSchema[];  // Required
 }
 
 interface ObtainedGradeSchema {
@@ -51,23 +51,23 @@ interface ObtainedGradeSchema {
     problemId: string;
     obtainedMarks: number;
   }[];
-  total: number;
+  total: number;  // Required
 }
 
 interface AssessmentSubmissionsSchema {
   _id?: string;
-  assessmentId: string;
-  name: string;
-  email: string;
+  assessmentId: string;  // Required
+  name: string;  // Required
+  email: string;  // Required
   offenses?: OffenseSchema;
   mcqSubmissions?: McqSubmissionSchema[];
-  submissions?: ProblemSubmissionSchema[];
-  timer: number;
+  submissions?: ProblemSubmissionSchema[];  // Optional
+  timer: number;  // Required
   sessionRewindUrl?: string;
-  obtainedGrades: ObtainedGradeSchema;
+  obtainedGrades?: ObtainedGradeSchema;  // Required
   cheatingStatus?: "No Copying" | "Light Copying" | "Heavy Copying";
   createdAt?: Date;
-  updatedAt?: Date;
+  updatedAt?: Date;  // Missing in interface, added here
 }
 
 export type {
@@ -77,5 +77,6 @@ export type {
   McqSubmissionSchema,
   ResultSchema,
   ProblemSubmissionSchema,
-  ObtainedGradeSchema, AssessmentSubmissionsSchema
+  ObtainedGradeSchema,
+  AssessmentSubmissionsSchema
 };

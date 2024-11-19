@@ -63,8 +63,9 @@ const Actions = ({
 
       <Tooltip content="Explain Code">
         <Button
-          variant="flat"
-          className={`p-0 max-w-2 m-0 bg-yellow-900 ${allowExplain ? "" : "hidden"}`}
+          variant="light"
+          color="warning"
+          className={`p-0 max-w-2 m-0 ${allowExplain ? "" : "hidden"}`}
           size="sm"
           isIconOnly
           onClick={() => setExplainOpen(true)}
@@ -78,7 +79,8 @@ const Actions = ({
       <Tooltip content="Run Code">
         <Button
           variant="flat"
-          className={`p-0 max-w-2 m-0 bg-green-900 ${allowRun ? "" : "hidden"}`}
+          color="success"
+          className={`p-0 max-w-2 m-0 ${allowRun ? "" : "hidden"}`}
           size="sm"
           isIconOnly
           onClick={triggerRun}
@@ -93,7 +95,8 @@ const Actions = ({
       <Tooltip content="Submit Code">
         <Button
           variant="flat"
-          className={`p-0 max-w-2 m-0 bg-blue-900 ${allowSubmit ? "" : "hidden"}`}
+          color="danger"
+          className={`p-0 max-w-2 m-0 ${allowSubmit ? "" : "hidden"}`}
           size="sm"
           isIconOnly
           onClick={triggerSubmit}

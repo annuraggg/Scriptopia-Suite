@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck
 import {
   Table,
   TableHeader,
@@ -61,8 +61,11 @@ const ViewUserAssessmentBottom = ({
           options:
             mcq?.type === "text"
               ? []
-              : (mcq?.type === "multiple" && mcq?.mcq?.options) ? mcq?.mcq?.options
-                : (mcq?.checkbox?.options) ? mcq?.checkbox?.options : [],
+              : mcq?.type === "multiple" && mcq?.mcq?.options
+              ? mcq?.mcq?.options
+              : mcq?.checkbox?.options
+              ? mcq?.checkbox?.options
+              : [],
           selected:
             submission?.mcqSubmissions?.find(
               (sub) => sub?.mcqId?.toString() === mcq?._id
@@ -70,8 +73,11 @@ const ViewUserAssessmentBottom = ({
           correct:
             mcq?.type === "text"
               ? []
-              : (mcq?.type === "multiple" && mcq?.mcq?.options) ? mcq?.mcq?.options
-                : (mcq?.checkbox?.options) ? mcq?.checkbox?.options : [],
+              : mcq?.type === "multiple" && mcq?.mcq?.options
+              ? mcq?.mcq?.options
+              : mcq?.checkbox?.options
+              ? mcq?.checkbox?.options
+              : [],
           grade: mcq?.grade,
         };
         return mcqObj;

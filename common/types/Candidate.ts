@@ -1,5 +1,5 @@
 interface AppliedPosting {
-  postingId: string;
+  postingId: string; // Required
   query?: string;
   appliedAt?: Date;
   disqualifiedStage?: number;
@@ -25,6 +25,7 @@ interface AppliedPosting {
     as?: {
       score: number;
       asId: string;
+      submittedOn?: Date; // Added this field to match the Mongoose model
     }[];
     pi?: {
       score: number;
@@ -35,18 +36,18 @@ interface AppliedPosting {
       cuId: string;
     }[];
   };
-  status?: "applied" | "shortlisted" | "rejected" | "hired";
+  status?: "applied" | "inprogress" | "rejected" | "hired"; // Updated to match Mongoose model
   currentStepStatus?: "qualified" | "disqualified" | "pending";
 }
 
 interface Candidate {
   name: string;
   _id: string;
-  userId?: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
+  userId?: string; // Optional as per the model
+  firstName: string; // Required
+  lastName: string; // Required
+  email: string; // Required
+  phone: string; // Required
   resumeUrl?: string;
   website?: string;
   resumeExtract?: string;

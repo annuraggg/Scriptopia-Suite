@@ -3,6 +3,11 @@ import Problem from "../../models/Problem";
 import { sendError, sendSuccess } from "../../utils/sendResponse";
 import { getAuth } from "@hono/clerk-auth";
 import Submission from "../../models/Submission";
+import {
+  GoogleGenerativeAI,
+  HarmCategory,
+  HarmBlockThreshold,
+} from "@google/generative-ai";
 
 const LIMIT_PER_PAGE = 20;
 
@@ -88,6 +93,9 @@ const getProblem = async (c: Context) => {
       return sendSuccess(c, 404, "Problem not found");
     }
 
+    console.log(userId);
+    console.log(id);
+
     if (!userId) return sendSuccess(c, 200, "Success", { problem });
 
     const submissions = await Submission.find({
@@ -130,10 +138,67 @@ const createProblem = async (c: Context) => {
   }
 };
 
+const MODEL_NAME = "gemini-1.5-flash-8b";
+const API_KEY = process.env.GEMINI_API_KEY!;
+const genAI = new GoogleGenerativeAI(API_KEY);
+const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+
+const generationConfig = {
+  temperature: 0,
+  topK: 1,
+  topP: 1,
+  maxOutputTokens: 2048,
+  stopSequences: ["Note"],
+};
+
+const safetySettings = [
+  {
+    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
+];
+
+const explain = async (c: Context) => {
+  const { code } = await c.req.json();
+  const appendTemplate = "Just Explain the Following Code DO NOT COMPLETE IT: ";
+
+  try {
+    if (code) {
+      const chat = model.startChat({
+        generationConfig,
+        safetySettings,
+        history: [],
+      });
+
+      const result = await chat.sendMessage(`${appendTemplate} ${code}`);
+      const response = result.response;
+      const toText = response.text();
+
+      return sendSuccess(c, 200, "Success", toText);
+    }
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
 export default {
   getProblems,
   getUserGeneratedProblems,
   getMyProblems,
   getProblem,
   createProblem,
+  explain,
 };

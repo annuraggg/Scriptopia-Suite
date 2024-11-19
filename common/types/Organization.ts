@@ -1,9 +1,17 @@
+interface Notification {
+  _id?: string;
+  title: string;
+  description: string;
+  date?: Date;
+  read?: boolean;
+}
+
 interface Role {
   _id?: string;
   name: string;
   slug: string;
-  default: boolean;
-  description: string;
+  default?: boolean;
+  description?: string;
   permissions: string[];
 }
 
@@ -13,6 +21,7 @@ interface Member {
   email: string;
   role: string | Role;
   addedOn?: Date;
+  notifications?: Notification[]; // Updated to include notifications
   status?: "pending" | "active";
 }
 
@@ -51,10 +60,18 @@ interface Organization {
   departments?: Department[];
   auditLogs?: AuditLog[];
   subscription: Subscription;
-  candidates?: string[];
-  postings?: string[];
+  candidates?: string[]; // Assuming these are string references to candidates
+  postings?: string[]; // Assuming these are string references to postings
   createdOn?: Date;
   updatedOn?: Date;
 }
 
-export type { Member, Department, AuditLog, Subscription, Organization, Role };
+export type {
+  Member,
+  Department,
+  AuditLog,
+  Subscription,
+  Organization,
+  Role,
+  Notification,
+};

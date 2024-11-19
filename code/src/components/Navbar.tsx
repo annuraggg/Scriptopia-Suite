@@ -1,24 +1,24 @@
-import { UserButton, /*useAuth*/ } from "@clerk/clerk-react";
-import Logo from "../assets/logo.png";
+import { UserButton, useAuth } from "@clerk/clerk-react";
 import { Link, Button } from "@nextui-org/react";
-import { EllipsisVertical, Menu, X, } from "lucide-react";
+import { EllipsisVertical, Menu, Moon, Sun, X } from "lucide-react";
 import { useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import {
-//   Dropdown,
-//   DropdownTrigger,
-//   DropdownMenu,
-//   DropdownItem,
-// } from "@nextui-org/react";
+import { useTheme } from "./theme-provider";
+import { useNavigate } from "react-router-dom";
+import {
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+} from "@nextui-org/react";
 
 const Navbar = () => {
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const handleMenu = () => {
     setShowMenu(!showMenu);
   };
 
-  // const { orgId } = useAuth();
+  const { orgId } = useAuth();
 
   const links = [
     {
@@ -31,10 +31,12 @@ const Navbar = () => {
     },
   ];
 
-  // const openOrg = () => {
-  //   if (orgId === null) window.location.href = "/organization/intro";
-  //   else window.location.href = "/organization";
-  // };
+  const openOrg = () => {
+    if (orgId === null) window.location.href = "/organization/intro";
+    else window.location.href = "/organization";
+  };
+
+  const { theme, setTheme } = useTheme();
 
   return (
     <>
@@ -45,7 +47,7 @@ const Navbar = () => {
       >
         <div className="flex items-center gap-2 sm:gap-5">
           <img
-            src={Logo}
+            src="/logo.svg"
             alt="logo"
             className="h-6 w-6 sm:h-8 sm:w-8 mr-2 sm:mr-5 cursor-pointer"
             onClick={() => {
@@ -67,13 +69,21 @@ const Navbar = () => {
         </div>
         <div className="flex items-center gap-2 sm:gap-5">
           <div className="hidden md:flex items-center gap-3">
-            {/* <Dropdown>
+            {<Dropdown>
               <DropdownTrigger className="cursor-pointer"><Menu size={22} /></DropdownTrigger>
               <DropdownMenu aria-label="Static Actions">
                 <DropdownItem onClick={openOrg}>Organization</DropdownItem>
                 <DropdownItem onClick={() => navigate("/profile")}>Profile</DropdownItem>
               </DropdownMenu>
-            </Dropdown> */}
+            </Dropdown>}
+            <Button
+              isIconOnly
+              size="sm"
+              variant="flat"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            >
+              {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+            </Button>
             <UserButton />
           </div>
           <div className="flex md:hidden" onClick={handleMenu}>

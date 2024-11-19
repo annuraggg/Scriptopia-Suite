@@ -49,4 +49,9 @@ app.delete("/mcqcode/created/:id", assessmentController.deleteAssessment);
 app.post("/candidates/qualify", assessmentController.qualifyCandidate);
 app.post("/candidates/disqualify", assessmentController.disqualifyCandidate);
 
+app.post("/checkProgress", assessmentController.checkProgress);
+
+app.post("/submit/code", assessmentController.codeSubmit);
+app.post("/submit/code/individual", assessmentController.submitIndividualProblem);
+
 export default app;

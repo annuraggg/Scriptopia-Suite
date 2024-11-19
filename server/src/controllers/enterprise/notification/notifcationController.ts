@@ -17,7 +17,7 @@ const getNotifications = async (c: Context) => {
     }
 
     const user = organization.members.find(
-      (member) => (member as Member).user === clerkUser.id
+      (member) => (member as unknown as Member).user === clerkUser.id
     );
 
     if (!user) {
@@ -50,7 +50,7 @@ const readNotification = async (c: Context) => {
     }
 
     const user = organization.members.find(
-      (member) => (member as Member).user === clerkUser.id
+      (member) => (member as unknown as Member).user === clerkUser.id
     );
 
     if (!user) {

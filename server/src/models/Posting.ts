@@ -65,6 +65,11 @@ const assignmentSchema = new Schema({
   submissions: { type: [mongoose.Types.ObjectId], ref: "Candidate" },
 });
 
+const assessmentSchema = new Schema({
+  assessmentId: { type: mongoose.Types.ObjectId, required: true },
+  stepId: { type: mongoose.Types.ObjectId, required: true },
+});
+
 const postingSchema = new Schema({
   organizationId: { type: mongoose.Types.ObjectId, ref: "Organization" },
   title: { type: String, required: true },
@@ -86,7 +91,7 @@ const postingSchema = new Schema({
   skills: [{ type: String, required: true }],
 
   ats: { type: atsSchema },
-  assessments: { type: [mongoose.Types.ObjectId], ref: "Assessment" },
+  assessments: { type: [assessmentSchema], ref: "Assessment" },
   interview: { type: interviewSchema },
 
   candidates: { type: [mongoose.Types.ObjectId], ref: "Candidate" },

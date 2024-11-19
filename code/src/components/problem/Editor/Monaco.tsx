@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import * as monaco from "monaco-editor";
+import { useTheme } from "@/components/theme-provider";
+import MonacoEditor, { OnChange } from "@monaco-editor/react";
 
 const Monaco = ({
   code,
@@ -8,6 +9,7 @@ const Monaco = ({
   language,
   editorUpdateFlag = false,
   readOnly = false,
+  allowHighlighting = true,
 }: {
   code: string;
   setCode: (code: string) => void;
@@ -15,47 +17,34 @@ const Monaco = ({
   language: string;
   editorUpdateFlag?: boolean;
   readOnly?: boolean;
+  allowHighlighting?: boolean;
 }) => {
-  useEffect(() => {
-    const editorContainer = document.getElementById("code-editor");
-    if (!editorContainer) return;
+  const { theme } = useTheme();
 
-    // Dispose of any existing models to avoid memory leaks
-    monaco.editor.getModels().forEach((model) => model.dispose());
-
-    // Create the editor if it doesn't already exist
-    const editor = monaco.editor.create(editorContainer, {
-      value: code,
-      language: language,
-      theme: "vs-dark",
-      readOnly: loading || readOnly,
-    });
-
-    const model = editor.getModel();
-    if (model) {
-      // Set up the onChange event listener
-      const onChangeSubscription = model.onDidChangeContent(() => {
-        setCode(model.getValue());
-      });
-
-      return () => {
-        // Clean up the editor and the onChange event listener
-        onChangeSubscription.dispose();
-        editor.dispose();
-      };
+  // Handle changes in the editor content
+  const handleEditorChange: OnChange = (value) => {
+    if (value !== undefined) {
+      setCode(value);
     }
+  };
 
-    return () => {
-      // Clean up the editor on unmount
-      editor.dispose();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    // Additional logic could be placed here to handle editorUpdateFlag changes, if needed.
   }, [editorUpdateFlag]);
+
   return (
-    <div
-      id="code-editor"
-      className="border h-full w-full z-50 overflow-visible"
-    ></div>
+    <div className="border h-full w-full z-50 overflow-visible">
+      <MonacoEditor
+        height="100%"
+        defaultLanguage={allowHighlighting ? language : "plaintext"}
+        value={code}
+        onChange={handleEditorChange}
+        options={{
+          readOnly: loading || readOnly,
+        }}
+        theme={theme === "dark" ? "vs-dark" : "vs-light"}
+      />
+    </div>
   );
 };
 

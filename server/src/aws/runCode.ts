@@ -1,11 +1,10 @@
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import { TestCase } from "@shared-types/Problem";
-import { SclObject } from "@shared-types/Scl";
 const REGION = "ap-south-1";
 
 const runCode = async (
   language: string,
-  sclObject: SclObject[],
+  scl: string[],
   code: string,
   testCases: TestCase[]
 ) => {
@@ -19,7 +18,7 @@ const runCode = async (
 
   const data = {
     testCases,
-    sclObject,
+    sdsl: scl.join("\n"),
     code,
   };
 
@@ -29,7 +28,9 @@ const runCode = async (
   };
 
   try {
+    console.log("Running Code: ");
     const data = await lambdaClient.send(new InvokeCommand(params));
+
     if (data.FunctionError) {
       return { status: "ERROR", error: data.FunctionError };
     }
@@ -40,6 +41,7 @@ const runCode = async (
 
     return { status: "ERROR" };
   } catch (err) {
+    console.error(err);
     return { status: "ERROR" };
   }
 };

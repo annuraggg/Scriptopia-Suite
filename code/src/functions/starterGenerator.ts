@@ -39,25 +39,15 @@
 //   return starterCode;
 // };
 
-import sclToObject from "./scl/sclToObject";
-import createJsTemplate from "./templates/js";
+import { generateSdslCode } from "./sdsl";
 
-const starterGenerator = (scl: string[], language: string) => {
-  const joinedScl = scl?.join("\n");
-  const sclObj = sclToObject(joinedScl).sclObject!;
-  let statement = "";
+// import sdslToObject from "./sdsl/sdslToObject";
 
-  switch (language) {
-    case "javascript":
-      statement = createJsTemplate(sclObj) as string;
-      break;
-
-    default:
-      statement = `// Write your code here`;
-      break;
-  }
-
-  return statement
+const starterGenerator = (sdsl: string[], language: string) => {
+  console.log(sdsl, language);
+  const code = generateSdslCode(sdsl.join("\n"), language, false);
+  console.log(code);
+  return code.code;
 };
 
 export default starterGenerator;

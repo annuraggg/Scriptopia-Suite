@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   Modal,
   ModalContent,
@@ -16,7 +16,7 @@ import {
 import { ClipboardListIcon, CodeXml } from "lucide-react";
 import { ArrowLeftRight, Scissors } from "lucide-react";
 import { Tabs, Tab } from "@nextui-org/tabs";
-import * as monaco from "monaco-editor";
+import MonacoEditor from "@monaco-editor/react"; // Import Monaco Editor
 
 interface CodeSolutionModalProps {
   isOpen: boolean;
@@ -65,31 +65,6 @@ const CodeSolutionModal: React.FC<CodeSolutionModalProps> = ({
   ];
 
   const [tab, setTab] = useState("code");
-
-  const editorRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setTimeout(() => {
-      console.log(problem.code)
-      if (isOpen && editorRef?.current) {
-        const editor = monaco?.editor?.create(editorRef.current!, {
-          value: problem?.code,
-          language: "javascript",
-          theme: "vs-dark",
-          readOnly: true,
-          overviewRulerBorder: false,
-          minimap: {
-            enabled: false,
-          },
-          lineNumbers: "off",
-        });
-
-        return () => {
-          editor?.dispose();
-        };
-      }
-    }, 100);
-  }, [problem, isOpen, tab]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="min-w-[60%]">
@@ -164,11 +139,17 @@ const CodeSolutionModal: React.FC<CodeSolutionModalProps> = ({
             <Tab key="code" title="Code">
               <Card>
                 <CardBody>
-                  <div
-                    id="code-editor"
-                    className="border h-[30vh] w-full z-50 overflow-visible rounded-lg"
-                    ref={editorRef}
-                  ></div>
+                  <MonacoEditor
+                    height="400px"
+                    defaultLanguage="javascript"
+                    defaultValue={problem?.code}
+                    theme="vs-dark"
+                    options={{
+                      readOnly: true,
+                      minimap: { enabled: false },
+                      lineNumbers: "off",
+                    }}
+                  />
                 </CardBody>
               </Card>
             </Tab>

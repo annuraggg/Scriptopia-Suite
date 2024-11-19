@@ -6,7 +6,6 @@ import {
   SelectItem,
   Checkbox,
 } from "@nextui-org/react";
-import { ArrowDownWideNarrow } from "lucide-react";
 import { Department } from "@shared-types/Organization";
 
 interface FilterProps {
@@ -48,7 +47,6 @@ const Filter: React.FC<FilterProps> = ({
     <div className="w-full h-full flex flex-col items-center justify-start mt-1">
       <div className="flex items-center justify-between w-full rounded-lg radius-md">
         <div className="flex items-center gap-1 w-full">
-          <ArrowDownWideNarrow size={24} />
           <p className="text-neutral-400 text-sm">Sort by</p>
         </div>
         <Select
@@ -89,8 +87,8 @@ const Filter: React.FC<FilterProps> = ({
               Internship
             </Checkbox>
           </div>
-          <hr className="w-full h-[1px] bg-gray-200 rounded-lg mt-2"></hr>
-          <p className="text-neutral-400 text-base mt-2">Department</p>
+
+          <p className="text-neutral-400 text-base mt-5">Department</p>
           <div className="flex flex-col items-start justify-start gap-4 w-full text-sm mt-2">
             <Select
               size="sm"

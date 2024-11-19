@@ -37,7 +37,7 @@ interface Assignment {
 
 interface Candidate {
   _id?: string;
-  candidateId?: string;
+  candidateId?: string; // Updated to reflect the schema
   disqualifiedStage?: number;
   disqualifiedReason?: string;
   status: "pending" | "qualified" | "rejected";
@@ -97,4 +97,16 @@ interface Drive {
   updatedOn?: Date;
 }
 
-export type { Interviewer, Interview, Assessment, Ats, Assignment, Candidate, Auto, WorkflowStep, Workflow, Salary, Drive };
+export type {
+  Interviewer,
+  Interview,
+  Assessment,
+  Ats,
+  Assignment,
+  Candidate,
+  Auto,
+  WorkflowStep,
+  Workflow,
+  Salary,
+  Drive,
+};

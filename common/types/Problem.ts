@@ -1,5 +1,3 @@
-
-
 interface TestCase {
   _id?: string;
   input: string[];
@@ -8,28 +6,20 @@ interface TestCase {
   isSample: boolean;
 }
 
-interface FunctionArg {
-  name: string;
-  type: "string" | "number" | "boolean" | "array";
-}
-
-interface Problem extends Document {
-  _id: string;
+interface Problem {
+  _id?: string;
   title: string;
-  description: Record<string, any>;
-  author: string;
+  description: object;
+  author?: string;
   difficulty: "easy" | "medium" | "hard";
   tags: string[];
-  votes: number;
-  scl: string[];
+  votes?: number;
+  sdsl: string[];
   testCases: TestCase[];
-  isPrivate: boolean;
-  allowInAssessments: boolean;
+  isPrivate?: boolean;
+  allowInAssessments?: boolean;
   totalSubmissions?: number;
   successfulSubmissions?: number;
-
-  status?: "Solved" | "Unsolved";
-  acceptanceRate?: number;
 }
 
-export type { Problem, TestCase, FunctionArg };
+export type { Problem, TestCase };

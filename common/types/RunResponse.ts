@@ -6,11 +6,6 @@ interface RunResponse {
   results: RunResponseResult[];
 }
 
-interface Error {
-  name: string;
-  message: string;
-}
-
 interface RunResponseResult {
   input: string[];
   output: string;
@@ -19,7 +14,7 @@ interface RunResponseResult {
   isSample: boolean;
   memory: number;
   time: number;
-  error: Error;
+  error: string;
   consoleOutput: string[];
 }
 

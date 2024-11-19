@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Editor from "./Editor/Editor";
 import InfoPanel from "./InfoPanel";
 import Statement from "./LeftPanel/Statement";
@@ -22,6 +22,8 @@ import { useAuth } from "@clerk/clerk-react";
 import defaultLanguages from "@/data/languages";
 import { Problem as ProblemType } from "@shared-types/Problem";
 import { Delta } from "quill/core";
+import starterGenerator from "@/functions/starterGenerator";
+import { toast } from "sonner";
 
 const Problem = ({
   loading,
@@ -35,6 +37,7 @@ const Problem = ({
   allowSubmissionsTab = true,
   allowSubmit = true,
   allowExplain = true,
+  allowHighlighting = true,
 
   submitOverride,
 }: {
@@ -49,6 +52,7 @@ const Problem = ({
   allowSubmissionsTab?: boolean;
   allowSubmit?: boolean;
   allowExplain?: boolean;
+  allowHighlighting?: boolean;
 
   submitOverride?: (code: string, language: string, problemId: string) => void;
 }) => {
@@ -58,9 +62,8 @@ const Problem = ({
   const [code, setCode] = useState<string>("");
   const [language, setLanguage] = useState<string>(defaultLanguage);
 
-  const [consoleOutput, setConsoleOutput] = useState<string>("");
   const [outputCases, setOutputCases] = useState<RunResponseResult[]>([]);
-  const [codeError, setCodeError] = useState<string>("");
+  const [/*codeError*/, setCodeError] = useState<string>("");
   const [runningCode, setRunningCode] = useState<boolean>(false);
   const [currentSub, setCurrentSub] = useState<Submission | null>(null);
 
@@ -69,6 +72,12 @@ const Problem = ({
   const [leftPaneActTab, setLeftPaneActTab] = useState<string>("statement");
 
   const [componentLoading, setComponentLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!problem.sdsl) return;
+    const code = starterGenerator(problem.sdsl, language);
+    if (code) setCode(code);
+  }, [problem]);
 
   const runCode = async () => {
     setRunningCode(true);
@@ -80,7 +89,7 @@ const Problem = ({
         );
 
         const firstError = res.data.data.results.find(
-          (r: RunResponseResult) => r.error?.name && r.error?.message
+          (r: RunResponseResult) => r.error && r.error
         );
 
         let firstErrorFull = "";
@@ -88,12 +97,6 @@ const Problem = ({
           firstErrorFull = `${firstError.error.name}: ${firstError.error.message}`;
 
         setCodeError(firstErrorFull);
-
-        const consoleOp = res.data.data.results
-          .map((r: RunResponseResult) => r.consoleOutput?.join("\n"))
-          .join("\n");
-
-        setConsoleOutput(consoleOp || "");
 
         if (res.data.data.STATUS === "ERROR") {
           setCodeError(res.data.data.message);
@@ -111,7 +114,7 @@ const Problem = ({
 
   const submitCode = async () => {
     if (submitOverride) {
-      submitOverride(code, language, problem._id);
+      submitOverride(code, language, problem._id as string);
       return new Promise<object>((resolve) =>
         resolve({ success: true, error: "", data: {} })
       );
@@ -123,12 +126,15 @@ const Problem = ({
     return axios
       .post("/submissions/submit", { code, language, problemId: problem._id })
       .then((res) => {
+        console.log(res.data.data.result.results);
         setOutputCases(
-          res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
+          res.data.data.result.results.filter(
+            (r: any) => r.isSample || (!r.isSample && !r.passed)
+          )
         );
 
-        const firstError = res.data.data.results.find(
-          (r: RunResponseResult) => r.error?.name && r.error?.message
+        const firstError = res.data.data.submission.results.find(
+          (r: RunResponseResult) => r.error && r.error
         );
 
         let firstErrorFull = "";
@@ -137,27 +143,24 @@ const Problem = ({
 
         setCodeError(firstErrorFull);
 
-        const consoleOp = res.data.data.results
-          .map((r: RunResponseResult) => r.consoleOutput?.join("\n"))
-          .join("\n");
-
-        setConsoleOutput(consoleOp || "");
         setComponentLoading(false);
 
-        if (res.data.data.status === "FAILED") {
-          runConfetti("error");
-        } else {
+        if (res.data.data.submission.status !== "FAILED") {
           runConfetti("success");
+          setLeftPaneActTab("submissions");
+          const newSubmissions = [...(submissions || [])];
+          newSubmissions.unshift(res.data.data.submission);
+          if (setSubmissions) {
+            setSubmissions(newSubmissions || []);
+          }
+          setCurrentSub(res.data.data.submission);
+          setDrawerOpen(true);
+        } else {
+          toast.warning("Some test cases failed. Please try again.", {
+            position: "top-center",
+          });
         }
 
-        setDrawerOpen(true);
-        setLeftPaneActTab("submissions");
-        const newSubmissions = [...(submissions || [])];
-        newSubmissions.unshift(res.data.data);
-        if (setSubmissions) {
-          setSubmissions(newSubmissions || []);
-        }
-        setCurrentSub(res.data.data);
         return { success: true, error: "", data: {} };
       })
       .catch((err) => {
@@ -210,7 +213,10 @@ const Problem = ({
           loading={componentLoading}
           allowSubmissionsTab={allowSubmissionsTab}
         />
-        <Split mode="vertical" className="w-full">
+        <Split
+          mode="vertical"
+          className="w-full max-w-[45vw] overflow-y-auto max-h-[90vh]"
+        >
           <Editor
             runCode={runCode}
             submitCode={submitCode}
@@ -223,13 +229,9 @@ const Problem = ({
             allowRun={allowRun}
             allowExplain={allowExplain}
             allowSubmit={allowSubmit}
+            allowHighlighting={allowHighlighting}
           />
-          <InfoPanel
-            consoleOutput={consoleOutput}
-            runningCode={runningCode}
-            codeError={codeError}
-            cases={outputCases}
-          />
+          <InfoPanel runningCode={runningCode} cases={outputCases} />
         </Split>
       </Split>
 
@@ -260,7 +262,7 @@ const Problem = ({
                   <CpuIcon size={30} />
                   <div>
                     <h5>Memory Used</h5>
-                    <p>{((currentSub?.avgMemory || 0) * 1000).toFixed(2)} KB</p>
+                    <p>{(currentSub?.avgMemory || 0).toFixed(2)} MB</p>
                   </div>
                 </div>
               </CardBody>

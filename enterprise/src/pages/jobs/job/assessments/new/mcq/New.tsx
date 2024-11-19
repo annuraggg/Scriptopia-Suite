@@ -14,7 +14,7 @@ import General from "./General";
 import Instructions from "./Instructions";
 import Security from "./Security";
 import Feedback from "./Feedback";
-import Mcqs from "./Mcqs";
+import Mcqs from "../mcq/createmcq/Mcqs";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   today,
@@ -24,11 +24,44 @@ import {
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { Mcq } from "@shared-types/Assessment";
+
+interface Question {
+  id: number;
+  type: QuestionType;
+  text: string;
+  options?: { id: number; text: string; isCorrect: boolean }[];
+  maxLimit?: number;
+  imageUrl?: string;
+  code?: string;
+  blankText?: string;
+  blanksAnswers?: string[];
+}
+
+export type QuestionType =
+  | "single-select"
+  | "multi-select"
+  | "true-false"
+  | "short-answer"
+  | "long-answer"
+  | "fill-in-blanks"
+  | "matching"
+  | "output"
+  | "visual"
+  | "peer-review";
+
+interface Section {
+  id: number;
+  name: string;
+  questions: Question[];
+  isEditing: boolean;
+}
 
 const tabsList = ["General", "MCQs", "Instructions", "Security", "Feedback"];
 const New = ({ assessmentName }: { assessmentName: string }) => {
   const [activeTab, setActiveTab] = useState("0");
+
+  const [sections, setSections] = useState<Section[]>([]);
+  const [selectedSection, setSelectedSection] = useState<Section | null>(null);
 
   const [assessmentDescription, setAssessmentDescription] = useState("");
   const [timeLimit, setTimeLimit] = useState(0);
@@ -45,7 +78,6 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
   );
 
   // MCQs Tab States
-  const [mcqs, setMcqs] = useState<Mcq[]>([]);
 
   // Instructions Tab States
   const [instructions, setInstructions] = useState("");
@@ -71,7 +103,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
           endTime !== null
         );
       case 1: // MCQs
-        return mcqs.length > 0;
+        return sections.some((section) => section.questions.length > 0);
       case 2: // Instructions
         return instructions.trim() !== "";
       case 3: // Security
@@ -105,13 +137,15 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
     rangeEnd.setHours(endTime.hour);
     rangeEnd.setMinutes(endTime.minute);
 
-    const mcqSchema = mcqs.map((mcq: Mcq) => ({
-      question: mcq.question,
-      type: mcq.type,
-      mcq: mcq.type === "multiple" ? mcq.mcq : undefined,
-      checkbox: mcq.type === "checkbox" ? mcq.checkbox : undefined,
-      grade: mcq.grade,
-    }));
+    const formattedMcqs = sections.flatMap((section) =>
+      section.questions.map((question) => ({
+        sectionName: section.name,
+        question: question.text,
+        type: mapQuestionType(question.type),
+        options: question.options,
+        grade: 1,
+      }))
+    );
     const step = window.history.state.usr.step;
     const reqBody = {
       assessmentPostingName: assessmentName,
@@ -124,7 +158,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
       timeLimit,
       passingPercentage,
       openRange: { start: rangeStart, end: rangeEnd },
-      mcqs: mcqSchema,
+      mcqs: formattedMcqs,
       candidates: {
         type: "all",
       },
@@ -135,6 +169,17 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
         copyPasteDetection,
       },
       feedbackEmail,
+    };
+
+    const mapQuestionType = (type: QuestionType): string => {
+      switch (type) {
+        case "single-select":
+          return "multiple";
+        case "multi-select":
+          return "checkbox";
+        default:
+          return "multiple";
+      }
     };
 
     const axios = ax(getToken);
@@ -172,10 +217,10 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
       }}
     />,
     <Mcqs
-      {...{
-        mcqs,
-        setMcqs,
-      }}
+      sections={sections}
+      setSections={setSections}
+      selectedSection={selectedSection}
+      setSelectedSection={setSelectedSection}
     />,
     <Instructions {...{ instructions, setInstructions }} />,
     <Security
@@ -199,10 +244,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
 
   return (
     <div className="flex items-center justify-center flex-col relative w-full">
-      <Tabs
-        selectedKey={activeTab}
-        onSelectionChange={handleTabChange}
-      >
+      <Tabs selectedKey={activeTab} onSelectionChange={handleTabChange}>
         {tabsList.map((tabItem, i) => (
           <Tab key={i} title={tabItem} className="w-full">
             <Card className="w-full h-[80vh]">
@@ -213,7 +255,9 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
                     variant="shadow"
                     size="sm"
                     isIconOnly
-                    onClick={() => handleTabChange((parseInt(activeTab) - 1).toString())}
+                    onClick={() =>
+                      handleTabChange((parseInt(activeTab) - 1).toString())
+                    }
                     isDisabled={parseInt(activeTab) === 0}
                   >
                     <ChevronLeft />
@@ -222,8 +266,13 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
                     variant="shadow"
                     size="sm"
                     isIconOnly
-                    onClick={() => handleTabChange((parseInt(activeTab) + 1).toString())}
-                    isDisabled={parseInt(activeTab) === tabsList.length - 1 || !isTabValid(parseInt(activeTab))}
+                    onClick={() =>
+                      handleTabChange((parseInt(activeTab) + 1).toString())
+                    }
+                    isDisabled={
+                      parseInt(activeTab) === tabsList.length - 1 ||
+                      !isTabValid(parseInt(activeTab))
+                    }
                   >
                     <ChevronRight />
                   </Button>

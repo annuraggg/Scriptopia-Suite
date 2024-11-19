@@ -9,11 +9,10 @@ import {
   Tabs,
   TimeInputValue,
 } from "@nextui-org/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import General from "./General";
 import Questions from "./Questions";
 import Grading from "./Grading";
-import Candidates from "./Candidates";
 import Instructions from "./Instructions";
 import Security from "./Security";
 import Feedback from "./Feedback";
@@ -27,20 +26,25 @@ import Languages from "./Languages";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
-import {Problem} from "@shared-types/Problem";
+import { Problem as VanillaProblem } from "@shared-types/Problem";
 import { Problem as ProblemAssessment } from "@shared-types/Assessment";
+import { Key } from "react";
+import { Delta } from "quill/core";
+
+interface Problem extends VanillaProblem {
+  description: Delta;
+}
 
 const tabsList = [
   "General",
   "Languages",
   "Problems",
   "Grading",
-  "Candidates",
   "Instructions",
   "Security",
   "Feedback",
 ];
+
 const New = () => {
   const [activeTab, setActiveTab] = useState("0");
 
@@ -66,32 +70,18 @@ const New = () => {
   const [selectedQuestions, setSelectedQuestions] = useState<Problem[]>([]);
   const [availableQuestions, setAvailableQuestions] = useState<Problem[]>([]);
 
-  const { isLoading } = useQuery({
-    queryKey: ["assessment-new-questions"],
-    queryFn: async () => {
-      const axios = ax(getToken);
-      const data = (await axios.get("/problems/all/1")).data;
-      setAvailableQuestions(data.data);
-      return data;
-    },
-  });
+  const [isLoading, setIsLoading] = useState(true);
 
   // Grading Tab States
-  const [gradingMetric, setGradingMetric] = useState("testcase");
+  const [gradingMetric, setGradingMetric] = useState("questions");
   const [testCaseGrading, setTestCaseGrading] = useState({
     easy: 0,
     medium: 0,
     hard: 0,
   });
-  const [questionsGrading, setQuestionsGrading] = useState<
-    ProblemAssessment[]
-  >([]);
-
-  // Candidates Tab States
-  const [access, setAccess] = useState("all");
-  const [candidates, setCandidates] = useState<
-    { name: string; email: string }[]
-  >([]);
+  const [questionsGrading, setQuestionsGrading] = useState<ProblemAssessment[]>(
+    []
+  );
 
   // Instructions Tab States
   const [instructions, setInstructions] = useState("");
@@ -108,9 +98,42 @@ const New = () => {
   // Feedback Tab States
   const [feedbackEmail, setFeedbackEmail] = useState("");
 
+  const [submitting, setSubmitting] = useState(false);
+
   const { getToken } = useAuth();
 
+  useEffect(() => {
+    setIsLoading(true);
+    const axios = ax(getToken);
+    axios
+      .get("/problems/all/1")
+      .then((data) => {
+        setAvailableQuestions(data.data.data);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, []);
+
+  const getParam = (name: string) => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+  };
+
   const buildAssessmentData = () => {
+    setSubmitting(true);
+    const redirectParam = getParam("returnUrl");
+    const stepParam = getParam("step");
+    const isPosting = getParam("isPosting") === "true";
+    const postingId = getParam("postingId");
+
+    console.log({
+      redirectParam,
+      stepParam,
+      isPosting,
+      postingId,
+    });
+
     const rangeStart = testOpenRange.start.toDate("UTC");
     const rangeEnd = testOpenRange.end.toDate("UTC");
     rangeStart.setHours(startTime.hour);
@@ -119,6 +142,10 @@ const New = () => {
     rangeEnd.setMinutes(endTime.minute);
 
     const reqBody = {
+      assessmentpostingName: assessmentName,
+      postingId: postingId,
+      step: stepParam,
+      isEnterprise: true,
       name: assessmentName,
       description: assessmentDescription,
       type: "code",
@@ -132,8 +159,7 @@ const New = () => {
           ? { type: "testcase", testcases: testCaseGrading }
           : { type: "problem", problem: questionsGrading },
       candidates: {
-        type: access,
-        candidates,
+        type: "all",
       },
       instructions,
       security: {
@@ -149,15 +175,37 @@ const New = () => {
     };
 
     const axios = ax(getToken);
-    axios
-      .post("/assessments", reqBody)
-      .then(() => {
-        toast.success("Assessment created successfully");
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error("Error creating assessment");
-      });
+
+    if (isPosting && postingId) {
+      axios
+        .post("/postings/assessment", reqBody)
+        .then(() => {
+          toast.success("Assessment created successfully");
+          if (redirectParam) window.location.href = redirectParam;
+          else window.location.href = "/assessments";
+        })
+        .catch((err) => {
+          console.error(err);
+          toast.error("Error creating assessment");
+        })
+        .finally(() => setSubmitting(false));
+    } else {
+      axios
+        .post("/assessments", reqBody)
+        .then(() => {
+          toast.success("Assessment created successfully");
+        })
+        .catch((err) => {
+          console.error(err);
+          toast.error("Error creating assessment");
+        })
+        .finally(() => setSubmitting(false));
+    }
+  };
+
+  const handleTabChange = (key: Key) => {
+    const newTabIndex = typeof key === "string" ? parseInt(key) : key;
+    setActiveTab(newTabIndex.toString());
   };
 
   const tabsComponents = [
@@ -202,8 +250,7 @@ const New = () => {
         setQuestionsGrading,
       }}
     />,
-    <Candidates {...{ access, setAccess, candidates, setCandidates }} />,
-    <Instructions {...{ instructions, setInstructions }} />,
+    <Instructions {...{ instructions, setInstructions, errors: {} }} />,
     <Security
       {...{
         codePlayback,
@@ -227,16 +274,14 @@ const New = () => {
         feedbackEmail,
         setFeedbackEmail,
         buildAssessmentData,
+        submitting,
       }}
     />,
   ];
 
   return (
-    <div className="flex items-center justify-center flex-col relative">
-      <Tabs
-        selectedKey={activeTab}
-        onSelectionChange={(e) => setActiveTab(e as string)}
-      >
+    <div className="flex items-center justify-center flex-col relative w-full">
+      <Tabs selectedKey={activeTab} onSelectionChange={handleTabChange}>
         {tabsList.map((tabItem, i) => (
           <Tab key={i} title={tabItem} className="w-full">
             <Card className="w-full h-[80vh]">
@@ -248,8 +293,9 @@ const New = () => {
                     size="sm"
                     isIconOnly
                     onClick={() =>
-                      setActiveTab((parseInt(activeTab) - 1).toString())
+                      handleTabChange((parseInt(activeTab) - 1).toString())
                     }
+                    isDisabled={parseInt(activeTab) === 0 || submitting}
                   >
                     <ChevronLeft />
                   </Button>
@@ -258,7 +304,10 @@ const New = () => {
                     size="sm"
                     isIconOnly
                     onClick={() =>
-                      setActiveTab((parseInt(activeTab) + 1).toString())
+                      handleTabChange((parseInt(activeTab) + 1).toString())
+                    }
+                    isDisabled={
+                      parseInt(activeTab) === tabsList.length - 1 || submitting
                     }
                   >
                     <ChevronRight />

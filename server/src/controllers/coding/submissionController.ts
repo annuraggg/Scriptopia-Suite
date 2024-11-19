@@ -4,8 +4,8 @@ import Problem from "../../models/Problem";
 import { runCode as runCompilerCode } from "../../aws/runCode";
 import Submission from "../../models/Submission";
 import User from "../../models/User";
-import { SclObject } from "@shared-types/Scl";
 import { TestCase } from "@shared-types/Problem";
+import { getAuth } from "@hono/clerk-auth";
 
 const runCode = async (c: Context) => {
   try {
@@ -27,9 +27,9 @@ const runCode = async (c: Context) => {
 
     const result = await runCompilerCode(
       body.language,
-      prob.sclObject as SclObject[],
+      prob.sdsl,
       body.code,
-      prob.testCases as TestCase[]
+      prob.testCases as unknown as TestCase[]
     );
 
     if (!result) {
@@ -56,9 +56,9 @@ const submitCode = async (c: Context) => {
 
     const result = await runCompilerCode(
       body.language,
-      prob.sclObject as SclObject[],
+      prob.sdsl,
       body.code,
-      prob.testCases as TestCase[]
+      prob.testCases as unknown as TestCase[]
     );
 
     const results = result.results.map((r: any) => ({
@@ -72,9 +72,16 @@ const submitCode = async (c: Context) => {
       console: r.console,
     }));
 
+    // @ts-ignore
+    const auth = getAuth(c);
+    const u = auth?.userId
+    if (!u) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
     const submission = new Submission({
       problem: body.problemId,
-      user: c.get("auth").userId,
+      user: u,
       code: body.code,
       language: body.language,
       status: result.failedCaseNo === -1 ? "SUCCESS" : "FAILED",
@@ -90,7 +97,7 @@ const submitCode = async (c: Context) => {
 
     if (result.failedCaseNo === -1) {
       const date = new Date();
-      const user = await User.findOne({ clerkId: c.get("auth").userId });
+      const user = await User.findOne({ clerkId: u });
 
       user?.streak.push(date);
       await user?.save();
@@ -103,10 +110,14 @@ const submitCode = async (c: Context) => {
 
     await prob.save();
 
-    await submission.save();
+    console.log("Passed", result.STATUS);
+    if (result.STATUS === "SUCCESS") {
+      await submission.save();
+    }
 
-    return sendSuccess(c, 200, "Success", submission);
+    return sendSuccess(c, 200, "Success", {submission, result});
   } catch (error) {
+    console.log(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };

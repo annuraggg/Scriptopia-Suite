@@ -101,5 +101,5 @@ export default {
       },
     },
   },
-  plugins: [import("tailwindcss-animate"), nextui()],
+  plugins: [require("tailwindcss-animate"), nextui()],
 };

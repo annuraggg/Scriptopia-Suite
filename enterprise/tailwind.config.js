@@ -1,7 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 
 import tca from "tailwindcss-animate";
-
 import { nextui } from "@nextui-org/react";
 
 export default {
@@ -30,6 +29,9 @@ export default {
       caveat: ["Caveat", "cursive"],
     },
     extend: {
+      boxShadow: {
+        'glow-primary': '0 0 15px rgba(var(--primary), 0.5)',
+      },
       dropShadow: {
         glow: [
           "0 0px 10px rgba(255,255, 255, 0.35)",
@@ -46,37 +48,6 @@ export default {
         "glow-extralight": [
           "0 0px 1px rgba(255,255, 255, 0.1)",
           "0 0px 5px rgba(255, 255,255, 0.1)",
-        ],
-
-        "glow-dark": ["0 0px 10px rgba(1,1,1, 1)", "0 0px 65px rgba(1,1,1, 1)"],
-        "glow-opacity-dark": [
-          "0 0px 10px rgba(0,0, 0, 0.03)",
-          "0 0px 65px rgba(0,0,0, 0.03)",
-        ],
-        "glow-light-dark": [
-          "0 0px 1px rgba(0,0, 0, 0.35)",
-          "0 0px 10px rgba(0,0,0, 0.2)",
-        ],
-        "glow-extralight-dark": [
-          "0 0px 1px rgba(0,0, 0, 0.1)",
-          "0 0px 5px rgba(0,0,0, 0.1)",
-        ],
-
-        "glow-red": [
-          "0 0px 10px rgba(255,0, 0, .3)",
-          "0 0px 65px rgba(255, 0,0, .3)",
-        ],
-        "glow-opacity-red": [
-          "0 0px 10px rgba(255,0, 0, .03)",
-          "0 0px 65px rgba(255, 0,0, .03)",
-        ],
-        "glow-light-red": [
-          "0 0px 1px rgba(255,0, 0, .35)",
-          "0 0px 10px rgba(255, 0,0, .2)",
-        ],
-        "glow-extralight-red": [
-          "0 0px 1px rgba(255,0, 0, .1)",
-          "0 0px 5px rgba(255, 0,0, .1)",
         ],
       },
       colors: {
@@ -134,11 +105,16 @@ export default {
           "30%, 50%, 70%": { transform: "translate3d(-4px, 0, 0)" },
           "40%, 60%": { transform: "translate3d(4px, 0, 0)" },
         },
+        marquee: {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(-100%)' },
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         shake: "shake 0.82s cubic-bezier(.36,.07,.19,.97) both",
+        'marquee': 'marquee 15s linear infinite',
       },
     },
   },

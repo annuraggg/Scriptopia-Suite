@@ -136,19 +136,19 @@ const Departments: React.FC = () => {
       <div className="flex p-5 h-full w-full">
         <div className="flex-grow ml-4 h-full">
           <div className="p-4">
-            <Button onPress={onOpen} className="mb-4">+ Add Department</Button>
+            <Button onPress={onOpen} className="mb-4" variant="flat">+ Add Department</Button>
             <div className="space-y-4 h-full">
               {departments?.map((dept) => (
-                <Card key={dept._id} className="bg-gray-500 bg-opacity-10 border-gray-800">
+                <Card key={dept._id}>
                   <CardBody>
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="text-xl">{dept.name}</p>
+                        <p className="text-lg">{dept.name}</p>
                         <p className="text-sm text-gray-400">{dept.description}</p>
                       </div>
                       <div>
-                        <Button onPress={() => { setEditingDepartment(dept); onEditOpen(); }} className="mr-2">Edit</Button>
-                        <Button color="danger" onPress={() => { if (dept._id) deleteDepartment(dept._id); }}>Delete</Button>
+                        <Button onPress={() => { setEditingDepartment(dept); onEditOpen(); }} className="mr-2" variant="flat">Edit</Button>
+                        <Button color="danger" variant="flat" onPress={() => { if (dept._id) deleteDepartment(dept._id); }}>Delete</Button>
                       </div>
                     </div>
                   </CardBody>

@@ -17,8 +17,8 @@ import { useAuth } from "@clerk/clerk-react";
 
 
 const calculateStatus = (createdAssessment: Assessment) => {
-  const startDate = new Date(createdAssessment.openRange.start);
-  const endDate = new Date(createdAssessment.openRange.end);
+  const startDate = new Date(createdAssessment?.openRange?.start || "");
+  const endDate = new Date(createdAssessment?.openRange?.end || "");
   const currentDate = new Date();
 
   if (currentDate < startDate) return "Upcoming";
@@ -129,9 +129,9 @@ const CodeAssess = ({ createdAssessments: initialCreatedAssessments }: { created
                 </p>
                 <p className="text-xs text-gray-500 mt-2">Time Range:</p>
                 <p className="text-xs text-white-200">
-                  {new Date(CreatedAssessment.openRange.start).toLocaleString()}{" "}
+                  {new Date(CreatedAssessment?.openRange?.start || "").toLocaleString()}{" "}
                   <span className="text-xs text-gray-500 mt-2">to </span>
-                  {new Date(CreatedAssessment.openRange.end).toLocaleString()}
+                  {new Date(CreatedAssessment?.openRange?.end || "").toLocaleString()}
                 </p>
               </CardBody>
               <CardFooter className="gap-2 flex-wrap">

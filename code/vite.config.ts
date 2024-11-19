@@ -1,28 +1,27 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { visualizer } from "rollup-plugin-visualizer";
+import { loadEnv } from "vite";
 
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
+  process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
   return {
-    plugins: [react()],
+    server: {
+      port: parseInt(process.env.VITE_PORT!),
+    },
+
+    plugins: [
+      react(),
+      visualizer({
+        emitFile: true,
+        filename: "stats.html",
+        template: "sunburst",
+      }),
+    ],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
-      },
-    },
-
-    build: {
-      sourcemap: true,
-      rollupOptions: {
-        onLog(level, log, handler) {
-          if (
-            log.cause && // @ts-expect-error - `cause` is not in the type definition
-            log.cause.message === `Can't resolve original location of error.`
-          ) {
-            return;
-          }
-          handler(level, log);
-        },
       },
     },
   };

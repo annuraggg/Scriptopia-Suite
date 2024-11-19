@@ -13,8 +13,8 @@ import React, { useEffect } from "react";
 
 const Problems = ({
   problems,
-  tags,
   solvedProblems,
+  tags,
 }: {
   problems: Problem[];
   tags: string[];
@@ -26,9 +26,7 @@ const Problems = ({
   const [search, setSearch] = React.useState("");
   const [selectedTag, setSelectedTag] = React.useState<string | null>(null);
 
-  const [filteredProblems, setFilteredProblems] = React.useState<Problem[]>(
-    []
-  );
+  const [filteredProblems, setFilteredProblems] = React.useState<Problem[]>([]);
 
   useEffect(() => {
     // filter problems
@@ -41,7 +39,8 @@ const Problems = ({
         )
           return false;
 
-        if (selectedTag && !problem.tags.includes(selectedTag.toLowerCase())) return false;
+        if (selectedTag && !problem.tags.includes(selectedTag.toLowerCase()))
+          return false;
         return true;
       });
       setFilteredProblems(filteredProblems);
@@ -114,9 +113,10 @@ const Problems = ({
                 <TableCell
                   className={`
               ${problem.difficulty.toLowerCase() === "easy" && "text-green-400"}
-              ${problem.difficulty.toLowerCase() === "medium" &&
-                    "text-yellow-400"
-                    }
+              ${
+                problem.difficulty.toLowerCase() === "medium" &&
+                "text-yellow-400"
+              }
               ${problem.difficulty.toLowerCase() === "hard" && "text-red-400"}
             `}
                 >
