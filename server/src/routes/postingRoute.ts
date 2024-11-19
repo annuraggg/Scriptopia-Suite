@@ -6,6 +6,8 @@ const app = new Hono();
 
 app.get("/", postingController.getPostings);
 app.get("/:id", postingController.getPosting);
+app.get("/slug/:slug", postingController.getPostingBySlug);
+
 app.post("/create", postingController.createPosting);
 app.post("/workflow/create", postingController.createWorkflow);
 

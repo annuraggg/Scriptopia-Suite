@@ -51,8 +51,9 @@ const Posting = () => {
 
   useEffect(() => {
     axios
-      .get(`/candidates/${user?.id}`)
+      .get(`/candidates/candidate`)
       .then((res) => {
+        console.log(res.data);
         const posted = res.data.data.posted;
         if (posted?.some((p: AppliedPosting) => p.postingId === posting._id)) {
           setApplied(true);
@@ -62,7 +63,7 @@ const Posting = () => {
         toast.error("Failed to fetch candidate details");
         console.error(err);
       });
-  }, [axios, user, posting._id]);
+  }, []);
 
   const apply = () => {
     navigate("/postings/" + posting.url + "/apply");

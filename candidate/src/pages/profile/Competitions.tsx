@@ -15,43 +15,39 @@ import {
 } from "@nextui-org/react";
 import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
-import { CalendarDate, today } from "@internationalized/date";
+import { parseDate, today } from "@internationalized/date";
 import { Plus, Pencil, Trash2, Gem } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { z } from "zod";
-
-// Types and Interfaces
-interface Competition {
-  id: string;
-  title: string;
-  position: string;
-  associatedWith: string;
-  date: CalendarDate;
-  description: string;
-}
+import { Candidate, Competition } from "@shared-types/Candidate";
+import { useOutletContext } from "react-router-dom";
 
 // Validation Schema
 const competitionSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters"),
   position: z.string().min(2, "Position must be at least 2 characters"),
+  organizer: z.string().min(2, "Organizer must be at least 2 characters"),
   associatedWith: z
     .string()
     .min(2, "Associated with must be at least 2 characters"),
-  date: z.instanceof(CalendarDate),
+  date: z.string(),
   description: z.string().optional(),
 });
 
 const Competitions = () => {
   // States
-  const [competitions, setCompetitions] = useState<Competition[]>([]);
-  const [currentCompetition, setCurrentCompetition] = useState<
-    Partial<Competition>
-  >({
+  const { user, setUser } = useOutletContext() as {
+    user: Candidate;
+    setUser: (user: Candidate) => void;
+  };
+
+  const [currentCompetition, setCurrentCompetition] = useState<Competition>({
     title: "",
     position: "",
-    associatedWith: "",
-    date: today("IST"),
+    organizer: "",
+    associatedWith: "personal",
+    date: today("IST").toString(),
     description: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -88,8 +84,9 @@ const Competitions = () => {
     setCurrentCompetition({
       title: "",
       position: "",
-      associatedWith: "",
-      date: today("IST"),
+      organizer: "",
+      associatedWith: "academic",
+      date: today("IST").toString(),
       description: "",
     });
     onOpen();
@@ -102,8 +99,10 @@ const Competitions = () => {
   };
 
   const handleDelete = (id: string) => {
-    setCompetitions((prev) => prev.filter((comp) => comp.id !== id));
-    toast.success("Competition deleted successfully");
+    const newCompetitions = user?.competitions?.filter(
+      (comp) => comp._id !== id
+    );
+    setUser({ ...user, competitions: newCompetitions });
   };
 
   const handleSave = () => {
@@ -111,23 +110,17 @@ const Competitions = () => {
       competitionSchema.parse(currentCompetition);
 
       if (isEditing) {
-        setCompetitions((prev) =>
-          prev.map((comp) =>
-            comp.id === currentCompetition.id
-              ? { ...(currentCompetition as Competition) }
-              : comp
-          )
+        const newCompetitions = user?.competitions?.map((comp) =>
+          comp._id === currentCompetition._id ? { ...currentCompetition } : comp
         );
-        toast.success("Competition updated successfully");
+
+        setUser({ ...user, competitions: newCompetitions });
       } else {
-        setCompetitions((prev) => [
-          ...prev,
-          {
-            ...currentCompetition,
-            id: Math.random().toString(36).substr(2, 9),
-          } as Competition,
-        ]);
-        toast.success("Competition added successfully");
+        const newCompetitions = [
+          ...(user?.competitions || []),
+          currentCompetition,
+        ];
+        setUser({ ...user, competitions: newCompetitions });
       }
       onClose();
     } catch (error) {
@@ -160,9 +153,9 @@ const Competitions = () => {
           transition={{ delay: 0.2 }}
           className="p-5 rounded-xl"
         >
-          {competitions.length === 0 ? (
+          {!user?.competitions ? (
             <motion.div
-              key="empty"
+              key="none"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -208,9 +201,9 @@ const Competitions = () => {
               </div>
 
               <div className="grid gap-4">
-                {competitions.map((competition) => (
+                {user?.competitions?.map((competition) => (
                   <motion.div
-                    key={competition.id}
+                    key={competition._id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="p-4 border rounded-lg"
@@ -238,7 +231,7 @@ const Competitions = () => {
                           isIconOnly
                           variant="light"
                           color="danger"
-                          onPress={() => handleDelete(competition.id)}
+                          onPress={() => handleDelete(competition._id || "")}
                         >
                           <Trash2 size={18} />
                         </Button>
@@ -296,7 +289,7 @@ const Competitions = () => {
                   </Select>
                   <DateInput
                     label="Competition Date"
-                    value={currentCompetition.date}
+                    value={parseDate(currentCompetition.date)}
                     onChange={(date) => handleInputChange("date", date)}
                     maxValue={today("IST")}
                   />

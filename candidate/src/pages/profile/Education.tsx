@@ -12,35 +12,32 @@ import {
   Input,
   Select,
   SelectItem,
+  Checkbox,
 } from "@nextui-org/react";
-import { Pencil, Calendar, Plus, GraduationCap } from "lucide-react";
+import { Pencil, Calendar, Plus, GraduationCap, Trash } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
-
-interface Education {
-  institution: string;
-  board: string;
-  program: string;
-  branch: string;
-  startYear: string;
-  endYear: string;
-  educationType: string;
-  percentage: string;
-}
+import { useOutletContext } from "react-router-dom";
+import { Candidate, Education as IEducation } from "@shared-types/Candidate";
 
 const Education = () => {
-  const [educations, setEducations] = useState<Education[]>([]);
+  const { user, setUser } = useOutletContext() as {
+    user: Candidate;
+    setUser: (user: Candidate) => void;
+  };
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [currentEducation, setCurrentEducation] = useState<Education>({
-    institution: "",
+  const [currentEducation, setCurrentEducation] = useState<IEducation>({
+    school: "",
     board: "",
-    program: "",
+    degree: "",
     branch: "",
-    startYear: "",
-    endYear: "",
-    educationType: "",
-    percentage: "",
+    startYear: new Date().getFullYear(),
+    endYear: new Date().getFullYear(),
+    type: "fulltime",
+    current: false,
+    percentage: 0,
   });
+  const [isEditing, setIsEditing] = useState(false);
 
   // Add state for branch modal
   const {
@@ -56,22 +53,6 @@ const Education = () => {
     "Civil",
     "Electronics",
   ]);
-
-  // useEffect(() => {
-  //   // Sample data
-  //   setEducations([
-  //     {
-  //       institution: "A P shah Institute of Technology,Thane",
-  //       board: "Department of Engineering",
-  //       program: "B.E. (Hons.)",
-  //       branch: "Information Technology",
-  //       startYear: "2022",
-  //       endYear: "2025",
-  //       educationType: "Full Time",
-  //       percentage: "72.7",
-  //     },
-  //   ]);
-  // }, []);
 
   const programs = ["B.E.", "B.Tech", "Diploma", "HSC", "SSC"];
 
@@ -102,11 +83,11 @@ const Education = () => {
                   <Input
                     label="School/Institution Name"
                     placeholder="Enter institution name"
-                    value={currentEducation.institution}
+                    value={currentEducation.school}
                     onChange={(e) =>
                       setCurrentEducation({
                         ...currentEducation,
-                        institution: e.target.value,
+                        school: e.target.value,
                       })
                     }
                   />
@@ -114,12 +95,12 @@ const Education = () => {
                     label="Select Program/Degree/Certificate"
                     placeholder="Select program"
                     selectedKeys={
-                      currentEducation.program ? [currentEducation.program] : []
+                      currentEducation.degree ? [currentEducation.degree] : []
                     }
                     onChange={(e) =>
                       setCurrentEducation({
                         ...currentEducation,
-                        program: e.target.value,
+                        degree: e.target.value,
                       })
                     }
                   >
@@ -174,11 +155,11 @@ const Education = () => {
                   <Input
                     label="Select Start Year"
                     placeholder="YYYY"
-                    value={currentEducation.startYear}
+                    value={currentEducation?.startYear?.toString()}
                     onChange={(e) =>
                       setCurrentEducation({
                         ...currentEducation,
-                        startYear: e.target.value,
+                        startYear: parseInt(e.target.value),
                       })
                     }
                     endContent={
@@ -188,11 +169,12 @@ const Education = () => {
                   <Input
                     label="Select End Year"
                     placeholder="YYYY"
-                    value={currentEducation.endYear}
+                    value={currentEducation?.endYear?.toString()}
+                    isDisabled={currentEducation.current}
                     onChange={(e) =>
                       setCurrentEducation({
                         ...currentEducation,
-                        endYear: e.target.value,
+                        endYear: parseInt(e.target.value),
                       })
                     }
                     endContent={
@@ -200,18 +182,33 @@ const Education = () => {
                     }
                   />
 
+                  <Checkbox
+                    checked={currentEducation.current}
+                    onChange={(e) =>
+                      setCurrentEducation({
+                        ...currentEducation,
+                        current: e.target.checked,
+                      })
+                    }
+                  >
+                    Currently Persuing
+                  </Checkbox>
+
+                  <br />
+
                   <Select
                     label="Select Education Type"
                     placeholder="Select type"
                     selectedKeys={
-                      currentEducation.educationType
-                        ? [currentEducation.educationType]
-                        : []
+                      currentEducation.type ? [currentEducation.type] : []
                     }
                     onChange={(e) =>
                       setCurrentEducation({
                         ...currentEducation,
-                        educationType: e.target.value,
+                        type: e.target.value as
+                          | "fulltime"
+                          | "parttime"
+                          | "distance",
                       })
                     }
                   >
@@ -225,7 +222,7 @@ const Education = () => {
                   <Input
                     label="Score in Percentage"
                     placeholder="Enter percentage"
-                    value={currentEducation.percentage}
+                    value={currentEducation?.percentage?.toString()}
                     endContent={
                       <div className="pointer-events-none flex items-center">
                         <span className="text-default-400 text-small">%</span>
@@ -234,7 +231,7 @@ const Education = () => {
                     onChange={(e) =>
                       setCurrentEducation({
                         ...currentEducation,
-                        percentage: e.target.value,
+                        percentage: parseInt(e.target.value),
                       })
                     }
                   />
@@ -245,17 +242,23 @@ const Education = () => {
                   color="primary"
                   className="w-full"
                   onPress={() => {
-                    if (currentEducation.institution) {
-                      setEducations(
-                        educations.map((edu) =>
-                          edu.institution === currentEducation.institution
-                            ? currentEducation
-                            : edu
-                        )
+                    if (isEditing) {
+                      const newEducation = user?.education?.map((edu) =>
+                        edu._id === currentEducation._id
+                          ? currentEducation
+                          : edu
                       );
+                      setUser({ ...user, education: newEducation });
                     } else {
-                      setEducations([...educations, currentEducation]);
+                      setUser({
+                        ...user,
+                        education: [
+                          ...(user?.education || []),
+                          currentEducation,
+                        ],
+                      });
                     }
+
                     onClose();
                   }}
                 >
@@ -306,19 +309,20 @@ const Education = () => {
 
       <div className="py-5">
         <div className="flex justify-end items-center mb-4">
-          {educations.length > 0 && (
+          {user?.education?.length !== 0 && (
             <Button
               variant="flat"
               onPress={() => {
                 setCurrentEducation({
-                  institution: "",
+                  school: "",
                   board: "",
-                  program: "",
+                  degree: "",
                   branch: "",
-                  startYear: "",
-                  endYear: "",
-                  educationType: "",
-                  percentage: "",
+                  startYear: new Date().getFullYear(),
+                  endYear: new Date().getFullYear(),
+                  type: "fulltime",
+                  current: false,
+                  percentage: 0,
                 });
                 onOpen();
               }}
@@ -329,7 +333,7 @@ const Education = () => {
           )}
         </div>
 
-        {educations.length === 0 ? (
+        {!user?.education?.length ? (
           <motion.div
             key="empty"
             initial={{ opacity: 0, y: 20 }}
@@ -361,16 +365,16 @@ const Education = () => {
           </motion.div>
         ) : (
           <>
-            {educations.map((edu, index) => (
+            {user?.education?.map((edu, index) => (
               <Card key={index} className="p-4 mb-4">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">{edu.program}</span>
+                    <span className="text-xl">{edu.degree}</span>
                     <span className="text-small">
                       {edu.startYear} - {edu.endYear}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <span className="text-xl text-green-500">
                       {edu.percentage}%
                     </span>
@@ -378,7 +382,22 @@ const Education = () => {
                       isIconOnly
                       size="sm"
                       onPress={() => {
+                        const newEducation = user?.education?.filter(
+                          (education) => education._id !== edu._id
+                        );
+                        setUser({ ...user, education: newEducation });
+                      }}
+                      variant="flat"
+                      color="danger"
+                    >
+                      <Trash size={16} />
+                    </Button>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      onPress={() => {
                         setCurrentEducation(edu);
+                        setIsEditing(true);
                         onOpen();
                       }}
                     >
@@ -393,7 +412,7 @@ const Education = () => {
                       <span className="text-default-500 text-sm">
                         Institution:
                       </span>
-                      <p>{edu.institution}</p>
+                      <p>{edu.school}</p>
                     </div>
                     <div className="mb-2">
                       <span className="text-default-500 text-sm">
@@ -405,7 +424,7 @@ const Education = () => {
                       <span className="text-default-500 text-sm">
                         Education Type:
                       </span>
-                      <p>{edu.educationType}</p>
+                      <p>{edu.type}</p>
                     </div>
                   </div>
                   <div>

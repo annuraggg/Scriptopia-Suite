@@ -85,7 +85,7 @@ const workSchema = new Schema({
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: false },
   current: { type: Boolean, required: true },
-  description: { type: String, required: true },
+  description: { type: String, required: false },
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -165,7 +165,7 @@ const certificateSchema = new Schema({
 
 const competitionSchema = new Schema({
   title: { type: String, required: true },
-  position: { type: Number, required: true },
+  position: { type: String, required: true },
   organizer: { type: String, required: true },
   associatedWith: {
     type: String,

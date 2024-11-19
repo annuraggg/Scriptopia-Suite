@@ -58,14 +58,13 @@ const updateCandidate = async (c: Context) => {
   try {
     const auth = c.get("auth");
     const body = await c.req.json();
+    console.log("candidate ", body);
 
     if (!auth) {
       return sendError(c, 401, "Unauthorized");
     }
 
     const candidate = await Candidate.findOne({ userId: auth.userId });
-    console.log("userId ", auth.userId);
-    console.log("candidate ", candidate);
 
     if (!candidate) {
       return sendError(c, 404, "Candidate not found");

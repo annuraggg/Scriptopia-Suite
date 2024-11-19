@@ -19,12 +19,8 @@ import { Plus } from "lucide-react";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-
-interface Skill {
-  id: string;
-  name: string;
-  proficiency: string;
-}
+import { Candidate } from "@shared-types/Candidate";
+import { useOutletContext } from "react-router-dom";
 
 const initialSkillsList = [
   "React.js",
@@ -53,12 +49,15 @@ const Skills = () => {
     onClose: onCustomSkillClose,
   } = useDisclosure();
 
+  const { user, setUser } = useOutletContext() as {
+    user: Candidate;
+    setUser: (user: Candidate) => void;
+  };
+
   const [selectedCategory, setSelectedCategory] = useState<
     "technical" | "languages" | "subjects" | null
   >(null);
-  const [technicalSkills, setTechnicalSkills] = useState<Skill[]>([]);
-  const [languageSkills, setLanguageSkills] = useState<Skill[]>([]);
-  const [subjectSkills, setSubjectSkills] = useState<Skill[]>([]);
+
   const [skillsList, setSkillsList] = useState(initialSkillsList);
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
   const [selectedProficiency, setSelectedProficiency] = useState<string | null>(
@@ -90,41 +89,71 @@ const Skills = () => {
     return true;
   };
 
-  const handleSave = () => {
-    if (validateInputs()) {
-      const newSkill = {
-        id: Date.now().toString(),
-        name: selectedSkill!,
-        proficiency: selectedProficiency!,
-      };
+  const getProficiencyNumber = (proficiency: string | null) => {
+    switch (proficiency) {
+      case "Beginner":
+        return 1;
+      case "Intermediate":
+        return 2;
+      case "Advance":
+        return 3;
+      case "Professional":
+        return 4;
+      default:
+        return 1;
+    }
+  };
 
+  const handleSave = async () => {
+    if (validateInputs()) {
       if (selectedCategory === "technical") {
-        setTechnicalSkills([...technicalSkills, newSkill]);
+        const newSkill = {
+          skill: selectedSkill as string,
+          proficiency: getProficiencyNumber(selectedProficiency),
+        };
+        const newSkills = [...(user.technicalSkills || []), newSkill];
+        const newUser = { ...user, technicalSkills: newSkills };
+        setUser(newUser);
       } else if (selectedCategory === "languages") {
-        setLanguageSkills([...languageSkills, newSkill]);
+        const newSkill = {
+          language: selectedSkill as string,
+          proficiency: getProficiencyNumber(selectedProficiency),
+        };
+        const newSkills = [...(user.languages || []), newSkill];
+        const newUser = { ...user, languages: newSkills };
+        setUser(newUser);
       } else if (selectedCategory === "subjects") {
-        setSubjectSkills([...subjectSkills, newSkill]);
+        const newSkill = {
+          subject: selectedSkill as string,
+          proficiency: getProficiencyNumber(selectedProficiency),
+        };
+        const newSkills = [...(user.subjects || []), newSkill];
+        const newUser = { ...user, subjects: newSkills };
+        setUser(newUser);
       }
 
       setSelectedSkill(null);
       setSelectedProficiency(null);
       onClose();
-      toast.success("Skill added successfully.");
     }
   };
 
-  const handleDelete = (
+  const handleDelete = async (
     id: string,
     category: "technical" | "languages" | "subjects"
   ) => {
+    let newSkills = [];
     if (category === "technical") {
-      setTechnicalSkills(technicalSkills.filter((skill) => skill.id !== id));
+      newSkills =
+        user.technicalSkills?.filter((skill) => skill._id !== id) || [];
+      setUser({ ...user, technicalSkills: newSkills });
     } else if (category === "languages") {
-      setLanguageSkills(languageSkills.filter((skill) => skill.id !== id));
+      newSkills = user.languages?.filter((skill) => skill._id !== id) || [];
+      setUser({ ...user, languages: newSkills });
     } else if (category === "subjects") {
-      setSubjectSkills(subjectSkills.filter((skill) => skill.id !== id));
+      newSkills = user.subjects?.filter((skill) => skill._id !== id) || [];
+      setUser({ ...user, subjects: newSkills });
     }
-    toast.success("Skill removed successfully.");
   };
 
   const handleModalClose = () => {
@@ -158,26 +187,28 @@ const Skills = () => {
                 Add new
               </Button>
             </div>
-            {technicalSkills.length === 0 ? (
+            {user.technicalSkills && user?.technicalSkills.length === 0 ? (
               <p className="text-default-500">
                 You have not added any Technical Skills yet.
               </p>
             ) : (
               <div className="flex flex-wrap gap-2">
-                {technicalSkills.map((skill) => (
+                {user?.technicalSkills?.map((skill) => (
                   <motion.div
-                    key={skill.id}
+                    key={skill._id}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
                   >
                     <Chip
-                      onClose={() => handleDelete(skill.id, "technical")}
+                      onClose={() =>
+                        handleDelete(skill._id as string, "technical")
+                      }
                       variant="flat"
                       className="py-3 px-3"
                     >
-                      {skill.name} • {skill.proficiency}
+                      {skill.skill} • {skill.proficiency}
                     </Chip>
                   </motion.div>
                 ))}
@@ -201,25 +232,27 @@ const Skills = () => {
                 Add new
               </Button>
             </div>
-            {languageSkills.length === 0 ? (
+            {user.languages && user?.languages.length === 0 ? (
               <p className="text-default-500">
                 You have not added any Languages yet.
               </p>
             ) : (
               <div className="flex flex-wrap gap-2">
-                {languageSkills.map((skill) => (
+                {user?.languages?.map((skill) => (
                   <motion.div
-                    key={skill.id}
+                    key={skill._id}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
                   >
                     <Chip
-                      onClose={() => handleDelete(skill.id, "languages")}
+                      onClose={() =>
+                        handleDelete(skill._id as string, "languages")
+                      }
                       variant="flat"
                     >
-                      {skill.name} • {skill.proficiency}
+                      {skill.language} • {skill.proficiency}
                     </Chip>
                   </motion.div>
                 ))}
@@ -243,25 +276,27 @@ const Skills = () => {
                 Add new
               </Button>
             </div>
-            {subjectSkills.length === 0 ? (
+            {user?.subjects && user?.subjects?.length === 0 ? (
               <p className="text-default-500">
                 You have not added any Subjects yet.
               </p>
             ) : (
               <div className="flex flex-wrap gap-2">
-                {subjectSkills.map((skill) => (
+                {user?.subjects?.map((skill) => (
                   <motion.div
-                    key={skill.id}
+                    key={skill._id}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
                   >
                     <Chip
-                      onClose={() => handleDelete(skill.id, "subjects")}
+                      onClose={() =>
+                        handleDelete(skill._id as string, "subjects")
+                      }
                       variant="flat"
                     >
-                      {skill.name} • {skill.proficiency}
+                      {skill.subject} • {skill.proficiency}
                     </Chip>
                   </motion.div>
                 ))}

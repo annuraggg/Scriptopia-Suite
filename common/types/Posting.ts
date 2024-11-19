@@ -89,8 +89,8 @@ interface Posting {
   salary: Salary; // Salary details
   workflow?: Workflow; // Workflow associated with the posting
   applicationRange: {
-    start: Date; // Start date for applications
-    end: Date; // End date for applications
+    start: string; // Start date for applications
+    end: string; // End date for applications
   };
   qualifications: string; // Required qualifications
   assignments: Assignment[]; // Array of assignments related to the job

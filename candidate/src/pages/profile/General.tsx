@@ -20,8 +20,6 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { useOutletContext } from "react-router-dom";
 import { Candidate } from "@shared-types/Candidate";
-import { useAuth } from "@clerk/clerk-react";
-import ax from "@/config/axios";
 
 const phoneRegex = /^\+?[1-9]\d{1,14}$/;
 
@@ -98,25 +96,12 @@ const General = () => {
     }
   };
 
-  const { getToken } = useAuth();
-  const axios = ax(getToken);
-
   const handleSaveChanges = async () => {
     try {
       setLoading(true);
       formSchema.parse(candidate);
 
-      axios
-        .put("candidates/candidate", candidate)
-        .then((res) => {
-          setUser(res.data.data);
-          console.log(res.data.data);
-          toast.success("Profile updated successfully");
-        })
-        .catch((err) => {
-          toast.error(err.response.data.message || "An error occurred");
-        })
-        .finally(() => setLoading(false));
+      setUser(candidate);
     } catch (error) {
       if (error instanceof z.ZodError) {
         error.errors.forEach((err) => {

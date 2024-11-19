@@ -57,6 +57,25 @@ const getPosting = async (c: Context) => {
   }
 };
 
+const getPostingBySlug = async (c: Context) => {
+  try {
+    const posting = await Posting.findOne({ url: c.req.param("slug") })
+      .populate("assessments.assessmentId")
+      .populate("candidates")
+      .populate("organizationId")
+      .populate("assignments.submissions");
+
+    if (!posting) {
+      return sendError(c, 404, "job not found");
+    }
+
+    return sendSuccess(c, 200, "job fetched successfully", posting);
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
 const createPosting = async (c: Context) => {
   try {
     const {
@@ -425,4 +444,5 @@ export default {
   updateInterview,
   publishPosting,
   deletePosting,
+  getPostingBySlug,
 };
