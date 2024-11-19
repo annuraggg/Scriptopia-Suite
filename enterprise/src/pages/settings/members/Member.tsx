@@ -230,42 +230,49 @@ const Members: React.FC = () => {
             <Button color="default" onPress={onOpen}>
               Invite
             </Button>
-            <Table aria-label="Invited Members" className="w-full mt-4">
-              <TableHeader>
-                <TableColumn>User</TableColumn>
-                <TableColumn>Invited</TableColumn>
-                <TableColumn>Role</TableColumn>
-                <TableColumn>Actions</TableColumn>
-              </TableHeader>
-              <TableBody emptyContent={<p>No Invited Members</p>}>
-                {invitedMembers.map((member, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{member.email}</TableCell>
-                    <TableCell>
-                      {member?.addedOn
-                        ? new Date(member.addedOn).toLocaleDateString()
-                        : "pending"}
-                    </TableCell>
-                    <TableCell>
-                      {typeof member.role === "string"
-                        ? member.role
-                        : member.role.name}
-                    </TableCell>
-                    <TableCell>
-                      <p
-                        className=" text-danger hover:text-danger-500 duration-300 transition-colors cursor-pointer py-3"
-                        onClick={() => {
-                          setSelectedEmail(member.email);
-                          onRevokeConfirmOpen();
-                        }}
-                      >
-                        Revoke
-                      </p>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+
+            {invitedMembers.length > 0 ? (
+              <Table aria-label="Invited Members" className="w-full mt-4">
+                <TableHeader>
+                  <TableColumn>User</TableColumn>
+                  <TableColumn>Invited</TableColumn>
+                  <TableColumn>Role</TableColumn>
+                  <TableColumn>Actions</TableColumn>
+                </TableHeader>
+                <TableBody>
+                  {invitedMembers.map((member, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{member.email}</TableCell>
+                      <TableCell>
+                        {member?.addedOn
+                          ? new Date(member.addedOn).toLocaleDateString()
+                          : "pending"}
+                      </TableCell>
+                      <TableCell>
+                        {typeof member.role === "string"
+                          ? member.role
+                          : member.role.name}
+                      </TableCell>
+                      <TableCell>
+                        <p
+                          className="text-danger hover:text-danger-500 duration-300 transition-colors cursor-pointer py-3"
+                          onClick={() => {
+                            setSelectedEmail(member.email);
+                            onRevokeConfirmOpen();
+                          }}
+                        >
+                          Revoke
+                        </p>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="mt-4 text-center text-gray-500">
+                No pending invites
+              </div>
+            )}
           </Tab>
         </Tabs>
         <InviteModal
