@@ -64,6 +64,7 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
   const [jobType, setJobType] = useState<Set<string>>(new Set());
   const [about, setAbout] = useState("");
   const [openings, setOpening] = useState("");
+  const [salaryError, setSalaryError] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -93,6 +94,43 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+  const validateSalaryRange = (min: string, max: string) => {
+    const minVal = parseFloat(min);
+    const maxVal = parseFloat(max);
+    return !isNaN(minVal) && !isNaN(maxVal) && maxVal > minVal;
+  };
+
+  const handleMaxSalaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newMaxSalary = e.target.value;
+    setMaxSalary(newMaxSalary);
+
+    if (minSalary && newMaxSalary) {
+      const minVal = parseFloat(minSalary);
+      const maxVal = parseFloat(newMaxSalary);
+      if (!isNaN(minVal) && !isNaN(maxVal) && maxVal <= minVal) {
+        setSalaryError("Maximum salary must be greater than minimum salary");
+      } else {
+        setSalaryError("");
+      }
+    }
+  };
+
+  const handleMinSalaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newMinSalary = e.target.value;
+    setMinSalary(newMinSalary);
+
+    if (maxSalary && newMinSalary) {
+      const minVal = parseFloat(newMinSalary);
+      const maxVal = parseFloat(maxSalary);
+      if (!isNaN(minVal) && !isNaN(maxVal) && maxVal <= minVal) {
+        setSalaryError("Maximum salary must be greater than minimum salary");
+      } else {
+        setSalaryError("");
+      }
+    }
+  };
+
 
   const createJob = () => {
     if (!validateForm()) {
@@ -124,8 +162,8 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
       })
       .then(() => {
         toast.success("Job created successfully");
-        setLoading(false);
         onClose();
+        window.location.reload();
       })
       .catch((err) => {
         console.log(err);
@@ -144,6 +182,8 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
       expectedSkills &&
       minSalary &&
       maxSalary &&
+      validateSalaryRange(minSalary, maxSalary) &&
+      !salaryError &&
       currency.size > 0 &&
       startDate &&
       startTime &&
@@ -161,6 +201,7 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
     expectedSkills,
     minSalary,
     maxSalary,
+    salaryError,
     currency,
     startDate,
     startTime,
@@ -276,7 +317,7 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
                 label="Minimum Salary"
                 labelPlacement="outside"
                 value={minSalary}
-                onChange={(e) => setMinSalary(e.target.value)}
+                onChange={handleMinSalaryChange}
               />
               {errors.minSalary && <p className="text-red-500 text-xs mt-1">{errors.minSalary}</p>}
               <Textarea
@@ -286,10 +327,12 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
                 label="Maximum Salary"
                 labelPlacement="outside"
                 value={maxSalary}
-                onChange={(e) => setMaxSalary(e.target.value)}
+                onChange={handleMaxSalaryChange}
               />
-              {errors.maxSalary && <p className="text-red-500 text-xs mt-1">{errors.maxSalary}</p>}
             </div>
+            {salaryError && (
+              <p className="text-red-500 text-xs mt-1">{salaryError}</p>
+            )}
           </div>
 
           <div className="w-full flex items-end justify-between">

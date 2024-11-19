@@ -101,10 +101,14 @@ const Postings: React.FC = () => {
       return workScheduleFilter.includes(post.type);
     }
     if (dateRange.start && dateRange.end) {
-      return (
-        new Date(post.applicationRange.start) >= new Date(dateRange.start) &&
-        new Date(post.applicationRange.end) <= new Date(dateRange.end)
-      );
+      const postStartDate = new Date(post.applicationRange.start);
+      const postEndDate = new Date(post.applicationRange.end);
+      const filterStartDate = new Date(dateRange.start);
+      const filterEndDate = new Date(dateRange.end);
+
+      if (postStartDate < filterStartDate || postEndDate > filterEndDate) {
+        return false;
+      }
     }
 
     if (selectedFilter === "active") {
@@ -190,7 +194,7 @@ const Postings: React.FC = () => {
           setPostings(res.data.data.postings);
           setDepartments(res.data.data.departments);
           setIsLoading(false); // End loading after 1.5 seconds
-        }, 1500);
+        }, 800);
       })
       .catch((err) => {
         toast.error(err.response.data.message);
@@ -272,39 +276,35 @@ const Postings: React.FC = () => {
                   <Card
                     isPressable
                     key={index}
-                    className={`flex flex-col items-start justify-center w-full h-20 transition-colors duration-300 ${
-                      selectedFilter === card.filter
+                    className={`flex flex-col items-start justify-center w-full h-20 transition-colors duration-300 ${selectedFilter === card.filter
                         ? "bg-gray-500/20 text-white"
                         : "text-gray-500"
-                    }`}
+                      }`}
                     onClick={() => handleFilterChange(card.filter)}
                   >
                     <div className="flex items-center justify-center gap-3 w-full">
                       <div
-                        className={`${
-                          selectedFilter === card.filter
+                        className={`${selectedFilter === card.filter
                             ? "text-white"
                             : "text-gray-500"
-                        }`}
+                          }`}
                       >
                         {card.icon}
                       </div>
                       <h1
-                        className={`${
-                          selectedFilter === card.filter
+                        className={`${selectedFilter === card.filter
                             ? "text-white"
                             : "text-gray-500"
-                        } text-base`}
+                          } text-base`}
                       >
                         {card.title}
                       </h1>
                     </div>
                     <p
-                      className={`text-center w-full ${
-                        selectedFilter === card.filter
+                      className={`text-center w-full ${selectedFilter === card.filter
                           ? "text-white"
                           : "text-gray-500"
-                      }`}
+                        }`}
                     ></p>
                   </Card>
                 ))}
@@ -340,11 +340,10 @@ const Postings: React.FC = () => {
                               }
                             </span>
                             <span
-                              className={`text-xs px-2 rounded-full whitespace-nowrap ${
-                                getPostingStatus(posting) === "active"
+                              className={`text-xs px-2 rounded-full whitespace-nowrap ${getPostingStatus(posting) === "active"
                                   ? " text-success-500 bg-success-100"
                                   : " text-danger-500 bg-danger-100"
-                              }`}
+                                }`}
                             >
                               {getPostingStatus(posting) === "active"
                                 ? "Active"
@@ -355,11 +354,11 @@ const Postings: React.FC = () => {
                           <p className="text-gray-300 text-xs mt-3">
                             {getPostingStatus(posting) === "active"
                               ? `Open Until ${new Date(
-                                  posting.applicationRange.end
-                                ).toLocaleString()}`
+                                posting.applicationRange.end
+                              ).toLocaleString()}`
                               : `Closed at ${new Date(
-                                  posting.applicationRange.end
-                                ).toLocaleString()}`}
+                                posting.applicationRange.end
+                              ).toLocaleString()}`}
                           </p>
                         </div>
 
