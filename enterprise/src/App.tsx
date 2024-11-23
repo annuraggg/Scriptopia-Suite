@@ -10,6 +10,7 @@ import {
   SignedOut,
   useUser,
 } from "@clerk/clerk-react";
+import CreateJob from "./pages/jobs/create/CreateJob";
 
 // Lazy load components
 const Lander = lazy(() => import("./pages/lander/Lander"));
@@ -249,6 +250,14 @@ function App() {
           element: (
             <Suspense fallback={<Loader />}>
               <Jobs />
+            </Suspense>
+          ),
+        },
+        {
+          path: "jobs/create",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <CreateJob />
             </Suspense>
           ),
         },

@@ -171,7 +171,7 @@ const handleAssignmentRound = async (
   step: WorkflowStep
 ) => {
   const { name } = step;
-  const assignment = posting.assignments.find((a) => a.name === name);
+  const assignment = posting?.assignments?.find((a) => a.name === name);
   const organization = await Organization.findById(posting.organizationId);
 
   if (!assignment || !organization || !posting) return;
@@ -210,8 +210,10 @@ const handleAssessmentRound = async (
 ) => {
   const { type, stepId } = step;
 
+  if (!stepId) return;
+
   const assessment = posting?.assessments?.find(
-    (a) => a.toString() === stepId.toString()
+    (a) => a.toString() === stepId?.toString()
   );
 
   const organization = await Organization.findById(posting.organizationId);

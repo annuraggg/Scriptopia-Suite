@@ -958,7 +958,7 @@ const getOrganization = async (c: Context): Promise<Response> => {
     ];
 
     const [selectedOrg, userDetails] = await Promise.all([
-      Organization.findById(org._id).select(fieldsToSelect.join(" ")),
+      Organization.findById(org._id).populate("postings").select(fieldsToSelect.join(" ")),
       User.findOne({ clerkId: member.user }).lean(),
     ]);
 
@@ -971,6 +971,8 @@ const getOrganization = async (c: Context): Promise<Response> => {
       userInfo: userDetails,
       permissions: role.permissions,
     };
+
+    console.log(selectedOrg);
 
     return sendSuccess(c, 200, "Organization fetched successfully", {
       organization: selectedOrg,

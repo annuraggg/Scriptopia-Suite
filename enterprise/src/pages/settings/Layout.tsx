@@ -2,19 +2,20 @@ import { Outlet, useOutletContext } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import { RootContext } from "@/types/RootContext";
 import { useEffect, useState } from "react";
-import { Organization as Org } from "@shared-types/Organization";
 import UnsavedToast from "@/components/UnsavedToast";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast as sonner } from "sonner";
+import { OrganizationWithPostings as OWP } from "@/types/RootContext";
 
 const Layout = () => {
-  const { organization, setOrganization, user } = useOutletContext() as RootContext;
+  const { organization, setOrganization, user } =
+    useOutletContext() as RootContext;
 
   const [toast, setToast] = useState<boolean>(false);
   const [shakeToast, setShakeToast] = useState<boolean>(false);
   const [rerender, setRerender] = useState<boolean>(false);
-  const [newOrganization, setNewOrganization] = useState<Org>({} as Org);
+  const [newOrganization, setNewOrganization] = useState<OWP>({} as OWP);
 
   useEffect(() => {
     setNewOrganization(organization);
@@ -26,6 +27,7 @@ const Layout = () => {
 
   const action = () => {
     setToast(false);
+    console.log(newOrganization);
     axios
       .put("organizations", newOrganization)
       .then(() => {
@@ -44,12 +46,12 @@ const Layout = () => {
     setRerender(!rerender);
   };
 
-  const handleToast = (toast: boolean, newOrganization?: Org) => {
+  const handleToast = (toast: boolean, newOrganization?: OWP) => {
     setToast(toast);
     if (newOrganization) setNewOrganization(newOrganization);
   };
 
-  const updateLocalOrganization = (newOrganization: Org) => {
+  const updateLocalOrganization = (newOrganization: OWP) => {
     setNewOrganization(newOrganization);
     setToast(true);
   };

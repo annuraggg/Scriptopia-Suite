@@ -7,9 +7,8 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-  Spinner,
 } from "@nextui-org/react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import {
   ListIcon,
   CirclePlayIcon,
@@ -35,6 +34,7 @@ import {
   Button,
   useDisclosure,
 } from "@nextui-org/react";
+import { RootContext } from "@/types/RootContext";
 
 const Cards = [
   {
@@ -59,9 +59,15 @@ const Cards = [
 
 const Postings: React.FC = () => {
   const navigate = useNavigate();
+  const { organization, setOrganization, rerender } =
+    useOutletContext() as RootContext;
+
+  useEffect(() => {
+    console.log(organization);
+  }, [organization]);
+
   const [postings, setPostings] = useState<Posting[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const [sort, setSort] = useState(new Set(["newest"]));
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -76,7 +82,6 @@ const Postings: React.FC = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const [deleteId, setDeleteId] = useState<string>();
-  const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
 
   const editItems = [
     {
@@ -89,7 +94,7 @@ const Postings: React.FC = () => {
     },
   ];
 
-  const filteredPostings = postings.filter((post) => {
+  const filteredPostings = postings?.filter((post) => {
     if (searchTerm) {
       return post.title.toLowerCase().includes(searchTerm.toLowerCase());
     }
@@ -140,15 +145,10 @@ const Postings: React.FC = () => {
       });
     }
     setPostings(sortedPostings);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sort]);
 
   const handleDetailsClick = (posting: Posting) => {
     navigate(`${posting._id}/dashboard`, { state: { posting } });
-  };
-
-  const handleFilterChange = (filter: string) => {
-    setSelectedFilter(filter);
   };
 
   const openCreateJobModal = () => {
@@ -159,10 +159,6 @@ const Postings: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const closeCreateJobModal = () => {
-    setIsModalOpen(false);
-  };
-
   const getPostingStatus = (posting: Posting) => {
     if (new Date(posting.applicationRange.end) < new Date()) {
       return "closed";
@@ -170,52 +166,26 @@ const Postings: React.FC = () => {
     return "active";
   };
 
-  // const getPostingType = (posting: Posting) => {
-  //   if (posting.type === "full_time") {
-  //     return "Full Time";
-  //   } else if (posting.type === "part_time") {
-  //     return "Part Time";
-  //   } else {
-  //     return "Internship";
-  //   }
-  // };
+  useEffect(() => {
+    setPostings(organization?.postings);
+    setDepartments(organization?.departments || []);
+  }, [rerender]);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
-  useEffect(() => {
-    axios
-      .get("/postings")
-      .then((res) => {
-        setTimeout(() => {
-          setPostings(res.data.data.postings);
-          setDepartments(res.data.data.departments);
-          setIsLoading(false); // End loading after 1.5 seconds
-        }, 1500);
-      })
-      .catch((err) => {
-        toast.error(err.response.data.message);
-        setIsLoading(false); // End loading even on error
-        console.log(err);
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleDelete = () => {
-    setDeleteLoading(true);
-    axios
-      .delete(`/postings/${deleteId}`)
-      .then((res) => {
-        toast.success(res.data.message);
-        setPostings((prev) => prev.filter((p) => p._id !== deleteId));
-        onOpenChange();
-      })
-      .catch((err) => {
-        toast.error(err.response.data.message);
-        onOpenChange();
-      })
-      .finally(() => {
-        setDeleteLoading(false);
-      });
+    const newOrganization = { ...organization };
+    const newPostings = newOrganization.postings?.filter(
+      (posting) => posting._id !== deleteId
+    );
+
+    setOrganization({ ...newOrganization, postings: newPostings });
+    onOpenChange();
+
+    axios.delete(`/postings/${deleteId}`).catch((err) => {
+      toast.error(err.response.data.message || "An error occurred");
+    });
   };
 
   return (
@@ -273,16 +243,16 @@ const Postings: React.FC = () => {
                     isPressable
                     key={index}
                     className={`flex flex-col items-start justify-center w-full h-20 transition-colors duration-300 ${
-                      selectedFilter === card.filter
+                      selectedFilter === card?.filter
                         ? "bg-gray-500/20 text-white"
                         : "text-gray-500"
                     }`}
-                    onClick={() => handleFilterChange(card.filter)}
+                    onClick={() => setSelectedFilter(card?.filter)}
                   >
                     <div className="flex items-center justify-center gap-3 w-full">
                       <div
                         className={`${
-                          selectedFilter === card.filter
+                          selectedFilter === card?.filter
                             ? "text-white"
                             : "text-gray-500"
                         }`}
@@ -291,7 +261,7 @@ const Postings: React.FC = () => {
                       </div>
                       <h1
                         className={`${
-                          selectedFilter === card.filter
+                          selectedFilter === card?.filter
                             ? "text-white"
                             : "text-gray-500"
                         } text-base`}
@@ -301,7 +271,7 @@ const Postings: React.FC = () => {
                     </div>
                     <p
                       className={`text-center w-full ${
-                        selectedFilter === card.filter
+                        selectedFilter === card?.filter
                           ? "text-white"
                           : "text-gray-500"
                       }`}
@@ -311,93 +281,96 @@ const Postings: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-3 w-full mt-6 overflow-y-auto">
-                {isLoading ? (
-                  <div className="flex justify-center items-center w-full h-full">
-                    <Spinner color="primary" />
-                  </div>
-                ) : (
-                  filteredPostings.map((posting, index) => (
-                    <Card
-                      className="p-4"
-                      key={index}
-                      isPressable
-                      onClick={() => handleDetailsClick(posting)}
-                    >
-                      <div className="flex items-center justify-between gap-3 w-full p-2">
-                        <div>
-                          <div className="flex flex-row items-center justify-start gap-2">
-                            <p className="mr-1 cursor-pointer">
-                              {posting.title}
-                            </p>
-                            <span
-                              className={`text-xs mr-3 rounded-full whitespace-nowrap`}
-                            >
-                              {
-                                departments.find(
-                                  (department) =>
-                                    department._id === posting.department
-                                )?.name
-                              }
-                            </span>
-                            <span
-                              className={`text-xs px-2 rounded-full whitespace-nowrap ${
-                                getPostingStatus(posting) === "active"
-                                  ? " text-success-500 bg-success-100"
-                                  : " text-danger-500 bg-danger-100"
-                              }`}
-                            >
-                              {getPostingStatus(posting) === "active"
-                                ? "Active"
-                                : "Closed"}
-                            </span>
-                          </div>
-
-                          <p className="text-gray-300 text-xs mt-3">
+                {filteredPostings?.map((posting, index) => (
+                  <Card
+                    className="p-4"
+                    key={index}
+                    isPressable
+                    onClick={() => handleDetailsClick(posting)}
+                  >
+                    <div className="flex items-center justify-between gap-3 w-full p-2">
+                      <div>
+                        <div className="flex flex-row items-center justify-start gap-2">
+                          <p className="mr-1 cursor-pointer">{posting.title}</p>
+                          <span
+                            className={`text-xs mr-3 rounded-full whitespace-nowrap`}
+                          >
+                            {
+                              departments.find(
+                                (department) =>
+                                  department._id === posting.department
+                              )?.name
+                            }
+                          </span>
+                          <span
+                            className={`text-xs px-2 rounded-full whitespace-nowrap ${
+                              getPostingStatus(posting) === "active"
+                                ? " text-success-500 bg-success-100"
+                                : " text-danger-500 bg-danger-100"
+                            }`}
+                          >
                             {getPostingStatus(posting) === "active"
-                              ? `Open Until ${new Date(
-                                  posting.applicationRange.end
-                                ).toLocaleString()}`
-                              : `Closed at ${new Date(
-                                  posting.applicationRange.end
-                                ).toLocaleString()}`}
-                          </p>
+                              ? "Active"
+                              : "Closed"}
+                          </span>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                          <Button isIconOnly variant="flat">
+                        <p className="text-gray-300 text-xs mt-3">
+                          {getPostingStatus(posting) === "active"
+                            ? `Open Until ${new Date(
+                                posting.applicationRange.end
+                              ).toLocaleString()}`
+                            : `Closed at ${new Date(
+                                posting.applicationRange.end
+                              ).toLocaleString()}`}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        {posting?.published && posting?.url && (
+                          <Button
+                            isIconOnly
+                            variant="flat"
+                            onClick={() => {
+                              // copy link to clipboard
+                              if (!posting?.url) return;
+                              navigator.clipboard.writeText(posting?.url);
+                              toast.success("Link copied to clipboard");
+                            }}
+                          >
                             <Link />
                           </Button>
+                        )}
 
-                          <Dropdown>
-                            <DropdownTrigger>
-                              <Button isIconOnly variant="flat">
-                                <EllipsisVertical />
-                              </Button>
-                            </DropdownTrigger>
-                            <DropdownMenu>
-                              {editItems.map((item, index) => (
-                                <DropdownItem
-                                  key={index}
-                                  className={
-                                    item.title === "Delete" ? "text-danger" : ""
-                                  }
+                        <Dropdown>
+                          <DropdownTrigger>
+                            <Button isIconOnly variant="flat">
+                              <EllipsisVertical />
+                            </Button>
+                          </DropdownTrigger>
+                          <DropdownMenu>
+                            {editItems.map((item, index) => (
+                              <DropdownItem
+                                key={index}
+                                className={
+                                  item.title === "Delete" ? "text-danger" : ""
+                                }
+                              >
+                                <div
+                                  className="flex items-center gap-2"
+                                  onClick={() => item.onClick(posting._id!)}
                                 >
-                                  <div
-                                    className="flex items-center gap-2"
-                                    onClick={() => item.onClick(posting._id!)}
-                                  >
-                                    {item.icon}
-                                    <p>{item.title}</p>
-                                  </div>
-                                </DropdownItem>
-                              ))}
-                            </DropdownMenu>
-                          </Dropdown>
-                        </div>
+                                  {item.icon}
+                                  <p>{item.title}</p>
+                                </div>
+                              </DropdownItem>
+                            ))}
+                          </DropdownMenu>
+                        </Dropdown>
                       </div>
-                    </Card>
-                  ))
-                )}
+                    </div>
+                  </Card>
+                ))}
               </div>
             </div>
           </motion.div>
@@ -405,7 +378,7 @@ const Postings: React.FC = () => {
       </div>
       <CreateJobModal
         isOpen={isModalOpen}
-        onClose={closeCreateJobModal}
+        onClose={() => setIsModalOpen(false)}
         deparments={departments}
       />
 
@@ -421,19 +394,10 @@ const Postings: React.FC = () => {
                 this posting?F
               </ModalBody>
               <ModalFooter>
-                <Button
-                  color="primary"
-                  variant="light"
-                  onPress={onClose}
-                  isDisabled={deleteLoading}
-                >
+                <Button color="primary" variant="light" onPress={onClose}>
                   Close
                 </Button>
-                <Button
-                  color="danger"
-                  onPress={handleDelete}
-                  isLoading={deleteLoading}
-                >
+                <Button color="danger" onPress={handleDelete}>
                   Delete
                 </Button>
               </ModalFooter>

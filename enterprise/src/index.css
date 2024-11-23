@@ -206,63 +206,360 @@ html {
   background-color: #2e2e33 !important;
 }
 
-.ql-toolbar {
-  border: none !important;
-  border-radius: 10px;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
+.user-button-small {
+  height: 1.25rem; /* 20px */
+  width: 1.25rem; /* 20px */
 }
 
+.dark .react-tagsinput {
+  background-color: #27272a !important;
+}
+
+.react-tagsinput {
+  background-color: #f3f2f2 !important;
+  overflow: hidden !important;
+  border-radius: 10px;
+  width: 100%;
+  display: flex;
+  height: 50px;
+  align-items: center;
+  outline: none !important;
+  border: none !important;
+}
+
+.react-tagsinput-input {
+  background-color: transparent;
+  outline: none;
+  margin-left: 10px;
+}
+
+.react-tagsinput-tag {
+  background-color: #161617 !important;
+  border-radius: 5px !important;
+  border: none !important;
+  color: #a1a1aa !important;
+  margin-left: 2px !important;
+}
+
+/* Quill Editor Dark Theme Styles */
+
+/* Toolbar Styling */
+.ql-toolbar {
+  background-color: #1a1a1c;
+  border: 1px solid #2e2e33 !important;
+  border-bottom: none !important;
+  border-radius: 12px 12px 0 0;
+  padding: 14px !important;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.ql-toolbar:hover {
+  background-color: #1d1d1f;
+}
+
+/* Editor Container */
+.ql-container {
+  background-color: #161618;
+  border: 1px solid #2e2e33 !important;
+  border-top: none !important;
+  border-radius: 0 0 12px 12px;
+  color: #ffffff;
+  font-family: "geist", sans-serif;
+  transition: all 0.2s ease;
+}
+
+.ql-container:focus-within {
+  border-color: #3e3e44 !important;
+}
+
+/* Toolbar Icons */
 .ql-toolbar .ql-stroke {
   fill: none;
-  stroke: #ffffff !important;
-  background-color: #ffffff !important;
+  stroke: #a1a1aa !important;
+  transition: all 0.2s ease;
 }
 
-.ql-editor.ql-blank::before {
+.ql-toolbar .ql-fill {
+  fill: #a1a1aa !important;
+  transition: all 0.2s ease;
+}
+
+.ql-toolbar .ql-picker {
+  color: #a1a1aa !important;
+  transition: all 0.2s ease;
+}
+
+/* Toolbar Buttons */
+.ql-toolbar button {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.ql-toolbar button:hover {
+  background-color: #2e2e33;
+}
+
+/* Hover States with Smooth Transitions */
+.ql-toolbar button:hover .ql-stroke,
+.ql-toolbar button.ql-active .ql-stroke,
+.ql-toolbar .ql-picker-label:hover .ql-stroke {
+  stroke: #ffffff !important;
+  transform: scale(1.05);
+}
+
+.ql-toolbar button:hover .ql-fill,
+.ql-toolbar button.ql-active .ql-fill,
+.ql-toolbar .ql-picker-label:hover .ql-fill {
+  fill: #ffffff !important;
+  transform: scale(1.05);
+}
+
+/* Active States with Visual Feedback */
+.ql-toolbar button.ql-active,
+.ql-toolbar .ql-picker-label.ql-active {
+  background-color: #2e2e33;
   color: #ffffff !important;
 }
 
-.ql-toolbar .ql-fill {
-  fill: #ffffff;
+.ql-toolbar button.ql-active::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background-color: #ffffff;
+  border-radius: 50%;
 }
 
-.ql-toolbar .ql-fill {
-  fill: #ffffff !important;
-  stroke: none;
+/* Enhanced Dropdown Styling */
+.ql-toolbar .ql-picker-options {
+  background-color: #1a1a1c;
+  border: 1px solid #2e2e33;
+  border-radius: 8px;
+  padding: 6px 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  transform-origin: top;
+  animation: dropdownAppear 0.2s ease;
 }
 
-.ql-active .ql-fill {
-  fill: skyblue !important;
-  stroke: none;
+@keyframes dropdownAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-button:hover .ql-stroke,
-.ql-picker-label:hover .ql-stroke {
-  fill: none;
-  stroke: skyblue !important;
+.ql-toolbar .ql-picker-item {
+  color: #a1a1aa;
+  padding: 6px 14px;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  margin: 0 4px;
 }
 
-.ql-container {
-  border: none !important;
+.ql-toolbar .ql-picker-item:hover {
+  color: #ffffff;
+  background-color: #2e2e33;
+}
+
+/* Editor Content with Better Typography */
+.ql-editor {
+  padding: 20px;
+  min-height: 200px;
+  line-height: 1.6;
+  letter-spacing: 0.3px;
+}
+
+.ql-editor p {
+  margin-bottom: 1em;
+}
+
+.ql-editor.ql-blank::before {
+  color: #71717a !important;
+  font-style: normal;
+  font-family: "geist", sans-serif;
+  opacity: 0.8;
+  font-size: 0.95em;
+  transition: all 0.2s ease;
+  left: 20px;
+  right: 20px;
+}
+
+/* Enhanced Selection Color */
+.ql-editor ::selection {
+  background-color: rgba(147, 147, 147, 0.25);
+  backdrop-filter: blur(4px);
+}
+
+/* Improved Link Tooltip */
+.ql-tooltip {
+  background-color: #1a1a1c !important;
+  border: 1px solid #2e2e33 !important;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  color: #ffffff !important;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.ql-tooltip input[type="text"] {
+  background-color: #161618;
+  border: 1px solid #2e2e33;
+  border-radius: 6px;
+  color: #ffffff;
+  padding: 6px 10px;
+  transition: all 0.2s ease;
+  margin: 6px 0;
+}
+
+.ql-tooltip input[type="text"]:focus {
+  border-color: #3e3e44;
+  outline: none;
+}
+
+.ql-tooltip .ql-action,
+.ql-tooltip .ql-remove {
+  color: #a1a1aa;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: inline-block;
+  margin: 0 2px;
+}
+
+.ql-tooltip .ql-action:hover,
+.ql-tooltip .ql-remove:hover {
+  color: #ffffff;
+  background-color: #2e2e33;
+}
+
+/* Enhanced Format Colors */
+.ql-color .ql-picker-options,
+.ql-background .ql-picker-options {
+  padding: 8px;
+  width: 192px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 24px);
+  gap: 4px;
+}
+
+.ql-color .ql-picker-item,
+.ql-background .ql-picker-item {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.ql-color .ql-picker-item:hover,
+.ql-background .ql-picker-item:hover {
+  transform: scale(1.1);
+  border-color: #ffffff;
+}
+
+/* Improved Code Block */
+.ql-editor pre.ql-syntax {
+  background-color: #1a1a1c;
+  border-radius: 8px;
+  color: #e4e4e7;
+  padding: 16px;
+  font-family: "Fira Code", monospace;
+  margin: 1em 0;
+  border: 1px solid #2e2e33;
+}
+
+/* Enhanced Lists */
+.ql-editor ol,
+.ql-editor ul {
+  padding-left: 24px;
+  margin: 1em 0;
+}
+
+.ql-editor li {
+  padding-left: 6px;
+}
+
+/* Improved Blockquote */
+.ql-editor blockquote {
+  border-left: 4px solid #2e2e33;
+  padding: 12px 0 12px 20px;
+  margin: 1.5em 0;
+  color: #a1a1aa;
+  font-style: italic;
+  position: relative;
+}
+
+.ql-editor blockquote::before {
+  content: '"';
+  position: absolute;
+  left: -2px;
+  top: -10px;
+  font-size: 2em;
+  color: #2e2e33;
+  font-family: Georgia, serif;
+}
+
+/* Custom Scrollbar for Editor */
+.ql-editor::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ql-editor::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ql-editor::-webkit-scrollbar-thumb {
+  background: #2e2e33;
   border-radius: 10px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
 }
 
-.ql-active .ql-stroke {
-  fill: none;
-  stroke: skyblue !important;
+.ql-editor::-webkit-scrollbar-thumb:hover {
+  background: #3e3e44;
 }
 
-button:hover .ql-fill,
-.ql-picker-label:hover .ql-fill {
-  fill: skyblue !important;
-  stroke: none;
+/* Focus States */
+.ql-toolbar button:focus,
+.ql-toolbar .ql-picker-label:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
 }
 
-.user-button-small {
-  height: 1.25rem; /* 20px */
-  width: 1.25rem;  /* 20px */
+/* Headers Styling */
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3,
+.ql-editor h4,
+.ql-editor h5,
+.ql-editor h6 {
+  margin: 1.5em 0 0.5em;
+  line-height: 1.3;
 }
 
+/* Links Styling */
+.ql-editor a {
+  color: #60a5fa;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.ql-editor a:hover {
+  color: #93c5fd;
+  text-decoration: underline;
+}

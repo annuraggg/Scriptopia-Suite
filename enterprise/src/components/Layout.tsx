@@ -8,14 +8,15 @@ import {
 } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
 import ax from "@/config/axios";
-import { Organization as Org } from "@shared-types/Organization";
 import { toast } from "sonner";
 import { MemberWithPermission as MWP } from "@shared-types/MemberWithPermission";
+import { OrganizationWithPostings as OWP } from "@/types/RootContext";
 
 const Layout = () => {
   const [notifications, setNotifications] = useState([]);
-  const [organization, setOrganization] = useState<Org>({} as Org);
+  const [organization, setOrganization] = useState<OWP>({} as OWP);
   const [user, setUser] = useState<MWP>({} as MWP);
+  const [rerender, setRerender] = useState(false);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -30,8 +31,16 @@ const Layout = () => {
       })
       .catch((err) => {
         toast.error(err.response.data.message || "An error occurred");
+      })
+      .finally(() => {
+        setRerender(!rerender);
       });
   }, []);
+
+  const updateOrganization = (newOrganization: OWP) => {
+    setOrganization(newOrganization);
+    setRerender(!rerender);
+  }
 
   return (
     <>
@@ -46,7 +55,13 @@ const Layout = () => {
 
             <div className="h-full w-full">
               <Outlet
-                context={{ notifications, user, organization, setOrganization }}
+                context={{
+                  notifications,
+                  user,
+                  organization,
+                  setOrganization: updateOrganization,
+                  rerender,
+                }}
               />
             </div>
           </div>

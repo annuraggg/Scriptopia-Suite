@@ -15,16 +15,16 @@ import {
 import { useEffect, useState } from "react";
 import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
 import { Badge } from "@nextui-org/react";
-import { Organization } from "@shared-types/Organization";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
 import { Notification } from "@shared-types/Organization";
+import { OrganizationWithPostings as OWP } from "@/types/RootContext";
 
 const Sidebar = ({
   notifications,
   user,
 }: {
   notifications: Notification[];
-  org: Organization;
+  org: OWP;
   user: MemberWithPermission;
 }) => {
   const topItems = [
