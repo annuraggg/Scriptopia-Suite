@@ -19,7 +19,6 @@ import {
   PlusIcon,
 } from "lucide-react";
 import Filter from "./Filter";
-import CreateJobModal from "./CreateJobModal";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
@@ -78,7 +77,6 @@ const Postings: React.FC = () => {
     start: "",
     end: "",
   });
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const [deleteId, setDeleteId] = useState<string>();
@@ -156,7 +154,7 @@ const Postings: React.FC = () => {
       toast.error("Please create a department first");
       return;
     }
-    setIsModalOpen(true);
+    navigate("create");
   };
 
   const getPostingStatus = (posting: Posting) => {
@@ -376,11 +374,6 @@ const Postings: React.FC = () => {
           </motion.div>
         </div>
       </div>
-      <CreateJobModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        deparments={departments}
-      />
 
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
         <ModalContent>
