@@ -65,7 +65,7 @@ const assessmentSchema = new Schema({
 const postingSchema = new Schema({
   organizationId: { type: mongoose.Types.ObjectId, ref: "Organization" },
   title: { type: String, required: true },
-  description: { type: String, required: true },
+  description: { type: Object, required: true },
   department: { type: mongoose.Types.ObjectId, ref: "Department" },
   location: { type: String, required: true },
   type: {

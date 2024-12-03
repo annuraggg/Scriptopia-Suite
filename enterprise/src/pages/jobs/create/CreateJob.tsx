@@ -116,6 +116,7 @@ const CreateJob = () => {
         const newOrganization = { ...organization };
         newOrganization.postings.push(res.data.data);
         setOrganization(newOrganization);
+        console.log(newOrganization);
         navigate("/jobs");
       })
       .catch((err) => {

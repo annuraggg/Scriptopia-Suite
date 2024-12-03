@@ -100,7 +100,7 @@ const JobDetails = ({
           <ReactQuill
             theme="snow"
             value={description}
-            onChange={setDescription}
+            onChange={(_e, _d, _s, ed) => setDescription(ed.getContents())}
             className="border rounded-xl bg-input w-[500px] overflow-y-auto"
             placeholder="eg. We are looking for a Senior Software Engineer to join our team. You will be responsible for building high-quality software applications."
           />
