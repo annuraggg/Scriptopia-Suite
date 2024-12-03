@@ -13,6 +13,8 @@ import {
   DollarSign,
   CheckCircle2,
   LocateIcon,
+  Edit2,
+  Trash2
 } from "lucide-react";
 
 interface SummaryProps {
@@ -79,24 +81,29 @@ const Preview = ({
   };
 
   return (
-    <div className="w-full max-w-5xl">
-      <div className="w-full">
+    <div className="w-full max-w-5xl px-4 py-6">
+      <div className="w-full space-y-6">
+        {/* Job Title and Basic Info */}
         <div className="flex justify-between items-start">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-2xl font-bold">
+          <div className="flex flex-col gap-3">
+            <h1 className="text-3xl font-bold tracking-tight">
               {title || "Untitled Position"}
             </h1>
-            <div className="flex gap-2 items-center my-5">
-              <Chip color={getCategoryColor(category)} variant="flat" size="sm">
-                {category?.charAt(0)?.toUpperCase() + category?.slice(1) ||
-                  "No Category"}
+            <div className="flex gap-3 items-center flex-wrap">
+              <Chip 
+                color={getCategoryColor(category)} 
+                variant="flat" 
+                size="sm" 
+                className="transition-all duration-300 hover:scale-105"
+              >
+                {category?.charAt(0)?.toUpperCase() + category?.slice(1) || "No Category"}
               </Chip>
-              <div className="flex items-center gap-1 text-sm opacity-70">
-                <Building2 size={16} />
+              <div className="flex items-center gap-2 text-sm opacity-70">
+                <Building2 size={16} className="stroke-current" />
                 <span>{department || "No Department"}</span>
               </div>
-              <div className="flex items-center gap-1 text-sm opacity-70">
-                <LocateIcon size={16} />
+              <div className="flex items-center gap-2 text-sm opacity-70">
+                <LocateIcon size={16} className="stroke-current" />
                 <span>{location || "No Location"}</span>
               </div>
             </div>
@@ -105,46 +112,55 @@ const Preview = ({
 
         <Divider />
 
-        <div className="flex flex-col gap-6 my-5">
+        {/* Job Details */}
+        <div className="space-y-6">
+          {/* Key Information Chips */}
           <div className="flex gap-4 flex-wrap">
-            <Chip
-              startContent={<Calendar size={16} />}
-              variant="flat"
-              className="h-8"
-            >
-              {formatDate(applicationRange?.start.toString())} -{" "}
-              {formatDate(applicationRange?.end.toString())}
-            </Chip>
-            <Chip
-              startContent={<Users size={16} />}
-              variant="flat"
-              className="h-8"
-            >
-              {openings} Opening{openings !== 1 ? "s" : ""}
-            </Chip>
-            <Chip
-              startContent={<DollarSign size={16} />}
-              variant="flat"
-              className="h-8"
-            >
-              {formatCurrency(minSalary.toString())} -{" "}
-              {formatCurrency(maxSalary.toString())}
-            </Chip>
+            {[
+              {
+                icon: <Calendar size={16} />,
+                content: `${formatDate(applicationRange?.start.toString())} - ${formatDate(applicationRange?.end.toString())}`
+              },
+              {
+                icon: <Users size={16} />,
+                content: `${openings} Opening${openings !== 1 ? "s" : ""}`
+              },
+              {
+                icon: <DollarSign size={16} />,
+                content: `${formatCurrency(minSalary.toString())} - ${formatCurrency(maxSalary.toString())}`
+              }
+            ].map((item, index) => (
+              <Chip
+                key={index}
+                startContent={item.icon}
+                variant="flat"
+                className="h-8 px-3 transition-all duration-300 hover:scale-105"
+              >
+                {item.content}
+              </Chip>
+            ))}
           </div>
 
-          <div>
-            <h2 className="text-lg font-semibold mb-2">Required Skills</h2>
+          {/* Skills */}
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Required Skills</h2>
             <div className="flex gap-2 flex-wrap">
               {skills.map((skill, index) => (
-                <Chip key={index} variant="flat" size="sm">
+                <Chip 
+                  key={index} 
+                  variant="flat" 
+                  size="sm"
+                  className="transition-all duration-300 hover:scale-105"
+                >
                   {skill}
                 </Chip>
               ))}
             </div>
           </div>
 
-          <div>
-            <h2 className=" font-semibold mb-2 text-sm">Job Description</h2>
+          {/* Job Description */}
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Job Description</h2>
             <ScrollShadow className="max-h-64">
               <div
                 className="prose prose-sm max-w-none"
@@ -153,18 +169,31 @@ const Preview = ({
             </ScrollShadow>
           </div>
 
-          <div>
-            <h2 className="font-semibold mb-2">Assessment Workflow</h2>
-            <div className="flex flex-col gap-3">
+          {/* Assessment Workflow */}
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Assessment Workflow</h2>
+            <div className="space-y-3">
               {addedComponents.map((component, index) => (
                 <div
                   key={component.id}
-                  className="flex items-center gap-2 p-3 rounded-lg bg-content2"
+                  className="flex items-center justify-between p-3 rounded-lg bg-content2 transition-all duration-300 hover:shadow-sm group"
                 >
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    {index + 1}
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-semibold">
+                      {index + 1}
+                    </div>
+                    <span className="group-hover:translate-x-1 transition-transform">
+                      {component.name}
+                    </span>
                   </div>
-                  <span>{component.name}</span>
+                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button className="hover:bg-content3 rounded-full p-1">
+                      <Edit2 size={16} />
+                    </button>
+                    <button className="hover:bg-content3 rounded-full p-1">
+                      <Trash2 size={16} className="text-danger" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -173,8 +202,13 @@ const Preview = ({
 
         <Divider />
 
-        <div className="flex justify-end gap-2 mt-5">
-          <Button variant="flat" onClick={() => setAction(1)}>
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-3 mt-6">
+          <Button 
+            variant="flat" 
+            onClick={() => setAction(1)}
+            className="transition-all duration-300 hover:scale-105"
+          >
             Back
           </Button>
           <Button
@@ -182,6 +216,7 @@ const Preview = ({
             variant="flat"
             startContent={<CheckCircle2 size={16} />}
             onClick={handleSave}
+            className="transition-all duration-300 hover:scale-105"
           >
             Publish Job
           </Button>

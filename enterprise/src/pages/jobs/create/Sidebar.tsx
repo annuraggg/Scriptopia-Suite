@@ -1,3 +1,6 @@
+import React from 'react';
+import { ChevronRight } from 'lucide-react';
+
 const Sidebar = ({
   active = 0,
   setActive,
@@ -23,19 +26,48 @@ const Sidebar = ({
       title: "Preview",
     },
   ];
+
   return (
-    <div className="w-[30%] py-10">
-      <div className="flex flex-col gap-2">
+    <div className="w-[20%] py-10 h-full">
+      <div className="flex flex-col space-y-4">
         {steps.map((step, index) => (
           <div
             key={step.id}
-            className={`flex items-center gap-5 py-3 ${
-              active === index ? "opacity-70" : "opacity-30"
-            } cursor-pointer`}
+            className={`
+              flex items-center justify-between 
+              px-4 py-3 
+              rounded-lg 
+              transition-all duration-300 ease-in-out 
+              ${active === index 
+                ? "bg-gray-600 bg-opacity-20 shadow-md" 
+                : ""}
+              ${active === index ? "opacity-100" : "opacity-60"}
+              cursor-pointer group
+            `}
             onClick={() => setActive(index)}
           >
-            <div className={`w-14 h-[3px] bg-white border rounded-xl`}></div>
-            <div>{step.title}</div>
+            <div className="flex items-center space-x-4">
+              <div 
+                className={`
+                  w-10 h-1 
+                  rounded-full 
+                  transition-all duration-300 
+                  ${active === index ? "bg-white" : "bg-gray-700"}
+                `}
+              ></div>
+              <span className="text-white font-medium text-sm">
+                {step.title}
+              </span>
+            </div>
+            <ChevronRight 
+              className={`
+                text-white 
+                opacity-0 group-hover:opacity-100 
+                transition-opacity duration-300
+                ${active === index ? "opacity-100" : ""}
+              `}
+              size={20} 
+            />
           </div>
         ))}
       </div>

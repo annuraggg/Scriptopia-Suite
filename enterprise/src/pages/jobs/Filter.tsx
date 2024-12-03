@@ -44,22 +44,8 @@ const Filter: React.FC<FilterProps> = ({
   };
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-start mt-1">
-      <div className="flex items-center justify-between w-full rounded-lg radius-md">
-        <div className="flex items-center gap-1 w-full">
-          <p className="text-neutral-400 text-sm">Sort by</p>
-        </div>
-        <Select
-          size="sm"
-          selectedKeys={sort} // @ts-expect-error - idk
-          onSelectionChange={setSort}
-        >
-          <SelectItem key="newest">Newest</SelectItem>
-          <SelectItem key="oldest">Oldest</SelectItem>
-          <SelectItem key="salary">Salary</SelectItem>
-        </Select>
-      </div>
-      <Card className="w-full h-full mt-7">
+    <div className="w-full h-full flex flex-col items-center justify-start">
+      <Card className="w-full h-full">
         <CardBody className="flex flex-col items-start justify-start gap-3 w-full p-4">
           <p className="text-lg font-semibold">Filters</p>
           <hr className="w-full h-[1px] bg-gray-200 rounded-lg"></hr>

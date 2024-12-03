@@ -7,6 +7,10 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  SelectItem,
+  Select,
+  Breadcrumbs,
+  BreadcrumbItem,
 } from "@nextui-org/react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import {
@@ -17,6 +21,9 @@ import {
   EllipsisVertical,
   Link,
   PlusIcon,
+  LayoutList,
+  LayoutGrid,
+  Search,
 } from "lucide-react";
 import Filter from "./Filter";
 import { useAuth } from "@clerk/clerk-react";
@@ -34,23 +41,21 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import { RootContext } from "@/types/RootContext";
+import { Tabs, Tab } from "@nextui-org/react";
 
 const Cards = [
   {
-    title: "ALL",
-    jobCount: 20,
+    title: "All",
     icon: <ListIcon size={28} />,
     filter: "all",
   },
   {
     title: "Active",
-    jobCount: 10,
     icon: <CirclePlayIcon size={28} />,
     filter: "active",
   },
   {
     title: "Closed",
-    jobCount: 5,
     icon: <BanIcon size={28} />,
     filter: "inactive",
   },
@@ -189,8 +194,10 @@ const Postings: React.FC = () => {
   return (
     <div className="flex gap-5 w-full p-5">
       <div className="w-full">
-        <h4 className="text-2xl font-bold mb-4">Postings</h4>
-        <div className="flex justify-between items-start w-full gap-5">
+        <Breadcrumbs>
+          <BreadcrumbItem href="/postings">Postings</BreadcrumbItem>
+        </Breadcrumbs>
+        <div className="flex justify-between items-start w-full gap-5 mt-5">
           <motion.div
             initial={{ x: -50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -217,65 +224,58 @@ const Postings: React.FC = () => {
             className="flex flex-col gap-4 w-4/5"
           >
             <div className="">
-              <div className="flex justify-between items-center w-full gap-4">
+              <div className="flex justify-center items-center w-full gap-3"></div>
+
+              <div className="flex gap-5 mt-5 w-full items-center">
                 <Input
-                  className="4/5"
+                  className="w-[300px]"
                   placeholder="Search Postings"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  startContent={<Search size={20} className="opacity-50 mr-2" />}
                 />
 
-                <Button
-                  color="success"
-                  onClick={openCreateJobModal}
-                  className="w-1/6"
+                <p className="text-neutral-400 text-sm">Job Status</p>
+                <Select
+                  className="w-[100px]"
+                  value={selectedFilter}
+                  onChange={(e) => setSelectedFilter(e.target.value)}
+                  selectedKeys={[selectedFilter]}
                 >
-                  <PlusIcon size={20} />
-                  <p>Create a new job</p>
-                </Button>
-              </div>
+                  {Cards.map((card) => (
+                    <SelectItem key={card.filter} value={card.filter}>
+                      {card.title}
+                    </SelectItem>
+                  ))}
+                </Select>
 
-              <div className="flex gap-5 mt-5 w-full">
-                {Cards.map((card, index) => (
-                  <Card
-                    isPressable
-                    key={index}
-                    className={`flex flex-col items-start justify-center w-full h-20 transition-colors duration-300 ${
-                      selectedFilter === card?.filter
-                        ? "bg-gray-500/20 text-white"
-                        : "text-gray-500"
-                    }`}
-                    onClick={() => setSelectedFilter(card?.filter)}
+                <div className="flex items-center gap-1">
+                  <p className="text-neutral-400 text-sm">Sort by</p>
+                </div>
+                <Select
+                  className="w-[150px]"
+                  selectedKeys={sort} // @ts-expect-error - idk
+                  onSelectionChange={setSort}
+                >
+                  <SelectItem key="newest">Newest</SelectItem>
+                  <SelectItem key="oldest">Oldest</SelectItem>
+                  <SelectItem key="salary">Salary</SelectItem>
+                </Select>
+
+                <div className="flex w-[30%] justify-end gap-3 items-center">
+                  <Tabs>
+                    <Tab title={<LayoutList size={18} />} />
+                    <Tab title={<LayoutGrid size={18} />} />
+                  </Tabs>
+                  <Button
+                    color="success"
+                    variant="flat"
+                    onClick={openCreateJobModal}
                   >
-                    <div className="flex items-center justify-center gap-3 w-full">
-                      <div
-                        className={`${
-                          selectedFilter === card?.filter
-                            ? "text-white"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        {card.icon}
-                      </div>
-                      <h1
-                        className={`${
-                          selectedFilter === card?.filter
-                            ? "text-white"
-                            : "text-gray-500"
-                        } text-base`}
-                      >
-                        {card.title}
-                      </h1>
-                    </div>
-                    <p
-                      className={`text-center w-full ${
-                        selectedFilter === card?.filter
-                          ? "text-white"
-                          : "text-gray-500"
-                      }`}
-                    ></p>
-                  </Card>
-                ))}
+                    <PlusIcon size={16} />
+                    <p>Create job</p>
+                  </Button>
+                </div>
               </div>
 
               <div className="flex flex-col gap-3 w-full mt-6 overflow-y-auto">
