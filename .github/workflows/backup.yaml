@@ -42,7 +42,7 @@ jobs:
 
           echo "Installing npm dependencies..."
           cd backups
-          npm ci
+          npm i
           echo "npm dependencies installed."
 
       - name: Run backup
