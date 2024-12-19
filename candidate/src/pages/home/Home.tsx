@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { Input, Select, SelectItem, Slider, Card, Pagination } from "@nextui-org/react";
 import { Search, MapPin, Briefcase, Building2, Calendar, BriefcaseIcon } from 'lucide-react';
 
-// Types
 interface JobPosting {
   id: number;
   title: string;
@@ -18,7 +17,6 @@ interface JobPosting {
 }
 
 const Home = () => {
-  // States
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [selectedJobType, setSelectedJobType] = useState('');
@@ -27,12 +25,10 @@ const Home = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState('recent');
 
-  // Mock data
   const jobTypes = ['Full-time', 'Part-time', 'Contract', 'Remote'];
   const industries = ['Technology', 'Healthcare', 'Finance', 'Education', 'Marketing'];
   const locations = ['New York', 'San Francisco', 'London', 'Remote', 'Tokyo'];
 
-  // Mock job postings with 10 items
   const mockJobs: JobPosting[] = [
     {
       id: 1,
@@ -96,7 +92,6 @@ const Home = () => {
     },
   ];
 
-  // Container animation
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -107,7 +102,6 @@ const Home = () => {
     }
   };
 
-  // Job card animation
   const jobCardVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
@@ -118,7 +112,6 @@ const Home = () => {
 
   return (
     <div className="min-h-screen p-8">
-      {/* Header Section with Animated Glow */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -133,13 +126,12 @@ const Home = () => {
         </p>
       </motion.div>
 
-      {/* Search and Filter Section */}
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="rounded-xl p-6 shadow-md mb-8 backdrop-blur-sm"
       >
-        {/* Search Bar */}
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Input
             placeholder="Search jobs, companies, or keywords..."
@@ -174,7 +166,6 @@ const Home = () => {
           </Select>
         </div>
 
-        {/* Advanced Filters */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Select
             placeholder="Industry"
@@ -212,7 +203,6 @@ const Home = () => {
         </div>
       </motion.div>
 
-      {/* Scrollable Job Listings */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -262,7 +252,6 @@ const Home = () => {
         ))}
       </motion.div>
 
-      {/* Pagination */}
       <div className="flex justify-center mt-8">
         <Pagination
           total={10}
