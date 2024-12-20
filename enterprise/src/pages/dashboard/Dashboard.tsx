@@ -175,9 +175,8 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="flex-1">
                 <p className="text-white font-medium">{posting.title}</p>
-                <p className="text-zinc-400 text-sm">
-                  {posting.department} • {getRelativeTime(posting.updatedOn)}
-                </p>
+                <p className="text-zinc-400 text-sm">{posting.department}</p>
+                <p className="text-zinc-400 text-sm">{getRelativeTime(posting.updatedOn)}</p>
               </div>
               <Button
                 isIconOnly
@@ -316,8 +315,8 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800">
-      <div className="sticky top-0 z-10 backdrop-blur-xl bg-zinc-900/80 border-b border-zinc-800">
+    <div className="min-h-screen">
+      <div className="sticky top-0 z-10">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center p-4">
             <Breadcrumbs>
