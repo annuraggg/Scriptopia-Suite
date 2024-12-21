@@ -6,7 +6,8 @@ import profileRoutes from "./routes/profileRoutes";
 import Settings from "./pages/settings/Settings";
 import Alerts from "./pages/alerts/Alerts";
 import Home from "./pages/home/Home";
-import Myjobs from "./pages/myjobs/Myjobs";
+import JobsLayout from "./pages/Jobs/JobsLayout";
+import jobRoutes from "./routes/jobroutes";
 
 function App() {
   const router = createBrowserRouter([
@@ -24,8 +25,9 @@ function App() {
           children: [...profileRoutes],
         },
         {
-          path: "/myjobs",
-          element: <Myjobs />,
+          path: "/jobs",
+          element: <JobsLayout />,
+          children: [...jobRoutes],
         },
         {
           path: "/alerts",

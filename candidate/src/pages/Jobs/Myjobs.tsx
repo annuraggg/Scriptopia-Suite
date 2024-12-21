@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, Building2, Calendar } from 'lucide-react';
+import { BreadcrumbItem, Breadcrumbs } from "@nextui-org/react";
 import { format } from 'date-fns';
 
 const jobData = [
@@ -70,13 +71,17 @@ const Myjobs = () => {
   );
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-2xl">
+    <div className="min-h-screen p-6">
+      <Breadcrumbs>
+        <BreadcrumbItem href="/profile">Jobs</BreadcrumbItem>
+        <BreadcrumbItem href="/profile">My Jobs</BreadcrumbItem>
+      </Breadcrumbs>
+      <div className="max-w-2xl pt-4">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="text-4xl font-bold mb-8">My Job Applications</h1>
+          <h1 className="text-3xl font-bold mb-8">My Job Applications</h1>
           
           <div className="flex flex-wrap gap-2 mb-6">
             {filters.map(filter => (

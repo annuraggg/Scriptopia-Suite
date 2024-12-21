@@ -81,7 +81,7 @@ const Alerts = () => {
         initial="hidden"
         animate="visible"
         variants={containerVariants}
-        className="max-w-6xl mx-auto space-y-6"
+        className="max-w-6xl space-y-6"
       >
         <h1 className="text-3xl font-bold mb-8 flex items-center gap-2">
           <Bell className="w-8 h-8" />

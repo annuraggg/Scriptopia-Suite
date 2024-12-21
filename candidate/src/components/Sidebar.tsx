@@ -46,8 +46,8 @@ const Sidebar = () => {
     },
     {
       icon: Briefcase,
-      label: "My Jobs",
-      link: "/myjobs",
+      label: "Jobs",
+      link: "/jobs",
       visible: true,
     },
     {

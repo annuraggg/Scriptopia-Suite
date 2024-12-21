@@ -317,7 +317,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen">
       <div className="sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w mx-auto">
           <div className="flex justify-between items-center p-4">
             <Breadcrumbs>
               <BreadcrumbItem>{org.name}</BreadcrumbItem>
@@ -351,7 +351,7 @@ const Dashboard: React.FC = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="max-w-7xl mx-auto p-6 space-y-6"
+        className="max-w mx-auto p-6 space-y-6"
       >
         <motion.div variants={itemVariants} className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Welcome back, {org.name}</h1>
