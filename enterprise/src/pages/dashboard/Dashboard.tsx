@@ -206,7 +206,7 @@ const Dashboard: React.FC = () => {
     icon: React.ReactNode;
     color: string;
   }> = ({ title, value, change, icon, color }) => (
-    <Card className="bg-zinc-800/40 border border-zinc-700/50 hover:bg-zinc-800/60 transition-all">
+    <Card className="hover:bg-zinc-800/60">
       <CardBody>
         <div className="flex items-center justify-between">
           <div className={`p-3 rounded-xl ${color}`}>
@@ -325,7 +325,7 @@ const Dashboard: React.FC = () => {
             </Breadcrumbs>
             <div className="flex items-center gap-4">
               <Tooltip content="Notifications">
-                <Button isIconOnly variant="light" className="text-zinc-400">
+                <Button isIconOnly variant="light" className="text-zinc-400" onClick={() => navigate('/notifications')}>
                   <Bell className="w-5 h-5" />
                 </Button>
               </Tooltip>
@@ -384,7 +384,7 @@ const Dashboard: React.FC = () => {
 
         <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <Card className="bg-zinc-800/40 border border-zinc-700/50">
+            <Card className="">
               <CardBody>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold text-white">Recruitment Overview</h2>
@@ -439,7 +439,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="space-y-6">
-            <Card className="bg-zinc-800/40 border border-zinc-700/50">
+            <Card className="">
               <CardBody>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold text-white">Recent Activity</h2>
@@ -452,13 +452,13 @@ const Dashboard: React.FC = () => {
         </motion.div>
 
         <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2 bg-zinc-800/40 border border-zinc-700/50">
+          <Card className="lg:col-span-2">
             <CardBody>
               <h2 className="text-xl font-semibold text-white mb-4">Quick Actions</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Button
-                  className="h-24"
-                  color="primary"
+                  className="h-24 hover:bg-zinc-800/60"
+                  color="secondary"
                   variant="flat"
                   startContent={<Calendar className="w-5 h-5" />}
                   onClick={() => navigate('/calendar')}
@@ -469,7 +469,7 @@ const Dashboard: React.FC = () => {
                   </div>
                 </Button>
                 <Button
-                  className="h-24"
+                  className="h-24 hover:bg-zinc-800/60"
                   color="secondary"
                   variant="flat"
                   startContent={<FileText className="w-5 h-5" />}
@@ -484,7 +484,7 @@ const Dashboard: React.FC = () => {
             </CardBody>
           </Card>
 
-          <Card className="bg-zinc-800/40 border border-zinc-700/50">
+          <Card className="">
             <CardBody>
               <h2 className="text-xl font-semibold text-white mb-4">Team Members</h2>
               <div className="space-y-4">

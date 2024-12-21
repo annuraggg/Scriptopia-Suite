@@ -185,7 +185,7 @@ const Analytics = () => {
             animate="visible"
             transition={{ delay: index * 0.1 }}
           >
-            <Card className="shadow-sm hover:shadow-md transition-shadow">
+            <Card className="hover:shadow-md transition-shadow">
               <CardBody className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className={`p-3 rounded-xl bg-zinc-800`}>
@@ -214,7 +214,7 @@ const Analytics = () => {
           animate="visible"
           transition={{ delay: 0.4 }}
         >
-          <Card className="shadow-sm">
+          <Card className="">
             <CardHeader className="flex justify-between items-center px-6 py-4">
               <div>
                 <h3 className="text-lg font-semibold">User Growth</h3>
@@ -278,7 +278,7 @@ const Analytics = () => {
           animate="visible"
           transition={{ delay: 0.5 }}
         >
-          <Card className="shadow-sm">
+          <Card className="">
             <CardHeader className="flex justify-between items-center px-6 py-4">
               <div>
                 <h3 className="text-lg font-semibold">Daily User Activity</h3>
@@ -332,7 +332,7 @@ const Analytics = () => {
           transition={{ delay: 0.6 }}
           className="lg:col-span-2"
         >
-          <Card className="shadow-sm">
+          <Card className="">
             <CardHeader className="flex justify-between items-center px-6 py-4">
               <div>
                 <h3 className="text-lg font-semibold">Job Postings Performance</h3>
@@ -393,7 +393,7 @@ const Analytics = () => {
           animate="visible"
           transition={{ delay: 0.7 }}
         >
-          <Card className="shadow-sm">
+          <Card className="">
             <CardHeader className="flex justify-between items-center px-6 py-4">
               <div>
                 <h3 className="text-lg font-semibold">Job Status Distribution</h3>
@@ -457,7 +457,7 @@ const Analytics = () => {
           animate="visible"
           transition={{ delay: 0.8 }}
         >
-          <Card className="shadow-sm">
+          <Card className="">
             <CardHeader className="flex justify-between items-center px-6 py-4">
               <div>
                 <h3 className="text-lg font-semibold">Posting Growth Trends</h3>
