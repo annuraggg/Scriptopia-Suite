@@ -14,21 +14,41 @@ const LIMIT_PER_PAGE = 20;
 const getProblems = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
+    // @ts-ignore
+    const auth = getAuth(c);
+    const userId = auth?.userId;
 
     const problems = await Problem.find()
       .skip((page - 1) * LIMIT_PER_PAGE)
       .limit(LIMIT_PER_PAGE)
       .lean();
 
-    const acceptanceRate = problems.map((problem) => {
-      const problemsWithAcceptanceRate =
+    let userSolvedProblems: string[] = [];
+    if (userId) {
+      // Get all successful submissions for the user
+      const successfulSubmissions = await Submission.distinct("problem", {
+        user: userId,
+        status: "SUCCESS",
+      });
+      userSolvedProblems = successfulSubmissions.filter((submission): submission is string => submission !== null);
+    }
+
+    const problemsWithStatus = problems.map((problem) => {
+      const acceptanceRate =
         problem.totalSubmissions > 0
           ? (problem.successfulSubmissions / problem.totalSubmissions) * 100
           : 0;
-      return { ...problem, problemsWithAcceptanceRate };
+
+      return {
+        ...problem,
+        acceptanceRate,
+        solved: userId
+          ? userSolvedProblems.includes(problem._id.toString())
+          : false,
+      };
     });
 
-    return sendSuccess(c, 200, "Success", acceptanceRate);
+    return sendSuccess(c, 200, "Success", problemsWithStatus);
   } catch (error) {
     console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
@@ -38,6 +58,9 @@ const getProblems = async (c: Context) => {
 const getUserGeneratedProblems = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
+    // @ts-ignore
+    const auth = getAuth(c);
+    const userId = auth?.userId;
 
     const problems = await Problem.find({
       author: { $ne: process.env.SCRIPTOPIA_USER_ID },
@@ -46,15 +69,31 @@ const getUserGeneratedProblems = async (c: Context) => {
       .limit(LIMIT_PER_PAGE)
       .lean();
 
-    const problemsWithAcceptanceRate = problems.map((problem) => {
+    let userSolvedProblems: string[] = [];
+    if (userId) {
+      const successfulSubmissions = await Submission.distinct("problem", {
+        user: userId,
+        status: "SUCCESS",
+      });
+      userSolvedProblems = successfulSubmissions.filter((submission): submission is string => submission !== null);
+    }
+
+    const problemsWithStatus = problems.map((problem) => {
       const acceptanceRate =
         problem.totalSubmissions > 0
           ? (problem.successfulSubmissions / problem.totalSubmissions) * 100
           : 0;
-      return { ...problem, acceptanceRate };
+
+      return {
+        ...problem,
+        acceptanceRate,
+        solved: userId
+          ? userSolvedProblems.includes(problem._id.toString())
+          : false,
+      };
     });
 
-    return sendSuccess(c, 200, "Success", problemsWithAcceptanceRate);
+    return sendSuccess(c, 200, "Success", problemsWithStatus);
   } catch (error) {
     console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
@@ -76,7 +115,25 @@ const getMyProblems = async (c: Context) => {
       .limit(LIMIT_PER_PAGE)
       .lean();
 
-    return sendSuccess(c, 200, "Success", problems);
+    const successfulSubmissions = await Submission.distinct("problem", {
+      user: auth.userId,
+      status: "SUCCESS",
+    });
+
+    const problemsWithStatus = problems.map((problem) => {
+      const acceptanceRate =
+        problem.totalSubmissions > 0
+          ? (problem.successfulSubmissions / problem.totalSubmissions) * 100
+          : 0;
+
+      return {
+        ...problem,
+        acceptanceRate,
+        solved: successfulSubmissions.includes(problem._id.toString()),
+      };
+    });
+
+    return sendSuccess(c, 200, "Success", problemsWithStatus);
   } catch (error) {
     console.error(error);
     return sendError(c, 500, "Internal Server Error", error);

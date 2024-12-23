@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Table,
@@ -12,14 +13,51 @@ import {
   Button,
 } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
-import {Problem} from "@shared-types/Problem";
+import { Problem } from "@shared-types/Problem";
+import DeleteProblemModal from "./DeleteProblemModal";
 
 const MyProblems = ({ myproblems }: { myproblems: Problem[] }) => {
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDifficulty, setSelectedDifficulty] = useState("");
+  const [tagSearch, setTagSearch] = useState("");
+
+  const allTags = Array.from(
+    new Set(myproblems.flatMap(problem => problem.tags))
+  ).sort();
+
+  const shouldScroll = allTags.length > 9;
+
 
   const openProblem = (id: string) => {
     navigate(`/problems/${id}`);
   };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const handleDifficultyChange = (value: string) => {
+    setSelectedDifficulty(value);
+  };
+
+  const handleTagSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTagSearch(event.target.value);
+  };
+
+  const filteredProblems = myproblems.filter((problem) => {
+    const searchFilter = searchTerm === "" ||
+      problem.title.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const difficultyFilter = selectedDifficulty === "" ||
+      problem.difficulty === selectedDifficulty;
+
+    const tagFilter = tagSearch === "" ||
+      problem.tags.some(tag => tag.toLowerCase().includes(tagSearch.toLowerCase()));
+
+
+    return searchFilter && difficultyFilter && tagFilter;
+  });
 
   return (
     <motion.div
@@ -30,9 +68,56 @@ const MyProblems = ({ myproblems }: { myproblems: Problem[] }) => {
     >
       <div className="w-full">
         <h2>My Problems</h2>
-        <div className="mt-5 mb-5 flex gap-5 w-[70%]">
-          <Input type="Search" label="Search Problems" size="sm" />
-          <Select label="Difficulty" className="max-w-xs" size="sm">
+        <div className="mt-4 mb-2">
+          <h6 className="text-sm text-gray-500 mb-2">Available Tags</h6>
+          <div
+            className={`
+              ${shouldScroll
+                ? 'flex overflow-x-auto overflow-y-hidden whitespace-nowrap pb-2'
+                : 'flex flex-wrap'}
+              gap-2
+            `}
+          >
+            {allTags.map((tag) => (
+              <span
+                key={tag}
+                onClick={() => setTagSearch(tag)}
+                className={`
+                  px-2 py-1 text-sm rounded-full cursor-pointer transition-colors
+                  ${shouldScroll ? 'inline-block flex-none' : ''}
+                  ${tagSearch === tag
+                    ? 'text-blue-600'
+                    : 'text-gray-600 hover:bg-zinc-600 hover:text-white'}
+                `}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="mt-5 mb-5 flex gap-5 w-[full]">
+          <Input
+            type="Search"
+            label="Search Problems"
+            size="sm"
+            value={searchTerm}
+            onChange={handleSearchChange}
+          />
+          <Input
+            type="Search"
+            label="Search Tags"
+            size="sm"
+            value={tagSearch}
+            onChange={handleTagSearchChange}
+            className="flex-1 min-w-[200px]"
+          />
+          <Select
+            label="Difficulty"
+            className="max-w-xs"
+            size="sm"
+            selectedKeys={[selectedDifficulty]}
+            onChange={(event) => handleDifficultyChange(event.target.value)}
+          >
             <SelectItem key="easy" value="easy">
               Easy
             </SelectItem>
@@ -57,20 +142,20 @@ const MyProblems = ({ myproblems }: { myproblems: Problem[] }) => {
             <TableColumn>Actions</TableColumn>
           </TableHeader>
           <TableBody>
-            {myproblems.map((problem) => (
+            {filteredProblems.map((problem) => (
               <TableRow className="h-14" key={problem.title}>
                 <TableCell
-                  className="w-[550px]  cursor-pointer hover:text-blue-500"
+                  className="w-[550px] cursor-pointer hover:text-blue-500"
                   onClick={() => openProblem(problem?._id || "")}
                 >
                   <p className="truncate max-w-[500px]">{problem.title}</p>
                 </TableCell>
                 <TableCell
                   className={`
-          ${problem.difficulty === "easy" && "text-green-400"}
-          ${problem.difficulty === "medium" && "text-yellow-400"}
-          ${problem.difficulty === "hard" && "text-red-400"}  
-          `}
+                    ${problem.difficulty === "easy" && "text-green-400"}
+                    ${problem.difficulty === "medium" && "text-yellow-400"}
+                    ${problem.difficulty === "hard" && "text-red-400"}  
+                  `}
                 >
                   {problem.difficulty.slice(0, 1).toUpperCase() +
                     problem.difficulty.slice(1)}
@@ -81,9 +166,11 @@ const MyProblems = ({ myproblems }: { myproblems: Problem[] }) => {
                   </p>
                 </TableCell>
                 <TableCell>
-                  <div className="flex gap-5 items-center justify-center">
-                    <button className="text-blue-400">Edit</button>
-                    <button className="text-red-400">Delete</button>
+                  <div className="flex items-start justify-items-start">
+                    <DeleteProblemModal
+                      problemId={problem._id || ""}
+                      problemTitle={problem.title}
+                    />
                   </div>
                 </TableCell>
               </TableRow>

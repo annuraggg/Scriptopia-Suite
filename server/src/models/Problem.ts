@@ -28,7 +28,10 @@ const ProblemSchema = new mongoose.Schema({
   allowInAssessments: { type: Boolean, default: false },
   totalSubmissions: { type: Number, default: 0 },
   successfulSubmissions: { type: Number, default: 0 },
+  solvedBy: [{ type: String, ref: "User" }]
 });
+
+ProblemSchema.index({ _id: 1 });
 
 const Problem = mongoose.model("Problem", ProblemSchema);
 export default Problem;

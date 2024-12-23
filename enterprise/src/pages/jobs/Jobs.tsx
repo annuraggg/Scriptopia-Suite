@@ -109,10 +109,14 @@ const Postings: React.FC = () => {
       return workScheduleFilter.includes(post.type);
     }
     if (dateRange.start && dateRange.end) {
-      return (
-        new Date(post.applicationRange.start) >= new Date(dateRange.start) &&
-        new Date(post.applicationRange.end) <= new Date(dateRange.end)
-      );
+      const postStartDate = new Date(post.applicationRange.start);
+      const postEndDate = new Date(post.applicationRange.end);
+      const filterStartDate = new Date(dateRange.start);
+      const filterEndDate = new Date(dateRange.end);
+
+      if (postStartDate < filterStartDate || postEndDate > filterEndDate) {
+        return false;
+      }
     }
 
     if (selectedFilter === "active") {

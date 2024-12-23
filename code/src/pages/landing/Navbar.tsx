@@ -1,8 +1,20 @@
 import { Link } from 'react-router-dom';
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Button } from "@nextui-org/react";
 import Logo from "../../assets/logo.png";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@clerk/clerk-react";
 
 const LanderNavbar = () => {
+    const navigate = useNavigate();
+    const { isSignedIn } = useAuth();
+
+    const handleGetStarted = () => {
+        if (isSignedIn) {
+            navigate("/dashboard");
+        } else {
+            navigate("/sign-in");
+        }
+    };
     return (
         <Navbar
             className="text-white border-b border-gray-800"
@@ -24,7 +36,7 @@ const LanderNavbar = () => {
                 <NavbarContent className="hidden sm:flex" justify="start">
                     <NavbarItem>
                         <Link
-                            to="/how-it-works"
+                            to="https://docs.scriptopia.tech/"
                             className="text-gray-400 hover:text-white transition-colors"
                         >
                             How it works
@@ -32,7 +44,7 @@ const LanderNavbar = () => {
                     </NavbarItem>
                     <NavbarItem>
                         <Link
-                            to="/sdsl"
+                            to="https://docs.scriptopia.tech/creating-a-problem/writing-the-sdsl-code-stub"
                             className="text-gray-400 hover:text-white transition-colors"
                         >
                             SDSL
@@ -40,7 +52,7 @@ const LanderNavbar = () => {
                     </NavbarItem>
                     <NavbarItem>
                         <Link
-                            to="/support"
+                            to="/under-construction"
                             className="text-gray-400 hover:text-white transition-colors"
                         >
                             Support
@@ -48,7 +60,7 @@ const LanderNavbar = () => {
                     </NavbarItem>
                     <NavbarItem>
                         <Link
-                            to="/about"
+                            to="/under-construction"
                             className="text-gray-400 hover:text-white transition-colors"
                         >
                             About
@@ -61,9 +73,9 @@ const LanderNavbar = () => {
                 <NavbarItem>
                     <Button
                         as={Link}
-                        to="/sign-in"
                         variant="light"
                         className="text-gray-300 hover:text-white"
+                        onClick={handleGetStarted}
                     >
                         Sign In
                     </Button>
@@ -71,8 +83,8 @@ const LanderNavbar = () => {
                 <NavbarItem>
                     <Button
                         as={Link}
-                        to="/sign-up"
                         className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                        onClick={handleGetStarted}
                     >
                         Sign Up
                     </Button>

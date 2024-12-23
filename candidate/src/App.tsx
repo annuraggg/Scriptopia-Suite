@@ -3,10 +3,9 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Layout from "./components/Layout";
 import ProfileLayout from "./pages/profile/ProfileLayout";
 import profileRoutes from "./routes/profileRoutes";
+import Home from "./pages/home/Home";
 import Lander from "./pages/lander/Lander";
 import Onboarding from "./pages/onboarding/Onboarding";
-import Resume from "./pages/resume/Resume";
-import Home from "./pages/home/Home";
 import Posting from "./pages/posting/Posting";
 
 function App() {
@@ -34,17 +33,13 @@ function App() {
       element: <Layout />,
       children: [
         {
+          path: "/home",
+          element: <Home />,
+        },
+        {
           path: "profile",
           element: <ProfileLayout />,
           children: [...profileRoutes],
-        },
-        {
-          path: "resume",
-          element: <Resume />,
-        },
-        {
-          path: "home",
-          element: <Home />,
         },
       ],
     },

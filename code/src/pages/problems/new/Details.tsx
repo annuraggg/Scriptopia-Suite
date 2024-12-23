@@ -71,7 +71,7 @@ const Details = ({
             onChange={(e) => setTitle(e.target.value)}
           />
           <Switch
-            className="w-full"
+            className="w-full lg:hidden md:hidden sm:hidden"
             size="sm"
             isSelected={isPrivate}
             onValueChange={(e) => setIsPrivate(e)}

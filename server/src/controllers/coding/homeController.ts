@@ -45,6 +45,7 @@ const getHome = async (c: Context) => {
       problems,
       tags,
       streak: user.streak,
+      loginDates: user.loginDates,
       solvedProblems,
       problemsCount: { easy: easyCount, medium: mediumCount, hard: hardCount },
     };

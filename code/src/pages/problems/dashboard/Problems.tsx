@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import Sidebar from "./Sidebar";
 import ProblemsList from "./ProblemsList";
-import Dashboard from "./Dashboard";
 import UserGenerated from "./UserGenerated";
 import ConundrumCubes from "./ConundrumCubes";
 import MyProblems from "./MyProblems";
@@ -40,16 +39,16 @@ const Problems = () => {
     const hash = window.location.hash;
     switch (hash) {
       case "#problems":
-        setActive(1);
+        setActive(0);
         break;
       case "#user-generated":
-        setActive(2);
+        setActive(1);
         break;
       case "#my-problems":
-        setActive(3);
+        setActive(2);
         break;
       case "#conundrum-cubes":
-        setActive(4);
+        setActive(3);
         break;
       default:
         setActive(0);
@@ -69,13 +68,12 @@ const Problems = () => {
     >
       <div className="h-full flex gap-5">
         <Sidebar active={active} setActive={setActive} />
-        {active === 0 && <Dashboard />} {/*myproblems={data[0]?.data.data || []}*/} 
-        {active === 1 && <ProblemsList problems={data[0]?.data.data || []} />}
-        {active === 2 && (
-          <UserGenerated userproblems={data[2]?.data.data || []} />
+        {active === 0 && <ProblemsList problems={data[0]?.data.data || []} />}
+        {active === 1 && (
+          <UserGenerated userproblems={data[1]?.data.data || []} />
         )}
-        {active === 3 && <MyProblems myproblems={data[2]?.data.data || []} />}
-        {active === 4 && <ConundrumCubes />}
+        {active === 2 && <MyProblems myproblems={data[2]?.data.data || []} />}
+        {active === 3 && <ConundrumCubes />}
       </div>
     </motion.div>
   );

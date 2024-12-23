@@ -1,4 +1,4 @@
-import { Home, UsersRound, Code, User } from "lucide-react";
+import { UsersRound, Code, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const links: {
@@ -7,11 +7,6 @@ const links: {
   hash: string;
   badge?: number;
 }[] = [
-  {
-    title: "Dashboard",
-    icon: Home,
-    hash: "",
-  },
   {
     title: "Problems",
     icon: Code,

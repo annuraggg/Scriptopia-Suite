@@ -5,6 +5,7 @@ import {
   Select,
   SelectItem,
   Checkbox,
+  Input,
 } from "@nextui-org/react";
 import { Department } from "@shared-types/Organization";
 
@@ -15,9 +16,7 @@ interface FilterProps {
   departments: Department[];
   setDepartmentFilter: React.Dispatch<React.SetStateAction<string>>;
   dateRange: { start: string; end: string };
-  setDateRange: React.Dispatch<
-    React.SetStateAction<{ start: string; end: string }>
-  >;
+  setDateRange: React.Dispatch<React.SetStateAction<{ start: string; end: string }>>;
   sort: Set<string>;
   setSort: React.Dispatch<Set<string>>;
 }
@@ -88,7 +87,7 @@ const Filter: React.FC<FilterProps> = ({
               ))}
             </Select>
           </div>
-          {/* <hr className="w-full h-[1px] bg-gray-200 rounded-lg mt-2"></hr>
+          {/* <hr className="w-full h-[1px] bg-white-800 rounded-lg"></hr>
           <p className="text-neutral-400 text-base mt-2">Date Range</p>
           <div className="flex flex-col items-start justify-start gap-4 w-full text-sm mt-2">
             <Input
@@ -96,6 +95,7 @@ const Filter: React.FC<FilterProps> = ({
               label="Start Date"
               placeholder="Select start date"
               className="w-full"
+              size="sm"
               value={dateRange.start}
               onChange={(e) =>
                 setDateRange({ ...dateRange, start: e.target.value })
@@ -106,6 +106,7 @@ const Filter: React.FC<FilterProps> = ({
               label="End Date"
               placeholder="Select end date"
               className="w-full"
+              size="sm"
               value={dateRange.end}
               onChange={(e) =>
                 setDateRange({ ...dateRange, end: e.target.value })

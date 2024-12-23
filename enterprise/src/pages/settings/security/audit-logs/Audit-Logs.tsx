@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronUp, ChevronDown, FileUp } from "lucide-react";
 import Sidebar from "../Sidebar";
 import { AuditLog } from "@shared-types/Organization";
 import { useOutletContext } from "react-router-dom";
@@ -96,15 +96,14 @@ const AuditLogsTable: React.FC<{ data: AuditLog[] }> = ({ data }) => {
       cell: (info) => (
         <span
           className={`px-2 py-1 rounded-full text-xs font-semibold
-          ${
-            info.getValue() === "info"
+          ${info.getValue() === "info"
               ? "bg-blue-100 text-blue-800"
               : info.getValue() === "warning"
-              ? "bg-yellow-100 text-yellow-800"
-              : info.getValue() === "error"
-              ? "bg-red-100 text-red-800"
-              : "bg-green-100 text-green-800"
-          }`}
+                ? "bg-yellow-100 text-yellow-800"
+                : info.getValue() === "error"
+                  ? "bg-red-100 text-red-800"
+                  : "bg-green-100 text-green-800"
+            }`}
         >
           {info.getValue()}
         </span>
@@ -133,9 +132,9 @@ const AuditLogsTable: React.FC<{ data: AuditLog[] }> = ({ data }) => {
                 {header.isPlaceholder
                   ? null
                   : flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
               </TableHead>
             ))}
           </TableRow>
@@ -167,7 +166,6 @@ const AuditLogsTable: React.FC<{ data: AuditLog[] }> = ({ data }) => {
   );
 };
 
-// Main AuditLogs component
 const AuditLogs: React.FC = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<AuditLog[]>([]);
@@ -191,6 +189,38 @@ const AuditLogs: React.FC = () => {
       );
     }
   };
+
+  const exportToCSV = (logs: AuditLog[]) => {
+    const processData = logs.map(log => ({
+      Timestamp: log.date ? new Date(log.date).toLocaleString() : '',
+      Message: `"${log.action.replace(/"/g, '""')}"`,
+      User: log.user,
+      Level: log.type
+    }));
+
+    const header = ['Timestamp', 'Message', 'User', 'Level'];
+
+    const csvContent = [
+      header.join(','),
+      ...processData.map(row => [
+        row.Timestamp,
+        row.Message,
+        row.User,
+        row.Level
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `audit_logs_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
 
   return (
     <div>

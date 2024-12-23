@@ -8,7 +8,7 @@ import {
   PieChart,
   BookOpenText,
   CreditCard,
-  HelpCircle,
+  // HelpCircle,
   ChevronRight,
   Bell,
 } from "lucide-react";
@@ -89,18 +89,18 @@ const Sidebar = ({
         user?.permissions?.includes("view_billing") ||
         user?.permissions?.includes("manage_billing"),
     },
-    {
-      icon: BookOpenText,
-      label: "Documentation",
-      link: "/documentation",
-      visible: true,
-    },
-    {
-      icon: HelpCircle,
-      label: "Support",
-      link: "/support",
-      visible: true,
-    },
+    // {
+    //   icon: BookOpenText,
+    //   label: "Documentation",
+    //   link: "/documentation",
+    //   visible: true,
+    // },
+    // {
+    //   icon: HelpCircle,
+    //   label: "Support",
+    //   link: "/support",
+    //   visible: true,
+    // },
   ];
 
   const [active, setActive] = useState("dashboard");

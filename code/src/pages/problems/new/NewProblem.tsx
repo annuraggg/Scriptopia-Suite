@@ -41,7 +41,7 @@ const NewProblem = () => {
 
     // Details State
     const [title, setTitle] = useState("");
-    const [isPrivate, setIsPrivate] = useState(false);
+    const [isPrivate, setIsPrivate] = useState<boolean>(true);
     const [difficulty, setDifficulty] = useState("");
     const [tags, setTags] = useState<string[]>([]);
     const [description, setDescription] = useState<Delta>({} as Delta);
