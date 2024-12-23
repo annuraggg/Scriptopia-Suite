@@ -49,6 +49,7 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer
 } from 'recharts';
+import { Badge } from '@/components/ui/badge';
 
 interface Posting {
   _id: string;
@@ -73,13 +74,49 @@ interface Posting {
   status?: string;
 }
 
- /* interface AuditLog {
-  user: string;
-  userId: string;
-  action: string;
-  type: string;
-  timestamp?: string;
+/* interface AuditLog {
+ user: string;
+ userId: string;
+ action: string;
+ type: string;
+ timestamp?: string;
 } */
+
+interface CandidateQuery {
+  id: string;
+  question: string;
+  postingTitle: string;
+  candidateName: string;
+  timestamp: string;
+  status: 'pending' | 'answered';
+}
+
+const mockQueries: CandidateQuery[] = [
+  {
+    id: '1',
+    question: "What are the requirements for remote work arrangements?",
+    postingTitle: "Senior Software Engineer",
+    candidateName: "John Doe",
+    timestamp: new Date(Date.now() - 3600000).toISOString(),
+    status: 'pending'
+  },
+  {
+    id: '2',
+    question: "Is relocation assistance provided for international candidates?",
+    postingTitle: "Product Manager",
+    candidateName: "Emma Wilson",
+    timestamp: new Date(Date.now() - 7200000).toISOString(),
+    status: 'answered'
+  },
+  {
+    id: '3',
+    question: "What is the expected start date for this position?",
+    postingTitle: "UX Designer",
+    candidateName: "Mike Chen",
+    timestamp: new Date(Date.now() - 10800000).toISOString(),
+    status: 'pending'
+  }
+];
 
 const Dashboard: React.FC = () => {
   const [isCreateJobOpen, setIsCreateJobOpen] = useState(false);
@@ -154,7 +191,7 @@ const Dashboard: React.FC = () => {
   };
 
   const ActivityFeed: React.FC = () => (
-    <div className="space-y-4">
+    <div className="space-y-4 overflow-y-auto max-h-[345px]">
       <AnimatePresence>
         {postings.slice(0, 5).map((posting, index) => (
           <motion.div
@@ -315,47 +352,45 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="sticky top-0 z-10">
-        <div className="max-w mx-auto">
-          <div className="flex justify-between items-center p-4">
-            <Breadcrumbs>
-              <BreadcrumbItem>{org.name}</BreadcrumbItem>
-              <BreadcrumbItem>Dashboard</BreadcrumbItem>
-            </Breadcrumbs>
-            <div className="flex items-center gap-4">
-              <Tooltip content="Notifications">
-                <Button isIconOnly variant="light" className="text-zinc-400" onClick={() => navigate('/notifications')}>
-                  <Bell className="w-5 h-5" />
-                </Button>
-              </Tooltip>
-              <Button
-                color="primary"
-                endContent={<Plus size={20} />}
-                onPress={() => {
-                  if (!departments.length) {
-                    toast.error("Please create a department first");
-                    return;
-                  }
-                  setIsCreateJobOpen(true);
-                }}
-              >
-                Create Job
-              </Button>
-            </div>
-          </div>
-        </div>
+    <div className="max-h-full mt-5 ml-5">
+      <div className="mb-5">
+        <Breadcrumbs>
+          <BreadcrumbItem>{org.name}</BreadcrumbItem>
+          <BreadcrumbItem>Dashboard</BreadcrumbItem>
+        </Breadcrumbs>
       </div>
 
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="max-w mx-auto p-6 space-y-6"
+        className="max-w mx-auto pb-2 space-y-6"
       >
-        <motion.div variants={itemVariants} className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Welcome back, {org.name}</h1>
-          <p className="text-zinc-400">Here's what's happening with your recruitment today.</p>
+        <motion.div variants={itemVariants} className="mb-6 justify-between flex items-center gap-4">
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2">Welcome back, {org.name}</h1>
+            <p className="text-zinc-400">Here's what's happening with your recruitment today.</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <Tooltip content="Notifications">
+              <Button isIconOnly variant="light" className="text-zinc-400" onClick={() => navigate('/notifications')}>
+                <Bell className="w-5 h-5" />
+              </Button>
+            </Tooltip>
+            <Button
+              color="primary"
+              endContent={<Plus size={20} />}
+              onPress={() => {
+                if (!departments.length) {
+                  toast.error("Please create a department first");
+                  return;
+                }
+                setIsCreateJobOpen(true);
+              }}
+            >
+              Create Job
+            </Button>
+          </div>
         </motion.div>
 
         <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -451,11 +486,11 @@ const Dashboard: React.FC = () => {
           </div>
         </motion.div>
 
-        <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2">
+        <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <Card className="lg:col-span-1">
             <CardBody>
               <h2 className="text-xl font-semibold text-white mb-4">Quick Actions</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <Button
                   className="h-24 hover:bg-zinc-800/60"
                   color="secondary"
@@ -484,7 +519,58 @@ const Dashboard: React.FC = () => {
             </CardBody>
           </Card>
 
-          <Card className="">
+          <Card className="lg:col-span-2 max-h-[300px]">
+            <CardBody>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-white">Candidate Queries</h2>
+                <Button size="sm" variant="light">View All</Button>
+              </div>
+              <div className="space-y-4 max-h-[400px] overflow-y-auto">
+                <AnimatePresence>
+                  {mockQueries.map((query, index) => (
+                    <motion.div
+                      key={query.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="bg-zinc-800/40 rounded-xl p-4 hover:bg-zinc-800/60 transition-all"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="h-10 w-10 rounded-full bg-warning-500/20 flex items-center justify-center">
+                          <HelpCircle className="w-5 h-5 text-warning-500" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-white font-medium">{query.question}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="text-zinc-400 text-sm">{query.postingTitle}</span>
+                            <span className="text-zinc-600">•</span>
+                            <span className="text-zinc-400 text-sm">{query.candidateName}</span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge color={query.status === 'pending' ? 'warning' : 'success'}>
+                              {query.status}
+                            </Badge>
+                            <span className="text-zinc-400 text-sm">{getRelativeTime(query.timestamp)}</span>
+                          </div>
+                        </div>
+                        <Button
+                          isIconOnly
+                          variant="light"
+                          className="text-zinc-400 hover:text-white"
+                          onClick={() => navigate(`/queries/${query.id}`)}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card className="lg:col-span-1">
             <CardBody>
               <h2 className="text-xl font-semibold text-white mb-4">Team Members</h2>
               <div className="space-y-4">

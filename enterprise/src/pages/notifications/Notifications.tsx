@@ -114,12 +114,12 @@ const Notifications= () => {
   };
 
   return (
-    <div className="max-w p-6 mx-auto space-y-8">
+    <div className="mt-5 ml-5">
       <Breadcrumbs>
           <BreadcrumbItem>{org.name}</BreadcrumbItem>
           <BreadcrumbItem>Notifications</BreadcrumbItem>
         </Breadcrumbs>
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mt-6 pr-4">
         <div>
           <h1 className="text-3xl font-bold">Notification Center</h1>
           <p className="text-gray-500 mt-2">Stay updated with your latest activities</p>
@@ -139,6 +139,7 @@ const Notifications= () => {
         aria-label="Notification tabs"
         color="primary"
         variant="underlined"
+        className='mb-3 mt-2'
         classNames={{
           tabList: "gap-6",
           cursor: "w-full",
@@ -189,7 +190,7 @@ const Notifications= () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.2 }}
-          className="space-y-4"
+          className="space-y-4 pr-3"
         >
           {filterNotifications(selectedTab).map((notification) => (
             <Card
@@ -198,13 +199,13 @@ const Notifications= () => {
               shadow="sm"
             >
               <CardBody className="p-6">
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
                     <Chip
                       color={getPriorityColor(notification.priority)}
                       variant="flat"
                       radius="lg"
-                      className="p-3"
+                      className="p-2"
                     >
                       {getNotificationIcon(notification.type)}
                     </Chip>

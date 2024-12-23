@@ -12,7 +12,9 @@ import {
   DropdownMenu,
   DropdownItem,
   Button,
-  Progress
+  Progress,
+  Select,
+  SelectItem
 } from "@nextui-org/react";
 import {
   BarChart,
@@ -43,6 +45,27 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+interface JobPostingData {
+  status: string;
+  count: number;
+  growth: number;
+  description: string;
+  color: string;
+}
+
+interface GrowthData {
+  status: string;
+  growth: number;
+}
+
+interface MonthData {
+  [key: string]: GrowthData[];
+}
+
+interface YearData {
+  [key: string]: MonthData;
+}
+
 const userGrowthData = [
   { month: 'Jan', activeUsers: 1200, totalUsers: 1500, projectedUsers: 1600 },
   { month: 'Feb', activeUsers: 1500, totalUsers: 1800, projectedUsers: 1900 },
@@ -52,11 +75,35 @@ const userGrowthData = [
   { month: 'Jun', activeUsers: 3200, totalUsers: 3600, projectedUsers: 3800 },
 ];
 
-const jobPostingsData = [
-  { status: 'Open', count: 150, growth: 15 },
-  { status: 'In Progress', count: 85, growth: 10 },
-  { status: 'Closed', count: 75, growth: -5 },
-  { status: 'Expired', count: 25, growth: -2 },
+const jobPostingsData: JobPostingData[] = [
+  {
+    status: 'Open',
+    count: 150,
+    growth: 15,
+    description: 'Active job listings currently accepting applications',
+    color: '#7C3AED' // Purple
+  },
+  {
+    status: 'In Progress',
+    count: 85,
+    growth: 10,
+    description: 'Jobs with ongoing interview processes',
+    color: '#3B82F6' // Blue
+  },
+  {
+    status: 'Closed',
+    count: 75,
+    growth: -5,
+    description: 'Successfully filled positions',
+    color: '#10B981' // Green
+  },
+  {
+    status: 'Expired',
+    count: 25,
+    growth: -2,
+    description: 'Listings that reached their deadline',
+    color: '#F59E0B' // Yellow
+  },
 ];
 
 const jobPerformanceData = [
@@ -75,11 +122,36 @@ const userActivityData = [
   { hour: '20:00', users: 800 },
 ];
 
-const COLORS = ['#7C3AED', '#3B82F6', '#10B981', '#F59E0B'];
+const monthlyGrowthData: YearData = {
+  "2024": {
+    "Jan": [
+      { status: 'Open', growth: 15 },
+      { status: 'In Progress', growth: 10 },
+      { status: 'Closed', growth: -5 },
+      { status: 'Expired', growth: -2 },
+    ],
+    "Feb": [
+      { status: 'Open', growth: 20 },
+      { status: 'In Progress', growth: 12 },
+      { status: 'Closed', growth: -3 },
+      { status: 'Expired', growth: -1 },
+    ],
+    "Mar": [
+      { status: 'Open', growth: 18 },
+      { status: 'In Progress', growth: 15 },
+      { status: 'Closed', growth: -2 },
+      { status: 'Expired', growth: -1 },
+    ],
+  }
+};
+
 
 const Analytics = () => {
   const org = useSelector((state: RootState) => state.organization);
   const [timeRange, setTimeRange] = useState('30days');
+  const [selectedYear, setSelectedYear] = useState<string>("2024");
+  const [selectedMonth, setSelectedMonth] = useState<string>("Jan");
+  const currentGrowthData: GrowthData[] = monthlyGrowthData[selectedYear]?.[selectedMonth] || [];
 
   const statsCards = [
     {
@@ -118,13 +190,13 @@ const Analytics = () => {
   };
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="mb-8">
+    <div className=" max-h-full mt-5 ml-5">
+      <div className="mb-6">
         <Breadcrumbs>
           <BreadcrumbItem>{org.name}</BreadcrumbItem>
           <BreadcrumbItem>Analytics</BreadcrumbItem>
         </Breadcrumbs>
-        <div className="flex justify-between items-center mt-4">
+        <div className="flex justify-between items-center mt-5">
           <div>
             <h1 className="text-4xl font-bold">Analytics Dashboard</h1>
             <p className="text-zinc-500 mt-1">Track your organization's performance and metrics</p>
@@ -135,7 +207,7 @@ const Analytics = () => {
                 <Button
                   variant="flat"
                   startContent={<Calendar className="h-4 w-4" />}
-                  className=""
+                  className="hover:bg-zinc-600 transition-colors"
                 >
                   {timeRange === '30days' ? 'Last 30 Days' : 'Last 90 Days'}
                 </Button>
@@ -151,7 +223,8 @@ const Analytics = () => {
               </DropdownMenu>
             </Dropdown>
             <Button
-              className=""
+              variant='flat'
+              className="hover:bg-zinc-600 transition-colors"
               startContent={<Filter className="h-4 w-4" />}
             >
               Filters
@@ -161,7 +234,7 @@ const Analytics = () => {
                 <Button
                   variant="flat"
                   startContent={<Download className="h-4 w-4" />}
-                  className=""
+                  className="hover:bg-zinc-600 transition-colors"
                 >
                   Export
                 </Button>
@@ -185,7 +258,9 @@ const Analytics = () => {
             animate="visible"
             transition={{ delay: index * 0.1 }}
           >
-            <Card className="hover:shadow-md transition-shadow">
+            <Card
+              isHoverable
+              className="hover:shadow-md transition-shadow">
               <CardBody className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className={`p-3 rounded-xl bg-zinc-800`}>
@@ -241,7 +316,7 @@ const Analytics = () => {
                       <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(229, 231, 235, 0.2)" />
                   <XAxis dataKey="month" stroke="#666" />
                   <YAxis stroke="#666" />
                   <Tooltip
@@ -301,7 +376,7 @@ const Analytics = () => {
                       <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(229, 231, 235, 0.2)" />
                   <XAxis dataKey="hour" stroke="#6B7280" />
                   <YAxis stroke="#6B7280" />
                   <Tooltip
@@ -400,7 +475,7 @@ const Analytics = () => {
                 <p className="text-sm text-gray-500">Current status of all postings</p>
               </div>
             </CardHeader>
-            <CardBody className="px-6 pb-6">
+            <CardBody className="px-6 pb-6 flex flex-row gap-4">
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -412,10 +487,10 @@ const Analytics = () => {
                     paddingAngle={5}
                     dataKey="count"
                   >
-                    {jobPostingsData.map((_, index) => (
+                    {jobPostingsData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
+                        fill={entry.color}
                         className="hover:opacity-80 transition-opacity"
                       />
                     ))}
@@ -429,17 +504,24 @@ const Analytics = () => {
                     }}
                   />
                   <Legend
-                    verticalAlign="bottom"
-                    height={36}
+                    verticalAlign="middle"
+                    align="right"
+                    layout="vertical"
+                    wrapperStyle={{
+                      paddingLeft: '32px'
+                    }}
                     content={({ payload }) => (
-                      <div className="flex justify-center gap-6">
+                      <div className="flex flex-col gap-2">
                         {payload && payload.map((entry, index) => (
-                          <div key={`legend-${index}`} className="flex items-center gap-2">
+                          <div key={`legend-${index}`} className="flex items-start gap-2">
                             <div
-                              className="w-3 h-3 rounded-full"
+                              className="w-3 h-3 rounded-full mt-1.5"
                               style={{ backgroundColor: entry.color }}
                             />
-                            <span className="text-sm text-gray-600">{entry.value}</span>
+                            <div>
+                              <span className="text-sm font-medium text-gray-200">{entry.value}</span>
+                              <p className="text-xs text-gray-400">{jobPostingsData[index].description}</p>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -455,6 +537,7 @@ const Analytics = () => {
           variants={cardVariants}
           initial="hidden"
           animate="visible"
+          className='pb-2'
           transition={{ delay: 0.8 }}
         >
           <Card className="">
@@ -463,11 +546,35 @@ const Analytics = () => {
                 <h3 className="text-lg font-semibold">Posting Growth Trends</h3>
                 <p className="text-sm text-gray-500">Month-over-month changes</p>
               </div>
+              <div className="flex gap-2 w-[40%]">
+                <Select
+                  selectedKeys={[selectedYear]}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className=""
+                >
+                  {Object.keys(monthlyGrowthData).map((year) => (
+                    <SelectItem key={year} value={year}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </Select>
+                <Select
+                  selectedKeys={[selectedMonth]}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className=""
+                >
+                  {Object.keys(monthlyGrowthData[selectedYear] || {}).map((month) => (
+                    <SelectItem key={month} value={month}>
+                      {month}
+                    </SelectItem>
+                  ))}
+                </Select>
+              </div>
             </CardHeader>
             <CardBody className="px-6 pb-6">
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={jobPostingsData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <BarChart data={currentGrowthData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(229, 231, 235, 0.2)" />
                   <XAxis dataKey="status" stroke="#6B7280" />
                   <YAxis stroke="#6B7280" />
                   <Tooltip
@@ -477,13 +584,14 @@ const Analytics = () => {
                       borderRadius: '8px',
                       boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
                     }}
+                    formatter={(value: number) => [`${value}%`, 'Growth']}
                   />
                   <Bar
                     dataKey="growth"
                     fill="#7C3AED"
                     radius={[4, 4, 0, 0]}
                   >
-                    {jobPostingsData.map((entry, index) => (
+                    {currentGrowthData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={entry.growth > 0 ? '#10B981' : '#EF4444'}
