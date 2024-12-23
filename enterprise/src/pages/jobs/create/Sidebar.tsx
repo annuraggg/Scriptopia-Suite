@@ -1,5 +1,4 @@
-import React from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight } from "lucide-react";
 
 const Sidebar = ({
   active = 0,
@@ -38,16 +37,14 @@ const Sidebar = ({
               px-4 py-3 
               rounded-lg 
               transition-all duration-300 ease-in-out 
-              ${active === index 
-                ? "bg-gray-600 bg-opacity-20 shadow-md" 
-                : ""}
+              ${active === index ? "bg-gray-600 bg-opacity-20 shadow-md" : ""}
               ${active === index ? "opacity-100" : "opacity-60"}
               cursor-pointer group
             `}
             onClick={() => setActive(index)}
           >
             <div className="flex items-center space-x-4">
-              <div 
+              <div
                 className={`
                   w-10 h-1 
                   rounded-full 
@@ -59,14 +56,14 @@ const Sidebar = ({
                 {step.title}
               </span>
             </div>
-            <ChevronRight 
+            <ChevronRight
               className={`
                 text-white 
                 opacity-0 group-hover:opacity-100 
                 transition-opacity duration-300
                 ${active === index ? "opacity-100" : ""}
               `}
-              size={20} 
+              size={20}
             />
           </div>
         ))}

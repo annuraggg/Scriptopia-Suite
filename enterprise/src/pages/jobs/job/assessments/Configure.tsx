@@ -50,7 +50,7 @@ const Configure = ({ posting }: { posting: Posting }) => {
                     {typeMap[step?.type]}
                   </div>
                 </div>
-                {assessmentTitles.includes(step?.stepId) ? (
+                {assessmentTitles.includes(step?.stepId || "") ? (
                   <div className="text-green-500">Configured</div>
                 ) : (
                   <Button

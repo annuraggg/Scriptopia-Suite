@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState, useEffect } from "react";
-import { FileText, Code, Edit2, Trash, Book, Copy, Save } from "lucide-react";
+import { FileText, Code, Edit2, Trash, Book, Copy } from "lucide-react";
 import { Button, Chip, Switch, Tooltip } from "@nextui-org/react";
 import { toast } from "sonner";
 import {

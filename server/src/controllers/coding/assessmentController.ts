@@ -290,7 +290,7 @@ const verifyAccess = async (c: Context) => {
       }
 
       const currentStep = workflow.steps[workflow.currentStep];
-      if (currentStep.stepId.toString() !== assessment._id.toString()) {
+      if (currentStep?.stepId?.toString() !== assessment._id.toString()) {
         return sendError(c, 403, "Assessment not active", {
           allowedForTest: false,
           testActive: false,

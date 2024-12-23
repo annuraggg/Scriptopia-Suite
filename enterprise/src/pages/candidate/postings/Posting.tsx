@@ -27,7 +27,6 @@ import {
   ArrowRight,
   Clock,
   FileText,
-  GraduationCap,
   Tags,
 } from "lucide-react";
 
@@ -84,6 +83,7 @@ const Posting = () => {
                   variant="flat"
                   size="sm"
                 >
+                  {/* @ts-expect-error */}
                   {routineMap[posting?.type]}
                 </Chip>
                 <Chip
@@ -175,24 +175,6 @@ const Posting = () => {
             </CardBody>
           </Card>
         </ScrollShadow>
-
-        <Card className="shadow-md h-[45vh] overflow-y-auto">
-          <CardHeader className="flex gap-3">
-            <GraduationCap className="text-primary" />
-            <div className="flex flex-col">
-              <p className="text-md font-semibold">Qualifications</p>
-              <p className="text-small text-default-500">
-                What we're looking for
-              </p>
-            </div>
-          </CardHeader>
-          <Divider />
-          <CardBody>
-            <pre className="whitespace-pre-wrap text-foreground-700">
-              {posting?.qualifications}
-            </pre>
-          </CardBody>
-        </Card>
       </div>
 
       <div className="flex mt-5 gap-5">

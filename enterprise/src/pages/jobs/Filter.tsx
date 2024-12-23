@@ -28,8 +28,8 @@ const Filter: React.FC<FilterProps> = ({
   departmentFilter,
   setDepartmentFilter,
   departments,
-  sort,
-  setSort,
+  // sort,
+  // setSort,
   //   dateRange,
   //   setDateRange,
 }) => {

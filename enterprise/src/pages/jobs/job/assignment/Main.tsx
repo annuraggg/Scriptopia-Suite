@@ -11,7 +11,7 @@ const Main = () => {
     <div className="p-5">
       <p>Assignments</p>
       <div>
-        {posting.assignments.map((assignment) => (
+        {posting?.assignments?.map((assignment) => (
           <Card
             key={assignment._id}
             className="mt-5 w-full"

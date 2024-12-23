@@ -1,6 +1,12 @@
 import { useRef, useState } from "react";
 import { FileText, Code, Edit2, Trash, Book, Copy } from "lucide-react";
-import { Button, Chip, DateValue, Divider, Switch, TimeInputValue } from "@nextui-org/react";
+import {
+  Button,
+  Chip,
+  DateValue,
+  Switch,
+  TimeInputValue,
+} from "@nextui-org/react";
 import { Tooltip } from "@nextui-org/react";
 import { motion, Reorder } from "framer-motion"; // Added framer-motion for animation
 
@@ -192,8 +198,14 @@ const Create = ({
         <div className="w-[30%] flex flex-col gap-5">
           <div className="flex gap-3 text-xs items-center">
             <p>Enable Canvas Mode</p>
-            <Chip color="warning" size="sm">Beta</Chip>
-            <Switch onChange={() => setMode("canvas")} isSelected={false} size="sm"/>
+            <Chip color="warning" size="sm">
+              Beta
+            </Chip>
+            <Switch
+              onChange={() => setMode("canvas")}
+              isSelected={false}
+              size="sm"
+            />
           </div>
           {components.map((component, index) => (
             <motion.div

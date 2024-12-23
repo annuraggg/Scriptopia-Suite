@@ -77,8 +77,6 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
     fields,
     required,
     allowedEmpty,
-    onRequiredChange,
-    onAllowedEmptyChange,
   }) => (
     <div className="shadow-sm rounded-xl border overflow-hidden mb-6">
       <div className="px-6 py-4 border-b">

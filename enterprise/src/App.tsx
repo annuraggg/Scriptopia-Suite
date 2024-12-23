@@ -11,6 +11,7 @@ import {
   useUser,
 } from "@clerk/clerk-react";
 import CreateJob from "./pages/jobs/create/CreateJob";
+import { useTheme } from "./components/theme-provider";
 
 // Lazy load components
 const Lander = lazy(() => import("./pages/lander/Lander"));
@@ -454,7 +455,17 @@ function App() {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  const { theme } = useTheme();
+
+  return (
+    <main
+      className={`${
+        theme === "dark" ? "dark" : ""
+      } text-foreground bg-background`}
+    >
+      <RouterProvider router={router} />
+    </main>
+  );
 }
 
 export default App;

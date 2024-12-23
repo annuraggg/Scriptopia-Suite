@@ -60,7 +60,7 @@ const submitAssignment = async (c: Context) => {
       return sendError(c, 400, "Invalid workflow");
     }
 
-    if (step.stepId.toString() !== assignment._id.toString()) {
+    if (step?.stepId?.toString() !== assignment._id.toString()) {
       return sendError(c, 400, "Invalid assignment");
     }
 

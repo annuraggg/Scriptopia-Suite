@@ -18,6 +18,7 @@ import { Badge } from "@nextui-org/react";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
 import { Notification } from "@shared-types/Organization";
 import { OrganizationWithPostings as OWP } from "@/types/RootContext";
+// import { useTheme } from "./theme-provider";
 
 const Sidebar = ({
   notifications,
@@ -107,13 +108,18 @@ const Sidebar = ({
   const navigate = useNavigate();
 
   useEffect(() => {
-    setActive(window.location.pathname.split("/")[2]);
+    setActive(window.location.pathname.split("/")[1]);
   }, []);
+
+  // const { theme, setTheme } = useTheme();
+  // const switchTheme = () => {
+  //   setTheme(theme === "dark" ? "light" : "dark");
+  // };
 
   return (
     <>
       <aside
-        className={` sticky h-[100vh] min-w-16 px-5 top-0 left-0 z-10 hidden transition-width flex-col border-r bg-background sm:flex overflow-x-hidden ${
+        className={` sticky h-[100vh] min-w-16 px-3 top-0 left-0 z-10 hidden transition-width flex-col border-r bg-background sm:flex overflow-x-hidden ${
           collapsed ? "w-16" : "w-64"
         }`}
       >
@@ -122,7 +128,7 @@ const Sidebar = ({
             <img
               src="/logo.png"
               alt="logo"
-              className="cursor-pointer h-6"
+              className="cursor-pointer h-6 ml-2"
               onClick={() => {
                 window.location.href = "/";
               }}
@@ -133,10 +139,10 @@ const Sidebar = ({
             <Tooltip key={index} content={item.label} placement="right">
               <table className={!item.visible ? "hidden" : ""}>
                 <tbody
-                  className={`cursor-pointer h-8 ${
-                    active === item.label.toLowerCase()
-                      ? " text-white-500 rounded-xl"
-                      : "text-muted-foreground opacity-50 hover:text-white"
+                  className={`cursor-pointer ${
+                    active?.toLowerCase() === item.label.toLowerCase()
+                      ? "rounded-xl"
+                      : " text-default-500"
                   } `}
                   onClick={() => {
                     navigate(item.link);
@@ -144,8 +150,18 @@ const Sidebar = ({
                   }}
                 >
                   <tr>
-                    <td className="pr-3">
-                      {item.icon && <item.icon className="h-7 w-5" />}
+                    <td>
+                      {item.icon && (
+                        <div
+                          className={` p-2 rounded-xl mr-3 max-w-fit  ${
+                            active?.toLowerCase() === item.label.toLowerCase()
+                              ? "bg-default"
+                              : ""
+                          }`}
+                        >
+                          <item.icon className="w-5 h-5" />
+                        </div>
+                      )}
                     </td>
                     {collapsed ? null : (
                       <td className="text-start w-full">{item.label}</td>
@@ -156,18 +172,18 @@ const Sidebar = ({
             </Tooltip>
           ))}
         </nav>
-        <nav className={`mt-auto flex flex-col gap-4 sm:py-5`}>
-          <div className="-ml-1">
+        <nav className={`mt-auto flex flex-col gap-2 sm:py-5`}>
+          <div className=" ml-[6px]">
             <UserButton />
           </div>
           {bottomItems.map((item, index) => (
             <Tooltip key={index} content={item.label} placement="right">
               <table className={!item.visible ? "hidden" : ""}>
                 <tbody
-                  className={`cursor-pointer h-7 ${
-                    active === item.label.toLowerCase()
-                      ? " text-white rounded-xl"
-                      : "text-muted-foreground opacity-50 hover:text-white"
+                  className={`cursor-pointer ${
+                    active?.toLowerCase() === item.label.toLowerCase()
+                      ? "rounded-xl"
+                      : " text-default-500"
                   } `}
                   onClick={() => {
                     navigate(item.link);
@@ -175,7 +191,7 @@ const Sidebar = ({
                   }}
                 >
                   <tr>
-                    <td className="pr-3">
+                    <td>
                       <Badge
                         content={item?.length}
                         color="warning"
@@ -186,7 +202,18 @@ const Sidebar = ({
                             <UserButton />
                           </div>
                         ) : (
-                          item.icon && <item.icon className="h-5 w-5" />
+                          item.icon && (
+                            <div
+                              className={` p-2 rounded-xl mr-3 max-w-fit  ${
+                                active?.toLowerCase() ===
+                                item.label.toLowerCase()
+                                  ? "bg-default"
+                                  : ""
+                              }`}
+                            >
+                              <item.icon className="w-5 h-5" />
+                            </div>
+                          )
                         )}{" "}
                       </Badge>
                     </td>

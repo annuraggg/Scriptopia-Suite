@@ -8,6 +8,7 @@ import { dark } from "@clerk/themes";
 import { Provider } from "react-redux";
 import store from "@/store/store.ts";
 import { Toaster as ShadToaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "./components/theme-provider.tsx";
 
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 if (!publishableKey) {
@@ -15,18 +16,20 @@ if (!publishableKey) {
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <Provider store={store}>
-    <ClerkProvider
-      publishableKey={publishableKey}
-      appearance={{
-        baseTheme: dark,
-      }}
-    >
-      <NextUIProvider>
-        <Toaster richColors theme="dark" />
-        <ShadToaster />
-        <App />
-      </NextUIProvider>
-    </ClerkProvider>
-  </Provider>
+  <ThemeProvider defaultTheme="dark" storageKey="ui-theme">
+    <NextUIProvider>
+      <Provider store={store}>
+        <ClerkProvider
+          publishableKey={publishableKey}
+          appearance={{
+            baseTheme: dark,
+          }}
+        >
+          <Toaster richColors theme="dark" />
+          <ShadToaster />
+          <App />
+        </ClerkProvider>
+      </Provider>
+    </NextUIProvider>
+  </ThemeProvider>
 );
