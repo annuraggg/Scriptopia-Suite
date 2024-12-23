@@ -9,14 +9,14 @@ import {
   Boxes,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/types/Reducer";
-import { shakeToast } from "@/reducers/toastReducer";
 
-const Sidebar = () => {
-  const toastChanges = useSelector((state: RootState) => state.toast.changes);
-  const dispatch = useDispatch();
-
+const Sidebar = ({
+  toast,
+  shakeToast,
+}: {
+  toast: boolean;
+  shakeToast: (state: boolean) => void;
+}) => {
   const topItems = [
     {
       icon: Building2,
@@ -77,10 +77,10 @@ const Sidebar = () => {
                       : "text-muted-foreground opacity-50 hover:text-white"
                   } `}
                   onClick={() => {
-                    if (toastChanges) {
-                      dispatch(shakeToast(true));
+                    if (toast) {
+                      shakeToast(true);
                       setTimeout(() => {
-                        dispatch(shakeToast(false));
+                        shakeToast(false);
                       }, 1000);
                       return;
                     }

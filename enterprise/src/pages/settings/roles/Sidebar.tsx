@@ -32,9 +32,9 @@ const Sidebar = ({
 
       <p className="text-sm opacity-50 mt-7">Custom roles</p>
       <div className="flex flex-col gap-2 mt-5">
-        {customRoles?.map((role) => (
+        {customRoles?.map((role, index) => (
           <div
-            key={role._id}
+            key={index}
             className={`flex flex-col h-10 gap-1 px-3 py-2 rounded-xl hover:bg-gray-800 cursor-pointer transition-all ${selectedRole?._id === role._id ? "bg-gray-800" : ""
               }  `}
             onClick={() => setSelectedRole(role)}

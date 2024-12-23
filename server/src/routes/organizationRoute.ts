@@ -23,4 +23,7 @@ app.get('/candidates', organizationController.getCandidates);
 app.get('/settings', organizationController.getDepartments);
 app.post('/settings/departments', organizationController.updateDepartments);
 
+app.get("/", organizationController.getOrganization);
+app.put("/", organizationController.updateOrganization);
+
 export default app;

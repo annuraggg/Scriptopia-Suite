@@ -1,5 +1,4 @@
 import { Outlet } from "react-router-dom";
-import ParentSidebar from "@/components/Sidebar";
 import Sidebar from "./Sidebar";
 import { Posting } from "@shared-types/Posting";
 import { useAuth } from "@clerk/clerk-react";
@@ -41,7 +40,6 @@ const Layout = () => {
   return (
     <div className="">
       <div className="flex w-full">
-        <ParentSidebar notifications={[]} />
         <Sidebar posting={posting} loading={postingLoading} />
         <div className="h-full w-full overflow-x-auto">
           {postingLoading ? <Loader /> : <Outlet context={{ posting }} />}

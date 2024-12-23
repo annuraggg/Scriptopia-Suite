@@ -14,40 +14,33 @@ import {
 } from "@nextui-org/react";
 import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
-import { CalendarDate, today } from "@internationalized/date";
+import { parseDate, today } from "@internationalized/date";
 import { Plus, Edit2, Trash, FileBadge2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-
-// Types
-interface Certificate {
-  id: string;
-  name: string;
-  authority: string;
-  url: string;
-  licenseNumber: string;
-  date: CalendarDate;
-  hasExpiry: boolean;
-  hasScore: boolean;
-  description: string;
-}
+import { Candidate, Certificate } from "@shared-types/Candidate";
+import { useOutletContext } from "react-router-dom";
 
 const Certificates = () => {
   // States
-  const [certificates, setCertificates] = useState<Certificate[]>([]);
-  const [currentCertificate, setCurrentCertificate] =
-    useState<Certificate | null>(null);
+  const { user, setUser } = useOutletContext() as {
+    user: Candidate;
+    setUser: (user: Candidate) => void;
+  };
+
+  const [currentCertificate, setCurrentCertificate] = useState<Certificate>(
+    {} as Certificate
+  );
   const [isEditing, setIsEditing] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const initialCertificate: Certificate = {
-    id: "",
-    name: "",
-    authority: "",
+    title: "",
+    issuer: "",
     url: "",
     licenseNumber: "",
-    date: today("IST"),
-    hasExpiry: false,
+    issueDate: today("IST").toString(),
+    doesExpire: false,
     hasScore: false,
     description: "",
   };
@@ -59,7 +52,7 @@ const Certificates = () => {
     } else {
       setCurrentCertificate({
         ...initialCertificate,
-        id: crypto.randomUUID(),
+        _id: crypto.randomUUID(),
       });
       setIsEditing(false);
     }
@@ -67,7 +60,7 @@ const Certificates = () => {
   };
 
   const handleClose = () => {
-    setCurrentCertificate(null);
+    setCurrentCertificate({} as Certificate);
     setIsEditing(false);
     onClose();
   };
@@ -75,28 +68,31 @@ const Certificates = () => {
   const handleSave = () => {
     if (!currentCertificate) return;
 
-    if (!currentCertificate.name || !currentCertificate.authority) {
+    if (!currentCertificate.title || !currentCertificate.issuer) {
       toast.error("Please fill in all required fields");
       return;
     }
 
     if (isEditing) {
-      setCertificates((prev) =>
-        prev.map((cert) =>
-          cert.id === currentCertificate.id ? currentCertificate : cert
-        )
+      const newCertificates = user?.certificates?.map((cert) =>
+        cert._id === currentCertificate._id ? currentCertificate : cert
       );
-      toast.success("Certificate updated successfully");
+      setUser({ ...user, certificates: newCertificates });
     } else {
-      setCertificates((prev) => [...prev, currentCertificate]);
-      toast.success("Certificate added successfully");
+      const newCertificates = [
+        ...(user?.certificates || []),
+        currentCertificate,
+      ];
+      setUser({ ...user, certificates: newCertificates });
     }
     handleClose();
   };
 
   const handleDelete = (id: string) => {
-    setCertificates((prev) => prev.filter((cert) => cert.id !== id));
-    toast.success("Certificate deleted successfully");
+    const newCertificates = user?.certificates?.filter(
+      (cert) => cert._id !== id
+    );
+    setUser({ ...user, certificates: newCertificates });
   };
 
   return (
@@ -120,7 +116,7 @@ const Certificates = () => {
           className="p-5 rounded-xl"
         >
           <div className="flex justify-end items-center mb-6">
-            {certificates.length > 0 && (
+            {user?.certificates && (
               <Button
                 onClick={() => handleOpen()}
                 startContent={<Plus size={18} />}
@@ -130,7 +126,7 @@ const Certificates = () => {
             )}
           </div>
 
-          {certificates.length === 0 ? (
+          {!user?.certificates ? (
             <motion.div
               key="empty"
               initial={{ opacity: 0, y: 20 }}
@@ -165,17 +161,17 @@ const Certificates = () => {
             </motion.div>
           ) : (
             <div className="grid gap-4">
-              {certificates.map((cert) => (
+              {user?.certificates?.map((cert) => (
                 <motion.div
-                  key={cert.id}
+                  key={cert._id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="p-4 border rounded-lg"
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-medium">{cert.name}</h3>
-                      <p className="text-sm text-gray-500">{cert.authority}</p>
+                      <h3 className="font-medium">{cert.title}</h3>
+                      <p className="text-sm text-gray-500">{cert.issuer}</p>
                       <p className="text-sm mt-1">
                         License: {cert.licenseNumber}
                       </p>
@@ -192,7 +188,7 @@ const Certificates = () => {
                         isIconOnly
                         variant="light"
                         color="danger"
-                        onPress={() => handleDelete(cert.id)}
+                        onPress={() => handleDelete(cert._id || "")}
                       >
                         <Trash size={18} />
                       </Button>
@@ -217,7 +213,7 @@ const Certificates = () => {
                   <Input
                     label="Name"
                     placeholder="Enter certification name"
-                    value={currentCertificate?.name || ""}
+                    value={currentCertificate?.title || ""}
                     onChange={(e) =>
                       setCurrentCertificate((prev) => ({
                         ...prev!,
@@ -229,7 +225,7 @@ const Certificates = () => {
                   <Input
                     label="Issuing Authority"
                     placeholder="Enter issuing authority"
-                    value={currentCertificate?.authority || ""}
+                    value={currentCertificate?.issuer || ""}
                     onChange={(e) =>
                       setCurrentCertificate((prev) => ({
                         ...prev!,
@@ -262,7 +258,7 @@ const Certificates = () => {
                   />
                   <DateInput
                     label="Certification Date"
-                    value={currentCertificate?.date}
+                    value={parseDate(currentCertificate?.issueDate)}
                     onChange={(date) =>
                       setCurrentCertificate((prev) => ({
                         ...prev!,
@@ -273,7 +269,7 @@ const Certificates = () => {
                   />
                   <div className="flex gap-4">
                     <Checkbox
-                      isSelected={currentCertificate?.hasExpiry}
+                      isSelected={currentCertificate?.doesExpire}
                       onValueChange={(value) =>
                         setCurrentCertificate((prev) => ({
                           ...prev!,

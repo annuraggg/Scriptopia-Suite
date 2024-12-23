@@ -141,7 +141,7 @@ const handleResumeScreening = async (posting: PostingType) => {
     if (currentPosting.currentStepStatus === "disqualified") continue;
 
     const data = {
-      candidateId: candidate._id.toString(),
+      candidateId: candidate?._id?.toString() || "",
       resume: candidate.resumeExtract,
     };
 
@@ -171,7 +171,7 @@ const handleAssignmentRound = async (
   step: WorkflowStep
 ) => {
   const { name } = step;
-  const assignment = posting.assignments.find((a) => a.name === name);
+  const assignment = posting?.assignments?.find((a) => a.name === name);
   const organization = await Organization.findById(posting.organizationId);
 
   if (!assignment || !organization || !posting) return;
@@ -195,7 +195,7 @@ const handleAssignmentRound = async (
       transactionalId: "cm0zk1vd900966e8e6czepc4d",
       email: candidate?.email!,
       dataVariables: {
-        name: candidate?.firstName || "",
+        name: candidate?.name || "",
         postingName: posting?.title || "",
         company: organization?.name || "",
         assignmentLink: `${process.env.ENTERPRISE_FRONTEND_URL}/postings/${posting?.url}/assignments/${assignment._id}`,
@@ -210,8 +210,10 @@ const handleAssessmentRound = async (
 ) => {
   const { type, stepId } = step;
 
+  if (!stepId) return;
+
   const assessment = posting?.assessments?.find(
-    (a) => a.toString() === stepId.toString()
+    (a) => a.toString() === stepId?.toString()
   );
 
   const organization = await Organization.findById(posting.organizationId);
@@ -248,7 +250,7 @@ const handleAssessmentRound = async (
       transactionalId: "cm16lbamn012iyfq0agp9wl54",
       email: candidate?.email!,
       dataVariables: {
-        name: candidate?.firstName || "",
+        name: candidate?.name || "",
         postingName: posting?.title || "",
         type: assessmentType,
         assessmentLink: `${process.env.SCRIPTOPIA_FRONTEND_URL}/assessments/${

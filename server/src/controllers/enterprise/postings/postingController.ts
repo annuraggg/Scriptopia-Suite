@@ -57,55 +57,56 @@ const getPosting = async (c: Context) => {
   }
 };
 
+const getPostingBySlug = async (c: Context) => {
+  try {
+    const posting = await Posting.findOne({ url: c.req.param("slug") })
+      .populate("assessments.assessmentId")
+      .populate("candidates")
+      .populate("organizationId")
+      .populate("assignments.submissions");
+
+    if (!posting) {
+      return sendError(c, 404, "job not found");
+    }
+
+    return sendSuccess(c, 200, "job fetched successfully", posting);
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
 const createPosting = async (c: Context) => {
   try {
-    const {
-      title,
-      description,
-      department,
-      location,
-      openings,
-      type,
-      skills,
-      qualifications,
-      salary: { min, max, currency },
-      applicationRange: { start, end },
-    } = await c.req.json();
+    const posting = await c.req.json();
 
     const perms = await checkPermission.all(c, ["manage_job"]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const posting = new Posting({
+    const newPosting = new Posting({
+      ...posting,
       organizationId: perms.data!.orgId,
-      title,
-      description,
-      department,
-      openings,
-      location,
-      type,
-      skills,
-      qualifications,
-      salary: { min, max, currency },
-      applicationRange: { start, end },
     });
-
-    await posting.save();
+    await newPosting.save();
 
     const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
     const auditLog: AuditLog = {
       user: clerkUser.firstName + " " + clerkUser.lastName,
       userId: clerkUser.id,
-      action: `Created New Job Posting: ${title}`,
+      action: `Created New Job Posting: ${posting.title}`,
       type: "info",
     };
 
     await Organization.findByIdAndUpdate(perms.data!.orgId, {
-      $push: { auditLogs: auditLog },
+      $push: {
+        auditLogs: auditLog,
+        postings: newPosting._id,
+      },
     });
 
-    return sendSuccess(c, 201, "job created successfully", posting);
+    return sendSuccess(c, 201, "job created successfully", newPosting);
   } catch (e: any) {
     logger.error(e);
     return sendError(c, 500, "Something went wrong");
@@ -240,10 +241,12 @@ const updateAssessment = async (c: Context) => {
     await existingAssessments.save();
 
     await Posting.findByIdAndUpdate(postingId, {
-      $push: { assessments: {
-        assessmentId: resp.data._id,
-        stepId: existingAssessments.workflow.steps[step].stepId,
-      } },
+      $push: {
+        assessments: {
+          assessmentId: resp.data._id,
+          stepId: existingAssessments.workflow.steps[step].stepId,
+        },
+      },
       updatedOn: new Date(),
     });
 
@@ -407,6 +410,10 @@ const deletePosting = async (c: Context) => {
       return sendError(c, 404, "job not found");
     }
 
+    await Organization.findByIdAndUpdate(perms.data!.orgId, {
+      $pull: { postings: posting._id },
+    });
+
     return sendSuccess(c, 200, "job deleted successfully");
   } catch (e: any) {
     logger.error(e);
@@ -425,4 +432,5 @@ export default {
   updateInterview,
   publishPosting,
   deletePosting,
+  getPostingBySlug,
 };

@@ -18,83 +18,38 @@ import { Edit2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useOutletContext } from "react-router-dom";
+import { Candidate } from "@shared-types/Candidate";
 
-// Types and Interfaces
-interface SocialMedia {
-  name: string;
-  url: string;
-}
-
-interface FormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  dob: CalendarDate;
-  gender: string;
-  address: string;
-  socialMedia: SocialMedia[];
-  summary: string;
-}
-
-// Validation Schemas
 const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
 
 const formSchema = z.object({
-  firstName: z.string().min(2, "First name must be at least 2 characters"),
-  lastName: z.string().min(2, "Last name must be at least 2 characters"),
-  email: z.string().regex(emailRegex, "Invalid email format"),
+  email: z.string().email("Invalid email format"),
   phone: z.string().regex(phoneRegex, "Invalid phone number format"),
-  dob: z.instanceof(CalendarDate),
-  gender: z.string(),
   address: z.string().min(10, "Please enter a complete address"),
-  socialMedia: z.array(z.object({ name: z.string(), url: z.string().url() })),
-  summary: z.string().max(500, "Summary cannot exceed 500 characters"),
+  summary: z
+    .string()
+    .max(1000, "Summary should not exceed 1000 characters")
+    .optional(),
 });
 
 const General = () => {
-  // State initialization with proper typing
-  const [formData, setFormData] = useState<FormData>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    dob: parseDate("2000-01-01"),
-    gender: "",
-    address: "",
-    socialMedia: [] as SocialMedia[],
-    summary: "",
-  });
+  const [candidate, setCandidate] = useState<Candidate>({} as Candidate);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [editSummary, setEditSummary] = useState<string>("");
-  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>(
-    {}
-  );
+  // prettier-ignore
+  const [errors, setErrors] = useState<Partial<Record<keyof Candidate, string>>>({});
+
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { user, setUser } = useOutletContext() as {
+    user: Candidate;
+    setUser: (user: Candidate) => void;
+  };
 
   useEffect(() => {
-    // Load test data with validation
     try {
-      const testData = {
-        firstName: "John",
-        lastName: "Doe",
-        email: "john@doe.com",
-        phone: "1234567890",
-        dob: parseDate("2004-01-17"),
-        gender: "Male",
-        address: "123, Test Street, Test City, Test State, Test Country",
-        socialMedia: [
-          { name: "LinkedIn", url: "https://linkedin.com" },
-          { name: "Twitter", url: "https://twitter.com" },
-        ],
-        summary:
-          "I am a software developer with 5 years of experience in web development.",
-      };
-
-      // Validate test data
-      formSchema.parse(testData);
-      setFormData(testData);
+      setCandidate(user);
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error("Invalid test data format");
@@ -102,14 +57,19 @@ const General = () => {
     }
   }, []);
 
-  const validateField = (name: keyof FormData, value: string) => {
+  const validateField = (name: keyof Candidate, value: string) => {
     try {
+      // @ts-expect-error - Dynamic key access
       formSchema.shape[name].parse(value);
       setErrors((prev) => ({ ...prev, [name]: undefined }));
+      console.log("Valid field");
       return true;
     } catch (error) {
+      console.log("Invalid field");
+      console.log(error);
       if (error instanceof z.ZodError) {
         setErrors((prev) => ({ ...prev, [name]: error.errors[0].message }));
+        console.log(error.errors[0].message);
         return false;
       }
       return false;
@@ -117,11 +77,11 @@ const General = () => {
   };
 
   const handleInputChange = (
-    name: keyof FormData,
+    name: keyof Candidate,
     value: string | CalendarDate
   ) => {
     const sanitizedValue = typeof value === "string" ? value.trim() : value;
-    setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
+    setCandidate((prev) => ({ ...prev, [name]: sanitizedValue }));
 
     if (typeof value === "string") {
       validateField(name, value);
@@ -130,23 +90,18 @@ const General = () => {
 
   const handleSaveSummary = () => {
     if (validateField("summary", editSummary)) {
-      setFormData((prev) => ({ ...prev, summary: editSummary }));
-      toast.success("Summary updated successfully");
+      setCandidate((prev) => ({ ...prev, summary: editSummary }));
+
       onClose();
-    } else {
-      toast.error("Please check the summary requirements");
     }
   };
 
   const handleSaveChanges = async () => {
     try {
-      // Validate all fields
-      formSchema.parse(formData);
+      setLoading(true);
+      formSchema.parse(candidate);
 
-      // Simulating API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      toast.success("Changes saved successfully");
+      setUser(candidate);
     } catch (error) {
       if (error instanceof z.ZodError) {
         error.errors.forEach((err) => {
@@ -178,28 +133,29 @@ const General = () => {
             <p className="font-semibold">About</p>
             <div className="flex items-center gap-4">
               <label className="w-32 text-right">Name</label>
-              <Input
-                isDisabled
-                value={`${formData.firstName} ${formData.lastName}`}
-              />
+              <Input isDisabled value={`${candidate.name}`} />
             </div>
             <div className="flex items-center gap-4">
               <label className="w-32 text-right">Date of Birth</label>
               <DateInput
                 isDisabled
-                value={formData.dob}
+                value={
+                  candidate?.dob?.toString()
+                    ? parseDate(candidate?.dob?.toString()?.split("T")[0])
+                    : today("IST")
+                }
                 onChange={(date) => handleInputChange("dob", date)}
                 maxValue={today("IST")}
               />
             </div>
             <div className="flex items-center gap-4">
               <label className="w-32 text-right">Gender</label>
-              <Input isDisabled value={formData.gender} />
+              <Input isDisabled value={candidate.gender} />
             </div>
             <div className="flex items-center gap-4">
               <label className="w-32 text-right">Email</label>
               <Input
-                value={formData.email}
+                value={candidate.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
                 isInvalid={!!errors.email}
                 errorMessage={errors.email}
@@ -208,7 +164,7 @@ const General = () => {
             <div className="flex items-center gap-4">
               <label className="w-32 text-right">Phone</label>
               <Input
-                value={formData.phone}
+                value={candidate.phone}
                 onChange={(e) => handleInputChange("phone", e.target.value)}
                 isInvalid={!!errors.phone}
                 errorMessage={errors.phone}
@@ -217,7 +173,7 @@ const General = () => {
             <div className="flex items-center gap-4">
               <label className="w-32 text-right">Address</label>
               <Textarea
-                value={formData.address}
+                value={candidate.address}
                 onChange={(e) => handleInputChange("address", e.target.value)}
                 isInvalid={!!errors.address}
                 errorMessage={errors.address}
@@ -230,6 +186,7 @@ const General = () => {
                 variant="flat"
                 color="success"
                 onClick={handleSaveChanges}
+                isLoading={loading}
               >
                 Save Changes
               </Button>
@@ -252,7 +209,7 @@ const General = () => {
                   variant="light"
                   size="sm"
                   onClick={() => {
-                    setEditSummary(formData.summary);
+                    setEditSummary(candidate?.summary || "");
                     onOpen();
                   }}
                 >
@@ -264,8 +221,11 @@ const General = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
+              className="break-all"
             >
-              {formData.summary || "No summary added yet."}
+              <pre className="whitespace-pre-wrap break-words font-neue">
+                {candidate.summary || "No summary added yet."}
+              </pre>
             </motion.div>
           </div>
         </motion.div>

@@ -26,18 +26,8 @@ import { Plus, Edit2, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { z } from "zod";
-
-// Types and Interfaces
-interface Patent {
-  id: string;
-  title: string;
-  patentOffice: string;
-  applicationNumber: string;
-  status: string;
-  filingDate: CalendarDate;
-  issueDate: CalendarDate | null;
-  description: string;
-}
+import { useOutletContext } from "react-router-dom";
+import { Candidate, Patent } from "@shared-types/Candidate";
 
 // Validation Schema
 const patentSchema = z.object({
@@ -52,37 +42,25 @@ const patentSchema = z.object({
 
 const Patents = () => {
   // States
-  const [patents, setPatents] = useState<Patent[]>([]);
-  const [editingPatent, setEditingPatent] = useState<Patent | null>(null);
+  const { user, setUser } = useOutletContext() as {
+    user: Candidate;
+    setUser: (user: Candidate) => void;
+  };
+
+  const [editingPatent, setEditingPatent] = useState<Patent>({} as Patent);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [formData, setFormData] = useState<Omit<Patent, "id">>({
+  const [formData, setFormData] = useState<Patent>({
     title: "",
     patentOffice: "",
-    applicationNumber: "",
-    status: "",
-    filingDate: parseDate(today("IST").toString()),
-    issueDate: null,
+    patentNumber: "",
+    status: "pending",
+    filingDate: parseDate(today("IST").toString()).toString(),
+    issueDate: parseDate(today("IST").toString()).toString(),
     description: "",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof Patent, string>>>(
     {}
   );
-
-  // Sample data
-  // useEffect(() => {
-  //   setPatents([
-  //     {
-  //       id: "1",
-  //       title: "Sample Patent",
-  //       patentOffice: "USPTO",
-  //       applicationNumber: "US123456",
-  //       status: "Pending",
-  //       filingDate: parseDate("2023-01-01"),
-  //       issueDate: parseDate("2024-01-01"),
-  //       description: "Sample patent description",
-  //     },
-  //   ]);
-  // }, []);
 
   const patentOffices = [
     { label: "USPTO", value: "USPTO" },
@@ -98,6 +76,7 @@ const Patents = () => {
 
   const validateField = (name: keyof typeof formData, value: any) => {
     try {
+      // @ts-ignore
       patentSchema.shape[name].parse(value);
       setErrors((prev) => ({ ...prev, [name]: undefined }));
       return true;
@@ -126,19 +105,15 @@ const Patents = () => {
 
       if (editingPatent) {
         // Update existing patent
-        setPatents((prev) =>
-          prev.map((p) =>
-            p.id === editingPatent.id ? { ...formData, id: p.id } : p
-          )
+        const newPatents = user?.patents?.map((p) =>
+          p._id === editingPatent._id ? { ...formData, id: p._id } : p
         );
-        toast.success("Patent updated successfully");
+
+        setUser({ ...user, patents: newPatents });
       } else {
         // Add new patent
-        setPatents((prev) => [
-          ...prev,
-          { ...formData, id: Math.random().toString() },
-        ]);
-        toast.success("Patent added successfully");
+        const newPatents = [...(user?.patents || []), { ...formData }];
+        setUser({ ...user, patents: newPatents });
       }
 
       handleClose();
@@ -152,33 +127,25 @@ const Patents = () => {
   };
 
   const handleDelete = (id: string) => {
-    setPatents((prev) => prev.filter((p) => p.id !== id));
-    toast.success("Patent deleted successfully");
+    const newPatents = user?.patents?.filter((p) => p._id !== id);
+    setUser({ ...user, patents: newPatents });
   };
 
   const handleEdit = (patent: Patent) => {
     setEditingPatent(patent);
-    setFormData({
-      title: patent.title,
-      patentOffice: patent.patentOffice,
-      applicationNumber: patent.applicationNumber,
-      status: patent.status,
-      filingDate: patent.filingDate,
-      issueDate: patent.issueDate,
-      description: patent.description,
-    });
+    setFormData(patent);
     onOpen();
   };
 
   const handleClose = () => {
-    setEditingPatent(null);
+    setEditingPatent({} as Patent);
     setFormData({
       title: "",
       patentOffice: "",
-      applicationNumber: "",
-      status: "",
-      filingDate: parseDate(today("IST").toString()),
-      issueDate: null,
+      patentNumber: "",
+      status: "pending",
+      filingDate: parseDate(today("IST").toString()).toString(),
+      issueDate: parseDate(today("IST").toString()).toString(),
       description: "",
     });
     setErrors({});
@@ -212,11 +179,11 @@ const Patents = () => {
           <TableColumn>ACTIONS</TableColumn>
         </TableHeader>
         <TableBody>
-          {patents.map((patent) => (
-            <TableRow key={patent.id}>
+          {(user.patents || []).map((patent) => (
+            <TableRow key={patent._id}>
               <TableCell>{patent.title}</TableCell>
               <TableCell>{patent.patentOffice}</TableCell>
-              <TableCell>{patent.applicationNumber}</TableCell>
+              <TableCell>{patent.patentNumber}</TableCell>
               <TableCell>{patent.status}</TableCell>
               <TableCell>{patent.filingDate.toString()}</TableCell>
               <TableCell>{patent.issueDate?.toString() || "-"}</TableCell>
@@ -235,7 +202,7 @@ const Patents = () => {
                     size="sm"
                     variant="light"
                     color="danger"
-                    onPress={() => handleDelete(patent.id)}
+                    onPress={() => handleDelete(patent._id || "")}
                   >
                     <Trash2 size={18} />
                   </Button>
@@ -283,13 +250,13 @@ const Patents = () => {
 
                   <Input
                     label="Application Number"
-                    value={formData.applicationNumber}
+                    value={formData.patentNumber}
                     onChange={(e) =>
-                      handleInputChange("applicationNumber", e.target.value)
+                      handleInputChange("patentNumber", e.target.value)
                     }
                     isRequired
-                    isInvalid={!!errors.applicationNumber}
-                    errorMessage={errors.applicationNumber}
+                    isInvalid={!!errors.patentNumber}
+                    errorMessage={errors.patentNumber}
                   />
 
                   <Select
@@ -312,7 +279,7 @@ const Patents = () => {
                   <div className="flex gap-4">
                     <DateInput
                       label="Filing Date"
-                      value={formData.filingDate}
+                      value={parseDate(formData.filingDate)}
                       onChange={(date) => handleInputChange("filingDate", date)}
                       isRequired
                       maxValue={today("IST")}
@@ -320,7 +287,7 @@ const Patents = () => {
 
                     <DateInput
                       label="Issue Date"
-                      value={formData.issueDate}
+                      value={parseDate(formData?.issueDate || "")}
                       onChange={(date) => handleInputChange("issueDate", date)}
                       maxValue={today("IST")}
                     />

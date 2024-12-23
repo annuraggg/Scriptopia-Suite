@@ -15,25 +15,19 @@ import {
 } from "@nextui-org/react";
 import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
-import { CalendarDate, today } from "@internationalized/date";
+import { CalendarDate, parseDate, today } from "@internationalized/date";
 import { Edit2, Trash2, Plus, BriefcaseBusiness } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface Responsibility {
-  id: string;
-  position: string;
-  organization: string;
-  startDate: CalendarDate;
-  endDate: CalendarDate | null;
-  isCurrentPosition: boolean;
-  description: string;
-}
+import { Candidate, Responsibility } from "@shared-types/Candidate";
+import { useOutletContext } from "react-router-dom";
 
 const Responsibilities = () => {
-  const [responsibilities, setResponsibilities] = useState<Responsibility[]>(
-    []
-  );
+  const { user, setUser } = useOutletContext() as {
+    user: Candidate;
+    setUser: (user: Candidate) => void;
+  };
+
   const [editingResponsibility, setEditingResponsibility] =
     useState<Responsibility | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -99,20 +93,22 @@ const Responsibilities = () => {
 
   const handleEdit = (responsibility: Responsibility) => {
     setEditingResponsibility(responsibility);
-    setPosition(responsibility.position);
     setOrganization(responsibility.organization);
-    setStartDate(responsibility.startDate);
-    setEndDate(responsibility.endDate);
-    setIsCurrentPosition(responsibility.isCurrentPosition);
+    setStartDate(parseDate(responsibility.startDate));
+    setEndDate(parseDate(responsibility.endDate || ""));
+    setIsCurrentPosition(responsibility.current);
     setDescription(responsibility.description);
     onOpen();
   };
 
   const handleDelete = (id: string) => {
-    const responsibility = responsibilities.find((r) => r.id === id);
+    const responsibility = user?.responsibilities?.find((r) => r._id === id);
     if (responsibility) {
-      setResponsibilities((prev) => prev.filter((r) => r.id !== id));
-      toast.success(`Removed ${responsibility.position} position`);
+      const newResponsibilies = user?.responsibilities?.filter(
+        (r) => r._id !== id
+      );
+
+      setUser({ ...user, responsibilities: newResponsibilies });
     }
   };
 
@@ -126,26 +122,28 @@ const Responsibilities = () => {
       return;
     }
 
-    const newResponsibility = {
-      id: editingResponsibility?.id || Date.now().toString(),
-      position: sanitizeInput(position),
+    const newResponsibility: Responsibility = {
+      title: sanitizeInput(position),
       organization: sanitizeInput(organization),
-      startDate: startDate!,
-      endDate: isCurrentPosition ? null : endDate,
-      isCurrentPosition,
+      startDate: startDate?.toString() || "",
+      endDate: isCurrentPosition ? undefined : endDate?.toString(),
+      current: isCurrentPosition,
       description: sanitizeInput(description),
     };
 
     try {
       if (editingResponsibility) {
-        setResponsibilities((prev) =>
-          prev.map((r) =>
-            r.id === editingResponsibility.id ? newResponsibility : r
-          )
+        const newResponsibilies = user?.responsibilities?.map((r) =>
+          r._id === editingResponsibility._id ? newResponsibility : r
         );
-        toast.success("Position updated successfully");
+
+        setUser({ ...user, responsibilities: newResponsibilies });
       } else {
-        setResponsibilities((prev) => [...prev, newResponsibility]);
+        const newResponsibilies = user?.responsibilities
+          ? [...user?.responsibilities, newResponsibility]
+          : [newResponsibility];
+
+        setUser({ ...user, responsibilities: newResponsibilies });
         toast.success("New position added successfully");
       }
 
@@ -182,7 +180,7 @@ const Responsibilities = () => {
 
       <div className="py-5">
         <AnimatePresence mode="wait">
-          {responsibilities.length === 0 ? (
+          {user?.responsibilities && user?.responsibilities?.length === 0 ? (
             <motion.div
               key="empty"
               initial={{ opacity: 0, y: 20 }}
@@ -237,9 +235,9 @@ const Responsibilities = () => {
               </div>
               <div className="space-y-4">
                 <AnimatePresence>
-                  {responsibilities.map((responsibility) => (
+                  {user?.responsibilities && user?.responsibilities?.map((responsibility) => (
                     <motion.div
-                      key={responsibility.id}
+                      key={responsibility._id}
                       variants={cardVariants}
                       initial="hidden"
                       animate="visible"
@@ -250,14 +248,14 @@ const Responsibilities = () => {
                         <div className="flex justify-between items-start">
                           <div>
                             <h3 className="font-semibold">
-                              {responsibility.position}
+                              {responsibility.title}
                             </h3>
                             <p className="text-gray-500">
                               {responsibility.organization}
                             </p>
                             <p className="text-sm text-gray-400">
                               {responsibility.startDate.toString()} -{" "}
-                              {responsibility.isCurrentPosition
+                              {responsibility.current
                                 ? "Present"
                                 : responsibility.endDate?.toString()}
                             </p>
@@ -275,7 +273,7 @@ const Responsibilities = () => {
                               isIconOnly
                               variant="light"
                               color="danger"
-                              onPress={() => handleDelete(responsibility.id)}
+                              onPress={() => handleDelete(responsibility?._id || "")}
                             >
                               <Trash2 size={18} />
                             </Button>

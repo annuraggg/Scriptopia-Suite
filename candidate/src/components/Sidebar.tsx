@@ -116,7 +116,7 @@ const Sidebar = () => {
                       : "text-muted-foreground opacity-50 hover:text-white"
                   } `}
                   onClick={() => {
-                    navigate(item.link);
+                    navigate("/dashboard"+ item.link);
                     setActive(item.label.toLowerCase());
                   }}
                 >
@@ -147,7 +147,7 @@ const Sidebar = () => {
                       : "text-muted-foreground opacity-50 hover:text-white"
                   } `}
                   onClick={() => {
-                    navigate(item.link);
+                    navigate("/dashboard" + item.link);
                     setActive(item.label.toLowerCase());
                   }}
                 >

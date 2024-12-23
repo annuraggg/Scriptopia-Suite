@@ -15,28 +15,14 @@ import {
   Textarea,
   Card,
   CardBody,
-  Chip,
 } from "@nextui-org/react";
 import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
 import { Edit2, Trash2, Download, Plus, BriefcaseBusiness } from "lucide-react";
 import { motion } from "framer-motion";
-
-interface Experience {
-  id: string;
-  companyName: string;
-  sector: string;
-  jobTitle: string;
-  location: string;
-  positionType: string;
-  jobFunction: string;
-  startDate: string;
-  endDate: string;
-  currentlyWork: boolean;
-  salary: string;
-  description: string;
-  tags: string[];
-}
+import { Candidate, Work as Experience } from "@shared-types/Candidate";
+import { useOutletContext } from "react-router-dom";
+import { parseDate, today } from "@internationalized/date";
 
 const positionTypes = [
   "Internship",
@@ -61,47 +47,44 @@ const sectors = [
   "Manufacturing",
 ];
 
-const salaryRanges = ["0-10k", "10k-20k", "20k-30k", "30k-40k", "40k+"];
-
 export default function InternshipExperience() {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [experiences, setExperiences] = useState<Experience[]>([]);
 
   const [editingExperience, setEditingExperience] = useState<Experience | null>(
     null
   );
+
   const [formData, setFormData] = useState<Experience>({
-    id: "",
-    companyName: "",
+    company: "",
     sector: "",
-    jobTitle: "",
+    type: "freelance",
+    title: "",
     location: "",
-    positionType: "",
     jobFunction: "",
     startDate: "",
     endDate: "",
-    currentlyWork: false,
-    salary: "",
+    current: false,
     description: "",
-    tags: [],
   });
+
+  const { user, setUser } = useOutletContext() as {
+    user: Candidate;
+    setUser: (user: Candidate) => void;
+  };
 
   const handleAdd = () => {
     setEditingExperience(null);
     setFormData({
-      id: Date.now().toString(),
-      companyName: "",
+      company: "",
       sector: "",
-      jobTitle: "",
+      title: "",
       location: "",
-      positionType: "",
+      type: "freelance",
       jobFunction: "",
       startDate: "",
       endDate: "",
-      currentlyWork: false,
-      salary: "",
+      current: false,
       description: "",
-      tags: [],
     });
     onOpen();
   };
@@ -113,19 +96,25 @@ export default function InternshipExperience() {
   };
 
   const handleDelete = (id: string) => {
-    setExperiences(experiences.filter((exp) => exp.id !== id));
+    const newExp = user?.workExperience?.filter((exp) => exp._id !== id);
+    const newUser = { ...user, workExperience: newExp };
+    setUser(newUser);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    let newExp: Experience[] = [];
     if (editingExperience) {
-      setExperiences(
-        experiences.map((exp) =>
-          exp.id === editingExperience.id ? formData : exp
-        )
-      );
-    } else {
-      setExperiences([...experiences, formData]);
+      newExp = (user?.workExperience || []).map((exp) => {
+        if (exp._id === editingExperience._id) {
+          return formData as Experience;
+        }
+        return exp as Experience;
+      });
     }
+
+    const newUser = { ...user, workExperience: newExp };
+    setUser(newUser);
+
     onClose();
   };
 
@@ -137,7 +126,7 @@ export default function InternshipExperience() {
       </Breadcrumbs>
 
       <div className="py-5 flex justify-end items-center">
-        {experiences.length > 0 && (
+        {user.workExperience && user.workExperience.length > 0 && (
           <Button
             variant="flat"
             onClick={handleAdd}
@@ -149,7 +138,7 @@ export default function InternshipExperience() {
       </div>
 
       <div className="space-y-6">
-        {experiences.length === 0 ? (
+        {user.workExperience && user.workExperience.length === 0 ? (
           <motion.div
             key="empty"
             initial={{ opacity: 0, y: 20 }}
@@ -181,30 +170,23 @@ export default function InternshipExperience() {
           </motion.div>
         ) : (
           <>
-            {experiences.map((experience) => (
-              <Card key={experience.id}>
+            {user?.workExperience?.map((experience) => (
+              <Card key={experience._id}>
                 <CardBody>
                   <div className="flex items-start justify-between">
                     <div className="flex gap-5">
                       <div className="w-12 h-12 bg-default-100 rounded-full flex items-center justify-center">
-                        {experience.companyName.charAt(0)}
+                        {experience.company.charAt(0)}
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold">
-                          {experience.jobTitle}
+                          {experience.title}
                         </h3>
                         <p className="text-default-500 text-sm">
-                          {experience.companyName} | {experience.startDate} -{" "}
-                          {experience.currentlyWork
-                            ? "Present"
-                            : experience.endDate}{" "}
+                          {experience.company} | {experience.startDate} -{" "}
+                          {experience.current ? "Present" : experience.endDate}{" "}
                           | {experience.location}
                         </p>
-                        <div className="flex gap-2 mt-2">
-                          {experience.tags.map((tag) => (
-                            <Chip key={tag}>{tag}</Chip>
-                          ))}
-                        </div>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -218,7 +200,7 @@ export default function InternshipExperience() {
                       <Button
                         isIconOnly
                         variant="light"
-                        onClick={() => handleDelete(experience.id)}
+                        onClick={() => handleDelete(experience._id || "")}
                       >
                         <Trash2 size={18} />
                       </Button>
@@ -249,9 +231,9 @@ export default function InternshipExperience() {
                   <Input
                     label="Company Name"
                     placeholder="Search Company Name"
-                    value={formData.companyName}
+                    value={formData.company}
                     onChange={(e) =>
-                      setFormData({ ...formData, companyName: e.target.value })
+                      setFormData({ ...formData, company: e.target.value })
                     }
                   />
                   <Select
@@ -271,9 +253,9 @@ export default function InternshipExperience() {
                   <Input
                     label="Job Title"
                     placeholder="Enter Job Title"
-                    value={formData.jobTitle}
+                    value={formData.title}
                     onChange={(e) =>
-                      setFormData({ ...formData, jobTitle: e.target.value })
+                      setFormData({ ...formData, title: e.target.value })
                     }
                   />
                   <Input
@@ -287,11 +269,17 @@ export default function InternshipExperience() {
                   <Select
                     label="Position Type"
                     placeholder="Select Position Type"
-                    selectedKeys={
-                      formData.positionType ? [formData.positionType] : []
-                    }
+                    selectedKeys={formData.type ? [formData.type] : []}
                     onChange={(e) =>
-                      setFormData({ ...formData, positionType: e.target.value })
+                      setFormData({
+                        ...formData,
+                        type: e.target.value as
+                          | "freelance"
+                          | "fulltime"
+                          | "parttime"
+                          | "internship"
+                          | "contract",
+                      })
                     }
                   >
                     {positionTypes.map((type) => (
@@ -316,30 +304,40 @@ export default function InternshipExperience() {
                       </SelectItem>
                     ))}
                   </Select>
-                  <DateInput label="Start Date" />
+                  <DateInput
+                    label="Start Date"
+                    value={
+                      formData?.startDate?.toString()
+                        ? parseDate(
+                            formData?.startDate?.toString()?.split("T")[0]
+                          )
+                        : today("IST")
+                    }
+                    onChange={(date) =>
+                      setFormData({ ...formData, startDate: date.toString() })
+                    }
+                  />
+
                   <DateInput
                     label="End Date"
-                    isDisabled={formData.currentlyWork}
-                  />
-                  <Select
-                    label="Salary/Stipend Range"
-                    placeholder="Select Salary Range"
-                    selectedKeys={formData.salary ? [formData.salary] : []}
-                    onChange={(e) =>
-                      setFormData({ ...formData, salary: e.target.value })
+                    isDisabled={formData.current}
+                    value={
+                      formData?.endDate?.toString()
+                        ? parseDate(
+                            formData?.endDate?.toString()?.split("T")[0]
+                          )
+                        : today("IST")
                     }
-                  >
-                    {salaryRanges.map((range) => (
-                      <SelectItem key={range} value={range}>
-                        {range}
-                      </SelectItem>
-                    ))}
-                  </Select>
+                    onChange={(date) =>
+                      setFormData({ ...formData, endDate: date.toString() })
+                    }
+                  />
+
                   <div className="flex items-center">
                     <Checkbox
-                      isSelected={formData.currentlyWork}
+                      isSelected={formData.current}
                       onValueChange={(isSelected) =>
-                        setFormData({ ...formData, currentlyWork: isSelected })
+                        setFormData({ ...formData, current: isSelected })
                       }
                     >
                       I currently work here

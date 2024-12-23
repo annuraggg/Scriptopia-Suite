@@ -3,16 +3,33 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Layout from "./components/Layout";
 import ProfileLayout from "./pages/profile/ProfileLayout";
 import profileRoutes from "./routes/profileRoutes";
-import Settings from "./pages/settings/Settings";
-import Alerts from "./pages/alerts/Alerts";
 import Home from "./pages/home/Home";
-import JobsLayout from "./pages/Jobs/JobsLayout";
-import jobRoutes from "./routes/jobroutes";
+import Lander from "./pages/lander/Lander";
+import Onboarding from "./pages/onboarding/Onboarding";
+import Posting from "./pages/posting/Posting";
 
 function App() {
   const router = createBrowserRouter([
     {
       path: "/",
+      element: <Lander />,
+    },
+    {
+      path: "/onboarding",
+      element: <Onboarding />,
+    },
+    {
+      path: "/",
+      element: <Layout />,
+      children: [
+        {
+          path: "postings/:id",
+          element: <Posting />,
+        },
+      ],
+    },
+    {
+      path: "dashboard",
       element: <Layout />,
       children: [
         {
@@ -20,22 +37,9 @@ function App() {
           element: <Home />,
         },
         {
-          path: "/profile",
+          path: "profile",
           element: <ProfileLayout />,
           children: [...profileRoutes],
-        },
-        {
-          path: "/jobs",
-          element: <JobsLayout />,
-          children: [...jobRoutes],
-        },
-        {
-          path: "/alerts",
-          element: <Alerts />,
-        },
-        {
-          path: "/settings",
-          element: <Settings />,
         },
       ],
     },

@@ -15,7 +15,6 @@ import { Button, Skeleton, Tooltip } from "@nextui-org/react";
 import { Posting } from "@shared-types/Posting";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { Assessment } from "@shared-types/Assessment";
 import {
   Modal,
   ModalContent,
@@ -137,16 +136,19 @@ const Sidebar = ({
 
       if (step.type === "ca" || step.type === "mcqa" || step.type === "mcqca") {
         if (
-          posting?.assessments?.filter(
-            (a) => (a as unknown as Assessment).name === step.name
-          ).length
+          posting?.assessments?.filter((a) => a.assessmentId === step.stepId)
+            .length
         ) {
           totalCompleted++;
         }
       }
 
       if (step.type === "as") {
-        if (posting?.assignments?.filter((a) => a.name === step.name).length) {
+        if (
+          posting?.assignments?.filter((a) => {
+            return a._id === step.stepId;
+          }).length
+        ) {
           totalCompleted++;
         }
       }

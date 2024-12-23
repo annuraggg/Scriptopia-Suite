@@ -49,6 +49,10 @@ export default {
           "0 0px 1px rgba(255,255, 255, 0.1)",
           "0 0px 5px rgba(255, 255,255, 0.1)",
         ],
+        "glow-red": [
+          "0 0px 30px rgba(255,0, 0, 0.75)",
+          "0 0px 65px rgba(255, 0,0, 0.2)",
+        ],
       },
       colors: {
         border: "hsl(var(--border))",

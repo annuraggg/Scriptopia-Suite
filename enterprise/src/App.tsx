@@ -10,6 +10,8 @@ import {
   SignedOut,
   useUser,
 } from "@clerk/clerk-react";
+import CreateJob from "./pages/jobs/create/CreateJob";
+import { useTheme } from "./components/theme-provider";
 
 // Lazy load components
 const Lander = lazy(() => import("./pages/lander/Lander"));
@@ -75,7 +77,6 @@ const Roles = lazy(() => import("./pages/settings/roles/Roles"));
 const Departments = lazy(
   () => import("./pages/settings/departments/Departments")
 );
-const Security = lazy(() => import("./pages/settings/security/Security"));
 const AuditLogs = lazy(
   () => import("./pages/settings/security/audit-logs/Audit-Logs")
 );
@@ -178,6 +179,66 @@ function App() {
       ),
       children: [
         {
+          path: "/settings",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <SettingsLayout />
+            </Suspense>
+          ),
+          children: [
+            {
+              path: "general",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <GeneralSettings />
+                </Suspense>
+              ),
+            },
+            {
+              path: "members",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Members />
+                </Suspense>
+              ),
+            },
+            {
+              path: "roles",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Roles />
+                </Suspense>
+              ),
+            },
+            {
+              path: "departments",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Departments />
+                </Suspense>
+              ),
+            },
+
+            {
+              path: "security/audit-logs",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <AuditLogs />
+                </Suspense>
+              ),
+            },
+            {
+              path: "security/data",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <OrgData />
+                </Suspense>
+              ),
+            },
+          ],
+        },
+
+        {
           path: "dashboard",
           element: (
             <Suspense fallback={<Loader />}>
@@ -190,6 +251,14 @@ function App() {
           element: (
             <Suspense fallback={<Loader />}>
               <Jobs />
+            </Suspense>
+          ),
+        },
+        {
+          path: "jobs/create",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <CreateJob />
             </Suspense>
           ),
         },
@@ -349,72 +418,7 @@ function App() {
         },
       ],
     },
-    {
-      path: "/settings",
-      element: (
-        <Suspense fallback={<Loader />}>
-          <SettingsLayout />
-        </Suspense>
-      ),
-      children: [
-        {
-          path: "general",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <GeneralSettings />
-            </Suspense>
-          ),
-        },
-        {
-          path: "members",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Members />
-            </Suspense>
-          ),
-        },
-        {
-          path: "roles",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Roles />
-            </Suspense>
-          ),
-        },
-        {
-          path: "departments",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Departments />
-            </Suspense>
-          ),
-        },
-        {
-          path: "security",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Security />
-            </Suspense>
-          ),
-        },
-        {
-          path: "security/audit-logs",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <AuditLogs />
-            </Suspense>
-          ),
-        },
-        {
-          path: "security/data",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <OrgData />
-            </Suspense>
-          ),
-        },
-      ],
-    },
+
     {
       path: "/",
       element: (
@@ -451,7 +455,17 @@ function App() {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  const { theme } = useTheme();
+
+  return (
+    <main
+      className={`${
+        theme === "dark" ? "dark" : ""
+      } text-foreground bg-background`}
+    >
+      <RouterProvider router={router} />
+    </main>
+  );
 }
 
 export default App;
