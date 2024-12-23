@@ -2,10 +2,10 @@ import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/react";
 
 const ControlPanel = () => {
   return (
-    <div>
+    <div className="mt-5 ml-5">
       <Breadcrumbs>
-        <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
-        <BreadcrumbItem href="/profile">General</BreadcrumbItem>
+        <BreadcrumbItem href="/jobs">Jobs</BreadcrumbItem>
+        <BreadcrumbItem href="/jobs">Control Panel</BreadcrumbItem>
       </Breadcrumbs>
     </div>
   )

@@ -71,7 +71,7 @@ const Myjobs = () => {
   );
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen mt-5 ml-5">
       <Breadcrumbs>
         <BreadcrumbItem href="/profile">Jobs</BreadcrumbItem>
         <BreadcrumbItem href="/profile">My Jobs</BreadcrumbItem>
@@ -81,9 +81,9 @@ const Myjobs = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="text-3xl font-bold mb-8">My Job Applications</h1>
+          <h1 className="text-3xl font-bold mb-2">My Job Applications</h1>
           
-          <div className="flex flex-wrap gap-2 mb-6">
+          <div className="flex flex-wrap gap-2 mb-5">
             {filters.map(filter => (
               <motion.button
                 key={filter}

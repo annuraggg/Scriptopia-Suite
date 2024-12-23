@@ -1,5 +1,5 @@
-import Myjobs from "@/pages/Jobs/Myjobs";
 import ControlPanel from "@/pages/Jobs/ControlPanel";
+import Myjobs from "@/pages/Jobs/Myjobs";
 import Interviews from "@/pages/Jobs/Interviews";
 
 const jobRoutes = [

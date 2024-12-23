@@ -257,18 +257,18 @@ const Interviews: React.FC = () => {
     const [selectedTab, setSelectedTab] = useState<TabKey>('calendar');
 
     return (
-        <div className="min-h-screen p-6">
+        <div className="min-h-screen mt-5 ml-5">
             <Breadcrumbs>
-                <BreadcrumbItem href="/profile">Jobs</BreadcrumbItem>
-                <BreadcrumbItem href="/profile">Interviews</BreadcrumbItem>
+                <BreadcrumbItem href="/jobs">Jobs</BreadcrumbItem>
+                <BreadcrumbItem href="/jobs">Interviews</BreadcrumbItem>
             </Breadcrumbs>
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-8 pt-4"
             >
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-4xl font-bold">Interview Schedule</h1>
+                <div className="flex justify-between items-center mb-2">
+                    <h1 className="text-3xl font-bold">Interview Schedule</h1>
                     <Button
                         color="primary"
                         className="font-semibold"
@@ -280,7 +280,7 @@ const Interviews: React.FC = () => {
                 <Tabs
                     selectedKey={selectedTab}
                     onSelectionChange={(key) => setSelectedTab(key as TabKey)}
-                    className="mb-6"
+                    className="mb-5"
                     size="lg"
                 >
                     <Tab
