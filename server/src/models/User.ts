@@ -9,8 +9,9 @@ const UserSchema = new mongoose.Schema({
   },
   streak: { type: [Date] },
   achievements: { type: [mongoose.Types.ObjectId], ref: "Achievement" },
+  loginDates: { type: [String] },
   resume: { type: [String] },
-  
+
   portfolio: {
     education: {
       type: [

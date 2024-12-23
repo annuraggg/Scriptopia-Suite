@@ -6,7 +6,7 @@ import {
   Users,
   Briefcase,
   PieChart,
-  BookOpenText,
+  // BookOpenText,
   CreditCard,
   // HelpCircle,
   ChevronRight,

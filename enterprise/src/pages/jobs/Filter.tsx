@@ -5,7 +5,6 @@ import {
   Select,
   SelectItem,
   Checkbox,
-  Input,
 } from "@nextui-org/react";
 import { Department } from "@shared-types/Organization";
 
@@ -16,7 +15,9 @@ interface FilterProps {
   departments: Department[];
   setDepartmentFilter: React.Dispatch<React.SetStateAction<string>>;
   dateRange: { start: string; end: string };
-  setDateRange: React.Dispatch<React.SetStateAction<{ start: string; end: string }>>;
+  setDateRange: React.Dispatch<
+    React.SetStateAction<{ start: string; end: string }>
+  >;
   sort: Set<string>;
   setSort: React.Dispatch<Set<string>>;
 }
