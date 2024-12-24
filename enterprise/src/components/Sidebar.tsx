@@ -11,10 +11,11 @@ import {
   // HelpCircle,
   ChevronRight,
   Bell,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
-import { Badge } from "@nextui-org/react";
+import { Badge, Button } from "@nextui-org/react";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
 import { Notification } from "@shared-types/Organization";
 import { OrganizationWithPostings as OWP } from "@/types/RootContext";
@@ -23,10 +24,14 @@ import { OrganizationWithPostings as OWP } from "@/types/RootContext";
 const Sidebar = ({
   notifications,
   user,
+  isMobile,
+  onClose,
 }: {
   notifications: Notification[];
   org: OWP;
   user: MemberWithPermission;
+  isMobile: boolean;
+  onClose?: () => void;
 }) => {
   const topItems = [
     {
@@ -117,14 +122,26 @@ const Sidebar = ({
   // };
 
   return (
-    <>
-      <aside
-        className={` sticky h-[100vh] min-w-16 px-3 top-0 left-0 z-10 hidden transition-width flex-col border-r bg-background sm:flex overflow-x-hidden ${
-          collapsed ? "w-16" : "w-64"
-        }`}
-      >
-        <nav className={`flex flex-col gap-4 sm:py-5 `}>
-          <div>
+    <aside
+      className={`h-[100vh] bg-background border-r flex flex-col overflow-hidden transition-all duration-300 
+        ${isMobile ? 'w-64' : collapsed ? 'w-16' : 'w-64'}
+        ${isMobile ? 'fixed left-0 top-0' : 'relative'}`}
+    >
+      {/* Mobile Close Button */}
+      {isMobile && (
+        <Button
+          isIconOnly
+          variant="light"
+          className="absolute top-4 right-4"
+          onPress={onClose}
+        >
+          <X className="h-6 w-6" />
+        </Button>
+      )}
+
+      <nav className="flex flex-col gap-4 p-3">
+        {(!isMobile || !collapsed) && (
+          <div className={`${isMobile ? "mt-12" : "mt-4"} mb-6`}>
             <img
               src="/logo.png"
               alt="logo"
@@ -134,112 +151,102 @@ const Sidebar = ({
               }}
             />
           </div>
+        )}
 
-          {topItems.map((item, index) => (
-            <Tooltip key={index} content={item.label} placement="right">
-              <table className={!item.visible ? "hidden" : ""}>
-                <tbody
-                  className={`cursor-pointer ${
-                    active?.toLowerCase() === item.label.toLowerCase()
-                      ? "rounded-xl"
-                      : " text-default-500"
-                  } `}
-                  onClick={() => {
-                    navigate(item.link);
-                    setActive(item.label.toLowerCase());
-                  }}
-                >
-                  <tr>
-                    <td>
-                      {item.icon && (
-                        <div
-                          className={` p-2 rounded-xl mr-3 max-w-fit  ${
-                            active?.toLowerCase() === item.label.toLowerCase()
-                              ? "bg-default"
-                              : ""
-                          }`}
-                        >
-                          <item.icon className="w-5 h-5" />
-                        </div>
-                      )}
-                    </td>
-                    {collapsed ? null : (
-                      <td className="text-start w-full">{item.label}</td>
-                    )}
-                  </tr>
-                </tbody>
-              </table>
-            </Tooltip>
-          ))}
-        </nav>
-        <nav className={`mt-auto flex flex-col gap-2 sm:py-5`}>
-          <div className=" ml-[6px]">
-            <UserButton />
-          </div>
-          {bottomItems.map((item, index) => (
-            <Tooltip key={index} content={item.label} placement="right">
-              <table className={!item.visible ? "hidden" : ""}>
-                <tbody
-                  className={`cursor-pointer ${
-                    active?.toLowerCase() === item.label.toLowerCase()
-                      ? "rounded-xl"
-                      : " text-default-500"
-                  } `}
-                  onClick={() => {
-                    navigate(item.link);
-                    setActive(item.label.toLowerCase());
-                  }}
-                >
-                  <tr>
-                    <td>
-                      <Badge
-                        content={item?.length}
-                        color="warning"
-                        className={!item?.length ? "hidden" : ""}
-                      >
-                        {item.label === "Profile" ? (
-                          <div className="flex items-center justify-center user-button-small">
-                            <UserButton />
-                          </div>
-                        ) : (
-                          item.icon && (
-                            <div
-                              className={` p-2 rounded-xl mr-3 max-w-fit  ${
-                                active?.toLowerCase() ===
-                                item.label.toLowerCase()
-                                  ? "bg-default"
-                                  : ""
-                              }`}
-                            >
-                              <item.icon className="w-5 h-5" />
-                            </div>
-                          )
-                        )}{" "}
-                      </Badge>
-                    </td>
-
-                    {collapsed ? null : (
-                      <td className="text-start w-full">{item.label}</td>
-                    )}
-                  </tr>
-                </tbody>
-              </table>
-            </Tooltip>
-          ))}
-        </nav>
-
-        <div className={` flex w-full mb-5 `}>
-          <Tooltip content="Collapse sidebar" placement="right">
-            <ChevronRight
-              className={`h-5 w-5 text-muted-foreground transition-all  opacity-50 ${
-                !collapsed ? "rotate-180" : ""
-              }`}
-              onClick={() => setCollapsed(!collapsed)}
-            />
+        {topItems.map((item, index) => (
+          <Tooltip
+            key={index}
+            content={item.label}
+            placement="right"
+            isDisabled={isMobile || !collapsed}
+          >
+            <div
+              className={`${!item.visible ? "hidden" : ""}`}
+              onClick={() => {
+                navigate(item.link);
+                setActive(item.label.toLowerCase());
+                if (isMobile) onClose?.();
+              }}
+            >
+              <div
+                className={`flex items-center p-2 rounded-xl cursor-pointer transition-colors duration-200 hover:bg-default/80
+                  ${active?.toLowerCase() === item.label.toLowerCase()
+                    ? "bg-default text-foreground"
+                    : "text-default-500"
+                  }`}
+              >
+                <div className="min-w-[24px] flex items-center justify-center">
+                  <item.icon className="w-5 h-5" />
+                </div>
+                {(!collapsed || isMobile) && (
+                  <span className="ml-3 text-sm font-medium">{item.label}</span>
+                )}
+              </div>
+            </div>
           </Tooltip>
+        ))}
+      </nav>
+
+      <nav className="mt-auto flex flex-col gap-2 p-3">
+        <div className="ml-[6px] mb-4">
+          <UserButton afterSignOutUrl="/" />
         </div>
-      </aside>
-    </>
+
+        {bottomItems.map((item, index) => (
+          <Tooltip
+            key={index}
+            content={item.label}
+            placement="right"
+            isDisabled={isMobile || !collapsed}
+          >
+            <div
+              className={`${!item.visible ? "hidden" : ""}`}
+              onClick={() => {
+                navigate(item.link);
+                setActive(item.label.toLowerCase());
+                if (isMobile) onClose?.();
+              }}
+            >
+              <div
+                className={`flex items-center p-2 rounded-xl cursor-pointer transition-colors duration-200 
+                  ${active?.toLowerCase() === item.label.toLowerCase()
+                    ? ""
+                    : "text-default-500"
+                  }`}
+              >
+                <div className="min-w-[24px] flex items-center justify-center relative">
+                  <Badge
+                    content={item?.length}
+                    color="warning"
+                    className={!item?.length ? "hidden" : ""}
+                  >
+                    <item.icon className="w-5 h-5" />
+                  </Badge>
+                </div>
+                {(!collapsed || isMobile) && (
+                  <span className="ml-3 text-sm font-medium">{item.label}</span>
+                )}
+              </div>
+            </div>
+          </Tooltip>
+        ))}
+
+        {/* Collapse Button */}
+        {!isMobile && (
+          <div className="flex w-full mt-4 px-2">
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="p-1 rounded-xl transition-colors duration-200 w-full"
+            >
+              <ChevronRight
+                className={`h-5 w-5 text-default-500 transition-transform duration-200 
+                  ${!collapsed ? "rotate-180" : ""}`}
+              />
+            </button>
+          </div>
+        )}
+      </nav>
+    </aside>
   );
 };
 
