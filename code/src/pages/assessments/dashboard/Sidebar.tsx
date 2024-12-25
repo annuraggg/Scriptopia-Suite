@@ -17,11 +17,6 @@ const createdLinks: {
     icon: Code,
     hash: "codecreated",
   },
-  {
-    title: "MCQ + Code Assessments",
-    icon: Combine,
-    hash: "mcqcodecreated",
-  },
 ];
 
 const links: {
@@ -30,11 +25,6 @@ const links: {
   hash: string;
   badge?: number;
 }[] = [
-  {
-    title: "Dashboard",
-    icon: Home,
-    hash: "",
-  },
   {
     title: "Assessments Taken",
     icon: BookCheck,

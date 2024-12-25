@@ -31,6 +31,7 @@ const Problems = ({
   useEffect(() => {
     // filter problems
     if (problems) {
+    
       const filteredProblems = problems.filter((problem) => {
         if (difficulty && problem.difficulty !== difficulty) return false;
         if (
@@ -39,7 +40,7 @@ const Problems = ({
         )
           return false;
 
-        if (selectedTag && !problem.tags.includes(selectedTag.toLowerCase()))
+        if (selectedTag && !problem.tags.includes(selectedTag))
           return false;
         return true;
       });
@@ -52,14 +53,14 @@ const Problems = ({
       <h6 className="text-md md:text-md mt-4 md:mt-2 text-gray-500 mb-5">
         Problems
       </h6>
-      <div className="flex gap-5 line-clamp-1 flex-wrap h-5 w-[100%] md:block">
+      <div className="flex gap-5 line-clamp-1 flex-wrap h-5 w-[100%]">
         {tags?.map((tag, i) => (
           <div
-            className="hover:text-blue-500 duration-200 transition-colors cursor-pointer text-sm"
+            className="hover:text-blue-500 duration-200 transition-colors cursor-pointer text-sm w-fit"
             key={i}
             onClick={() => setSelectedTag(tag)}
           >
-            {tag}
+            {tag} 
           </div>
         ))}
       </div>

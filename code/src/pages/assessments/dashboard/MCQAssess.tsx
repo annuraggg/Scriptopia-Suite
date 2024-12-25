@@ -32,10 +32,14 @@ const copyLink = (assessmentId: string) => {
   toast.success("Link copied to clipboard");
 };
 
-const MCQAssess: React.FC<{ createdAssessments: Assessment[] }> = ({ createdAssessments: initialCreatedAssessments }) => {
+const MCQAssess: React.FC<{ createdAssessments: Assessment[] }> = ({
+  createdAssessments: initialCreatedAssessments,
+}) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [createdAssessments, setCreatedAssessments] = useState<Assessment[]>(initialCreatedAssessments);
+  const [createdAssessments, setCreatedAssessments] = useState<Assessment[]>(
+    initialCreatedAssessments
+  );
 
   const filteredAssessments = useMemo(() => {
     return createdAssessments.filter((assessment) =>
@@ -51,21 +55,46 @@ const MCQAssess: React.FC<{ createdAssessments: Assessment[] }> = ({ createdAsse
       await axios.delete(`/assessments/mcq/created/${id}`);
       toast.success("Assessment deleted successfully");
 
-      setCreatedAssessments(prevAssessments =>
-        prevAssessments.filter(assessment => assessment._id !== id)
+      setCreatedAssessments((prevAssessments) =>
+        prevAssessments.filter((assessment) => assessment._id !== id)
       );
     } catch (error) {
       toast.error("Failed to delete assessment");
-      console.error("Error deleting assessment:", (error as any).response?.data || (error as any).message || error);
+      console.error(
+        "Error deleting assessment:",
+        (error as any).response?.data || (error as any).message || error
+      );
     }
   };
+
+  if (!createdAssessments.length) {
+    return (
+      <motion.div
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="w-full flex-col px-10 py-3 h-[90vh] flex items-center justify-center"
+      >
+        <p className="text-white-200 text-lg">No MCQ Assessments created yet</p>
+        <div>
+          <Button
+            className="mt-5"
+            variant="flat"
+            onClick={() => navigate("/assessments/new/mcq")}
+          >
+            + Create MCQ Assessment
+          </Button>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
       initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="w-full p-10 h-[90vh]"
+      className="w-full px-10 py-3 h-[90vh]"
     >
       <div>
         <div>
@@ -92,12 +121,13 @@ const MCQAssess: React.FC<{ createdAssessments: Assessment[] }> = ({ createdAsse
                 <p className="text-xs text-gray-500">
                   Status:{" "}
                   <span
-                    className={`${calculateStatus(CreatedAssessment) === "Active"
-                      ? "text-green-500"
-                      : calculateStatus(CreatedAssessment) === "Upcoming"
+                    className={`${
+                      calculateStatus(CreatedAssessment) === "Active"
+                        ? "text-green-500"
+                        : calculateStatus(CreatedAssessment) === "Upcoming"
                         ? "text-yellow-500"
                         : "text-red-500"
-                      }`}
+                    }`}
                   >
                     {calculateStatus(CreatedAssessment)}
                   </span>
@@ -122,16 +152,22 @@ const MCQAssess: React.FC<{ createdAssessments: Assessment[] }> = ({ createdAsse
                 </p>
                 <p className="text-xs text-gray-500 mt-2">Time Range:</p>
                 <p className="text-xs text-white-200">
-                  {new Date(CreatedAssessment?.openRange?.start || "").toLocaleString()}{" "}
+                  {new Date(
+                    CreatedAssessment?.openRange?.start || ""
+                  ).toLocaleString()}{" "}
                   <span className="text-xs text-gray-500 mt-2">to </span>
-                  {new Date(CreatedAssessment?.openRange?.end || "").toLocaleString()}
+                  {new Date(
+                    CreatedAssessment?.openRange?.end || ""
+                  ).toLocaleString()}
                 </p>
               </CardBody>
               <CardFooter className="gap-2 flex-wrap">
                 <Button
                   className="w-[48%] flex items-center justify-center text-xs gap-3"
                   variant="flat"
-                  onClick={() => navigate(`/assessments/${CreatedAssessment._id}/view`)}
+                  onClick={() =>
+                    navigate(`/assessments/${CreatedAssessment._id}/view`)
+                  }
                 >
                   <Eye size={18} /> <p>View</p>
                 </Button>

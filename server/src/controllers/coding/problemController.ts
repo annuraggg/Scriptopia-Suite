@@ -30,7 +30,9 @@ const getProblems = async (c: Context) => {
         user: userId,
         status: "SUCCESS",
       });
-      userSolvedProblems = successfulSubmissions.filter((submission): submission is string => submission !== null);
+      userSolvedProblems = successfulSubmissions.filter(
+        (submission): submission is string => submission !== null
+      );
     }
 
     const problemsWithStatus = problems.map((problem) => {
@@ -75,7 +77,9 @@ const getUserGeneratedProblems = async (c: Context) => {
         user: userId,
         status: "SUCCESS",
       });
-      userSolvedProblems = successfulSubmissions.filter((submission): submission is string => submission !== null);
+      userSolvedProblems = successfulSubmissions.filter(
+        (submission): submission is string => submission !== null
+      );
     }
 
     const problemsWithStatus = problems.map((problem) => {
@@ -180,6 +184,7 @@ const createProblem = async (c: Context) => {
 
     const problem = new Problem({
       ...body,
+      isPrivate: true,
       author: auth.userId,
     });
 

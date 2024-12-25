@@ -203,7 +203,7 @@ const Problem = ({
 
   return (
     <>
-      <Split className="flex h-[90vh] w-full gap-2" vaul-drawer-wrapper="">
+      <Split className="flex overflow-hidden max-h-[88vh] w-full gap-2" vaul-drawer-wrapper="">
         <Statement
           statement={problem.description as Delta}
           submissions={submissions || []}

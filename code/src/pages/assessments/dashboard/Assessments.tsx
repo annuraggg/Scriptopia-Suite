@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
-import Dashboard from "./Dashboard";
 import AssessmentsTaken from "./AssessmentsTaken";
 import { useQueries } from "@tanstack/react-query";
 import ax from "@/config/axios";
@@ -10,7 +9,6 @@ import ErrorPage from "@/components/ErrorPage";
 import { useAuth } from "@clerk/clerk-react";
 import MCQAssess from "./MCQAssess";
 import CodeAssess from "./CodeAssess";
-import MCQCodeAssess from "./MCQCodeAssess";
 
 const Assessments = () => {
   const [active, setActive] = useState(0);
@@ -46,16 +44,13 @@ const Assessments = () => {
     const hash = window.location.hash;
     switch (hash) {
       case "#taken":
-        setActive(1);
+        setActive(0);
         break;
       case "#mcqcreated":
-        setActive(2);
+        setActive(1);
         break;
       case "#codecreated":
-        setActive(3);
-        break;
-      case "#mcqcodecreated":
-        setActive(4);
+        setActive(2);
         break;
       default:
         setActive(0);
@@ -75,18 +70,14 @@ const Assessments = () => {
     >
       <div className="h-full flex gap-5">
         <Sidebar active={active} setActive={setActive} />
-        {active === 0 && <Dashboard />}
-        {active === 1 && (
+        {active === 0 && (
           <AssessmentsTaken takenAssessments={data[0]?.data.data || []} />
         )}
-        {active === 2 && (
+        {active === 1 && (
           <MCQAssess createdAssessments={data[1]?.data.data || []} />
         )}
-        {active === 3 && (
+        {active === 2 && (
           <CodeAssess createdAssessments={data[2]?.data.data || []} />
-        )}
-        {active === 4 && (
-          <MCQCodeAssess createdAssessments={data[3]?.data.data || []} />
         )}
       </div>
     </motion.div>

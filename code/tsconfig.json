@@ -27,7 +27,7 @@
     "noFallthroughCasesInSwitch": true
   },
   "typeRoots": ["./node_modules/@types", "./src/types"],
-  "include": ["src", "../common/*"],
+  "include": ["src", "../common/*", "public/languages/CustomSdsl.tsx"],
   "references": [
     {
       "path": "./tsconfig.node.json"

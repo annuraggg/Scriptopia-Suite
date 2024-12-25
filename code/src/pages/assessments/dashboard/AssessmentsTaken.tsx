@@ -52,7 +52,7 @@ const AssessmentsTaken = ({
       initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="w-full p-10 h-[90vh] overflow-y-auto"
+      className="w-full px-10 py-3 h-[90vh] overflow-y-auto"
     >
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
