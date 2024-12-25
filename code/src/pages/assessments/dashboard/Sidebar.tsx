@@ -1,4 +1,4 @@
-import { Home, BookCheck, Copy, Code, Combine } from "lucide-react";
+import { BookCheck, Copy, Code } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const createdLinks: {

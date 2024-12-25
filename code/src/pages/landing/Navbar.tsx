@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Button } from "@nextui-org/react";
-import Logo from "../../assets/logo.png";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
 
@@ -25,7 +24,7 @@ const LanderNavbar = () => {
                     <Link to="/" className="flex items-start">
                         <div className="w-8 h-8">
                             <img
-                                src={Logo}
+                                src="/logo.svg"
                                 alt="Logo"
                                 className="w-full h-full"
                             />
