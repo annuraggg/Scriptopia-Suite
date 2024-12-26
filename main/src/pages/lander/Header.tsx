@@ -1,31 +1,31 @@
-import { useTheme } from "@/components/theme-provider";
-import { Image } from "@nextui-org/react";
+import { ContainerScroll } from "@/components/container-scroll-animation";
 
-const Header = () => {
-  const { theme } = useTheme();
+function Header() {
   return (
-    <div className="flex flex-col items-center justify-center py-5 pt-20 mx-[20%]">
-      <h1 className={`font-poly text-7xl text-center ${theme === "dark" ? "drop-shadow-glow" : "drop-shadow-glow-light-dark"}`}>
-        Learn, {`{Code}`} and Compete, all in one place.
-      </h1>
-      <div className="mt-20">
-        <Image src="/lander.png" alt="Logo" isBlurred />
-      </div>
-
-      <pre className="opacity-50 text-3xl  mt-20">
-        Experience a versatile, innovative coding platform: designed for {"\n"}
-        assessments, development, and learning. With deep expertise in coding{" "}
-        {"\n"}
-        challenges and enterprise hiring solutions, our platform seamlessly{" "}
-        {"\n"}
-        integrates with your objectives. Dedicated to delivering fast results{" "}
-        {"\n"}
-        and enhancing your skills, while efficiently addressing your hiring{" "}
-        {"\n"}
-        needs.
-      </pre>
+    <div>
+      <ContainerScroll
+        titleComponent={
+          <div className="flex flex-col items-center justify-center">
+            <img src="/logo.png" alt="logo" className="w-20 mb-5" />
+            <h1 className="text-4xl font-semibold text-black dark:text-white">
+              Learn, Code, Compete <br />
+              <span className="text-4xl md:text-[6rem] font-bold mt-1 leading-none">
+                All in One Place
+              </span>
+            </h1>
+          </div>
+        }
+      >
+        <img
+          src={`/lander.png`}
+          alt="hero"
+    
+          className="mx-auto rounded-2xl object-cover h-full object-left-top"
+          draggable={false}
+        />
+      </ContainerScroll>
     </div>
   );
-};
+}
 
 export default Header;

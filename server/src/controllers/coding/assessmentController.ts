@@ -12,6 +12,7 @@ import CandidateDoc from "@/models/Candidate";
 import CandidateModel from "@/models/Candidate";
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
 import logger from "@/utils/logger";
+import MCQAssessment from "@/models/MCQAssessment";
 
 async function getIoServer() {
   const { ioServer } = await import("@/config/init");
@@ -145,14 +146,14 @@ const getMyMcqCodeAssessments = async (c: Context) => {
 const checkProblemDependencies = async (c: Context) => {
   try {
     const problemId = c.req.param("problemId");
-    
+
     const assessments = await Assessment.find({
       problems: problemId,
-      type: { $in: ['code', 'mcqcode'] },
+      type: { $in: ["code", "mcqcode"] },
     })
-    .select('name type openRange')
-    .lean();
-    
+      .select("name type openRange")
+      .lean();
+
     return sendSuccess(c, 200, "Success", { assessments });
   } catch (error) {
     console.error(error);
@@ -171,21 +172,21 @@ const getTakenAssessments = async (c: Context) => {
     }
 
     const submissions = await AssessmentSubmissions.find({
-      userId: auth.userId
+      userId: auth.userId,
     })
-    .sort({ submittedAt: -1 })
-    .skip((page - 1) * LIMIT_PER_PAGE)
-    .limit(LIMIT_PER_PAGE)
-    .lean();
+      .sort({ submittedAt: -1 })
+      .skip((page - 1) * LIMIT_PER_PAGE)
+      .limit(LIMIT_PER_PAGE)
+      .lean();
 
-    const assessmentIds = submissions.map(sub => sub.assessmentId);
+    const assessmentIds = submissions.map((sub) => sub.assessmentId);
     const assessments = await Assessment.find({
-      _id: { $in: assessmentIds }
+      _id: { $in: assessmentIds },
     }).lean();
 
-    const takenAssessments = submissions.map(submission => {
+    const takenAssessments = submissions.map((submission) => {
       const assessment = assessments.find(
-        a => a._id.toString() === submission.assessmentId.toString()
+        (a) => a._id.toString() === submission.assessmentId.toString()
       );
       return {
         ...assessment,
@@ -193,7 +194,7 @@ const getTakenAssessments = async (c: Context) => {
           score: submission.obtainedGrades?.total ?? 0,
           status: submission.status,
           timeSpent: submission.timer,
-        }
+        },
       };
     });
 
@@ -442,7 +443,7 @@ const submitAssessment = async (c: Context) => {
         }
 
         const result: any = await runCompilerCode(
-          submission.language, 
+          submission.language,
           problem.sdsl,
           submission.code,
           problem.testCases as unknown as TestCase[]
@@ -1190,6 +1191,33 @@ getIoServer().then((server) => {
   });
 });
 
+const createMcqAssessment = async (c: Context) => {
+  try {
+    const body = await c.req.json();
+    const userid = c.get("auth")?.userId;
+
+    if (!userid) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const assessmentObj = {
+      ...body,
+      author: userid,
+    };
+
+    const newAssessment = new MCQAssessment(assessmentObj);
+    await newAssessment.save();
+
+    return sendSuccess(c, 200, "Success", newAssessment);
+  } catch (error: any) {
+    console.error(error);
+    if (error.name === "ValidationError") {
+      return sendError(c, 400, "Invalid Data", error.message);
+    }
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
 export default {
   getAssessments,
   getMyMcqAssessments,
@@ -1209,4 +1237,5 @@ export default {
   codeSubmit,
   submitIndividualProblem,
   checkProblemDependencies,
+  createMcqAssessment,
 };

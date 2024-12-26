@@ -77,11 +77,11 @@ const Sidebar = ({
                 key={link.title}
                 href={`#${link.hash}`}
                 className={`flex items-center gap-3 rounded-lg py-4 text-muted-foreground transition-all hover:text-primary ${
-                  active === createdLinks.indexOf(link) + 2
+                  active === createdLinks.indexOf(link) + 1
                     ? "text-primary "
                     : ""
                 }`}
-                onClick={() => setActive(createdLinks.indexOf(link) + 2)}
+                onClick={() => setActive(createdLinks.indexOf(link) + 1)}
               >
                 {/* @ts-expect-error icon is a component */}
                 <link.icon className="h-4 w-4" />

@@ -37,7 +37,5 @@ const ProblemSchema = new mongoose.Schema({
   solvedBy: [{ type: String, ref: "User" }],
 });
 
-ProblemSchema.index({ _id: 1 });
-
 const Problem = mongoose.model("Problem", ProblemSchema);
 export default Problem;

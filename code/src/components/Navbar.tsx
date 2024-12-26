@@ -46,6 +46,7 @@ const Navbar = () => {
         <div className="flex items-center gap-3">
           <Button
             isIconOnly
+            className="hidden"
             size="sm"
             variant="flat"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
