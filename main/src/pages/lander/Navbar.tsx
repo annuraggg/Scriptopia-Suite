@@ -37,6 +37,7 @@ const Navbar = () => {
           isIconOnly
           size="sm"
           variant="flat"
+          className="hidden"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
         >
           {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}

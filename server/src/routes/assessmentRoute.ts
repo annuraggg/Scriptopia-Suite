@@ -28,6 +28,12 @@ app.get(
 app.get("/:id", assessmentController.getAssessment);
 app.post("/", assessmentController.createAssessment);
 
+// NEW ROUTED
+
+app.post("/mcq", assessmentController.createMcqAssessment);
+
+// END OF NEW ROUTES
+
 app.post("/verify", assessmentController.verifyAccess);
 app.post("/submit", assessmentController.submitAssessment);
 

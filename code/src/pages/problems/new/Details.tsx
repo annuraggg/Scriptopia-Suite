@@ -62,7 +62,8 @@ const Details = ({
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="px-5 py-2 text-xs overflow-y-auto h-full">
+      <div className="px-5 text-xs overflow-y-auto h-full">
+        <p className="mt-2 opacity-50 mb-3">Note: The Problem you will create will only be visible to you and can only be used in assessments you create. Problems are not Transferable</p>
         <div className="flex gap-5">
           <Input
             label="Problem Title"

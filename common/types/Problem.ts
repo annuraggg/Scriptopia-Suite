@@ -6,6 +6,11 @@ interface TestCase {
   isSample: boolean;
 }
 
+interface CustomSDSL {
+  language: string;
+  stub: string;
+}
+
 interface Problem {
   _id?: string;
   title: string;
@@ -17,6 +22,7 @@ interface Problem {
   tags: string[];
   votes?: number;
   sdsl: string[];
+  customSdsl: CustomSDSL[];
   testCases: TestCase[];
   isPrivate?: boolean;
   allowInAssessments?: boolean;
@@ -24,4 +30,4 @@ interface Problem {
   successfulSubmissions?: number;
 }
 
-export type { Problem, TestCase };
+export type { Problem, TestCase, CustomSDSL };

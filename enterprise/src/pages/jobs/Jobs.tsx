@@ -21,8 +21,8 @@ import {
   EllipsisVertical,
   Link,
   PlusIcon,
-  LayoutList,
-  LayoutGrid,
+  // LayoutList,
+  // LayoutGrid,
   Search,
 } from "lucide-react";
 import Filter from "./Filter";
@@ -41,7 +41,7 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import { RootContext } from "@/types/RootContext";
-import { Tabs, Tab } from "@nextui-org/react";
+// import { Tabs, Tab } from "@nextui-org/react";
 
 const Cards = [
   {
@@ -267,10 +267,10 @@ const Postings: React.FC = () => {
                 </Select>
 
                 <div className="flex w-[30%] justify-end gap-3 items-center">
-                  <Tabs>
+                  {/* <Tabs>
                     <Tab title={<LayoutList size={18} />} />
                     <Tab title={<LayoutGrid size={18} />} />
-                  </Tabs>
+                  </Tabs> */}
                   <Button
                     color="success"
                     variant="flat"
@@ -336,7 +336,7 @@ const Postings: React.FC = () => {
                             onClick={() => {
                               // copy link to clipboard
                               if (!posting?.url) return;
-                              navigator.clipboard.writeText(posting?.url);
+                              navigator.clipboard.writeText(import.meta.env.VITE_CANDIDATE_URL + "/" + posting?.url);
                               toast.success("Link copied to clipboard");
                             }}
                           >

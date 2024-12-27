@@ -1,70 +1,22 @@
 import { motion } from "framer-motion";
 import McqSidebar from "./McqSidebar";
 import McqContent from "./McqContent";
-
-export interface Section {
-  id: number;
-  name: string;
-  questions: Question[];
-  isEditing?: boolean;
-}
-
-export interface Question {
-  id: number;
-  type: QuestionType;
-  text: string;
-  options?: Option[];
-  code?: string;
-  imageUrl?: string;
-  maxLimit?: number;
-  blankText?: string;
-  blanksAnswers?: string[];
-}
-
-export interface Option {
-  id: number;
-  text: string;
-  isCorrect: boolean;
-  matchText?: string;
-}
-
-export type QuestionType =
-  | "single-select"
-  | "multi-select"
-  | "true-false"
-  | "short-answer"
-  | "long-answer"
-  | "visual"
-  | "peer-review"
-  | "output"
-  | "fill-in-blanks"
-  | "matching";
-
-export interface Question {
-  id: number;
-  type: QuestionType;
-  text: string;
-  options?: Option[];
-  code?: string;
-  imageUrl?: string;
-  maxLimit?: number;
-  blankText?: string;
-  blanksAnswers?: string[];
-}
+import { Section } from "@shared-types/MCQAssessment";
+import { Dispatch, SetStateAction, useState } from "react";
 
 const Mcqs = ({
   sections,
   setSections,
-  selectedSection,
-  setSelectedSection,
 }: {
   sections: Section[];
-  setSections: React.Dispatch<React.SetStateAction<Section[]>>;
-  selectedSection: Section | null;
-  setSelectedSection: React.Dispatch<React.SetStateAction<Section | null>>;
+  setSections: Dispatch<SetStateAction<Section[]>>;
+  selectedSectionIndex: number | null;
+  setSelectedSectionIndex: React.Dispatch<React.SetStateAction<number | null>>;
 }) => {
-  const handleSectionSelect = (section: Section) => {
-    setSelectedSection(section);
+  const [selectedSection, setSelectedSection] = useState<number>(0);
+
+  const handleSectionSelect = (index: number) => {
+    setSelectedSection(index);
   };
 
   return (
@@ -77,10 +29,18 @@ const Mcqs = ({
       <McqSidebar
         sections={sections}
         setSections={setSections}
-        onSectionSelect={handleSectionSelect}
-        selectedSectionId={selectedSection?.id ?? null}
+        onSectionSelect={(section) =>
+          handleSectionSelect(sections.indexOf(section))
+        }
+        selectedSectionIndex={selectedSection}
       />
-      <McqContent selectedSection={selectedSection!} />
+      {selectedSection !== null && (
+        <McqContent
+          selectedSection={sections[selectedSection]}
+          sections={sections}
+          setSections={setSections}
+        />
+      )}
     </motion.div>
   );
 };

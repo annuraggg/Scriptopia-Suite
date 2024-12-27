@@ -16,72 +16,15 @@ import {
 } from "@nextui-org/react";
 import { Plus } from "lucide-react";
 import MonacoEditor from "@monaco-editor/react";
+import { Option, Question, QuestionType } from "@shared-types/MCQAssessment";
 
-export interface Section {
-  id: number;
-  name: string;
-  questions: Question[];
-  isEditing?: boolean;
+interface AddQuestionModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onAddQuestion: (question: Question) => void;
+  editingQuestion: Question | null;
 }
 
-export interface Question {
-  id: number;
-  type: QuestionType;
-  text: string;
-  options?: Option[];
-  code?: string;
-  imageUrl?: string;
-  maxLimit?: number;
-  blankText?: string;
-  blanksAnswers?: string[];
-}
-
-export interface Option {
-  id: number;
-  text: string;
-  isCorrect: boolean;
-  matchText?: string;
-}
-
-export type QuestionType =
-  | "single-select"
-  | "multi-select"
-  | "true-false"
-  | "short-answer"
-  | "long-answer"
-  | "visual"
-  | "peer-review"
-  | "output"
-  | "fill-in-blanks"
-  | "matching";
-
-export interface Question {
-  id: number;
-  type: QuestionType;
-  text: string;
-  options?: Option[];
-  code?: string;
-  imageUrl?: string;
-  maxLimit?: number;
-  blankText?: string;
-  blanksAnswers?: string[];
-}
-
-const questionTypes: QuestionType[] = [
-  "single-select",
-  "multi-select",
-  "true-false",
-  "short-answer",
-  "long-answer",
-  "visual",
-  "peer-review",
-  "output",
-  "fill-in-blanks",
-  "matching",
-];
-
-// ! FIX
-// @ts-ignore ! fix tjhis
 const QuestionModal: React.FC<AddQuestionModalProps> = ({
   isOpen,
   onClose,
@@ -102,22 +45,18 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
   useEffect(() => {
     if (editingQuestion) {
       setSelectedType(editingQuestion.type);
-      setQuestionText(editingQuestion.text);
+      setQuestionText(editingQuestion.question); // 'question' instead of 'text'
       setOptions(editingQuestion.options || []);
-      setCode(editingQuestion.code || "");
-      setImageUrl(editingQuestion.imageUrl || "");
-      setMaxLimit(editingQuestion.maxLimit || 70);
-      setBlankText(editingQuestion.blankText || "");
-      setBlanksAnswers(editingQuestion.blanksAnswers || []);
-
-      // ! fix this
+      setCode(editingQuestion.codeSnippet || ""); // 'codeSnippet' instead of 'code'
+      setImageUrl(editingQuestion.imageSource || ""); // 'imageSource' instead of 'imageUrl'
+      setMaxLimit(editingQuestion.maxCharactersAllowed || 70); // 'maxCharactersAllowed' instead of 'maxLimit'
+      setBlankText(editingQuestion.fillInBlankAnswers?.join("___") || ""); // 'fillInBlankAnswers' instead of 'blanksAnswers'
 
       const correctOption = editingQuestion.options?.find(
-        //@ts-ignore
         (opt) => opt.isCorrect
       );
       if (correctOption) {
-        setSelectedCorrectOption(correctOption.id.toString());
+        setSelectedCorrectOption(correctOption.option); // 'option' instead of 'id'
       }
     }
   }, [editingQuestion]);
@@ -141,41 +80,31 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
 
   const handleAddOption = () => {
     const newOption: Option = {
-      id: options.length + 1,
-      text: "",
+      option: "", // 'option' instead of 'text'
       isCorrect: false,
-      matchText: selectedType === "matching" ? "" : undefined,
+      matchingPairText: selectedType === "matching" ? "" : undefined,
     };
     setOptions([...options, newOption]);
   };
 
   const handleOptionChange = (
     id: number,
-    field: "text" | "matchText" | "isCorrect",
+    field: "option" | "matchingPairText" | "isCorrect",
     value: string | boolean
   ) => {
-    if (selectedType === "single-select" && field === "isCorrect") {
-      setOptions(
-        options.map((opt) => ({
-          ...opt,
-          isCorrect: opt.id === id,
-        }))
-      );
-      setSelectedCorrectOption(id.toString());
-    } else {
-      setOptions(
-        options.map((opt) => (opt.id === id ? { ...opt, [field]: value } : opt))
-      );
-    }
+    setOptions(
+      options.map((opt, index) =>
+        index === id ? { ...opt, [field]: value } : opt
+      )
+    );
   };
 
   const handleRadioChange = (value: string) => {
-    const selectedId = parseInt(value);
     setSelectedCorrectOption(value);
     setOptions(
       options.map((opt) => ({
         ...opt,
-        isCorrect: opt.id === selectedId,
+        isCorrect: opt.option === value, // 'option' instead of 'id'
       }))
     );
   };
@@ -194,16 +123,15 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
   const handleBlankTextChange = (text: string) => {
     setBlankText(text);
     const blanks = text.match(/_{3,}/g) || [];
-    setBlanksAnswers(Array(blanks.length).fill(""));
+    setBlanksAnswers(Array(blanks.length).fill("")); // 'blanksAnswers' instead of 'fillInBlankAnswers'
   };
 
   const handleSaveQuestion = () => {
     if (!selectedType || !questionText) return;
 
     const newQuestion: Question = {
-      id: editingQuestion ? editingQuestion.id : Date.now(),
+      question: questionText, // 'question' instead of 'text'
       type: selectedType,
-      text: questionText,
     };
 
     switch (selectedType) {
@@ -215,21 +143,20 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
         break;
       case "true-false":
         newQuestion.options = [
-          { id: 1, text: "True", isCorrect: false },
-          { id: 2, text: "False", isCorrect: false },
+          { option: "True", isCorrect: false },
+          { option: "False", isCorrect: false },
         ];
         break;
       case "short-answer":
       case "long-answer":
-        newQuestion.maxLimit = maxLimit;
+        newQuestion.maxCharactersAllowed = maxLimit; // 'maxCharactersAllowed' instead of 'maxLimit'
         break;
       case "visual":
-        newQuestion.imageUrl = imageUrl;
+        newQuestion.imageSource = imageUrl; // 'imageSource' instead of 'imageUrl'
         break;
       case "peer-review":
       case "fill-in-blanks":
-        newQuestion.blankText = blankText;
-        newQuestion.blanksAnswers = blanksAnswers;
+        newQuestion.fillInBlankAnswers = blanksAnswers; // 'fillInBlankAnswers' instead of 'blanksAnswers'
         break;
     }
 
@@ -243,21 +170,21 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
         return (
           <div className="space-y-4">
             <RadioGroup
-              value={selectedCorrectOption}
+              value={selectedCorrectOption === "" ? undefined : selectedCorrectOption}
               onValueChange={handleRadioChange}
               label="Select correct answer"
             >
-              {options.map((option) => (
-                <div key={option.id} className="flex items-center gap-2">
+              {options.map((option, index) => (
+                <div key={index} className="flex items-center gap-2">
                   <Input
                     className="flex-1"
-                    label={`Option ${option.id}`}
-                    value={option.text}
+                    label={`Option ${index + 1}`}
+                    value={option.option}
                     onChange={(e) =>
-                      handleOptionChange(option.id, "text", e.target.value)
+                      handleOptionChange(index, "option", e.target.value)
                     }
                   />
-                  <Radio value={option.id.toString()}>Correct</Radio>
+                  <Radio value={option.option}>Correct</Radio>
                 </div>
               ))}
             </RadioGroup>
@@ -267,20 +194,20 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
       case "multi-select":
         return (
           <div className="space-y-4">
-            {options.map((option) => (
-              <div key={option.id} className="flex items-center gap-2">
+            {options.map((option, index) => (
+              <div key={index} className="flex items-center gap-2">
                 <Input
                   className="flex-1"
-                  label={`Option ${option.id}`}
-                  value={option.text}
+                  label={`Option ${index + 1}`}
+                  value={option.option}
                   onChange={(e) =>
-                    handleOptionChange(option.id, "text", e.target.value)
+                    handleOptionChange(index, "option", e.target.value)
                   }
                 />
                 <Checkbox
                   isSelected={option.isCorrect}
                   onValueChange={(checked) =>
-                    handleOptionChange(option.id, "isCorrect", checked)
+                    handleOptionChange(index, "isCorrect", checked)
                   }
                 >
                   Correct
@@ -293,8 +220,8 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
       case "true-false":
         return (
           <RadioGroup>
-            <Radio value="true">True</Radio>
-            <Radio value="false">False</Radio>
+            <Radio value="True">True</Radio>
+            <Radio value="False">False</Radio>
           </RadioGroup>
         );
 
@@ -346,22 +273,26 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
       case "matching":
         return (
           <div className="space-y-4">
-            {options.map((option) => (
-              <div key={option.id} className="flex items-center gap-2">
+            {options.map((option, index) => (
+              <div key={index} className="flex items-center gap-2">
                 <Input
                   className="flex-1"
-                  label={`Option ${option.id}`}
-                  value={option.text}
+                  label={`Option ${index + 1}`}
+                  value={option.option}
                   onChange={(e) =>
-                    handleOptionChange(option.id, "text", e.target.value)
+                    handleOptionChange(index, "option", e.target.value)
                   }
                 />
                 <Input
                   className="flex-1"
-                  label={`Match ${option.id}`}
-                  value={option.matchText}
+                  label={`Match ${index + 1}`}
+                  value={option.matchingPairText}
                   onChange={(e) =>
-                    handleOptionChange(option.id, "matchText", e.target.value)
+                    handleOptionChange(
+                      index,
+                      "matchingPairText",
+                      e.target.value
+                    )
                   }
                 />
               </div>
@@ -416,14 +347,22 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
             onChange={(e) => setSelectedType(e.target.value as QuestionType)}
             isDisabled={!!editingQuestion}
           >
-            {questionTypes.map((type) => (
+            {[
+              "single-select",
+              "multi-select",
+              "true-false",
+              "short-answer",
+              "long-answer",
+              "visual",
+              "peer-review",
+              "output",
+              "fill-in-blanks",
+              "matching",
+            ].map((type) => (
               <SelectItem key={type} value={type}>
                 {type
                   .split("-")
-                  .map(
-                    (word: string) =>
-                      word.charAt(0).toUpperCase() + word.slice(1)
-                  )
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                   .join(" ")}
               </SelectItem>
             ))}

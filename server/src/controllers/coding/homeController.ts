@@ -9,6 +9,7 @@ const getHome = async (c: Context) => {
     const problems = await Problem.find().limit(20).lean();
     const dupTabs = problems.map((problem) => problem.tags).flat();
     const tags = [...new Set(dupTabs)];
+    console.log(tags)
 
     const user = await User.findOne({ clerkId: c.get("auth").userId })
       .populate("solvedProblems.problemId")

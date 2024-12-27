@@ -12,7 +12,7 @@ const InfoPanel = ({
   if (runningCode)
     return (
       <div className="min-h-full flex items-center justify-center">
-        <Spinner size="md" className="text-gray-400" />
+        <Spinner size="md" className="text-gray-400 mt-20" />
       </div>
     );
 

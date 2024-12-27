@@ -4,7 +4,6 @@ import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
 import Navbar from "./Navbar"
-import Logo from "../../assets/logo.png";
 import img1 from "../../assets/IMG 1.png"
 import img2 from "../../assets/IMG 2.png"
 import img3 from "../../assets/IMG 3.png"
@@ -99,7 +98,7 @@ const Lander = () => {
                   className="flex items-center justify-center px-8 gap-3 "
                 >
                   <p className="font-bold text-2xl md:text-3xl">{item.text}</p>
-                  <img src={Logo} alt="Logo" className="w-8 h-8 ml-4" />
+                  <img src={"/logo.svg"} alt="Logo" className="w-8 h-8 ml-4" />
                 </div>
               ))}
             </div>
