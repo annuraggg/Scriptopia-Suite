@@ -8,10 +8,10 @@ import { today, getLocalTimeZone } from "@internationalized/date";
 import Summary from "./Summary";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { Posting } from "@shared-types/Posting";
+import { Posting, AdditionalDetails as AdditionalDetailsType } from "@shared-types/Posting";
 import { toast } from "sonner";
 import Loader from "@/components/Loader";
-import AdditionalDetails from "./AdditionalDetails";
+import AdditionalDetails, { FIELD_CATEGORIES } from "./AdditionalDetails";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
 
@@ -22,7 +22,7 @@ interface Component {
   id: string;
 }
 
-const componentMap = {
+const componentMap: Record<string, string> = {
   ATS: "rs",
   "MCQ Assessment": "mcqa",
   "Code Assessment": "ca",
@@ -40,9 +40,7 @@ const CreateJob = () => {
   const [location, setLocation] = useState<string>("");
   const [department, setDepartment] = useState<string>("");
   const [openings, setOpenings] = useState<number>(0);
-  const [applicationRange, setApplicationRange] = useState<
-    RangeValue<DateValue>
-  >({
+  const [applicationRange, setApplicationRange] = useState<RangeValue<DateValue>>({
     start: today(getLocalTimeZone()),
     end: today(getLocalTimeZone()).add({ weeks: 1 }),
   });
@@ -55,6 +53,7 @@ const CreateJob = () => {
   // Additional Details States
   const [requiredFields, setRequiredFields] = useState<string[]>([]);
   const [allowNoEntries, setAllowNoEntries] = useState<string[]>([]);
+  const [additionalDetails, setAdditionalDetails] = useState<AdditionalDetailsType>({});
 
   // Workflow States
   const [addedComponents, setAddedComponents] = useState<Component[]>([]);
@@ -83,6 +82,18 @@ const CreateJob = () => {
       currentStep: -1,
     };
 
+    // Format additional details
+    const formattedAdditionalDetails: AdditionalDetailsType = {};
+    Object.entries(FIELD_CATEGORIES).forEach(([category, fields]) => {
+      formattedAdditionalDetails[category] = {};
+      fields.forEach((field) => {
+        formattedAdditionalDetails[category][field] = {
+          required: requiredFields.includes(field),
+          allowEmpty: allowNoEntries.includes(field),
+        };
+      });
+    });
+
     const posting: Posting = {
       title,
       description,
@@ -107,6 +118,7 @@ const CreateJob = () => {
         currency,
       },
       workflow: formattedData,
+      additionalDetails: formattedAdditionalDetails,
     };
 
     axios
@@ -168,6 +180,8 @@ const CreateJob = () => {
             onRequiredChange={setRequiredFields}
             allowedEmpty={allowNoEntries}
             onAllowedEmptyChange={setAllowNoEntries}
+            additionalDetails={additionalDetails}
+            setAdditionalDetails={setAdditionalDetails}
           />
         )}
         {active === 2 && (

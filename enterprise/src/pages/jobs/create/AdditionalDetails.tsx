@@ -9,22 +9,27 @@ import {
   Checkbox,
   Button,
 } from "@nextui-org/react";
+import { motion } from "framer-motion";
+import { Info } from "lucide-react";
+import { AdditionalDetails as AdditionalDetailsType } from "@shared-types/Posting";
 
 type FieldKey = string;
 
 interface AdditionalDetailsProps {
   setAction: React.Dispatch<React.SetStateAction<number>>;
-  required: FieldKey[];
-  allowedEmpty: FieldKey[];
-  onRequiredChange: (fields: FieldKey[]) => void;
-  onAllowedEmptyChange: (fields: FieldKey[]) => void;
+  required: string[];
+  allowedEmpty: string[];
+  onRequiredChange: (fields: string[]) => void;
+  onAllowedEmptyChange: (fields: string[]) => void;
+  additionalDetails: AdditionalDetailsType;
+  setAdditionalDetails: React.Dispatch<React.SetStateAction<AdditionalDetailsType>>;
 }
 
 interface CategoryFields {
   [key: string]: string[];
 }
 
-const FIELD_CATEGORIES: CategoryFields = {
+export const FIELD_CATEGORIES: CategoryFields = {
   basic: ["summary"],
   links: ["socialLinks"],
   background: ["education", "workExperience"],
@@ -40,8 +45,8 @@ interface FieldSectionProps {
   fields: string[];
   required: FieldKey[];
   allowedEmpty: FieldKey[];
-  onRequiredChange: (fields: FieldKey[]) => void;
-  onAllowedEmptyChange: (fields: FieldKey[]) => void;
+  onRequiredChange: (fields: string[]) => void;
+  onAllowedEmptyChange: (fields: string[]) => void;
 }
 
 const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
@@ -50,7 +55,35 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
   allowedEmpty,
   onRequiredChange,
   onAllowedEmptyChange,
+  additionalDetails,
+  setAdditionalDetails,
 }) => {
+
+  React.useEffect(() => {
+    const initialRequired: string[] = [];
+    const initialAllowEmpty: string[] = [];
+
+    Object.entries(additionalDetails).forEach(([_, fields]) => {
+      Object.entries(fields).forEach(([field, config]) => {
+        if (config.required) {
+          initialRequired.push(field);
+        }
+        if (config.allowEmpty) {
+          initialAllowEmpty.push(field);
+        }
+      });
+    });
+
+    if (initialRequired.length > 0) {
+      onRequiredChange(initialRequired);
+    }
+    if (initialAllowEmpty.length > 0) {
+      onAllowedEmptyChange(initialAllowEmpty);
+    }
+  }, [additionalDetails, onRequiredChange, onAllowedEmptyChange]);
+
+
+
   const handleRequiredToggle = (field: string) => {
     const newRequired = required.includes(field)
       ? required.filter((f) => f !== field)
@@ -62,6 +95,23 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
     if (required.includes(field)) {
       onAllowedEmptyChange(allowedEmpty.filter((f) => f !== field));
     }
+
+    const category = Object.entries(FIELD_CATEGORIES).find(([_, fields]) =>
+      fields.includes(field)
+    )?.[0];
+
+    if (category) {
+      setAdditionalDetails((prev: AdditionalDetailsType) => ({
+        ...prev,
+        [category]: {
+          ...prev[category],
+          [field]: {
+            required: !required.includes(field),
+            allowEmpty: false,
+          },
+        },
+      }));
+    }
   };
 
   const handleAllowedEmptyToggle = (field: string) => {
@@ -70,6 +120,23 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
       : [...allowedEmpty, field];
 
     onAllowedEmptyChange(newAllowedEmpty);
+
+    const category = Object.entries(FIELD_CATEGORIES).find(([_, fields]) =>
+      fields.includes(field)
+    )?.[0];
+
+    if (category) {
+      setAdditionalDetails((prev: AdditionalDetailsType) => ({
+        ...prev,
+        [category]: {
+          ...prev[category],
+          [field]: {
+            required: required.includes(field),
+            allowEmpty: !allowedEmpty.includes(field),
+          },
+        },
+      }));
+    }
   };
 
   const FieldSection: React.FC<FieldSectionProps> = ({
@@ -128,29 +195,31 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
   );
 
   return (
-    <div className="px-4">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="px-4"
+    >
       <div className="rounded-2xl p-8 mb-8">
-        <h2 className="text-2xl font-bold mb-4">
-          Additional Details Configuration
-        </h2>
+        <h2 className="text-2xl font-bold mb-4">Additional Details Configuration</h2>
         <div className="space-y-4 mb-6">
-          <p>
-            We can collect the following information from the candidate. Please
-            configure which fields are required and which can be left empty.
-          </p>
+          <div className="flex items-start gap-2">
+            <Info className="w-5 h-5 mt-1 text-blue-500" />
+            <p className="text-gray-600">
+              Configure which candidate information fields are required and which can be left empty.
+            </p>
+          </div>
 
           <div className="border rounded-lg p-4">
             <div className="space-y-2">
               <p>
-                <span className="font-semibold">Required Field:</span> The
-                candidate must provide at least one entry for this field.
+                <span className="font-semibold">Required Field:</span>{" "}
+                The candidate must provide at least one entry for this field.
               </p>
               <p>
-                <span className="font-semibold">Allow Empty:</span> If the field
-                is required, you can still allow it to be empty (e.g., if
-                certificates are required but a candidate with no certificates
-                should still be able to apply). This option is only available
-                for required fields.
+                <span className="font-semibold">Allow Empty:</span>{" "}
+                If the field is required, you can still allow it to be empty.
               </p>
             </div>
           </div>
@@ -159,7 +228,7 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
         {Object.entries(FIELD_CATEGORIES).map(([category, fields]) => (
           <FieldSection
             key={category}
-            title={category.charAt(0).toUpperCase() + category.slice(1)}
+            title={category}
             fields={fields}
             required={required}
             allowedEmpty={allowedEmpty}
@@ -168,11 +237,22 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
           />
         ))}
 
-        <div className="flex justify-end mt-8">
-          <Button onClick={() => setAction(2)}>Next Step</Button>
+        <div className="flex justify-end mt-8 gap-4">
+          <Button
+            variant="bordered"
+            onClick={() => setAction(0)}
+          >
+            Previous
+          </Button>
+          <Button
+            color="primary"
+            onClick={() => setAction(2)}
+          >
+            Next Step
+          </Button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
