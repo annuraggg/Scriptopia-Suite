@@ -16,7 +16,7 @@ import { ChevronRight } from "lucide-react";
 import { Assessment } from "@shared-types/Assessment";
 import ProblemComponent from "@/components/problem/Problem";
 import languagesArray from "@/data/languages";
-import { AssessmentSubmissionsSchema } from "@shared-types/AssessmentSubmission";
+import {CodeAssessmentSubmissionsSchema as CASS} from "@shared-types/CodeAssessmentSubmission"
 import secureLocalStorage from "react-secure-storage";
 import ax from "@/config/axios";
 import { toast } from "sonner";
@@ -30,8 +30,8 @@ interface CodeDashboardProps {
   timer: number;
   assessment: PopulatedAssessment;
   loading: boolean;
-  assessmentSub: AssessmentSubmissionsSchema;
-  setAssessmentSub: (sub: AssessmentSubmissionsSchema) => void;
+  assessmentSub: CASS;
+  setAssessmentSub: (sub: CASS) => void;
 }
 
 interface PopulatedAssessment extends Omit<Assessment, "problems"> {

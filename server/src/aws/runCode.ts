@@ -32,6 +32,7 @@ const runCode = async (
     const data = await lambdaClient.send(new InvokeCommand(params));
 
     if (data.FunctionError) {
+      console.error("Error Running Code: ", data.FunctionError);
       return { status: "ERROR", error: data.FunctionError };
     }
     if (data.Payload) {

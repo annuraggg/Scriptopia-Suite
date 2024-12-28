@@ -31,6 +31,7 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
   onAddQuestion,
   editingQuestion,
 }) => {
+  const [grade, setGrade] = useState<number>(0);
   const [selectedType, setSelectedType] = useState<QuestionType | null>(null);
   const [questionText, setQuestionText] = useState("");
   const [options, setOptions] = useState<Option[]>([]);
@@ -132,6 +133,7 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
     const newQuestion: Question = {
       question: questionText, // 'question' instead of 'text'
       type: selectedType,
+      grade: grade,
     };
 
     switch (selectedType) {
@@ -170,7 +172,9 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
         return (
           <div className="space-y-4">
             <RadioGroup
-              value={selectedCorrectOption === "" ? undefined : selectedCorrectOption}
+              value={
+                selectedCorrectOption === "" ? undefined : selectedCorrectOption
+              }
               onValueChange={handleRadioChange}
               label="Select correct answer"
             >
@@ -340,33 +344,44 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
           {editingQuestion ? "Edit Question" : "Add New Question"}
         </ModalHeader>
         <ModalBody>
-          <Select
-            label="Question Type"
-            placeholder="Select a question type"
-            selectedKeys={selectedType ? [selectedType] : []}
-            onChange={(e) => setSelectedType(e.target.value as QuestionType)}
-            isDisabled={!!editingQuestion}
-          >
-            {[
-              "single-select",
-              "multi-select",
-              "true-false",
-              "short-answer",
-              "long-answer",
-              "visual",
-              "peer-review",
-              "output",
-              "fill-in-blanks",
-              "matching",
-            ].map((type) => (
-              <SelectItem key={type} value={type}>
-                {type
-                  .split("-")
-                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                  .join(" ")}
-              </SelectItem>
-            ))}
-          </Select>
+          <div className="flex gap-3">
+            <Select
+              label="Question Type"
+              placeholder="Select a question type"
+              selectedKeys={selectedType ? [selectedType] : []}
+              onChange={(e) => setSelectedType(e.target.value as QuestionType)}
+              isDisabled={!!editingQuestion}
+            >
+              {[
+                "single-select",
+                "multi-select",
+                "true-false",
+                "short-answer",
+                "long-answer",
+                "visual",
+                "peer-review",
+                "output",
+                "fill-in-blanks",
+                "matching",
+              ].map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type
+                    .split("-")
+                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(" ")}
+                </SelectItem>
+              ))}
+            </Select>
+
+            <Input
+              label="Grade"
+              placeholder="Enter grade"
+              type="number"
+              value={grade.toString()}
+              onChange={(e) => setGrade(Number(e.target.value))}
+              className="w-1/4"
+            />
+          </div>
 
           {selectedType && (
             <Input

@@ -25,6 +25,8 @@ const runCode = async (c: Context) => {
       return sendError(c, 404, "Problem Not Found");
     }
 
+    console.log(body.code)
+
     const result = await runCompilerCode(
       body.language,
       prob.sdsl,

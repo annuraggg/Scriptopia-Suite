@@ -20,22 +20,16 @@ const Assessments = () => {
     queries: [
       {
         queryKey: ["taken-assessments"],
-        queryFn: async () => (await axios.get("/assessments/taken/1")).data,
+        queryFn: async () => (await axios.get("/assessments/mcq/created")).data,
       },
       {
         queryKey: ["mcq-created-assessments"],
-        queryFn: async () =>
-          (await axios.get("/assessments/mcq/created/1")).data,
+        queryFn: async () => (await axios.get("/assessments/mcq/created")).data,
       },
       {
         queryKey: ["code-created-assessments"],
         queryFn: async () =>
-          (await axios.get("/assessments/code/created/1")).data,
-      },
-      {
-        queryKey: ["mcqcode-created-assessments"],
-        queryFn: async () =>
-          (await axios.get("/assessments/mcqcode/created/1")).data,
+          (await axios.get("/assessments/code/created")).data,
       },
     ],
   });

@@ -28,7 +28,7 @@ const QuestionList: React.FC<QuestionListProps> = ({
                   {question.type
                     .split("-")
                     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(" ")}
+                    .join(" ")} (Grade: {question.grade})
                 </p>
                 <h3 className="font-semibold text-lg">{question.question}</h3>{" "}
                 {/* Updated to use 'question' instead of 'text' */}

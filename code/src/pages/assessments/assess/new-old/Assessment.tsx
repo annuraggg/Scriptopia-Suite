@@ -1,13 +1,22 @@
-import { useEffect, useState, useCallback, Dispatch, SetStateAction } from "react";
+import {
+  useEffect,
+  useState,
+  useCallback,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import Start from "./Start";
 import MCQDashboard from "./MCQDashboard";
 import CodeDashboard from "./CodeDashboard";
-import { Assessment as IAssessment } from "@shared-types/Assessment";
+import { MCQAssessment as MA } from "@shared-types/MCQAssessment";
+import { CodeAssessment as CA } from "@shared-types/CodeAssessment";
 import { io, Socket } from "socket.io-client";
-import { AssessmentSubmissionsSchema as ASS, AssessmentSubmissionsSchema } from "@shared-types/AssessmentSubmission";
 import secureLocalStorage from "react-secure-storage";
 import ax from "@/config/axios";
 import { Problem } from "@shared-types/Problem";
+
+import { MCQAssessmentSubmissionsSchema as MASS } from "@shared-types/MCQAssessmentSubmission";
+import { CodeAssessmentSubmissionsSchema as CASS } from "@shared-types/CodeAssessmentSubmission";
 
 // Constants moved to top level
 const SOCKET_URL = "http://localhost:4000";
@@ -18,7 +27,7 @@ const TIMER_INTERVAL = 1000;
 type Screen = "start" | "dashboard" | "problem" | "result";
 type AssessmentType = "mcq" | "code";
 
-interface PopulatedAssessment extends Omit<IAssessment, "problems"> {
+interface PopulatedAssessment extends Omit<MA | CA, "problems"> {
   problems: Problem[];
 }
 
@@ -37,7 +46,7 @@ const Assessment = () => {
   const [assessment, setAssessment] = useState<PopulatedAssessment | null>(
     null
   );
-  const [assessmentSub, setAssessmentSub] = useState<ASS | null>(null);
+  const [assessmentSub, setAssessmentSub] = useState<MASS | CASS | null>(null);
   const [loading, setLoading] = useState(true);
   const [timer, setTimer] = useState<number>(0);
   const [assessmentStarted, setAssessmentStarted] = useState(false);
@@ -58,17 +67,18 @@ const Assessment = () => {
     (email: string, name: string) => {
       if (!assessment) return;
 
-      const assessmentSubmission: ASS = {
+      const assessmentSubmission: MASS | CASS = {
         assessmentId: assessment._id,
         name,
         email,
         timer: assessment.timeLimit * 60,
+        type
       };
 
       secureLocalStorage.setItem("cred-track", { email, name });
       socket.emit("start-assessment", assessmentSubmission);
 
-      setAssessmentType(assessment.type);
+      setAssessmentType(type);
       setTimer(assessment.timeLimit * 60);
       setCurrentScreen("dashboard");
       setLoading(false);
@@ -122,12 +132,16 @@ const Assessment = () => {
 
         if (response.data?.exists === false) return;
 
-        const { submission, assessment: assessmentData } = response.data.data;
+        const {
+          submission,
+          assessment: assessmentData,
+          type,
+        } = response.data.data;
 
         setAssessmentSub(submission);
         setTimer(submission.timer);
         setAssessment(assessmentData);
-        setAssessmentType(assessmentData.type as AssessmentType);
+        setAssessmentType(type as AssessmentType);
         setCurrentScreen("dashboard");
         setLoading(false);
         setAssessmentStarted(true);
@@ -149,7 +163,9 @@ const Assessment = () => {
           assessmentType={assessmentType}
           setAssessmentType={setAssessmentType}
           assessment={assessment as PopulatedAssessment}
-          setAssessment={setAssessment as Dispatch<SetStateAction<PopulatedAssessment>>}
+          setAssessment={
+            setAssessment as Dispatch<SetStateAction<PopulatedAssessment>>
+          }
           startAssessment={startAssessment}
         />
       )}
@@ -163,7 +179,7 @@ const Assessment = () => {
               assessment={assessment}
               loading={loading}
               setAssessmentSub={setAssessmentSub}
-              assessmentSub={assessmentSub as AssessmentSubmissionsSchema}
+              assessmentSub={assessmentSub as MASS | CASS}
             />
           )}
         </>

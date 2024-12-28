@@ -158,10 +158,12 @@ const McqContent: React.FC<McqContentProps> = ({
 
         const type = cleanValue(values[0] || "") as QuestionType;
         const question = cleanValue(values[1]);
+        const grade = cleanValue(values[3]) ? parseInt(cleanValue(values[3]), 10) : 1;
 
         const baseQuestion: Question = {
           question,
           type,
+          grade
         };
 
         switch (type) {

@@ -11,15 +11,16 @@ const AssessmentDashboard = lazy(
   () => import("./pages/assessments/dashboard/Assessments")
 );
 const Lander = lazy(() => import("./pages/landing/Lander"));
-const UnderConstruction = lazy(() => import("./pages/landing/UnderConstruction"));
+const UnderConstruction = lazy(
+  () => import("./pages/landing/UnderConstruction")
+);
 const Problems = lazy(() => import("./pages/problems/dashboard/Problems"));
 const Problem = lazy(() => import("./pages/problems/problem/Problem"));
 const NewProblem = lazy(() => import("./pages/problems/new/NewProblem"));
 const NewMCQ = lazy(() => import("./pages/assessments/new/mcq/New"));
 const NewCode = lazy(() => import("./pages/assessments/new/code/New"));
-const NewMCQCode = lazy(() => import("./pages/assessments/new/mcqcode/New"));
 const MainAssessment = lazy(
-  () => import("./pages/assessments/assess/Assessment")
+  () => import("./pages/assessments/assess/new-old/Assessment")
 );
 //  const AssessmentCurrent = lazy(
 //    () => import("./pages/assessments/assess/CodeDashboard")
@@ -34,6 +35,14 @@ const ViewAssessment = lazy(
 const ViewUserAssessment = lazy(
   () =>
     import("./pages/assessments/dashboard/ViewAssessment/ViewUserAssessment")
+);
+
+const MCQAssessment = lazy(
+  () => import("./pages/assessments/assess/mcq/Assess")
+);
+
+const CodeAssessment = lazy(
+  () => import("./pages/assessments/assess/code/Assess")
 );
 
 const router = createBrowserRouter([
@@ -51,7 +60,6 @@ const router = createBrowserRouter([
     element: <Layout />,
     errorElement: <ErrorPage />,
     children: [
-      
       {
         path: "dashboard",
         element: <Home />,
@@ -77,10 +85,6 @@ const router = createBrowserRouter([
         element: <NewCode />,
       },
       {
-        path: "assessments/new/mcqcode",
-        element: <NewMCQCode />,
-      },
-      {
         path: "problems",
         element: <Problems />,
       },
@@ -95,8 +99,12 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: "/assessments/:id",
-    element: <MainAssessment />,
+    path: "/assessments/c/:id",
+    element: <CodeAssessment />,
+  },
+  {
+    path: "/assessments/m/:id",
+    element: <MCQAssessment />,
   },
   //  {
   //    path: "/assessments/:id/current",

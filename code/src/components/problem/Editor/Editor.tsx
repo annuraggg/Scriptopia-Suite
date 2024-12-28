@@ -20,6 +20,7 @@ const Editor = ({
   allowSubmit,
   allowExplain,
   allowHighlighting,
+  onExternalPaste,
 }: {
   runCode: () => Promise<object>;
   submitCode: () => Promise<object>;
@@ -34,6 +35,8 @@ const Editor = ({
   allowSubmit: boolean;
   allowExplain: boolean;
   allowHighlighting: boolean;
+
+  onExternalPaste?: (pastedText: string) => void;
 }) => {
   const [explainOpen, setExplainOpen] = useState<boolean>(false);
 
@@ -68,6 +71,7 @@ const Editor = ({
             loading={loading}
             language={language}
             allowHighlighting={allowHighlighting}
+            onExternalPaste={onExternalPaste}
           />
         </CardBody>
       </Card>

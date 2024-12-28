@@ -8,6 +8,7 @@ const optionSchema = new mongoose.Schema({
 
 const questionSchema = new mongoose.Schema({
   question: { type: String, required: true },
+  grade: { type: Number, required: true },
   type: {
     type: String,
     enum: [
@@ -61,6 +62,7 @@ const mcqAssessmentSchema = new mongoose.Schema({
   openRange: { type: openRangeSchema, required: false },
   sections: { type: [sectionSchema], required: true },
   candidates: { type: [candidateSchema], required: true },
+  public: { type: Boolean, required: true, default: false },
   instructions: { type: String, required: true },
   security: { type: securitySchema, required: true },
   feedbackEmail: { type: String, required: true },

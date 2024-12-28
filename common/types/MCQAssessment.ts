@@ -22,6 +22,7 @@ interface Section {
 interface Question {
   _id?: string;
   question: string;
+  grade: number;
   type: QuestionType;
   options?: Option[];
   codeSnippet?: string;
@@ -48,7 +49,7 @@ interface Option {
   matchingPairText?: string;
 }
 
-interface Assessment {
+interface MCQAssessment {
   _id: string;
   name: string;
   description: string;
@@ -58,6 +59,7 @@ interface Assessment {
   openRange?: OpenRange;
   sections: Section[];
   candidates: Candidate[];
+  public: boolean;
   instructions: string;
   security: Security;
   feedbackEmail: string;
@@ -68,7 +70,7 @@ interface Assessment {
 }
 
 export {
-  Assessment,
+  MCQAssessment,
   Candidate,
   Section,
   Question,

@@ -10,12 +10,14 @@ import {
 } from "@nextui-org/react";
 import { Eye, Link, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Assessment } from "@shared-types/Assessment";
 import { toast } from "sonner";
 import ax from "@/config/axios";
 import { useAuth } from "@clerk/clerk-react";
+import { MCQAssessment } from "@shared-types/MCQAssessment";
+import DeleteToast from "@/components/ui/confirm-delete";
+import confirmDelete from "@/components/ui/confirm-delete";
 
-const calculateStatus = (createdAssessment: Assessment) => {
+const calculateStatus = (createdAssessment: MCQAssessment) => {
   const startDate = new Date(createdAssessment?.openRange?.start || "");
   const endDate = new Date(createdAssessment?.openRange?.end || "");
   const currentDate = new Date();
@@ -27,17 +29,17 @@ const calculateStatus = (createdAssessment: Assessment) => {
 
 const copyLink = (assessmentId: string) => {
   navigator.clipboard.writeText(
-    `${window.location.origin}/assessments/${assessmentId}`
+    `${window.location.origin}/assessments/m/${assessmentId}`
   );
   toast.success("Link copied to clipboard");
 };
 
-const MCQAssess: React.FC<{ createdAssessments: Assessment[] }> = ({
+const MCQAssess: React.FC<{ createdAssessments: MCQAssessment[] }> = ({
   createdAssessments: initialCreatedAssessments,
 }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [createdAssessments, setCreatedAssessments] = useState<Assessment[]>(
+  const [createdAssessments, setCreatedAssessments] = useState<MCQAssessment[]>(
     initialCreatedAssessments
   );
 
@@ -52,18 +54,17 @@ const MCQAssess: React.FC<{ createdAssessments: Assessment[] }> = ({
 
   const handleDelete = async (id: string) => {
     try {
-      await axios.delete(`/assessments/mcq/created/${id}`);
-      toast.success("Assessment deleted successfully");
+      await axios.delete(`/assessments/mcq/${id}`);
 
       setCreatedAssessments((prevAssessments) =>
         prevAssessments.filter((assessment) => assessment._id !== id)
       );
     } catch (error) {
-      toast.error("Failed to delete assessment");
       console.error(
         "Error deleting assessment:",
         (error as any).response?.data || (error as any).message || error
       );
+      throw new Error("Failed to delete assessment");
     }
   };
 
@@ -145,9 +146,9 @@ const MCQAssess: React.FC<{ createdAssessments: Assessment[] }> = ({
                   </span>
                 </p>
                 <p>
-                  <span className="text-xs text-gray-500">MCQs: </span>
+                  <span className="text-xs text-gray-500">Sections: </span>
                   <span className="text-xs text-white-200">
-                    {CreatedAssessment.mcqs.length}
+                    {CreatedAssessment.sections.length}
                   </span>
                 </p>
                 <p className="text-xs text-gray-500 mt-2">Time Range:</p>
@@ -174,7 +175,9 @@ const MCQAssess: React.FC<{ createdAssessments: Assessment[] }> = ({
                 <Button
                   className="w-[48%] flex items-center justify-center text-xs gap-3 bg-red-900 bg-opacity-40"
                   variant="flat"
-                  onClick={() => handleDelete(CreatedAssessment._id)}
+                  onClick={() =>
+                    confirmDelete(() => handleDelete(CreatedAssessment._id))
+                  }
                 >
                   <Trash2 size={18} /> <p>Delete</p>
                 </Button>
