@@ -1,30 +1,19 @@
 import { Button, Card, CardBody, Progress } from "@nextui-org/react";
-import { useState } from "react";
 import { MCQAssessment as MA } from "@shared-types/MCQAssessment";
 
 interface SidebarProps {
   timer: number;
   assessment: MA;
+  currentSection: number;
+  setCurrentSection: (index: number) => void;
 }
 
-const Sidebar = ({ timer, assessment }: SidebarProps) => {
-  // @ts-expect-error
-  const [sections, setSections] = useState([
-    {
-      id: 1,
-      title: "Section 1",
-    },
-    {
-      id: 2,
-      title: "Section 2",
-    },
-    {
-      id: 3,
-      title: "Section 3",
-    },
-  ]);
-  const [currentSection, setCurrentSection] = useState(sections[0]);
-
+const Sidebar = ({
+  timer,
+  assessment,
+  currentSection,
+  setCurrentSection,
+}: SidebarProps) => {
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -43,19 +32,19 @@ const Sidebar = ({ timer, assessment }: SidebarProps) => {
 
       <CardBody className="h-full">
         <div>
-          {sections.map((section) => (
+          {assessment?.sections?.map((section, index) => (
             <div
-              key={section.id}
+              key={index}
               className={`mt-2 bg-card border-2 py-4 px-5 rounded-xl cursor-pointer transition-colors
                 ${
-                  currentSection.id === section.id
+                  currentSection === index
                     ? "bg-foreground-100"
                     : "hover:bg-foreground-100 bg-opacity-50"
                 }
                 `}
-              onClick={() => setCurrentSection(section)}
+              onClick={() => setCurrentSection(index)}
             >
-              <p>{section.title}</p>
+              <p>{section?.name}</p>
             </div>
           ))}
         </div>
