@@ -62,6 +62,14 @@ const assessmentSchema = new Schema({
   stepId: { type: mongoose.Types.ObjectId, required: true },
 });
 
+const additionalFieldConfigSchema = new Schema(
+  {
+    required: { type: Boolean, required: true },
+    allowEmpty: { type: Boolean, required: true },
+  },
+  { _id: false }
+);
+
 const postingSchema = new Schema({
   organizationId: { type: mongoose.Types.ObjectId, ref: "Organization" },
   title: { type: String, required: true },
@@ -86,6 +94,44 @@ const postingSchema = new Schema({
   interview: { type: interviewSchema },
 
   candidates: { type: [mongoose.Types.ObjectId], ref: "Candidate" },
+  additionalDetails: {
+    type: {
+      basic: {
+        summary: { type: additionalFieldConfigSchema },
+      },
+      links: {
+        socialLinks: { type: additionalFieldConfigSchema },
+      },
+      background: {
+        education: { type: additionalFieldConfigSchema },
+        workExperience: { type: additionalFieldConfigSchema },
+      },
+      skills: {
+        technicalSkills: { type: additionalFieldConfigSchema },
+        languages: { type: additionalFieldConfigSchema },
+        subjects: { type: additionalFieldConfigSchema },
+      },
+      experience: {
+        responsibilities: { type: additionalFieldConfigSchema },
+        projects: { type: additionalFieldConfigSchema },
+      },
+      achievements: {
+        awards: { type: additionalFieldConfigSchema },
+        certificates: { type: additionalFieldConfigSchema },
+        competitions: { type: additionalFieldConfigSchema },
+      },
+      professional: {
+        conferences: { type: additionalFieldConfigSchema },
+        patents: { type: additionalFieldConfigSchema },
+        scholarships: { type: additionalFieldConfigSchema },
+      },
+      activities: {
+        volunteerings: { type: additionalFieldConfigSchema },
+        extraCurriculars: { type: additionalFieldConfigSchema },
+      },
+    },
+    required: false,
+  },
 
   published: { type: Boolean, default: false },
   publishedOn: { type: Date },

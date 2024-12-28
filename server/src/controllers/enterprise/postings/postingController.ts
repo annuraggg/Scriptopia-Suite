@@ -85,10 +85,26 @@ const createPosting = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
+    if (posting.additionalDetails) {
+      Object.entries(posting.additionalDetails).forEach(
+        ([category, fields]) => {
+          Object.entries(fields as { [key: string]: any }).forEach(([field, config]: [string, any]) => {
+            if (
+              typeof config.required !== "boolean" ||
+              typeof config.allowEmpty !== "boolean"
+            ) {
+              throw new Error(`Invalid configuration for ${category}.${field}`);
+            }
+          });
+        }
+      );
+    }
+
     const newPosting = new Posting({
       ...posting,
       organizationId: perms.data!.orgId,
     });
+
     await newPosting.save();
 
     const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
@@ -109,7 +125,7 @@ const createPosting = async (c: Context) => {
     return sendSuccess(c, 201, "job created successfully", newPosting);
   } catch (e: any) {
     logger.error(e);
-    return sendError(c, 500, "Something went wrong");
+    return sendError(c, 500, `Error creating posting: ${e.message}`);
   }
 };
 

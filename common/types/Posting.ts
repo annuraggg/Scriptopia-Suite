@@ -74,6 +74,17 @@ interface Assessment {
   _id?: string; // Optional ID
 }
 
+interface AdditionalFieldConfig {
+  required: boolean;
+  allowEmpty: boolean;
+}
+
+interface AdditionalDetails {
+  [category: string]: {
+    [field: string]: AdditionalFieldConfig;
+  };
+}
+
 interface Posting {
   _id?: string; // Optional ID
   organizationId?: string; // Organization ID
@@ -96,6 +107,7 @@ interface Posting {
   assessments?: Assessment[]; // Array of assessment IDs
   interview?: Interview; // Interview details
   candidates?: string[]; // Array of candidate IDs
+  additionalDetails?: AdditionalDetails; // Additional details for the posting
   published?: boolean; // Published status
   publishedOn?: Date; // Date published
   createdOn?: Date; // Creation date
@@ -113,4 +125,5 @@ export type {
   Interviewer,
   Assignment,
   Slot, // Exporting Slot interface as well
+  AdditionalDetails,
 };
