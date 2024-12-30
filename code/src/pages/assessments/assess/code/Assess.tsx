@@ -124,7 +124,7 @@ const Assess = () => {
 
       try {
         const axios = ax();
-        const response = await axios.post("/assessments/checkProgress", {
+        const response = await axios.post("/assessments/code/checkProgress", {
           email: credentials.email,
           assessmentId,
         });

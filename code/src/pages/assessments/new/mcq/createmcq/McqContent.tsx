@@ -99,11 +99,11 @@ const McqContent: React.FC<McqContentProps> = ({
     }
   };
 
-  const handleEdit = (questionText: string) => {
+  const handleEdit = (index: number) => {
     if (!selectedSection) return;
 
     const question = selectedSection.questions.find(
-      (q: Question) => q.question === questionText
+      (_, i) => i === index
     );
     if (question) {
       setEditingQuestion(question);
@@ -111,16 +111,14 @@ const McqContent: React.FC<McqContentProps> = ({
     }
   };
 
-  const handleDelete = (questionText: string) => {
+  const handleDelete = (index: number) => {
     if (!selectedSection) return;
-
+    console.log(index);
     const finalSections = sections.map((section) =>
       section.name === selectedSection.name
         ? {
             ...section,
-            questions: section.questions.filter(
-              (q: Question) => q.question !== questionText
-            ),
+            questions: section.questions.filter((_, i) => i !== index),
           }
         : section
     );
@@ -158,12 +156,14 @@ const McqContent: React.FC<McqContentProps> = ({
 
         const type = cleanValue(values[0] || "") as QuestionType;
         const question = cleanValue(values[1]);
-        const grade = cleanValue(values[3]) ? parseInt(cleanValue(values[3]), 10) : 1;
+        const grade = cleanValue(values[3])
+          ? parseInt(cleanValue(values[3]), 10)
+          : 1;
 
         const baseQuestion: Question = {
           question,
           type,
-          grade
+          grade,
         };
 
         switch (type) {
@@ -325,8 +325,8 @@ const McqContent: React.FC<McqContentProps> = ({
                     questions={selectedSection.questions}
                     onMoveUp={(q) => handleMoveUp(q.toString())}
                     onMoveDown={(q) => handleMoveDown(q.toString())}
-                    onEdit={(q) => handleEdit(q.toString())}
-                    onDelete={(q) => handleDelete(q.toString())}
+                    onEdit={(q) => handleEdit(q)}
+                    onDelete={(q) => handleDelete(q)}
                   />
                 ) : (
                   <div className="text-center py-12">

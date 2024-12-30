@@ -22,13 +22,14 @@ interface Section {
 interface Question {
   _id?: string;
   question: string;
-  grade: number;
+  grade?: number;
   type: QuestionType;
   options?: Option[];
   codeSnippet?: string;
   imageSource?: string;
   maxCharactersAllowed?: number;
   fillInBlankAnswers?: string[];
+  correct?: string;
 }
 
 type QuestionType =

@@ -11,20 +11,33 @@ interface DashboardProps {
   setAssessment: (assessment: MA) => void;
   assessmentSub: MASS;
   setAssessmentSub: (assessmentSub: MASS) => void;
+  submitAssessment: () => void;
 }
 
-const Dashboard = ({ timer, assessment }: DashboardProps) => {
+const Dashboard = ({
+  timer,
+  assessment,
+  assessmentSub,
+  setAssessmentSub,
+  submitAssessment,
+}: DashboardProps) => {
   const [currentSection, setCurrentSection] = useState(0);
 
   return (
-    <div className="flex">
+    <div className="flex px-10 py-5 gap-5 relative overflow-hidden">
       <Sidebar
         timer={timer}
         assessment={assessment}
         currentSection={currentSection}
         setCurrentSection={setCurrentSection}
+        submitAssessment={submitAssessment}
       />
-      <Sections assessment={assessment} currentSection={currentSection} />
+      <Sections
+        assessment={assessment}
+        currentSection={currentSection}
+        assessmentSub={assessmentSub}
+        setAssessmentSub={setAssessmentSub}
+      />
     </div>
   );
 };

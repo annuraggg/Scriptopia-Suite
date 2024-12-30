@@ -1,13 +1,8 @@
 import mongoose, { Schema } from "mongoose";
 
 const offenseSchema = new Schema({
-  tabChange: {
-    type: Number,
-  },
-
-  copyPaste: {
-    mcq: { type: Number, required: true },
-  },
+  tabChange: { type: Number },
+  copyPaste: { type: Number },
 });
 
 const McqSubmissionSchema = new Schema({

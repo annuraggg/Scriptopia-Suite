@@ -8,6 +8,7 @@ import { MCQAssessmentSubmissionsSchema as MASS } from "@shared-types/MCQAssessm
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useDisclosure } from "@nextui-org/react";
+import Submit from "./Submit";
 
 // Constants
 const SOCKET_URL = "http://localhost:4000";
@@ -26,7 +27,7 @@ interface StorageCredentials {
 const socket: Socket = io(SOCKET_URL);
 
 const Assess = () => {
-  const [currentScreen, setCurrentScreen] = useState<Screen>("dashboard");
+  const [currentScreen, setCurrentScreen] = useState<Screen>("start");
   const [loading, setLoading] = useState(true);
   const [timer, setTimer] = useState<number>(0);
   const [assessmentStarted, setAssessmentStarted] = useState(false);
@@ -43,6 +44,23 @@ const Assess = () => {
   const getAssessmentIdFromUrl = (): string | null => {
     return window.location.pathname.split("/").pop() || null;
   };
+
+  // AutoSave Every 10 seconds
+  useEffect(() => {
+    if (!assessment || currentScreen === "start" || !assessmentStarted) return;
+
+    const autoSaveInterval = setInterval(() => {
+      console.log("AutoSave Interval");
+      const submissions = assessmentSub?.mcqSubmissions || [];
+      socket.emit("auto-save-mcq", {
+        assessmentId: assessment._id,
+        submissions,
+        email: getStorageCredentials()?.email || "anonymous",
+      });
+    }, 10000);
+
+    return () => clearInterval(autoSaveInterval);
+  }, [assessment, currentScreen, assessmentStarted]);
 
   // Timer Logic
   useEffect(() => {
@@ -91,6 +109,22 @@ const Assess = () => {
     }
   }, [timer]);
 
+  // Tab Change
+  useEffect(() => {
+    if (!assessment) return;
+
+    if (assessment.security.tabChangeDetection) {
+      window.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          socket.emit("tab-change-mcq", {
+            assessmentId: assessment._id,
+            email: getStorageCredentials()?.email || "anonymous",
+          });
+        }
+      });
+    }
+  }, [assessment]);
+
   // Sync Timer with Server
   useEffect(() => {
     if (!assessment || currentScreen === "start" || !assessmentStarted) return;
@@ -113,121 +147,29 @@ const Assess = () => {
       const credentials = getStorageCredentials();
       const assessmentId = getAssessmentIdFromUrl();
 
-      console.log("Assessment ID: ", assessmentId);
-
       if (!credentials?.email || !assessmentId) return;
 
-      const assessm = {
-        _id: {
-          $oid: "676e9f5debc31b6778b879ff",
-        },
-        name: "Test Assessment Two",
-        description: "Hello World Assessment",
-        author: "user_2nw3yCYFf6NTV5bKTo15OMYvKNP",
-        timeLimit: 10,
-        passingPercentage: 75,
-        openRange: {
-          start: {
-            $date: "2024-12-29T08:40:00.000Z",
-          },
-          end: {
-            $date: "2025-01-04T08:40:00.000Z",
-          },
-          _id: {
-            $oid: "676e6b0a6285a5e61a51cac7",
-          },
-        },
-        sections: [
-          {
-            name: "Sec 1",
-            questions: [
-              {
-                question: "Who is Anurag Sawant",
-                type: "single-select",
-                options: [
-                  {
-                    option: "Rakhi Sawant's Brother",
-                    isCorrect: false,
-                    _id: {
-                      $oid: "676e6b0a6285a5e61a51caca",
-                    },
-                  },
-                  {
-                    option: "Student at North Carolina University",
-                    isCorrect: false,
-                    _id: {
-                      $oid: "676e6b0a6285a5e61a51cacb",
-                    },
-                  },
-                  {
-                    option: "Forbes Top 10 for building Scriptopia",
-                    isCorrect: true,
-                    _id: {
-                      $oid: "676e6b0a6285a5e61a51cacc",
-                    },
-                  },
-                  {
-                    option: "Ordinary Man",
-                    isCorrect: false,
-                    _id: {
-                      $oid: "676e6b0a6285a5e61a51cacd",
-                    },
-                  },
-                ],
-                fillInBlankAnswers: [],
-                _id: {
-                  $oid: "676e6b0a6285a5e61a51cac9",
-                },
-              },
-            ],
-            _id: {
-              $oid: "676e6b0a6285a5e61a51cac8",
-            },
-          },
-        ],
-        candidates: [],
-        public: true,
-        instructions: "Do not cheat",
-        security: {
-          sessionPlayback: false,
-          tabChangeDetection: true,
-          copyPasteDetection: true,
-          _id: {
-            $oid: "676e6b0a6285a5e61a51cace",
-          },
-        },
-        feedbackEmail: "feedback@anuragsawant.in",
-        isEnterprise: false,
-        createdAt: {
-          $date: "2024-12-27T08:53:30.669Z",
-        },
-        __v: 0,
-      };
+      try {
+        const axios = ax();
+        const response = await axios.post("/assessments/mcq/checkProgress", {
+          email: credentials.email,
+          assessmentId,
+        });
 
-      setAssessment(assessm as unknown as MA);
-      setTimer(assessm.timeLimit * 60);
+        console.log(response.data.data);
+        if (response.data?.data?.exists === false) return;
 
-      // try {
-      //   const axios = ax();
-      //   const response = await axios.post("/assessments/checkProgress", {
-      //     email: credentials.email,
-      //     assessmentId,
-      //   });
-
-      //   console.log(response.data.data);
-      //   if (response.data?.data?.exists === false) return;
-
-      //   const { submission, assessment: assessmentData } = response.data.data;
-
-      //   setAssessmentSub(submission);
-      //   setTimer(submission.timer);
-      //   setAssessment(assessmentData);
-      //   setCurrentScreen("dashboard");
-      //   setLoading(false);
-      //   setAssessmentStarted(true);
-      // } catch (error) {
-      //   console.error("Failed to check assessment progress:", error);
-      // }
+        const { submission, assessment: assessmentData } = response.data.data;
+        console.log(response.data.data);
+        setAssessmentSub(submission);
+        setTimer(submission.timer);
+        setAssessment(assessmentData);
+        setCurrentScreen("dashboard");
+        setLoading(false);
+        setAssessmentStarted(true);
+      } catch (error) {
+        console.error("Failed to check assessment progress:", error);
+      }
     };
 
     checkExistingProgress();
@@ -275,12 +217,8 @@ const Assess = () => {
     onOpenChange: fullSubmitOnOpenChange,
   } = useDisclosure();
 
-  const submitAssessment = async (onClose?: () => void) => {
+  const submitAssessment = async () => {
     try {
-      if (onClose) {
-        onClose();
-      }
-
       setAssessmentCompleted(true);
 
       const { email } = getCredentials();
@@ -290,7 +228,7 @@ const Assess = () => {
         throw new Error("Assessment ID not found");
       }
 
-      const data = { email, assessmentId, timer };
+      const data = { email, assessmentId, timer, assessmentSub };
 
       const axios = ax();
       const response = await axios.post("/assessments/submit/mcq", data);
@@ -307,6 +245,16 @@ const Assess = () => {
       setAssessmentSubmitted(true);
     }
   };
+
+  // Early return for completed assessment
+  if (assessmentCompleted) {
+    return (
+      <Submit
+        assessmentSubmitted={assessmentSubmitted}
+        submitSuccess={submitSuccess}
+      />
+    );
+  }
 
   return (
     <div className="h-screen">
@@ -330,6 +278,7 @@ const Assess = () => {
             loading={loading}
             setAssessmentSub={setAssessmentSub}
             assessmentSub={assessmentSub!}
+            submitAssessment={submitAssessment}
             // setAssessmentCompleted={setAssessmentCompleted}
             // setAssessmentSubmitted={setAssessmentSubmitted}
             // setSubmitSuccess={setSubmitSuccess}

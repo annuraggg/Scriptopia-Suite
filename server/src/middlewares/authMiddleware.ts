@@ -10,8 +10,10 @@ const authMiddleware = createMiddleware(async (c, next) => {
   if (c.req.path.startsWith("/socket.io")) return next();
 
   if (c.req.path.startsWith("/assessments/verify")) return next();
-  if (c.req.path.startsWith("/assessments/checkProgress")) return next();
-  if (c.req.path.startsWith("/assessments/submit")) return next();
+  if (c.req.path.startsWith("/assessments/code/submit")) return next();
+  if (c.req.path.startsWith("/assessments/submit/mcq")) return next();
+  if (c.req.path.startsWith("/assessments/code/checkProgress")) return next();
+  if (c.req.path.startsWith("/assessments/mcq/checkProgress")) return next();
 
   //  if (c.req.path.startsWith("/candidates")) return next();
 

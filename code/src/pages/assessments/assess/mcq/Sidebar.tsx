@@ -1,11 +1,20 @@
-import { Button, Card, CardBody, Progress } from "@nextui-org/react";
+import { Button, Card, CardBody } from "@nextui-org/react";
 import { MCQAssessment as MA } from "@shared-types/MCQAssessment";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from "@nextui-org/modal";
 
 interface SidebarProps {
   timer: number;
   assessment: MA;
   currentSection: number;
   setCurrentSection: (index: number) => void;
+  submitAssessment: () => void;
 }
 
 const Sidebar = ({
@@ -13,6 +22,7 @@ const Sidebar = ({
   assessment,
   currentSection,
   setCurrentSection,
+  submitAssessment,
 }: SidebarProps) => {
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -20,13 +30,19 @@ const Sidebar = ({
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
+  const { isOpen, onOpenChange, onOpen } = useDisclosure();
+
   return (
-    <Card className="min-h-full w-[20%] overflow-y-auto">
+    <Card className="min-h-full w-[20%] overflow-y-auto h-[94vh]  z-0">
       <div className="sticky p-5">
-        <Button color="success" variant="flat" className="mb-3 w-full">
+        <Button
+          color="success"
+          variant="flat"
+          className="mb-3 w-full"
+          onClick={onOpen}
+        >
           Submit Assessment
         </Button>
-        <Progress value={50} label="Progress" />
         <p className="mt-5 text-center">Time Left: {formatTime(timer)}</p>
       </div>
 
@@ -49,6 +65,38 @@ const Sidebar = ({
           ))}
         </div>
       </CardBody>
+
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Modal Title
+              </ModalHeader>
+              <ModalBody>
+                <p>
+                  Are you sure you want to submit the assessment? You won't be
+                  able to change your answers after submission.
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Cancel
+                </Button>
+                <Button
+                  color="primary"
+                  onPress={() => {
+                    submitAssessment();
+                    onClose();
+                  }}
+                >
+                  Submit
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </Card>
   );
 };

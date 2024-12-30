@@ -55,6 +55,7 @@ const app = new Hono();
 
 // app.post("/submit/code", assessmentController.codeSubmit);
 // app.post("/submit/code/individual", assessmentController.submitIndividualProblem);
+// app.post("/submit", assessmentController.submitAssessment);
 
 // Create Routes
 app.post("/mcq", assessmentController.createMcqAssessment);
@@ -78,11 +79,15 @@ app.delete("/code/:id", assessmentController.deleteCodeAssessment);
 
 app.post("/verify", assessmentController.verifyAccess);
 
-app.post("/checkProgress", assessmentController.checkProgress);
 
+app.post("/code/checkProgress", assessmentController.checkCodeProgress);
 app.post("/submit/code/individual", assessmentController.submitIndividualProblem);
 app.post("/submit/code", assessmentController.codeSubmit);
 
-app.post("/submit", assessmentController.submitAssessment);
+app.post("/mcq/checkProgress", assessmentController.checkMcqProgress);
+app.post("/submit/mcq/individual", assessmentController.submitIndividualProblem);
+app.post("/submit/mcq", assessmentController.submitMcqAssessment);
+
+
 
 export default app;

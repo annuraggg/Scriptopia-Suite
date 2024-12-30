@@ -20,7 +20,7 @@ const Assessments = () => {
     queries: [
       {
         queryKey: ["taken-assessments"],
-        queryFn: async () => (await axios.get("/assessments/mcq/created")).data,
+        queryFn: async () => (await axios.get("/assessments/mcq/taken")).data,
       },
       {
         queryKey: ["mcq-created-assessments"],
@@ -35,6 +35,7 @@ const Assessments = () => {
   });
 
   useEffect(() => {
+    console.log(data[0].data)
     const hash = window.location.hash;
     switch (hash) {
       case "#taken":
@@ -49,7 +50,7 @@ const Assessments = () => {
       default:
         setActive(0);
     }
-  }, []);
+  }, [data]);
 
   if (data[0].isLoading || data[1].isLoading || data[2].isLoading)
     return <Loader />;

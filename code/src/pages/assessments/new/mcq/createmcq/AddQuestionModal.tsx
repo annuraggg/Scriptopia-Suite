@@ -38,26 +38,26 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
   const [code, setCode] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [maxLimit, setMaxLimit] = useState<number>(70);
-  const [blankText, setBlankText] = useState("");
-  const [blanksAnswers, setBlanksAnswers] = useState<string[]>([]);
+  const [fillInBlanksAnswers, setFillInBlanksAnswers] = useState<string[]>([]);
   const [selectedCorrectOption, setSelectedCorrectOption] =
     useState<string>("");
 
   useEffect(() => {
     if (editingQuestion) {
       setSelectedType(editingQuestion.type);
-      setQuestionText(editingQuestion.question); // 'question' instead of 'text'
+      setQuestionText(editingQuestion.question);
       setOptions(editingQuestion.options || []);
-      setCode(editingQuestion.codeSnippet || ""); // 'codeSnippet' instead of 'code'
-      setImageUrl(editingQuestion.imageSource || ""); // 'imageSource' instead of 'imageUrl'
-      setMaxLimit(editingQuestion.maxCharactersAllowed || 70); // 'maxCharactersAllowed' instead of 'maxLimit'
-      setBlankText(editingQuestion.fillInBlankAnswers?.join("___") || ""); // 'fillInBlankAnswers' instead of 'blanksAnswers'
+      setCode(editingQuestion.codeSnippet || "");
+      setImageUrl(editingQuestion.imageSource || "");
+      setMaxLimit(editingQuestion.maxCharactersAllowed || 70);
+      setFillInBlanksAnswers([]);
+      setFillInBlanksAnswers(editingQuestion.fillInBlankAnswers || []);
 
       const correctOption = editingQuestion.options?.find(
         (opt) => opt.isCorrect
       );
       if (correctOption) {
-        setSelectedCorrectOption(correctOption.option); // 'option' instead of 'id'
+        setSelectedCorrectOption(correctOption.option);
       }
     }
   }, [editingQuestion]);
@@ -69,8 +69,6 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
     setCode("");
     setImageUrl("");
     setMaxLimit(70);
-    setBlankText("");
-    setBlanksAnswers([]);
     setSelectedCorrectOption("");
   };
 
@@ -81,7 +79,7 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
 
   const handleAddOption = () => {
     const newOption: Option = {
-      option: "", // 'option' instead of 'text'
+      option: "",
       isCorrect: false,
       matchingPairText: selectedType === "matching" ? "" : undefined,
     };
@@ -105,7 +103,7 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
     setOptions(
       options.map((opt) => ({
         ...opt,
-        isCorrect: opt.option === value, // 'option' instead of 'id'
+        isCorrect: opt.option === value,
       }))
     );
   };
@@ -121,17 +119,12 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
     }
   };
 
-  const handleBlankTextChange = (text: string) => {
-    setBlankText(text);
-    const blanks = text.match(/_{3,}/g) || [];
-    setBlanksAnswers(Array(blanks.length).fill("")); // 'blanksAnswers' instead of 'fillInBlankAnswers'
-  };
-
   const handleSaveQuestion = () => {
-    if (!selectedType || !questionText) return;
+    if (!selectedType) return;
+    if (!questionText) return;
 
     const newQuestion: Question = {
-      question: questionText, // 'question' instead of 'text'
+      question: questionText,
       type: selectedType,
       grade: grade,
     };
@@ -151,20 +144,22 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
         break;
       case "short-answer":
       case "long-answer":
-        newQuestion.maxCharactersAllowed = maxLimit; // 'maxCharactersAllowed' instead of 'maxLimit'
+        newQuestion.maxCharactersAllowed = maxLimit;
         break;
       case "visual":
-        newQuestion.imageSource = imageUrl; // 'imageSource' instead of 'imageUrl'
+        newQuestion.imageSource = imageUrl;
         break;
-      case "peer-review":
       case "fill-in-blanks":
-        newQuestion.fillInBlankAnswers = blanksAnswers; // 'fillInBlankAnswers' instead of 'blanksAnswers'
+        newQuestion.fillInBlankAnswers = fillInBlanksAnswers;
         break;
     }
 
     onAddQuestion(newQuestion);
     handleClose();
   };
+
+  // First, let's add an input array for the answers
+  const [blankAnswers, setBlankAnswers] = useState<string[]>([]);
 
   const renderQuestionContent = () => {
     switch (selectedType) {
@@ -256,7 +251,6 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
           </div>
         );
 
-      case "peer-review":
       case "output":
         return (
           <div className="mt-4">
@@ -304,26 +298,35 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
           </div>
         );
 
+      // Update the fill in blanks section in renderQuestionContent()
       case "fill-in-blanks":
         return (
           <div className="space-y-4">
-            <Textarea
-              label="Enter text with blanks (use ___ for blanks)"
-              value={blankText}
-              onChange={(e) => handleBlankTextChange(e.target.value)}
-            />
-            {blanksAnswers.map((answer, index) => (
-              <Input
-                key={index}
-                label={`Answer for blank ${index + 1}`}
-                value={answer}
-                onChange={(e) => {
-                  const newAnswers = [...blanksAnswers];
-                  newAnswers[index] = e.target.value;
-                  setBlanksAnswers(newAnswers);
-                }}
-              />
-            ))}
+            <div className="space-y-2">
+              {selectedType === "fill-in-blanks" &&
+                questionText.split("___").length > 1 && (
+                  <div className="text-sm font-medium">
+                    Enter answers for each blank:
+                  </div>
+                )}
+              {selectedType === "fill-in-blanks" &&
+                Array(questionText.split("___").length - 1)
+                  .fill(0)
+                  .map((_, index) => (
+                    <Input
+                      key={index}
+                      label={`Answer ${index + 1}`}
+                      placeholder={`Enter answer for blank ${index + 1}`}
+                      value={blankAnswers[index] || ""}
+                      onChange={(e) => {
+                        const newAnswers = [...blankAnswers];
+                        newAnswers[index] = e.target.value;
+                        setBlankAnswers(newAnswers);
+                        setFillInBlanksAnswers(newAnswers);
+                      }}
+                    />
+                  ))}
+            </div>
           </div>
         );
 
@@ -359,7 +362,6 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
                 "short-answer",
                 "long-answer",
                 "visual",
-                "peer-review",
                 "output",
                 "fill-in-blanks",
                 "matching",
@@ -386,10 +388,12 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
           {selectedType && (
             <Input
               label="Question Text"
-              placeholder="Enter your question"
+              placeholder={`Enter your question ${
+                selectedType === "fill-in-blanks" ? "use ___ for blanks" : ""
+              }`}
               value={questionText}
               onChange={(e) => setQuestionText(e.target.value)}
-              className="mt-4"
+              className={`mt-4 `}
             />
           )}
 

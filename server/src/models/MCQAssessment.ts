@@ -8,7 +8,7 @@ const optionSchema = new mongoose.Schema({
 
 const questionSchema = new mongoose.Schema({
   question: { type: String, required: true },
-  grade: { type: Number, required: true },
+  grade: { type: Number, required: false },
   type: {
     type: String,
     enum: [
@@ -30,6 +30,7 @@ const questionSchema = new mongoose.Schema({
   imageSource: { type: String, required: false },
   maxCharactersAllowed: { type: Number, required: false },
   fillInBlankAnswers: { type: [String], required: false },
+  correct: { type: String, required: false },
 });
 
 const sectionSchema = new mongoose.Schema({

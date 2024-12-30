@@ -8,7 +8,6 @@ import AssessmentSubmissions from "../../models/AssessmentSubmissions";
 import { TestCase } from "@shared-types/Problem";
 import Posting from "@/models/Posting";
 import { Candidate } from "@shared-types/Candidate";
-import CandidateDoc from "@/models/Candidate";
 import CandidateModel from "@/models/Candidate";
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
 import logger from "@/utils/logger";
@@ -20,6 +19,11 @@ import { MCQAssessment as IMCQAssessment } from "@shared-types/MCQAssessment";
 import MCQAssessmentSubmissions from "@/models/MCQAssessmentSubmission";
 import CodeAssessmentSubmissions from "@/models/CodeAssessmentSubmission";
 import mongoose from "mongoose";
+
+import calculateMCQScore from "@/utils/calculateMCQScore";
+import calculateCodeScore from "@/utils/calculateCodeScore";
+
+import { MCQAssessmentSubmissionsSchema as IMCQAssessmentSubmission } from "@shared-types/MCQAssessmentSubmission";
 
 async function getIoServer() {
   const { ioServer } = await import("@/config/init");
@@ -311,180 +315,6 @@ const createAssessment = async (c: Context) => {
   }
 };
 
-const submitAssessment = async (c: Context) => {
-  try {
-    const body = await c.req.json();
-    const {
-      mcqSubmissions,
-      submissions,
-      assessmentId,
-      offenses,
-      timer,
-      sessionRewindUrl,
-      name,
-      email,
-    } = body;
-
-    // check if already submitted
-    const existingSubmission = await AssessmentSubmissions.findOne({
-      assessmentId,
-      email,
-    });
-
-    if (existingSubmission) {
-      return sendError(c, 400, "You have already submitted this assessment");
-    }
-
-    const problemResults = [];
-    if (submissions) {
-      for (const submission of submissions) {
-        const problem = await Problem.findById(submission.problemId);
-        if (!problem) {
-          return sendError(c, 404, "Problem not found");
-        }
-
-        const result: any = await runCompilerCode(
-          submission.language,
-          problem.sdsl,
-          submission.code,
-          problem.testCases as unknown as TestCase[]
-        );
-
-        if (result?.status === "ERROR") {
-          console.error(result.error);
-          return sendError(c, 500, "Internal Server Error", result.error);
-        }
-
-        const r = result.results.map((r: any) => ({
-          caseNo: r.caseNo,
-          caseId: r._id,
-          output: r.output,
-          isSample: r.isSample,
-          memory: r.memory,
-          time: r.time,
-          passed: r.passed,
-          console: r.console,
-        }));
-
-        problemResults.push({
-          problemId: submission.problemId,
-          code: submission.code,
-          language: submission.language,
-          results: r,
-        });
-      }
-    }
-
-    const mcqs: { mcqId: string; selectedOptions: string[] }[] = [];
-    mcqSubmissions?.forEach((mcq: any) => {
-      mcqs.push({
-        mcqId: mcq.id,
-        selectedOptions:
-          typeof mcq.answer === "string" ? [mcq.answer] : mcq.answer,
-      });
-    });
-
-    const assessment = await Assessment.findById(assessmentId);
-
-    if (!assessment) {
-      return sendError(c, 404, "Assessment not found");
-    }
-
-    const submission = {
-      assessmentId,
-      name,
-      email,
-      offenses,
-      mcqSubmissions: mcqs,
-      submissions: problemResults,
-      timer,
-      sessionRewindUrl,
-    };
-
-    const getCheatingStatus = (offenses: any) => {
-      if (!offenses) {
-        return "No Copying";
-      }
-
-      const total =
-        (offenses.tabChange?.mcq || 0) +
-        offenses.tabChange?.problem.reduce(
-          (acc: any, curr: any) => acc + curr.times,
-          0
-        ) +
-        offenses.copyPaste?.mcq +
-        offenses.copyPaste?.problem.reduce(
-          (acc: any, curr: any) => acc + curr.times,
-          0
-        );
-
-      if (total === 0) {
-        return "No Copying";
-      }
-
-      if (total <= 3) {
-        return "Light Copying";
-      }
-
-      return "Heavy Copying";
-    };
-
-    const grades = getScore(
-      submission.mcqSubmissions,
-      submission.submissions,
-      assessment
-    );
-    const assessmentSubmission = {
-      ...submission,
-      cheatingStatus: getCheatingStatus(offenses),
-      obtainedGrades: grades,
-    };
-
-    const newSubmission = new AssessmentSubmissions(assessmentSubmission);
-    await newSubmission.save();
-
-    if (assessment.isEnterprise) {
-      const candidate = await CandidateDoc.findOne({
-        email,
-      });
-
-      const currentPosting = candidate?.appliedPostings.find(
-        (posting) =>
-          posting?.postingId?.toString() == assessment?.postingId?.toString()
-      );
-
-      console.log("currentPosting", currentPosting);
-
-      if (!currentPosting) {
-        return sendError(c, 400, "Posting not found");
-      }
-
-      const posting = await Posting.findById(currentPosting?.postingId);
-      console.log("posting", posting);
-      if (!posting) {
-        return sendError(c, 400, "Posting not found 2");
-      }
-
-      const score = grades?.total || 0;
-      const totalScore = assessment.obtainableScore;
-      const passingPercentage = assessment.passingPercentage;
-      const percentage = (score / totalScore) * 100;
-      if (percentage < passingPercentage) {
-        currentPosting.status = "rejected";
-        currentPosting.disqualifiedStage = posting?.workflow?.currentStep;
-        currentPosting.disqualifiedReason = "Failed Assessment";
-
-        await candidate?.save();
-      }
-    }
-
-    return sendSuccess(c, 200, "Success");
-  } catch (error) {
-    console.error(error);
-    return sendError(c, 500, "Internal Server Error", error);
-  }
-};
-
 const codeSubmit = async (c: Context) => {
   try {
     const { assessmentId, email, timer } = await c.req.json();
@@ -505,8 +335,8 @@ const codeSubmit = async (c: Context) => {
       return sendError(c, 404, "Submission not found");
     }
 
-    const grades = getScore(
-      [], // @ts-ignore
+    const grades = calculateCodeScore(
+      // @ts-expect-error - TS doesn't know that the obtainedGrades field is added in the schema
       submission?.submissions || [],
       assessment
     );
@@ -794,119 +624,6 @@ const disqualifyCandidate = async (c: Context) => {
   }
 };
 
-const getScore = (
-  mcqSubmissions: { mcqId: string; selectedOptions: string[] }[],
-  problemSubmissions: { problemId: string; results: any[] }[],
-  assessment: any
-) => {
-  let total = 0;
-  let mcq = [];
-  let problem = [];
-
-  for (const mcqSubmission of mcqSubmissions) {
-    let grade = 0;
-    const mcqObj = assessment.mcqs.find((mcq: any) => {
-      if (!mcq._id) return false;
-      return mcq._id.toString() === mcqSubmission.mcqId;
-    });
-
-    if (!mcqObj) continue;
-
-    if (mcqObj.type === "multiple") {
-      if (!mcqObj.mcq) continue;
-      if (mcqObj.mcq.correct === mcqSubmission.selectedOptions[0]) {
-        grade = mcqObj.grade;
-      }
-    }
-
-    if (mcqObj.type === "checkbox") {
-      if (!mcqObj.checkbox) continue;
-      const correct = mcqObj.checkbox.correct;
-      const selected = mcqSubmission.selectedOptions;
-
-      if (
-        correct.length === selected.length &&
-        correct.every((value: string) => selected.includes(value))
-      ) {
-        grade = mcqObj.grade;
-      }
-    }
-
-    mcq.push({
-      mcqId: mcqSubmission.mcqId,
-      obtainedMarks: grade,
-    });
-  }
-
-  for (const problemSubmission of problemSubmissions) {
-    let grade = 0;
-
-    const problemObj = assessment.problems.find(
-      (problem: any) =>
-        problem._id.toString() === problemSubmission.problemId.toString()
-    );
-
-    if (!problemObj) continue;
-    if (!assessment.grading) continue;
-
-    if (assessment.grading.type === "testcase") {
-      if (!assessment.grading.testcases) continue;
-
-      for (const testCase of problemObj.testCases) {
-        if (!testCase?._id?.toString()) continue;
-        const passed = problemSubmission.results.find(
-          (result: any) =>
-            result.caseId.toString() === testCase._id.toString() &&
-            result.passed
-        );
-        if (!passed) continue;
-        if (testCase.difficulty === "easy") {
-          grade += assessment.grading.testcases.easy;
-        } else if (testCase.difficulty === "medium") {
-          grade += assessment.grading.testcases.medium;
-        } else {
-          grade += assessment.grading.testcases.hard;
-        }
-      }
-    }
-
-    if (assessment.grading.type === "problem") {
-      const gradingProblemObj = assessment.grading.problem.find(
-        (p: any) =>
-          p.problemId?.toString() === problemSubmission.problemId.toString()
-      );
-
-      if (!gradingProblemObj) continue;
-
-      const allPassed = problemSubmission.results.every(
-        (result: any) => result.passed
-      );
-      if (allPassed) {
-        grade = gradingProblemObj.points;
-      }
-    }
-
-    problem.push({
-      problemId: problemSubmission.problemId,
-      obtainedMarks: grade,
-    });
-  }
-
-  mcq.forEach((m: any) => {
-    total += m.obtainedMarks;
-  });
-
-  problem.forEach((p: any) => {
-    total += p.obtainedMarks;
-  });
-
-  return {
-    mcq,
-    problem,
-    total,
-  };
-};
-
 const submitIndividualProblem = async (c: Context) => {
   try {
     const data = await c.req.json();
@@ -1065,8 +782,9 @@ getIoServer().then((server) => {
       await submission.save();
     });
 
-    socket.on("tab-change-mcq", async ({ assessmentId, email, mcq }) => {
-      if (!assessmentId || !email || !mcq) return;
+    socket.on("tab-change-mcq", async ({ assessmentId, email }) => {
+      if (!assessmentId || !email) return;
+      console.log("Received Tab Change Offence for MCQ Assessment");
 
       const submission = await MCQAssessmentSubmissions.findOne({
         email,
@@ -1138,11 +856,11 @@ getIoServer().then((server) => {
         submission.offenses = {};
       }
 
-      if (!submission?.offenses?.copyPaste?.mcq) {
-        submission.offenses.copyPaste = { mcq: 0 };
+      if (!submission?.offenses?.copyPaste) {
+        submission.offenses.copyPaste = 0;
       }
 
-      submission.offenses.copyPaste.mcq += 1;
+      submission.offenses.copyPaste += 1;
       await submission.save();
     });
 
@@ -1179,6 +897,25 @@ getIoServer().then((server) => {
         await submission.save();
       }
     );
+
+    socket.on("auto-save-mcq", async ({ assessmentId, email, submissions }) => {
+      if (!assessmentId || !email || !submissions) return;
+
+      const submission = await MCQAssessmentSubmissions.findOne({
+        email,
+        assessmentId,
+      });
+
+      if (!submission) return;
+
+      if (!submission.mcqSubmissions) {
+        submission.mcqSubmissions = new mongoose.Types.DocumentArray([]);
+      }
+
+      submission.mcqSubmissions = submissions;
+
+      await submission.save();
+    });
   });
 });
 
@@ -1197,7 +934,7 @@ const createMcqAssessment = async (c: Context) => {
 
     assessment.sections.forEach((section) => {
       section.questions.forEach((question) => {
-        totalScore += question.grade;
+        totalScore += question?.grade || 0;
       });
     });
 
@@ -1383,9 +1120,6 @@ const getCreatedMcqAssessments = async (c: Context) => {
   }
 };
 
-const getTakenMcqAssessments = async (c: Context) => {};
-const getTakenCodeAssessments = async (c: Context) => {};
-
 const verifyAccess = async (c: Context) => {
   try {
     const body = await c.req.json();
@@ -1502,7 +1236,7 @@ const verifyAccess = async (c: Context) => {
   }
 };
 
-const checkProgress = async (c: Context) => {
+const checkCodeProgress = async (c: Context) => {
   try {
     const body = await c.req.json();
 
@@ -1553,6 +1287,152 @@ const checkProgress = async (c: Context) => {
   }
 };
 
+const checkMcqProgress = async (c: Context) => {
+  try {
+    const body = await c.req.json();
+
+    const assessment = await MCQAssessment.findOne({
+      _id: body.assessmentId,
+    }).lean();
+
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    const submission = await MCQAssessmentSubmissions.findOne({
+      email: body.email,
+      assessmentId: body.assessmentId,
+    });
+
+    if (!submission) {
+      return sendSuccess(c, 200, "Submission not found", { exists: false });
+    }
+
+    if (submission.status === "completed") {
+      return sendSuccess(c, 200, "Submission completed", {
+        exists: false,
+        status: "completed",
+      });
+    }
+
+    return sendSuccess(c, 200, "Success", { assessment, submission });
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const submitMcqAssessment = async (c: Context) => {
+  try {
+    const { assessmentId, email, timer, assessmentSub } = await c.req.json();
+    const assessment = await MCQAssessment.findById(assessmentId).lean();
+
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    const submission = await MCQAssessmentSubmissions.findOne({
+      assessmentId,
+      email,
+    });
+
+    const receivedSub: IMCQAssessmentSubmission = assessmentSub;
+
+    if (!submission || !receivedSub) {
+      return sendError(c, 404, "Submission not found");
+    }
+
+    const offenses = submission.offenses;
+
+    const getCheatingStatus = (offenses: any) => {
+      if (!offenses) {
+        return "No Copying";
+      }
+
+      if (offenses.tabChange > 5) {
+        return "Heavy Copying";
+      }
+
+      return "No Copying";
+    };
+
+    // @ts-expect-error - TS doesn't allow conversion of mongoose document to object
+    const grades = calculateMCQScore(receivedSub.mcqSubmissions!, assessment);
+
+    // @ts-expect-error - TS doesn't allow conversion of mongoose document to object
+    submission.obtainedGrades = grades;
+
+    submission.timer = timer;
+    submission.status = "completed";
+    submission.cheatingStatus = getCheatingStatus(offenses);
+
+    await submission.save();
+
+    return sendSuccess(c, 200, "Success", grades);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const getTakenMcqAssessments = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+
+    const submissions = await MCQAssessmentSubmissions.find({
+      email: auth?.email,
+    });
+
+    const takenAssessments = [];
+
+    for (const submission of submissions) {
+      const assessment = await MCQAssessment.findById(submission.assessmentId);
+      if (!assessment) {
+        continue;
+      }
+
+      takenAssessments.push({
+        assessment,
+        submission,
+      });
+    }
+
+    return sendSuccess(c, 200, "Success", takenAssessments);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const getTakenCodeAssessments = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+
+    const submissions = await CodeAssessmentSubmissions.find({
+      email: auth?.email,
+    });
+
+    const takenAssessments = [];
+
+    for (const submission of submissions) {
+      const assessment = await CodeAssessment.findById(submission.assessmentId);
+      if (!assessment) {
+        continue;
+      }
+
+      takenAssessments.push({
+        assessment,
+        submission,
+      });
+    }
+
+    return sendSuccess(c, 200, "Success", takenAssessments);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
 export default {
   getAssessments,
   getMyMcqAssessments,
@@ -1566,7 +1446,7 @@ export default {
   deleteAssessment,
   qualifyCandidate,
   disqualifyCandidate,
-  checkProgress,
+  checkCodeProgress,
   codeSubmit,
   submitIndividualProblem,
   checkProblemDependencies,
@@ -1584,5 +1464,8 @@ export default {
   getTakenCodeAssessments,
 
   verifyAccess,
-  submitAssessment,
+
+  checkMcqProgress,
+
+  submitMcqAssessment,
 };
