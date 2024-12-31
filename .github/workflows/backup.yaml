@@ -2,9 +2,9 @@ name: Backup
 
 on:
   schedule:
-    - cron: '21 15 * * *'  # Schedule: Runs at 15:21 UTC every day
+    - cron: "21 15 * * *" # Schedule: Runs at 15:21 UTC every day
   push:
-    branches: [main, dev] 
+    branches: [main, dev]
 
 jobs:
   backup:
@@ -22,10 +22,9 @@ jobs:
       ENV_TEST: ${{ secrets.ENV_TEST }}
 
     steps:
-      - name: Checkout Code  
+      - name: Checkout Code
         uses: actions/checkout@v2
-        with:
-          path: backups  # Ensures code is checked out into the 'backups' folder
+        # Remove the path: backups here
 
       - name: Install mongo-tools
         run: |
@@ -35,7 +34,7 @@ jobs:
           echo "MongoDB tools installed successfully."
 
       - name: Install Node.js and dependencies
-        working-directory: backups
+        working-directory: backups # This will now point to the correct backups directory
         run: |
           echo "Installing Node.js..."
           sudo apt-get install -y nodejs
@@ -46,8 +45,8 @@ jobs:
           echo "npm dependencies installed."
 
       - name: Run backup
+        working-directory: backups # Add this to ensure we're in the right directory
         run: |
           echo "Starting backup process..."
-          cd backups
           node makeBackup.js
           echo "Backup process completed."
