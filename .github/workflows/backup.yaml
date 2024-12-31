@@ -3,8 +3,8 @@ name: Backup
 on:
   schedule:
     - cron: "21 15 * * *" # Schedule: Runs at 15:21 UTC every day
-  push:
-    branches: [main, dev]
+  # push:
+  #   branches: [main, dev]
 
 jobs:
   backup:
@@ -24,7 +24,6 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
-        # Remove the path: backups here
 
       - name: Install mongo-tools
         run: |
@@ -34,7 +33,7 @@ jobs:
           echo "MongoDB tools installed successfully."
 
       - name: Install Node.js and dependencies
-        working-directory: backups # This will now point to the correct backups directory
+        working-directory: backups # 
         run: |
           echo "Installing Node.js..."
           sudo apt-get install -y nodejs
@@ -42,10 +41,10 @@ jobs:
 
           echo "Installing npm dependencies..."
           npm i
-          echo "npm dependencies installed."
+          echo "npm dependencies insThis will now point to the correct backups directorytalled."
 
       - name: Run backup
-        working-directory: backups # Add this to ensure we're in the right directory
+        working-directory: backups
         run: |
           echo "Starting backup process..."
           node makeBackup.js
