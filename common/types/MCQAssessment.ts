@@ -70,7 +70,7 @@ interface MCQAssessment {
   createdAt: Date;
 }
 
-export {
+export type {
   MCQAssessment,
   Candidate,
   Section,

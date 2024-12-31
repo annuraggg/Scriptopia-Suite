@@ -67,8 +67,7 @@ const Monaco = ({
       if (e.changes.length > 0) {
         const change = e.changes[0];
         if (change.text) {
-          // Get the current editor content excluding the pasted text
-          const fullContent = modelRef.current.getValue();
+          // Get the current editor content excluding the pasted texts
           const startPosition = modelRef.current.getPositionAt(change.rangeOffset);
           const endPosition = modelRef.current.getPositionAt(change.rangeOffset + change.text.length);
           

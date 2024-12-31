@@ -3,8 +3,8 @@ name: Backup
 on:
   schedule:
     - cron: '21 15 * * *'  # Schedule: Runs at 15:21 UTC every day
-  # push:
-  #   branches: [main, dev] 
+  push:
+    branches: [main, dev] 
 
 jobs:
   backup:
@@ -35,13 +35,13 @@ jobs:
           echo "MongoDB tools installed successfully."
 
       - name: Install Node.js and dependencies
+      - working-directory: backups
         run: |
           echo "Installing Node.js..."
           sudo apt-get install -y nodejs
           echo "Node.js installed."
 
           echo "Installing npm dependencies..."
-          cd backups
           npm ci
           echo "npm dependencies installed."
 

@@ -117,9 +117,6 @@ const Assess = () => {
     const checkExistingProgress = async () => {
       const credentials = getStorageCredentials();
       const assessmentId = getAssessmentIdFromUrl();
-
-      console.log("Assessment ID: ", assessmentId);
-
       if (!credentials?.email || !assessmentId) return;
 
       try {
@@ -129,7 +126,6 @@ const Assess = () => {
           assessmentId,
         });
 
-        console.log(response.data.data);
         if (response.data?.data?.exists === false) return;
 
         const { submission, assessment: assessmentData } = response.data.data;

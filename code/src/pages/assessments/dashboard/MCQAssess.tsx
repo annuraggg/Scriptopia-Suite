@@ -14,7 +14,6 @@ import { toast } from "sonner";
 import ax from "@/config/axios";
 import { useAuth } from "@clerk/clerk-react";
 import { MCQAssessment } from "@shared-types/MCQAssessment";
-import DeleteToast from "@/components/ui/confirm-delete";
 import confirmDelete from "@/components/ui/confirm-delete";
 
 const calculateStatus = (createdAssessment: MCQAssessment) => {

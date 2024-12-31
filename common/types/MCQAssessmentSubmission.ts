@@ -22,18 +22,6 @@ interface McqSubmissionSchema {
   selectedOptions: string[]; // Required
 }
 
-interface ResultSchema {
-  _id?: string;
-  caseNo: number;
-  caseId: string;
-  output?: string; // Optional, default is " "
-  isSample: boolean;
-  memory: number;
-  time: number;
-  passed: boolean;
-  console?: string;
-}
-
 interface ObtainedGradeSchema {
   mcq?: {
     mcqId: string;

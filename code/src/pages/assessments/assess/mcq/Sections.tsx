@@ -16,7 +16,7 @@ import {
   QuestionType,
 } from "@shared-types/MCQAssessment";
 import { MCQAssessmentSubmissionsSchema } from "@shared-types/MCQAssessmentSubmission";
-import {CheckboxGroup, Checkbox} from "@nextui-org/checkbox";
+import { CheckboxGroup, Checkbox } from "@nextui-org/checkbox";
 
 interface QuestionCardProps {
   question: Question;
@@ -45,7 +45,6 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       if (Array.isArray(value)) return;
 
       submissions[index].selectedOptions[blankIndex] = value;
-      console.log(submissions[index]);
       setAssessmentSub({ ...assessmentSub, mcqSubmissions: submissions });
 
       return;
@@ -55,7 +54,6 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       if (Array.isArray(value)) return;
       if (blankIndex === undefined) return;
 
-      console.log("Matching", value, blankIndex);
       submissions[index].selectedOptions[blankIndex] = value;
       setAssessmentSub({ ...assessmentSub, mcqSubmissions: submissions });
 
@@ -84,6 +82,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       case "multi-select":
         return (
           <CheckboxGroup
+            label="Answer"
             value={currentAnswer as string[]}
             onValueChange={(e) => handleAnswerChange(e, question._id!)}
           >
@@ -98,6 +97,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       case "true-false":
         return (
           <RadioGroup
+            label="Answer"
             value={currentAnswer as string}
             onChange={(e) => handleAnswerChange(e.target.value, question._id!)}
           >
@@ -112,6 +112,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             key={index}
             placeholder={`Blank ${index + 1}`}
             value={currentAnswer[index]}
+            label="Answer"
             onChange={(e) =>
               handleAnswerChange(e.target.value, question._id!, index)
             }
@@ -125,6 +126,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             <Textarea
               placeholder="Your answer..."
               value={currentAnswer as string}
+              label="Answer"
               minRows={3}
               onChange={(e) =>
                 handleAnswerChange(e.target.value, question._id!)
@@ -158,6 +160,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             <Textarea
               placeholder="Your detailed answer..."
               value={currentAnswer as string}
+              label="Answer"
               minRows={6}
               onChange={(e) =>
                 handleAnswerChange(e.target.value, question._id!)
@@ -193,15 +196,13 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             <Select
               placeholder="Select"
               className="w-[30%]"
+              label="Answer"
               selectedKeys={[currentAnswer[index]]}
-              onChange={(e) => {
-                {
-                  console.log(currentAnswer[index]);
-                  handleAnswerChange(e.target.value, question._id!, index);
-                }
-              }}
+              onChange={(e) =>
+                handleAnswerChange(e.target.value, question._id!, index)
+              }
             >
-              {question?.options!.map((opt, i) => (
+              {question?.options!.map((opt) => (
                 <SelectItem
                   key={opt.matchingPairText!}
                   value={opt.matchingPairText}
@@ -218,6 +219,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           <RadioGroup
             value={currentAnswer as string}
             onChange={(e) => handleAnswerChange(e.target.value, question._id!)}
+            label="Answer"
           >
             {question.options?.map((option, index) => (
               <Radio key={index} value={option.option}>
@@ -233,14 +235,11 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             <Textarea
               placeholder="Your answer..."
               value={currentAnswer as string}
+              label="Answer"
               minRows={4}
               onChange={(e) =>
                 handleAnswerChange(e.target.value, question._id!)
               }
-            />
-            <Input
-              placeholder="Enter the email of the peer reviewer"
-              className="mt-4"
             />
           </div>
         );
@@ -255,6 +254,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             />
             <Textarea
               className="mt-4"
+              label="Answer"
               placeholder="Your answer..."
               value={currentAnswer as string}
               minRows={4}
@@ -277,6 +277,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               className="mt-4"
               placeholder="Your answer..."
               value={currentAnswer as string}
+              label="Answer"
               minRows={4}
               onChange={(e) =>
                 handleAnswerChange(e.target.value, question._id!)
@@ -290,6 +291,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           <Textarea
             placeholder="Your answer..."
             value={currentAnswer as string}
+            label="Answer"
             minRows={4}
             onChange={(e) => handleAnswerChange(e.target.value, question._id!)}
           />
@@ -352,7 +354,7 @@ const Sections = ({
   setAssessmentSub,
 }: SectionsProps) => {
   const getCurrentAnswer = (question: Question) => {
-    const sub = assessmentSub.mcqSubmissions?.find(
+    const sub = assessmentSub?.mcqSubmissions?.find(
       (sub) => sub.mcqId.toString() === question._id?.toString()
     );
 

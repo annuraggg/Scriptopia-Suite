@@ -50,7 +50,6 @@ const Assess = () => {
     if (!assessment || currentScreen === "start" || !assessmentStarted) return;
 
     const autoSaveInterval = setInterval(() => {
-      console.log("AutoSave Interval");
       const submissions = assessmentSub?.mcqSubmissions || [];
       socket.emit("auto-save-mcq", {
         assessmentId: assessment._id,
@@ -156,11 +155,9 @@ const Assess = () => {
           assessmentId,
         });
 
-        console.log(response.data.data);
         if (response.data?.data?.exists === false) return;
 
         const { submission, assessment: assessmentData } = response.data.data;
-        console.log(response.data.data);
         setAssessmentSub(submission);
         setTimer(submission.timer);
         setAssessment(assessmentData);
@@ -183,6 +180,7 @@ const Assess = () => {
         assessmentId: assessment._id,
         name,
         email,
+        mcqSubmissions: [],
         timer: assessment.timeLimit * 60,
       };
 
@@ -207,8 +205,8 @@ const Assess = () => {
     return credTrack;
   };
 
-  const [assessmentCompleted, setAssessmentCompleted] = useState(false); // @ts-expect-error
-  const [assessmentSubmitted, setAssessmentSubmitted] = useState(false); // @ts-expect-error
+  const [assessmentCompleted, setAssessmentCompleted] = useState(false);
+  const [assessmentSubmitted, setAssessmentSubmitted] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false); // @ts-expect-error
   const { isOpen, onOpen, onOpenChange } = useDisclosure(); // @ts-expect-error
   const {

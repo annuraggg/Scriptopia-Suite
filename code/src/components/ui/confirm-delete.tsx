@@ -1,5 +1,4 @@
-import { Button } from "@nextui-org/react";
-import { CircleAlert, TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 
 const confirmDelete = (action: () => Promise<void>) => {

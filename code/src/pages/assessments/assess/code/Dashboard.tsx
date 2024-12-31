@@ -172,8 +172,6 @@ const CodeDashboard: React.FC<CodeDashboardProps> = ({
       if (!assessment) return;
       if (!currentProblem) return;
 
-      console.log("Pasted text:", pastedText);
-
       if (assessment.security.copyPasteDetection) {
         socket.emit("external-paste-code", {
           assessmentId: assessment._id,
@@ -211,7 +209,6 @@ const CodeDashboard: React.FC<CodeDashboardProps> = ({
           sessionUrl: window?.sessionRewind?.getSessionUrl(),
         });
 
-        console.log("Session started");
         setSessionPlaybackStarted(true);
       }
     };

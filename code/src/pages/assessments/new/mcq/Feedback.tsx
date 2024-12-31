@@ -1,7 +1,6 @@
 import { Button, Input } from "@nextui-org/react";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { toast } from "sonner";
 
 const Feedback = ({
   feedbackEmail,

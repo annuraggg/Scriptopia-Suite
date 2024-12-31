@@ -19,9 +19,6 @@ const Problem = lazy(() => import("./pages/problems/problem/Problem"));
 const NewProblem = lazy(() => import("./pages/problems/new/NewProblem"));
 const NewMCQ = lazy(() => import("./pages/assessments/new/mcq/New"));
 const NewCode = lazy(() => import("./pages/assessments/new/code/New"));
-const MainAssessment = lazy(
-  () => import("./pages/assessments/assess/new-old/Assessment")
-);
 //  const AssessmentCurrent = lazy(
 //    () => import("./pages/assessments/assess/CodeDashboard")
 //  );
