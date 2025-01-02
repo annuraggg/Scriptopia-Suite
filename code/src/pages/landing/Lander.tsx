@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "./Navbar";
-import { BackgroundBeams } from "@/components/ui/background-beams";
 import { MacbookScroll } from "@/components/ui/macbook-scroll";
 import { SparklesCore } from "@/components/ui/sparkles";
 
@@ -39,9 +38,47 @@ const Lander = () => {
     },
   ];
 
+  const featuresMain = [
+    {
+      icon: <Code2 className="w-6 h-6 text-teal-500" />,
+      title: "Multi-Language Support",
+      description:
+        "Write and test code in multiple programming languages with full syntax highlighting and intelligent autocomplete.",
+    },
+    {
+      icon: <Brain className="w-6 h-6 text-purple-500" />,
+      title: "Smart Assessment",
+      description:
+        "Comprehensive evaluation system that tests both theoretical knowledge and practical coding skills.",
+    },
+    {
+      icon: <Trophy className="w-6 h-6 text-amber-500" />,
+      title: "Competitive Challenges",
+      description:
+        "Regular coding competitions and challenges to test your skills against other developers worldwide.",
+    },
+    {
+      icon: <Code2 className="w-6 h-6 text-emerald-500" />,
+      title: "Problem Solving",
+      description:
+        "Extensive collection of coding problems across different difficulty levels to strengthen your programming skills.",
+    },
+    {
+      icon: <Brain className="w-6 h-6 text-blue-500" />,
+      title: "Interview Preparation",
+      description:
+        "Carefully curated problems and assessments to help you prepare for technical interviews.",
+    },
+    {
+      icon: <Trophy className="w-6 h-6 text-rose-500" />,
+      title: "Skill Development",
+      description:
+        "Track your progress and improve your coding abilities through regular practice and challenges.",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background overflow-hidden">
-      <BackgroundBeams />
       <Navbar />
 
       {/* Hero Section */}
@@ -104,6 +141,7 @@ const Lander = () => {
               size="lg"
               variant="outline"
               className="border-teal-500 text-teal-500 hover:bg-teal-500/10"
+              onClick={() => (window.location.href = "https://docs.scriptopia.tech")}
             >
               View Documentation
             </Button>
@@ -112,7 +150,7 @@ const Lander = () => {
       </section>
 
       {/* MacBook Preview Section */}
-      <section className="min-h-[200vh] relative">
+      <section className="max-h-[120vh] relative">
         <MacbookScroll src="./lander1.png" showGradient={true} />
       </section>
 
@@ -131,40 +169,35 @@ const Lander = () => {
               provide all the tools you need to succeed.
             </p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[...Array(6)].map((_, i) => (
+            {featuresMain.map((feature, i) => (
               <Card
                 key={i}
                 className="bg-background/60 backdrop-blur-lg border-muted transition-all duration-300 hover:scale-105"
               >
                 <CardContent className="p-6">
                   <div className="w-12 h-12 rounded-full bg-teal-500/10 flex items-center justify-center mb-4">
-                    <Code2 className="w-6 h-6 text-teal-500" />
+                    {feature.icon}
                   </div>
                   <h3 className="text-xl font-semibold mb-2">
-                    Feature {i + 1}
+                    {feature.title}
                   </h3>
-                  <p className="text-gray-400">
-                    Detailed description of the feature and its benefits for
-                    users.
-                  </p>
+                  <p className="text-gray-400">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
-          </div>
+          </div>{" "}
         </div>
       </section>
 
       {/* CTA Section */}
       <section className="px-4 py-24 text-center relative overflow-hidden">
-        <BackgroundBeams className="opacity-20" />
         <div className="relative z-10 max-w-4xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-bold mb-8">
             Ready to start coding?
           </h2>
           <p className="text-xl text-gray-400 mb-12">
-            Join thousands of developers who are already using our platform to
+            Join developers who are already using our platform to
             improve their coding skills.
           </p>
           <Button
