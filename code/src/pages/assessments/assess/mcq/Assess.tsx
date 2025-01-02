@@ -150,7 +150,7 @@ const Assess = () => {
 
       try {
         const axios = ax();
-        const response = await axios.post("/assessments/mcq/checkProgress", {
+        const response = await axios.post("/assessments/mcq/check-progress", {
           email: credentials.email,
           assessmentId,
         });
@@ -245,14 +245,14 @@ const Assess = () => {
   };
 
   // Early return for completed assessment
-  if (assessmentCompleted) {
-    return (
-      <Submit
-        assessmentSubmitted={assessmentSubmitted}
-        submitSuccess={submitSuccess}
-      />
-    );
-  }
+  // if (assessmentCompleted) {
+  //   return (
+  //     <Submit
+  //       assessmentSubmitted={assessmentSubmitted}
+  //       submitSuccess={submitSuccess}
+  //     />
+  //   );
+  // }
 
   return (
     <div className="h-screen">

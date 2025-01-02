@@ -3,7 +3,7 @@ import checkPermission from "../../../middlewares/checkPermission";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import logger from "../../../utils/logger";
 import { Context } from "hono";
-import assessmentController from "../../coding/assessmentController";
+import assessmentController from "../../code/assessmentController";
 
 const getDrives = async (c: Context) => {
   try {

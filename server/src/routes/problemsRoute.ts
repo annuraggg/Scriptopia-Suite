@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import problemController from "../controllers/coding/problemController";
-import assessmentController from "../controllers/coding/assessmentController";
+import problemController from "../controllers/code/problemController";
+import assessmentController from "../controllers/code/assessmentController";
 
 const app = new Hono();
 

@@ -1,23 +1,23 @@
-import ViewUserAssessmentTop from "./ViewUserAssessmentTop";
-import ViewUserAssessmentBottom from "./ViewUserAssessmentBottom";
+import Top from "./Top";
+import Bottom from "./Bottom";
 import { motion } from "framer-motion";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { useEffect, useState } from "react";
-import { Assessment } from "@shared-types/Assessment";
-import { AssessmentSubmissionsSchema as IAssessSub } from "@shared-types/AssessmentSubmission";
+import { MCQAssessment } from "@shared-types/MCQAssessment";
+import { MCQAssessmentSubmissionsSchema as IAssessSub } from "@shared-types/MCQAssessmentSubmission";
 import { toast } from "sonner";
 
-const ViewUserAssessment = () => {
-  const [assessment, setAssessment] = useState<Assessment>({} as Assessment);
+const ViewAssessment = () => {
+  const [assessment, setAssessment] = useState<MCQAssessment>({} as MCQAssessment);
   const [submission, setSubmission] = useState<IAssessSub>({} as IAssessSub);
 
   const { getToken } = useAuth();
 
   useEffect(() => {
     const axios = ax(getToken);
-    const submissionId = window.location.pathname.split("/")[4];
-    const assessmentId = window.location.pathname.split("/")[2];
+    const assessmentId = window.location.pathname.split("/")[3];
+    const submissionId = window.location.pathname.split("/")[5];
 
     axios
       .get(`/assessments/${assessmentId}/get-submissions/${submissionId}`)
@@ -38,13 +38,10 @@ const ViewUserAssessment = () => {
       transition={{ duration: 0.5 }}
       className="w-full px-10 h-screen flex flex-col"
     >
-      <ViewUserAssessmentTop submission={submission} assessment={assessment} />
-      <ViewUserAssessmentBottom
-        submission={submission}
-        assessment={assessment}
-      />
+      <Top submission={submission} assessment={assessment} />
+      <Bottom submission={submission} assessment={assessment} />
     </motion.div>
   );
 };
 
-export default ViewUserAssessment;
+export default ViewAssessment;

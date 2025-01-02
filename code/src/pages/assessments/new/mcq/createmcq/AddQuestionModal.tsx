@@ -51,6 +51,7 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
       setMaxLimit(editingQuestion.maxCharactersAllowed || 70);
       setFillInBlanksAnswers([]);
       setFillInBlanksAnswers(editingQuestion.fillInBlankAnswers || []);
+      setSelectedCorrectOption(editingQuestion.correct || "");
 
       const correctOption = editingQuestion.options?.find(
         (opt) => opt.isCorrect
@@ -142,10 +143,14 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
         ];
         break;
       case "short-answer":
+        newQuestion.correct = selectedCorrectOption;
+        newQuestion.maxCharactersAllowed = maxLimit;
+        break;
       case "long-answer":
         newQuestion.maxCharactersAllowed = maxLimit;
         break;
       case "visual":
+        newQuestion.correct = selectedCorrectOption;
         newQuestion.imageSource = imageUrl;
         break;
       case "fill-in-blanks":
@@ -224,6 +229,26 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
         );
 
       case "short-answer":
+        return (
+          <>
+            <div className="text-sm font-medium">Enter the correct answer:</div>
+            <Input
+              label="Correct Answer"
+              placeholder="Enter correct answer"
+              value={selectedCorrectOption}
+              onChange={(e) => setSelectedCorrectOption(e.target.value)}
+              className="mt-4"
+            />
+            <Input
+              type="number"
+              label="Maximum Character Limit"
+              value={maxLimit.toString()}
+              onChange={(e) => setMaxLimit(Number(e.target.value))}
+              className="mt-4"
+            />
+          </>
+        );
+
       case "long-answer":
         return (
           <Input
@@ -237,7 +262,14 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
 
       case "visual":
         return (
-          <div className="mt-4">
+          <div className="">
+            <Input
+              label="Correct Answer"
+              placeholder="Enter correct answer"
+              value={selectedCorrectOption}
+              onChange={(e) => setSelectedCorrectOption(e.target.value)}
+              className="mb-4"
+            />
             <input
               type="file"
               accept="image/*"

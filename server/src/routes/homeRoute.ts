@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import homeController from "../controllers/coding/homeController";
+import homeController from "../controllers/code/homeController";
 
 const app = new Hono();
 

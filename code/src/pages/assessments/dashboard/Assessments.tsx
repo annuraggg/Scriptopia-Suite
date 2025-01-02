@@ -35,7 +35,6 @@ const Assessments = () => {
   });
 
   useEffect(() => {
-    console.log(data[0].data)
     const hash = window.location.hash;
     switch (hash) {
       case "#taken":
@@ -50,11 +49,18 @@ const Assessments = () => {
       default:
         setActive(0);
     }
-  }, [data]);
+  }, []);
 
-  if (data[0].isLoading || data[1].isLoading || data[2].isLoading)
-    return <Loader />;
-  if (data[0].error || data[1].error || data[2].error) return <ErrorPage />;
+  const renderContent = () => {
+    if (data[active].isLoading) return <Loader />;
+    if (data[active].error) return <ErrorPage />;
+    if (active === 0)
+      return <AssessmentsTaken takenAssessments={data[0]?.data.data || []} />;
+    if (active === 1)
+      return <MCQAssess createdAssessments={data[1]?.data.data || []} />;
+    if (active === 2)
+      return <CodeAssess createdAssessments={data[2]?.data.data || []} />;
+  };
 
   return (
     <motion.div
@@ -65,15 +71,7 @@ const Assessments = () => {
     >
       <div className="h-full flex gap-5">
         <Sidebar active={active} setActive={setActive} />
-        {active === 0 && (
-          <AssessmentsTaken takenAssessments={data[0]?.data.data || []} />
-        )}
-        {active === 1 && (
-          <MCQAssess createdAssessments={data[1]?.data.data || []} />
-        )}
-        {active === 2 && (
-          <CodeAssess createdAssessments={data[2]?.data.data || []} />
-        )}
+        {renderContent()}
       </div>
     </motion.div>
   );

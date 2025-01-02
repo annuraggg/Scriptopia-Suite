@@ -30,7 +30,7 @@ const ViewAssessment = () => {
       const id = window.location.pathname.split("/")[2];
       const axios = ax(getToken);
       axios
-        .get(`/assessments/view/${id}`)
+        .get(`/assessments/${id}/get-submissions`)
         .then((res) => {
           setAssessmentsSubmissions(res?.data?.data?.submissions);
           setTotalSubmissions(res?.data?.data?.totalSubmissions);

@@ -4,7 +4,7 @@ import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import logger from "../../../utils/logger";
 import { Context } from "hono";
 import Organization from "@/models/Organization";
-import assessmentController from "@/controllers/coding/assessmentController";
+import assessmentController from "@/controllers/code/assessmentController";
 import mongoose from "mongoose";
 import clerkClient from "@/config/clerk";
 import { AuditLog } from "@shared-types/Organization";

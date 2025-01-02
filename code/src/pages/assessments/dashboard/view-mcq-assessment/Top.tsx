@@ -7,15 +7,15 @@ import {
   ArrowLeftRight,
   Play,
 } from "lucide-react";
-import { Assessment } from "@shared-types/Assessment";
-import { AssessmentSubmissionsSchema as IAssessSub } from "@shared-types/AssessmentSubmission";
+import { MCQAssessment } from "@shared-types/MCQAssessment";
+import { MCQAssessmentSubmissionsSchema as IAssessSub } from "@shared-types/MCQAssessmentSubmission";
 
 const ViewUserAssessmentTop = ({
   submission,
   assessment,
 }: {
   submission: IAssessSub;
-  assessment: Assessment;
+  assessment: MCQAssessment;
 }) => {
   const getTimeTaken = () => {
     const totalTime = assessment?.timeLimit * 60;
@@ -28,14 +28,14 @@ const ViewUserAssessmentTop = ({
   };
 
   const getCodeCompletion = () => {
-    const totalQuestions = assessment?.mcqs?.length || 0;
+    const totalQuestions = assessment?.sections?.length || 0;
     const completedQuestions = submission?.mcqSubmissions?.length ?? 0;
     const percentage = (completedQuestions / totalQuestions) * 100;
     return `${percentage}%`;
   };
 
   const getMCQCompletion = () => {
-    const totalQuestions = assessment?.mcqs?.length || 0;
+    const totalQuestions = assessment?.sections?.length || 0;
     const completedQuestions = submission?.mcqSubmissions?.length ?? 0;
     const percentage = (completedQuestions / totalQuestions) * 100;
     return `${percentage}%`;
@@ -68,30 +68,6 @@ const ViewUserAssessmentTop = ({
     return totalSwitches;
   };
 
-  const Cards = [
-    {
-      title: "Time Taken",
-      icon: Clock,
-      value: getTimeTaken(),
-      color: "text-blue-500",
-      visible: true,
-    },
-    {
-      title: "Code Completion",
-      icon: CodeXml,
-      value: getCodeCompletion(),
-      color: "text-green-500",
-      visible: assessment?.problems?.length > 0,
-    },
-    {
-      title: "MCQ Completion",
-      icon: SquareStack,
-      value: getMCQCompletion(),
-      color: "text-yellow-500",
-      visible: assessment?.mcqs?.length > 0,
-    },
-  ];
-
   return (
     <div className="flex flex-col w-full h-fit gap-3">
       <div className="w-full flex flex-row gap-3">
@@ -109,20 +85,16 @@ const ViewUserAssessmentTop = ({
             </p>
           </CardBody>
         </Card>
-        {Cards?.map((card, index) => (
-          <Card
-            key={index}
-            className={`py-3 h-fit w-56 ${card?.visible ? "w-full" : "hidden"}`}
-          >
-            <CardHeader className="text-center flex justify-center text-gray-400">
-              {card?.title}
-            </CardHeader>
-            <CardBody className="flex justify-center items-center gap-2 flex-row">
-              <card.icon size={20} className={`${card?.color}`} />
-              <p>{card?.value}</p>
-            </CardBody>
-          </Card>
-        ))}
+
+        <Card className={`py-3 h-fit w-full`}>
+          <CardHeader className="text-center flex justify-center text-gray-400">
+            Time Taken
+          </CardHeader>
+          <CardBody className="flex justify-center items-center gap-2 flex-row">
+            <Clock size={20} className={`text-blue-500`} />
+            <p>{getTimeTaken()}</p>
+          </CardBody>
+        </Card>
       </div>
       <div className="w-full h-40 flex flex-row gap-3">
         <Card className="h-40 w-full">
@@ -163,8 +135,9 @@ const ViewUserAssessmentTop = ({
               </div>
               <p
                 className={`text-smml-[90px]
-              ${calculateTotalCopies() === 0 ? "text-green-500" : "text-red-500"
-                  }
+              ${
+                calculateTotalCopies() === 0 ? "text-green-500" : "text-red-500"
+              }
                 `}
               >
                 {calculateTotalCopies() === 0 ? "NO" : calculateTotalCopies()}
@@ -177,10 +150,11 @@ const ViewUserAssessmentTop = ({
               </div>
               <p
                 className={`text-sm  ml-[68px]
-              ${calculateTotalWindowSwitch() === 0
-                    ? "text-green-500"
-                    : "text-red-500"
-                  }
+              ${
+                calculateTotalWindowSwitch() === 0
+                  ? "text-green-500"
+                  : "text-red-500"
+              }
                 `}
               >
                 {calculateTotalWindowSwitch() === 0
@@ -199,21 +173,22 @@ const ViewUserAssessmentTop = ({
             <CardBody className="flex justify-center items-center pb-5">
               <p
                 className={`text-xl 
-              ${assessment?.passingPercentage <
-                    getPercentage(
-                      submission?.obtainedGrades?.total,
-                      assessment?.obtainableScore
-                    )
-                    ? "text-green-500"
-                    : "text-red-500"
-                  }
+              ${
+                assessment?.passingPercentage <
+                getPercentage(
+                  submission?.obtainedGrades?.total,
+                  assessment?.obtainableScore
+                )
+                  ? "text-green-500"
+                  : "text-red-500"
+              }
                 `}
               >
                 {assessment?.passingPercentage <
-                  getPercentage(
-                    submission?.obtainedGrades?.total,
-                    assessment?.obtainableScore
-                  )
+                getPercentage(
+                  submission?.obtainedGrades?.total,
+                  assessment?.obtainableScore
+                )
                   ? "PASSED"
                   : "FAILED"}
               </p>
@@ -226,7 +201,9 @@ const ViewUserAssessmentTop = ({
             </CardHeader>
             <CardBody
               className="flex justify-center items-center pb-5 cursor-pointer hover:bg-gray-700 hover:bg-opacity-20 transition-all duration-300"
-              onClick={() => window.open(submission?.sessionRewindUrl, "_blank")}
+              onClick={() =>
+                window.open(submission?.sessionRewindUrl, "_blank")
+              }
             >
               <Play size={20} />
             </CardBody>

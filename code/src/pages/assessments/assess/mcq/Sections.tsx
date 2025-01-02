@@ -44,7 +44,16 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       if (blankIndex === undefined) return;
       if (Array.isArray(value)) return;
 
-      submissions[index].selectedOptions[blankIndex] = value;
+      if (index === -1) {
+        submissions.push({
+          mcqId: id,
+          selectedOptions: [value],
+        });
+      }
+
+      const newIndex = index === -1 ? submissions.length - 1 : index;
+
+      submissions[newIndex].selectedOptions[blankIndex] = value;
       setAssessmentSub({ ...assessmentSub, mcqSubmissions: submissions });
 
       return;
@@ -54,7 +63,20 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       if (Array.isArray(value)) return;
       if (blankIndex === undefined) return;
 
-      submissions[index].selectedOptions[blankIndex] = value;
+      if (index === -1) {
+        submissions.push({
+          mcqId: id,
+          selectedOptions: [value],
+        });
+      }
+
+      const newIndex = index === -1 ? submissions.length - 1 : index;
+
+      let sub = submissions[newIndex]?.selectedOptions
+        ? submissions[newIndex].selectedOptions
+        : [];
+
+      sub[blankIndex] = value;
       setAssessmentSub({ ...assessmentSub, mcqSubmissions: submissions });
 
       return;

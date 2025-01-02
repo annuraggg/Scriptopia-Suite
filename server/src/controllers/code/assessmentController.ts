@@ -13,10 +13,8 @@ import { MCQAssessment as IMCQAssessment } from "@shared-types/MCQAssessment";
 import MCQAssessmentSubmissions from "@/models/MCQAssessmentSubmission";
 import CodeAssessmentSubmissions from "@/models/CodeAssessmentSubmission";
 import mongoose from "mongoose";
-
 import calculateMCQScore from "@/utils/calculateMCQScore";
 import calculateCodeScore from "@/utils/calculateCodeScore";
-
 import { MCQAssessmentSubmissionsSchema as IMCQAssessmentSubmission } from "@shared-types/MCQAssessmentSubmission";
 
 async function getIoServer() {
@@ -873,6 +871,186 @@ const getTakenCodeAssessments = async (c: Context) => {
   }
 };
 
+const getAssessmentSubmissions = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const id = c.req.param("id");
+    const postingId = c.req.param("postingId");
+
+    const queries = await Promise.all([
+      CodeAssessment.findById(id).lean(),
+      MCQAssessment.findById(id).lean(),
+    ]);
+
+    const assessment = queries[0] ? queries[0] : queries[1];
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    if (assessment.isEnterprise && postingId) {
+      if (assessment?.postingId?.toString() !== postingId) {
+        return sendError(c, 403, "Unauthorized");
+      }
+    } else {
+      if (assessment.author !== auth?.userId) {
+        return sendError(c, 403, "Unauthorized");
+      }
+    }
+
+    const subQueries = await Promise.all([
+      CodeAssessmentSubmissions.find({
+        assessmentId: id,
+      }).lean(),
+      MCQAssessmentSubmissions.find({
+        assessmentId: id,
+      }).lean(),
+    ]);
+
+    const submissions = subQueries[0].length ? subQueries[0] : subQueries[1];
+    const finalSubmissions = [];
+
+    console.log(submissions);
+
+    const getTimeUsed = (time: number) => {
+      const totalTime = assessment.timeLimit * 60;
+      const timeTaken = totalTime - time;
+      return timeTaken;
+    };
+
+    const checkPassed = async (submission: any) => {
+      const score = submission?.obtainedGrades?.total || 0;
+      const totalScore = assessment.obtainableScore;
+      const passingPercentage = assessment.passingPercentage;
+      const percentage = (score / totalScore) * 100;
+      return percentage >= passingPercentage;
+    };
+
+    if (!postingId) {
+      for (const submission of submissions) {
+        finalSubmissions.push({
+          _id: submission._id,
+          name: submission.name,
+          email: submission.email,
+          timer: getTimeUsed(submission.timer),
+          createdAt: submission.createdAt,
+          cheating: submission.cheatingStatus,
+          score: submission.obtainedGrades,
+          passed: await checkPassed(submission),
+        });
+      }
+    } else {
+      for (const submission of submissions) {
+        const posting = await Posting.findById(postingId).populate(
+          "candidates"
+        );
+
+        if (!posting) {
+          return sendError(c, 404, "Posting not found");
+        }
+
+        const candidate = (posting.candidates as unknown as Candidate[]).find(
+          (candidate) => candidate.email === submission.email
+        );
+
+        if (!candidate) {
+          return sendError(c, 404, "Candidate not found");
+        }
+
+        const status = candidate.appliedPostings.find(
+          (ap) => ap.postingId.toString() === postingId
+        )?.currentStepStatus;
+
+        finalSubmissions.push({
+          _id: submission._id,
+          name: submission.name,
+          email: submission.email,
+          timer: getTimeUsed(submission.timer),
+          createdAt: submission.createdAt,
+          cheating: submission.cheatingStatus,
+          score: submission.obtainedGrades,
+          passed: await checkPassed(submission),
+          status: status,
+        });
+      }
+    }
+
+    const qualified = finalSubmissions.filter((s) => s.passed === true).length;
+
+    const totalSubmissions = finalSubmissions.length;
+    const noCopy = finalSubmissions.filter(
+      (s) => s.cheating === "No Copying"
+    ).length;
+    const lightCopy = finalSubmissions.filter(
+      (s) => s.cheating === "Light Copying"
+    ).length;
+    const heavyCopy = finalSubmissions.filter(
+      (s) => s.cheating === "Heavy Copying"
+    ).length;
+
+    const resObj = {
+      totalSubmissions,
+      qualified,
+      cheating: {
+        no: noCopy,
+        light: lightCopy,
+        heavy: heavyCopy,
+      },
+      submissions: finalSubmissions,
+    };
+
+    return sendSuccess(c, 200, "Success", resObj);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const getAssessmentSubmission = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const id = c.req.param("id");
+    const submissionId = c.req.param("submissionId");
+    const postingId = c.req.param("postingId");
+
+    const queries = await Promise.all([
+      CodeAssessment.findById(id).lean(),
+      MCQAssessment.findById(id).lean(),
+    ]);
+
+    const assessment = queries[0] ? queries[0] : queries[1];
+
+    const subQueries = await Promise.all([
+      CodeAssessmentSubmissions.findById(submissionId).lean(),
+      MCQAssessmentSubmissions.findById(submissionId).lean(),
+    ]);
+
+    const submission = subQueries[0] ? subQueries[0] : subQueries[1];
+
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    if (assessment.isEnterprise && postingId) {
+      if (assessment?.postingId?.toString() !== postingId) {
+        return sendError(c, 403, "Unauthorized in Posts");
+      }
+    } else {
+      if (assessment.author !== auth?.userId) {
+        return sendError(c, 403, "Unauthorized");
+      }
+    }
+
+    if (!submission) {
+      return sendError(c, 404, "Submission not found");
+    }
+
+    return sendSuccess(c, 200, "Success", { submission, assessment });
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
 export default {
   checkCodeProgress,
   codeSubmit,
@@ -890,4 +1068,6 @@ export default {
   verifyAccess,
   checkMcqProgress,
   submitMcqAssessment,
+  getAssessmentSubmissions,
+  getAssessmentSubmission,
 };

@@ -19,13 +19,6 @@ const Problem = lazy(() => import("./pages/problems/problem/Problem"));
 const NewProblem = lazy(() => import("./pages/problems/new/NewProblem"));
 const NewMCQ = lazy(() => import("./pages/assessments/new/mcq/New"));
 const NewCode = lazy(() => import("./pages/assessments/new/code/New"));
-//  const AssessmentCurrent = lazy(
-//    () => import("./pages/assessments/assess/CodeDashboard")
-//  );
-//  const AssessmentCurrentProblem = lazy(
-//    () => import("./pages/assessments/assess/problem/Problem")
-//  );
-//  const Result = lazy(() => import("./pages/assessments/assess/result/Result"));
 const ViewAssessment = lazy(
   () => import("./pages/assessments/dashboard/ViewAssessment/ViewAssessment")
 );
@@ -40,6 +33,16 @@ const MCQAssessment = lazy(
 
 const CodeAssessment = lazy(
   () => import("./pages/assessments/assess/code/Assess")
+);
+
+const ViewMCQUserAssessment = lazy(
+  () =>
+    import("./pages/assessments/dashboard/view-mcq-assessment/ViewAssessment")
+);
+
+const ViewCodeUserAssessment = lazy(
+  () =>
+    import("./pages/assessments/dashboard/view-code-assessment/ViewAssessment")
 );
 
 const router = createBrowserRouter([
@@ -73,6 +76,16 @@ const router = createBrowserRouter([
         path: "assessments/:id/view/:cid",
         element: <ViewUserAssessment />,
       },
+
+      {
+        path: "assessments/m/:id/view/:cid",
+        element: <ViewMCQUserAssessment />,
+      },
+      {
+        path: "assessments/c/:id/view/:cid",
+        element: <ViewCodeUserAssessment />,
+      },
+
       {
         path: "assessments/new/mcq",
         element: <NewMCQ />,

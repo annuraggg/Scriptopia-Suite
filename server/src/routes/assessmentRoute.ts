@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import assessmentController from "../controllers/coding/assessmentController";
+import assessmentController from "../controllers/code/assessmentController";
 
 const app = new Hono();
 
@@ -60,12 +60,15 @@ app.delete("/code/:id", assessmentController.deleteCodeAssessment);
 app.post("/verify", assessmentController.verifyAccess);
 
 
-app.post("/code/checkProgress", assessmentController.checkCodeProgress);
+app.post("/code/check-progress", assessmentController.checkCodeProgress);
 app.post("/submit/code/individual", assessmentController.submitIndividualProblem);
 app.post("/submit/code", assessmentController.codeSubmit);
 
-app.post("/mcq/checkProgress", assessmentController.checkMcqProgress);
+app.post("/mcq/check-progress", assessmentController.checkMcqProgress);
 app.post("/submit/mcq", assessmentController.submitMcqAssessment);
+
+app.get("/:id/get-submissions", assessmentController.getAssessmentSubmissions);
+app.get("/:id/get-submissions/:submissionId", assessmentController.getAssessmentSubmission);
 
 
 
