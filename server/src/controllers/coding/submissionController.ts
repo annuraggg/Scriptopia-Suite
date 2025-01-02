@@ -1,7 +1,7 @@
 import { Context } from "hono";
 import { sendError, sendSuccess } from "../../utils/sendResponse";
 import Problem from "../../models/Problem";
-import { runCode as runCompilerCode } from "../../aws/runCode";
+import { runCode as runCompilerCode } from "../../utils/runCode";
 import Submission from "../../models/Submission";
 import User from "../../models/User";
 import { TestCase } from "@shared-types/Problem";

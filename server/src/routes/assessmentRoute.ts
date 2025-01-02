@@ -3,26 +3,6 @@ import assessmentController from "../controllers/coding/assessmentController";
 
 const app = new Hono();
 
-// app.get("/all/:page", assessmentController.getAssessments);
-
-// app.get("/mcq/created/:page", assessmentController.getMyMcqAssessments);
-// app.get("/code/created/:page", assessmentController.getMyCodeAssessments);
-// app.get("/mcqcode/created/:page", assessmentController.getMyMcqCodeAssessments);
-// app.get("/taken/:page", assessmentController.getTakenAssessments); // !CHANGE
-
-// app.get(
-//   "/mcq/created/:page/:enterprise/:postingId",
-//   assessmentController.getMyMcqAssessments
-// );
-// app.get(
-//   "/code/created/:page/:enterprise/:postingId",
-//   assessmentController.getMyCodeAssessments
-// );
-// app.get(
-//   "/mcqcode/created/:page/:enterprise/:postingId",
-//   assessmentController.getMyMcqCodeAssessments
-// );
-
 // // app.get("/taken/:page", assessmentController.getMyMcqCodeAssessments); // !CHANGE
 
 // app.get("/:id", assessmentController.getAssessment);
@@ -85,7 +65,6 @@ app.post("/submit/code/individual", assessmentController.submitIndividualProblem
 app.post("/submit/code", assessmentController.codeSubmit);
 
 app.post("/mcq/checkProgress", assessmentController.checkMcqProgress);
-app.post("/submit/mcq/individual", assessmentController.submitIndividualProblem);
 app.post("/submit/mcq", assessmentController.submitMcqAssessment);
 
 

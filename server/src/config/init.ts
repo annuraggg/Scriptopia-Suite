@@ -6,7 +6,6 @@ import { cors } from "hono/cors";
 import performanceMiddleware from "../middlewares/performanceMiddleware";
 import authMiddleware from "../middlewares/authMiddleware";
 
-import "./lemonSqueezy";
 import "../utils/logger";
 import "./db";
 import "./cache";
