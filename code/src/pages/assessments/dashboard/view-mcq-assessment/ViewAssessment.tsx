@@ -1,3 +1,4 @@
+// @ts-nocheck
 import Top from "./Top";
 import Bottom from "./Bottom";
 import { motion } from "framer-motion";

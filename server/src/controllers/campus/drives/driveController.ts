@@ -144,7 +144,7 @@ const updateAssessment = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const newAssessment = await assessmentController.createAssessment(c);
+    const newAssessment = await assessmentController.createCodeAssessment(c);
     const { assessmentDriveName, driveId } = await c.req.json();
 
     const resp = await newAssessment.json();

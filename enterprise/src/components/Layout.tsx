@@ -36,8 +36,8 @@ const Layout = () => {
     };
 
     checkMobile(); // Initial check
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   useEffect(() => {
@@ -59,7 +59,7 @@ const Layout = () => {
   const updateOrganization = (newOrganization: OWP) => {
     setOrganization(newOrganization);
     setRerender(!rerender);
-  }
+  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -70,7 +70,7 @@ const Layout = () => {
       <SignedIn>
         <div className="relative min-h-screen bg-background">
           {/* Mobile Header */}
-          <div className="sm:hidden fixed top-0 left-0 right-0 h-16 bg-background border-b z-40 px-5 flex items-center justify-between">
+          <div className="sm:hidden fixed top-0 left-0 right-0 h-16 border-b z-40 px-5 flex items-center justify-between">
             <img
               src="/logo.png"
               alt="logo"
@@ -97,7 +97,7 @@ const Layout = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 0.5 }}
                   exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black/50 z-40 sm:hidden"
+                  className="fixed inset-0 z-40 sm:hidden"
                   onClick={() => setIsMobileMenuOpen(false)}
                 />
               )}
@@ -111,7 +111,7 @@ const Layout = () => {
                   animate={{ x: 0 }}
                   exit={isMobile ? { x: -320 } : undefined}
                   transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-                  className={`${isMobile ? 'fixed' : 'relative'} z-50`}
+                  className={`${isMobile ? "fixed" : "relative"} z-50`}
                 >
                   <Sidebar
                     notifications={notifications}
@@ -124,7 +124,9 @@ const Layout = () => {
               )}
             </AnimatePresence>
 
-            <div className={`flex-1 min-h-screen ${isMobile ? 'pt-16' : ''} ${!isMobile ? '' : ''}`}>
+            <div
+              className={`flex-1 min-h-screen bg-background max-h-screen overflow-y-auto ${isMobile ? "pt-16" : "px-5"}`}
+            >
               <Outlet
                 context={{
                   notifications,

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Card, CardHeader, CardBody, Link, Divider } from "@nextui-org/react";
 import { Clock, CodeXml, SquareStack } from "lucide-react";
 import {

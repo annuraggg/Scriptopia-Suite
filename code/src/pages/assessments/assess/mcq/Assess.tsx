@@ -7,7 +7,6 @@ import secureLocalStorage from "react-secure-storage";
 import { MCQAssessmentSubmissionsSchema as MASS } from "@shared-types/MCQAssessmentSubmission";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { useDisclosure } from "@nextui-org/react";
 import Submit from "./Submit";
 
 // Constants
@@ -207,13 +206,7 @@ const Assess = () => {
 
   const [assessmentCompleted, setAssessmentCompleted] = useState(false);
   const [assessmentSubmitted, setAssessmentSubmitted] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false); // @ts-expect-error
-  const { isOpen, onOpen, onOpenChange } = useDisclosure(); // @ts-expect-error
-  const {
-    isOpen: fullSubmitIsOpen,
-    onOpen: fullSubmitOnOpen,
-    onOpenChange: fullSubmitOnOpenChange,
-  } = useDisclosure();
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const submitAssessment = async () => {
     try {
@@ -244,15 +237,14 @@ const Assess = () => {
     }
   };
 
-  // Early return for completed assessment
-  // if (assessmentCompleted) {
-  //   return (
-  //     <Submit
-  //       assessmentSubmitted={assessmentSubmitted}
-  //       submitSuccess={submitSuccess}
-  //     />
-  //   );
-  // }
+  if (assessmentCompleted) {
+    return (
+      <Submit
+        assessmentSubmitted={assessmentSubmitted}
+        submitSuccess={submitSuccess}
+      />
+    );
+  }
 
   return (
     <div className="h-screen">

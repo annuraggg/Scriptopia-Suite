@@ -1,11 +1,5 @@
-import React from 'react'
-
 const ViewAssessment = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+  return <div></div>;
+};
 
-export default ViewAssessment
+export default ViewAssessment;

@@ -235,7 +235,7 @@ const updateAssessment = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const newAssessment = await assessmentController.createAssessment(c);
+    const newAssessment = await assessmentController.createCodeAssessment(c);
     const { postingId, step } = await c.req.json();
 
     console.log(postingId, step);

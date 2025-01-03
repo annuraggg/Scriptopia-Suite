@@ -14,6 +14,6 @@ app.post("/", problemController.createProblem);
 
 app.post("/explain", problemController.explain);
 
-app.get("/problems/:id/check-dependencies", assessmentController.checkProblemDependencies);
+// app.get("/problems/:id/check-dependencies", assessmentController.checkProblemDependencies);
 
 export default app;

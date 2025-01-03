@@ -21,8 +21,11 @@ const Sidebar = ({
         {builtInRoles?.map((role) => (
           <div
             key={role._id}
-            className={`${selectedRole?._id === role._id ? "bg-gray-800" : ""
-              } flex flex-col gap-1 h-10 px-3 py-2 rounded-xl hover:bg-gray-800 cursor-pointer transition-all `}
+            className={`${
+              selectedRole?._id === role._id
+                ? "bg-foreground text-background"
+                : "hover:bg-accent/20"
+            } flex flex-col gap-1 h-10 px-3 py-2 rounded-xl cursor-pointer transition-all `}
             onClick={() => setSelectedRole(role)}
           >
             <p>{role.name}</p>
@@ -35,8 +38,11 @@ const Sidebar = ({
         {customRoles?.map((role, index) => (
           <div
             key={index}
-            className={`flex flex-col h-10 gap-1 px-3 py-2 rounded-xl hover:bg-gray-800 cursor-pointer transition-all ${selectedRole?._id === role._id ? "bg-gray-800" : ""
-              }  `}
+            className={`flex flex-col h-10 gap-1 px-3 py-2 rounded-xl cursor-pointer transition-all ${
+              selectedRole?._id === role._id
+                ? "bg-foreground text-background"
+                : "hover:bg-accent/20 "
+            }  `}
             onClick={() => setSelectedRole(role)}
           >
             <p>{role.name}</p>

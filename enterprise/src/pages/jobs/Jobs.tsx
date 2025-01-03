@@ -21,8 +21,6 @@ import {
   EllipsisVertical,
   Link,
   PlusIcon,
-  // LayoutList,
-  // LayoutGrid,
   Search,
 } from "lucide-react";
 import Filter from "./Filter";
@@ -41,7 +39,6 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import { RootContext } from "@/types/RootContext";
-// import { Tabs, Tab } from "@nextui-org/react";
 
 const Cards = [
   {
@@ -236,10 +233,12 @@ const Postings: React.FC = () => {
                   placeholder="Search Postings"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  startContent={<Search size={20} className="opacity-50 mr-2" />}
+                  startContent={
+                    <Search size={20} className="opacity-50 mr-2" />
+                  }
                 />
 
-                <p className="text-neutral-400 text-sm">Job Status</p>
+                <p className="text-sm">Job Status</p>
                 <Select
                   className="w-[100px]"
                   value={selectedFilter}
@@ -254,7 +253,7 @@ const Postings: React.FC = () => {
                 </Select>
 
                 <div className="flex items-center gap-1">
-                  <p className="text-neutral-400 text-sm">Sort by</p>
+                  <p className=" text-sm">Sort by</p>
                 </div>
                 <Select
                   className="w-[150px]"
@@ -267,10 +266,6 @@ const Postings: React.FC = () => {
                 </Select>
 
                 <div className="flex w-[30%] justify-end gap-3 items-center">
-                  {/* <Tabs>
-                    <Tab title={<LayoutList size={18} />} />
-                    <Tab title={<LayoutGrid size={18} />} />
-                  </Tabs> */}
                   <Button
                     color="success"
                     variant="flat"
@@ -282,7 +277,7 @@ const Postings: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 w-full mt-6 overflow-y-auto">
+              <div className="flex flex-col gap-3 w-full mt-6">
                 {filteredPostings?.map((posting, index) => (
                   <Card
                     className="p-4"
@@ -317,7 +312,7 @@ const Postings: React.FC = () => {
                           </span>
                         </div>
 
-                        <p className="text-gray-300 text-xs mt-3">
+                        <p className="text-xs mt-3">
                           {getPostingStatus(posting) === "active"
                             ? `Open Until ${new Date(
                                 posting.applicationRange.end
@@ -336,7 +331,11 @@ const Postings: React.FC = () => {
                             onClick={() => {
                               // copy link to clipboard
                               if (!posting?.url) return;
-                              navigator.clipboard.writeText(import.meta.env.VITE_CANDIDATE_URL + "/" + posting?.url);
+                              navigator.clipboard.writeText(
+                                import.meta.env.VITE_CANDIDATE_URL +
+                                  "/" +
+                                  posting?.url
+                              );
                               toast.success("Link copied to clipboard");
                             }}
                           >

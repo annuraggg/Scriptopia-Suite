@@ -1,18 +1,15 @@
 import { useNavigate } from "react-router-dom";
 import { Tooltip } from "@nextui-org/tooltip";
+import { ChevronRight, X } from "lucide-react";
 import {
-  Home,
-  Settings,
-  Users,
-  Briefcase,
-  PieChart,
-  // BookOpenText,
-  CreditCard,
-  // HelpCircle,
-  ChevronRight,
-  Bell,
-  X,
-} from "lucide-react";
+  IconLayoutDashboardFilled,
+  IconBriefcaseFilled,
+  IconUserFilled,
+  IconChartPieFilled,
+  IconBellFilled,
+  IconSettingsFilled,
+  IconCreditCardFilled,
+} from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
 import { Badge, Button } from "@nextui-org/react";
@@ -35,13 +32,13 @@ const Sidebar = ({
 }) => {
   const topItems = [
     {
-      icon: Home,
+      icon: IconLayoutDashboardFilled,
       label: "Dashboard",
       link: "/dashboard",
       visible: true,
     },
     {
-      icon: Briefcase,
+      icon: IconBriefcaseFilled,
       label: "Jobs",
       link: "/jobs",
       visible:
@@ -49,7 +46,7 @@ const Sidebar = ({
         user?.permissions?.includes("manage_job"),
     },
     {
-      icon: Users,
+      icon: IconUserFilled,
       label: "Candidates",
       link: "/candidates",
       visible:
@@ -57,7 +54,7 @@ const Sidebar = ({
         user?.permissions?.includes("manage_job"),
     },
     {
-      icon: PieChart,
+      icon: IconChartPieFilled,
       label: "Analytics",
       link: "/analytics",
       visible:
@@ -74,20 +71,20 @@ const Sidebar = ({
 
   const bottomItems = [
     {
-      icon: Bell,
+      icon: IconBellFilled,
       label: "Notifications",
       link: "/notifications",
       visible: true,
       length: notifications?.length,
     },
     {
-      icon: Settings,
+      icon: IconSettingsFilled,
       label: "Settings",
       link: "/settings/general",
       visible: user?.permissions?.includes("manage_organization"),
     },
     {
-      icon: CreditCard,
+      icon: IconCreditCardFilled,
       label: "Billing",
       link: "/billing",
       visible:
@@ -109,23 +106,18 @@ const Sidebar = ({
   ];
 
   const [active, setActive] = useState("dashboard");
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     setActive(window.location.pathname.split("/")[1]);
   }, []);
 
-  // const { theme, setTheme } = useTheme();
-  // const switchTheme = () => {
-  //   setTheme(theme === "dark" ? "light" : "dark");
-  // };
-
   return (
     <aside
-      className={`h-[100vh] bg-background border-r flex flex-col overflow-hidden transition-all duration-300 
-        ${isMobile ? 'w-64' : collapsed ? 'w-16' : 'w-64'}
-        ${isMobile ? 'fixed left-0 top-0' : 'relative'}`}
+      className={`h-[100vh] bg-foreground text-background rounded-r-2xl border-r flex flex-col overflow-hidden transition-all duration-300 
+        ${isMobile ? "w-64" : collapsed ? "w-16" : "w-64"}
+        ${isMobile ? "fixed left-0 top-0" : "relative"}`}
     >
       {/* Mobile Close Button */}
       {isMobile && (
@@ -139,13 +131,13 @@ const Sidebar = ({
         </Button>
       )}
 
-      <nav className="flex flex-col gap-4 p-3">
+      <nav className="flex flex-col gap-2 p-3">
         {(!isMobile || !collapsed) && (
           <div className={`${isMobile ? "mt-12" : "mt-4"} mb-6`}>
             <img
               src="/logo.png"
               alt="logo"
-              className="cursor-pointer h-6 ml-2"
+              className="cursor-pointer h-10"
               onClick={() => {
                 window.location.href = "/";
               }}
@@ -169,14 +161,15 @@ const Sidebar = ({
               }}
             >
               <div
-                className={`flex items-center p-2 rounded-xl cursor-pointer transition-colors duration-200 hover:bg-default/80
-                  ${active?.toLowerCase() === item.label.toLowerCase()
-                    ? "bg-default text-foreground"
-                    : "text-default-500"
+                className={`flex items-center p-2 py-3 rounded-lg cursor-pointer transition-colors duration-200  
+                  ${
+                    active?.toLowerCase() === item.label.toLowerCase()
+                      ? "bg-primary text-foreground"
+                      : "text-default hover:bg-accent/40"
                   }`}
               >
                 <div className="min-w-[24px] flex items-center justify-center">
-                  <item.icon className="w-5 h-5" />
+                  <item.icon className="w-6 h-6" />
                 </div>
                 {(!collapsed || isMobile) && (
                   <span className="ml-3 text-sm font-medium">{item.label}</span>
@@ -189,7 +182,7 @@ const Sidebar = ({
 
       <nav className="mt-auto flex flex-col gap-2 p-3">
         <div className="ml-[6px] mb-4">
-          <UserButton afterSignOutUrl="/" />
+          <UserButton />
         </div>
 
         {bottomItems.map((item, index) => (
@@ -208,10 +201,11 @@ const Sidebar = ({
               }}
             >
               <div
-                className={`flex items-center p-2 rounded-xl cursor-pointer transition-colors duration-200 
-                  ${active?.toLowerCase() === item.label.toLowerCase()
-                    ? ""
-                    : "text-default-500"
+                className={`flex items-center p-2 py-3 rounded-xl cursor-pointer transition-colors duration-200   
+                  ${
+                    active?.toLowerCase() === item.label.toLowerCase()
+                      ? "bg-primary text-foreground"
+                      : "text-default hover:bg-accent/40"
                   }`}
               >
                 <div className="min-w-[24px] flex items-center justify-center relative">
