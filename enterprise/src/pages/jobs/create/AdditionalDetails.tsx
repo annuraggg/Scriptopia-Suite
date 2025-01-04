@@ -10,7 +10,7 @@ import {
   Button,
 } from "@nextui-org/react";
 import { motion } from "framer-motion";
-import { Info } from "lucide-react";
+import { ChevronRight, Info } from "lucide-react";
 import { AdditionalDetails as AdditionalDetailsType } from "@shared-types/Posting";
 
 type FieldKey = string;
@@ -22,7 +22,9 @@ interface AdditionalDetailsProps {
   onRequiredChange: (fields: string[]) => void;
   onAllowedEmptyChange: (fields: string[]) => void;
   additionalDetails: AdditionalDetailsType;
-  setAdditionalDetails: React.Dispatch<React.SetStateAction<AdditionalDetailsType>>;
+  setAdditionalDetails: React.Dispatch<
+    React.SetStateAction<AdditionalDetailsType>
+  >;
 }
 
 interface CategoryFields {
@@ -58,7 +60,6 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
   additionalDetails,
   setAdditionalDetails,
 }) => {
-
   React.useEffect(() => {
     const initialRequired: string[] = [];
     const initialAllowEmpty: string[] = [];
@@ -81,8 +82,6 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
       onAllowedEmptyChange(initialAllowEmpty);
     }
   }, [additionalDetails, onRequiredChange, onAllowedEmptyChange]);
-
-
 
   const handleRequiredToggle = (field: string) => {
     const newRequired = required.includes(field)
@@ -145,11 +144,12 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
     required,
     allowedEmpty,
   }) => (
-    <div className="shadow-sm rounded-xl border overflow-hidden mb-6">
-      <div className="px-6 py-4 border-b">
+    <div className="overflow-hidden mb-6">
+      <div className="px-6 py-4 rounded-xl">
         <h3 className="text-xl font-semibold capitalize">{title}</h3>
       </div>
       <Table
+       
         aria-label={`${title} configuration`}
         classNames={{
           wrapper: "p-0",
@@ -202,24 +202,27 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
       className="px-4"
     >
       <div className="rounded-2xl p-8 mb-8">
-        <h2 className="text-2xl font-bold mb-4">Additional Details Configuration</h2>
+        <h2 className="text-2xl font-bold mb-4">
+          Additional Details Configuration
+        </h2>
         <div className="space-y-4 mb-6">
           <div className="flex items-start gap-2">
             <Info className="w-5 h-5 mt-1 text-blue-500" />
             <p className="text-gray-600">
-              Configure which candidate information fields are required and which can be left empty.
+              Configure which candidate information fields are required and
+              which can be left empty.
             </p>
           </div>
 
           <div className="border rounded-lg p-4">
             <div className="space-y-2">
               <p>
-                <span className="font-semibold">Required Field:</span>{" "}
-                The candidate must provide at least one entry for this field.
+                <span className="font-semibold">Required Field:</span> The
+                candidate must provide at least one entry for this field.
               </p>
               <p>
-                <span className="font-semibold">Allow Empty:</span>{" "}
-                If the field is required, you can still allow it to be empty.
+                <span className="font-semibold">Allow Empty:</span> If the field
+                is required, you can still allow it to be empty.
               </p>
             </div>
           </div>
@@ -238,17 +241,17 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
         ))}
 
         <div className="flex justify-end mt-8 gap-4">
-          <Button
-            variant="bordered"
-            onClick={() => setAction(0)}
-          >
+          <Button variant="bordered" onClick={() => setAction(0)}>
             Previous
           </Button>
+
           <Button
-            color="primary"
+            variant="flat"
+            color="success"
+            endContent={<ChevronRight size={20} />}
             onClick={() => setAction(2)}
           >
-            Next Step
+            Next
           </Button>
         </div>
       </div>

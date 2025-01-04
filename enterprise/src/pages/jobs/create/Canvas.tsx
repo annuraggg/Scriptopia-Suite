@@ -364,7 +364,6 @@ const Canvas: React.FC<WorkflowProps> = ({
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
-          colorMode="dark"
           onConnect={onConnect}
           isValidConnection={isValidConnection as IsValidConnection}
           minZoom={0.5}
@@ -374,7 +373,7 @@ const Canvas: React.FC<WorkflowProps> = ({
         </ReactFlow>
       </div>
 
-      <div className="w-[30%] flex flex-col gap-5">
+      <div className="w-[40%] flex flex-col gap-5">
         <div className="flex gap-3 text-xs items-center">
           <p>Enable Canvas Mode</p>
           <Chip color="warning" size="sm">

@@ -143,7 +143,7 @@ const CreateJob = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="flex gap-5 h-screen">
+    <div className="flex h-screen">
       <Sidebar active={active} setActive={setActive} />
       <div className="float-right overflow-y-auto w-full px-10 py-10">
         {active === 0 && (
