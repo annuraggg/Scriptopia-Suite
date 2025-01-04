@@ -4,7 +4,7 @@ const REGION = "ap-south-1";
 
 const runCode = async (
   language: string,
-  scl: string[],
+  sdsl: string[],
   code: string,
   testCases: TestCase[]
 ) => {
@@ -18,7 +18,7 @@ const runCode = async (
 
   const data = {
     testCases,
-    sdsl: scl.join("\n"),
+    sdsl: sdsl.join("\n"),
     code,
   };
 
@@ -28,7 +28,6 @@ const runCode = async (
   };
 
   try {
-    console.log("Running Code: ");
     const data = await lambdaClient.send(new InvokeCommand(params));
 
     if (data.FunctionError) {

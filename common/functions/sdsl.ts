@@ -1,4 +1,4 @@
-import { LanguageGenerator, TypeMap } from "@shared-types/Sdsl";
+import { LanguageGenerator, TypeMap } from "../types/Sdsl";
 
 const typeMap: TypeMap = {
   integer: {
@@ -580,8 +580,7 @@ function generateJavaScript(
       char: "String",
       long: "BigInt",
     };
-    return `inputData[${inputIndex}].split(',').map(${
-      // @ts-expect-error - TS doesn't like the type of parsers
+    return `inputData[${inputIndex}].split(',').map(${ // @ts-expect-error - TS doesn't like the type of converters
       parsers[input.elementType] || "String"
     })`;
   }
@@ -603,7 +602,7 @@ function generateJavaScript(
       boolean: "return false;",
       long: "return 0n;",
       array: "return [];",
-    }; // @ts-expect-error - TS doesn't like the type of defaults
+    }; // @ts-expect-error - TS doesn't like the type of converters
     return defaults[type] || "return null;";
   }
 

@@ -3,7 +3,7 @@ import { Button } from "@nextui-org/react";
 import Monaco from "@/components/problem/Editor/Monaco";
 import { Save, HelpCircle, X } from "lucide-react";
 import { CustomSDSL } from "@shared-types/Problem";
-import { generateSdslCode } from "@/functions/sdsl";
+import { generateSdslCode } from "@shared-functions/sdsl";
 import allLanguages, { Language } from "@/data/languages";
 interface CustomSdslEditorProps {
   onClose?: () => void;
@@ -98,7 +98,7 @@ const CustomSdslEditor = ({
       <div className="p-4 flex justify-between items-center">
         <div className="flex justify-center items-center gap-2 relative">
           <h1 className="text-xl font-semibold">
-            Custom Scriptopia Code Language (SCL) Builder
+            Custom Scriptopia Domain Specific Language (SDSL) Builder
           </h1>
           <div
             className="relative inline-block"

@@ -3,7 +3,7 @@ import Monaco from "@/components/problem/Editor/Monaco";
 import { useState } from "react";
 import languages from "@/data/languages";
 import CustomSdsl from "./CustomSdsl";
-import { generateSdslCode } from "@/functions/sdsl";
+import { generateSdslCode } from "@shared-functions/sdsl";
 import {
   Modal,
   ModalContent,

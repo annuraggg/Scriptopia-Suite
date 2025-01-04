@@ -25,8 +25,6 @@ const runCode = async (c: Context) => {
       return sendError(c, 404, "Problem Not Found");
     }
 
-    console.log(body.code)
-
     const result = await runCompilerCode(
       body.language,
       prob.sdsl,
@@ -76,7 +74,7 @@ const submitCode = async (c: Context) => {
 
     // @ts-ignore
     const auth = getAuth(c);
-    const u = auth?.userId
+    const u = auth?.userId;
     if (!u) {
       return sendError(c, 401, "Unauthorized");
     }
@@ -122,7 +120,7 @@ const submitCode = async (c: Context) => {
       await submission.save();
     }
 
-    return sendSuccess(c, 200, "Success", {submission, result});
+    return sendSuccess(c, 200, "Success", { submission, result });
   } catch (error) {
     console.log(error);
     return sendError(c, 500, "Internal Server Error", error);
