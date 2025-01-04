@@ -1,27 +1,27 @@
-import { RootState } from "@/types/Reducer";
-import { Button, Image, Switch } from "@nextui-org/react";
-import {
-  BriefcaseBusiness,
-  FileText,
-  Filter,
-  Inbox,
-  UserCheck,
-  BarChart,
-  Video,
-  PieChart,
-  Sun,
-  Moon,
-} from "lucide-react";
-import { useState } from "react";
-import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Timeline } from "./Timeline";
-import { CardSpotlight } from "@/components/ui/card-spotlight";
-import { useTheme } from "@/components/theme-provider";
+import { useSelector } from "react-redux";
+import { RootState } from "@/types/Reducer";
+import { Button } from "@/components/ui/button";
+import { WavyBackground } from "@/components/ui/wavy-background";
+import { ContainerScroll } from "@/components/ui/container-scroll-animation";
+import { HoverEffect } from "@/components/ui/card-hover-effect";
+import { Timeline } from "@/components/ui/timeline";
+import { SparklesCore } from "@/components/ui/sparkles";
+
+const LargeHeading = ({ children }: any) => {
+  return (
+    <h1
+      className={`text-4xl md:text-5xl lg:text-5xl pb-3 text-center font-gloock font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-fuchsia-600`}
+    >
+      {children}
+    </h1>
+  );
+};
 
 const Lander = () => {
   const navigate = useNavigate();
   const organization = useSelector((state: RootState) => state.organization);
+
   const redirectUser = () => {
     if (organization._id) {
       navigate("/dashboard");
@@ -30,113 +30,213 @@ const Lander = () => {
     }
   };
 
-  const features = [
-    { icon: <BriefcaseBusiness size={30} />, title: "Jobs" },
-    { icon: <UserCheck size={30} />, title: "Candidates" },
-    { icon: <Filter size={30} />, title: "Assessments" },
-    { icon: <Inbox size={30} />, title: "Applications" },
-    { icon: <BarChart size={30} />, title: "Resume Screening" },
-    { icon: <Video size={30} />, title: "Interviews" },
-    { icon: <FileText size={30} />, title: "Assignments" },
-    { icon: <PieChart size={30} />, title: "Analytics" },
+  const projects = [
+    {
+      title: "Smart Job Postings",
+      description:
+        "Create and manage job postings with AI assistance that helps you write better descriptions and reach the right candidates.",
+    },
+    {
+      title: "AI-Powered Matching",
+      description:
+        "Our advanced algorithms match candidates to jobs based on skills, experience, and cultural fit with unprecedented accuracy.",
+    },
+    {
+      title: "Custom Assessments",
+      description:
+        "Design role-specific assessments that evaluate both technical skills and soft skills to ensure the perfect fit.",
+    },
+    {
+      title: "Intelligent Screening",
+      description:
+        "Automate initial candidate screening with AI that understands context and nuance in resumes and applications.",
+    },
+    {
+      title: "Virtual Interviews",
+      description:
+        "Conduct seamless online interviews with built-in scheduling, recording, and AI-powered insights.",
+    },
+
+    {
+      title: "Real-time Analytics",
+      description:
+        "Get instant insights into your hiring process with comprehensive analytics and customizable dashboards.",
+    },
   ];
 
-  const [withoutScriptopia, setWithoutScriptopia] = useState(false);
-
-  const { theme, setTheme } = useTheme();
-  const switchTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
+  const data = [
+    {
+      title: "Job Posting and Requisition Management",
+      content: (
+        <div>
+          <p className="text-neutral-800 dark:text-neutral-200 text-xs md:text-sm font-normal mb-8">
+            Effortlessly create and distribute job postings to multiple
+            platforms. Track and manage job requisitions with ease.
+          </p>{" "}
+          <img
+            src="/t11.png"
+            className="rounded-lg h-[500px] w-[500px] object-cover md:h-44 lg:h-60 shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset]"
+          />{" "}
+          <img
+            src="/t12.png"
+            className="rounded-lg mt-5 h-[500px] w-[500px] object-cover md:h-44 lg:h-60 shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset]"
+          />{" "}
+        </div>
+      ),
+    },
+    {
+      title: "Application Collection",
+      content: (
+        <div>
+          <p className="text-neutral-800 dark:text-neutral-200 text-xs md:text-sm font-normal mb-8">
+            Collect applications from job boards, company websites, and direct
+            submissions. Parse and store applicant information, resumes, and
+            cover letters securely.
+          </p>
+          <img
+            src="/t21.png"
+            className="rounded-lg mt-5 h-[500px] w-[500px] object-cover md:h-44 lg:h-60 shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset]"
+          />{" "}
+        </div>
+      ),
+    },
+    {
+      title: "Automated Resume Screening",
+      content: (
+        <div>
+          <p className="text-neutral-800 dark:text-neutral-200 text-xs md:text-sm font-normal mb-8">
+            Display a curated list of selected candidates for your review.
+            Easily manage and track candidate progress.
+          </p>
+          <img
+            src="/t31.png"
+            className="rounded-lg h-[500px] w-[500px] object-cover md:h-44 lg:h-60 shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset]"
+          />
+          <img
+            src="/t32.png"
+            className="rounded-lg mt-5 h-[500px] w-[500px] object-cover md:h-44 lg:h-60 shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset]"
+          />{" "}
+        </div>
+      ),
+    },
+    {
+      title: " Assessments",
+      content: (
+        <div>
+          <p className="text-neutral-800 dark:text-neutral-200 text-xs md:text-sm font-normal mb-8">
+            Create tailored assessments including multiple-choice questions and
+            coding challenges. Evaluate candidates' skills directly on our
+            platform.
+          </p>
+          <img
+            src="/t41.png"
+            className="rounded-lg h-[500px] w-[500px] object-cover md:h-44 lg:h-60 shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset]"
+          />
+          <img
+            src="/t42.png"
+            className="rounded-lg h-[500px] w-[500px] object-cover md:h-44 lg:h-60 shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset]"
+          />
+        </div>
+      ),
+    },
+    {
+      title: "  Conduct Interviews",
+      content: (
+        <div>
+          <p className="text-neutral-800 dark:text-neutral-200 text-xs md:text-sm font-normal mb-8">
+            Schedule interviews, communicate with candidates, and gather
+            feedback seamlessly.
+          </p>
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <div className="py-10 mx-20">
-      <div className="flex gap-5 items-center justify-between  mb-5">
-        <img src="/logo.png" alt="logo" className="w-10 h-10" />
-        <Button isIconOnly variant="flat" onClick={switchTheme}>
-          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-        </Button>
-      </div>
-
-      <div className="flex max-w-[100vw] h-[95vh] items-center">
-        <div className="flex flex-col h-full mt-48">
-          <h1 className="text-7xl max-w-[50vw] pr-48 font-poly leading-tight drop-shadow-glow">
-            Industry Grade Screening and Hiring Platform.
-          </h1>
-          <div className="flex flex-row gap-5  w-[30vw] mt-10">
-            <Button
-              className="w-full hidden"
-              color="success"
-              variant="shadow"
-              onClick={() => redirectUser()}
-            >
-              Get Started
-            </Button>
-          </div>
+    <div className="relative min-h-screen bg-white text-gray-900 ">
+      {/* Header */}
+      <header className="relative z-20 px-6 lg:px-20 py-6 flex justify-between items-center border-b border-gray-100">
+        <img src="/logo.png" alt="logo" className="w-12 h-12" />
+        <div className="flex items-center gap-4">
+          <Button
+            onClick={redirectUser}
+            className="bg-violet-600 hover:bg-violet-700 text-white rounded-full px-6 cursor-not-allowed"
+            disabled={true}
+          
+          >
+            Get Started
+          </Button>
         </div>
-        <div className="relative max-w-[50vw] h-full">
-          <div className="absolute top-0 left-0 transition-all duration-300 ease-in-out hover:z-10">
-            <Image
-              src="/lander2.png"
-              alt="Hiring"
-              className="border min-w-[40vw] min-h-[100%] drop-shadow-glow-dark"
-            />
-          </div>
-          <div className="absolute top-10 -left-10 transition-all duration-300 ease-in-out z-0 hover:z-0">
-            <Image
-              src="/lander1.png"
-              alt="Hiring"
-              className="border min-w-[40vw] min-h-[100%] drop-shadow-glow-dark"
-            />
-          </div>
-        </div>
-      </div>
+      </header>
 
-      <div className="flex items-center justify-center mt-20 flex-col gap-5">
-        <h2 className="font-caveat text-7xl">
-          All your talent aquisition needs in one place
-        </h2>
-      </div>
-      <div className="flex items-center justify-center mt-10 gap-5">
-        <p className=" font-caveat text-2xl">Without Scriptopia</p>
-        <Switch
-          defaultSelected
-          aria-label="Without Scriptopia"
-          color="danger"
-          onChange={() => setWithoutScriptopia(!withoutScriptopia)}
-          isSelected={withoutScriptopia}
-        />
-      </div>
-
-      <div
-        className={`flex items-center justify-center h-[72vh] transition-colors ${
-          withoutScriptopia ? "site-lander-bg" : ""
-        }`}
-      >
-        <div className="grid grid-cols-4 gap-4 mt-20 relative">
-          {features.map((feature, index) => (
-            <CardSpotlight
-              className="flex items-center flex-col justify-center rounded-2xl h-36 w-36"
-              key={index}
-            >
-              <p className="text-xl font-bold relative z-20 mt-2 text-white">
-                {feature.icon}
-              </p>
-              <div className="text-neutral-200 mt-4 relative z-20">
-                {feature.title}
+      {/* Product Preview Section */}
+      <div className="mt-32 w-full">
+        <WavyBackground backgroundFill="white" className="w-full">
+          <ContainerScroll
+            titleComponent={
+              <div>
+                <p className="text-2xl md:text-4xl lg:text-7xl font-bold font-gloock text-center">
+                  The Future of Hiring is Here
+                </p>
+                <p className="text-base md:text-sm mt-4  font-normal inter-var text-center mb-10">
+                  Transform your recruitment process with our AI-powered
+                  platform that makes hiring smarter, faster, and more efficient
+                  than ever before.
+                </p>
               </div>
-            </CardSpotlight>
-          ))}
+            }
+          >
+            <img
+              src={`/lander1.png`}
+              alt="hero"
+              height={720}
+              width={1400}
+              className="mx-auto rounded-2xl object-cover h-full object-left-top"
+              draggable={false}
+            />
+          </ContainerScroll>
+        </WavyBackground>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-8 mt-32">
+        <LargeHeading>Everything you need to hire better</LargeHeading>
+        <HoverEffect items={projects} />
+      </div>
+
+      {/* How it Works Section */}
+      <div className="w-full">
+        <Timeline data={data} />
+      </div>
+
+      {/* Platform launching soon message */}
+      <section className="relative z-20 px-6 lg:px-20 py-20  text-black">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="font-caveat text-7xl">Platform Launching Soon</h1>
         </div>
-      </div>
+      </section>
 
-      <div className="flex flex-col items-center justify-center mt-32 h-full">
-        <h2>How it Works</h2>
-        <Timeline />
-      </div>
+      {/* Footer */}
+      <footer className="relative z-20 py-5 ">
+        <div className="w-full bg-white flex flex-col items-center justify-center overflow-hidden rounded-md">
+          <div className="max-w-6xl mx-auto text-center text-gray-600">
+            <p>© 2025 Scriptopia. All rights reserved.</p>
+          </div>
+          <div className="w-[40rem] relative">
+            {/* Core component */}
+            <SparklesCore
+              background="transparent"
+              minSize={0.4}
+              maxSize={1}
+              particleDensity={1200}
+              className="w-full h-[5vh]"
+              particleColor="#000000"
+            />
 
-      <div className="text-5xl font-caveat mt-20 text-center">
-        Stay Tuned. Platform Launching Soon.
-      </div>
+            {/* Radial Gradient to prevent sharp edges */}
+            <div className="absolute inset-0 w-full h-full bg-white [mask-image:radial-gradient(350px_200px_at_top,transparent_20%,white)]"></div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
