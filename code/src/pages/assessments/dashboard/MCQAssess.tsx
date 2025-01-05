@@ -8,13 +8,21 @@ import {
   CardHeader,
   Input,
 } from "@nextui-org/react";
-import { Eye, Link, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import ax from "@/config/axios";
 import { useAuth } from "@clerk/clerk-react";
 import { MCQAssessment } from "@shared-types/MCQAssessment";
 import confirmDelete from "@/components/ui/confirm-delete";
+import { Chip } from "@nextui-org/react";
+import {
+  IconCalendarFilled,
+  IconEyeFilled,
+  IconTrashFilled,
+  IconClockFilled,
+  IconLayoutFilled,
+  IconLink,
+} from "@tabler/icons-react";
 
 const calculateStatus = (createdAssessment: MCQAssessment) => {
   const startDate = new Date(createdAssessment?.openRange?.start || "");
@@ -115,84 +123,141 @@ const MCQAssess: React.FC<{ createdAssessments: MCQAssessment[] }> = ({
         </div>
         <div className="mt-5 flex gap-5 flex-wrap">
           {filteredAssessments.map((CreatedAssessment) => (
-            <Card key={CreatedAssessment._id} className="w-[32%]">
-              <CardHeader>{CreatedAssessment.name}</CardHeader>
-              <CardBody>
-                <p className="text-xs text-gray-500">
-                  Status:{" "}
-                  <span
-                    className={`${
-                      calculateStatus(CreatedAssessment) === "Active"
-                        ? "text-green-500"
-                        : calculateStatus(CreatedAssessment) === "Upcoming"
-                        ? "text-yellow-500"
-                        : "text-red-500"
-                    }`}
-                  >
-                    {calculateStatus(CreatedAssessment)}
-                  </span>
-                </p>
-                <p>
-                  <span className="text-xs text-gray-500">Date: </span>
-                  <span className="text-xs text-white-200">
-                    {new Date(CreatedAssessment.createdAt).toLocaleString()}
-                  </span>
-                </p>
-                <p>
-                  <span className="text-xs text-gray-500">Duration: </span>
-                  <span className="text-xs text-white-200">
-                    {CreatedAssessment.timeLimit} minutes
-                  </span>
-                </p>
-                <p>
-                  <span className="text-xs text-gray-500">Sections: </span>
-                  <span className="text-xs text-white-200">
-                    {CreatedAssessment.sections.length}
-                  </span>
-                </p>
-                <p className="text-xs text-gray-500 mt-2">Time Range:</p>
-                <p className="text-xs text-white-200">
-                  {new Date(
-                    CreatedAssessment?.openRange?.start || ""
-                  ).toLocaleString()}{" "}
-                  <span className="text-xs text-gray-500 mt-2">to </span>
-                  {new Date(
-                    CreatedAssessment?.openRange?.end || ""
-                  ).toLocaleString()}
-                </p>
-              </CardBody>
-              <CardFooter className="gap-2 flex-wrap">
-                <Button
-                  className="w-[48%] flex items-center justify-center text-xs gap-3"
-                  variant="flat"
-                  onClick={() =>
-                    navigate(`/assessments/${CreatedAssessment._id}/view`)
-                  }
-                >
-                  <Eye size={18} /> <p>View</p>
-                </Button>
-                <Button
-                  className="w-[48%] flex items-center justify-center text-xs gap-3 bg-red-900 bg-opacity-40"
-                  variant="flat"
-                  onClick={() =>
-                    confirmDelete(() => handleDelete(CreatedAssessment._id))
-                  }
-                >
-                  <Trash2 size={18} /> <p>Delete</p>
-                </Button>
-                <Button
-                  className="flex items-center justify-center text-xs gap-3 w-full"
-                  variant="flat"
-                  onClick={() => copyLink(CreatedAssessment._id)}
-                >
-                  <Link size={18} /> <p>Copy Link</p>
-                </Button>
-              </CardFooter>
-            </Card>
+            <AssessmentCard
+              key={CreatedAssessment._id}
+              assessment={CreatedAssessment}
+              onView={() => {
+                navigate(`/assessments/m/${CreatedAssessment._id}`);
+              }}
+              onDelete={() => {
+                confirmDelete(() => handleDelete(CreatedAssessment._id));
+              }}
+              onCopyLink={() => copyLink(CreatedAssessment._id)}
+            />
           ))}
         </div>
       </div>
     </motion.div>
+  );
+};
+
+const STATUS_COLORS = {
+  Active: "success",
+  Upcoming: "warning",
+  Expired: "danger",
+};
+
+interface InfoRowProps {
+  icon: React.ElementType;
+  text: string;
+}
+
+const InfoRow = ({ icon: Icon, text }: InfoRowProps) => (
+  <div className="flex items-center gap-2">
+    <Icon size={14} className="text-default-400" />
+    <span className="text-sm text-default-500">{text}</span>
+  </div>
+);
+
+interface AssessmentCardProps {
+  assessment: MCQAssessment;
+  onView: () => void;
+  onDelete: () => void;
+  onCopyLink: () => void;
+}
+
+const AssessmentCard = ({
+  assessment,
+  onView,
+  onDelete,
+  onCopyLink,
+}: AssessmentCardProps) => {
+  const status = calculateStatus(assessment);
+
+  return (
+    <Card className="w-[320px] bg-default-50/50 dark:bg-default-100/50 backdrop-blur-sm">
+      <CardHeader className="px-4 pt-4 pb-0">
+        <div className="flex justify-between items-start w-full">
+          <h4 className="text-base font-medium line-clamp-1 flex-1 pr-2">
+            {assessment.name}
+          </h4>
+          <Chip
+            color={STATUS_COLORS[status] as "success" | "warning" | "danger"}
+            variant="flat"
+            size="sm"
+            classNames={{
+              base: "text-xs",
+              content: "font-medium px-2 py-1",
+            }}
+          >
+            {status}
+          </Chip>
+        </div>
+      </CardHeader>
+
+      <CardBody className="px-4 py-3">
+        <div className="flex flex-col gap-2">
+          <InfoRow
+            icon={IconCalendarFilled}
+            text={new Date(assessment.createdAt).toLocaleDateString()}
+          />
+          <InfoRow
+            icon={IconClockFilled}
+            text={`${assessment.timeLimit} minutes`}
+          />
+          <InfoRow
+            icon={IconLayoutFilled}
+            text={`${assessment.sections.length} sections`}
+          />
+
+          <div className="h-px bg-default-200/50 my-2" />
+
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium text-default-600">Time Range:</p>
+            <p className="text-xs text-default-500">
+              {new Date(assessment.openRange?.start!).toLocaleString()}
+            </p>
+            <p className="text-xs text-default-500">
+              {new Date(assessment.openRange?.end!).toLocaleString()}
+            </p>
+          </div>
+        </div>
+      </CardBody>
+
+      <CardFooter className="px-4 pb-4 pt-0 flex-col gap-2">
+        <div className="flex gap-2 w-full">
+          <Button
+            className="w-1/2"
+            variant="flat"
+            size="sm"
+            startContent={<IconEyeFilled size={16} />}
+            onClick={onView}
+          >
+            View
+          </Button>
+          <Button
+            className="w-1/2"
+            color="danger"
+            variant="flat"
+            size="sm"
+            startContent={<IconTrashFilled size={16} />}
+            onClick={onDelete}
+          >
+            Delete
+          </Button>
+        </div>
+        <Button
+          className="w-full"
+          color="success"
+          variant="flat"
+          size="sm"
+          startContent={<IconLink size={16} />}
+          onClick={onCopyLink}
+        >
+          Copy Link
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 

@@ -3,7 +3,6 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./App.css";
 import Layout from "./components/Layout";
 import ErrorPage from "./components/ErrorPage";
-import { useTheme } from "./components/theme-provider";
 import Loader from "./components/Loader"; // Import Loader component
 // Lazy loading components
 const Home = lazy(() => import("./pages/home/Home"));
@@ -131,13 +130,8 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  const { theme } = useTheme();
   return (
-    <main
-      className={`${
-        theme === "dark" ? "dark" : ""
-      } text-foreground bg-background`}
-    >
+    <main className={`text-foreground bg-background`}>
       <Suspense fallback={<Loader />}>
         <RouterProvider router={router} />
       </Suspense>

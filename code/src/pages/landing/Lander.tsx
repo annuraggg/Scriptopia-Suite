@@ -91,18 +91,18 @@ const Lander = () => {
             maxSize={1.4}
             particleDensity={50}
             className="w-full h-full"
-            particleColor="#94A3B8"
+            particleColor="#000000"
           />
         </div>
 
         <div className="relative z-10 max-w-6xl mx-auto w-full">
           <div className="flex flex-col items-center text-center mb-12">
             <div className="text-6xl md:text-6xl font-bold mb-8">
-              <span className="text-teal-100">Learn</span>
-              <span className="text-purple-100">. Code</span>
-              <span className="text-amber-100">. Compete</span>
+              <span className="text-teal-400">Learn</span>
+              <span className="text-purple-400">. Code</span>
+              <span className="text-amber-400">. Compete</span>
             </div>
-            <p className="text-lg md:text-xl text-gray-400 max-w-2xl animate-fade-in">
+            <p className="text-lg md:text-xl max-w-2xl animate-fade-in">
               Discover a versatile coding platform that enhances your skills and
               streamlines hiring solutions.
             </p>
@@ -115,7 +115,7 @@ const Lander = () => {
                 className="bg-background/60 backdrop-blur-lg border-muted transition-all duration-300 hover:scale-105"
               >
                 <CardContent className="p-6 flex flex-col items-center text-center">
-                  <div className="mb-4 p-3 rounded-full bg-muted">
+                  <div className="mb-4 p-3 rounded-full">
                     {feature.icon}
                   </div>
                   <h3 className="text-xl font-semibold mb-2">
@@ -150,7 +150,7 @@ const Lander = () => {
       </section>
 
       {/* MacBook Preview Section */}
-      <section className="max-h-[120vh] relative">
+      <section className="max-h-[130vh] relative">
         <MacbookScroll src="./lander1.png" showGradient={true} />
       </section>
 

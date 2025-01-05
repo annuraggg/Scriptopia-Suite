@@ -1,14 +1,22 @@
-import { useState } from 'react';
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Card, CardBody, CardHeader, Input, Chip, Progress, Button } from "@nextui-org/react";
-import { Eye, Clock, Award, Calendar, CheckCircle, XCircle } from 'lucide-react';
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  Input,
+  Chip,
+  Progress,
+  Button,
+} from "@nextui-org/react";
+import { Clock, Award, Calendar, CheckCircle, XCircle } from "lucide-react";
 import { Assessment } from "@shared-types/Assessment";
 
 interface TakenAssessment extends Assessment {
   submissionDetails: {
     score: number;
     maxScore: number;
-    status: 'completed' | 'failed' | 'passed';
+    status: "completed" | "failed" | "passed";
     timeSpent: number;
     submittedAt: string;
   };
@@ -21,7 +29,7 @@ const AssessmentsTaken = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredAssessments = takenAssessments.filter(assessment =>
+  const filteredAssessments = takenAssessments.filter((assessment) =>
     assessment.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -29,12 +37,12 @@ const AssessmentsTaken = ({
     const statusConfig = {
       passed: { color: "success", icon: CheckCircle },
       failed: { color: "danger", icon: XCircle },
-      completed: { color: "primary", icon: CheckCircle }
+      completed: { color: "primary", icon: CheckCircle },
     };
-    
+
     const config = statusConfig[status as keyof typeof statusConfig];
     const Icon = config.icon;
-    
+
     return (
       <Chip
         startContent={<Icon size={14} />}
@@ -57,17 +65,16 @@ const AssessmentsTaken = ({
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <Input
-            placeholder="Search assessments..."
+            placeholder="Search Taken assessments"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full"
-            startContent={<Eye className="text-default-400" size={20} />}
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredAssessments.map((assessment) => (
-            <Card 
+            <Card
               key={assessment._id}
               className="border border-default-200 hover:border-primary transition-all duration-200"
             >
@@ -76,37 +83,64 @@ const AssessmentsTaken = ({
                   <h3 className="text-lg font-semibold">{assessment.name}</h3>
                   {getStatusChip(assessment.submissionDetails.status)}
                 </div>
-                <p className="text-sm text-default-500">{assessment.description}</p>
+                <p className="text-sm text-default-500">
+                  {assessment.description}
+                </p>
               </CardHeader>
 
               <CardBody className="px-6 py-4">
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 text-sm text-default-500">
                     <Calendar size={16} />
-                    <span>Submitted: {new Date(assessment.submissionDetails.submittedAt).toLocaleDateString()}</span>
+                    <span>
+                      Submitted:{" "}
+                      {new Date(
+                        assessment.submissionDetails.submittedAt
+                      ).toLocaleDateString()}
+                    </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 text-sm text-default-500">
                     <Clock size={16} />
-                    <span>Time spent: {assessment.submissionDetails.timeSpent} minutes</span>
+                    <span>
+                      Time spent: {assessment.submissionDetails.timeSpent}{" "}
+                      minutes
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-2 text-sm text-default-500">
                     <Award size={16} />
-                    <span>Score: {assessment.submissionDetails.score}/{assessment.submissionDetails.maxScore}</span>
+                    <span>
+                      Score: {assessment.submissionDetails.score}/
+                      {assessment.submissionDetails.maxScore}
+                    </span>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Score Percentage</span>
                       <span>
-                        {((assessment.submissionDetails.score / assessment.submissionDetails.maxScore) * 100).toFixed(1)}%
+                        {(
+                          (assessment.submissionDetails.score /
+                            assessment.submissionDetails.maxScore) *
+                          100
+                        ).toFixed(1)}
+                        %
                       </span>
                     </div>
-                    <Progress 
-                      value={(assessment.submissionDetails.score / assessment.submissionDetails.maxScore) * 100}
-                      color={assessment.submissionDetails.status === 'passed' ? "success" : 
-                             assessment.submissionDetails.status === 'failed' ? "danger" : "primary"}
+                    <Progress
+                      value={
+                        (assessment.submissionDetails.score /
+                          assessment.submissionDetails.maxScore) *
+                        100
+                      }
+                      color={
+                        assessment.submissionDetails.status === "passed"
+                          ? "success"
+                          : assessment.submissionDetails.status === "failed"
+                          ? "danger"
+                          : "primary"
+                      }
                       className="h-2"
                     />
                   </div>

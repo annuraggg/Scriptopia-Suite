@@ -21,7 +21,7 @@ const LanderNavbar = () => {
     }
   };
   return (
-    <Navbar className="text-white border-b border-gray-800" maxWidth="full">
+    <Navbar maxWidth="full">
       <div className="flex items-center gap-6">
         <NavbarBrand>
           <Link to="/" className="flex items-start">
@@ -33,24 +33,14 @@ const LanderNavbar = () => {
 
         <NavbarContent className="hidden sm:flex" justify="start">
           <NavbarItem>
-            <Link
-              to="https://docs.scriptopia.tech/"
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              Docs
-            </Link>
+            <Link to="https://docs.scriptopia.tech/">Docs</Link>
           </NavbarItem>
         </NavbarContent>
       </div>
 
       <NavbarContent justify="end">
         <NavbarItem>
-          <Button
-            as={Link}
-            variant="light"
-            className="text-gray-300 hover:text-white"
-            onClick={handleGetStarted}
-          >
+          <Button as={Link} variant="light" onClick={handleGetStarted}>
             Sign In
           </Button>
         </NavbarItem>

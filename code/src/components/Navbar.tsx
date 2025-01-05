@@ -19,7 +19,7 @@ const Navbar = () => {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="px-5 sm:px-10 w-full h-[8vh] flex items-center justify-between sticky top-0 z-50backdrop-filter backdrop-blur-lg mb-2 mt-1">
+    <div className="px-5 sm:px-10 w-full h-[8vh] flex items-center justify-between sticky top-0 z-50 backdrop-filter backdrop-blur-lg mb-2">
       <div className="flex items-center gap-2 sm:gap-5">
         <img
           src="/logo.svg"
