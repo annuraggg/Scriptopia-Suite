@@ -20,37 +20,45 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { z } from "zod";
 
-// Types and Interfaces
-interface VolunteerExperience {
-  id: string;
-  organizationName: string;
+// Interface matching the backend schema
+interface Volunteer {
+  _id?: string;
+  organization: string;
+  role: string;
+  cause: string;
+  startDate: string;
+  endDate?: string;
+  current: boolean;
+  description: string;
+  createdAt?: string;
+}
+
+// Frontend state interface with CalendarDate for date handling
+interface VolunteerFormState {
+  _id?: string;
+  organization: string;
   role: string;
   cause: string;
   startDate: CalendarDate;
   endDate: CalendarDate | null;
-  isCurrentlyVolunteering: boolean;
+  current: boolean;
   description: string;
 }
 
 // Validation Schema
 const volunteerSchema = z.object({
-  organizationName: z
-    .string()
-    .min(2, "Organization name must be at least 2 characters"),
+  organization: z.string().min(2, "Organization name must be at least 2 characters"),
   role: z.string().min(2, "Role must be at least 2 characters"),
   cause: z.string().min(2, "Please select a cause"),
   startDate: z.instanceof(CalendarDate),
   endDate: z.instanceof(CalendarDate).nullable(),
-  isCurrentlyVolunteering: z.boolean(),
-  description: z
-    .string()
-    .min(10, "Please provide a brief description of your volunteer work"),
+  current: z.boolean(),
+  description: z.string().min(10, "Please provide a brief description of your volunteer work"),
 });
 
 const Volunteering = () => {
-  const [experiences, setExperiences] = useState<VolunteerExperience[]>([]);
-  const [currentExperience, setCurrentExperience] =
-    useState<VolunteerExperience | null>(null);
+  const [experiences, setExperiences] = useState<Volunteer[]>([]);
+  const [currentExperience, setCurrentExperience] = useState<VolunteerFormState | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -67,13 +75,12 @@ const Volunteering = () => {
 
   const resetForm = () => {
     setCurrentExperience({
-      id: Math.random().toString(36).substr(2, 9),
-      organizationName: "",
+      organization: "",
       role: "",
       cause: "",
       startDate: parseDate(today("IST").toString()),
       endDate: null,
-      isCurrentlyVolunteering: false,
+      current: false,
       description: "",
     });
     setErrors({});
@@ -84,17 +91,32 @@ const Volunteering = () => {
     onOpen();
   };
 
-  const handleEdit = (experience: VolunteerExperience) => {
-    setCurrentExperience(experience);
+  const handleEdit = (experience: Volunteer) => {
+    setCurrentExperience({
+      _id: experience._id,
+      organization: experience.organization,
+      role: experience.role,
+      cause: experience.cause,
+      startDate: parseDate(experience.startDate),
+      endDate: experience.endDate ? parseDate(experience.endDate) : null,
+      current: experience.current,
+      description: experience.description,
+    });
     onOpen();
   };
 
-  const handleDelete = (id: string) => {
-    setExperiences((prev) => prev.filter((exp) => exp.id !== id));
-    toast.success("Volunteer experience deleted successfully");
+  const handleDelete = async (id: string) => {
+    try {
+      // Add your API delete call here
+      // await deleteVolunteer(id);
+      setExperiences((prev) => prev.filter((exp) => exp._id !== id));
+      toast.success("Volunteer experience deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete volunteer experience");
+    }
   };
 
-  const validateForm = (data: Omit<VolunteerExperience, "id">) => {
+  const validateForm = (data: Omit<VolunteerFormState, "_id">) => {
     try {
       volunteerSchema.parse(data);
       return true;
@@ -111,7 +133,19 @@ const Volunteering = () => {
     }
   };
 
-  const handleSave = () => {
+  const transformFormToVolunteer = (form: VolunteerFormState): Omit<Volunteer, '_id' | 'createdAt'> => {
+    return {
+      organization: form.organization,
+      role: form.role,
+      cause: form.cause,
+      startDate: form.startDate.toString(),
+      endDate: form.endDate?.toString(),
+      current: form.current,
+      description: form.description,
+    };
+  };
+
+  const handleSave = async () => {
     if (!currentExperience) return;
 
     if (!validateForm(currentExperience)) {
@@ -119,18 +153,32 @@ const Volunteering = () => {
       return;
     }
 
-    if (experiences.find((exp) => exp.id === currentExperience.id)) {
-      setExperiences((prev) =>
-        prev.map((exp) =>
-          exp.id === currentExperience.id ? currentExperience : exp
-        )
-      );
-      toast.success("Volunteer experience updated successfully");
-    } else {
-      setExperiences((prev) => [...prev, currentExperience]);
-      toast.success("Volunteer experience added successfully");
+    try {
+      const volunteerData = transformFormToVolunteer(currentExperience);
+
+      if (currentExperience._id) {
+        // Update existing volunteer
+        // Add your API update call here
+        // const updated = await updateVolunteer(currentExperience._id, volunteerData);
+        setExperiences((prev) =>
+          prev.map((exp) =>
+            exp._id === currentExperience._id
+              ? { ...volunteerData, _id: currentExperience._id }
+              : exp
+          )
+        );
+        toast.success("Volunteer experience updated successfully");
+      } else {
+        // Create new volunteer
+        // Add your API create call here
+        // const created = await createVolunteer(volunteerData);
+        setExperiences((prev) => [...prev, { ...volunteerData, _id: Date.now().toString() }]);
+        toast.success("Volunteer experience added successfully");
+      }
+      onClose();
+    } catch (error) {
+      toast.error("Failed to save volunteer experience");
     }
-    onClose();
   };
 
   return (
@@ -170,10 +218,8 @@ const Volunteering = () => {
           </motion.div>
 
           <h3 className="text-xl mt-3">No Volunteering Added Yet</h3>
-          <p className="text-gray-500">
-            Start by adding your first volunteering!
-          </p>
-          <Button onClick={() => onOpen()} startContent={<Plus size={18} />}>
+          <p className="text-gray-500">Start by adding your first volunteering!</p>
+          <Button onPress={handleAdd} startContent={<Plus size={18} />}>
             Add new
           </Button>
         </motion.div>
@@ -181,20 +227,17 @@ const Volunteering = () => {
         <div className="space-y-4">
           {experiences.map((experience) => (
             <motion.div
-              key={experience.id}
+              key={experience._id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               className="p-4 border rounded-lg"
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="font-medium">{experience.organizationName}</h3>
+                  <h3 className="font-medium">{experience.organization}</h3>
                   <p className="text-gray-600">{experience.role}</p>
                   <p className="text-sm text-gray-500">
-                    {experience.startDate.toString()} -{" "}
-                    {experience.isCurrentlyVolunteering
-                      ? "Present"
-                      : experience.endDate?.toString()}
+                    {experience.startDate} - {experience.current ? "Present" : experience.endDate}
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -209,7 +252,7 @@ const Volunteering = () => {
                     isIconOnly
                     variant="light"
                     color="danger"
-                    onPress={() => handleDelete(experience.id)}
+                    onPress={() => experience._id && handleDelete(experience._id)}
                   >
                     <Trash2 size={18} />
                   </Button>
@@ -225,26 +268,25 @@ const Volunteering = () => {
           {(onClose) => (
             <>
               <ModalHeader>
-                {currentExperience?.id ? "Edit" : "Add New"} Volunteer
-                Experience
+                {currentExperience?._id ? "Edit" : "Add New"} Volunteer Experience
               </ModalHeader>
               <ModalBody>
                 <div className="space-y-4">
                   <Input
                     label="Organization Name"
-                    value={currentExperience?.organizationName}
+                    value={currentExperience?.organization}
                     onChange={(e) =>
                       setCurrentExperience((prev) =>
                         prev
                           ? {
                               ...prev,
-                              organizationName: e.target.value,
+                              organization: e.target.value,
                             }
                           : null
                       )
                     }
-                    isInvalid={!!errors.organizationName}
-                    errorMessage={errors.organizationName}
+                    isInvalid={!!errors.organization}
+                    errorMessage={errors.organization}
                   />
                   <Input
                     label="Your Role"
@@ -316,17 +358,17 @@ const Volunteering = () => {
                         )
                       }
                       maxValue={today("IST")}
-                      isDisabled={currentExperience?.isCurrentlyVolunteering}
+                      isDisabled={currentExperience?.current}
                     />
                   </div>
                   <Checkbox
-                    isSelected={currentExperience?.isCurrentlyVolunteering}
+                    isSelected={currentExperience?.current}
                     onValueChange={(checked) =>
                       setCurrentExperience((prev) =>
                         prev
                           ? {
                               ...prev,
-                              isCurrentlyVolunteering: checked,
+                              current: checked,
                               endDate: checked ? null : prev.endDate,
                             }
                           : null

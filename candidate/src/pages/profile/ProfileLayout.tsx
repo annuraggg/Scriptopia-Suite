@@ -19,7 +19,7 @@ const Layout = () => {
     const oldState = user;
     setUser(newUser);
     axios
-      .put("/candidates/candidate", newUser)
+      .put("candidates/candidate", newUser)
       .then((res) => {
         setUser(res.data.data);
       })

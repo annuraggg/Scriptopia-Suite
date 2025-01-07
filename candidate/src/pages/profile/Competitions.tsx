@@ -15,87 +15,89 @@ import {
 } from "@nextui-org/react";
 import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
-import { parseDate, today } from "@internationalized/date";
+import { parseDate, today, CalendarDate } from "@internationalized/date";
 import { Plus, Pencil, Trash2, Gem } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { z } from "zod";
 import { Candidate, Competition } from "@shared-types/Candidate";
 import { useOutletContext } from "react-router-dom";
 
-// Validation Schema
-const competitionSchema = z.object({
-  title: z.string().min(2, "Title must be at least 2 characters"),
-  position: z.string().min(2, "Position must be at least 2 characters"),
-  organizer: z.string().min(2, "Organizer must be at least 2 characters"),
-  associatedWith: z
-    .string()
-    .min(2, "Associated with must be at least 2 characters"),
-  date: z.string(),
-  description: z.string().optional(),
-});
-
 const Competitions = () => {
-  // States
   const { user, setUser } = useOutletContext() as {
     user: Candidate;
     setUser: (user: Candidate) => void;
   };
 
-  const [currentCompetition, setCurrentCompetition] = useState<Competition>({
-    title: "",
-    position: "",
-    organizer: "",
-    associatedWith: "personal",
-    date: today("IST").toString(),
-    description: "",
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [currentCompetition, setCurrentCompetition] = useState<Competition>({} as Competition);
   const [isEditing, setIsEditing] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const validateField = (name: keyof Competition, value: any) => {
-    try {
-      // @ts-expect-error - We know that the key exists in the schema
-      competitionSchema.shape[name].parse(value);
-      // @ts-expect-error - We know that the key exists in the schema
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-      return true;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        setErrors((prev) => ({ ...prev, [name]: error.errors[0].message }));
-        return false;
-      }
-      return false;
-    }
+  const initialCompetition: Competition = {
+    title: "",
+    position: "",
+    organizer: "",
+    associatedWith: "academic",
+    date: today("IST").toString(),
+    description: "",
   };
 
-  const handleInputChange = (name: keyof Competition, value: any) => {
-    const sanitizedValue = typeof value === "string" ? value.trim() : value;
-    setCurrentCompetition((prev) => ({ ...prev, [name]: sanitizedValue }));
-
-    if (typeof value === "string") {
-      validateField(name, value);
+  const handleOpen = (competition?: Competition) => {
+    if (competition) {
+      const formattedCompetition = {
+        ...competition,
+        date: competition.date 
+          ? new CalendarDate(new Date(competition.date).getFullYear(),
+              new Date(competition.date).getMonth() + 1,
+              new Date(competition.date).getDate()).toString()
+          : today("IST").toString()
+      };
+      setCurrentCompetition(formattedCompetition);
+      setIsEditing(true);
+    } else {
+      setCurrentCompetition(initialCompetition);
+      setIsEditing(false);
     }
+    onOpen();
   };
 
-  const handleAdd = () => {
+  const handleClose = () => {
+    setCurrentCompetition({} as Competition);
     setIsEditing(false);
-    setCurrentCompetition({
-      title: "",
-      position: "",
-      organizer: "",
-      associatedWith: "academic",
-      date: today("IST").toString(),
-      description: "",
-    });
-    onOpen();
+    onClose();
   };
 
-  const handleEdit = (competition: Competition) => {
-    setIsEditing(true);
-    setCurrentCompetition(competition);
-    onOpen();
+  const handleSave = () => {
+    if (!currentCompetition) return;
+
+    if (!currentCompetition.title || !currentCompetition.position || !currentCompetition.organizer) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    const competitionToSave = {
+      ...currentCompetition,
+      date: new Date(currentCompetition.date).toISOString()
+    };
+
+    if (isEditing) {
+      const newCompetitions = user?.competitions?.map((comp) =>
+        comp._id === currentCompetition._id ? competitionToSave : comp
+      );
+      setUser({ ...user, competitions: newCompetitions });
+      toast.success("Competition updated successfully");
+    } else {
+      const newCompetition = {
+        ...competitionToSave,
+        _id: Date.now().toString(),
+      };
+      const newCompetitions = [
+        ...(user?.competitions || []),
+        newCompetition,
+      ];
+      setUser({ ...user, competitions: newCompetitions });
+      toast.success("Competition added successfully");
+    }
+    handleClose();
   };
 
   const handleDelete = (id: string) => {
@@ -103,33 +105,14 @@ const Competitions = () => {
       (comp) => comp._id !== id
     );
     setUser({ ...user, competitions: newCompetitions });
+    toast.success("Competition deleted successfully");
   };
 
-  const handleSave = () => {
+  const formatDate = (dateString: string) => {
     try {
-      competitionSchema.parse(currentCompetition);
-
-      if (isEditing) {
-        const newCompetitions = user?.competitions?.map((comp) =>
-          comp._id === currentCompetition._id ? { ...currentCompetition } : comp
-        );
-
-        setUser({ ...user, competitions: newCompetitions });
-      } else {
-        const newCompetitions = [
-          ...(user?.competitions || []),
-          currentCompetition,
-        ];
-        setUser({ ...user, competitions: newCompetitions });
-      }
-      onClose();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        error.errors.forEach((err) => {
-          setErrors((prev) => ({ ...prev, [err.path[0]]: err.message }));
-        });
-        toast.error("Please check all required fields");
-      }
+      return new Date(dateString).toLocaleDateString();
+    } catch (e) {
+      return "Invalid date";
     }
   };
 
@@ -153,9 +136,20 @@ const Competitions = () => {
           transition={{ delay: 0.2 }}
           className="p-5 rounded-xl"
         >
+          <div className="flex justify-end items-center mb-6">
+            {user?.competitions && (
+              <Button
+                onClick={() => handleOpen()}
+                startContent={<Plus size={18} />}
+              >
+                Add new
+              </Button>
+            )}
+          </div>
+
           {!user?.competitions ? (
             <motion.div
-              key="none"
+              key="empty"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -172,7 +166,6 @@ const Competitions = () => {
                   repeatType: "reverse",
                 }}
               >
-                {" "}
                 <Gem size={50} />
               </motion.div>
 
@@ -181,131 +174,145 @@ const Competitions = () => {
                 Start by adding your first competition!
               </p>
               <Button
-                onClick={() => onOpen()}
+                onClick={() => handleOpen()}
                 startContent={<Plus size={18} />}
               >
                 Add new
               </Button>
             </motion.div>
           ) : (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold">Your Competitions</h2>
-                <Button
-                  color="primary"
-                  startContent={<Plus size={20} />}
-                  onPress={handleAdd}
+            <div className="grid gap-4">
+              {user?.competitions?.map((competition) => (
+                <motion.div
+                  key={competition._id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="p-4 border rounded-lg"
                 >
-                  Add new
-                </Button>
-              </div>
-
-              <div className="grid gap-4">
-                {user?.competitions?.map((competition) => (
-                  <motion.div
-                    key={competition._id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="p-4 border rounded-lg"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium">{competition.title}</h3>
-                        <p className="text-sm text-gray-500">
-                          {competition.position}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {competition.date.toString()}
-                        </p>
-                        <p className="mt-2">{competition.description}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          isIconOnly
-                          variant="light"
-                          onPress={() => handleEdit(competition)}
-                        >
-                          <Pencil size={18} />
-                        </Button>
-                        <Button
-                          isIconOnly
-                          variant="light"
-                          color="danger"
-                          onPress={() => handleDelete(competition._id || "")}
-                        >
-                          <Trash2 size={18} />
-                        </Button>
-                      </div>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium">{competition.title}</h3>
+                      <p className="text-sm text-gray-500">
+                        {competition.position}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {formatDate(competition.date)}
+                      </p>
+                      <p className="mt-2">{competition.description}</p>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
+                    <div className="flex gap-2">
+                      <Button
+                        isIconOnly
+                        variant="light"
+                        onPress={() => handleOpen(competition)}
+                      >
+                        <Pencil size={18} />
+                      </Button>
+                      <Button
+                        isIconOnly
+                        variant="light"
+                        color="danger"
+                        onPress={() => handleDelete(competition._id || "")}
+                      >
+                        <Trash2 size={18} />
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
           )}
         </motion.div>
       </div>
 
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isOpen} onClose={handleClose} size="2xl">
         <ModalContent>
-          {(onClose) => (
+          {() => (
             <>
               <ModalHeader>
                 {isEditing ? "Edit Competition" : "Add New Competition"}
               </ModalHeader>
               <ModalBody>
-                <div className="space-y-4">
+                <div className="grid gap-4">
                   <Input
                     label="Competition Title"
-                    placeholder="Enter Competition Title"
-                    value={currentCompetition.title}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                    isInvalid={!!errors.title}
-                    errorMessage={errors.title}
+                    placeholder="Enter competition title"
+                    value={currentCompetition?.title || ""}
+                    onChange={(e) =>
+                      setCurrentCompetition((prev) => ({
+                        ...prev,
+                        title: e.target.value,
+                      }))
+                    }
+                    isRequired
                   />
                   <Input
                     label="Position"
                     placeholder="E.g. First, Runners Up"
-                    value={currentCompetition.position}
+                    value={currentCompetition?.position || ""}
                     onChange={(e) =>
-                      handleInputChange("position", e.target.value)
+                      setCurrentCompetition((prev) => ({
+                        ...prev,
+                        position: e.target.value,
+                      }))
                     }
-                    isInvalid={!!errors.position}
-                    errorMessage={errors.position}
+                    isRequired
+                  />
+                  <Input
+                    label="Organizer"
+                    placeholder="Enter organizer name"
+                    value={currentCompetition?.organizer || ""}
+                    onChange={(e) =>
+                      setCurrentCompetition((prev) => ({
+                        ...prev,
+                        organizer: e.target.value,
+                      }))
+                    }
+                    isRequired
                   />
                   <Select
                     label="Associated With"
                     placeholder="Select association"
-                    value={currentCompetition.associatedWith}
+                    selectedKeys={[currentCompetition?.associatedWith || "academic"]}
                     onChange={(e) =>
-                      handleInputChange("associatedWith", e.target.value)
+                      setCurrentCompetition((prev) => ({
+                        ...prev,
+                        associatedWith: e.target.value as "academic" | "personal" | "professional",
+                      }))
                     }
-                    isInvalid={!!errors.associatedWith}
-                    errorMessage={errors.associatedWith}
+                    isRequired
                   >
-                    <SelectItem key="school">School</SelectItem>
-                    <SelectItem key="college">College</SelectItem>
-                    <SelectItem key="university">University</SelectItem>
-                    <SelectItem key="work">Work</SelectItem>
+                    <SelectItem key="personal">Personal</SelectItem>
+                    <SelectItem key="academic">Academic</SelectItem>
+                    <SelectItem key="professional">Professional</SelectItem>
                   </Select>
                   <DateInput
                     label="Competition Date"
-                    value={parseDate(currentCompetition.date)}
-                    onChange={(date) => handleInputChange("date", date)}
-                    maxValue={today("IST")}
+                    value={parseDate(currentCompetition?.date || today("IST").toString(), )}
+                    onChange={(date) =>
+                      setCurrentCompetition((prev) => ({
+                        ...prev,
+                        date: date.toString(),
+                      }))
+                    }
+                    isRequired
                   />
                   <Textarea
                     label="Description"
                     placeholder="Enter competition details"
-                    value={currentCompetition.description}
+                    value={currentCompetition?.description || ""}
                     onChange={(e) =>
-                      handleInputChange("description", e.target.value)
+                      setCurrentCompetition((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
                     }
                     minRows={3}
                   />
                 </div>
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
+                <Button color="danger" variant="light" onPress={handleClose}>
                   Cancel
                 </Button>
                 <Button color="primary" onPress={handleSave}>

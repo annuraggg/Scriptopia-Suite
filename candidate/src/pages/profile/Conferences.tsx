@@ -24,11 +24,10 @@ import { useOutletContext } from "react-router-dom";
 const conferenceSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   organizer: z.string().min(2, "Organizer name must be at least 2 characters"),
-  address: z.string().min(5, "Please enter a valid address"),
-  date: z.instanceof(CalendarDate),
-  description: z
-    .string()
-    .max(1000, "Description cannot exceed 1000 characters"),
+  eventLocation: z.string().min(5, "Please enter a valid address"),
+  eventDate: z.string(),
+  link: z.string().optional(),
+  description: z.string().max(1000, "Description cannot exceed 1000 characters"),
 });
 
 const Conferences = () => {
@@ -42,6 +41,7 @@ const Conferences = () => {
     organizer: "",
     eventLocation: "",
     eventDate: today("IST").toString(),
+    link: "",
     description: "",
   });
   const [errors, setErrors] = useState<
@@ -52,7 +52,7 @@ const Conferences = () => {
 
   const validateField = (name: keyof Conference, value: any) => {
     try {
-      // @ts-expect-error - This is a dynamic field access
+      // @ts-expect-error
       conferenceSchema.shape[name].parse(value);
       setErrors((prev) => ({ ...prev, [name]: undefined }));
       return true;
@@ -66,11 +66,16 @@ const Conferences = () => {
   };
 
   const handleInputChange = (name: keyof Conference, value: any) => {
-    const sanitizedValue = typeof value === "string" ? value.trim() : value;
+    const sanitizedValue = name === "eventDate" && value instanceof CalendarDate 
+      ? value.toString() 
+      : typeof value === "string" 
+        ? value.trim() 
+        : value;
+    
     setCurrentConference((prev) => ({ ...prev, [name]: sanitizedValue }));
 
-    if (typeof value === "string") {
-      validateField(name, value);
+    if (typeof sanitizedValue === "string") {
+      validateField(name, sanitizedValue);
     }
   };
 
@@ -81,6 +86,7 @@ const Conferences = () => {
       organizer: "",
       eventLocation: "",
       eventDate: today("IST").toString(),
+      link: "",
       description: "",
     });
     setErrors({});
@@ -109,13 +115,9 @@ const Conferences = () => {
         );
         setUser({ ...user, conferences: newConferences });
       } else {
-        const newConference = {
-          ...currentConference,
-          id: Math.random().toString(36).substr(2, 9),
-        } as Conference;
         const newConferences = user?.conferences
-          ? [...user.conferences, newConference]
-          : [newConference];
+          ? [...user.conferences, currentConference]
+          : [currentConference];
 
         setUser({ ...user, conferences: newConferences });
       }
@@ -149,14 +151,12 @@ const Conferences = () => {
           className="p-5 rounded-xl"
         >
           <div className="flex justify-end items-center mb-6">
-            {!user?.conferences && (
-              <Button startContent={<Plus size={18} />} onClick={handleAdd}>
-                Add new
-              </Button>
-            )}
+            <Button startContent={<Plus size={18} />} onClick={handleAdd}>
+              Add new
+            </Button>
           </div>
 
-          {!user?.conferences ? (
+          {!user?.conferences?.length ? (
             <motion.div
               key="empty"
               initial={{ opacity: 0, y: 20 }}
@@ -182,16 +182,10 @@ const Conferences = () => {
               <p className="text-gray-500">
                 Start by adding your first conference!
               </p>
-              <Button
-                onClick={() => onOpen()}
-                startContent={<Plus size={18} />}
-              >
-                Add new
-              </Button>
             </motion.div>
           ) : (
             <div className="grid gap-4">
-              {user?.conferences?.map((conference) => (
+              {user.conferences.map((conference) => (
                 <motion.div
                   key={conference._id}
                   initial={{ opacity: 0, y: 20 }}
@@ -203,7 +197,17 @@ const Conferences = () => {
                       <h3 className="font-medium">{conference.title}</h3>
                       <p className="text-small">{conference.organizer}</p>
                       <p className="text-small">{conference.eventLocation}</p>
-                      <p className="text-small">{conference.eventDate.toString()}</p>
+                      <p className="text-small">{conference.eventDate}</p>
+                      {conference.link && (
+                        <p className="text-small">
+                          <a href={conference.link} target="_blank" rel="noopener noreferrer">
+                            Conference Link
+                          </a>
+                        </p>
+                      )}
+                      {conference.description && (
+                        <p className="text-small mt-2">{conference.description}</p>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <Button
@@ -277,6 +281,13 @@ const Conferences = () => {
                     onChange={(date) => handleInputChange("eventDate", date)}
                     isInvalid={!!errors.eventDate}
                     errorMessage={errors.eventDate?.toString()}
+                  />
+                  <Input
+                    label="Conference Link (Optional)"
+                    value={currentConference.link}
+                    onChange={(e) => handleInputChange("link", e.target.value)}
+                    isInvalid={!!errors.link}
+                    errorMessage={errors.link}
                   />
                   <Textarea
                     label="Description"

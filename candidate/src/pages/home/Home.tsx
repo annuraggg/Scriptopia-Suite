@@ -4,6 +4,7 @@ import { Input, Select, SelectItem, Card, Pagination, Slider, Modal, Button, Mod
 import { Search, MapPin, Briefcase, Building2, DollarSign, AlertCircle, X } from 'lucide-react';
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
+import ApplicationForm from "./ApplicationForm";
 
 interface Posting {
   _id: string;
@@ -26,6 +27,14 @@ interface Posting {
     currency: string;
   };
   openings: number;
+  additionalDetails?: {
+    [category: string]: {
+      [field: string]: {
+        required: boolean;
+        allowEmpty: boolean;
+      };
+    };
+  };
 }
 
 const jobTypes = ['full_time', 'part_time', 'internship', 'contract', 'temporary'];
@@ -108,6 +117,7 @@ export default function Home() {
 
   const handlePostingClick = (posting: Posting) => {
     if (isPostingExpired(posting.applicationRange.end)) {
+      setShowExpiredModal(true);
       return;
     }
 
@@ -182,26 +192,24 @@ export default function Home() {
           ← Back to Jobs
         </Button>
 
-        <Card className="p-8">
-          <h2 className="text-2xl font-bold mb-4">{selectedPosting.title}</h2>
-          <div className="flex items-center gap-4 text-default-500 mb-6">
-            <span className="flex items-center gap-1">
-              <Building2 size={16} />
-              {selectedPosting.organization.name}
-            </span>
-            <span className="flex items-center gap-1">
-              <MapPin size={16} />
-              {capitalizeFirstLetter(selectedPosting.location)}
-            </span>
-            <span className="flex items-center gap-1">
-              <DollarSign size={16} />
-              {formatCurrency(selectedPosting.salary.min, selectedPosting.salary.max, selectedPosting.salary.currency)}
-            </span>
-          </div>
-          <p className="text-center text-xl text-default-500">
-            Application form will be implemented here
-          </p>
-        </Card>
+        <ApplicationForm
+          posting={{
+            _id: selectedPosting._id,
+            title: selectedPosting.title,
+            additionalDetails: selectedPosting.additionalDetails
+          }}
+          onClose={() => setShowApplication(false)}
+          onSubmit={async (formData) => {
+            try {
+              // Implement your form submission logic here
+              console.log('Form submitted:', formData);
+              // After successful submission
+              setShowApplication(false);
+            } catch (error) {
+              console.error('Error submitting application:', error);
+            }
+          }}
+        />
       </motion.div>
     );
   }
@@ -341,8 +349,8 @@ export default function Home() {
               >
                 <Card
                   className={`p-6 hover:shadow-lg transition-shadow ${isPostingExpired(posting.applicationRange.end)
-                      ? 'opacity-75 cursor-default'
-                      : 'cursor-pointer'
+                    ? 'opacity-75 cursor-default'
+                    : 'cursor-pointer'
                     }`}
                 >
                   <div className="flex items-start justify-between">

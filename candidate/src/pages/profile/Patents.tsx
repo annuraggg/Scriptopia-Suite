@@ -29,19 +29,17 @@ import { z } from "zod";
 import { useOutletContext } from "react-router-dom";
 import { Candidate, Patent } from "@shared-types/Candidate";
 
-// Validation Schema
 const patentSchema = z.object({
   title: z.string().min(1, "Title is required"),
   patentOffice: z.string().min(1, "Patent office is required"),
-  applicationNumber: z.string().min(1, "Application number is required"),
-  status: z.string().min(1, "Status is required"),
-  filingDate: z.instanceof(CalendarDate),
-  issueDate: z.instanceof(CalendarDate).nullable(),
-  description: z.string().optional(),
+  patentNumber: z.string().min(1, "Patent number is required"),
+  status: z.enum(["pending", "granted", "rejected"]),
+  filingDate: z.string(),
+  issueDate: z.string().optional(),
+  description: z.string().min(1, "Description is required"),
 });
 
 const Patents = () => {
-  // States
   const { user, setUser } = useOutletContext() as {
     user: Candidate;
     setUser: (user: Candidate) => void;
@@ -54,13 +52,11 @@ const Patents = () => {
     patentOffice: "",
     patentNumber: "",
     status: "pending",
-    filingDate: parseDate(today("IST").toString()).toString(),
-    issueDate: parseDate(today("IST").toString()).toString(),
+    filingDate: today("IST").toString(),
+    issueDate: "",
     description: "",
   });
-  const [errors, setErrors] = useState<Partial<Record<keyof Patent, string>>>(
-    {}
-  );
+  const [errors, setErrors] = useState<Partial<Record<keyof Patent, string>>>({});
 
   const patentOffices = [
     { label: "USPTO", value: "USPTO" },
@@ -69,13 +65,24 @@ const Patents = () => {
   ];
 
   const patentStatuses = [
-    { label: "Pending", value: "Pending" },
-    { label: "Granted", value: "Granted" },
-    { label: "Rejected", value: "Rejected" },
+    { label: "Pending", value: "pending" },
+    { label: "Granted", value: "granted" },
+    { label: "Rejected", value: "rejected" },
   ];
 
-  const validateField = (name: keyof typeof formData, value: any) => {
+  const formatDate = (dateString: string) => {
     try {
+      return dateString.split('T')[0];
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  const validateField = (name: keyof Patent, value: any) => {
+    try {
+      if (name === "status" && !["pending", "granted", "rejected"].includes(value)) {
+        throw new Error("Invalid status value");
+      }
       // @ts-ignore
       patentSchema.shape[name].parse(value);
       setErrors((prev) => ({ ...prev, [name]: undefined }));
@@ -83,36 +90,42 @@ const Patents = () => {
     } catch (error) {
       if (error instanceof z.ZodError) {
         setErrors((prev) => ({ ...prev, [name]: error.errors[0].message }));
-        return false;
+      } else {
+        setErrors((prev) => ({ ...prev, [name]: (error as Error).message }));
       }
       return false;
     }
   };
 
-  const handleInputChange = (
-    name: keyof typeof formData,
-    value: string | CalendarDate | null
-  ) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (typeof value === "string") {
-      validateField(name, value);
+  const handleInputChange = (name: keyof Patent, value: any) => {
+    let processedValue = value;
+
+    if (value instanceof CalendarDate) {
+      processedValue = value.toString();
+    } else if (typeof value === "string") {
+      processedValue = value.trim();
     }
+
+    setFormData((prev) => ({ ...prev, [name]: processedValue }));
+    validateField(name, processedValue);
   };
 
   const handleSave = async () => {
     try {
-      patentSchema.parse(formData);
+      const dataToValidate = {
+        ...formData,
+        status: formData.status.toLowerCase() as "pending" | "granted" | "rejected"
+      };
 
-      if (editingPatent) {
-        // Update existing patent
+      patentSchema.parse(dataToValidate);
+
+      if (editingPatent._id) {
         const newPatents = user?.patents?.map((p) =>
-          p._id === editingPatent._id ? { ...formData, id: p._id } : p
+          p._id === editingPatent._id ? { ...dataToValidate, _id: p._id } : p
         );
-
         setUser({ ...user, patents: newPatents });
       } else {
-        // Add new patent
-        const newPatents = [...(user?.patents || []), { ...formData }];
+        const newPatents = [...(user?.patents || []), dataToValidate];
         setUser({ ...user, patents: newPatents });
       }
 
@@ -122,6 +135,8 @@ const Patents = () => {
         error.errors.forEach((err) => {
           toast.error(`${err.path.join(".")}: ${err.message}`);
         });
+      } else {
+        toast.error("Failed to save patent");
       }
     }
   };
@@ -144,8 +159,8 @@ const Patents = () => {
       patentOffice: "",
       patentNumber: "",
       status: "pending",
-      filingDate: parseDate(today("IST").toString()).toString(),
-      issueDate: parseDate(today("IST").toString()).toString(),
+      filingDate: today("IST").toString(),
+      issueDate: "",
       description: "",
     });
     setErrors({});
@@ -185,8 +200,8 @@ const Patents = () => {
               <TableCell>{patent.patentOffice}</TableCell>
               <TableCell>{patent.patentNumber}</TableCell>
               <TableCell>{patent.status}</TableCell>
-              <TableCell>{patent.filingDate.toString()}</TableCell>
-              <TableCell>{patent.issueDate?.toString() || "-"}</TableCell>
+              <TableCell>{formatDate(patent.filingDate)}</TableCell>
+              <TableCell>{patent.issueDate ? formatDate(patent.issueDate) : "-"}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
                   <Button
@@ -218,7 +233,7 @@ const Patents = () => {
           {() => (
             <>
               <ModalHeader>
-                {editingPatent ? "Edit Patent" : "Add New Patent"}
+                {editingPatent._id ? "Edit Patent" : "Add New Patent"}
               </ModalHeader>
               <ModalBody>
                 <div className="flex flex-col gap-4">
@@ -249,7 +264,7 @@ const Patents = () => {
                   </Select>
 
                   <Input
-                    label="Application Number"
+                    label="Patent Number"
                     value={formData.patentNumber}
                     onChange={(e) =>
                       handleInputChange("patentNumber", e.target.value)
@@ -263,7 +278,7 @@ const Patents = () => {
                     label="Status"
                     selectedKeys={[formData.status]}
                     onChange={(e) =>
-                      handleInputChange("status", e.target.value)
+                      handleInputChange("status", e.target.value.toLowerCase())
                     }
                     isRequired
                     isInvalid={!!errors.status}
@@ -287,7 +302,7 @@ const Patents = () => {
 
                     <DateInput
                       label="Issue Date"
-                      value={parseDate(formData?.issueDate || "")}
+                      value={formData.issueDate ? parseDate(formData.issueDate) : undefined}
                       onChange={(date) => handleInputChange("issueDate", date)}
                       maxValue={today("IST")}
                     />
@@ -299,7 +314,10 @@ const Patents = () => {
                     onChange={(e) =>
                       handleInputChange("description", e.target.value)
                     }
+                    isRequired
                     minRows={3}
+                    isInvalid={!!errors.description}
+                    errorMessage={errors.description}
                   />
                 </div>
               </ModalBody>
@@ -315,7 +333,7 @@ const Patents = () => {
           )}
         </ModalContent>
       </Modal>
-    </motion.div>
+    </motion.div >
   );
 };
 
