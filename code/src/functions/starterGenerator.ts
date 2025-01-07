@@ -39,7 +39,7 @@
 //   return starterCode;
 // };
 
-import { generateSdslCode } from "./sdsl";
+import { generateSdslCode } from "@shared-functions/sdsl";
 
 // import sdslToObject from "./sdsl/sdslToObject";
 

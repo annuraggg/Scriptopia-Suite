@@ -6,8 +6,8 @@ interface QuestionListProps {
   questions: Question[];
   onMoveUp: (id: string) => void;
   onMoveDown: (id: string) => void;
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
+  onEdit: (id: number) => void;
+  onDelete: (id: number) => void;
 }
 
 const QuestionList: React.FC<QuestionListProps> = ({
@@ -28,7 +28,8 @@ const QuestionList: React.FC<QuestionListProps> = ({
                   {question.type
                     .split("-")
                     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(" ")}
+                    .join(" ")}{" "}
+                  (Grade: {question.grade})
                 </p>
                 <h3 className="font-semibold text-lg">{question.question}</h3>{" "}
                 {/* Updated to use 'question' instead of 'text' */}
@@ -54,7 +55,7 @@ const QuestionList: React.FC<QuestionListProps> = ({
                   isIconOnly
                   variant="light"
                   color="primary"
-                  onPress={() => onEdit(question?._id || "")}
+                  onPress={() => onEdit(index)}
                 >
                   <Edit size={18} />
                 </Button>
@@ -62,7 +63,7 @@ const QuestionList: React.FC<QuestionListProps> = ({
                   isIconOnly
                   variant="light"
                   color="danger"
-                  onPress={() => onDelete(question?._id || "")}
+                  onPress={() => onDelete(index)}
                 >
                   <Trash size={18} />
                 </Button>

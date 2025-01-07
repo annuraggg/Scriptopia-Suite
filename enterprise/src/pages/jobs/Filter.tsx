@@ -48,8 +48,8 @@ const Filter: React.FC<FilterProps> = ({
       <Card className="w-full h-full">
         <CardBody className="flex flex-col items-start justify-start gap-3 w-full p-4">
           <p className="text-lg font-semibold">Filters</p>
-          <hr className="w-full h-[1px] bg-gray-200 rounded-lg"></hr>
-          <p className="text-neutral-400 text-base mt-2">Work Schedule</p>
+          <hr className="w-full h-[1px] rounded-lg"></hr>
+          <p className="text-base mt-2">Work Schedule</p>
           <div className="flex flex-col items-start justify-start gap-4 w-full text-sm mt-2">
             <Checkbox
               size="sm"
@@ -74,7 +74,7 @@ const Filter: React.FC<FilterProps> = ({
             </Checkbox>
           </div>
 
-          <p className="text-neutral-400 text-base mt-5">Department</p>
+          <p className="text-base mt-5">Department</p>
           <div className="flex flex-col items-start justify-start gap-4 w-full text-sm mt-2">
             <Select
               size="sm"
@@ -88,32 +88,6 @@ const Filter: React.FC<FilterProps> = ({
               ))}
             </Select>
           </div>
-          {/* <hr className="w-full h-[1px] bg-white-800 rounded-lg"></hr>
-          <p className="text-neutral-400 text-base mt-2">Date Range</p>
-          <div className="flex flex-col items-start justify-start gap-4 w-full text-sm mt-2">
-            <Input
-              type="date"
-              label="Start Date"
-              placeholder="Select start date"
-              className="w-full"
-              size="sm"
-              value={dateRange.start}
-              onChange={(e) =>
-                setDateRange({ ...dateRange, start: e.target.value })
-              }
-            />
-            <Input
-              type="date"
-              label="End Date"
-              placeholder="Select end date"
-              className="w-full"
-              size="sm"
-              value={dateRange.end}
-              onChange={(e) =>
-                setDateRange({ ...dateRange, end: e.target.value })
-              }
-            />
-          </div> */}
         </CardBody>
       </Card>
     </div>

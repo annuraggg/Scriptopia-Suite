@@ -26,6 +26,7 @@ const sendError = (
   data?: any
 ) => {
   logger.warn(message);
+  console.error(message);
   return c.json(
     {
       success: false,

@@ -208,12 +208,12 @@ const Sidebar = ({
                 <tbody
                   className={`${
                     item.visible
-                      ? "hover:text-white opacity-100 cursor-pointer"
-                      : "opacity-10 cursor-not-allowed"
+                      ? " opacity-100 cursor-pointer"
+                      : "opacity-40 cursor-not-allowed"
                   } h-8 ${
                     active === item.label.toLowerCase()
-                      ? "text-white-500 rounded-xl"
-                      : "text-muted-foreground"
+                      ? "rounded-xl text-accent"
+                      : item.visible && "hover:text-accent/70"
                   }`}
                   onClick={() => handleNavigation(item)}
                 >

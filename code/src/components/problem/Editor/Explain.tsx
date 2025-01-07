@@ -39,7 +39,6 @@ const Explain = ({
       monaco.editor.create(document.getElementById("code-editor-gemini")!, {
         value: code,
         language: "javascript",
-        theme: "vs-dark",
         readOnly: true,
         lineNumbers: "off",
         minimap: { enabled: false },

@@ -23,7 +23,7 @@ import {
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { TestCase } from "@shared-types/Problem";
-import { getInputs } from "@/functions/sdsl";
+import { getInputs } from "@shared-functions/sdsl";
 import {
   Table as ShadTable,
   TableHead as ShadTableHead,

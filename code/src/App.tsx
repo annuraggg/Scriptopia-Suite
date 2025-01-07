@@ -3,7 +3,6 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./App.css";
 import Layout from "./components/Layout";
 import ErrorPage from "./components/ErrorPage";
-import { useTheme } from "./components/theme-provider";
 import Loader from "./components/Loader"; // Import Loader component
 // Lazy loading components
 const Home = lazy(() => import("./pages/home/Home"));
@@ -11,29 +10,38 @@ const AssessmentDashboard = lazy(
   () => import("./pages/assessments/dashboard/Assessments")
 );
 const Lander = lazy(() => import("./pages/landing/Lander"));
-const UnderConstruction = lazy(() => import("./pages/landing/UnderConstruction"));
+const UnderConstruction = lazy(
+  () => import("./pages/landing/UnderConstruction")
+);
 const Problems = lazy(() => import("./pages/problems/dashboard/Problems"));
 const Problem = lazy(() => import("./pages/problems/problem/Problem"));
 const NewProblem = lazy(() => import("./pages/problems/new/NewProblem"));
 const NewMCQ = lazy(() => import("./pages/assessments/new/mcq/New"));
 const NewCode = lazy(() => import("./pages/assessments/new/code/New"));
-const NewMCQCode = lazy(() => import("./pages/assessments/new/mcqcode/New"));
-const MainAssessment = lazy(
-  () => import("./pages/assessments/assess/Assessment")
-);
-//  const AssessmentCurrent = lazy(
-//    () => import("./pages/assessments/assess/CodeDashboard")
-//  );
-//  const AssessmentCurrentProblem = lazy(
-//    () => import("./pages/assessments/assess/problem/Problem")
-//  );
-//  const Result = lazy(() => import("./pages/assessments/assess/result/Result"));
 const ViewAssessment = lazy(
   () => import("./pages/assessments/dashboard/ViewAssessment/ViewAssessment")
 );
 const ViewUserAssessment = lazy(
   () =>
     import("./pages/assessments/dashboard/ViewAssessment/ViewUserAssessment")
+);
+
+const MCQAssessment = lazy(
+  () => import("./pages/assessments/assess/mcq/Assess")
+);
+
+const CodeAssessment = lazy(
+  () => import("./pages/assessments/assess/code/Assess")
+);
+
+const ViewMCQUserAssessment = lazy(
+  () =>
+    import("./pages/assessments/dashboard/view-mcq-assessment/ViewAssessment")
+);
+
+const ViewCodeUserAssessment = lazy(
+  () =>
+    import("./pages/assessments/dashboard/view-code-assessment/ViewAssessment")
 );
 
 const router = createBrowserRouter([
@@ -51,7 +59,6 @@ const router = createBrowserRouter([
     element: <Layout />,
     errorElement: <ErrorPage />,
     children: [
-      
       {
         path: "dashboard",
         element: <Home />,
@@ -68,6 +75,16 @@ const router = createBrowserRouter([
         path: "assessments/:id/view/:cid",
         element: <ViewUserAssessment />,
       },
+
+      {
+        path: "assessments/m/:id/view/:cid",
+        element: <ViewMCQUserAssessment />,
+      },
+      {
+        path: "assessments/c/:id/view/:cid",
+        element: <ViewCodeUserAssessment />,
+      },
+
       {
         path: "assessments/new/mcq",
         element: <NewMCQ />,
@@ -75,10 +92,6 @@ const router = createBrowserRouter([
       {
         path: "assessments/new/code",
         element: <NewCode />,
-      },
-      {
-        path: "assessments/new/mcqcode",
-        element: <NewMCQCode />,
       },
       {
         path: "problems",
@@ -95,8 +108,12 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: "/assessments/:id",
-    element: <MainAssessment />,
+    path: "/assessments/c/:id",
+    element: <CodeAssessment />,
+  },
+  {
+    path: "/assessments/m/:id",
+    element: <MCQAssessment />,
   },
   //  {
   //    path: "/assessments/:id/current",
@@ -113,13 +130,8 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  const { theme } = useTheme();
   return (
-    <main
-      className={`${
-        theme === "dark" ? "dark" : ""
-      } text-foreground bg-background`}
-    >
+    <main className={`text-foreground bg-background`}>
       <Suspense fallback={<Loader />}>
         <RouterProvider router={router} />
       </Suspense>

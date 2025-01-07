@@ -1,53 +1,102 @@
-import { Button, Card, CardBody, Progress } from "@nextui-org/react";
-import { useState } from "react";
+import { Button, Card, CardBody } from "@nextui-org/react";
+import { MCQAssessment as MA } from "@shared-types/MCQAssessment";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from "@nextui-org/modal";
 
-const Sidebar = () => {
-  // @ts-expect-error
-  const [sections, setSections] = useState([
-    {
-      id: 1,
-      title: "Section 1",
-    },
-    {
-      id: 2,
-      title: "Section 2",
-    },
-    {
-      id: 3,
-      title: "Section 3",
-    },
-  ]);
-  const [currentSection, setCurrentSection] = useState(sections[0]);
+interface SidebarProps {
+  timer: number;
+  assessment: MA;
+  currentSection: number;
+  setCurrentSection: (index: number) => void;
+  submitAssessment: () => void;
+}
+
+const Sidebar = ({
+  timer,
+  assessment,
+  currentSection,
+  setCurrentSection,
+  submitAssessment,
+}: SidebarProps) => {
+  const formatTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  };
+
+  const { isOpen, onOpenChange, onOpen } = useDisclosure();
 
   return (
-    <Card className="min-h-full w-[20%] overflow-y-auto">
+    <Card className="min-h-full w-[20%] overflow-y-auto h-[94vh]  z-0">
       <div className="sticky p-5">
-        <Button color="success" variant="flat" className="mb-3 w-full">
+        <Button
+          color="success"
+          variant="flat"
+          className="mb-3 w-full"
+          onClick={onOpen}
+        >
           Submit Assessment
         </Button>
-        <Progress value={50} label="Progress" />
-        <p className="mt-5 text-center">Time Left: 30:00</p>
+        <p className="mt-5 text-center">Time Left: {formatTime(timer)}</p>
       </div>
 
       <CardBody className="h-full">
         <div>
-          {sections.map((section) => (
+          {assessment?.sections?.map((section, index) => (
             <div
-              key={section.id}
+              key={index}
               className={`mt-2 bg-card border-2 py-4 px-5 rounded-xl cursor-pointer transition-colors
                 ${
-                  currentSection.id === section.id
+                  currentSection === index
                     ? "bg-foreground-100"
                     : "hover:bg-foreground-100 bg-opacity-50"
                 }
                 `}
-              onClick={() => setCurrentSection(section)}
+              onClick={() => setCurrentSection(index)}
             >
-              <p>{section.title}</p>
+              <p>{section?.name}</p>
             </div>
           ))}
         </div>
       </CardBody>
+
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Modal Title
+              </ModalHeader>
+              <ModalBody>
+                <p>
+                  Are you sure you want to submit the assessment? You won't be
+                  able to change your answers after submission.
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Cancel
+                </Button>
+                <Button
+                  color="primary"
+                  onPress={() => {
+                    submitAssessment();
+                    onClose();
+                  }}
+                >
+                  Submit
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </Card>
   );
 };

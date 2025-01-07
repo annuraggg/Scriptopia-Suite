@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { visualizer } from "rollup-plugin-visualizer";
 import { loadEnv } from "vite";
+import tsconfigPaths from 'vite-plugin-tsconfig-paths';
 
 export default defineConfig(({ mode }) => {
   process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
@@ -18,6 +19,7 @@ export default defineConfig(({ mode }) => {
         filename: "stats.html",
         template: "sunburst",
       }),
+      tsconfigPaths(),
     ],
     resolve: {
       alias: {

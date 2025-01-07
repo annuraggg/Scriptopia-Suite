@@ -195,7 +195,7 @@ const Create = ({
             {isDragging ? "Drop here!" : "+ Add Component"}
           </motion.div>
         </div>
-        <div className="w-[30%] flex flex-col gap-5">
+        <div className="w-[40%] flex flex-col gap-5">
           <div className="flex gap-3 text-xs items-center">
             <p>Enable Canvas Mode</p>
             <Chip color="warning" size="sm">

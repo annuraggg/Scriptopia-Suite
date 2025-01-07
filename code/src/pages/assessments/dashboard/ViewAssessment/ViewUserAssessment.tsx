@@ -20,7 +20,7 @@ const ViewUserAssessment = () => {
     const assessmentId = window.location.pathname.split("/")[2];
 
     axios
-      .get(`/assessments/view/${assessmentId}/${submissionId}`)
+      .get(`/assessments/${assessmentId}/get-submissions/${submissionId}`)
       .then((res) => {
         setSubmission(res.data?.data?.submission);
         setAssessment(res?.data?.data?.assessment);

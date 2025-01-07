@@ -27,7 +27,7 @@ const Sidebar = ({
   ];
 
   return (
-    <div className="w-[20%] py-10 h-full">
+    <div className="w-[30%] py-10 h-full">
       <div className="flex flex-col space-y-4">
         {steps.map((step, index) => (
           <div
@@ -37,8 +37,7 @@ const Sidebar = ({
               px-4 py-3 
               rounded-lg 
               transition-all duration-300 ease-in-out 
-              ${active === index ? "bg-gray-600 bg-opacity-20 shadow-md" : ""}
-              ${active === index ? "opacity-100" : "opacity-60"}
+              ${active === index ? "bg-foreground text-background" : "bg-background text-foreground"}
               cursor-pointer group
             `}
             onClick={() => setActive(index)}
@@ -49,10 +48,10 @@ const Sidebar = ({
                   w-10 h-1 
                   rounded-full 
                   transition-all duration-300 
-                  ${active === index ? "bg-white" : "bg-gray-700"}
+                  ${active === index ? "bg-background" : "bg-foreground"}
                 `}
               ></div>
-              <span className="text-white font-medium text-sm">
+              <span className={`font-medium text-sm w-full`}>
                 {step.title}
               </span>
             </div>

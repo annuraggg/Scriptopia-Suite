@@ -24,7 +24,8 @@ import {
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { Section, Question, QuestionType } from "@shared-types/MCQAssessment";
+import { Section, Question, Candidate } from "@shared-types/MCQAssessment";
+import Candidates from "./Candidates";
 
 export interface AddQuestionModalProps {
   isOpen: boolean;
@@ -44,7 +45,7 @@ export interface McqProps {
   setSelectedSection: (section: Section | null) => void;
 }
 
-const tabsList = ["General", "MCQs", "Instructions", "Security", "Feedback"];
+const tabsList = ["General", "MCQs", "Candidates", "Instructions", "Security", "Feedback"];
 const New = () => {
   const [activeTab, setActiveTab] = useState("0");
 
@@ -57,12 +58,23 @@ const New = () => {
     start: today(getLocalTimeZone()),
     end: today(getLocalTimeZone()).add({ weeks: 1 }),
   });
+  const [focusedValue, setFocusedValue] = useState(today(getLocalTimeZone()));
+
+  const [startTime, setStartTime] = useState<TimeInputValue>(
+    parseAbsoluteToLocal(new Date().toISOString())
+  );
+  const [endTime, setEndTime] = useState<TimeInputValue>(
+    parseAbsoluteToLocal(new Date().toISOString())
+  );
 
   const [sections, setSections] = useState<Section[]>([]);
 
   const [selectedSectionIndex, setSelectedSectionIndex] = useState<
     number | null
   >(null);
+
+  const [access, setAccess] = useState("all");
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
 
   const [instructions, setInstructions] = useState("");
 
@@ -72,13 +84,6 @@ const New = () => {
   const [copyPasteDetection, setCopyPasteDetection] = useState(false);
 
   const [feedbackEmail, setFeedbackEmail] = useState("");
-
-  const [startTime, setStartTime] = useState<TimeInputValue>(
-    parseAbsoluteToLocal(new Date().toISOString())
-  );
-  const [endTime, setEndTime] = useState<TimeInputValue>(
-    parseAbsoluteToLocal(new Date().toISOString())
-  );
 
   const handleTabChange = (key: Key) => {
     setActiveTab(key.toString());
@@ -94,7 +99,6 @@ const New = () => {
     rangeEnd.setHours(endTime.hour);
     rangeEnd.setMinutes(endTime.minute);
 
-
     const reqBody = {
       assessmentPostingName: assessmentName,
       name: assessmentName,
@@ -102,8 +106,13 @@ const New = () => {
       description: assessmentDescription,
       timeLimit,
       passingPercentage,
+      openRange: {
+        start: rangeStart,
+        end: rangeEnd,
+      },
       sections: sections,
-      candidates: [],
+      candidates: candidates,
+      public: access === "all",
       instructions,
       security: {
         codePlayback,
@@ -148,6 +157,8 @@ const New = () => {
         setStartTime,
         endTime,
         setEndTime,
+        focusedValue,
+        setFocusedValue,
       }}
     />,
     <Mcqs
@@ -156,6 +167,7 @@ const New = () => {
       selectedSectionIndex={selectedSectionIndex}
       setSelectedSectionIndex={setSelectedSectionIndex}
     />,
+    <Candidates {...{ access, setAccess, candidates, setCandidates }} />,
     <Instructions {...{ instructions, setInstructions }} />,
     <Security
       {...{

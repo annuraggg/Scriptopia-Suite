@@ -1,20 +1,6 @@
-import ax from "@/config/axios";
-import {
-  Button,
-  Card,
-  CardBody,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Progress,
-  useDisclosure,
-} from "@nextui-org/react";
-import { AssessmentSubmissionsSchema } from "@shared-types/AssessmentSubmission";
+import { Button, Card, CardBody, Progress } from "@nextui-org/react";
+import { CodeAssessmentSubmissionsSchema as CASS } from "@shared-types/CodeAssessmentSubmission";
 import { Problem } from "@shared-types/Problem";
-import secureLocalStorage from "react-secure-storage";
-import { toast } from "sonner";
 
 interface SidebarProps {
   problems: Problem[];
@@ -22,10 +8,8 @@ interface SidebarProps {
   setCurrentProblem: (problem: Problem) => void;
   isInsideSheet?: boolean;
   timer: number;
-  assessmentSub: AssessmentSubmissionsSchema;
-  setAssessmentCompleted: (completed: boolean) => void;
-  setAssessmentSubmitted: (submitted: boolean) => void;
-  setSubmitSuccess: (success: boolean) => void;
+  assessmentSub: CASS;
+  onOpen: () => void;
 }
 
 const Sidebar = ({
@@ -35,56 +19,12 @@ const Sidebar = ({
   isInsideSheet = false,
   timer,
   assessmentSub,
-  setAssessmentCompleted,
-  setAssessmentSubmitted,
-  setSubmitSuccess,
+  onOpen,
 }: SidebarProps) => {
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
-
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
-  };
-
-  const getCredentials = () => {
-    const credTrack = secureLocalStorage.getItem("cred-track") as {
-      email: string;
-    } | null;
-    if (!credTrack?.email) {
-      throw new Error("User credentials not found");
-    }
-    return credTrack;
-  };
-
-  const submitAssessment = async (onClose: () => void) => {
-    try {
-      onClose();
-      setAssessmentCompleted(true);
-
-      const { email } = getCredentials();
-      const assessmentId = window.location.pathname.split("/").pop();
-
-      if (!assessmentId) {
-        throw new Error("Assessment ID not found");
-      }
-
-      const data = { email, assessmentId, timer };
-
-      const axios = ax();
-      const response = await axios.post("/assessments/submit/code", data);
-
-      if (response.data) {
-        toast.success("Assessment submitted successfully");
-        setSubmitSuccess(true);
-      }
-    } catch (error) {
-      console.error("Failed to submit assessment:", error);
-      toast.error("Failed to submit assessment");
-      setSubmitSuccess(false);
-    } finally {
-      setAssessmentSubmitted(true);
-    }
   };
 
   const handleProblemClick = (problem: Problem) => {
@@ -150,29 +90,6 @@ const Sidebar = ({
           })}
         </div>
       </CardBody>
-
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                Are You Sure?
-              </ModalHeader>
-              <ModalBody>
-                You won't be able to make changes after submission.
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Close
-                </Button>
-                <Button onPress={() => submitAssessment(onClose)}>
-                  Submit
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
     </Card>
   );
 };

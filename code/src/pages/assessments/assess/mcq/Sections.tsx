@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -9,217 +8,120 @@ import {
   Textarea,
   Select,
   SelectItem,
-  Tabs,
-  Tab,
 } from "@nextui-org/react";
 
-interface TestCase {
-  input: string;
-  output: string;
-}
-
-interface Pair {
-  item: string;
-  match: string;
-}
-
-interface Question {
-  id: number;
-  type: string;
-  question: string;
-  points: number;
-  options?: string[];
-  correctAnswer?: string | boolean | [string];
-  blanks?: string[];
-  expectedLength?: number;
-  pairs?: Pair[];
-  codeToReview?: string;
-  imageUrl?: string;
-  template?: string;
-  testCases?: TestCase[];
-  code?: string;
-}
+import {
+  MCQAssessment as MA,
+  Question,
+  QuestionType,
+} from "@shared-types/MCQAssessment";
+import { MCQAssessmentSubmissionsSchema } from "@shared-types/MCQAssessmentSubmission";
+import { CheckboxGroup, Checkbox } from "@nextui-org/checkbox";
 
 interface QuestionCardProps {
   question: Question;
-  onAnswerChange: (questionId: number, answer: string | string[]) => void;
   currentAnswer: string | string[];
+  assessmentSub: MCQAssessmentSubmissionsSchema;
+  setAssessmentSub: (assessmentSub: MCQAssessmentSubmissionsSchema) => void;
 }
-
-const sampleQuestions: Question[] = [
-  {
-    id: 1,
-    type: "mcq",
-    question: "Which of the following is not a JavaScript data type?",
-    options: ["String", "Boolean", "Float", "Number"],
-    correctAnswer: "Float",
-    points: 5,
-  },
-  {
-    id: 2,
-    type: "fill-in-blanks",
-    question:
-      "In React, we use the _____ hook to manage component state and the _____ hook for side effects.",
-    blanks: ["useState", "useEffect"],
-    points: 3,
-  },
-  {
-    id: 3,
-    type: "true-false",
-    question: "JavaScript is a statically typed language.",
-    correctAnswer: false,
-    points: 2,
-  },
-  {
-    id: 4,
-    type: "short-answer",
-    question: "What is the difference between let and const in JavaScript?",
-    expectedLength: 50,
-    points: 5,
-  },
-  {
-    id: 5,
-    type: "long-answer",
-    question: "Explain the concept of closure in JavaScript with examples.",
-    expectedLength: 200,
-    points: 10,
-  },
-  {
-    id: 6,
-    type: "matching",
-    question: "Match the following HTTP status codes with their meanings:",
-    pairs: [
-      { item: "200", match: "OK" },
-      { item: "404", match: "Not Found" },
-      { item: "500", match: "Internal Server Error" },
-      { item: "301", match: "Moved Permanently" },
-    ],
-    points: 8,
-  },
-  {
-    id: 7,
-    type: "case-study",
-    question: `You're building an e-commerce platform and need to implement a shopping cart. 
-      The cart should persist across page refreshes, handle multiple items, and calculate totals.
-      Describe your implementation approach considering performance and user experience.`,
-    expectedLength: 300,
-    points: 15,
-  },
-  {
-    id: 8,
-    type: "scenario",
-    question: `Your web application is experiencing slow load times in production.
-      Users report 5+ second delays on the dashboard page. 
-      What steps would you take to diagnose and resolve the issue?`,
-    expectedLength: 250,
-    points: 12,
-  },
-  {
-    id: 9,
-    type: "peer-review",
-    question:
-      "Review the following code snippet and provide feedback on code quality, best practices, and potential improvements:",
-    codeToReview: `
-      function fetchData() {
-        var data = [];
-        $.ajax({
-          url: '/api/data',
-          success: function(response) {
-            data = response;
-            updateUI();
-          },
-          error: function(err) {
-            console.log('Error:', err);
-          }
-        });
-        return data;
-      }`,
-    expectedLength: 200,
-    points: 10,
-  },
-  {
-    id: 10,
-    type: "visual",
-    question:
-      "What accessibility issues can you identify in this interface design?",
-    imageUrl: "/api/placeholder/800/400",
-    expectedLength: 150,
-    points: 8,
-  },
-  {
-    id: 11,
-    type: "code",
-    question:
-      "Write a function that finds the first non-repeating character in a string:",
-    template: `function findFirstNonRepeating(str) {
-    // Your code here
-  }`,
-    testCases: [
-      { input: "leetcode", output: "l" },
-      { input: "loveleetcode", output: "v" },
-    ],
-    points: 10,
-  },
-  {
-    id: 12,
-    type: "output",
-    question: "What will be the output of the following code?",
-    code: `
-      console.log(typeof typeof 1);
-      for(var i = 0; i < 3; i++) {
-        setTimeout(() => console.log(i), 0);
-      }`,
-    options: [
-      "string, 0,1,2",
-      "string, 3,3,3",
-      "number, 0,1,2",
-      "number, 3,3,3",
-    ],
-    correctAnswer: "string, 3,3,3",
-    points: 5,
-  },
-];
 
 const QuestionCard: React.FC<QuestionCardProps> = ({
   question,
-  onAnswerChange,
   currentAnswer,
+  assessmentSub,
+  setAssessmentSub,
 }) => {
-  const handleAnswerChange = (value: string, index?: number) => {
+  const handleAnswerChange = (
+    value: string | string[],
+    id: string,
+    blankIndex?: number
+  ) => {
+    const submissions = assessmentSub.mcqSubmissions || [];
+    const index = submissions.findIndex((sub) => sub.mcqId === id);
+
+    // check if the question is fill-in-blanks
     if (question.type === "fill-in-blanks") {
-      const newAnswers = Array.isArray(currentAnswer) ? [...currentAnswer] : [];
-      newAnswers[index || 0] = value;
-      onAnswerChange(question.id, newAnswers);
-    } else if (question.type === "matching") {
-      const newAnswers = Array.isArray(currentAnswer) ? [...currentAnswer] : [];
-      newAnswers[index || 0] = value;
-      onAnswerChange(question.id, newAnswers);
-    } else {
-      onAnswerChange(question.id, value);
+      if (blankIndex === undefined) return;
+      if (Array.isArray(value)) return;
+
+      if (index === -1) {
+        submissions.push({
+          mcqId: id,
+          selectedOptions: [value],
+        });
+      }
+
+      const newIndex = index === -1 ? submissions.length - 1 : index;
+
+      submissions[newIndex].selectedOptions[blankIndex] = value;
+      setAssessmentSub({ ...assessmentSub, mcqSubmissions: submissions });
+
+      return;
     }
+
+    if (question.type === "matching") {
+      if (Array.isArray(value)) return;
+      if (blankIndex === undefined) return;
+
+      if (index === -1) {
+        submissions.push({
+          mcqId: id,
+          selectedOptions: [value],
+        });
+      }
+
+      const newIndex = index === -1 ? submissions.length - 1 : index;
+
+      let sub = submissions[newIndex]?.selectedOptions
+        ? submissions[newIndex].selectedOptions
+        : [];
+
+      sub[blankIndex] = value;
+      setAssessmentSub({ ...assessmentSub, mcqSubmissions: submissions });
+
+      return;
+    }
+
+    if (index === -1) {
+      submissions.push({
+        mcqId: id,
+        selectedOptions: typeof value === "string" ? [value] : value,
+      });
+    } else {
+      submissions[index].selectedOptions =
+        typeof value === "string" ? [value] : value;
+    }
+
+    setAssessmentSub({ ...assessmentSub, mcqSubmissions: submissions });
+  };
+
+  const getRemainingCharacters = (value: string, max: number) => {
+    return max - value.length;
   };
 
   const renderQuestion = () => {
     switch (question.type) {
-      case "mcq":
+      case "multi-select":
         return (
-          <RadioGroup
-            value={currentAnswer as string}
-            onChange={(e) => handleAnswerChange(e.target.value)}
+          <CheckboxGroup
+            label="Answer"
+            value={currentAnswer as string[]}
+            onValueChange={(e) => handleAnswerChange(e, question._id!)}
           >
             {question.options?.map((option, index) => (
-              <Radio key={index} value={option}>
-                {option}
-              </Radio>
+              <Checkbox key={index} value={option.option}>
+                {option.option}
+              </Checkbox>
             ))}
-          </RadioGroup>
+          </CheckboxGroup>
         );
 
       case "true-false":
         return (
           <RadioGroup
+            label="Answer"
             value={currentAnswer as string}
-            onChange={(e) => handleAnswerChange(e.target.value)}
+            onChange={(e) => handleAnswerChange(e.target.value, question._id!)}
           >
             <Radio value="true">True</Radio>
             <Radio value="false">False</Radio>
@@ -227,99 +129,160 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
         );
 
       case "fill-in-blanks":
-        return question.blanks?.map((_, index) => (
+        return question.fillInBlankAnswers?.map((_, index) => (
           <Input
             key={index}
             placeholder={`Blank ${index + 1}`}
-            value={
-              Array.isArray(currentAnswer) ? currentAnswer[index] || "" : ""
+            value={currentAnswer[index]}
+            label="Answer"
+            onChange={(e) =>
+              handleAnswerChange(e.target.value, question._id!, index)
             }
-            onChange={(e) => handleAnswerChange(e.target.value, index)}
             className="mt-2"
           />
         ));
 
       case "short-answer":
         return (
-          <Textarea
-            placeholder="Your answer..."
-            value={currentAnswer as string}
-            minRows={3}
-            onChange={(e) => handleAnswerChange(e.target.value)}
-          />
+          <>
+            <Textarea
+              placeholder="Your answer..."
+              value={currentAnswer as string}
+              label="Answer"
+              minRows={3}
+              onChange={(e) =>
+                handleAnswerChange(e.target.value, question._id!)
+              }
+              maxLength={question?.maxCharactersAllowed || 100}
+            />
+            <p
+              className={`text-xs text-default-500 mt-3 
+            ${
+              getRemainingCharacters(
+                currentAnswer as string,
+                question?.maxCharactersAllowed || 100
+              ) <= 0
+                ? "text-red-500"
+                : "text-default-500"
+            }
+              `}
+            >
+              {getRemainingCharacters(
+                currentAnswer as string,
+                question?.maxCharactersAllowed || 100
+              )}{" "}
+              characters remaining
+            </p>
+          </>
         );
 
       case "long-answer":
         return (
-          <Textarea
-            placeholder="Your detailed answer..."
-            value={currentAnswer as string}
-            minRows={6}
-            onChange={(e) => handleAnswerChange(e.target.value)}
-          />
+          <>
+            <Textarea
+              placeholder="Your detailed answer..."
+              value={currentAnswer as string}
+              label="Answer"
+              minRows={6}
+              onChange={(e) =>
+                handleAnswerChange(e.target.value, question._id!)
+              }
+              maxLength={question?.maxCharactersAllowed || 500}
+            />
+
+            <p
+              className={`text-xs text-default-500 mt-3
+                    ${
+                      getRemainingCharacters(
+                        currentAnswer as string,
+                        question?.maxCharactersAllowed || 100
+                      ) <= 0
+                        ? "text-red-500"
+                        : "text-default-500"
+                    }
+              `}
+            >
+              {getRemainingCharacters(
+                currentAnswer as string,
+                question?.maxCharactersAllowed || 500
+              )}{" "}
+              characters remaining
+            </p>
+          </>
         );
 
       case "matching":
-        return question.pairs?.map((pair, index) => (
-          <div key={index} className="flex items-center gap-2 mt-2">
-            <span className="w-24">{pair.item}</span>
+        return question?.options?.map((_, index) => (
+          <div key={index} className="flex items-center space-x-4 mt-2">
+            <div className="w-[30%]">{question.options![index].option}</div>
             <Select
-              placeholder="Select match"
-              value={Array.isArray(currentAnswer) ? currentAnswer[index] : ""}
-              onChange={(e) => handleAnswerChange(e.target.value, index)}
+              placeholder="Select"
+              className="w-[30%]"
+              label="Answer"
+              selectedKeys={[currentAnswer[index]]}
+              onChange={(e) =>
+                handleAnswerChange(e.target.value, question._id!, index)
+              }
             >
-              {(question.pairs || []).map((p, i) => (
-                <SelectItem key={i} value={p.match}>
-                  {p.match}
+              {question?.options!.map((opt) => (
+                <SelectItem
+                  key={opt.matchingPairText!}
+                  value={opt.matchingPairText}
+                >
+                  {opt.matchingPairText}
                 </SelectItem>
               ))}
             </Select>
           </div>
         ));
 
-      case "written-code":
+      case "single-select":
         return (
-          <div className="space-y-4">
-            <Textarea
-              placeholder="Write your code here..."
-              className="font-mono"
-              minRows={8}
-              value={currentAnswer as string}
-              defaultValue={question.template}
-              onChange={(e) => handleAnswerChange(e.target.value)}
-            />
-            <div className="p-5">
-              <h4 className="font-semibold mb-2">Test Cases:</h4>
-              {question.testCases?.map((test, index) => (
-                <div key={index} className="text-sm">
-                  Input: {test.input} → Expected Output: {test.output}
-                </div>
-              ))}
-            </div>
-          </div>
+          <RadioGroup
+            value={currentAnswer as string}
+            onChange={(e) => handleAnswerChange(e.target.value, question._id!)}
+            label="Answer"
+          >
+            {question.options?.map((option, index) => (
+              <Radio key={index} value={option.option}>
+                {option.option}
+              </Radio>
+            ))}
+          </RadioGroup>
         );
 
       case "peer-review":
-      case "visual":
-      case "case-study":
-      case "scenario":
         return (
-          <div className="space-y-4">
-            {question.type === "peer-review" && (
-              <div className="p-5">
-                <pre className="whitespace-pre-wrap text-sm">
-                  {question.codeToReview}
-                </pre>
-              </div>
-            )}
-            {question.type === "visual" && (
-              <img src={question.imageUrl} alt="Visual" className="w-full" />
-            )}
+          <div>
             <Textarea
               placeholder="Your answer..."
               value={currentAnswer as string}
+              label="Answer"
               minRows={4}
-              onChange={(e) => handleAnswerChange(e.target.value)}
+              onChange={(e) =>
+                handleAnswerChange(e.target.value, question._id!)
+              }
+            />
+          </div>
+        );
+
+      case "visual":
+        return (
+          <div>
+            <img
+              src={question.imageSource}
+              alt="Visual question"
+              className="w-full max-h-[300px] object-scale-down"
+            />
+            <Textarea
+              className="mt-4"
+              label="Answer"
+              placeholder="Your answer..."
+              value={currentAnswer as string}
+              minRows={4}
+              onChange={(e) =>
+                handleAnswerChange(e.target.value, question._id!)
+              }
             />
           </div>
         );
@@ -328,19 +291,20 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
         return (
           <div>
             <div className="px-5">
-              <pre className="whitespace-pre-wrap text-sm">{question.code}</pre>
+              <pre className="whitespace-pre-wrap text-sm">
+                {question.codeSnippet}
+              </pre>
             </div>
-            <RadioGroup
+            <Textarea
+              className="mt-4"
+              placeholder="Your answer..."
               value={currentAnswer as string}
-              onChange={(e) => handleAnswerChange(e.target.value)}
-              className="mt-5"
-            >
-              {question.options?.map((option, index) => (
-                <Radio key={index} value={option}>
-                  {option}
-                </Radio>
-              ))}
-            </RadioGroup>
+              label="Answer"
+              minRows={4}
+              onChange={(e) =>
+                handleAnswerChange(e.target.value, question._id!)
+              }
+            />
           </div>
         );
 
@@ -349,16 +313,17 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           <Textarea
             placeholder="Your answer..."
             value={currentAnswer as string}
+            label="Answer"
             minRows={4}
-            onChange={(e) => handleAnswerChange(e.target.value)}
+            onChange={(e) => handleAnswerChange(e.target.value, question._id!)}
           />
         );
     }
   };
 
   const normalizeType = (type: string) => {
-    switch (type) {
-      case "mcq":
+    switch (type as QuestionType) {
+      case "multi-select":
         return "Multiple Choice";
       case "true-false":
         return "True/False";
@@ -372,16 +337,12 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
         return "Matching";
       case "peer-review":
         return "Peer Review";
-      case "code":
-        return "Code";
       case "output":
         return "Output Prediction";
       case "visual":
         return "Visual";
-      case "case-study":
-        return "Case Study";
-      case "scenario":
-        return "Scenario";
+      case "single-select":
+        return "Single Select";
       default:
         return type;
     }
@@ -392,7 +353,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       <CardHeader className="flex-col justify-start items-start">
         <div className="text-xs text-default-500 flex justify-between w-full pr-5 mb-3">
           <p>{normalizeType(question.type)}</p>
-          <p>{question.points} points</p>
+          <p>{question.grade} points</p>
         </div>
         <div>{question.question}</div>
       </CardHeader>
@@ -401,97 +362,44 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   );
 };
 
-const Sections = () => {
-  const [questions] = useState<Question[]>(sampleQuestions);
-  const [answers, setAnswers] = useState<Record<number, string | string[]>>({});
+interface SectionsProps {
+  assessment: MA;
+  currentSection: number;
+  assessmentSub: MCQAssessmentSubmissionsSchema;
+  setAssessmentSub: (assessmentSub: MCQAssessmentSubmissionsSchema) => void;
+}
 
-  const handleAnswerChange = (
-    questionId: number,
-    answer: string | string[]
-  ) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: answer,
-    }));
-  };
+const Sections = ({
+  assessment,
+  currentSection,
+  assessmentSub,
+  setAssessmentSub,
+}: SectionsProps) => {
+  const getCurrentAnswer = (question: Question) => {
+    const sub = assessmentSub?.mcqSubmissions?.find(
+      (sub) => sub.mcqId.toString() === question._id?.toString()
+    );
 
-  // @ts-ignore - Optional: Function to get all answers for submission 
-  const getAllAnswers = () => {
-    return answers;
+    if (question.type === "fill-in-blanks") return sub?.selectedOptions || "";
+    if (question.type === "matching") return sub?.selectedOptions || "";
+    if (question.type === "multi-select") return sub?.selectedOptions || [];
+    else return sub?.selectedOptions[0] || [];
   };
 
   return (
-    <div className="w-full overflow-y-auto">
-      <div className="p-4">
-        <Tabs aria-label="Question types">
-          <Tab key="all" title="All Questions">
-            <div className="space-y-4 mt-4">
-              {questions.map((question) => (
-                <QuestionCard
-                  key={question.id}
-                  question={question}
-                  onAnswerChange={handleAnswerChange}
-                  currentAnswer={
-                    answers[question.id] ||
-                    (question.type === "fill-in-blanks" ||
-                    question.type === "matching"
-                      ? []
-                      : "")
-                  }
-                />
-              ))}
-            </div>
-          </Tab>
-          <Tab key="mcq" title="MCQ">
-            <div className="space-y-4 mt-4">
-              {questions
-                .filter((q) => q.type === "mcq" || q.type === "true-false")
-                .map((question) => (
-                  <QuestionCard
-                    key={question.id}
-                    question={question}
-                    onAnswerChange={handleAnswerChange}
-                    currentAnswer={answers[question.id] || ""}
-                  />
-                ))}
-            </div>
-          </Tab>
-          <Tab key="code" title="Coding">
-            <div className="space-y-4 mt-4">
-              {questions
-                .filter((q) => q.type === "code" || q.type === "output")
-                .map((question) => (
-                  <QuestionCard
-                    key={question.id}
-                    question={question}
-                    onAnswerChange={handleAnswerChange}
-                    currentAnswer={answers[question.id] || ""}
-                  />
-                ))}
-            </div>
-          </Tab>
-          <Tab key="written" title="Written">
-            <div className="space-y-4 mt-4">
-              {questions
-                .filter((q) =>
-                  [
-                    "short-answer",
-                    "long-answer",
-                    "case-study",
-                    "scenario",
-                  ].includes(q.type)
-                )
-                .map((question) => (
-                  <QuestionCard
-                    key={question.id}
-                    question={question}
-                    onAnswerChange={handleAnswerChange}
-                    currentAnswer={answers[question.id] || ""}
-                  />
-                ))}
-            </div>
-          </Tab>
-        </Tabs>
+    <div className="w-full overflow-y-auto h-[94vh]">
+      <div>
+        <div className="space-y-4">
+          {assessment?.sections[currentSection]?.questions?.map((question) => (
+            <QuestionCard
+              key={question._id}
+              question={question}
+              assessmentSub={assessmentSub}
+              setAssessmentSub={setAssessmentSub}
+              currentAnswer={getCurrentAnswer(question)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

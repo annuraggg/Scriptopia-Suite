@@ -1,631 +1,251 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Card,
-  CardBody,
-  Button,
-  Breadcrumbs,
-  BreadcrumbItem,
-  Spinner,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  Accordion,
-  AccordionItem,
-  Avatar,
-  Tooltip,
-  Progress
-} from "@nextui-org/react";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   Plus,
-  Calendar,
-  FileText,
   HelpCircle,
   Briefcase,
   Users,
   TrendingUp,
   Eye,
-  Clock,
   Bell,
   ArrowUp,
   ArrowDown,
   CheckCircle2,
-  AlertCircle
-} from 'lucide-react';
-import { useSelector } from "react-redux";
-import { RootState } from "@/types/Reducer";
-import CreateJobModal from '../jobs/CreateJobModal';
-import { useAuth } from "@clerk/clerk-react";
-import ax from "@/config/axios";
-import { toast } from "sonner";
-import { useNavigate } from 'react-router-dom';
+  AlertCircle,
+} from "lucide-react";
 import {
   LineChart,
   Line,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer
-} from 'recharts';
-import { Badge } from '@/components/ui/badge';
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { Button } from "@nextui-org/react";
 
-interface Posting {
-  _id: string;
-  title: string;
-  department: string;
-  type: string;
-  published: boolean;
-  publishedOn: string;
-  updatedOn: string;
-  workflow?: {
-    currentStep: number;
-    steps: Array<{
-      name: string;
-      type: string;
-    }>;
-  };
-  applicationRange: {
-    start: string;
-    end: string;
-  };
-  candidates?: Array<any>;
-  status?: string;
-}
-
-/* interface AuditLog {
- user: string;
- userId: string;
- action: string;
- type: string;
- timestamp?: string;
-} */
-
-interface CandidateQuery {
-  id: string;
-  question: string;
-  postingTitle: string;
-  candidateName: string;
-  timestamp: string;
-  status: 'pending' | 'answered';
-}
-
-const mockQueries: CandidateQuery[] = [
-  {
-    id: '1',
-    question: "What are the requirements for remote work arrangements?",
-    postingTitle: "Senior Software Engineer",
-    candidateName: "John Doe",
-    timestamp: new Date(Date.now() - 3600000).toISOString(),
-    status: 'pending'
-  },
-  {
-    id: '2',
-    question: "Is relocation assistance provided for international candidates?",
-    postingTitle: "Product Manager",
-    candidateName: "Emma Wilson",
-    timestamp: new Date(Date.now() - 7200000).toISOString(),
-    status: 'answered'
-  },
-  {
-    id: '3',
-    question: "What is the expected start date for this position?",
-    postingTitle: "UX Designer",
-    candidateName: "Mike Chen",
-    timestamp: new Date(Date.now() - 10800000).toISOString(),
-    status: 'pending'
-  }
-];
-
-const Dashboard: React.FC = () => {
-  const [isCreateJobOpen, setIsCreateJobOpen] = useState(false);
-  const [isHelpOpen, setIsHelpOpen] = useState(false);
-  const [postings, setPostings] = useState<Posting[]>([]);
-  const [departments, setDepartments] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  // const [selectedView, setSelectedView] = useState('overview');
-
-  const org = useSelector((state: RootState) => state.organization);
-  const { getToken } = useAuth();
-  const navigate = useNavigate();
-  const axios = ax(getToken);
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      const response = await axios.get("/postings");
-      setPostings(response.data.data.postings);
-      setDepartments(response.data.data.departments);
-      setIsLoading(false);
-    } catch (err) {
-      toast.error("Failed to fetch dashboard data");
-      setIsLoading(false);
-    }
-  };
+const Dashboard = () => {
+  const [activeTab, setActiveTab] = useState("monthly");
 
   const mockChartData = [
-    { name: 'Jan', applications: 65, interviews: 28 },
-    { name: 'Feb', applications: 59, interviews: 32 },
-    { name: 'Mar', applications: 80, interviews: 41 },
-    { name: 'Apr', applications: 81, interviews: 37 },
-    { name: 'May', applications: 56, interviews: 25 },
-    { name: 'Jun', applications: 55, interviews: 29 },
+    { name: "Jan", applications: 65, interviews: 28 },
+    { name: "Feb", applications: 59, interviews: 32 },
+    { name: "Mar", applications: 80, interviews: 41 },
+    { name: "Apr", applications: 81, interviews: 37 },
+    { name: "May", applications: 56, interviews: 25 },
+    { name: "Jun", applications: 55, interviews: 29 },
   ];
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.6,
-        staggerChildren: 0.1
-      }
-    }
-  };
+  const metrics = [
+    {
+      title: "Active Jobs",
+      value: 24,
+      change: 12,
+      icon: <Briefcase className="w-6 h-6 text-blue-500" />,
+    },
+    {
+      title: "Total Candidates",
+      value: 847,
+      change: -5,
+      icon: <Users className="w-6 h-6 text-green-500" />,
+    },
+    {
+      title: "Open Positions",
+      value: 16,
+      change: 8,
+      icon: <TrendingUp className="w-6 h-6 text-purple-500" />,
+    },
+  ];
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 100
-      }
-    }
-  };
-
-  const getRelativeTime = (date: string) => {
-    const now = new Date();
-    const past = new Date(date);
-    const diffInSeconds = Math.floor((now.getTime() - past.getTime()) / 1000);
-
-    if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    return `${Math.floor(diffInSeconds / 86400)}d ago`;
-  };
-
-  const ActivityFeed: React.FC = () => (
-    <div className="space-y-4 overflow-y-auto max-h-[345px]">
-      <AnimatePresence>
-        {postings.slice(0, 5).map((posting, index) => (
-          <motion.div
-            key={posting._id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-zinc-800/40 rounded-xl p-4 hover:bg-zinc-800/60 transition-all"
-          >
-            <div className="flex items-center gap-4">
-              <div className="h-10 w-10 rounded-full bg-primary-500/20 flex items-center justify-center">
-                {posting.status === 'completed' ? (
-                  <CheckCircle2 className="w-5 h-5 text-primary-500" />
-                ) : (
-                  <AlertCircle className="w-5 h-5 text-warning-500" />
-                )}
-              </div>
-              <div className="flex-1">
-                <p className="text-white font-medium">{posting.title}</p>
-                <p className="text-zinc-400 text-sm">{posting.department}</p>
-                <p className="text-zinc-400 text-sm">{getRelativeTime(posting.updatedOn)}</p>
-              </div>
-              <Button
-                isIconOnly
-                variant="light"
-                className="text-zinc-400 hover:text-white"
-                onClick={() => navigate(`/jobs/${posting._id}`)}
-              >
-                <Eye className="w-4 h-4" />
-              </Button>
-            </div>
-            <Progress
-              size="sm"
-              value={posting.workflow?.currentStep ? (posting.workflow.currentStep / posting.workflow.steps.length) * 100 : 0}
-              className="mt-4"
-              color="primary"
-            />
-          </motion.div>
-        ))}
-      </AnimatePresence>
-    </div>
-  );
-
-  const MetricCard: React.FC<{
-    title: string;
-    value: number;
-    change: number;
-    icon: React.ReactNode;
-    color: string;
-  }> = ({ title, value, change, icon, color }) => (
-    <Card className="hover:bg-zinc-800/60">
-      <CardBody>
-        <div className="flex items-center justify-between">
-          <div className={`p-3 rounded-xl ${color}`}>
-            {icon}
-          </div>
-          <div className={`px-2 py-1 rounded-lg text-sm flex items-center gap-1 ${change >= 0 ? 'bg-success-500/20 text-success-500' : 'bg-danger-500/20 text-danger-500'
-            }`}>
-            {change >= 0 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
-            {Math.abs(change)}%
-          </div>
-        </div>
-        <div className="mt-4">
-          <p className="text-3xl font-bold text-white">{value}</p>
-          <p className="text-zinc-400 text-sm mt-1">{title}</p>
-        </div>
-      </CardBody>
-    </Card>
-  );
-
-  const HelpModal = () => (
-    <Modal
-      isOpen={isHelpOpen}
-      onClose={() => setIsHelpOpen(false)}
-      className="bg-zinc-900"
-      size="2xl"
-      backdrop="blur"
-    >
-      <ModalContent>
-        <ModalHeader className="text-white">Help Center</ModalHeader>
-        <ModalBody className="pb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <Card className="bg-primary-500/20 border-none">
-              <CardBody>
-                <h3 className="text-lg font-semibold text-white mb-2">Quick Start Guide</h3>
-                <p className="text-zinc-300">New to the platform? Follow our step-by-step guide to get started with recruitment.</p>
-                <Button className="mt-4" color="primary" variant="flat">
-                  View Guide
-                </Button>
-              </CardBody>
-            </Card>
-            <Card className="bg-success-500/20 border-none">
-              <CardBody>
-                <h3 className="text-lg font-semibold text-white mb-2">Video Tutorials</h3>
-                <p className="text-zinc-300">Watch our comprehensive video tutorials to master the platform.</p>
-                <Button className="mt-4" color="success" variant="flat">
-                  Watch Now
-                </Button>
-              </CardBody>
-            </Card>
-          </div>
-          <Accordion className="px-0">
-            <AccordionItem
-              key="1"
-              aria-label="Getting Started"
-              title={
-                <div className="flex items-center gap-2">
-                  <Briefcase className="w-4 h-4 text-primary-500" />
-                  <span>Getting Started</span>
-                </div>
-              }
-              className="text-white"
-            >
-              Learn how to create your first job posting, set up workflows, and manage candidates effectively.
-            </AccordionItem>
-            <AccordionItem
-              key="2"
-              aria-label="Managing Workflows"
-              title={
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-success-500" />
-                  <span>Managing Workflows</span>
-                </div>
-              }
-              className="text-white"
-            >
-              Customize and optimize your hiring workflows for different positions and departments.
-            </AccordionItem>
-            <AccordionItem
-              key="3"
-              aria-label="Best Practices"
-              title={
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-warning-500" />
-                  <span>Best Practices</span>
-                </div>
-              }
-              className="text-white"
-            >
-              Tips and tricks for successful recruitment and candidate management.
-            </AccordionItem>
-          </Accordion>
-        </ModalBody>
-      </ModalContent>
-    </Modal>
-  );
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center w-full h-screen bg-zinc-900">
-        <div className="text-center">
-          <Spinner color="primary" size="lg" />
-          <p className="text-zinc-400 mt-4">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
+  const activities = [
+    {
+      id: 1,
+      title: "Frontend Developer",
+      department: "Engineering",
+      status: "completed",
+      progress: 100,
+    },
+    {
+      id: 2,
+      title: "Product Manager",
+      department: "Product",
+      status: "in-progress",
+      progress: 65,
+    },
+    {
+      id: 3,
+      title: "UX Designer",
+      department: "Design",
+      status: "in-progress",
+      progress: 45,
+    },
+  ];
 
   return (
-    <div className="max-h-full mt-5 ml-5">
-      <div className="mb-5">
-        <Breadcrumbs>
-          <BreadcrumbItem>{org.name}</BreadcrumbItem>
-          <BreadcrumbItem>Dashboard</BreadcrumbItem>
-        </Breadcrumbs>
-      </div>
-
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="max-w mx-auto pb-2 space-y-6"
-      >
-        <motion.div variants={itemVariants} className="mb-6 justify-between flex items-center gap-4">
-          <div>
-            <h1 className="text-4xl font-bold text-white mb-2">Welcome back, {org.name}</h1>
-            <p className="text-zinc-400">Here's what's happening with your recruitment today.</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Tooltip content="Notifications">
-              <Button isIconOnly variant="light" className="text-zinc-400" onClick={() => navigate('/notifications')}>
-                <Bell className="w-5 h-5" />
-              </Button>
-            </Tooltip>
-            <Button
-              color="primary"
-              endContent={<Plus size={20} />}
-              onPress={() => {
-                if (!departments.length) {
-                  toast.error("Please create a department first");
-                  return;
-                }
-                setIsCreateJobOpen(true);
-              }}
-            >
-              Create Job
-            </Button>
-          </div>
-        </motion.div>
-
-        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <MetricCard
-            title="Active Jobs"
-            value={postings.filter(p => p.published).length}
-            change={12}
-            icon={<Briefcase className="w-6 h-6 text-primary-500" />}
-            color="bg-primary-500/20"
-          />
-          <MetricCard
-            title="Total Candidates"
-            value={postings.reduce((acc, post) => acc + (post.candidates?.length || 0), 0)}
-            change={-5}
-            icon={<Users className="w-6 h-6 text-success-500" />}
-            color="bg-success-500/20"
-          />
-          <MetricCard
-            title="Open Positions"
-            value={postings.filter(p => p.published && new Date(p.applicationRange.end) > new Date()).length}
-            change={8}
-            icon={<TrendingUp className="w-6 h-6 text-warning-500" />}
-            color="bg-warning-500/20"
-          />
-        </motion.div>
-
-        <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <Card className="">
-              <CardBody>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-white">Recruitment Overview</h2>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="flat" color="primary">Monthly</Button>
-                    <Button size="sm" variant="flat" color="default">Weekly</Button>
-                  </div>
-                </div>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={mockChartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                      <XAxis dataKey="name" stroke="#666" />
-                      <YAxis stroke="#666" />
-                      <RechartsTooltip
-                        contentStyle={{
-                          backgroundColor: '#18181b',
-                          border: 'none',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                        }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="applications"
-                        stroke="#06b6d4"
-                        strokeWidth={2}
-                        dot={{ fill: '#06b6d4' }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="interviews"
-                        stroke="#22c55e"
-                        strokeWidth={2}
-                        dot={{ fill: '#22c55e' }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="flex justify-center gap-6 mt-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-primary-500" />
-                    <span className="text-sm text-zinc-400">Applications</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-success-500" />
-                    <span className="text-sm text-zinc-400">Interviews</span>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-          </div>
-
-          <div className="space-y-6">
-            <Card className="">
-              <CardBody>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-white">Recent Activity</h2>
-                  <Button size="sm" variant="light">View All</Button>
-                </div>
-                <ActivityFeed />
-              </CardBody>
-            </Card>
-          </div>
-        </motion.div>
-
-        <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <Card className="lg:col-span-1">
-            <CardBody>
-              <h2 className="text-xl font-semibold text-white mb-4">Quick Actions</h2>
-              <div className="grid grid-cols-1 gap-4">
-                <Button
-                  className="h-24 hover:bg-zinc-800/60"
-                  color="secondary"
-                  variant="flat"
-                  startContent={<Calendar className="w-5 h-5" />}
-                  onClick={() => navigate('/calendar')}
-                >
-                  <div className="text-left">
-                    <div className="font-semibold">Schedule Interviews</div>
-                    <div className="text-sm opacity-80">Manage upcoming interviews</div>
-                  </div>
-                </Button>
-                <Button
-                  className="h-24 hover:bg-zinc-800/60"
-                  color="secondary"
-                  variant="flat"
-                  startContent={<FileText className="w-5 h-5" />}
-                  onClick={() => navigate('/reports')}
-                >
-                  <div className="text-left">
-                    <div className="font-semibold">Generate Reports</div>
-                    <div className="text-sm opacity-80">Download recruitment analytics</div>
-                  </div>
-                </Button>
-              </div>
-            </CardBody>
-          </Card>
-
-          <Card className="lg:col-span-2 max-h-[300px]">
-            <CardBody>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-white">Candidate Queries</h2>
-                <Button size="sm" variant="light">View All</Button>
-              </div>
-              <div className="space-y-4 max-h-[400px] overflow-y-auto">
-                <AnimatePresence>
-                  {mockQueries.map((query, index) => (
-                    <motion.div
-                      key={query.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="bg-zinc-800/40 rounded-xl p-4 hover:bg-zinc-800/60 transition-all"
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="h-10 w-10 rounded-full bg-warning-500/20 flex items-center justify-center">
-                          <HelpCircle className="w-5 h-5 text-warning-500" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-white font-medium">{query.question}</p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <span className="text-zinc-400 text-sm">{query.postingTitle}</span>
-                            <span className="text-zinc-600">•</span>
-                            <span className="text-zinc-400 text-sm">{query.candidateName}</span>
-                          </div>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge color={query.status === 'pending' ? 'warning' : 'success'}>
-                              {query.status}
-                            </Badge>
-                            <span className="text-zinc-400 text-sm">{getRelativeTime(query.timestamp)}</span>
-                          </div>
-                        </div>
-                        <Button
-                          isIconOnly
-                          variant="light"
-                          className="text-zinc-400 hover:text-white"
-                          onClick={() => navigate(`/queries/${query.id}`)}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            </CardBody>
-          </Card>
-
-          <Card className="lg:col-span-1">
-            <CardBody>
-              <h2 className="text-xl font-semibold text-white mb-4">Team Members</h2>
-              <div className="space-y-4">
-                {['Alice Smith', 'Bob Johnson', 'Carol White'].map((name) => (
-                  <div key={name} className="flex items-center gap-3">
-                    <Avatar
-                      name={name}
-                      className="bg-primary-500/20"
-                      size="sm"
-                    />
-                    <div>
-                      <p className="text-white font-medium">{name}</p>
-                      <p className="text-zinc-400 text-sm">Hiring Manager</p>
-                    </div>
-                  </div>
-                ))}
-                <Button
-                  className="w-full"
-                  color="default"
-                  variant="flat"
-                  startContent={<Plus className="w-4 h-4" />}
-                  onClick={() => navigate('/settings/members')}
-                >
-                  Add Team Member
-                </Button>
-              </div>
-            </CardBody>
-          </Card>
-        </motion.div>
-      </motion.div>
-
-      <motion.div
-        className="fixed bottom-6 right-6"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-      >
-        <div className="relative">
-          <div className="absolute -inset-0.5 bg-primary-500 rounded-full animate-ping opacity-20" />
-          <Button
-            isIconOnly
-            color="primary"
-            className="rounded-full w-12 h-12 shadow-lg relative z-10"
-            onClick={() => setIsHelpOpen(true)}
-          >
-            <HelpCircle className="w-6 h-6" />
+    <div className="p-8 min-h-screen">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            Welcome back, Team
+          </h1>
+          <p className="mt-2">
+            Here's what's happening with your recruitment today.
+          </p>
+        </div>
+        <div className="flex gap-4">
+          <button className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
+            <Bell className="w-5 h-5" />
+          </button>
+          <Button color="primary">
+            <Plus className="w-5 h-5" />
+            Create Job
           </Button>
         </div>
-      </motion.div>
+      </div>
 
-      <CreateJobModal
-        isOpen={isCreateJobOpen}
-        onClose={() => setIsCreateJobOpen(false)}
-        deparments={departments}
-      />
-      <HelpModal />
+      {/* Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {metrics.map((metric, index) => (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            key={metric.title}
+            className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-all"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                {metric.icon}
+              </div>
+              <div
+                className={`px-3 py-1 rounded-full text-sm flex items-center gap-1 
+                ${
+                  metric.change >= 0
+                    ? "bg-green-100 text-green-600"
+                    : "bg-red-100 text-red-600"
+                }`}
+              >
+                {metric.change >= 0 ? (
+                  <ArrowUp className="w-3 h-3" />
+                ) : (
+                  <ArrowDown className="w-3 h-3" />
+                )}
+                {Math.abs(metric.change)}%
+              </div>
+            </div>
+            <h3 className="text-3xl font-bold">{metric.value}</h3>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              {metric.title}
+            </p>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Chart Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold">Recruitment Overview</h2>
+            <div className="flex gap-2">
+              {["monthly", "weekly"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-2 rounded-lg text-sm transition-all ${
+                    activeTab === tab
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={mockChartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="name" stroke="#6B7280" />
+                <YAxis stroke="#6B7280" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1F2937",
+                    border: "none",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="applications"
+                  stroke="#3B82F6"
+                  strokeWidth={2}
+                  dot={{ fill: "#3B82F6" }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="interviews"
+                  stroke="#10B981"
+                  strokeWidth={2}
+                  dot={{ fill: "#10B981" }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold">Recent Activity</h2>
+            <button className="text-blue-500 hover:text-blue-600 text-sm">
+              View All
+            </button>
+          </div>
+          <div className="space-y-6">
+            {activities.map((activity) => (
+              <div key={activity.id} className="relative">
+                <div className="flex items-center gap-4">
+                  <div
+                    className={`h-10 w-10 rounded-full flex items-center justify-center
+                    ${
+                      activity.status === "completed"
+                        ? "bg-green-100 text-green-600"
+                        : "bg-yellow-100 text-yellow-600"
+                    }`}
+                  >
+                    {activity.status === "completed" ? (
+                      <CheckCircle2 className="w-5 h-5" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium">{activity.title}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {activity.department}
+                    </p>
+                  </div>
+                  <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-all">
+                    <Eye className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="mt-4 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                    style={{ width: `${activity.progress}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Help Button */}
+      <motion.button className="fixed bottom-8 right-8 p-4 bg-primary hover:bg-primary/90 text-white rounded-full shadow-lg transition-all">
+        <HelpCircle className="w-6 h-6" />
+      </motion.button>
     </div>
   );
 };

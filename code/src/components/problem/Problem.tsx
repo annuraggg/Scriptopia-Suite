@@ -39,6 +39,8 @@ const Problem = ({
   allowExplain = true,
   allowHighlighting = true,
 
+  onExternalPaste,
+
   submitOverride,
 }: {
   loading: boolean;
@@ -54,6 +56,8 @@ const Problem = ({
   allowExplain?: boolean;
   allowHighlighting?: boolean;
 
+  onExternalPaste?: (pastedText: string) => void;
+
   submitOverride?: (code: string, language: string, problemId: string) => void;
 }) => {
   const { getToken } = useAuth();
@@ -63,7 +67,7 @@ const Problem = ({
   const [language, setLanguage] = useState<string>(defaultLanguage);
 
   const [outputCases, setOutputCases] = useState<RunResponseResult[]>([]);
-  const [/*codeError*/, setCodeError] = useState<string>("");
+  const [, /*codeError*/ setCodeError] = useState<string>("");
   const [runningCode, setRunningCode] = useState<boolean>(false);
   const [currentSub, setCurrentSub] = useState<Submission | null>(null);
 
@@ -84,6 +88,7 @@ const Problem = ({
     return axios
       .post("/submissions/run", { code, language, problemId: problem._id })
       .then((res) => {
+        console.log(res.data.data)
         setOutputCases(
           res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
         );
@@ -203,7 +208,10 @@ const Problem = ({
 
   return (
     <>
-      <Split className="flex overflow-hidden max-h-[88vh] w-full gap-2" vaul-drawer-wrapper="">
+      <Split
+        className="flex overflow-hidden max-h-[88vh] w-full gap-2"
+        vaul-drawer-wrapper=""
+      >
         <Statement
           statement={problem.description as Delta}
           submissions={submissions || []}
@@ -230,6 +238,7 @@ const Problem = ({
             allowExplain={allowExplain}
             allowSubmit={allowSubmit}
             allowHighlighting={allowHighlighting}
+            onExternalPaste={onExternalPaste}
           />
           <InfoPanel runningCode={runningCode} cases={outputCases} />
         </Split>

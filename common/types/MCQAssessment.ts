@@ -22,12 +22,14 @@ interface Section {
 interface Question {
   _id?: string;
   question: string;
+  grade?: number;
   type: QuestionType;
   options?: Option[];
   codeSnippet?: string;
   imageSource?: string;
   maxCharactersAllowed?: number;
   fillInBlankAnswers?: string[];
+  correct?: string;
 }
 
 type QuestionType =
@@ -48,7 +50,7 @@ interface Option {
   matchingPairText?: string;
 }
 
-interface Assessment {
+interface MCQAssessment {
   _id: string;
   name: string;
   description: string;
@@ -58,6 +60,7 @@ interface Assessment {
   openRange?: OpenRange;
   sections: Section[];
   candidates: Candidate[];
+  public: boolean;
   instructions: string;
   security: Security;
   feedbackEmail: string;
@@ -67,8 +70,8 @@ interface Assessment {
   createdAt: Date;
 }
 
-export {
-  Assessment,
+export type {
+  MCQAssessment,
   Candidate,
   Section,
   Question,
