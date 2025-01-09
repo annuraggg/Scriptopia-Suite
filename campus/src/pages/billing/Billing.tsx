@@ -8,13 +8,13 @@ import Trial from "./Trial";
 import Plan from "./Plan";
 
 const Billing = () => {
-  const org = useSelector((state: RootState) => state.institute);
+  const org = useSelector((state: RootState) => state.organization);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [trialDays, setTrialDays] = useState<number | null>(10);
   const [renews, setRenews] = useState<string | null>(null);
 
   useEffect(() => {
-    setCurrentPlan("trial");
+    setCurrentPlan("quaterly");
     setTrialDays(10);
     setRenews("2024-10-10");
   }, []);
@@ -23,10 +23,8 @@ const Billing = () => {
     <>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem href={"/" + org._id}>Institute</BreadcrumbItem>
-          <BreadcrumbItem href={"/" + org._id + "/billing"}>
-            Billing
-          </BreadcrumbItem>
+          <BreadcrumbItem>{org.name}</BreadcrumbItem>
+          <BreadcrumbItem href={"/billing"}>Billing</BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <motion.div

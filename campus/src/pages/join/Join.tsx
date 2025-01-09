@@ -25,10 +25,10 @@ const bgStyle = {
 
 interface Token {
   inviter: string;
-  institute: string;
+  organization: string;
   role: string;
   email: string;
-  instituteName: string;
+  organizationname: string;
 }
 
 const Join = () => {
@@ -45,7 +45,7 @@ const Join = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
     axios
-      .post("/campus/verify", { token })
+      .post("/organizations/verify", { token })
       .then((data) => {
         setToken(data.data.data);
         setLoading(false);
@@ -62,16 +62,16 @@ const Join = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
     axios
-      .post("/campus/join", { status, token })
+      .post("/organizations/join", { status, token })
       .then(() => {
-        toast.success("Joined Insitute");
+        toast.success("Joined Organization");
         setTimeout(() => {
-          window.location.href = "/institute/dashboard"
+          window.location.href = "/dashboard"
         }, 1000);
       })
       .catch((err) => {
         console.error(err);
-        toast.error("Failed to join Insitute");
+        toast.error("Failed to join organization");
       })
       .finally(() => setSubmitLoading(false));
   };
@@ -94,14 +94,14 @@ const Join = () => {
               <h3 className="mt-3">Invite Invalid</h3>
               <p className="mt-5 opacity-50 text-center">
                 The Invite may have expired or you may not have permission to
-                join this Institute
+                join this organization
               </p>
             </CardBody>
           </Card>
         ) : (
           <Card>
             <CardHeader className="justify-center">
-            Institute Invite
+              Organization Invite
             </CardHeader>
             <CardBody className="items-center px-10 w-[30vw]">
               <div className="flex gap-5 items-center">
@@ -114,10 +114,10 @@ const Join = () => {
                   ? `${token.inviter} has invited you to join`
                   : "You have been invited to join"}
               </p>
-              <h3 className="mt-3 text-center">
-                {token?.institute
-                  ? token.instituteName
-                  : "Institute"}
+              <h3 className="mt-3">
+                {token?.organizationname
+                  ? token.organizationname
+                  : "Organization"}
               </h3>
             </CardBody>
             <CardFooter>

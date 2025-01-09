@@ -11,6 +11,7 @@ import {
   FolderOutputIcon,
 } from "lucide-react";
 import { ChevronLeftIcon } from "lucide-react";
+import { Posting } from "@shared-types/Posting";
 
 interface Participant {
   id: string;
@@ -28,8 +29,13 @@ interface Participant {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  // ! CHANGE FROM ANY TYPE TO A SPECIFIC TYPE
-  const { drive } = useOutletContext() as { drive: any };
+  const { posting } = useOutletContext() as { posting: Posting };
+
+  const getPostingStatus = (posting: Posting) => {
+    const currentDate = new Date();
+    const endDate = new Date(posting.applicationRange.end);
+    return currentDate < endDate ? "active" : "closed";
+  };
 
   const participants: Participant[] = [
     {
@@ -127,7 +133,7 @@ const Dashboard: React.FC = () => {
       ));
   };
 
-  if (!drive?.candidates || drive?.candidates?.length === 0) {
+  if (!posting?.candidates || posting?.candidates?.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center w-full h-[100vh]">
         <p className="text-slate-400 text-xl">No Analytics Just Yet</p>
@@ -145,53 +151,46 @@ const Dashboard: React.FC = () => {
         <ChevronLeftIcon
           size={40}
           className="text-slate-400 mt-6"
-          onClick={() => navigate("/drives/drive")}
+          onClick={() => navigate("/postings/jobs")}
         />
         <div className="flex flex-row items-center justify-center gap-3 w-full mt-6 overflow-y-auto">
           <Card className="w-fit h-18 py-4 px-8 flex items-center justify-center border-none bg-zinc-800/25">
             <div className="flex items-center gap-8 w-full">
               <div className="flex items-center gap-2">
-                <p className="text-lg">{drive?.title}</p>
-                <span
-                  className={`text-xs rounded-full whitespace-nowrap ${
-                    drive.category === "IT"
-                      ? "text-success-500"
-                      : drive.category === "Operations"
-                      ? "text-warning-500"
-                      : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {drive.category}
-                </span>
+                <p className="text-lg">{posting?.title}</p>
+                <span>{posting.department}</span>
                 <span
                   className={`text-xs px-2 rounded-full whitespace-nowrap ${
-                    drive.status === "active"
+                    getPostingStatus(posting) === "active"
                       ? "text-success-500 bg-success-100"
                       : "text-danger-500 bg-danger-100"
                   }`}
                 >
-                  {drive.status === "active" ? "Active" : "Closed"}
+                  {getPostingStatus(posting) === "active"
+                    ? "Open Until"
+                    : "Closed at"}{" "}
                 </span>
               </div>
               <div className="flex items-center gap-7 text-sm text-gray-500">
                 <div className="flex items-center gap-2">
                   <BriefcaseIcon size={18} />
-                  <p>{drive?.jobprofile}</p>
+                  <p>{posting?.type}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPinIcon size={18} />
-                  <p>{drive?.location}</p>
+                  <p>{posting?.location}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <BanknoteIcon size={18} />
                   <p>
-                    {drive?.salaryFrom} - {drive?.salaryUpto}
+                    {posting?.salary.min} - {posting?.salary.max} (
+                    {posting?.salary.currency?.toUpperCase() || "USD"})
                   </p>
                 </div>
                 <div className="ml-auto text-xs text-gray-300 bg-secondary bg-opacity-5 rounded-full px-2 py-1">
-                  {drive.status === "active"
-                    ? `Open Until ${drive.openUntil}`
-                    : `Closed at ${drive.openUntil}`}
+                  {getPostingStatus(posting) === "active"
+                    ? `Open Until ${posting.applicationRange.end}`
+                    : `Closed at ${posting.applicationRange.end}`}
                 </div>
               </div>
             </div>
@@ -241,7 +240,7 @@ const Dashboard: React.FC = () => {
             </Card>
             <Card className="w-full h-fit flex flex-col">
               <CardBody className="flex flex-col items-center justify-center h-fit">
-                <div className="flex flex-col items-start">
+                {/* <div className="flex flex-col items-start">
                   <p className="text-sm">
                     {stage}{" "}
                     {participants.filter((p) => p.stage === stage).length}
@@ -252,7 +251,7 @@ const Dashboard: React.FC = () => {
                       30
                     </span>
                   </div>
-                </div>
+                </div> */}
               </CardBody>
             </Card>
             <Card className="w-full h-full flex flex-col gap-2">

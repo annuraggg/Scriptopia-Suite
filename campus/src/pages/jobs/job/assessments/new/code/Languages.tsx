@@ -2,12 +2,14 @@ import { motion } from "framer-motion";
 import availableLanguages from "@/data/languages";
 import { Checkbox } from "@nextui-org/react";
 
-const Languages = ({
-  selectedLanguages,
-  setSelectedLanguages,
-}: {
+interface LanguagesProps {
   selectedLanguages: string[];
   setSelectedLanguages: (selectedLanguages: string[]) => void;
+}
+
+const Languages: React.FC<LanguagesProps> = ({
+  selectedLanguages,
+  setSelectedLanguages,
 }) => {
   return (
     <motion.div
@@ -15,8 +17,11 @@ const Languages = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <p> Select allowed languages</p>
-      <div className="grid grid-cols-5 gap-2 mt-5">
+      <p className="mb-4">Select allowed languages</p>
+      {selectedLanguages.length === 0 && (
+        <p className="text-red-500 mb-2">Please select at least one language</p>
+      )}
+      <div className="grid grid-cols-5 gap-2">
         {availableLanguages.map(
           (language, i) =>
             language.available && (
@@ -26,15 +31,9 @@ const Languages = ({
                   color="success"
                   isSelected={selectedLanguages.includes(language.abbr)}
                   onChange={(e) => {
-                    const newSelectedLanguages = [...selectedLanguages];
-                    if (e.target.checked) {
-                      newSelectedLanguages.push(language.abbr);
-                    } else {
-                      newSelectedLanguages.splice(
-                        newSelectedLanguages.indexOf(language.abbr),
-                        1
-                      );
-                    }
+                    const newSelectedLanguages = e.target.checked
+                      ? [...selectedLanguages, language.abbr]
+                      : selectedLanguages.filter((lang) => lang !== language.abbr);
                     setSelectedLanguages(newSelectedLanguages);
                   }}
                 >

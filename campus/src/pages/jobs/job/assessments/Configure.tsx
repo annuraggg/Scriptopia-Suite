@@ -1,11 +1,6 @@
-import {
-  Button,
-  Card,
-  CardBody,
-} from "@nextui-org/react";
-import { Drive } from "@shared-types/Drive";
+import { Button, Card, CardBody } from "@nextui-org/react";
+import { Posting } from "@shared-types/Posting";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 const typeMap = {
   ca: "Coding Assessment",
@@ -13,32 +8,41 @@ const typeMap = {
   mcqa: "Multiple Choice Assessment",
 };
 
-const Configure = ({ drive }: { drive: Drive }) => {
-  const navigate = useNavigate();
+const codeStepMap: { [key: string]: string } = {
+  ca: "code",
+  mcqca: "mcq_coding",
+  mcqa: "mcq",
+  rs: "rs",
+  as: "as",
+  pi: "pi",
+  cu: "cu",
+};
+
+const Configure = ({ posting }: { posting: Posting }) => {
   const [assessmentTitles, setAssessmentTitles] = useState<string[]>([]);
 
   useEffect(() => {
     setAssessmentTitles(
-      drive?.assessments?.map((assessment: any) => assessment.name) || []
+      posting?.assessments?.map((assessment) => assessment.assessmentId) || []
     );
-  }, [drive]);
+  }, [posting]);
 
   return (
     <div className="flex items-center justify-center h-[100vh] flex-col p-10">
       <p className="text-xl">
-        Assessments are enabled but not configured for this drive
+        Assessments are enabled but not configured for this posting
       </p>
       <p className="opacity-50 mt-2 mb-10">
-        Please configure assessments for this drive by clicking on the configure
-        button
+        Please configure assessments for this posting by clicking on the
+        configure button
       </p>
 
-      {drive?.workflow?.steps?.map((step, index: number) => (
-        <>
-          {(step.type === "ca" ||
+      {posting?.workflow?.steps?.map(
+        (step, index: number) =>
+          (step.type === "ca" ||
             step.type === "mcqca" ||
             step.type === "mcqa") && (
-            <Card className="w-[50%] mt-3">
+            <Card className="w-[50%] mt-3" key={step._id}>
               <CardBody className="flex flex-row items-center justify-between">
                 <div>
                   {step?.name}
@@ -46,14 +50,20 @@ const Configure = ({ drive }: { drive: Drive }) => {
                     {typeMap[step?.type]}
                   </div>
                 </div>
-                {assessmentTitles.includes(step?.name) ? (
+                {assessmentTitles.includes(step?.stepId || "") ? (
                   <div className="text-green-500">Configured</div>
                 ) : (
                   <Button
                     variant="flat"
                     color="warning"
                     onClick={() => {
-                      navigate(`new/${step.type}?step=${index}`);
+                      window.location.href = `${
+                        import.meta.env.VITE_CODE_URL
+                      }/assessments/new/${
+                        codeStepMap[step.type]
+                      }?isPosting=true&postingId=${
+                        posting._id
+                      }&step=${index}&returnUrl=${window.location.href}`;
                     }}
                   >
                     Configure
@@ -61,9 +71,8 @@ const Configure = ({ drive }: { drive: Drive }) => {
                 )}
               </CardBody>
             </Card>
-          )}
-        </>
-      ))}
+          )
+      )}
     </div>
   );
 };

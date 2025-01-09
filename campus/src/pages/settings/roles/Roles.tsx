@@ -1,134 +1,91 @@
 import Sidebar from "./Sidebar";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
-import { useAuth } from "@clerk/clerk-react";
-import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import { Role } from "@shared-types/Institute";
-import { Card, CardBody, Checkbox, Input, Spinner } from "@nextui-org/react";
-import UnsavedToast from "@/components/UnsavedToast";
-import { setToastChanges } from "@/reducers/toastReducer";
-import { useDispatch } from "react-redux";
-interface Permission {
-  _id: string;
-  name: string;
-  description: string;
-}
+import { Role } from "@shared-types/Organization";
+import { Card, CardBody, Checkbox, Input } from "@nextui-org/react";
+import { useOutletContext } from "react-router-dom";
+import { SettingsContext } from "@/types/SettingsContext";
+
+const permissions = [
+  "manage_job",
+  "view_job",
+  "view_organization",
+  "manage_organization",
+  "view_billing",
+  "manage_billing",
+  "view_analytics",
+  "interviewer",
+];
 
 const Roles = () => {
   const [builtInRoles, setBuiltInRoles] = useState<Role[]>([]);
   const [customRoles, setCustomRoles] = useState<Role[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+
   const [selectedRole, setSelectedRole] = useState<Role>({} as Role);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
-  const [changes, setChanges] = useState<boolean>(false);
 
-  const [reset, setReset] = useState(false);
-
-  const dispatch = useDispatch();
-
-  const { getToken } = useAuth();
-  const axios = ax(getToken);
-
-  const triggerSaveToast = () => {
-    if (!changes) {
-      setChanges(true);
-      dispatch(setToastChanges(true));
-    }
-  };
+  const { organization, setOrganization, rerender } =
+    useOutletContext() as SettingsContext;
 
   useEffect(() => {
-    setLoading(true);
-    axios
-      .get("campus/settings")
-      .then((res) => {
-        setBuiltInRoles(
-          res.data.data.roles.filter((role: Role) => role.default)
-        );
-        setCustomRoles(
-          res.data.data.roles.filter((role: Role) => !role.default)
-        );
-
-        setSelectedRole(
-          res.data.data.roles.filter((role: Role) => role.default)[0]
-        );
-
-        setPermissions(res.data.data.permissions);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error("Error Fetching Settings");
-      })
-      .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reset]);
-
-  const save = async () => {
-    setLoading(true);
-    axios
-      .post("campus/settings/roles", { roles: customRoles })
-      .then(() => {
-        toast.success("Roles Saved Successfully");
-        setChanges(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error("Error Saving Roles");
-      })
-      .finally(() => setLoading(false));
-  };
+    if (!organization?.roles) return;
+    setBuiltInRoles(organization?.roles?.filter((role) => role.default));
+    setCustomRoles(organization?.roles?.filter((role) => !role.default));
+    setSelectedRole(organization?.roles?.filter((role) => role.default)[0]);
+  }, [rerender]);
 
   const newRole = () => {
     const newRole: Role = {
       name: "New Role",
+      slug: "new_role",
       description: "",
       permissions: [],
       default: false,
     };
     setCustomRoles([...customRoles, newRole]);
     setSelectedRole(newRole);
+
+    const newOrganization = { ...organization };
+    newOrganization.roles = [...(newOrganization.roles || []), newRole];
+    setOrganization(newOrganization);
   };
 
-  const changePerm = (val: boolean, perm: Permission) => {
-    if (selectedRole.default) return toast.error("Cannot edit built-in roles");
-    setChanges(true);
-    if (val) {
-      const newRole = {
-        ...selectedRole,
-      };
+  const changePerm = (val: boolean, perm: string) => {
+    if (selectedRole?.default) return toast.error("Cannot edit built-in roles");
 
-      setSelectedRole(newRole);
-      setCustomRoles(
-        customRoles.map((role) => (role._id === newRole._id ? newRole : role))
-      );
-    } else {
-      const newRole = {
-        ...selectedRole,
-        permissions: selectedRole.permissions.filter((p) => p !== perm._id),
-      };
-
-      setSelectedRole(newRole);
-      setCustomRoles(
-        customRoles.map((role) => (role._id === newRole._id ? newRole : role))
-      );
-    }
-
-    triggerSaveToast();
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" />
-      </div>
+    const newOrganization = { ...organization };
+    newOrganization.roles = newOrganization.roles?.map((role) =>
+      role.slug === selectedRole.slug
+        ? {
+            ...selectedRole,
+            permissions: val
+              ? [...selectedRole.permissions, perm]
+              : selectedRole.permissions?.filter((p) => p !== perm),
+          }
+        : role
     );
-  }
+
+    setOrganization(newOrganization);
+    setSelectedRole({
+      ...selectedRole,
+      permissions: val
+        ? [...selectedRole.permissions, perm]
+        : selectedRole.permissions?.filter((p) => p !== perm),
+    });
+  };
+
+  const getWords = (str: string) => {
+    return str
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
 
   return (
     <div>
-      <UnsavedToast action={save} reset={setReset} />
       <div className="mt-5 ml-5">
         <Breadcrumbs>
+          <BreadcrumbItem>{organization?.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/roles"}>Roles</BreadcrumbItem>
         </Breadcrumbs>
@@ -145,7 +102,7 @@ const Roles = () => {
         <Card className="h-full w-full">
           <CardBody className="px-5">
             <div className="mt-5">
-              {selectedRole.default && (
+              {selectedRole?.default && (
                 <p className="text-red-500 mb-5">
                   Default Roles cannot be edited
                 </p>
@@ -154,42 +111,41 @@ const Roles = () => {
                 <p className="text-sm opacity-50 mb-2">Role Name</p>
                 <Input
                   type="text"
-                  isDisabled={selectedRole.default}
-                  value={selectedRole.name}
+                  isDisabled={selectedRole?.default}
+                  value={selectedRole?.name}
                   onChange={(e) => {
-                    setSelectedRole({ ...selectedRole, name: e.target.value });
-                    setCustomRoles(
-                      customRoles.map((role) =>
-                        role._id === selectedRole._id
-                          ? { ...selectedRole, name: e.target.value }
-                          : role
-                      )
+                    const newOrganization = { ...organization };
+                    newOrganization.roles = newOrganization.roles?.map((role) =>
+                      role.slug === selectedRole.slug
+                        ? { ...selectedRole, name: e.target.value }
+                        : role
                     );
-
-                    triggerSaveToast();
+                    setOrganization(newOrganization);
+                    setSelectedRole({
+                      ...selectedRole,
+                      name: e.target.value,
+                    });
                   }}
                 />
               </div>
               <div>
                 <p className="text-sm opacity-50 mt-5 mb-2">Role Description</p>
                 <Input
-                  isDisabled={selectedRole.default}
+                  isDisabled={selectedRole?.default}
                   type="text"
-                  value={selectedRole.description}
+                  value={selectedRole?.description}
                   onChange={(e) => {
+                    const newOrganization = { ...organization };
+                    newOrganization.roles = newOrganization.roles?.map((role) =>
+                      role.slug === selectedRole.slug
+                        ? { ...selectedRole, description: e.target.value }
+                        : role
+                    );
+                    setOrganization(newOrganization);
                     setSelectedRole({
                       ...selectedRole,
                       description: e.target.value,
                     });
-                    setCustomRoles(
-                      customRoles.map((role) =>
-                        role._id === selectedRole._id
-                          ? { ...selectedRole, description: e.target.value }
-                          : role
-                      )
-                    );
-
-                    triggerSaveToast();
                   }}
                 />
               </div>
@@ -197,23 +153,14 @@ const Roles = () => {
               <div className="mt-5">
                 <p className="text-sm opacity-50">Permissions</p>
                 <div className="grid grid-cols-2 gap-5 mt-5">
-                  {permissions.map((perm) => (
+                  {permissions?.map((perm) => (
                     <Checkbox
-                      isDisabled={selectedRole.default}
-                      key={perm._id}
-                      isSelected={
-                        selectedRole.permissions.filter((p) => p === perm._id)
-                          .length > 0
-                      }
+                      isDisabled={selectedRole?.default}
+                      key={perm}
+                      isSelected={selectedRole?.permissions?.includes(perm)}
                       onValueChange={(val) => changePerm(val, perm)}
                     >
-                      <p>{permissions.find((p) => p._id === perm._id)?.name}</p>
-                      <p className="text-sm opacity-50">
-                        {
-                          permissions.find((p) => p._id === perm._id)
-                            ?.description
-                        }
-                      </p>
+                      <p className="text-sm opacity-50">{getWords(perm)}</p>
                     </Checkbox>
                   ))}
                 </div>

@@ -1,6 +1,6 @@
 import { Image } from "@nextui-org/image";
-import { Button, Input, Spinner, Chip } from "@nextui-org/react";
-import { useEffect, useRef, useState } from "react";
+import { Button, Input } from "@nextui-org/react";
+import { useRef, useState } from "react";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { Upload } from "lucide-react";
 import { useAuth } from "@clerk/clerk-react";
@@ -16,49 +16,10 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import AvatarEditor from "react-avatar-editor";
-import { setToastChanges } from "@/reducers/toastReducer";
-import { useDispatch } from "react-redux";
-import UnsavedToast from "@/components/UnsavedToast";
-
-const EmailDomainInput = ({ domains, setDomains }: { domains: string[], setDomains: (domains: string[]) => void }) => {
-  const [inputValue, setInputValue] = useState("");
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && inputValue.trim()) {
-      e.preventDefault();
-      setDomains([...domains, inputValue.trim()]);
-      setInputValue("");
-    }
-  };
-
-  const removeDomain = (domain: string) => {
-    setDomains(domains.filter(d => d !== domain));
-  };
-
-  return (
-    <div className="flex flex-wrap gap-2 w-[90%] items-center mt-3">
-      {domains.map((domain, index) => (
-        <Chip key={index} onClose={() => removeDomain(domain)} variant="flat">
-          {domain}
-        </Chip>
-      ))}
-      <Input
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Add domain and press Enter"
-      />
-    </div>
-  );
-};
+import { useOutletContext } from "react-router-dom";
+import { SettingsContext } from "@/types/SettingsContext";
 
 const General = () => {
-  const [instituteName, setInstituteName] = useState<string>("");
-  const [logo, setLogo] = useState<string>("/defaultOrgLogo.png");
-  const [instituteWebsite, setInstituteWebsite] = useState<string>("");
-  const [instituteEmail, setInstituteEmail] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
-  const [instituteEmailDomains, setInstituteEmailDomains] = useState<string[]>([]);
   const [newLogo, setNewLogo] = useState<File>({} as File);
   const [zoom, setZoom] = useState<number>(1);
 
@@ -66,69 +27,17 @@ const General = () => {
   const newLogoRef = useRef<AvatarEditor>(null);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  const [changes, setChanges] = useState<boolean>(false);
-  const dispatch = useDispatch();
+  const { organization, setOrganization } =
+    useOutletContext() as SettingsContext;
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
-  useEffect(() => {
-    fetchSettings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const fetchSettings = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get("campus/settings");
-      setInstituteName(res.data.data.name || "");
-      setInstituteEmail(res.data.data.email || "");
-      setInstituteWebsite(res.data.data.website || "");
-      setLogo(res.data.data.logo || "/defaultOrgLogo.png");
-      setInstituteEmailDomains(res.data.data.emailDomains || []);
-      setChanges(false);
-    } catch (err) {
-      console.error(err);
-      toast.error("Error fetching settings. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const triggerSaveToast = () => {
-    if (!changes) {
-      dispatch(setToastChanges(true));
-    }
-  };
-
-  const handleSave = async () => {
-    setLoading(true);
-    try {
-      await axios.post("campus/settings/general", {
-        name: instituteName,
-        email: instituteEmail,
-        website: instituteWebsite,
-        logo: logo,
-        emailDomains: instituteEmailDomains
-      });
-      toast.success("Settings updated successfully");
-      setChanges(false);
-    } catch (err) {
-      console.log(err);
-      toast.error("Error updating settings. Please try again.");
-    } finally {
-      setLoading(false);
-      dispatch(setToastChanges(false));
-    }
-  };
-
   const handleInputChange =
-    (setter: React.Dispatch<React.SetStateAction<string>>) =>
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-        setter(e.target.value);
-        setChanges(true);
-        triggerSaveToast();
-      };
+    (key: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      console.log(key, e.target.value);
+      setOrganization({ ...organization, [key]: e.target.value });
+    };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -141,9 +50,8 @@ const General = () => {
   const updateLogo = () => {
     const canvas = newLogoRef.current?.getImage().toDataURL("image/png");
     axios
-      .post("campus/settings/logo", { logo: canvas })
+      .post("organizations/settings/logo", { logo: canvas })
       .then(() => {
-        setLogo(canvas || "/defaultOrgLogo.png");
         toast.success("Logo updated successfully");
         onOpenChange();
       })
@@ -153,26 +61,24 @@ const General = () => {
       });
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
   return (
     <>
-      <UnsavedToast action={handleSave} />
       <div className="mt-5 ml-5">
         <Breadcrumbs>
+          <BreadcrumbItem>{organization.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/general"}>General</BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <div className="p-5 px-10">
         <div className="w-fit">
-          <Image src={logo} width={200} height={200} />
+          {organization.logo ? (
+            <Image src={organization.logo} width={200} height={200} />
+          ) : (
+            <p className="mt-5 text-center text-sm opacity-50">
+              No Logo. Upload one to make your organization look better.
+            </p>
+          )}
           <input
             type="file"
             accept="image/*"
@@ -181,7 +87,7 @@ const General = () => {
             ref={fileInputRef}
           />
           <Button
-            className="mt-2 w-full"
+            className="mt-2 w-[200px]"
             variant="ghost"
             onClick={() => fileInputRef.current?.click()}
           >
@@ -236,38 +142,26 @@ const General = () => {
         </Modal>
 
         <div className="flex gap-3 w-[50%] items-center mt-10">
-          <p className="w-[40%]">Institute Name</p>
+          <p className="w-[40%]">Company Name</p>
           <Input
-            value={instituteName}
-            onChange={handleInputChange(setInstituteName)}
+            value={organization.name}
+            onChange={handleInputChange("name")}
           />
         </div>
 
         <div className="flex gap-3 w-[50%] items-center mt-3">
-          <p className="w-[40%]">Institute Email</p>
+          <p className="w-[40%]">Company Email</p>
           <Input
-            value={instituteEmail}
-            onChange={handleInputChange(setInstituteEmail)}
+            value={organization.email}
+            onChange={handleInputChange("email")}
           />
         </div>
 
         <div className="flex gap-3 w-[50%] items-center mt-3">
-          <p className="w-[40%]">Institute Website</p>
+          <p className="w-[40%]">Company Website</p>
           <Input
-            value={instituteWebsite}
-            onChange={handleInputChange(setInstituteWebsite)}
-          />
-        </div>
-
-        <div className="flex w-[50%] items-center mt-3">
-          <p className="w-[40%]">Email Domains</p>
-          <EmailDomainInput
-            domains={instituteEmailDomains}
-            setDomains={(newDomains) => {
-              setInstituteEmailDomains(newDomains);
-              setChanges(true);
-              triggerSaveToast();
-            }}
+            value={organization.website}
+            onChange={handleInputChange("website")}
           />
         </div>
       </div>

@@ -1,17 +1,7 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@shared-types/*": [
-        "../common/types/*"
-      ],
-      "@types/*": [
-        "src/types/*"
-      ]
-    },
+    "composite": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "ES2020",
     "useDefineForClassFields": true,
     "lib": [
@@ -24,6 +14,7 @@
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
@@ -32,10 +23,27 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@shared-types/*": [
+        "../common/types/*"
+      ],
+      "@types/*": [
+        "src/types/*"
+      ],
+      "@shared-data/*": [
+        "../common/data/*"
+      ],
+      
+    },
   },
   "include": [
     "src",
-    "../common/types"
-  ],
+    "../common/types",
+    "../common/data"
+  ]
 }

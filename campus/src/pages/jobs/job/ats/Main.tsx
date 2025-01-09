@@ -1,49 +1,80 @@
 import { motion } from "framer-motion";
-import { Accordion, AccordionItem, Input, Textarea } from "@nextui-org/react";
-import ResumeChart from "./ResumeChart";
+import { Card, CardBody, CardHeader, Input, Textarea } from "@nextui-org/react";
 import { SelectionChart } from "./SelectionChart";
 import { Tabs, Tab } from "@nextui-org/react";
 import { DataTable } from "./DataTable";
+import { Posting } from "@shared-types/Posting";
+import { useEffect, useState } from "react";
+import { Candidate } from "@shared-types/Candidate";
 
-const Main = ({ drive }: { drive: any }) => {
-  const chartData = [
-    { day: "5th July", resumes: 130 },
-    { day: "6th July", resumes: 60 },
-    { day: "7th July", resumes: 70 },
-    { day: "9th July", resumes: 56 },
-    { day: "10th July", resumes: 100 },
-    { day: "11th July", resumes: 110 },
-    { day: "12th July", resumes: 120 },
-    { day: "13th July", resumes: 65 },
-    { day: "14th July", resumes: 140 },
-    { day: "15th July", resumes: 150 },
-    { day: "16th July", resumes: 60 },
-    { day: "17th July", resumes: 170 },
-    { day: "18th July", resumes: 32 },
-    { day: "19th July", resumes: 190 },
-  ];
+interface CandidateTable {
+  _id: string;
+  name: string;
+  email: string;
+  received: string;
+  match: string;
+  status: string;
+}
 
-  const selectionChartData = [{ candidates: 1260 }];
+const Main = ({ posting }: { posting: Posting }) => {
+  const [tableData, setTableData] = useState<CandidateTable[]>([]);
+  const [stepNo, setStepNo] = useState<number>(-1);
+  const [selectionData, setSelectionData] = useState<{
+    total: number;
+    selected: number;
+  }>({ total: 0, selected: 0 });
 
-  const tableData = [
-    {
-      name: "Anurag Sawant",
-      email: "anurag@example.com",
-      received: "5th July",
-      match: "60%",
-    },
-  ];
+  useEffect(() => {
+    if (posting && posting.candidates) {
+      const tableDataTemp: CandidateTable[] = (
+        posting.candidates as unknown as Candidate[]
+      ).map((candidate) => {
+        const currentPosting = candidate.appliedPostings.find(
+          (appliedPosting) => appliedPosting.postingId === posting._id
+        );
+        return {
+          _id: candidate._id || "",
+          name: candidate.name,
+          email: candidate.email,
+          received: new Date(
+            currentPosting?.appliedAt || Date.now()
+          ).toLocaleDateString(),
+          match: (currentPosting?.scores.rs?.score ?? 0) + "%", // Default to 0% if score is undefined
+          status: currentPosting?.status || "Applied",
+          currentStepStatus: currentPosting?.currentStepStatus || "Pending",
+        };
+      });
+      setTableData(tableDataTemp);
+    }
 
-  for (let i = 1; i <= 50; i++) {
-    const record = {
-      name: `Candidate ${i}`,
-      email: `candidate${i}@example.com`,
-      received: `${Math.floor(Math.random() * 28) + 1}th July`,
-      match: `${Math.floor(Math.random() * 100)}%`,
-    };
+    if (posting && posting.candidates) {
+      const minimumScore = posting.ats?.minimumScore ?? 0; // Default to 0 if minimumScore is undefined
 
-    tableData.push(record);
-  }
+      const selectedCandidates = (
+        posting.candidates as unknown as Candidate[]
+      ).filter((candidate) => {
+        return candidate.appliedPostings.some((appliedPosting) => {
+          const score = appliedPosting.scores.rs?.score ?? 0;
+          return (
+            appliedPosting.postingId === posting._id && score >= minimumScore
+          );
+        });
+      });
+
+      setSelectionData({
+        total: posting.candidates.length,
+        selected: selectedCandidates.length,
+      });
+
+      const stepNumber = posting?.workflow?.steps?.findIndex(
+        (step) => step.type === "rs"
+      ) as number;
+
+      console.log("Step number: ", stepNumber);
+
+      setStepNo(stepNumber);
+    }
+  }, [posting]);
 
   return (
     <div className="p-10 py-5">
@@ -56,8 +87,9 @@ const Main = ({ drive }: { drive: any }) => {
         <Tabs aria-label="Options" variant="light">
           <Tab key="dashboard" title="Dashboard">
             <div>
-              <Accordion variant="splitted">
-                <AccordionItem key="config" aria-label="config" title="Config">
+              <Card>
+                <CardHeader>Config</CardHeader>
+                <CardBody>
                   <div className="flex items-center w-[100%]">
                     <div className="w-full">
                       <p>Match Threshold (Min %)</p>
@@ -69,10 +101,9 @@ const Main = ({ drive }: { drive: any }) => {
                       placeholder="In %"
                       className="w-[50%]"
                       isDisabled
-                      value={drive.ats?.minimumScore}
+                      value={posting?.ats?.minimumScore.toString()}
                     />
                   </div>
-
                   <div className="flex items-center w-[100%] mt-3">
                     <div className="w-full">
                       <p>Negative Prompts</p>
@@ -84,10 +115,9 @@ const Main = ({ drive }: { drive: any }) => {
                     <Textarea
                       placeholder="No negative prompts"
                       isDisabled
-                      value={drive.ats?.negativePrompts}
+                      value={posting.ats?.negativePrompts?.join(", ")}
                     />
                   </div>
-
                   <div className="flex items-center w-[100%] mt-3">
                     <div className="w-full">
                       <p>Positive Prompts</p>
@@ -99,29 +129,34 @@ const Main = ({ drive }: { drive: any }) => {
                     <Textarea
                       placeholder="No positive prompts"
                       isDisabled
-                      value={drive.ats?.positivePrompts}
+                      value={posting.ats?.positivePrompts?.join(", ")}
                     />
                   </div>
-                </AccordionItem>
-              </Accordion>
+                </CardBody>
+              </Card>
             </div>
 
-            {drive.candidates.length > 0 ? (
+            {posting?.candidates?.length && posting?.candidates?.length > 0 ? (
               <div className="mt-5 flex gap-5">
-                <SelectionChart chartData={selectionChartData} />
-                <ResumeChart chartData={chartData} />
+                <SelectionChart chartData={selectionData} />
               </div>
             ) : (
               <div className="mt-5 flex justify-center items-center">
                 <p className="text-center text-lg opacity-50">
                   No analytics available yet. Please wait for candidates to
-                  apply for this drive.
+                  apply for this posting.
                 </p>
               </div>
             )}
           </Tab>
           <Tab key="candidates" title="Candidates">
-            <DataTable data={tableData} />
+            <DataTable
+              data={tableData}
+              postingId={posting._id!}
+              matchThreshold={posting?.ats?.minimumScore ?? 0}
+              stepNo={stepNo}
+              setData={setTableData}
+            />
           </Tab>
         </Tabs>
       </motion.div>

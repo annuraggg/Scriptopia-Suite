@@ -28,10 +28,10 @@ import ax from "@/config/axios";
 import { toast } from "sonner";
 import { Problem as VanillaProblem } from "@shared-types/Problem";
 import { Problem as ProblemAssessment } from "@shared-types/Assessment";
+import { Key } from "react";
 import { Delta } from "quill/core";
 
 interface Problem extends VanillaProblem {
-  _id: string;
   description: Delta;
 }
 
@@ -44,6 +44,7 @@ const tabsList = [
   "Security",
   "Feedback",
 ];
+
 const New = ({ assessmentName }: { assessmentName: string }) => {
   const [activeTab, setActiveTab] = useState("0");
 
@@ -69,18 +70,6 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
   const [availableQuestions, setAvailableQuestions] = useState<Problem[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    setIsLoading(true);
-    const axios = ax(getToken);
-    axios
-      .get("/problems/all/1")
-      .then((data) => {
-        setAvailableQuestions(data.data.data);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, []);
 
   // Grading Tab States
   const [gradingMetric, setGradingMetric] = useState("testcase");
@@ -110,6 +99,19 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
 
   const { getToken } = useAuth();
 
+  useEffect(() => {
+    setIsLoading(true);
+    const axios = ax(getToken);
+    axios
+      .get("/problems/all/1")
+      .then((data) => {
+        setAvailableQuestions(data.data.data);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, []);
+
   const buildAssessmentData = () => {
     const rangeStart = testOpenRange.start.toDate("UTC");
     const rangeEnd = testOpenRange.end.toDate("UTC");
@@ -118,9 +120,13 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
     rangeEnd.setHours(endTime.hour);
     rangeEnd.setMinutes(endTime.minute);
 
+    const step = window.history.state.usr.step;
+
     const reqBody = {
-      assessmentDriveName: assessmentName,
-      driveId: window.location.pathname.split("/")[3],
+      assessmentpostingName: assessmentName,
+      postingId: window.location.pathname.split("/")[2],
+      step: step,
+      isEnterprise: true,
       name: assessmentName,
       description: assessmentDescription,
       type: "code",
@@ -151,14 +157,72 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
 
     const axios = ax(getToken);
     axios
-      .post("/drives/assessment", reqBody)
+      .post("/postings/assessment", reqBody)
       .then(() => {
         toast.success("Assessment created successfully");
+        window.location.href = window.location.pathname
+          .split("/")
+          .slice(0, -2)
+          .join("/");
       })
       .catch((err) => {
         console.error(err);
         toast.error("Error creating assessment");
       });
+  };
+
+  const isTabValid = (tabIndex: number): boolean => {
+    switch (tabIndex) {
+      case 0: // General
+        return (
+          assessmentDescription.trim() !== "" &&
+          timeLimit > 0 &&
+          passingPercentage > 0 &&
+          testOpenRange.start !== null &&
+          testOpenRange.end !== null &&
+          startTime !== null &&
+          endTime !== null
+        );
+      case 1: // Languages
+        return selectedLanguages.length > 0;
+      case 2: // Problems
+        return selectedQuestions.length > 0;
+      case 3: // Grading
+        if (gradingMetric === "testcase") {
+          return (
+            testCaseGrading.easy > 0 &&
+            testCaseGrading.medium > 0 &&
+            testCaseGrading.hard > 0
+          );
+        } else {
+          return (
+            questionsGrading.length === selectedQuestions.length &&
+            questionsGrading.every((q) => q.points > 0)
+          );
+        }
+      case 4: // Instructions
+        return instructions.trim() !== "";
+      case 5: // Security
+        return true; // All fields are optional
+      default:
+        return true;
+    }
+  };
+
+  const handleTabChange = (key: Key) => {
+    const currentTabIndex = parseInt(activeTab);
+    const newTabIndex = typeof key === "string" ? parseInt(key) : key;
+
+    if (
+      typeof newTabIndex === "number" &&
+      newTabIndex > currentTabIndex &&
+      !isTabValid(currentTabIndex)
+    ) {
+      toast.error("Please complete all required fields before proceeding.");
+      return;
+    }
+
+    setActiveTab(newTabIndex.toString());
   };
 
   const tabsComponents = [
@@ -202,8 +266,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
         setQuestionsGrading,
       }}
     />,
-
-    <Instructions {...{ instructions, setInstructions }} />,
+    <Instructions {...{ instructions, setInstructions, errors: {} }} />,
     <Security
       {...{
         codePlayback,
@@ -233,10 +296,7 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
 
   return (
     <div className="flex items-center justify-center flex-col relative w-full">
-      <Tabs
-        selectedKey={activeTab}
-        onSelectionChange={(e) => setActiveTab(e as string)}
-      >
+      <Tabs selectedKey={activeTab} onSelectionChange={handleTabChange}>
         {tabsList.map((tabItem, i) => (
           <Tab key={i} title={tabItem} className="w-full">
             <Card className="w-full h-[80vh]">
@@ -248,8 +308,9 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
                     size="sm"
                     isIconOnly
                     onClick={() =>
-                      setActiveTab((parseInt(activeTab) - 1).toString())
+                      handleTabChange((parseInt(activeTab) - 1).toString())
                     }
+                    isDisabled={parseInt(activeTab) === 0}
                   >
                     <ChevronLeft />
                   </Button>
@@ -258,7 +319,11 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
                     size="sm"
                     isIconOnly
                     onClick={() =>
-                      setActiveTab((parseInt(activeTab) + 1).toString())
+                      handleTabChange((parseInt(activeTab) + 1).toString())
+                    }
+                    isDisabled={
+                      parseInt(activeTab) === tabsList.length - 1 ||
+                      !isTabValid(parseInt(activeTab))
                     }
                   >
                     <ChevronRight />
