@@ -9,6 +9,7 @@ import {
   IconBellFilled,
   IconSettingsFilled,
   IconCreditCardFilled,
+  IconUsersGroup,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
@@ -41,6 +42,14 @@ const Sidebar = ({
       icon: IconBriefcaseFilled,
       label: "Jobs",
       link: "/jobs",
+      visible:
+        user?.permissions?.includes("view_job") ||
+        user?.permissions?.includes("manage_job"),
+    },
+    {
+      icon: IconUsersGroup,
+      label: "Placement Groups",
+      link: "/placementgroups",
       visible:
         user?.permissions?.includes("view_job") ||
         user?.permissions?.includes("manage_job"),

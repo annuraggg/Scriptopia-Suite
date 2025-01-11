@@ -45,7 +45,7 @@ const Filter: React.FC = () => {
           </div>
 
           <div>
-            <h4 className="text-base mb-3">Year</h4>
+            <h4 className="text-lg mb-3">Year</h4>
             <Select
               placeholder="Select year"
               value={selectedYear}
@@ -60,7 +60,7 @@ const Filter: React.FC = () => {
           </div>
 
           <div>
-            <h4 className="text-base mb-3">Department</h4>
+            <h4 className="text-lg mb-3">Department</h4>
             <div className="space-y-3">
               <Checkbox
                 value="all"
