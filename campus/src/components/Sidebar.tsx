@@ -61,9 +61,6 @@ const Sidebar = ({
         user?.permissions?.includes("view_analytics") ||
         user?.permissions?.includes("manage_organization"),
     },
-    {
-
-    },
     // {
     //   icon: Calendar,
     //   label: "Calendar",
@@ -158,23 +155,21 @@ const Sidebar = ({
             <div
               className={`${!item.visible ? "hidden" : ""}`}
               onClick={() => {
-                if (item.link) {
-                  navigate(item.link);
-                }
-                setActive((item.label ?? "").toLowerCase());
+                navigate(item.link);
+                setActive(item.label.toLowerCase());
                 if (isMobile) onClose?.();
               }}
             >
               <div
                 className={`flex items-center p-2 py-3 rounded-lg cursor-pointer transition-colors duration-200  
                   ${
-                    active?.toLowerCase() === (item.label ?? "").toLowerCase()
+                    active?.toLowerCase() === item.label.toLowerCase()
                       ? "bg-primary text-foreground"
                       : "text-default hover:bg-accent/40"
                   }`}
               >
                 <div className="min-w-[24px] flex items-center justify-center">
-                  {item.icon && <item.icon className="w-6 h-6" />}
+                  <item.icon className="w-6 h-6" />
                 </div>
                 {(!collapsed || isMobile) && (
                   <span className="ml-3 text-sm font-medium">{item.label}</span>
@@ -209,7 +204,7 @@ const Sidebar = ({
                 className={`flex items-center p-2 py-3 rounded-xl cursor-pointer transition-colors duration-200   
                   ${
                     active?.toLowerCase() === item.label.toLowerCase()
-                      ? "bg-secondary text-foreground"
+                      ? "bg-primary text-foreground"
                       : "text-default hover:bg-accent/40"
                   }`}
               >
@@ -219,7 +214,7 @@ const Sidebar = ({
                     color="warning"
                     className={!item?.length ? "hidden" : ""}
                   >
-                    {item.icon && <item.icon className="w-5 h-5" />}
+                    <item.icon className="w-5 h-5" />
                   </Badge>
                 </div>
                 {(!collapsed || isMobile) && (
