@@ -7,6 +7,7 @@ import {
   Switch,
   TimeInputValue,
 } from "@nextui-org/react";
+import { IconUserScan } from "@tabler/icons-react";
 import { Tooltip } from "@nextui-org/react";
 import { motion, Reorder } from "framer-motion"; // Added framer-motion for animation
 
@@ -48,6 +49,7 @@ const Create = ({
     // { icon: Combine, label: "MCQ + Code Assessment" },
     { icon: Book, label: "Assignment" },
     // { icon: MonitorPlay, label: "Interview" },
+    { icon: IconUserScan, label: "Offer Letter Review" },
   ];
 
   const dragStart = (e: React.DragEvent<HTMLDivElement>, label: string) => {

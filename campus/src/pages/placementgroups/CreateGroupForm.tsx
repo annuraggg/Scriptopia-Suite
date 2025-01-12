@@ -87,7 +87,7 @@ const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
     };
 
     return (
-        <div className="w-full max-w-3xl mx-auto h-screen flex flex-col ">
+        <div className="w-full max-w-4xl mx-auto h-screen flex flex-col ">
             <div className="sticky top-0 bg-background z-10 p-6 shadow-sm">
                 <div className="mb-6">
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-500 bg-clip-text text-transparent">

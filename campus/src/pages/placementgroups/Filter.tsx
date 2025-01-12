@@ -12,6 +12,14 @@ interface Department {
   name: string;
 }
 
+export interface FilterProps {
+  onFilterChange: (filters: {
+    year: string;
+    departments: string[];
+  }) => void;
+  onClearFilters: () => void;
+}
+
 const departments: Department[] = [
   { id: "1", name: "Computer Engineering" },
   { id: "2", name: "Information Technology" },
@@ -23,21 +31,33 @@ const departments: Department[] = [
 
 const years = ["2023-2024", "2022-2023", "2021-2022"];
 
-const Filter: React.FC = () => {
+const Filter: React.FC<FilterProps> = ({ onFilterChange, onClearFilters }) => {
   const [selectedYear, setSelectedYear] = React.useState<string>("");
   const [selectedDepartments, setSelectedDepartments] = React.useState<string[]>([]);
 
   const handleDepartmentChange = (deptId: string) => {
-    if (selectedDepartments.includes(deptId)) {
-      setSelectedDepartments(selectedDepartments.filter((id) => id !== deptId));
-    } else {
-      setSelectedDepartments([...selectedDepartments, deptId]);
-    }
+    const newSelectedDepts = selectedDepartments.includes(deptId)
+      ? selectedDepartments.filter((id) => id !== deptId)
+      : [...selectedDepartments, deptId];
+    
+    setSelectedDepartments(newSelectedDepts);
+    onFilterChange({ year: selectedYear, departments: newSelectedDepts });
+  };
+
+  const handleYearChange = (year: string) => {
+    setSelectedYear(year);
+    onFilterChange({ year, departments: selectedDepartments });
+  };
+
+  const handleClear = () => {
+    setSelectedYear("");
+    setSelectedDepartments([]);
+    onClearFilters();
   };
 
   return (
-    <Card className="bg-default-50">
-      <CardBody className="p-6">
+    <Card className="">
+      <CardBody className="p-5">
         <div className="space-y-6">
           <div>
             <h3 className="text-lg font-semibold mb-4">Filters</h3>
@@ -48,8 +68,8 @@ const Filter: React.FC = () => {
             <h4 className="text-lg mb-3">Year</h4>
             <Select
               placeholder="Select year"
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
+              selectedKeys={selectedYear ? [selectedYear] : []}
+              onChange={(e) => handleYearChange(e.target.value)}
             >
               {years.map((year) => (
                 <SelectItem key={year} value={year}>
@@ -61,20 +81,21 @@ const Filter: React.FC = () => {
 
           <div>
             <h4 className="text-lg mb-3">Department</h4>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Checkbox
                 value="all"
                 isSelected={selectedDepartments.length === departments.length}
                 onChange={() =>
-                  setSelectedDepartments(
+                  handleDepartmentChange(
                     selectedDepartments.length === departments.length
-                      ? []
-                      : departments.map((d) => d.id)
+                      ? "clear-all"
+                      : "select-all"
                   )
                 }
               >
                 All
               </Checkbox>
+              <br></br>
               {departments.map((dept) => (
                 <Checkbox
                   key={dept.id}
@@ -91,14 +112,10 @@ const Filter: React.FC = () => {
           <div className="flex justify-between mt-6">
             <button
               className="text-sm text-default-500"
-              onClick={() => {
-                setSelectedYear("");
-                setSelectedDepartments([]);
-              }}
+              onClick={handleClear}
             >
               Clear All
             </button>
-            <button className="text-sm text-primary">Apply Filters</button>
           </div>
         </div>
       </CardBody>

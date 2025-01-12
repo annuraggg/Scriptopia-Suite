@@ -8,7 +8,7 @@ import {
   IconChartPieFilled,
   IconBellFilled,
   IconSettingsFilled,
-  IconCreditCardFilled,
+  IconBuilding,
   IconUsersGroup,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
@@ -55,6 +55,14 @@ const Sidebar = ({
         user?.permissions?.includes("manage_job"),
     },
     {
+      icon: IconBuilding,
+      label: "Company Profiles",
+      link: "/companyprofiles",
+      visible:
+        user?.permissions?.includes("view_job") ||
+        user?.permissions?.includes("manage_job"),
+    },
+    {
       icon: IconUserFilled,
       label: "Candidates",
       link: "/candidates",
@@ -92,14 +100,14 @@ const Sidebar = ({
       link: "/settings/general",
       visible: user?.permissions?.includes("manage_organization"),
     },
-    {
-      icon: IconCreditCardFilled,
-      label: "Billing",
-      link: "/billing",
-      visible:
-        user?.permissions?.includes("view_billing") ||
-        user?.permissions?.includes("manage_billing"),
-    },
+    // {
+    //   icon: IconCreditCardFilled,
+    //   label: "Billing",
+    //   link: "/billing",
+    //   visible:
+    //     user?.permissions?.includes("view_billing") ||
+    //     user?.permissions?.includes("manage_billing"),
+    // },
     // {
     //   icon: BookOpenText,
     //   label: "Documentation",

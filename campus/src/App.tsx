@@ -26,6 +26,7 @@ const CandidateLayout = lazy(() => import("./pages/candidate/Layout"));
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
 const Jobs = lazy(() => import("./pages/jobs/Jobs"));
 const PlacementGroups = lazy(() => import("./pages/placementgroups/PlacementGroups"));
+const CompanyProfiles = lazy(() => import("./pages/companyprofiles/CompanyProfiles"));
 const Candidates = lazy(() => import("./pages/candidates/Candidates"));
 const Analytics = lazy(() => import("./pages/analytics/Analytics"));
 const Notifications = lazy(() => import("./pages/notifications/Notifications"));
@@ -267,6 +268,14 @@ function App() {
           element: (
             <Suspense fallback={<Loader />}>
               <PlacementGroups />
+            </Suspense>
+          ),
+        },
+        {
+          path: "companyprofiles",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <CompanyProfiles />
             </Suspense>
           ),
         },

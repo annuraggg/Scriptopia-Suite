@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Card,
   Input,
@@ -79,19 +79,61 @@ const PlacementGroups = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filter, setFilter] = useState<"all" | "active" | "archived">("all");
   const [showCreateGroup, setShowCreateGroup] = useState(false);
-
-  const filteredGroups = groups.filter((group) => {
-    if (searchTerm) {
-      return group.name.toLowerCase().includes(searchTerm.toLowerCase());
-    }
-    if (filter === "active") {
-      return group.status === "Active";
-    }
-    if (filter === "archived") {
-      return group.status === "Archived";
-    }
-    return true;
+  const [activeFilters, setActiveFilters] = useState<{
+    year: string;
+    departments: string[];
+  }>({
+    year: "",
+    departments: [],
   });
+
+  const filteredGroups = useMemo(() => {
+    return groups.filter((group) => {
+      // Apply search filter
+      if (searchTerm && !group.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return false;
+      }
+
+      // Apply status filter
+      if (filter === "active" && group.status !== "Active") {
+        return false;
+      }
+      if (filter === "archived" && group.status !== "Archived") {
+        return false;
+      }
+
+      // Apply year filter
+      if (activeFilters.year && group.year !== activeFilters.year) {
+        return false;
+      }
+
+      // Apply department filter
+      if (activeFilters.departments.length > 0) {
+        const groupDeptIds = group.departments.map((dept) => dept.id);
+        const hasMatchingDepartment = activeFilters.departments.some((deptId) =>
+          groupDeptIds.includes(deptId)
+        );
+        if (!hasMatchingDepartment) {
+          return false;
+        }
+      }
+
+      return true;
+    }).sort((a, b) => {
+      if (sort === "newest") {
+        return b.year.localeCompare(a.year);
+      }
+      return a.year.localeCompare(b.year);
+    });
+  }, [groups, searchTerm, filter, activeFilters, sort]);
+
+  const handleFilterChange = (newFilters: { year: string; departments: string[] }) => {
+    setActiveFilters(newFilters);
+  };
+
+  const handleClearFilters = () => {
+    setActiveFilters({ year: "", departments: [] });
+  };
 
   const handleCopyLink = (id: string) => {
     navigator.clipboard.writeText(`https://yourwebsite.com/group/${id}`);
@@ -116,7 +158,10 @@ const PlacementGroups = () => {
 
               <div className="flex gap-8">
                 <div className="w-1/4">
-                  <Filter />
+                  <Filter
+                    onFilterChange={handleFilterChange}
+                    onClearFilters={handleClearFilters}
+                  />
                 </div>
                 <div className="w-3/4">
                   <div className="flex justify-between items-center mb-6">
@@ -174,17 +219,16 @@ const PlacementGroups = () => {
 
                   <div className="space-y-4">
                     {filteredGroups.map((group) => (
-                      <Card key={group.id} className="bg-default-100 p-4">
+                      <Card key={group.id} className=" p-4">
                         <div className="flex justify-between items-start">
                           <div>
                             <div className="flex items-center gap-2 mb-2">
                               <h3 className="text-lg font-semibold">{group.name}</h3>
                               <span
-                                className={`px-2 py-1 rounded-full text-xs ${
-                                  group.status === "Active"
+                                className={`px-2 py-1 rounded-full text-xs ${group.status === "Active"
                                     ? "bg-success-100 text-success-600"
                                     : "bg-default-100 text-default-600"
-                                }`}
+                                  }`}
                               >
                                 {group.status}
                               </span>
