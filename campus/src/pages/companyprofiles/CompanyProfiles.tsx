@@ -11,7 +11,8 @@ import {
   SelectItem,
   Card,
 } from '@nextui-org/react';
-import { Search, Plus, MoreVertical, Calendar, Users, DollarSign } from 'lucide-react';
+import { Search, Plus, MoreVertical, Calendar, Users, DollarSign, ArrowLeft } from 'lucide-react';
+import CreateCompanyForm from "./CreateCompanyForm";
 
 interface Company {
   id: string;
@@ -84,6 +85,7 @@ const parseRange = (range: string): [number, number] => {
 export default function CompanyProfiles() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [filters, setFilters] = useState<Filters>({
     year: '',
     studentsRange: '',
@@ -179,7 +181,7 @@ export default function CompanyProfiles() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold">Company Profiles</h1>
           <div className="flex gap-4 items-center">
-            <Select 
+            <Select
               className="w-32"
               selectedKeys={[sortBy]}
               onChange={(e) => setSortBy(e.target.value)}
@@ -201,12 +203,13 @@ export default function CompanyProfiles() {
               />
             </div>
 
-            <Button 
+            <Button
               color="primary"
               startContent={<Plus size={20} />}
-            >
+              onClick={() => setShowCreateGroup(true)}>
               Create Company Profile
             </Button>
+
           </div>
         </div>
 
@@ -215,11 +218,11 @@ export default function CompanyProfiles() {
           <div className="w-1/4">
             <Card className="bg-neutral-900 p-4">
               <h2 className="text-xl font-semibold mb-4">Filters</h2>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="text-sm text-neutral-400">Last Visited</label>
-                  <Select 
+                  <Select
                     placeholder="Select Year"
                     value={filters.year}
                     onChange={(e) => handleFilterChange('year', e.target.value)}
@@ -236,7 +239,7 @@ export default function CompanyProfiles() {
 
                 <div>
                   <label className="text-sm text-neutral-400">Students Hired</label>
-                  <Select 
+                  <Select
                     placeholder="Select Range"
                     value={filters.studentsRange}
                     onChange={(e) => handleFilterChange('studentsRange', e.target.value)}
@@ -253,7 +256,7 @@ export default function CompanyProfiles() {
 
                 <div>
                   <label className="text-sm text-neutral-400">Average Package</label>
-                  <Select 
+                  <Select
                     placeholder="Select Range"
                     value={filters.averagePackage}
                     onChange={(e) => handleFilterChange('averagePackage', e.target.value)}
@@ -270,7 +273,7 @@ export default function CompanyProfiles() {
 
                 <div>
                   <label className="text-sm text-neutral-400">Highest Package</label>
-                  <Select 
+                  <Select
                     placeholder="Select Range"
                     value={filters.highestPackage}
                     onChange={(e) => handleFilterChange('highestPackage', e.target.value)}
@@ -286,15 +289,15 @@ export default function CompanyProfiles() {
                 </div>
 
                 <div className="flex justify-between pt-4">
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="light"
                     onClick={clearFilters}
                   >
                     Clear All
                   </Button>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     color="primary"
                     onClick={applyFilters}
                   >
@@ -344,7 +347,7 @@ export default function CompanyProfiles() {
 
                       <Dropdown>
                         <DropdownTrigger>
-                          <Button 
+                          <Button
                             isIconOnly
                             variant="light"
                             className="text-neutral-400"
@@ -361,6 +364,26 @@ export default function CompanyProfiles() {
                     </div>
                   </Card>
                 </motion.div>
+              ), (
+                <motion.div
+                  key="create-form"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="w-full"
+                >
+                  <div className="mb-8">
+                    <Button
+                      variant="light"
+                      startContent={<ArrowLeft size={20} />}
+                      onClick={() => setShowCreateGroup(false)}
+                    >
+                      Back to Groups
+                    </Button>
+                  </div>
+                  <CreateCompanyForm onClose={() => setShowCreateGroup(false)} />
+                </motion.div>
               ))}
             </AnimatePresence>
           </div>
@@ -368,4 +391,4 @@ export default function CompanyProfiles() {
       </div>
     </div>
   );
-}
+};

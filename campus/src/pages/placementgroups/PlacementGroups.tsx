@@ -15,6 +15,10 @@ import { Search, Plus, MoreVertical, Copy, Archive, ArrowLeft } from "lucide-rea
 import Filter from "./Filter";
 import CreateGroupForm from "./CreateGroupForm";
 
+interface CreateCompanyFormProps {
+  onClose: () => void;
+}
+
 interface Department {
   id: string;
   name: string;
