@@ -176,219 +176,225 @@ export default function CompanyProfiles() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white p-6">
+    <div className="min-h-screen text-white p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold">Company Profiles</h1>
-          <div className="flex gap-4 items-center">
-            <Select
-              className="w-32"
-              selectedKeys={[sortBy]}
-              onChange={(e) => setSortBy(e.target.value)}
+        <AnimatePresence mode="wait">
+          {!showCreateGroup ? (
+            <motion.div
+              key="companies-list"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
             >
-              <SelectItem key="newest">Newest</SelectItem>
-              <SelectItem key="oldest">Oldest</SelectItem>
-            </Select>
-
-            <div className="w-[400px]">
-              <Input
-                placeholder="Search by Company Name"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                startContent={<Search className="text-neutral-400" size={20} />}
-                classNames={{
-                  input: "bg-neutral-900 text-white",
-                  inputWrapper: "bg-neutral-900"
-                }}
-              />
-            </div>
-
-            <Button
-              color="primary"
-              startContent={<Plus size={20} />}
-              onClick={() => setShowCreateGroup(true)}>
-              Create Company Profile
-            </Button>
-
-          </div>
-        </div>
-
-        <div className="flex gap-8">
-          {/* Filters Section */}
-          <div className="w-1/4">
-            <Card className="bg-neutral-900 p-4">
-              <h2 className="text-xl font-semibold mb-4">Filters</h2>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm text-neutral-400">Last Visited</label>
+              <div className="flex justify-between items-center mb-8">
+                <h1 className="text-2xl font-bold">Company Profiles</h1>
+                <div className="flex gap-4 items-center">
                   <Select
-                    placeholder="Select Year"
-                    value={filters.year}
-                    onChange={(e) => handleFilterChange('year', e.target.value)}
-                    className="w-full mt-1"
-                    classNames={{
-                      trigger: "bg-neutral-800",
-                    }}
+                    className="w-32"
+                    selectedKeys={[sortBy]}
+                    onChange={(e) => setSortBy(e.target.value)}
                   >
-                    <SelectItem key="2025">2025</SelectItem>
-                    <SelectItem key="2024">2024</SelectItem>
-                    <SelectItem key="2023">2023</SelectItem>
+                    <SelectItem key="newest">Newest</SelectItem>
+                    <SelectItem key="oldest">Oldest</SelectItem>
                   </Select>
-                </div>
 
-                <div>
-                  <label className="text-sm text-neutral-400">Students Hired</label>
-                  <Select
-                    placeholder="Select Range"
-                    value={filters.studentsRange}
-                    onChange={(e) => handleFilterChange('studentsRange', e.target.value)}
-                    className="w-full mt-1"
-                    classNames={{
-                      trigger: "bg-neutral-800",
-                    }}
-                  >
-                    <SelectItem key="0-50">0-50</SelectItem>
-                    <SelectItem key="51-100">51-100</SelectItem>
-                    <SelectItem key="100+">100+</SelectItem>
-                  </Select>
-                </div>
+                  <div className="w-[400px]">
+                    <Input
+                      placeholder="Search by Company Name"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      startContent={<Search className="text-neutral-400" size={20} />}
+                      classNames={{
+                        input: "bg-neutral-900 text-white",
+                        inputWrapper: "bg-neutral-900"
+                      }}
+                    />
+                  </div>
 
-                <div>
-                  <label className="text-sm text-neutral-400">Average Package</label>
-                  <Select
-                    placeholder="Select Range"
-                    value={filters.averagePackage}
-                    onChange={(e) => handleFilterChange('averagePackage', e.target.value)}
-                    className="w-full mt-1"
-                    classNames={{
-                      trigger: "bg-neutral-800",
-                    }}
-                  >
-                    <SelectItem key="0-10">0-10L</SelectItem>
-                    <SelectItem key="10-20">10-20L</SelectItem>
-                    <SelectItem key="20+">20L+</SelectItem>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="text-sm text-neutral-400">Highest Package</label>
-                  <Select
-                    placeholder="Select Range"
-                    value={filters.highestPackage}
-                    onChange={(e) => handleFilterChange('highestPackage', e.target.value)}
-                    className="w-full mt-1"
-                    classNames={{
-                      trigger: "bg-neutral-800",
-                    }}
-                  >
-                    <SelectItem key="0-10">0-10L</SelectItem>
-                    <SelectItem key="10-20">10-20L</SelectItem>
-                    <SelectItem key="20+">20L+</SelectItem>
-                  </Select>
-                </div>
-
-                <div className="flex justify-between pt-4">
                   <Button
-                    size="sm"
-                    variant="light"
-                    onClick={clearFilters}
-                  >
-                    Clear All
-                  </Button>
-                  <Button
-                    size="sm"
                     color="primary"
-                    onClick={applyFilters}
+                    startContent={<Plus size={20} />}
+                    onClick={() => setShowCreateGroup(true)}
                   >
-                    Apply Filters
+                    Create Company Profile
                   </Button>
                 </div>
               </div>
-            </Card>
-          </div>
 
-          {/* Companies List */}
-          <div className="w-3/4">
-            <AnimatePresence>
-              {filteredCompanies.map((company) => (
-                <motion.div
-                  key={company.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Card className="bg-neutral-900 p-4 mb-4">
-                    <div className="flex justify-between items-start">
+              <div className="flex gap-8">
+                {/* Filters Section */}
+                <div className="w-1/4">
+                  <Card className="bg-neutral-900 p-4">
+                    <h2 className="text-xl font-semibold mb-4">Filters</h2>
+
+                    <div className="space-y-4">
                       <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-lg font-semibold">{company.name}</h3>
-                          <span className="px-2 py-1 rounded-full bg-neutral-800 text-xs">
-                            Average Package {formatCurrency(company.averagePackage)}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-6 text-sm text-neutral-400">
-                          <div className="flex items-center gap-2">
-                            <Calendar size={16} />
-                            <span>Last Visit {company.lastVisit}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Users size={16} />
-                            <span>{company.studentsHired} Students Hired</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <DollarSign size={16} />
-                            <span>Highest Package {formatCurrency(company.highestPackage)}</span>
-                          </div>
-                        </div>
+                        <label className="text-sm text-neutral-400">Last Visited</label>
+                        <Select
+                          placeholder="Select Year"
+                          value={filters.year}
+                          onChange={(e) => handleFilterChange('year', e.target.value)}
+                          className="w-full mt-1"
+                          classNames={{
+                            trigger: "bg-neutral-800",
+                          }}
+                        >
+                          <SelectItem key="2025">2025</SelectItem>
+                          <SelectItem key="2024">2024</SelectItem>
+                          <SelectItem key="2023">2023</SelectItem>
+                        </Select>
                       </div>
 
-                      <Dropdown>
-                        <DropdownTrigger>
-                          <Button
-                            isIconOnly
-                            variant="light"
-                            className="text-neutral-400"
-                          >
-                            <MoreVertical size={20} />
-                          </Button>
-                        </DropdownTrigger>
-                        <DropdownMenu>
-                          <DropdownItem>Edit Profile</DropdownItem>
-                          <DropdownItem>View Details</DropdownItem>
-                          <DropdownItem className="text-danger">Delete</DropdownItem>
-                        </DropdownMenu>
-                      </Dropdown>
+                      <div>
+                        <label className="text-sm text-neutral-400">Students Hired</label>
+                        <Select
+                          placeholder="Select Range"
+                          value={filters.studentsRange}
+                          onChange={(e) => handleFilterChange('studentsRange', e.target.value)}
+                          className="w-full mt-1"
+                          classNames={{
+                            trigger: "bg-neutral-800",
+                          }}
+                        >
+                          <SelectItem key="0-50">0-50</SelectItem>
+                          <SelectItem key="51-100">51-100</SelectItem>
+                          <SelectItem key="100+">100+</SelectItem>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <label className="text-sm text-neutral-400">Average Package</label>
+                        <Select
+                          placeholder="Select Range"
+                          value={filters.averagePackage}
+                          onChange={(e) => handleFilterChange('averagePackage', e.target.value)}
+                          className="w-full mt-1"
+                          classNames={{
+                            trigger: "bg-neutral-800",
+                          }}
+                        >
+                          <SelectItem key="0-10">0-10L</SelectItem>
+                          <SelectItem key="10-20">10-20L</SelectItem>
+                          <SelectItem key="20+">20L+</SelectItem>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <label className="text-sm text-neutral-400">Highest Package</label>
+                        <Select
+                          placeholder="Select Range"
+                          value={filters.highestPackage}
+                          onChange={(e) => handleFilterChange('highestPackage', e.target.value)}
+                          className="w-full mt-1"
+                          classNames={{
+                            trigger: "bg-neutral-800",
+                          }}
+                        >
+                          <SelectItem key="0-10">0-10L</SelectItem>
+                          <SelectItem key="10-20">10-20L</SelectItem>
+                          <SelectItem key="20+">20L+</SelectItem>
+                        </Select>
+                      </div>
+
+                      <div className="flex justify-between pt-4">
+                        <Button
+                          size="sm"
+                          variant="light"
+                          onClick={clearFilters}
+                        >
+                          Clear All
+                        </Button>
+                        <Button
+                          size="sm"
+                          color="primary"
+                          onClick={applyFilters}
+                        >
+                          Apply Filters
+                        </Button>
+                      </div>
                     </div>
                   </Card>
-                </motion.div>
-              ), (
-                <motion.div
-                  key="create-form"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className="w-full"
-                >
-                  <div className="mb-8">
-                    <Button
-                      variant="light"
-                      startContent={<ArrowLeft size={20} />}
-                      onClick={() => setShowCreateGroup(false)}
+                </div>
+
+                {/* Companies List */}
+                <div className="w-3/4">
+                  {filteredCompanies.map((company) => (
+                    <motion.div
+                      key={company.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.2 }}
                     >
-                      Back to Groups
-                    </Button>
-                  </div>
-                  <CreateCompanyForm onClose={() => setShowCreateGroup(false)} />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        </div>
+                      <Card className="bg-neutral-900 p-4 mb-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="text-lg font-semibold">{company.name}</h3>
+                              <span className="px-2 py-1 rounded-full bg-neutral-800 text-xs">
+                                Average Package {formatCurrency(company.averagePackage)}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-6 text-sm text-neutral-400">
+                              <div className="flex items-center gap-2">
+                                <Calendar size={16} />
+                                <span>Last Visit {company.lastVisit}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Users size={16} />
+                                <span>{company.studentsHired} Students Hired</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <DollarSign size={16} />
+                                <span>Highest Package {formatCurrency(company.highestPackage)}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <Dropdown>
+                            <DropdownTrigger>
+                              <Button isIconOnly variant="light" className="text-neutral-400">
+                                <MoreVertical size={20} />
+                              </Button>
+                            </DropdownTrigger>
+                            <DropdownMenu>
+                              <DropdownItem>Edit Profile</DropdownItem>
+                              <DropdownItem>View Details</DropdownItem>
+                              <DropdownItem className="text-danger">Delete</DropdownItem>
+                            </DropdownMenu>
+                          </Dropdown>
+                        </div>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="create-form"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="w-full"
+            >
+              <div className="mb-4">
+                <Button
+                  variant="light"
+                  startContent={<ArrowLeft size={20} />}
+                  onClick={() => setShowCreateGroup(false)}
+                >
+                  Back to Companies
+                </Button>
+              </div>
+              <CreateCompanyForm onClose={() => setShowCreateGroup(false)} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
-};
+}
