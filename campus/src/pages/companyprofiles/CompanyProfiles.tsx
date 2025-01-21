@@ -333,13 +333,12 @@ export default function CompanyProfiles() {
                       transition={{ duration: 0.2 }}
                     >
                       <Card
-                        className="bg-neutral-900 p-4 mb-4 cursor-pointer hover:bg-neutral-800 transition-colors"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleCompanyClick(company.id);
-                        }}
+                        className="bg-neutral-900 p-4 mb-4 cursor-pointer hover:bg-neutral-800 transition-colors w-full"
+
+                        isPressable
+                        onClick={() => handleCompanyClick(company.id)}
                       >
-                        <div className="flex justify-between items-start">
+                        <div className="flex items-center justify-between gap-3 w-full">
                           <div>
                             <div className="flex items-center gap-2 mb-2">
                               <h3 className="text-lg font-semibold">{company.name}</h3>
@@ -371,18 +370,13 @@ export default function CompanyProfiles() {
                               </Button>
                             </DropdownTrigger>
                             <DropdownMenu>
-                              <DropdownItem onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/company/${company.id}/edit`);
-                              }}>
+                              <DropdownItem onClick={() => navigate(`/company/${company.id}/edit`)}>
                                 Edit Profile
                               </DropdownItem>
-                              <DropdownItem onClick={(e) => {
-                                e.stopPropagation();
-                                handleCompanyClick(company.id);
-                              }}>
+                              {/* <DropdownItem onClick={() => handleCompanyClick(company.id)}>
                                 View Details
-                              </DropdownItem>
+                              </DropdownItem>*/}
+                              <DropdownItem className="text-danger">Delete</DropdownItem>
                             </DropdownMenu>
                           </Dropdown>
                         </div>
