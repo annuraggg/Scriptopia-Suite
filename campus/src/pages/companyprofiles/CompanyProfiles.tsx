@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -83,6 +84,10 @@ const parseRange = (range: string): [number, number] => {
 };
 
 export default function CompanyProfiles() {
+  const navigate = useNavigate();
+  const handleCompanyClick = (companyId: string) => {
+    navigate(`/company/${companyId}`);
+  };
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [showCreateGroup, setShowCreateGroup] = useState(false);
@@ -327,7 +332,10 @@ export default function CompanyProfiles() {
                       exit={{ opacity: 0, y: -20 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <Card className="bg-neutral-900 p-4 mb-4">
+                      <Card
+                        className="bg-neutral-900 p-4 mb-4 cursor-pointer hover:bg-neutral-800 transition-colors"
+                        onClick={() => handleCompanyClick(company.id)}
+                      >
                         <div className="flex justify-between items-start">
                           <div>
                             <div className="flex items-center gap-2 mb-2">
@@ -360,8 +368,12 @@ export default function CompanyProfiles() {
                               </Button>
                             </DropdownTrigger>
                             <DropdownMenu>
-                              <DropdownItem>Edit Profile</DropdownItem>
-                              <DropdownItem>View Details</DropdownItem>
+                              <DropdownItem onClick={() => navigate(`/company/${company.id}/edit`)}>
+                                Edit Profile
+                              </DropdownItem>
+                              <DropdownItem onClick={() => handleCompanyClick(company.id)}>
+                                View Details
+                              </DropdownItem>
                               <DropdownItem className="text-danger">Delete</DropdownItem>
                             </DropdownMenu>
                           </Dropdown>

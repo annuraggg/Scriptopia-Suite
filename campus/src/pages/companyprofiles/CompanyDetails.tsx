@@ -169,7 +169,7 @@ const monthlyGrowthData: YearData = {
   },
 };
 
-const Analytics = () => {
+const CompanyDetails = () => {
   const org = useSelector((state: RootState) => state.organization);
   const [timeRange, setTimeRange] = useState("30days");
   const [selectedYear, setSelectedYear] = useState<string>("2024");
@@ -260,12 +260,12 @@ const Analytics = () => {
       <div className="mb-6">
         <Breadcrumbs>
           <BreadcrumbItem>{org.name}</BreadcrumbItem>
-          <BreadcrumbItem>Analytics</BreadcrumbItem>
+          <BreadcrumbItem>Company Details</BreadcrumbItem>
         </Breadcrumbs>
 
         <div className="flex justify-between items-center mt-5">
           <div>
-            <h1 className="text-base">Analytics Dashboard</h1>
+            <h1 className="text-base">Company Dashboard</h1>
             <p className="text-base">Track your organization's performance</p>
           </div>
 
@@ -729,4 +729,4 @@ const Analytics = () => {
   );
 };
 
-export default Analytics;
+export default CompanyDetails;
