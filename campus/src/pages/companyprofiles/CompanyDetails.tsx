@@ -29,9 +29,9 @@ const StatsCard = ({ stat, index }: { stat: StatCardProps; index: number }) => (
         transition={{ delay: index * 0.1 }}
     >
         <Card>
-            <CardBody className="p-6">
+            <CardBody className="p-6 dark:bg-gray-800">
                 <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 rounded-xl bg-content2">
+                    <div className="p-3 rounded-xl bg-content2 dark:bg-gray-700">
                         <stat.icon className="h-6 w-6" />
                     </div>
                     <div className={`flex items-center gap-1 text-base ${stat.trend === 'up' ? 'text-success' : 'text-danger'}`}>
