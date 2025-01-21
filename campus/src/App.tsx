@@ -237,14 +237,6 @@ function App() {
                 </Suspense>
               ),
             },
-            {
-              path: "company/:id",
-              element: (
-                <Suspense fallback={<Loader />}>
-                  <CompanyDetails />
-                </Suspense>
-              ),
-            },
           ],
         },
 
@@ -285,6 +277,14 @@ function App() {
           element: (
             <Suspense fallback={<Loader />}>
               <CompanyProfiles />
+            </Suspense>
+          ),
+        },
+        {
+          path: "company/:id",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <CompanyDetails />
             </Suspense>
           ),
         },
