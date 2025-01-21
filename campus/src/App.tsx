@@ -21,6 +21,7 @@ const Start = lazy(() => import("./pages/start/Start"));
 const Join = lazy(() => import("./pages/join/Join"));
 const Onboarding = lazy(() => import("./pages/onboarding/Onboarding"));
 const CandidateLayout = lazy(() => import("./pages/candidate/Layout"));
+const CompanyDetails = lazy(() => import("./pages/companyprofiles/CompanyDetails"));
 
 // Dashboard and other main views
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
@@ -233,6 +234,14 @@ function App() {
               element: (
                 <Suspense fallback={<Loader />}>
                   <OrgData />
+                </Suspense>
+              ),
+            },
+            {
+              path: "company/:id",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <CompanyDetails />
                 </Suspense>
               ),
             },
