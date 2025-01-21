@@ -334,7 +334,10 @@ export default function CompanyProfiles() {
                     >
                       <Card
                         className="bg-neutral-900 p-4 mb-4 cursor-pointer hover:bg-neutral-800 transition-colors"
-                        onClick={() => handleCompanyClick(company.id)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleCompanyClick(company.id);
+                        }}
                       >
                         <div className="flex justify-between items-start">
                           <div>
@@ -368,13 +371,18 @@ export default function CompanyProfiles() {
                               </Button>
                             </DropdownTrigger>
                             <DropdownMenu>
-                              <DropdownItem onClick={() => navigate(`/company/${company.id}/edit`)}>
+                              <DropdownItem onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/company/${company.id}/edit`);
+                              }}>
                                 Edit Profile
                               </DropdownItem>
-                              <DropdownItem onClick={() => handleCompanyClick(company.id)}>
+                              <DropdownItem onClick={(e) => {
+                                e.stopPropagation();
+                                handleCompanyClick(company.id);
+                              }}>
                                 View Details
                               </DropdownItem>
-                              <DropdownItem className="text-danger">Delete</DropdownItem>
                             </DropdownMenu>
                           </Dropdown>
                         </div>
