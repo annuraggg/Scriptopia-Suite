@@ -39,25 +39,34 @@ const Problems = ({
         )
           return false;
 
-        if (selectedTag && !problem.tags.includes(selectedTag.toLowerCase()))
-          return false;
+        if (selectedTag && !problem.tags.includes(selectedTag)) return false;
         return true;
       });
       setFilteredProblems(filteredProblems);
     }
   }, [difficulty, search, problems, selectedTag]);
 
+  const handleTagClick = (tag: string) => {
+    if (selectedTag === tag) {
+      setSelectedTag(null);
+    } else {
+      setSelectedTag(tag);
+    }
+  };
+
   return (
-    <div className="fixed left-3 md:static">
+    <div>
       <h6 className="text-md md:text-md mt-4 md:mt-2 text-gray-500 mb-5">
         Problems
       </h6>
-      <div className="flex gap-5 line-clamp-1 flex-wrap h-5 w-[100%] md:block">
+      <div className="flex gap-5 line-clamp-1 flex-wrap h-5 w-[100%]">
         {tags?.map((tag, i) => (
           <div
-            className="hover:text-blue-500 duration-200 transition-colors cursor-pointer text-sm"
+            className={`hover:text-blue-500 duration-200 transition-colors cursor-pointer text-sm w-fit ${
+              selectedTag === tag ? "text-blue-500" : ""
+            }`}
             key={i}
-            onClick={() => setSelectedTag(tag)}
+            onClick={() => handleTagClick(tag)}
           >
             {tag}
           </div>

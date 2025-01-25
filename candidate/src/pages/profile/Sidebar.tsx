@@ -142,7 +142,7 @@ const Sidebar = () => {
                       : "text-muted-foreground opacity-50 hover:text-white"
                   } `}
                   onClick={() => {
-                    navigate("/profile" + item.link);
+                    navigate("/dashboard/profile" + item.link);
                     setActive(item.label.toLowerCase());
                   }}
                 >

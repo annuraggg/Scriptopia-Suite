@@ -17,34 +17,21 @@ import { parseDate, CalendarDate, today } from "@internationalized/date";
 import { motion } from "framer-motion";
 import { Plus, Edit2, Trash2, Trophy } from "lucide-react";
 import { toast } from "sonner";
-
-// Types
-interface Award {
-  id: string;
-  title: string;
-  issuer: string;
-  associatedWith: string;
-  issueDate: CalendarDate;
-  description: string;
-}
-
-interface AwardFormData {
-  title: string;
-  issuer: string;
-  associatedWith: string;
-  issueDate: CalendarDate;
-  description: string;
-}
+import { useOutletContext } from "react-router-dom";
+import { Award, Candidate } from "@shared-types/Candidate";
 
 const Awards = () => {
+  const { user, setUser } = useOutletContext() as {
+    user: Candidate;
+    setUser: (user: Candidate) => void;
+  };
   // States
-  const [awards, setAwards] = useState<Award[]>([]);
   const [currentAward, setCurrentAward] = useState<Award | null>(null);
-  const [formData, setFormData] = useState<AwardFormData>({
+  const [formData, setFormData] = useState<Award>({
     title: "",
     issuer: "",
-    associatedWith: "",
-    issueDate: parseDate(today("IST").toString()),
+    associatedWith: "academic",
+    date: parseDate(today("IST").toString()).toString(),
     description: "",
   });
 
@@ -52,7 +39,7 @@ const Awards = () => {
 
   // Handlers
   const handleInputChange = (
-    name: keyof AwardFormData,
+    name: keyof Award,
     value: string | CalendarDate
   ) => {
     setFormData((prev) => ({
@@ -65,8 +52,8 @@ const Awards = () => {
     setFormData({
       title: "",
       issuer: "",
-      associatedWith: "",
-      issueDate: parseDate(today("IST").toString()),
+      associatedWith: "academic",
+      date: parseDate(today("IST").toString()).toString(),
       description: "",
     });
     setCurrentAward(null);
@@ -75,13 +62,7 @@ const Awards = () => {
   const handleOpenModal = (award?: Award) => {
     if (award) {
       setCurrentAward(award);
-      setFormData({
-        title: award.title,
-        issuer: award.issuer,
-        associatedWith: award.associatedWith,
-        issueDate: award.issueDate,
-        description: award.description,
-      });
+      setFormData(award);
     } else {
       resetForm();
     }
@@ -101,29 +82,31 @@ const Awards = () => {
 
     if (currentAward) {
       // Edit existing award
-      setAwards((prev) =>
-        prev.map((award) =>
-          award.id === currentAward.id
-            ? { ...formData, id: currentAward.id }
-            : award
-        )
+      const newAwards = user?.awards?.map((award) =>
+        award._id === currentAward._id
+          ? { ...formData, id: currentAward._id }
+          : award
       );
-      toast.success("Award updated successfully");
+
+      setUser({ ...user, awards: newAwards });
     } else {
       // Add new award
-      setAwards((prev) => [
-        ...prev,
-        { ...formData, id: Math.random().toString(36).substr(2, 9) },
-      ]);
-      toast.success("Award added successfully");
+      const newAwards = user?.awards || [];
+      setUser({
+        ...user,
+        awards: [...newAwards, { ...formData }],
+      });
     }
 
     handleCloseModal();
   };
 
   const handleDelete = (id: string) => {
-    setAwards((prev) => prev.filter((award) => award.id !== id));
-    toast.success("Award deleted successfully");
+    const awards = user?.awards || [];
+    setUser({
+      ...user,
+      awards: awards.filter((award) => award._id !== id),
+    });
   };
 
   return (
@@ -145,7 +128,7 @@ const Awards = () => {
           className="p-5 rounded-xl"
         >
           <div className="flex justify-end items-center mb-6">
-            {awards.length > 0 && (
+            {user?.awards && user?.awards?.length > 0 && (
               <Button
                 startContent={<Plus size={18} />}
                 onPress={() => handleOpenModal()}
@@ -155,7 +138,7 @@ const Awards = () => {
             )}
           </div>
 
-          {awards.length === 0 ? (
+          {user?.awards && user?.awards.length === 0 ? (
             <motion.div
               key="empty"
               initial={{ opacity: 0, y: 20 }}
@@ -188,9 +171,9 @@ const Awards = () => {
             </motion.div>
           ) : (
             <div className="grid gap-4">
-              {awards.map((award) => (
+              {user?.awards && user?.awards.map((award) => (
                 <motion.div
-                  key={award.id}
+                  key={award._id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="p-4 border rounded-lg"
@@ -202,7 +185,7 @@ const Awards = () => {
                         {award.issuer} • {award.associatedWith}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {award.issueDate.toString()}
+                        {award.date.toString()}
                       </p>
                       {award.description && (
                         <p className="mt-2">{award.description}</p>
@@ -220,7 +203,7 @@ const Awards = () => {
                         isIconOnly
                         variant="light"
                         color="danger"
-                        onPress={() => handleDelete(award.id)}
+                        onPress={() => handleDelete(award._id as string)}
                       >
                         <Trash2 size={18} />
                       </Button>
@@ -270,8 +253,8 @@ const Awards = () => {
                   <div>
                     <label className="block text-sm mb-1">Issue Date</label>
                     <DateInput
-                      value={formData.issueDate}
-                      onChange={(date) => handleInputChange("issueDate", date)}
+                      value={parseDate(formData.date)}
+                      onChange={(date) => handleInputChange("date", date.toString())}
                       maxValue={today("IST")}
                     />
                   </div>

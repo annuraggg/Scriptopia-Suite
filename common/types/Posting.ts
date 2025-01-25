@@ -45,15 +45,13 @@ interface WorkflowStep {
   _id?: string; // Optional ID
   name: string; // Name of the workflow step
   type: "rs" | "mcqa" | "ca" | "mcqca" | "as" | "pi" | "cu"; // Type of step
-  stepId: string; // ID of the step
+  stepId?: string; // ID of the step
 }
 
 interface Workflow {
   _id?: string; // Optional ID
   steps?: WorkflowStep[]; // Array of workflow steps
   currentStep: number; // Current step number
-  behavior: "manual" | "auto"; // Behavior type
-  auto?: Auto[]; // Array of Auto steps
 }
 
 interface Salary {
@@ -76,6 +74,17 @@ interface Assessment {
   _id?: string; // Optional ID
 }
 
+interface AdditionalFieldConfig {
+  required: boolean;
+  allowEmpty: boolean;
+}
+
+interface AdditionalDetails {
+  [category: string]: {
+    [field: string]: AdditionalFieldConfig;
+  };
+}
+
 interface Posting {
   _id?: string; // Optional ID
   organizationId?: string; // Organization ID
@@ -83,26 +92,26 @@ interface Posting {
   description: string; // Job description
   department?: string; // Department ID
   location: string; // Job location
-  type: "full_time" | "part_time" | "internship"; // Job type
+  type: "full_time" | "part_time" | "internship" | "contract" | "temporary"; // Job type
   url?: string; // URL for the job posting
   openings: number; // Number of openings
   salary: Salary; // Salary details
   workflow?: Workflow; // Workflow associated with the posting
   applicationRange: {
-    start: Date; // Start date for applications
-    end: Date; // End date for applications
+    start: string; // Start date for applications
+    end: string; // End date for applications
   };
-  qualifications: string; // Required qualifications
-  assignments: Assignment[]; // Array of assignments related to the job
+  assignments?: Assignment[]; // Array of assignments related to the job
   skills: string[]; // Required skills
   ats?: Ats; // ATS configuration
   assessments?: Assessment[]; // Array of assessment IDs
   interview?: Interview; // Interview details
   candidates?: string[]; // Array of candidate IDs
+  additionalDetails?: AdditionalDetails; // Additional details for the posting
   published?: boolean; // Published status
   publishedOn?: Date; // Date published
-  createdOn: Date; // Creation date
-  updatedOn: Date; // Last updated date
+  createdOn?: Date; // Creation date
+  updatedOn?: Date; // Last updated date
 }
 
 export type {
@@ -116,4 +125,5 @@ export type {
   Interviewer,
   Assignment,
   Slot, // Exporting Slot interface as well
+  AdditionalDetails,
 };

@@ -13,34 +13,31 @@ import {
 } from "@nextui-org/react";
 import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
-import { CalendarDate, today } from "@internationalized/date";
+import { CalendarDate, parseDate, today } from "@internationalized/date";
 import { Plus, Edit2, Trash2, PlusIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { z } from "zod";
+import {
+  Candidate,
+  ExtraCurricular as IExtraCurricular,
+} from "@shared-types/Candidate";
+import { useOutletContext } from "react-router-dom";
 
-// Types and Interfaces
-interface ExtraCurricular {
-  id: string;
-  category: string;
-  startDate: CalendarDate;
-  endDate: CalendarDate;
-  description: string;
-}
-
-// Validation Schema
 const extraCurricularSchema = z
   .object({
     category: z.string().min(2, "Category must be at least 2 characters"),
-    startDate: z.instanceof(CalendarDate),
-    endDate: z.instanceof(CalendarDate),
+    startDate: z.string(),
+    endDate: z.string(),
     description: z
       .string()
       .max(1000, "Description cannot exceed 1000 characters"),
   })
   .refine(
     (data) => {
-      return data.startDate <= data.endDate;
+      const start = parseDate(data.startDate);
+      const end = parseDate(data.endDate);
+      return start <= end;
     },
     {
       message: "End date must be after start date",
@@ -49,26 +46,34 @@ const extraCurricularSchema = z
   );
 
 const ExtraCurricular = () => {
-  // States
-  const [activities, setActivities] = useState<ExtraCurricular[]>([]);
-  const [currentActivity, setCurrentActivity] = useState<
-    Partial<ExtraCurricular>
-  >({
+  const { user, setUser } = useOutletContext() as {
+    user: Candidate;
+    setUser: (user: Candidate) => void;
+  };
+
+  const [currentActivity, setCurrentActivity] = useState<IExtraCurricular>({
+    title: "",
     category: "",
-    startDate: today("IST"),
-    endDate: today("IST"),
+    startDate: today("IST").toString(),
+    endDate: today("IST").toString(),
+    current: false,
     description: "",
   });
   const [errors, setErrors] = useState<
-    Partial<Record<keyof ExtraCurricular, string>>
+    Partial<Record<keyof IExtraCurricular, string>>
   >({});
   const [isEditing, setIsEditing] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const validateField = (name: keyof ExtraCurricular, value: any) => {
+  const validateField = (name: keyof IExtraCurricular, value: any) => {
     try {
-      // @ts-expect-error - This is a dynamic field access
-      extraCurricularSchema.shape[name].parse(value);
+      if (name === "startDate" || name === "endDate") {
+        const dateStr = value instanceof CalendarDate ? value.toString() : value;
+        (extraCurricularSchema as any)._def.shape()[name].parse(dateStr);
+      } else {
+        // @ts-expect-error
+        extraCurricularSchema.shape[name]?.parse(value);
+      }
       setErrors((prev) => ({ ...prev, [name]: undefined }));
       return true;
     } catch (error) {
@@ -80,28 +85,35 @@ const ExtraCurricular = () => {
     }
   };
 
-  const handleInputChange = (name: keyof ExtraCurricular, value: any) => {
-    const sanitizedValue = typeof value === "string" ? value.trim() : value;
-    setCurrentActivity((prev) => ({ ...prev, [name]: sanitizedValue }));
-
-    if (typeof value === "string") {
-      validateField(name, value);
+  const handleInputChange = (name: keyof IExtraCurricular, value: any) => {
+    if (name === "startDate" || name === "endDate") {
+      const dateStr = value instanceof CalendarDate ? value.toString() : value;
+      setCurrentActivity((prev) => ({ ...prev, [name]: dateStr }));
+      validateField(name, dateStr);
+    } else {
+      const sanitizedValue = typeof value === "string" ? value.trim() : value;
+      setCurrentActivity((prev) => ({ ...prev, [name]: sanitizedValue }));
+      if (typeof value === "string") {
+        validateField(name, value);
+      }
     }
   };
 
   const handleAdd = () => {
     setIsEditing(false);
     setCurrentActivity({
+      title: "",
       category: "",
-      startDate: today("IST"),
-      endDate: today("IST"),
+      startDate: today("IST").toString(),
+      endDate: today("IST").toString(),
+      current: false,
       description: "",
     });
     setErrors({});
     onOpen();
   };
 
-  const handleEdit = (activity: ExtraCurricular) => {
+  const handleEdit = (activity: IExtraCurricular) => {
     setIsEditing(true);
     setCurrentActivity(activity);
     setErrors({});
@@ -109,8 +121,10 @@ const ExtraCurricular = () => {
   };
 
   const handleDelete = (id: string) => {
-    setActivities((prev) => prev.filter((activity) => activity.id !== id));
-    toast.success("Activity deleted successfully");
+    const newActivities = user?.extraCurriculars?.filter(
+      (activity) => activity._id !== id
+    );
+    setUser({ ...user, extraCurriculars: newActivities });
   };
 
   const handleSave = () => {
@@ -118,25 +132,25 @@ const ExtraCurricular = () => {
       extraCurricularSchema.parse(currentActivity);
 
       if (isEditing) {
-        setActivities((prev) =>
-          prev.map((activity) =>
-            activity.id === currentActivity.id
-              ? { ...(currentActivity as ExtraCurricular) }
-              : activity
-          )
+        const newActivities = user?.extraCurriculars?.map((activity) =>
+          activity._id === currentActivity._id
+            ? { ...currentActivity }
+            : activity
         );
-        toast.success("Activity updated successfully");
+        setUser({ ...user, extraCurriculars: newActivities });
       } else {
         const newActivity = {
           ...currentActivity,
-          id: Math.random().toString(36).substr(2, 9),
-        } as ExtraCurricular;
+          _id: crypto.randomUUID(), 
+        } as IExtraCurricular;
 
-        setActivities((prev) => [...prev, newActivity]);
-        toast.success("Activity added successfully");
+        const newActivities = user?.extraCurriculars ?? [];
+        newActivities.push(newActivity);
+        setUser({ ...user, extraCurriculars: newActivities });
       }
 
       onClose();
+      toast.success(isEditing ? "Activity updated successfully" : "Activity added successfully");
     } catch (error) {
       if (error instanceof z.ZodError) {
         error.errors.forEach((err) => {
@@ -167,14 +181,14 @@ const ExtraCurricular = () => {
           className="p-5 rounded-xl"
         >
           <div className="flex justify-end items-center mb-6">
-            {activities.length > 0 && (
-              <Button startContent={<Plus size={18} />} onClick={handleAdd}>
+            {user?.extraCurriculars && (
+              <Button startContent={<Plus size={18} />} onPress={handleAdd}>
                 Add new
               </Button>
             )}
           </div>
 
-          {activities.length === 0 ? (
+          {!user?.extraCurriculars?.length ? (
             <motion.div
               key="empty"
               initial={{ opacity: 0, y: 20 }}
@@ -202,15 +216,15 @@ const ExtraCurricular = () => {
               <p className="text-gray-500">
                 Start by adding your first activity!
               </p>
-              <Button onClick={handleAdd} startContent={<Plus size={18} />}>
+              <Button onPress={handleAdd} startContent={<Plus size={18} />}>
                 Add new
               </Button>
             </motion.div>
           ) : (
             <div className="grid gap-4">
-              {activities.map((activity) => (
+              {user.extraCurriculars.map((activity) => (
                 <motion.div
-                  key={activity.id}
+                  key={activity._id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="p-4 border rounded-lg"
@@ -219,8 +233,7 @@ const ExtraCurricular = () => {
                     <div>
                       <h3 className="font-medium">{activity.category}</h3>
                       <p className="text-small">
-                        {activity.startDate.toString()} -{" "}
-                        {activity.endDate.toString()}
+                        {activity.startDate} - {activity.endDate}
                       </p>
                       <p className="text-small mt-2">{activity.description}</p>
                     </div>
@@ -228,7 +241,7 @@ const ExtraCurricular = () => {
                       <Button
                         isIconOnly
                         variant="light"
-                        onClick={() => handleEdit(activity)}
+                        onPress={() => handleEdit(activity)}
                       >
                         <Edit2 size={18} />
                       </Button>
@@ -236,7 +249,7 @@ const ExtraCurricular = () => {
                         isIconOnly
                         variant="light"
                         color="danger"
-                        onClick={() => handleDelete(activity.id)}
+                        onPress={() => handleDelete(activity._id || "")}
                       >
                         <Trash2 size={18} />
                       </Button>
@@ -280,14 +293,14 @@ const ExtraCurricular = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <DateInput
                       label="Start Date"
-                      value={currentActivity.startDate}
+                      value={parseDate(currentActivity.startDate)}
                       onChange={(date) => handleInputChange("startDate", date)}
                       isInvalid={!!errors.startDate}
                       errorMessage={errors.startDate?.toString()}
                     />
                     <DateInput
                       label="End Date"
-                      value={currentActivity.endDate}
+                      value={parseDate(currentActivity.endDate || "")}
                       onChange={(date) => handleInputChange("endDate", date)}
                       isInvalid={!!errors.endDate}
                       errorMessage={errors.endDate?.toString()}

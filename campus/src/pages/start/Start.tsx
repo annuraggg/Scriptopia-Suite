@@ -15,9 +15,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { setInstitute } from "@/reducers/instituteReducer";
+import { setOrganization } from "@/reducers/organizationReducer";
 
 interface InvitedMember {
   email: string;
@@ -30,7 +29,6 @@ interface Role {
 }
 
 const Start = () => {
-  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const dispatch = useDispatch();
 
@@ -46,7 +44,8 @@ const Start = () => {
   const [secondLoading, setSecondLoading] = useState(false);
 
   const roles: Role[] = [
-    { role: "Administrator" },
+    { role: "Admin" },
+    { role: "Hiring Manager" },
     { role: "Finance" },
     { role: "Read Only" },
   ];
@@ -99,7 +98,7 @@ const Start = () => {
     const axios = ax(getToken);
     setSecondLoading(true);
     axios
-      .post("/campus/create", {
+      .post("/organizations/create", {
         name: companyName,
         email: companyEmail,
         website: companyWebsite,
@@ -107,19 +106,19 @@ const Start = () => {
       })
       .then(() => {
         setSecondLoading(false);
-        toast.success("Insitute created successfully");
-        navigate("/dashboard");
+        toast.success("Organization created successfully");
+        window.location.href = "/dashboard";
         const data = {
-          _id: user?.publicMetadata?.instituteId,
+          _id: user?.publicMetadata?.orgId,
           role: user?.publicMetadata?.roleName,
           permissions: user?.publicMetadata?.permissions,
         };
-        dispatch(setInstitute(data));
+        dispatch(setOrganization(data));
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
         setSecondLoading(false);
-        toast.error("Failed to create Insitute");
+        toast.error("Failed to create organization");
       });
   };
 
@@ -128,7 +127,7 @@ const Start = () => {
       {page === 1 && (
         <Card className="w-[500px] drop-shadow-glow-dark">
           <CardBody className="p-10 py-10">
-            <h4 className="text-center">Create a new Insitute</h4>
+            <h4 className="text-center">Create a new organization</h4>
             <p className="text-center text-xs opacity-50">
               Start your free 14-day trial. No credit card required.
             </p>
@@ -136,10 +135,10 @@ const Start = () => {
             <div className="mt-5 text-sm">
               <div className="flex gap-3 items-center">
                 <Briefcase size={18} />
-                <p>Insitute Name</p>
+                <p>Company Name</p>
               </div>
               <Input
-                placeholder="Insitute Name"
+                placeholder="Company Name"
                 className="mt-2"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
@@ -178,7 +177,7 @@ const Start = () => {
               isDisabled={firstLoading}
               isLoading={firstLoading}
             >
-              Create Insitute
+              Create Organization
             </Button>
             <p className="mt-5 text-center opacity-50 text-sm">
               By signing up for our service, you agree to our Terms & Conditions
@@ -259,7 +258,7 @@ const Start = () => {
             {invitedMembers.length === 0 ? (
               <Button
                 className="absolute bottom-5 right-5"
-                onPress={() => setPage(3)}
+                onPress={submit}
                 isDisabled={secondLoading}
                 isLoading={secondLoading}
                 variant="light"

@@ -7,23 +7,17 @@ import {
 } from "@/components/ui/sheet";
 import { useState } from "react";
 import { ChevronDownIcon, ChevronUpIcon, TrashIcon } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion"; // @ts-expect-error - Types Not Available
+import { motion, AnimatePresence } from "framer-motion";
+// @ts-expect-error - Types Not Available
 import toPlaintext from "quill-delta-to-plaintext";
 import { Problem as VanillaProblem } from "@shared-types/Problem";
 import { Delta } from "quill/core";
 
 interface Problem extends VanillaProblem {
-  _id: string;
-  description: Delta
+  description: Delta;
 }
 
-const Questions = ({
-  availableQuestions,
-  setAvailableQuestions,
-  selectedQuestions,
-  setSelectedQuestions,
-  isLoading,
-}: {
+interface QuestionsProps {
   availableQuestions: Problem[];
   setAvailableQuestions: (
     questions: Problem[] | ((prev: Problem[]) => Problem[])
@@ -33,6 +27,14 @@ const Questions = ({
     questions: Problem[] | ((prev: Problem[]) => Problem[])
   ) => void;
   isLoading: boolean;
+}
+
+const Questions: React.FC<QuestionsProps> = ({
+  availableQuestions,
+  setAvailableQuestions,
+  selectedQuestions,
+  setSelectedQuestions,
+  isLoading,
 }) => {
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -59,6 +61,10 @@ const Questions = ({
           Add Question
         </Button>
       </motion.div>
+
+      {selectedQuestions.length === 0 && (
+        <p className="text-red-500 mt-4">Please select at least one question</p>
+      )}
 
       <div className="flex flex-col gap-4 mt-5">
         <AnimatePresence>

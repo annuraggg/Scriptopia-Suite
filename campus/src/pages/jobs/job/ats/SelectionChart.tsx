@@ -11,16 +11,26 @@ import { Card, CardBody, CardFooter, CardHeader } from "@nextui-org/react";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
 
 const chartConfig = {
-  visitors: {
-    label: "Visitors",
+  selected: {
+    label: "Selected",
   },
 } satisfies ChartConfig;
 
 export const SelectionChart = ({
   chartData,
 }: {
-  chartData: { candidates: number }[];
+  chartData: { total: number; selected: number };
 }) => {
+  const percentage = (chartData.selected / chartData.total) * 100;
+
+  const data = [
+    {
+      name: "Selected",
+      value: chartData.selected,
+      fill: "var(--color-selected)",
+    },
+    { name: "Total", value: chartData.total, fill: "transparent" },
+  ];
   return (
     <Card className="flex flex-col w-fit overflow-hidden">
       <CardHeader className="items-center pb-0">Selection Rate</CardHeader>
@@ -31,8 +41,9 @@ export const SelectionChart = ({
             className="aspect-square min-w-[400px] overflow-hidden max-h-[250px]"
           >
             <RadialBarChart
-              data={chartData}
-              endAngle={100}
+              data={data}
+              startAngle={0}
+              endAngle={360}
               innerRadius={80}
               outerRadius={140}
             >
@@ -43,7 +54,7 @@ export const SelectionChart = ({
                 className="first:fill-muted last:fill-background"
                 polarRadius={[86, 74]}
               />
-              <RadialBar dataKey="candidates" color="white" className="fill-white" />
+              <RadialBar dataKey="value" color="white" className="fill-white" />
               <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
                 <Label
                   content={({ viewBox }) => {
@@ -60,14 +71,15 @@ export const SelectionChart = ({
                             y={viewBox.cy}
                             className="fill-white text-4xl font-bold"
                           >
-                            {chartData[0].candidates.toLocaleString()}
+                            {chartData.selected.toLocaleString()} /{" "}
+                            {chartData.total.toLocaleString()}
                           </tspan>
                           <tspan
                             x={viewBox.cx}
-                            y={(viewBox.cy || 0) + 24}
-                            className="fill-white"
+                            y={((viewBox.cy || 0) + 5) + 24}
+                            className="fill-white mt-2"
                           >
-                            candidates
+                            selected
                           </tspan>
                         </text>
                       );
@@ -78,16 +90,13 @@ export const SelectionChart = ({
             </RadialBarChart>
           </ChartContainer>
         </div>
-
-        <CardFooter className="flex-col items-start gap-2 text-sm min-h-[10vh]">
-          <div className="flex gap-2 font-medium leading-none">
-            Trending up by 5.2% today <TrendingUp className="h-4 w-4" />
-          </div>
-          <div className="leading-none text-muted-foreground">
-            Showing total resumes for the last 15 days
-          </div>
-        </CardFooter>
       </CardBody>
+      <CardFooter className="flex items-center justify-center pb-7">
+        <TrendingUp size={24} className="fill-selected mr-2" />
+        <p className="text-lg font-bold">
+          Selection Rate: {percentage.toFixed(2)}%
+        </p>
+      </CardFooter>
     </Card>
   );
 };

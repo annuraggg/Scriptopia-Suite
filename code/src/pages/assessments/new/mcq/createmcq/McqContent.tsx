@@ -6,153 +6,124 @@ import QuestionModal from "./AddQuestionModal";
 import QuestionList from "./QuestionList";
 import CSVImportModal from "./CsvImportModal";
 import { toast } from "@/components/ui/use-toast";
-
-export interface Section {
-  id: number;
-  name: string;
-  questions: Question[];
-  isEditing?: boolean;
-}
-
-export interface Question {
-  id: number;
-  type: QuestionType;
-  text: string;
-  options?: Option[];
-  code?: string;
-  imageUrl?: string;
-  maxLimit?: number;
-  blankText?: string;
-  blanksAnswers?: string[];
-}
-
-export interface Option {
-  id: number;
-  text: string;
-  isCorrect: boolean;
-  matchText?: string;
-}
-
-export type QuestionType =
-  | "single-select"
-  | "multi-select"
-  | "true-false"
-  | "short-answer"
-  | "long-answer"
-  | "visual"
-  | "peer-review"
-  | "output"
-  | "fill-in-blanks"
-  | "matching";
-
-export interface Question {
-  id: number;
-  type: QuestionType;
-  text: string;
-  options?: Option[];
-  code?: string;
-  imageUrl?: string;
-  maxLimit?: number;
-  blankText?: string;
-  blanksAnswers?: string[];
-}
-
-interface SectionQuestions {
-  [sectionId: number]: Question[];
-}
+import { Section, Question, QuestionType } from "@shared-types/MCQAssessment";
 
 interface McqContentProps {
   selectedSection: Section;
+  sections: Section[];
+  setSections: (sections: Section[]) => void;
 }
 
-const McqContent: React.FC<McqContentProps> = ({ selectedSection }) => {
+const McqContent: React.FC<McqContentProps> = ({
+  selectedSection,
+  sections,
+  setSections,
+}) => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [isCSVOpen, setCSVOpen] = useState(false);
-  const [sectionQuestions, setSectionQuestions] = useState<SectionQuestions>(
-    {}
-  );
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
-
-  const currentQuestions = selectedSection
-    ? sectionQuestions[selectedSection.id] || []
-    : [];
 
   const handleAddQuestion = (newQuestion: Question) => {
     if (!selectedSection) return;
+    const finalSection = sections;
 
     if (editingQuestion) {
-      setSectionQuestions((prev) => ({
-        ...prev,
-        [selectedSection.id]: prev[selectedSection.id].map((q) =>
-          q.id === editingQuestion.id ? newQuestion : q
-        ),
-      }));
+      const currentSection = finalSection.find(
+        (section) => section.name === selectedSection.name
+      );
+
+      if (currentSection) {
+        currentSection.questions = currentSection.questions.map((q) =>
+          q.question === editingQuestion.question ? newQuestion : q
+        );
+      }
+
       setEditingQuestion(null);
     } else {
-      setSectionQuestions((prev) => ({
-        ...prev,
-        [selectedSection.id]: [
-          ...(prev[selectedSection.id] || []),
-          newQuestion,
-        ],
-      }));
+      const currentSection = finalSection.find(
+        (section) => section.name === selectedSection.name
+      );
+
+      if (currentSection) {
+        currentSection.questions.push(newQuestion);
+      }
     }
     setModalOpen(false);
   };
 
-  const handleMoveUp = (id: number) => {
+  const handleMoveUp = (questionText: string) => {
     if (!selectedSection) return;
 
-    const questions = currentQuestions;
-    const index = questions.findIndex((q) => q.id === id);
+    const questions = selectedSection.questions;
+    const index = questions.findIndex(
+      (q: Question) => q.question === questionText
+    );
     if (index > 0) {
       const newQuestions = [...questions];
       [newQuestions[index - 1], newQuestions[index]] = [
         newQuestions[index],
         newQuestions[index - 1],
       ];
-      setSectionQuestions((prev) => ({
-        ...prev,
-        [selectedSection.id]: newQuestions,
-      }));
+
+      const finalSections = sections.map((section) =>
+        section.name === selectedSection.name
+          ? { ...section, questions: newQuestions }
+          : section
+      );
+
+      setSections(finalSections);
     }
   };
 
-  const handleMoveDown = (id: number) => {
+  const handleMoveDown = (questionText: string) => {
     if (!selectedSection) return;
 
-    const questions = currentQuestions;
-    const index = questions.findIndex((q) => q.id === id);
+    const questions = selectedSection.questions;
+    const index = questions.findIndex(
+      (q: Question) => q.question === questionText
+    );
     if (index < questions.length - 1) {
       const newQuestions = [...questions];
       [newQuestions[index], newQuestions[index + 1]] = [
         newQuestions[index + 1],
         newQuestions[index],
       ];
-      setSectionQuestions((prev) => ({
-        ...prev,
-        [selectedSection.id]: newQuestions,
-      }));
+
+      const finalSections = sections.map((section) =>
+        section.name === selectedSection.name
+          ? { ...section, questions: newQuestions }
+          : section
+      );
+
+      setSections(finalSections);
     }
   };
 
-  const handleEdit = (id: number) => {
+  const handleEdit = (index: number) => {
     if (!selectedSection) return;
 
-    const question = currentQuestions.find((q) => q.id === id);
+    const question = selectedSection.questions.find(
+      (_, i) => i === index
+    );
     if (question) {
       setEditingQuestion(question);
       setModalOpen(true);
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (index: number) => {
     if (!selectedSection) return;
+    console.log(index);
+    const finalSections = sections.map((section) =>
+      section.name === selectedSection.name
+        ? {
+            ...section,
+            questions: section.questions.filter((_, i) => i !== index),
+          }
+        : section
+    );
 
-    setSectionQuestions((prev) => ({
-      ...prev,
-      [selectedSection.id]: prev[selectedSection.id].filter((q) => q.id !== id),
-    }));
+    setSections(finalSections);
   };
 
   const validateAndParseCSV = (text: string): Question[] => {
@@ -167,43 +138,44 @@ const McqContent: React.FC<McqContentProps> = ({ selectedSection }) => {
     }
 
     const headers = rows[0].split(",");
-    const requiredHeaders = ["type", "text"];
+    const requiredHeaders = ["type", "question"];
 
     if (!requiredHeaders.every((header) => headers.includes(header))) {
       toast({
-        description: "CSV must contain 'type' and 'text' columns.",
+        description: "CSV must contain 'type' and 'question' columns.",
         variant: "destructive",
       });
       return [];
     }
 
     try {
-      return rows.slice(1).map((row, index) => {
+      return rows.slice(1).map((row) => {
         const values = row.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g) || [];
-
         const cleanValue = (val: string) =>
           val.trim().replace(/^"|"$/g, "").replace(/""/g, '"');
 
-        const type = cleanValue(values[0] || "") as Question["type"];
-        const text = cleanValue(values[1]);
+        const type = cleanValue(values[0] || "") as QuestionType;
+        const question = cleanValue(values[1]);
+        const grade = cleanValue(values[3])
+          ? parseInt(cleanValue(values[3]), 10)
+          : 1;
 
         const baseQuestion: Question = {
-          id: Date.now() + index,
+          question,
           type,
-          text,
+          grade,
         };
 
         switch (type) {
           case "single-select":
           case "multi-select":
           case "matching":
-          case "output":
             if (values[2]) {
               try {
                 baseQuestion.options = JSON.parse(cleanValue(values[2]));
-              } catch (e) {
+              } catch {
                 toast({
-                  description: `Invalid options for ${type} question`,
+                  description: `Invalid options for ${type} question.`,
                   variant: "destructive",
                 });
               }
@@ -212,48 +184,39 @@ const McqContent: React.FC<McqContentProps> = ({ selectedSection }) => {
 
           case "true-false":
             baseQuestion.options = [
-              { id: 1, text: "True", isCorrect: false },
-              { id: 2, text: "False", isCorrect: false },
+              { option: "True", isCorrect: false },
+              { option: "False", isCorrect: false },
             ];
             break;
 
           case "short-answer":
           case "long-answer":
             if (values[2]) {
-              baseQuestion.maxLimit = parseInt(cleanValue(values[2]), 10);
+              baseQuestion.maxCharactersAllowed = parseInt(
+                cleanValue(values[2]),
+                10
+              );
             }
             break;
 
           case "visual":
             if (values[2]) {
-              baseQuestion.imageUrl = cleanValue(values[2]);
-            }
-            break;
-
-          case "peer-review":
-            if (values[2]) {
-              baseQuestion.code = cleanValue(values[2]);
+              baseQuestion.imageSource = cleanValue(values[2]);
             }
             break;
 
           case "fill-in-blanks":
-            if (values[2] && values[3]) {
-              baseQuestion.blankText = cleanValue(values[2]);
-              try {
-                baseQuestion.blanksAnswers = JSON.parse(cleanValue(values[3]));
-              } catch (e) {
-                toast({
-                  description: "Invalid blanks answers",
-                  variant: "destructive",
-                });
-              }
+            if (values[2]) {
+              baseQuestion.fillInBlankAnswers = JSON.parse(
+                cleanValue(values[2])
+              );
             }
             break;
         }
 
         return baseQuestion;
       });
-    } catch (error) {
+    } catch {
       toast({
         description: "Error parsing CSV. Please check your format.",
         variant: "destructive",
@@ -273,15 +236,19 @@ const McqContent: React.FC<McqContentProps> = ({ selectedSection }) => {
         const newQuestions = validateAndParseCSV(text);
 
         if (newQuestions.length > 0) {
-          setSectionQuestions((prev) => ({
-            ...prev,
-            [selectedSection.id]: [
-              ...(prev[selectedSection.id] || []),
-              ...newQuestions,
-            ],
-          }));
+          const finalSections = sections.map((section) =>
+            section.name === selectedSection.name
+              ? {
+                  ...section,
+                  questions: [...section.questions, ...newQuestions],
+                }
+              : section
+          );
+
+          setSections(finalSections);
+
           toast({
-            description: `Successfully imported ${newQuestions.length} questions`,
+            description: `Successfully imported ${newQuestions.length} questions.`,
             variant: "default",
           });
         }
@@ -297,7 +264,7 @@ const McqContent: React.FC<McqContentProps> = ({ selectedSection }) => {
       transition={{ duration: 0.3 }}
       className="w-[80%]"
     >
-      <Card className="h-full rounded-xl shadow-none">
+      <Card className="h-full rounded-xl shadow-none overflow-y-auto">
         {selectedSection ? (
           <div className="p-1">
             <CardHeader className="flex flex-row items-center justify-between px-2">
@@ -305,7 +272,7 @@ const McqContent: React.FC<McqContentProps> = ({ selectedSection }) => {
                 <h2 className="text-xl font-semibold">
                   {selectedSection.name}
                   <span className="text-sm text-gray-500 ml-2">
-                    ({currentQuestions.length})
+                    ({selectedSection.questions.length})
                   </span>
                 </h2>
                 <p className="text-sm text-gray-500">
@@ -353,13 +320,13 @@ const McqContent: React.FC<McqContentProps> = ({ selectedSection }) => {
 
             <div className="flex-grow overflow-auto px-2">
               <div className="h-full overflow-auto">
-                {currentQuestions.length > 0 ? (
+                {selectedSection.questions.length > 0 ? (
                   <QuestionList
-                    questions={currentQuestions}
-                    onMoveUp={handleMoveUp}
-                    onMoveDown={handleMoveDown}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
+                    questions={selectedSection.questions}
+                    onMoveUp={(q) => handleMoveUp(q.toString())}
+                    onMoveDown={(q) => handleMoveDown(q.toString())}
+                    onEdit={(q) => handleEdit(q)}
+                    onDelete={(q) => handleDelete(q)}
                   />
                 ) : (
                   <div className="text-center py-12">

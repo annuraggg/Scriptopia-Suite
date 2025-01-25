@@ -1,4 +1,4 @@
-import { Button } from "@nextui-org/react";
+import { Button, Card } from "@nextui-org/react";
 
 const prices = [
   { name: "Quaterly", price: 24.99, monthly: 8.33 },
@@ -33,13 +33,13 @@ const Plan = ({
 
       <div className="flex justify-between mt-5 gap-5 w-full">
         {prices.map((price) => (
-          <div className="border p-5 rounded-lg w-full bg-gray-500 bg-opacity-5 relative pb-20">
+          <Card className="border p-5 rounded-lg w-full  bg-opacity-5 relative pb-20">
             <h5>{price.name}</h5>
-            <h1 className="text-gray-300 mt-5 font-poly">
+            <h1 className=" mt-5 font-poly">
               ${price.monthly} <sub>/month</sub>
             </h1>
 
-            <p className="text-gray-500 text-xs mt-5">
+            <p className=" text-xs mt-5">
               Billed ${price.price} {price.name}
             </p>
 
@@ -64,7 +64,7 @@ const Plan = ({
                 ? "Upgrade"
                 : "Downgrade"}
             </Button>
-          </div>
+          </Card>
         ))}
       </div>
     </div>

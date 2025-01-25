@@ -28,7 +28,7 @@ const Problem = () => {
   }, [getToken]);
 
   return (
-    <div>
+    <div className="">
       <ProblemComponent
         loading={loading}
         problem={problem}

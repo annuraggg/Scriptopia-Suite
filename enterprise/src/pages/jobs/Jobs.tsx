@@ -7,9 +7,19 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-  Spinner,
+  SelectItem,
+  Select,
+  Breadcrumbs,
+  BreadcrumbItem,
+  Button,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
 } from "@nextui-org/react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import {
   ListIcon,
   CirclePlayIcon,
@@ -18,40 +28,30 @@ import {
   EllipsisVertical,
   Link,
   PlusIcon,
+  Search,
+  FilterIcon,
 } from "lucide-react";
 import Filter from "./Filter";
-import CreateJobModal from "./CreateJobModal";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { Posting } from "@shared-types/Posting";
 import { Department } from "@shared-types/Organization";
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Button,
-  useDisclosure,
-} from "@nextui-org/react";
+import { RootContext } from "@/types/RootContext";
 
 const Cards = [
   {
-    title: "ALL",
-    jobCount: 20,
+    title: "All",
     icon: <ListIcon size={28} />,
     filter: "all",
   },
   {
     title: "Active",
-    jobCount: 10,
     icon: <CirclePlayIcon size={28} />,
     filter: "active",
   },
   {
     title: "Closed",
-    jobCount: 5,
     icon: <BanIcon size={28} />,
     filter: "inactive",
   },
@@ -59,9 +59,15 @@ const Cards = [
 
 const Postings: React.FC = () => {
   const navigate = useNavigate();
+  const { organization, setOrganization, rerender } = useOutletContext() as RootContext;
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+
+  useEffect(() => {
+    console.log(organization);
+  }, [organization]);
+
   const [postings, setPostings] = useState<Posting[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const [sort, setSort] = useState(new Set(["newest"]));
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -72,24 +78,24 @@ const Postings: React.FC = () => {
     start: "",
     end: "",
   });
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const [deleteId, setDeleteId] = useState<string>();
-  const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
 
   const editItems = [
     {
+      key: "delete",
       title: "Delete",
       icon: <Trash2Icon size={18} />,
-      onClick: (a: string) => {
-        setDeleteId(a);
+      color: "danger" as const,
+      onClick: (id: string) => {
+        setDeleteId(id);
         onOpen();
       },
     },
   ];
 
-  const filteredPostings = postings.filter((post) => {
+  const filteredPostings = postings?.filter((post) => {
     if (searchTerm) {
       return post.title.toLowerCase().includes(searchTerm.toLowerCase());
     }
@@ -101,10 +107,14 @@ const Postings: React.FC = () => {
       return workScheduleFilter.includes(post.type);
     }
     if (dateRange.start && dateRange.end) {
-      return (
-        new Date(post.applicationRange.start) >= new Date(dateRange.start) &&
-        new Date(post.applicationRange.end) <= new Date(dateRange.end)
-      );
+      const postStartDate = new Date(post.applicationRange.start);
+      const postEndDate = new Date(post.applicationRange.end);
+      const filterStartDate = new Date(dateRange.start);
+      const filterEndDate = new Date(dateRange.end);
+
+      if (postStartDate < filterStartDate || postEndDate > filterEndDate) {
+        return false;
+      }
     }
 
     if (selectedFilter === "active") {
@@ -140,15 +150,10 @@ const Postings: React.FC = () => {
       });
     }
     setPostings(sortedPostings);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sort]);
 
   const handleDetailsClick = (posting: Posting) => {
     navigate(`${posting._id}/dashboard`, { state: { posting } });
-  };
-
-  const handleFilterChange = (filter: string) => {
-    setSelectedFilter(filter);
   };
 
   const openCreateJobModal = () => {
@@ -156,11 +161,7 @@ const Postings: React.FC = () => {
       toast.error("Please create a department first");
       return;
     }
-    setIsModalOpen(true);
-  };
-
-  const closeCreateJobModal = () => {
-    setIsModalOpen(false);
+    navigate("create");
   };
 
   const getPostingStatus = (posting: Posting) => {
@@ -170,279 +171,244 @@ const Postings: React.FC = () => {
     return "active";
   };
 
-  // const getPostingType = (posting: Posting) => {
-  //   if (posting.type === "full_time") {
-  //     return "Full Time";
-  //   } else if (posting.type === "part_time") {
-  //     return "Part Time";
-  //   } else {
-  //     return "Internship";
-  //   }
-  // };
+  useEffect(() => {
+    setPostings(organization?.postings);
+    setDepartments(organization?.departments || []);
+  }, [rerender]);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
-  useEffect(() => {
-    axios
-      .get("/postings")
-      .then((res) => {
-        setTimeout(() => {
-          setPostings(res.data.data.postings);
-          setDepartments(res.data.data.departments);
-          setIsLoading(false); // End loading after 1.5 seconds
-        }, 1500);
-      })
-      .catch((err) => {
-        toast.error(err.response.data.message);
-        setIsLoading(false); // End loading even on error
-        console.log(err);
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleDelete = () => {
-    setDeleteLoading(true);
-    axios
-      .delete(`/postings/${deleteId}`)
-      .then((res) => {
-        toast.success(res.data.message);
-        setPostings((prev) => prev.filter((p) => p._id !== deleteId));
-        onOpenChange();
-      })
-      .catch((err) => {
-        toast.error(err.response.data.message);
-        onOpenChange();
-      })
-      .finally(() => {
-        setDeleteLoading(false);
-      });
+    const newOrganization = { ...organization };
+    const newPostings = newOrganization.postings?.filter(
+      (posting) => posting._id !== deleteId
+    );
+
+    setOrganization({ ...newOrganization, postings: newPostings });
+    onOpenChange();
+
+    axios.delete(`/postings/${deleteId}`).catch((err) => {
+      toast.error(err.response.data.message || "An error occurred");
+    });
   };
 
   return (
-    <div className="flex gap-5 w-full p-5">
-      <div className="w-full">
-        <h4 className="text-2xl font-bold mb-4">Postings</h4>
-        <div className="flex justify-between items-start w-full gap-5">
-          <motion.div
-            initial={{ x: -50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="w-1/5"
+    <div className="w-full p-3 md:p-5">
+      {/* Breadcrumbs at top level */}
+      <Breadcrumbs className="mb-5">
+        <BreadcrumbItem href="/postings">Postings</BreadcrumbItem>
+      </Breadcrumbs>
+
+      <div className="flex flex-col lg:flex-row gap-5 w-full p-1 md:p-5">
+        {/* Mobile Filter Button */}
+        <div className="lg:hidden w-full flex justify-end mb-4">
+          <Button
+            variant="flat"
+            onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+            className="flex items-center gap-2"
           >
-            <Filter
-              workScheduleFilter={workScheduleFilter}
-              setWorkScheduleFilter={setWorkScheduleFilter}
-              departmentFilter={departmentFilter}
-              setDepartmentFilter={setDepartmentFilter}
-              dateRange={dateRange}
-              setDateRange={setDateRange}
-              departments={departments}
-              sort={sort}
-              setSort={setSort}
+            <FilterIcon size={16} />
+            Filters
+          </Button>
+        </div>
+
+        {/* Filter Section */}
+        <motion.div
+          initial={{ x: -50, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className={`${isMobileFilterOpen ? 'block' : 'hidden'
+            } lg:block w-full lg:w-1/5 mb-4 lg:mb-0`}
+        >
+          <Filter
+            workScheduleFilter={workScheduleFilter}
+            setWorkScheduleFilter={setWorkScheduleFilter}
+            departmentFilter={departmentFilter}
+            setDepartmentFilter={setDepartmentFilter}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            departments={departments}
+            sort={sort}
+            setSort={setSort}
+          />
+        </motion.div>
+
+        {/* Main Content */}
+        <motion.div
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col gap-2 w-full lg:w-4/5"
+        >
+          {/* Search and Filters Section */}
+          <div className="flex flex-col md:flex-row gap-3 items-start md:items-center flex-wrap">
+            <Input
+              className="w-full md:w-[300px]"
+              placeholder="Search Postings"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              startContent={<Search size={20} className="opacity-50 mr-2" />}
             />
-          </motion.div>
 
-          <motion.div
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-col gap-4 w-4/5"
-          >
-            <div className="">
-              <div className="flex justify-between items-center w-full gap-4">
-                <Input
-                  className="4/5"
-                  placeholder="Search Postings"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-
-                <Button
-                  color="success"
-                  onClick={openCreateJobModal}
-                  className="w-1/6"
+            <div className="flex flex-wrap gap-3 items-center w-full md:w-auto">
+              <div className="flex items-center gap-2">
+                <p className="text-sm whitespace-nowrap">Job Status</p>
+                <Select
+                  className="w-[120px]"
+                  value={selectedFilter}
+                  onChange={(e) => setSelectedFilter(e.target.value)}
+                  selectedKeys={[selectedFilter]}
                 >
-                  <PlusIcon size={20} />
-                  <p>Create a new job</p>
-                </Button>
+                  {Cards.map((card) => (
+                    <SelectItem key={card.filter} value={card.filter}>
+                      {card.title}
+                    </SelectItem>
+                  ))}
+                </Select>
               </div>
 
-              <div className="flex gap-5 mt-5 w-full">
-                {Cards.map((card, index) => (
-                  <Card
-                    isPressable
-                    key={index}
-                    className={`flex flex-col items-start justify-center w-full h-20 transition-colors duration-300 ${
-                      selectedFilter === card.filter
-                        ? "bg-gray-500/20 text-white"
-                        : "text-gray-500"
-                    }`}
-                    onClick={() => handleFilterChange(card.filter)}
-                  >
-                    <div className="flex items-center justify-center gap-3 w-full">
-                      <div
-                        className={`${
-                          selectedFilter === card.filter
-                            ? "text-white"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        {card.icon}
-                      </div>
-                      <h1
-                        className={`${
-                          selectedFilter === card.filter
-                            ? "text-white"
-                            : "text-gray-500"
-                        } text-base`}
-                      >
-                        {card.title}
-                      </h1>
-                    </div>
-                    <p
-                      className={`text-center w-full ${
-                        selectedFilter === card.filter
-                          ? "text-white"
-                          : "text-gray-500"
-                      }`}
-                    ></p>
-                  </Card>
-                ))}
-              </div>
-
-              <div className="flex flex-col gap-3 w-full mt-6 overflow-y-auto">
-                {isLoading ? (
-                  <div className="flex justify-center items-center w-full h-full">
-                    <Spinner color="primary" />
-                  </div>
-                ) : (
-                  filteredPostings.map((posting, index) => (
-                    <Card
-                      className="p-4"
-                      key={index}
-                      isPressable
-                      onClick={() => handleDetailsClick(posting)}
-                    >
-                      <div className="flex items-center justify-between gap-3 w-full p-2">
-                        <div>
-                          <div className="flex flex-row items-center justify-start gap-2">
-                            <p className="mr-1 cursor-pointer">
-                              {posting.title}
-                            </p>
-                            <span
-                              className={`text-xs mr-3 rounded-full whitespace-nowrap`}
-                            >
-                              {
-                                departments.find(
-                                  (department) =>
-                                    department._id === posting.department
-                                )?.name
-                              }
-                            </span>
-                            <span
-                              className={`text-xs px-2 rounded-full whitespace-nowrap ${
-                                getPostingStatus(posting) === "active"
-                                  ? " text-success-500 bg-success-100"
-                                  : " text-danger-500 bg-danger-100"
-                              }`}
-                            >
-                              {getPostingStatus(posting) === "active"
-                                ? "Active"
-                                : "Closed"}
-                            </span>
-                          </div>
-
-                          <p className="text-gray-300 text-xs mt-3">
-                            {getPostingStatus(posting) === "active"
-                              ? `Open Until ${new Date(
-                                  posting.applicationRange.end
-                                ).toLocaleString()}`
-                              : `Closed at ${new Date(
-                                  posting.applicationRange.end
-                                ).toLocaleString()}`}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          <Button isIconOnly variant="flat">
-                            <Link />
-                          </Button>
-
-                          <Dropdown>
-                            <DropdownTrigger>
-                              <Button isIconOnly variant="flat">
-                                <EllipsisVertical />
-                              </Button>
-                            </DropdownTrigger>
-                            <DropdownMenu>
-                              {editItems.map((item, index) => (
-                                <DropdownItem
-                                  key={index}
-                                  className={
-                                    item.title === "Delete" ? "text-danger" : ""
-                                  }
-                                >
-                                  <div
-                                    className="flex items-center gap-2"
-                                    onClick={() => item.onClick(posting._id!)}
-                                  >
-                                    {item.icon}
-                                    <p>{item.title}</p>
-                                  </div>
-                                </DropdownItem>
-                              ))}
-                            </DropdownMenu>
-                          </Dropdown>
-                        </div>
-                      </div>
-                    </Card>
-                  ))
-                )}
+              <div className="flex items-center gap-2">
+                <p className="text-sm whitespace-nowrap">Sort by</p>
+                <Select
+                  className="w-[120px]"
+                  selectedKeys={sort}
+                  onSelectionChange={(keys) => setSort(new Set(keys as unknown as string[]))}
+                >
+                  <SelectItem key="newest">Newest</SelectItem>
+                  <SelectItem key="oldest">Oldest</SelectItem>
+                  <SelectItem key="salary">Salary</SelectItem>
+                </Select>
               </div>
             </div>
-          </motion.div>
-        </div>
-      </div>
-      <CreateJobModal
-        isOpen={isModalOpen}
-        onClose={closeCreateJobModal}
-        deparments={departments}
-      />
 
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                Are you sure?
-              </ModalHeader>
-              <ModalBody>
-                This action cannot be undone. Are you sure you want to delete
-                this posting?F
-              </ModalBody>
-              <ModalFooter>
-                <Button
-                  color="primary"
-                  variant="light"
-                  onPress={onClose}
-                  isDisabled={deleteLoading}
-                >
-                  Close
-                </Button>
-                <Button
-                  color="danger"
-                  onPress={handleDelete}
-                  isLoading={deleteLoading}
-                >
-                  Delete
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+            <div className="flex w-full md:w-auto md:ml-auto">
+              <Button
+                color="success"
+                variant="flat"
+                onClick={openCreateJobModal}
+                className="w-full md:w-auto"
+              >
+                <PlusIcon size={16} />
+                <p>Create job</p>
+              </Button>
+            </div>
+          </div>
+
+          {/* Job Cards */}
+          <div className="flex flex-col gap-3 w-full mt-6">
+            {filteredPostings?.map((posting, index) => (
+              <Card
+                className="p-4"
+                key={index}
+                isPressable
+                onClick={() => handleDetailsClick(posting)}
+              >
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 w-full p-2">
+                  <div className="w-full md:w-auto">
+                    <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
+                      <p className="font-medium cursor-pointer">{posting.title}</p>
+                      <span className="text-xs md:ml-2">
+                        {departments.find((department) => department._id === posting.department)?.name}
+                      </span>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${getPostingStatus(posting) === "active"
+                          ? "text-success-500 bg-success-100"
+                          : "text-danger-500 bg-danger-100"
+                          }`}
+                      >
+                        {getPostingStatus(posting) === "active" ? "Active" : "Closed"}
+                      </span>
+                    </div>
+
+                    <p className="text-xs mt-2 md:mt-3">
+                      {getPostingStatus(posting) === "active"
+                        ? `Open Until ${new Date(posting.applicationRange.end).toLocaleString()}`
+                        : `Closed at ${new Date(posting.applicationRange.end).toLocaleString()}`}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+                    {posting?.published && posting?.url && (
+                      <Button
+                        isIconOnly
+                        variant="flat"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!posting?.url) return;
+                          navigator.clipboard.writeText(
+                            import.meta.env.VITE_CANDIDATE_URL + "/" + posting?.url
+                          );
+                          toast.success("Link copied to clipboard");
+                        }}
+                      >
+                        <Link />
+                      </Button>
+                    )}
+
+                    <Dropdown>
+                      <DropdownTrigger>
+                        <Button
+                          isIconOnly
+                          variant="flat"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <EllipsisVertical />
+                        </Button>
+                      </DropdownTrigger>
+                      <DropdownMenu>
+                        {editItems.map((item) => (
+                          <DropdownItem
+                            key={item.key}
+                            className={item.color ? `text-${item.color}` : ""}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              item.onClick(posting._id!);
+                            }}
+                          >
+                            <div className="flex items-center gap-2">
+                              {item.icon}
+                              <p>{item.title}</p>
+                            </div>
+                          </DropdownItem>
+                        ))}
+                      </DropdownMenu>
+                    </Dropdown>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Delete Modal */}
+        <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+          <ModalContent>
+            {(onClose) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1">
+                  Are you sure?
+                </ModalHeader>
+                <ModalBody>
+                  This action cannot be undone. Are you sure you want to delete
+                  this posting?
+                </ModalBody>
+                <ModalFooter>
+                  <Button color="primary" variant="light" onPress={onClose}>
+                    Close
+                  </Button>
+                  <Button color="danger" onPress={handleDelete}>
+                    Delete
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
+      </div>
     </div>
   );
 };
+
 
 export default Postings;

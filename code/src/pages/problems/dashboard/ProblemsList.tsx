@@ -17,12 +17,15 @@ import { Problem as VanillaProblem } from "@shared-types/Problem";
 interface Problem extends VanillaProblem {
   _id: string;
   status: string;
+  solved: boolean;
+  acceptanceRate: number;
 }
 
 const ProblemsList = ({ problems }: { problems: Problem[] }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState("");
+  const [tagSearch, setTagSearch] = useState("");
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -32,11 +35,25 @@ const ProblemsList = ({ problems }: { problems: Problem[] }) => {
     setSelectedDifficulty(value);
   };
 
-  const filteredProblems = problems.filter((problem) => {
-    const matchesSearchTerm = problem.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDifficulty = selectedDifficulty === "" || problem.difficulty === selectedDifficulty;
+  const handleTagSearchChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setTagSearch(event.target.value);
+  };
 
-    return matchesSearchTerm && matchesDifficulty;
+  const filteredProblems = problems.filter((problem) => {
+    const matchesSearchTerm = problem.title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesDifficulty =
+      selectedDifficulty === "" || problem.difficulty === selectedDifficulty;
+    const matchesTag =
+      tagSearch === "" ||
+      problem.tags.some((tag) =>
+        tag.toLowerCase().includes(tagSearch.toLowerCase())
+      );
+
+    return matchesSearchTerm && matchesDifficulty && matchesTag;
   });
 
   return (
@@ -48,13 +65,22 @@ const ProblemsList = ({ problems }: { problems: Problem[] }) => {
     >
       <div>
         <h2>Scriptopia Problems</h2>
-        <div className="mt-5 mb-5 flex gap-5 w-[70%]">
+
+        <div className="mt-5 mb-5 flex gap-5 w-[full]">
           <Input
             type="Search"
             label="Search"
             size="sm"
             value={searchTerm}
             onChange={handleSearchChange}
+          />
+          <Input
+            type="Search"
+            label="Search Tags"
+            size="sm"
+            value={tagSearch}
+            onChange={handleTagSearchChange}
+            className="flex-1 min-w-[200px]"
           />
           <Select
             label="Difficulty"
@@ -63,9 +89,6 @@ const ProblemsList = ({ problems }: { problems: Problem[] }) => {
             value={selectedDifficulty}
             onChange={(event) => handleDifficultyChange(event.target.value)}
           >
-            <SelectItem key="all" value="">
-              All
-            </SelectItem>
             <SelectItem key="easy" value="easy">
               Easy
             </SelectItem>
@@ -82,6 +105,7 @@ const ProblemsList = ({ problems }: { problems: Problem[] }) => {
             <TableColumn>Problem</TableColumn>
             <TableColumn>Difficulty</TableColumn>
             <TableColumn>Tags</TableColumn>
+            <TableColumn>Acceptance Rate</TableColumn>
             <TableColumn>Status</TableColumn>
           </TableHeader>
           <TableBody>
@@ -110,7 +134,10 @@ const ProblemsList = ({ problems }: { problems: Problem[] }) => {
                     {problem.tags.join(", ")}
                   </p>
                 </TableCell>
-                <TableCell>{problem.status}</TableCell>
+                <TableCell className="justify-center items-center">
+                  {Number(problem.acceptanceRate.toFixed(1)).toString()}%
+                </TableCell>
+                <TableCell>{problem.solved ? "Solved" : "Unsolved"}</TableCell>
               </TableRow>
             ))}
           </TableBody>

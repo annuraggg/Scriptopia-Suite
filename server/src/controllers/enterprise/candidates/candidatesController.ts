@@ -77,19 +77,15 @@ const verifyOtp = async (c: Context) => {
   const otpDoc = await Otp.findOne({ email, identifierKey });
   const candidate = await Candidate.findOne({ email });
   let exists = false;
-  let firstName = "";
-  let lastName = "";
+  let name = "";
   let countryCode = "";
   let phone = "";
-  let website = "";
 
   if (candidate) {
     exists = true;
-    firstName = candidate.firstName;
-    lastName = candidate.lastName;
+    name = candidate.name;
     countryCode = candidate.phone.slice(0, 3);
     phone = candidate.phone.slice(3);
-    website = candidate.website || "";
   }
 
   if (!otpDoc) {
@@ -104,11 +100,9 @@ const verifyOtp = async (c: Context) => {
 
   return sendSuccess(c, 200, "Otp verified successfully", {
     exists,
-    firstName,
-    lastName,
+    name,
     countryCode,
     phone,
-    website,
   });
 };
 
@@ -123,18 +117,15 @@ const getCandidate = async (c: Context) => {
       return sendSuccess(c, 200, "Candidate not found", { exists, candId });
     }
 
-    let firstName = candidate.firstName;
-    let lastName = candidate.lastName;
+    let name = candidate.name;
     let phone = candidate.phone;
-    let website = candidate.website || "";
+
     exists = true;
     candId = candidate._id.toString();
     return sendSuccess(c, 200, "Candidate fetched successfully", {
       exists,
-      firstName,
-      lastName,
+      name,
       phone,
-      website,
       candId,
       posted: candidate.appliedPostings,
     });
@@ -188,10 +179,8 @@ const apply = async (c: Context) => {
         return sendError(c, 400, "You have already applied for this posting");
       }
 
-      candidate.firstName = firstName?.toString() || candidate.firstName;
-      candidate.lastName = lastName?.toString() || candidate.lastName;
+      candidate.name = `${firstName} ${lastName}`;
       candidate.phone = candidate.phone;
-      candidate.website = website?.toString() || candidate.website;
       candidate.email = email?.toString() || candidate.email;
 
       candidate.appliedPostings.push({

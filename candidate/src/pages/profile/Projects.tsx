@@ -23,23 +23,26 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { parseDate, CalendarDate, today } from "@internationalized/date";
 import { z } from "zod";
+import { useOutletContext } from "react-router-dom";
+import { Candidate, Project } from "@shared-types/Candidate";
 
 // Validation schema
 const ProjectSchema = z.object({
-  id: z.string(),
   title: z.string().min(1, "Title is required").max(100),
   domain: z.string().min(1, "Domain is required").max(100),
   startDate: z.string(),
   endDate: z.string().optional(),
-  isCurrentlyWorking: z.boolean(),
+  current: z.boolean(),
   associatedWith: z.string().min(1, "Association is required"),
   description: z.string().min(10, "Description must be at least 10 characters"),
 });
 
-type Project = z.infer<typeof ProjectSchema>;
-
 const Projects = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const { user, setUser } = useOutletContext() as {
+    user: Candidate;
+    setUser: (user: Candidate) => void;
+  };
+
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -67,14 +70,16 @@ const Projects = () => {
 
   const validateForm = () => {
     try {
-      const projectData = {
-        id: editingProject?.id || Date.now().toString(),
+      const projectData: Project = {
         title,
         domain,
         startDate: startDate.toString(),
         endDate: endDate?.toString() || "",
-        isCurrentlyWorking,
-        associatedWith,
+        current: isCurrentlyWorking,
+        associatedWith: associatedWith as
+          | "personal"
+          | "academic"
+          | "professional",
         description,
       };
 
@@ -111,9 +116,9 @@ const Projects = () => {
       setEditingProject(project);
       setTitle(project.title);
       setDomain(project.domain);
-      setStartDate(parseDate(project.startDate));
-      setEndDate(project.endDate ? parseDate(project.endDate) : null);
-      setIsCurrentlyWorking(project.isCurrentlyWorking);
+      setStartDate(parseDate(project.startDate?.split("T")[0]));
+      setEndDate(project.endDate ? parseDate(project.endDate?.split("T")[0]) : null);
+      setIsCurrentlyWorking(project.current);
       setAssociatedWith(project.associatedWith);
       setDescription(project.description);
     }
@@ -127,19 +132,22 @@ const Projects = () => {
 
   const handleSave = () => {
     const validation = validateForm();
-    if (!validation.isValid || !validation.data) return;
+    if (!validation.isValid || !validation.data) {
+      toast.error("Please fill all required fields");
+      return;
+    }
 
     try {
       if (editingProject) {
-        setProjects(
-          projects.map((p) =>
-            p.id === editingProject.id ? validation.data : p
-          )
+        const newProjects = user?.projects?.map((p) =>
+          p._id === editingProject._id ? validation.data : p
         );
-        toast.success("Project updated successfully");
+        setUser({ ...user, projects: newProjects });
       } else {
-        setProjects([...projects, validation.data]);
-        toast.success("Project added successfully");
+        setUser({
+          ...user,
+          projects: [...(user.projects || []), validation.data],
+        });
       }
       handleCloseModal();
     } catch (error) {
@@ -149,8 +157,8 @@ const Projects = () => {
 
   const handleDelete = (id: string) => {
     try {
-      setProjects(projects.filter((p) => p.id !== id));
-      toast.success("Project deleted successfully");
+      const newProjects = user?.projects?.filter((p) => p._id !== id);
+      setUser({ ...user, projects: newProjects });
     } catch (error) {
       toast.error("Failed to delete project");
     }
@@ -181,7 +189,7 @@ const Projects = () => {
 
       <div className="py-5">
         <AnimatePresence mode="wait">
-          {projects.length === 0 ? (
+          {user?.projects?.length === 0 ? (
             <motion.div
               key="empty"
               initial={{ opacity: 0, y: 20 }}
@@ -233,49 +241,52 @@ const Projects = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <AnimatePresence>
-                  {projects.map((project) => (
-                    <motion.div
-                      key={project.id}
-                      variants={cardVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      layout
-                    >
-                      <Card>
-                        <CardBody>
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <h4 className="font-medium">{project.title}</h4>
-                              <p className="text-sm text-gray-500">
-                                {project.domain}
-                              </p>
+                  {user?.projects &&
+                    user?.projects?.map((project) => (
+                      <motion.div
+                        key={project._id}
+                        variants={cardVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        layout
+                      >
+                        <Card>
+                          <CardBody>
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <h4 className="font-medium">{project.title}</h4>
+                                <p className="text-sm text-gray-500">
+                                  {project.domain}
+                                </p>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  isIconOnly
+                                  variant="light"
+                                  size="sm"
+                                  onClick={() => handleOpenModal(project)}
+                                >
+                                  <Edit2 size={18} />
+                                </Button>
+                                <Button
+                                  isIconOnly
+                                  variant="light"
+                                  size="sm"
+                                  color="danger"
+                                  onClick={() =>
+                                    handleDelete(project._id || "")
+                                  }
+                                >
+                                  <Trash2 size={18} />
+                                </Button>
+                              </div>
                             </div>
-                            <div className="flex gap-2">
-                              <Button
-                                isIconOnly
-                                variant="light"
-                                size="sm"
-                                onClick={() => handleOpenModal(project)}
-                              >
-                                <Edit2 size={18} />
-                              </Button>
-                              <Button
-                                isIconOnly
-                                variant="light"
-                                size="sm"
-                                color="danger"
-                                onClick={() => handleDelete(project.id)}
-                              >
-                                <Trash2 size={18} />
-                              </Button>
-                            </div>
-                          </div>
-                          <p className="text-sm">{project.description}</p>
-                        </CardBody>
-                      </Card>
-                    </motion.div>
-                  ))}
+                            <p className="text-sm">{project.description}</p>
+                          </CardBody>
+                        </Card>
+                      </motion.div>
+                    ))}
                 </AnimatePresence>
               </div>
             </motion.div>

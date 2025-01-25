@@ -3,16 +3,16 @@ import { useOutletContext } from "react-router-dom";
 import Blank from "./Blank";
 import Configure from "./Configure";
 import Main from "./Main";
-import { Drive } from "@shared-types/Drive";
+import { Posting } from "@shared-types/Posting";
 
 const Assessments = () => {
   const [assessmentsEnabled, setAssessmentsEnabled] = useState(false);
   const [assessmentsConfigured, setAssessmentsConfigured] = useState(false);
 
-  const { drive } = useOutletContext() as { drive: Drive };
+  const { posting } = useOutletContext() as { posting: Posting };
 
   useEffect(() => {
-    const noOfAssessments = drive?.workflow?.steps?.filter(
+    const noOfAssessments = posting?.workflow?.steps?.filter(
       (step) =>
         step.type === "ca" || step.type === "mcqca" || step.type === "mcqa"
     ).length;
@@ -20,26 +20,30 @@ const Assessments = () => {
     if (noOfAssessments) {
       setAssessmentsEnabled(true);
 
-      const remainingToConfig = (drive?.workflow?.steps?.length) ? drive?.workflow?.steps?.filter(
-        (step) =>
-          step.type === "ca" || step.type === "mcqca" || step.type === "mcqa"
-      ).length - (drive?.assessments?.length ?? 0) : 0;
+      const remainingToConfig = posting?.workflow?.steps?.length
+        ? posting?.workflow?.steps?.filter(
+            (step) =>
+              step.type === "ca" ||
+              step.type === "mcqca" ||
+              step.type === "mcqa"
+          ).length - (posting?.assessments?.length ?? 0)
+        : 0;
 
       if (remainingToConfig) {
         setAssessmentsConfigured(true);
       }
     }
-  }, [drive]);
+  }, [posting]);
 
   if (!assessmentsEnabled) {
     return <Blank />;
   }
 
   if (assessmentsConfigured) {
-    return <Configure drive={drive} />;
+    return <Configure posting={posting} />;
   }
 
-  return <Main drive={drive} />;
+  return <Main />;
 };
 
 export default Assessments;

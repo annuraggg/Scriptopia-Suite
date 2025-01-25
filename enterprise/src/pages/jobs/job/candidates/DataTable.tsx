@@ -26,7 +26,7 @@ import { ArrowUpDown, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { Button, Checkbox } from "@nextui-org/react";
 import { useOutletContext } from "react-router-dom";
 import { Posting as PostingType } from "@shared-types/Posting";
-import { AppliedPosting, Candidate } from "@shared-types/Candidate";
+import { Candidate } from "@shared-types/Candidate";
 
 interface DataTableProps {
   data: Candidate[];
@@ -131,53 +131,6 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
           </Button>
         );
       },
-    },
-    {
-      accessorKey: "website",
-      header: ({ column }) => (
-        <Button
-          variant="light"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Website
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-
-      cell: ({ row }) => (
-        <p
-          className="text-blue-500 hover:text-blue-300 transition-colors cursor-pointer"
-          onClick={() => window.open(row.original.website, "_blank")}
-        >
-          {row.original.website}
-        </p>
-      ),
-    },
-    {
-      accessorKey: "website",
-      header: ({ column }) => (
-        <Button
-          variant="light"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Status
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-
-      cell: ({ row }) => (
-        <p
-          className="text-blue-500 hover:text-blue-300 transition-colors cursor-pointer"
-          onClick={() => window.open(row.original.website, "_blank")}
-        >
-          {
-            (row.original as Candidate).appliedPostings.find(
-              (ap: AppliedPosting) =>
-                ap.postingId.toString() === currentPostingId?.toString()
-            )?.currentStepStatus
-          }
-        </p>
-      ),
     },
   ];
 

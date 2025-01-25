@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "CommonJS",
+    "strict": true,
+    "esModuleInterop": true,
+    "lib": ["ES2020"],
+    "types": ["jest"], // Include Jest types
+    "baseUrl": "../", // Base directory for resolving imports
+    "paths": {
+      "@functions/*": ["functions/*"] // Alias for `functions` folder
+    }
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
+}

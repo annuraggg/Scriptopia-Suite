@@ -17,6 +17,7 @@ import checkOrganizationPermission from "@/middlewares/checkOrganizationPermissi
 import Posting from "@/models/Posting";
 import { Candidate } from "@shared-types/Candidate";
 import { UserJSON } from "@clerk/backend";
+import { MemberWithPermission } from "@shared-types/MemberWithPermission";
 
 const createOrganization = async (c: Context) => {
   try {
@@ -339,6 +340,103 @@ const getSettings = async (c: Context) => {
   } catch (error) {
     logger.error(error as string);
     return sendError(c, 500, "Failed to fetch organization settings", error);
+  }
+};
+
+const updateOrganization = async (c: Context) => {
+  try {
+    const perms = await checkOrganizationPermission.all(c, [
+      "manage_organization",
+    ]);
+
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const orgId = perms.data?.orgId;
+    const body = await c.req.json();
+
+    const org = await Organization.findById(orgId).lean();
+    if (!org) {
+      return sendError(c, 404, "Organization not found");
+    }
+
+    const updatedOrg = await Organization.findByIdAndUpdate(
+      orgId,
+      { ...body },
+      { new: true }
+    );
+
+    if (!updatedOrg) {
+      return sendError(c, 404, "Organization not found");
+    }
+
+    // check if any new members were added and send them an invite ONLY IF THEY WERE NOT ALREADY IN THE PENDING LIST
+    const oldPendingMembers = org.members.filter(
+      (member) => member.status === "pending"
+    );
+
+    const newPendingMembers = updatedOrg.members.filter(
+      (member) => member.status === "pending"
+    );
+
+    if (oldPendingMembers.length !== newPendingMembers.length) {
+      console.log("New pending members found");
+      const newPendingMembersEmails = newPendingMembers.map(
+        (member) => member.email
+      );
+      const oldPendingMembersEmails = oldPendingMembers.map(
+        (member) => member.email
+      );
+
+      const newPendingMembersNotInOldPendingMembers =
+        newPendingMembersEmails.filter(
+          (email: string) => !oldPendingMembersEmails.includes(email)
+        );
+
+      const user = await clerkClient.users.getUser(c.get("auth").userId);
+
+      for (const email of newPendingMembersNotInOldPendingMembers) {
+        const reqObj = {
+          email,
+          role: body.members.find((member: Member) => member.email === email)
+            .role.name,
+          roleId: body.members.find((member: Member) => member.email === email)
+            .role._id,
+          organization: orgId,
+          inviter: body.members.find((member: Member) => member.email === email)
+            .addedBy,
+          organizationname: updatedOrg.name,
+        };
+
+        console.log("Found new member with email: ", email);
+
+        const token = jwt.sign(reqObj, process.env.JWT_SECRET!);
+
+        const loopsResp = await loops.sendTransactionalEmail({
+          transactionalId: process.env.LOOPS_INVITE_EMAIL!,
+          email: email,
+          dataVariables: {
+            inviter: user.firstName + " " + user.lastName,
+            joinlink:
+              process.env.ENTERPRISE_FRONTEND_URL! + "/join?token=" + token,
+            organizationname: updatedOrg.name,
+          },
+        });
+
+        console.log("Loops response: ", loopsResp);
+      }
+    }
+
+    return sendSuccess(
+      c,
+      200,
+      "Organization settings updated successfully",
+      updatedOrg
+    );
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Failed to update organization settings", error);
   }
 };
 
@@ -759,6 +857,133 @@ const updateDepartments = async (c: Context) => {
   }
 };
 
+const permissionFieldMap = {
+  manage_job: [
+    "name",
+    "email",
+    "website",
+    "logo",
+    "departments",
+    "candidates",
+    "postings",
+  ],
+  view_job: [
+    "name",
+    "email",
+    "website",
+    "logo",
+    "departments",
+    "candidates",
+    "postings",
+  ],
+  view_organization: [
+    "name",
+    "email",
+    "website",
+    "logo",
+    "members",
+    "roles",
+    "departments",
+    "auditLogs",
+    "subscriptions",
+    "candidates",
+    "postings",
+  ],
+  manage_organization: [
+    "name",
+    "email",
+    "website",
+    "logo",
+    "members",
+    "roles",
+    "departments",
+    "auditLogs",
+    "subscriptions",
+    "candidates",
+    "postings",
+  ],
+  view_billing: ["name", "email", "website", "subscriptions"],
+  manage_billing: ["name", "email", "website", "subscriptions"],
+  view_analytics: [
+    "name",
+    "email",
+    "website",
+    "logo",
+    "departments",
+    "candidates",
+    "postings",
+  ],
+  interviewer: [
+    "name",
+    "email",
+    "website",
+    "logo",
+    "departments",
+    "candidates",
+    "postings",
+  ],
+};
+
+const getOrganization = async (c: Context): Promise<Response> => {
+  try {
+    const userId = c.get("auth").userId;
+
+    const org = await Organization.findOne({
+      "members.user": userId,
+    }).lean();
+
+    if (!org) {
+      return sendError(c, 404, "Organization not found");
+    }
+
+    // Find member and validate role in one pass
+    const member = org.members.find((m) => m?.user?.toString() === userId);
+    if (!member?.role) {
+      return sendError(c, 403, "Invalid member access");
+    }
+
+    // Get role permissions
+    const role = defaultOrganizationRoles.find((r) => r.slug === member.role);
+    if (!role?.permissions?.length) {
+      return sendError(c, 403, "No permissions found for role");
+    }
+
+    const fieldsToSelect = [
+      ...new Set(
+        role.permissions.flatMap(
+          // @ts-expect-error - TS doesn't like flatMap
+          (permission) => permissionFieldMap[permission] || []
+        )
+      ),
+    ];
+
+    const [selectedOrg, userDetails] = await Promise.all([
+      Organization.findById(org._id).populate("postings").select(fieldsToSelect.join(" ")),
+      User.findOne({ clerkId: member.user }).lean(),
+    ]);
+
+    if (!selectedOrg || !userDetails) {
+      return sendError(c, 404, "Required data not found");
+    }
+
+    const user: MemberWithPermission = {
+      ...member, // @ts-expect-error - TS sucks
+      userInfo: userDetails,
+      permissions: role.permissions,
+    };
+
+    console.log(selectedOrg);
+
+    return sendSuccess(c, 200, "Organization fetched successfully", {
+      organization: selectedOrg,
+      user,
+    });
+  } catch (error) {
+    logger.error("Failed to fetch organization: " + error);
+    return sendError(c, 500, "Failed to fetch organization", error);
+  }
+};
+
 export default {
   createOrganization,
   verifyInvite,
@@ -771,4 +996,6 @@ export default {
   updateRoles,
   getDepartments,
   updateDepartments,
+  getOrganization,
+  updateOrganization,
 };

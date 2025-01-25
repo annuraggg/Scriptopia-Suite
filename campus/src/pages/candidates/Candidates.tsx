@@ -20,7 +20,7 @@ interface Candidate {
 }
 
 const Candidates = () => {
-  const org = useSelector((state: RootState) => state.institute);
+  const org = useSelector((state: RootState) => state.organization);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,10 +55,8 @@ const Candidates = () => {
     <>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem href={"/" + org._id}>Institute</BreadcrumbItem>
-          <BreadcrumbItem href={"/" + org._id + "/candidates"}>
-            Candidates
-          </BreadcrumbItem>
+          <BreadcrumbItem>{org.name}</BreadcrumbItem>
+          <BreadcrumbItem href={"/candidates"}>Candidates</BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <motion.div

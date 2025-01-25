@@ -18,7 +18,6 @@ import { useState } from "react";
 interface ShowProps {
   workflowData: WorkflowStep[];
   postingTitle: string;
-  behavior: string;
 }
 
 const stepTypeMap = {
@@ -31,7 +30,7 @@ const stepTypeMap = {
   cu: "Custom",
 };
 
-const Show = ({ workflowData, behavior }: ShowProps) => {
+const Show = ({ workflowData }: ShowProps) => {
   const { posting } = useOutletContext() as { posting: Posting };
   const [loading, setLoading] = useState(false);
 
@@ -74,9 +73,7 @@ const Show = ({ workflowData, behavior }: ShowProps) => {
             <TableHeader>
               <TableColumn>Step Name</TableColumn>
               <TableColumn>Step Type</TableColumn>
-              <TableColumn className={behavior === "manual" ? "" : "hidden"}>
-                Action
-              </TableColumn>
+              <TableColumn>Action</TableColumn>
             </TableHeader>
             <TableBody>
               {workflowData.map((step, index) => (
@@ -84,8 +81,7 @@ const Show = ({ workflowData, behavior }: ShowProps) => {
                   <TableCell>{step.name}</TableCell>
                   <TableCell>{stepTypeMap[step.type]}</TableCell>
 
-                  {behavior === "manual" &&
-                  posting.workflow?.currentStep === index - 1 ? (
+                  {posting.workflow?.currentStep === index - 1 ? (
                     <TableCell className="h-16">
                       <Button
                         variant="flat"

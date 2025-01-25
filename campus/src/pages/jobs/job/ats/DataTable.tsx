@@ -1,5 +1,3 @@
-"use client";
-
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -22,35 +20,208 @@ import {
 } from "@/components/ui/table";
 
 import {
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-} from "@nextui-org/dropdown";
-import {
   ArrowUpDown,
+  Check,
   ChevronLeft,
   ChevronRight,
-  MoreHorizontal,
+  Download,
+  X,
+  UserCheck,
+  UserX,
+  Users,
 } from "lucide-react";
+import { Tooltip } from "@nextui-org/tooltip";
 import { Button, Checkbox, Input } from "@nextui-org/react";
 import { useState } from "react";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
+import { toast } from "sonner";
+import { useOutletContext } from "react-router-dom";
+import { Posting } from "@shared-types/Posting";
 
 interface DataTableProps<TData> {
   data: TData[];
+  postingId: string;
+  matchThreshold: number;
+  stepNo: number;
+  setData: (data: TData[]) => void;
 }
 
-export function DataTable<TData>({ data }: DataTableProps<TData>) {
+export function DataTable<TData>({
+  data,
+  postingId,
+  matchThreshold = 0,
+  stepNo,
+  setData,
+}: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pageIndex, setPageIndex] = useState(0);
 
   interface Candidates {
+    _id: string;
     name: string;
     email: string;
     received: string;
     match: string;
+    status: string;
+    currentStepStatus: string;
   }
+
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+
+  const { posting } = useOutletContext() as { posting: Posting };
+  console.log(posting.workflow?.currentStep, stepNo);
+
+  const downloadResume = (_id: string) => {
+    axios
+      .post("candidates/resume/download", { candidateId: _id, postingId })
+      .then((res) => window.open(res.data.data, "_blank"))
+      .catch((err) => {
+        toast.error(err.response.data.message || "Failed to download resume");
+        console.error(err);
+      });
+  };
+
+  const disqualify = (_id: string) => {
+    const newData = [...data] as Candidates[];
+    const index = newData.findIndex((c) => c._id === _id);
+    newData[index].currentStepStatus = "disqualified";
+    setData(newData as TData[]);
+
+    axios
+      .post("candidates/resume/disqualify", {
+        candidateId: _id,
+        postingId,
+      })
+
+      .catch((err) => {
+        toast.error(
+          err.response.data.message || "Failed to disqualify candidate"
+        );
+        console.error(err);
+
+        const newData = [...data] as Candidates[];
+        const index = newData.findIndex((c) => c._id === _id);
+        newData[index].currentStepStatus = "pending";
+        setData(newData as TData[]);
+      });
+  };
+
+  const selectCand = (_id: string) => {
+    const newData = [...data] as Candidates[];
+    const index = newData.findIndex((c) => c._id === _id);
+    newData[index].currentStepStatus = "qualified";
+    setData(newData as TData[]);
+
+    axios
+      .post("candidates/resume/qualify", {
+        candidateId: _id,
+        postingId,
+      })
+      .catch((err) => {
+        toast.error(err.response.data.message || "Failed to select candidate");
+        console.error(err);
+
+        const newData = [...data] as Candidates[];
+        const index = newData.findIndex((c) => c._id === _id);
+        newData[index].currentStepStatus = "pending";
+        setData(newData as TData[]);
+      });
+  };
+
+  const disqualifyAllSelected = () => {
+    const selectedIds = table
+      .getSelectedRowModel()
+      .rows.map((row) => (row.original as Candidates)._id);
+
+    // Optimistically update the state
+    const newData = [...data] as Candidates[];
+    selectedIds.forEach((id) => {
+      const index = newData.findIndex((c) => c._id === id);
+      if (index !== -1) {
+        newData[index].currentStepStatus = "disqualified";
+      }
+    });
+    setData(newData as TData[]);
+
+    axios
+      .post("candidates/resume/disqualify/bulk", {
+        candidateIds: selectedIds,
+        postingId,
+      })
+      .then(() => {
+        toast.success("Selected candidates disqualified successfully");
+      })
+      .catch((err) => {
+        toast.error(
+          err.response.data.message ||
+            "Failed to disqualify selected candidates"
+        );
+        console.error(err);
+
+        // Revert the optimistic update if the API call fails
+        const revertedData = [...data] as Candidates[];
+        selectedIds.forEach((id) => {
+          const index = revertedData.findIndex((c) => c._id === id);
+          if (index !== -1) {
+            revertedData[index].currentStepStatus = "pending"; // or any other original status
+          }
+        });
+        setData(revertedData as TData[]);
+      });
+  };
+
+  const qualifyAllSelected = () => {
+    const selectedIds = table
+      .getSelectedRowModel()
+      .rows.map((row) => (row.original as Candidates)._id);
+
+    // Optimistically update the state
+    const newData = [...data] as Candidates[];
+    selectedIds.forEach((id) => {
+      const index = newData.findIndex((c) => c._id === id);
+      if (index !== -1) {
+        newData[index].currentStepStatus = "qualified";
+      }
+    });
+    setData(newData as TData[]);
+
+    axios
+      .post("candidates/resume/qualify/bulk", {
+        candidateIds: selectedIds,
+        postingId,
+      })
+      .then(() => {
+        toast.success("Selected candidates qualified successfully");
+      })
+      .catch((err) => {
+        toast.error(
+          err.response.data.message || "Failed to qualify selected candidates"
+        );
+        console.error(err);
+
+        // Revert the optimistic update if the API call fails
+        const revertedData = [...data] as Candidates[];
+        selectedIds.forEach((id) => {
+          const index = revertedData.findIndex((c) => c._id === id);
+          if (index !== -1) {
+            revertedData[index].currentStepStatus = "pending"; // or any other original status
+          }
+        });
+        setData(revertedData as TData[]);
+      });
+  };
+
+  const selectAllAboveThreshold = () => {
+    table.toggleAllRowsSelected(false);
+    table.getFilteredRowModel().rows.forEach((row) => {
+      if (parseFloat((row.original as Candidates).match) > matchThreshold) {
+        row.toggleSelected(true);
+      }
+    });
+  };
 
   const columns: ColumnDef<Candidates>[] = [
     {
@@ -63,6 +234,7 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
           }
           onValueChange={(value) => table.toggleAllPageRowsSelected(value)}
           aria-label="Select all"
+          isDisabled={posting.workflow?.currentStep !== stepNo}
         />
       ),
       cell: ({ row }) => (
@@ -132,24 +304,74 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
       },
     },
     {
-      id: "actions",
-      cell: () => {
+      accessorKey: "currentStepStatus",
+      header: ({ column }) => {
         return (
-          <Dropdown>
-            <DropdownTrigger>
-              <Button isIconOnly variant="light" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
+          <Button
+            variant="light"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Status
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const _id = row.original._id;
+        return (
+          <div>
+            <Tooltip content="Select">
+              <Button
+                isIconOnly
+                variant="flat"
+                color="success"
+                className="ml-3"
+                onClick={() => selectCand(_id)}
+                isDisabled={
+                  posting.workflow?.currentStep !== stepNo ||
+                  row.original.currentStepStatus === "qualified"
+                }
+              >
+                <Check />
               </Button>
-            </DropdownTrigger>
-            <DropdownMenu>
-              <DropdownItem>View candidate</DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
+            </Tooltip>
+
+            <Tooltip content="Disqualify">
+              <Button
+                isIconOnly
+                variant="flat"
+                color="danger"
+                className="ml-3"
+                onClick={() => disqualify(_id)}
+                isDisabled={
+                  posting.workflow?.currentStep !== stepNo ||
+                  row.original.currentStepStatus === "disqualified"
+                }
+              >
+                <X />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Download Resume">
+              <Button
+                isIconOnly
+                variant="flat"
+                color="warning"
+                className="ml-3"
+                onClick={() => downloadResume(_id)}
+              >
+                <Download />
+              </Button>
+            </Tooltip>
+          </div>
         );
       },
     },
   ];
-  
+
   const table = useReactTable({
     data, // @ts-expect-error - data is not assignable to type TData[]
     columns,
@@ -168,7 +390,7 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
 
   return (
     <div className="rounded-md">
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-5 flex-wrap">
         <div className="flex items-center justify-end space-x-2 py-4">
           <Button
             onClick={() => setPageIndex(pageIndex - 1)}
@@ -192,7 +414,32 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
             table.getColumn("email")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
+          isDisabled={posting.workflow?.currentStep !== stepNo}
         />
+        <Button
+          onClick={disqualifyAllSelected}
+          color="danger"
+          isDisabled={posting.workflow?.currentStep !== stepNo}
+        >
+          <UserX className="mr-2 h-4 w-4" />
+          Disqualify Selected
+        </Button>
+        <Button
+          onClick={qualifyAllSelected}
+          color="success"
+          isDisabled={posting.workflow?.currentStep !== stepNo}
+        >
+          <UserCheck className="mr-2 h-4 w-4" />
+          Qualify Selected
+        </Button>
+        <Button
+          onClick={selectAllAboveThreshold}
+          color="primary"
+          isDisabled={posting.workflow?.currentStep !== stepNo}
+        >
+          <Users className="mr-2 h-4 w-4" />
+          Select All Above {matchThreshold}%
+        </Button>
       </div>
       <Table className="mt-5">
         <TableHeader>

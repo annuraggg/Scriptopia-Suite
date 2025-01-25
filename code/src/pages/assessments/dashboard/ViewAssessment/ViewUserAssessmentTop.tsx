@@ -97,9 +97,9 @@ const ViewUserAssessmentTop = ({
       <div className="w-full flex flex-row gap-3">
         <Card className="min-w-[50%] h-fit flex flex-row justify-between items-center p-6">
           <CardBody className="flex justify-center items-start gap-1 flex-col">
-            <p className="text-xl">{assessment?.name}</p>
+            <p className="text-xl">{submission?.name}</p>
             <Link isExternal showAnchorIcon href="#" className="text-sm">
-              {assessment?.feedbackEmail}
+              {submission?.email}
             </Link>
           </CardBody>
           <CardBody className="max-w-[35%]">

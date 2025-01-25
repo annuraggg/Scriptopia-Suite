@@ -1,10 +1,10 @@
 import { combineReducers } from "redux";
-import instituteReducer from "@/reducers/instituteReducer";
+import organizationReducer from "@/reducers/organizationReducer";
 import settingsReducer from "@/reducers/settingsReducer";
 import toastReducer from "@/reducers/toastReducer";
 
 const rootReducer = combineReducers({
-  institute: instituteReducer,
+  organization: organizationReducer,
   settings: settingsReducer,
   toast: toastReducer,
 });

@@ -1,209 +1,213 @@
-import { Button } from "@nextui-org/react";
-import { useTheme } from "@/components/theme-provider";
-import { ArrowRight } from "lucide-react";
-import Navbar from "./Navbar"
-import Logo from "../../assets/logo.png";
-import img1 from "../../assets/IMG 1.png"
-import img2 from "../../assets/IMG 2.png"
-import img3 from "../../assets/IMG 3.png"
-
-interface RibbonItem {
-  text: string;
-  icon?: string;
-}
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@clerk/clerk-react";
+import { ArrowRight, Code2, Brain, Trophy, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import Navbar from "./Navbar";
+import { MacbookScroll } from "@/components/ui/macbook-scroll";
+import { SparklesCore } from "@/components/ui/sparkles";
 
 const Lander = () => {
-  const { theme } = useTheme();
-  const ribbonItems: RibbonItem[] = [
-    { text: "CODE" },
-    { text: "LEARN" },
-    { text: "COMPETE" },
-    { text: "ASSESS" },
-    { text: "INTERVIEW" }
+  const navigate = useNavigate();
+  const { isSignedIn } = useAuth();
+
+  const handleGetStarted = () => {
+    if (isSignedIn) {
+      navigate("/dashboard");
+    } else {
+      navigate("/sign-in");
+    }
+  };
+
+  const features = [
+    {
+      icon: <Code2 className="w-6 h-6 text-teal-400" />,
+      title: "Code",
+      description: "Write, test, and perfect your code",
+    },
+    {
+      icon: <Brain className="w-6 h-6 text-purple-400" />,
+      title: "Learn",
+      description: "Master new programming concepts",
+    },
+    {
+      icon: <Trophy className="w-6 h-6 text-amber-400" />,
+      title: "Compete",
+      description: "Challenge yourself against others",
+    },
+  ];
+
+  const featuresMain = [
+    {
+      icon: <Code2 className="w-6 h-6 text-teal-500" />,
+      title: "Multi-Language Support",
+      description:
+        "Write and test code in multiple programming languages with full syntax highlighting and intelligent autocomplete.",
+    },
+    {
+      icon: <Brain className="w-6 h-6 text-purple-500" />,
+      title: "Smart Assessment",
+      description:
+        "Comprehensive evaluation system that tests both theoretical knowledge and practical coding skills.",
+    },
+    {
+      icon: <Trophy className="w-6 h-6 text-amber-500" />,
+      title: "Competitive Challenges",
+      description:
+        "Regular coding competitions and challenges to test your skills against other developers worldwide.",
+    },
+    {
+      icon: <Code2 className="w-6 h-6 text-emerald-500" />,
+      title: "Problem Solving",
+      description:
+        "Extensive collection of coding problems across different difficulty levels to strengthen your programming skills.",
+    },
+    {
+      icon: <Brain className="w-6 h-6 text-blue-500" />,
+      title: "Interview Preparation",
+      description:
+        "Carefully curated problems and assessments to help you prepare for technical interviews.",
+    },
+    {
+      icon: <Trophy className="w-6 h-6 text-rose-500" />,
+      title: "Skill Development",
+      description:
+        "Track your progress and improve your coding abilities through regular practice and challenges.",
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-hidden">
       <Navbar />
-      <section className="flex min-h-[500px] px-8 md:px-16 mt-10">
-        <div className="relative flex flex-col w-full max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row w-full justify-between gap-20">
-            <div className="flex-1 py-18">
-              <h1 className="text-[#B4F4E3] text-6xl md:text-9xl font-medium mb-6 leading-tight">
-                Learn,
-                <br />
-                {"{Code}"},
-                <br />
-                Compete.
-              </h1>
-            </div>
 
-            <div className="flex-1 text-white">
-              <h2 className="text-3xl md:text-4xl font-semibold mb-6">
-                Elevate Your Coding Skills
-              </h2>
-              <p className="text-lg md:text-xl text-gray-500 mb-8">
-                Discover a versatile coding platform that enhances your skills and
-                streamlines hiring solutions.
-              </p>
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center space-x-2">
-                  <span className="w-2 h-2 bg-[#B4F4E3] rounded-full"></span>
-                  <span>Comprehensive Problem Collection</span>
-                </li>
-                <li className="flex items-center space-x-2">
-                  <span className="w-2 h-2 bg-[#B4F4E3] rounded-full"></span>
-                  <span>A Simple Method for Evaluating All</span>
-                </li>
-              </ul>
-              <Button
-                className="bg-[#4A5D53] text-white hover:bg-[#3A4D43] transition-colors relative overflow-hidden"
-                endContent={<ArrowRight className="w-4 h-4" />}
-              >
-                <span className="relative z-10">Get Started</span>
-                <div className="absolute inset-0 shine"></div>
-              </Button>
+      {/* Hero Section */}
+      <section className="relative flex min-h-[80vh] px-4 sm:px-6 lg:px-8 pt-32 pb-20">
+        <div className="absolute inset-0 top-40">
+          <SparklesCore
+            id="tsparticles"
+            background="transparent"
+            minSize={0.6}
+            maxSize={1.4}
+            particleDensity={50}
+            className="w-full h-full"
+            particleColor="#000000"
+          />
+        </div>
+
+        <div className="relative z-10 max-w-6xl mx-auto w-full">
+          <div className="flex flex-col items-center text-center mb-12">
+            <div className="text-6xl md:text-6xl font-bold mb-8">
+              <span className="text-teal-400">Learn</span>
+              <span className="text-purple-400">. Code</span>
+              <span className="text-amber-400">. Compete</span>
             </div>
+            <p className="text-lg md:text-xl max-w-2xl animate-fade-in">
+              Discover a versatile coding platform that enhances your skills and
+              streamlines hiring solutions.
+            </p>
           </div>
 
-          <div className="w-full text-center mt-8">
-            <p className="text-sm text-gray-400">Your Path to Mastery</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
+            {features.map((feature, index) => (
+              <Card
+                key={index}
+                className="bg-background/60 backdrop-blur-lg border-muted transition-all duration-300 hover:scale-105"
+              >
+                <CardContent className="p-6 flex flex-col items-center text-center">
+                  <div className="mb-4 p-3 rounded-full">
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-400">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="flex justify-center gap-4 mt-12">
+            <Button
+              size="lg"
+              variant="default"
+              onClick={handleGetStarted}
+              className="bg-teal-500 hover:bg-teal-600"
+            >
+              Get Started
+              <ChevronRight className="ml-2 w-4 h-4" />
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-teal-500 text-teal-500 hover:bg-teal-500/10"
+              onClick={() => (window.location.href = "https://docs.scriptopia.tech")}
+            >
+              View Documentation
+            </Button>
           </div>
         </div>
       </section>
 
-      <div
-        className={`overflow-hidden ${theme === "light" ? "bg-default-100" : "bg-default-50"
-          } py-8`}
-      >
-        <div className="flex animate-scroll">
-          {[...Array(3)].map((_, groupIndex) => (
-            <div key={groupIndex} className="flex whitespace-nowrap">
-              {ribbonItems.map((item, index) => (
-                <div
-                  key={`${groupIndex}-${index}`}
-                  className="flex items-center justify-center px-8 gap-3 "
-                >
-                  <p className="font-bold text-2xl md:text-3xl">{item.text}</p>
-                  <img src={Logo} alt="Logo" className="w-8 h-8 ml-4" />
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* MacBook Preview Section */}
+      <section className="max-h-[130vh] relative">
+        <MacbookScroll src="./lander1.png" showGradient={true} />
+      </section>
 
-      <section className="relative py-6 px-4 md:px-6">
-        <div className="w-full aspect-video max-w-3xl mx-auto mb-16 flex items-center justify-center rounded-lg">
-          <img src={img1} alt="Laptop" className="w-full h-full object-cover rounded-lg" />
-        </div>
-
-        <div className="text-center max-w-4xl mx-auto space-y-6">
-          <h3 className="text-gray-400 text-base md:text-lg">
-            Unlock the Power of a Versatile Coding Platform
-          </h3>
-
-          <div className="space-y-4">
-            <p className="text-white text-3xl md:text-4xl font-medium leading-relaxed">
-              Experience an innovative coding platform for{" "}
-              <span className="text-[#B4F4E3] glow-effect">assessments</span>,{" "}
-              <span className="block md:inline">
-                development, and learning. With expertise in{" "}
-                <span className="text-[#B4F4E3] glow-effect">coding challenges</span> and{" "}
-                <span className="text-[#B4F4E3] glow-effect">hiring solutions</span>, we
-                deliver{" "}
-                <span className="text-[#B4F4E3] glow-effect">fast results</span> while
-                enhancing your{" "}
-                <span className="text-[#B4F4E3] glow-effect">skills</span>
-              </span>
+      {/* Features Grid */}
+      <section className="px-4 py-24 bg-gradient-to-b from-background to-background/80">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge variant="outline" className="mb-4">
+              Features
+            </Badge>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              Everything you need to excel
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              From comprehensive problem sets to real-time assessments, we
+              provide all the tools you need to succeed.
             </p>
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {featuresMain.map((feature, i) => (
+              <Card
+                key={i}
+                className="bg-background/60 backdrop-blur-lg border-muted transition-all duration-300 hover:scale-105"
+              >
+                <CardContent className="p-6">
+                  <div className="w-12 h-12 rounded-full bg-teal-500/10 flex items-center justify-center mb-4">
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-400">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>{" "}
         </div>
+      </section>
 
-        <div className="w-full h-full pt-14">
-          <section className="bg-purple-500 py-20 px-4 md:px-6">
-            <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12">
-              <div className="flex-1">
-                <h3 className="text-xl font-medium mb-4">Extensive List of Problems</h3>
-                <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                  Choose from a wide range of problems across languages and difficulty levels to sharpen your coding skills.
-                </h2>
-                <Button
-                  className="bg-black text-white px-6 py-3"
-                  endContent={<ArrowRight className="w-4 h-4" />}
-                >
-                  Start Assessing
-                </Button>
-              </div>
-              <div className="flex-1">
-                <img
-                  src={img2}
-                  alt="img2"
-                  className="w-full h-full object-cover floating-image"
-                />
-              </div>
-            </div>
-          </section>
-
-          <section className="bg-orange-400 py-20 px-4 md:px-6 relative overflow-hidden">
-            <div className="max-w-6xl mx-auto">
-              <div className="flex flex-col md:flex-row items-start justify-between gap-12">
-                <div className="w-full md:w-1/2 z-10">
-                  <h3 className="text-xl font-medium mb-4">An Easy Way to Assess Everyone</h3>
-                  <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                    Assessing candidates has never been easier. Our platform provides a seamless way to assess and evaluate candidates based on their coding skills.
-                  </h2>
-                  <Button
-                    className="bg-black text-white px-6 py-3"
-                    endContent={<ArrowRight className="w-4 h-4" />}
-                  >
-                    Start Solving Now
-                  </Button>
-                </div>
-
-                <div className="absolute bottom-0 right-0 w-full md:w-[50%] h-[100%]">
-                  <img
-                    src={img3}
-                    alt="img3"
-                    className="w-full h-auto object-contain"
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="py-20 px-4 md:px-6 text-center">
-            <div className="max-w-4xl mx-auto space-y-6">
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                Reached the End?
-              </h2>
-
-              <div className="text-4xl md:text-5xl font-bold mb-12">
-                Time to <span className="text-[#B4F4E3]">&lt;CODE/&gt;</span>
-              </div>
-
-              <div className="flex items-center justify-center gap-6">
-                <Button
-                  as="a"
-                  href="https://docs.scriptopia.tech/"
-                  variant="light"
-                  className="text-[#B4F4E3] hover:bg-[#B4F4E3]/10 px-6 py-2"
-                  radius="sm"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  View Documentation
-                </Button>
-
-                <Button
-                  className="bg-[#B4F4E3] text-black hover:bg-[#A3E3D2] transition-colors px-6 py-2 drop-shadow-glow"
-                  endContent={<ArrowRight className="w-4 h-4" />}
-                >
-                  Get Started
-                </Button>
-              </div>
-            </div>
-          </section>
+      {/* CTA Section */}
+      <section className="px-4 py-24 text-center relative overflow-hidden">
+        <div className="relative z-10 max-w-4xl mx-auto">
+          <h2 className="text-4xl md:text-6xl font-bold mb-8">
+            Ready to start coding?
+          </h2>
+          <p className="text-xl text-gray-400 mb-12">
+            Join developers who are already using our platform to
+            improve their coding skills.
+          </p>
+          <Button
+            size="lg"
+            onClick={handleGetStarted}
+            className="bg-teal-500 hover:bg-teal-600"
+          >
+            Get Started Now
+            <ArrowRight className="ml-2 w-4 h-4" />
+          </Button>
         </div>
       </section>
     </div>

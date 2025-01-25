@@ -3,7 +3,7 @@ import checkPermission from "../../../middlewares/checkPermission";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import logger from "../../../utils/logger";
 import { Context } from "hono";
-import assessmentController from "../../coding/assessmentController";
+import assessmentController from "../../code/assessmentController";
 
 const getDrives = async (c: Context) => {
   try {
@@ -144,7 +144,7 @@ const updateAssessment = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const newAssessment = await assessmentController.createAssessment(c);
+    const newAssessment = await assessmentController.createCodeAssessment(c);
     const { assessmentDriveName, driveId } = await c.req.json();
 
     const resp = await newAssessment.json();

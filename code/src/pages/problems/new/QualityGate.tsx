@@ -43,7 +43,7 @@ const QualityGate = ({
       transition={{ duration: 0.5 }}
       className=""
     >
-      <div className="flex items-center justify-center px-5 py-2 h-full flex-col gap-10">
+      <div className="flex items-center justify-center px-5 py-2 h-full flex-col gap-7">
         <h4>
           Quality Gate -{" "}
           <span className={`${value === 100 ? "text-success" : "text-danger"}`}>
@@ -105,10 +105,16 @@ const QualityGate = ({
           </p>
         </div>
 
+        {value !== 100 && (
+          <p className="text-danger">
+            A Quality Gate Scroll of 100 is required to submit the problem
+          </p>
+        )}
+
         <Button
           color="success"
           variant="flat"
-          disabled={value !== 100}
+          isDisabled={value !== 100}
           aria-label="Submit"
           onClick={onClickHandle}
         >

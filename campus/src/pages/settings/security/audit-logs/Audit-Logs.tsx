@@ -1,33 +1,181 @@
-import Sidebar from "../Sidebar";
+import React, { useEffect, useState } from "react";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  flexRender,
+  createColumnHelper,
+  SortingState,
+} from "@tanstack/react-table";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
-import { CircleAlert, CircleCheck, CircleX, Info } from "lucide-react";
 import { Input } from "@nextui-org/react";
-import { useAuth } from "@clerk/clerk-react";
-import ax from "@/config/axios";
-import { toast } from "sonner";
-import { useEffect, useState } from "react";
-import { Select, SelectSection, SelectItem } from "@nextui-org/react";
-import { AuditLog } from "@shared-types/Institute";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { ChevronUp, ChevronDown } from "lucide-react";
+import Sidebar from "../Sidebar";
+import { AuditLog } from "@shared-types/Organization";
+import { useOutletContext } from "react-router-dom";
+import { SettingsContext } from "@/types/SettingsContext";
 
-const AuditLogs = () => {
+// AuditLogsTable component
+const columnHelper = createColumnHelper<AuditLog>();
+
+const AuditLogsTable: React.FC<{ data: AuditLog[] }> = ({ data }) => {
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "date", desc: true },
+  ]);
+
+  const columns = [
+    columnHelper.accessor("date", {
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Timestamp
+          {column.getIsSorted() === "asc" ? (
+            <ChevronUp className="ml-2 h-4 w-4" />
+          ) : column.getIsSorted() === "desc" ? (
+            <ChevronDown className="ml-2 h-4 w-4" />
+          ) : null}
+        </Button>
+      ),
+      cell: (info) => new Date(info?.getValue() as Date).toLocaleString(),
+    }),
+    columnHelper.accessor("action", {
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Message
+          {column.getIsSorted() === "asc" ? (
+            <ChevronUp className="ml-2 h-4 w-4" />
+          ) : column.getIsSorted() === "desc" ? (
+            <ChevronDown className="ml-2 h-4 w-4" />
+          ) : null}
+        </Button>
+      ),
+    }),
+    columnHelper.accessor("user", {
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          User
+          {column.getIsSorted() === "asc" ? (
+            <ChevronUp className="ml-2 h-4 w-4" />
+          ) : column.getIsSorted() === "desc" ? (
+            <ChevronDown className="ml-2 h-4 w-4" />
+          ) : null}
+        </Button>
+      ),
+    }),
+    columnHelper.accessor("type", {
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Level
+          {column.getIsSorted() === "asc" ? (
+            <ChevronUp className="ml-2 h-4 w-4" />
+          ) : column.getIsSorted() === "desc" ? (
+            <ChevronDown className="ml-2 h-4 w-4" />
+          ) : null}
+        </Button>
+      ),
+      cell: (info) => (
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-semibold
+          ${info.getValue() === "info"
+              ? "bg-blue-100 text-blue-800"
+              : info.getValue() === "warning"
+                ? "bg-yellow-100 text-yellow-800"
+                : info.getValue() === "error"
+                  ? "bg-red-100 text-red-800"
+                  : "bg-green-100 text-green-800"
+            }`}
+        >
+          {info.getValue()}
+        </span>
+      ),
+    }),
+  ];
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
+
+  return (
+    <Table>
+      <TableHeader>
+        {table.getHeaderGroups().map((headerGroup) => (
+          <TableRow key={headerGroup.id}>
+            {headerGroup.headers.map((header) => (
+              <TableHead key={header.id}>
+                {header.isPlaceholder
+                  ? null
+                  : flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
+              </TableHead>
+            ))}
+          </TableRow>
+        ))}
+      </TableHeader>
+      <TableBody>
+        {table.getRowModel().rows?.length ? (
+          table.getRowModel().rows.map((row) => (
+            <TableRow
+              key={row.id}
+              data-state={row.getIsSelected() && "selected"}
+            >
+              {row.getVisibleCells().map((cell) => (
+                <TableCell key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))
+        ) : (
+          <TableRow>
+            <TableCell colSpan={columns.length} className="h-24 text-center">
+              No results.
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+  );
+};
+
+const AuditLogs: React.FC = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<AuditLog[]>([]);
+  const { organization, rerender } = useOutletContext() as SettingsContext;
 
-  const { getToken } = useAuth();
-  const axios = ax(getToken);
   useEffect(() => {
-    axios
-      .get("campus/settings")
-      .then((res) => {
-        setAuditLogs(res.data.data.auditLogs);
-        setFilteredLogs(res.data.data.auditLogs);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error("Error Fetching Settings");
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!organization?.auditLogs) return;
+    setAuditLogs(organization.auditLogs);
+    setFilteredLogs(organization.auditLogs);
+  }, [rerender]);
 
   const filterInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -42,10 +190,43 @@ const AuditLogs = () => {
     }
   };
 
+  // const exportToCSV = (logs: AuditLog[]) => {
+  //   const processData = logs.map(log => ({
+  //     Timestamp: log.date ? new Date(log.date).toLocaleString() : '',
+  //     Message: `"${log.action.replace(/"/g, '""')}"`,
+  //     User: log.user,
+  //     Level: log.type
+  //   }));
+
+  //   const header = ['Timestamp', 'Message', 'User', 'Level'];
+
+  //   const csvContent = [
+  //     header.join(','),
+  //     ...processData.map(row => [
+  //       row.Timestamp,
+  //       row.Message,
+  //       row.User,
+  //       row.Level
+  //     ].join(','))
+  //   ].join('\n');
+
+  //   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  //   const link = document.createElement('a');
+  //   const url = URL.createObjectURL(blob);
+  //   link.setAttribute('href', url);
+  //   link.setAttribute('download', `audit_logs_${new Date().toISOString().split('T')[0]}.csv`);
+  //   link.style.visibility = 'hidden';
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  // }
+
+
   return (
     <div>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
+          <BreadcrumbItem>{organization.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/security"}>Security</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/security/audit-logs"}>
@@ -55,74 +236,16 @@ const AuditLogs = () => {
       </div>
       <div className="flex p-5 gap-5 items-center h-[94vh]">
         <Sidebar />
-        <div className="h-[88vh] w-full overflow-y-auto pr-5">
-          <div className="flex gap-3">
-            <Input placeholder="Search Logs" onChange={filterInput} />
-            <Select
-              placeholder="Filter By Type"
-              onSelectionChange={(key) => {
-                if (key.currentKey === "All") {
-                  setFilteredLogs(auditLogs);
-                } else {
-                  setFilteredLogs(auditLogs.filter((log) => log.type === key.currentKey?.toLowerCase()));
-                }
-              }}
-            >
-              <SelectSection>
-                <SelectItem value="All" key={"All"}>
-                  All
-                </SelectItem>
-                <SelectItem value="Info" key={"Info"}>
-                  Info
-                </SelectItem>
-                <SelectItem value="Warning" key={"Warning"}>
-                  Warning
-                </SelectItem>
-                <SelectItem value="Error" key={"Error"}>
-                  Error
-                </SelectItem>
-                <SelectItem value="Success" key={"Success"}>
-                  Success
-                </SelectItem>
-              </SelectSection>
-            </Select>
-          </div>
-          {filteredLogs?.length === 0 && (
-            <p className="text-center mt-5">No Logs Found</p>
-          )}
-          {filteredLogs?.map((log) => (
-            <div
-              className={`flex border py-3 gap-3 px-5 mt-3 rounded-xl w-full relative items-center bg-opacity-10
-                ${log.type === "info"
-                  ? "bg-blue-500"
-                  : log.type === "warning"
-                    ? "bg-yellow-500"
-                    : log.type === "error"
-                      ? "bg-red-500"
-                      : log.type === "success"
-                        ? "bg-success-500"
-                        : ""
-                }
-                `}
-            >
-              {log.type === "info" && <Info className="text-blue-500" />}
-              {log.type === "warning" && (
-                <CircleAlert className="text-yellow-500" />
-              )}
-              {log.type === "error" && <CircleX className="text-red-500" />}
-              {log.type === "success" && (
-                <CircleCheck className="text-green-500" />
-              )}
 
-              <div>
-                <p>{log.action}</p>
-                <p className="text-xs opacity-50">User: {log.user}</p>
-              </div>
-              <p className="absolute right-5 text-xs opacity-50">
-                {log?.date ? new Date(log.date).toLocaleString() : ""}
-              </p>
-            </div>
-          ))}
+        <div className="h-[88vh] w-full overflow-y-auto pr-5">
+          <div className="flex gap-3 mb-4">
+            <Input placeholder="Search Logs" onChange={filterInput} />
+          </div>
+          {filteredLogs?.length === 0 ? (
+            <p className="text-center mt-5">No Logs Found</p>
+          ) : (
+            <AuditLogsTable data={filteredLogs} />
+          )}
         </div>
       </div>
     </div>

@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2020", // Ensure the output is ES2020
+    "module": "ESNext", // Use the modern module system
+    "moduleResolution": "node",
+    "declaration": true, // Generate type declarations
+    "outDir": "./dist", // Output directory for compiled code
+    "strict": true, // Enable strict type checking
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "lib": ["ES2020"], // Use ES2020 for library definitions, includes modern array methods
+    "allowJs": true // Allow JS files in TypeScript project
+  },
+  "exclude": ["node_modules"]
+}

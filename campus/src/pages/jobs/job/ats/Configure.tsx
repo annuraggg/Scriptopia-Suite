@@ -23,13 +23,13 @@ const Configure = () => {
       return;
     }
 
-    const driveId = window.location.pathname.split("/")[3];
+    const postingId = window.location.pathname.split("/")[2];
     try {
-      await axios.post("/drives/ats", {
+      await axios.post("/postings/ats", {
         minimumScore: threshold,
         negativePrompts: negativePrompts,
         positivePrompts: positivePrompts,
-        _id: driveId,
+        _id: postingId,
       });
 
       toast.success("Saved successfully");
@@ -46,9 +46,9 @@ const Configure = () => {
   return (
     <div className="flex items-center justify-center h-[100vh] flex-col p-10">
       <p className="text-xl">
-        ATS is enabled but not configured for this drive
+        ATS is enabled but not configured for this posting
       </p>
-      <p className="opacity-50 mt-2">Please configure ATS for this drive</p>
+      <p className="opacity-50 mt-2">Please configure ATS for this posting</p>
 
       <div className="flex items-center w-[70%] mt-10">
         <div className="w-full">
@@ -61,7 +61,7 @@ const Configure = () => {
           placeholder="In %"
           className="w-[50%]"
           value={threshold.toString()}
-          onChange={(e) => setThreshold(parseInt(e.target.value))}
+          onChange={(e) => setThreshold(parseInt(e.target.value) || 0)}
         />
       </div>
 

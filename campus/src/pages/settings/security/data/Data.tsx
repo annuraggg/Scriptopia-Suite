@@ -2,13 +2,16 @@ import Sidebar from "../Sidebar";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { TrashIcon } from "lucide-react";
 import { Button, Divider } from "@nextui-org/react";
+import { useOutletContext } from "react-router-dom";
+import { SettingsContext } from "@/types/SettingsContext";
 
 const Data = () => {
-
+  const { organization } = useOutletContext() as SettingsContext;
   return (
     <div>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
+          <BreadcrumbItem>{organization.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/security"}>Security</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/security/data"}>Data</BreadcrumbItem>
@@ -23,7 +26,7 @@ const Data = () => {
             <div className="flex gap-5 items-center">
               <TrashIcon />
               <div>
-                <p>Delete Institute</p>
+                <p>Delete Organization</p>
                 <p className="text-warning-500 opacity-70 text-sm">
                   Warning: This action cannot be undone
                 </p>

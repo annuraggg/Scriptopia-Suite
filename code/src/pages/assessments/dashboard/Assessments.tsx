@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
-import Dashboard from "./Dashboard";
 import AssessmentsTaken from "./AssessmentsTaken";
 import { useQueries } from "@tanstack/react-query";
 import ax from "@/config/axios";
@@ -10,7 +9,6 @@ import ErrorPage from "@/components/ErrorPage";
 import { useAuth } from "@clerk/clerk-react";
 import MCQAssess from "./MCQAssess";
 import CodeAssess from "./CodeAssess";
-import MCQCodeAssess from "./MCQCodeAssess";
 
 const Assessments = () => {
   const [active, setActive] = useState(0);
@@ -22,22 +20,16 @@ const Assessments = () => {
     queries: [
       {
         queryKey: ["taken-assessments"],
-        queryFn: async () => (await axios.get("/assessments/taken/1")).data,
+        queryFn: async () => (await axios.get("/assessments/mcq/taken")).data,
       },
       {
         queryKey: ["mcq-created-assessments"],
-        queryFn: async () =>
-          (await axios.get("/assessments/mcq/created/1")).data,
+        queryFn: async () => (await axios.get("/assessments/mcq/created")).data,
       },
       {
         queryKey: ["code-created-assessments"],
         queryFn: async () =>
-          (await axios.get("/assessments/code/created/1")).data,
-      },
-      {
-        queryKey: ["mcqcode-created-assessments"],
-        queryFn: async () =>
-          (await axios.get("/assessments/mcqcode/created/1")).data,
+          (await axios.get("/assessments/code/created")).data,
       },
     ],
   });
@@ -46,25 +38,29 @@ const Assessments = () => {
     const hash = window.location.hash;
     switch (hash) {
       case "#taken":
-        setActive(1);
+        setActive(0);
         break;
       case "#mcqcreated":
-        setActive(2);
+        setActive(1);
         break;
       case "#codecreated":
-        setActive(3);
-        break;
-      case "#mcqcodecreated":
-        setActive(4);
+        setActive(2);
         break;
       default:
         setActive(0);
     }
   }, []);
 
-  if (data[0].isLoading || data[1].isLoading || data[2].isLoading)
-    return <Loader />;
-  if (data[0].error || data[1].error || data[2].error) return <ErrorPage />;
+  const renderContent = () => {
+    if (data[active].isLoading) return <Loader />;
+    if (data[active].error) return <ErrorPage />;
+    if (active === 0)
+      return <AssessmentsTaken takenAssessments={data[0]?.data.data || []} />;
+    if (active === 1)
+      return <MCQAssess createdAssessments={data[1]?.data.data || []} />;
+    if (active === 2)
+      return <CodeAssess createdAssessments={data[2]?.data.data || []} />;
+  };
 
   return (
     <motion.div
@@ -75,19 +71,7 @@ const Assessments = () => {
     >
       <div className="h-full flex gap-5">
         <Sidebar active={active} setActive={setActive} />
-        {active === 0 && <Dashboard />}
-        {active === 1 && (
-          <AssessmentsTaken takenAssessments={data[0]?.data.data || []} />
-        )}
-        {active === 2 && (
-          <MCQAssess createdAssessments={data[1]?.data.data || []} />
-        )}
-        {active === 3 && (
-          <CodeAssess createdAssessments={data[2]?.data.data || []} />
-        )}
-        {active === 4 && (
-          <MCQCodeAssess createdAssessments={data[3]?.data.data || []} />
-        )}
+        {renderContent()}
       </div>
     </motion.div>
   );

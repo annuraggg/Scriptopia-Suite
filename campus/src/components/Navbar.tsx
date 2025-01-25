@@ -40,7 +40,7 @@ const Navbar = () => {
           </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-5">
-          <div className="hidden md:flex items-center gap-5">
+          <div className="hidden md:flex items-center gap-5 text-white">
             {links.map((link) => (
               <a
                 key={link.path}

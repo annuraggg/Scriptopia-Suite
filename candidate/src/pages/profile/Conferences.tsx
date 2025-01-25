@@ -13,43 +13,35 @@ import {
 } from "@nextui-org/react";
 import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
-import { CalendarDate, today } from "@internationalized/date";
+import { CalendarDate, parseDate, today } from "@internationalized/date";
 import { Plus, Edit2, Trash2, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { z } from "zod";
+import { Candidate, Conference } from "@shared-types/Candidate";
+import { useOutletContext } from "react-router-dom";
 
-// Types and Interfaces
-interface Conference {
-  id: string;
-  title: string;
-  organizer: string;
-  address: string;
-  date: CalendarDate;
-  description: string;
-}
-
-// Validation Schema
 const conferenceSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   organizer: z.string().min(2, "Organizer name must be at least 2 characters"),
-  address: z.string().min(5, "Please enter a valid address"),
-  date: z.instanceof(CalendarDate),
-  description: z
-    .string()
-    .max(1000, "Description cannot exceed 1000 characters"),
+  eventLocation: z.string().min(5, "Please enter a valid address"),
+  eventDate: z.string(),
+  link: z.string().optional(),
+  description: z.string().max(1000, "Description cannot exceed 1000 characters"),
 });
 
 const Conferences = () => {
-  // States
-  const [conferences, setConferences] = useState<Conference[]>([]);
-  const [currentConference, setCurrentConference] = useState<
-    Partial<Conference>
-  >({
+  const { user, setUser } = useOutletContext() as {
+    user: Candidate;
+    setUser: (user: Candidate) => void;
+  };
+
+  const [currentConference, setCurrentConference] = useState<Conference>({
     title: "",
     organizer: "",
-    address: "",
-    date: today("IST"),
+    eventLocation: "",
+    eventDate: today("IST").toString(),
+    link: "",
     description: "",
   });
   const [errors, setErrors] = useState<
@@ -60,7 +52,7 @@ const Conferences = () => {
 
   const validateField = (name: keyof Conference, value: any) => {
     try {
-      // @ts-expect-error - This is a dynamic field access
+      // @ts-expect-error
       conferenceSchema.shape[name].parse(value);
       setErrors((prev) => ({ ...prev, [name]: undefined }));
       return true;
@@ -74,11 +66,16 @@ const Conferences = () => {
   };
 
   const handleInputChange = (name: keyof Conference, value: any) => {
-    const sanitizedValue = typeof value === "string" ? value.trim() : value;
+    const sanitizedValue = name === "eventDate" && value instanceof CalendarDate 
+      ? value.toString() 
+      : typeof value === "string" 
+        ? value.trim() 
+        : value;
+    
     setCurrentConference((prev) => ({ ...prev, [name]: sanitizedValue }));
 
-    if (typeof value === "string") {
-      validateField(name, value);
+    if (typeof sanitizedValue === "string") {
+      validateField(name, sanitizedValue);
     }
   };
 
@@ -87,8 +84,9 @@ const Conferences = () => {
     setCurrentConference({
       title: "",
       organizer: "",
-      address: "",
-      date: today("IST"),
+      eventLocation: "",
+      eventDate: today("IST").toString(),
+      link: "",
       description: "",
     });
     setErrors({});
@@ -103,8 +101,8 @@ const Conferences = () => {
   };
 
   const handleDelete = (id: string) => {
-    setConferences((prev) => prev.filter((conf) => conf.id !== id));
-    toast.success("Conference deleted successfully");
+    const newConferences = user?.conferences?.filter((conf) => conf._id !== id);
+    setUser({ ...user, conferences: newConferences });
   };
 
   const handleSave = () => {
@@ -112,22 +110,16 @@ const Conferences = () => {
       conferenceSchema.parse(currentConference);
 
       if (isEditing) {
-        setConferences((prev) =>
-          prev.map((conf) =>
-            conf.id === currentConference.id
-              ? { ...(currentConference as Conference) }
-              : conf
-          )
+        const newConferences = user?.conferences?.map((conf) =>
+          conf._id === currentConference._id ? currentConference : conf
         );
-        toast.success("Conference updated successfully");
+        setUser({ ...user, conferences: newConferences });
       } else {
-        const newConference = {
-          ...currentConference,
-          id: Math.random().toString(36).substr(2, 9),
-        } as Conference;
+        const newConferences = user?.conferences
+          ? [...user.conferences, currentConference]
+          : [currentConference];
 
-        setConferences((prev) => [...prev, newConference]);
-        toast.success("Conference added successfully");
+        setUser({ ...user, conferences: newConferences });
       }
 
       onClose();
@@ -159,14 +151,12 @@ const Conferences = () => {
           className="p-5 rounded-xl"
         >
           <div className="flex justify-end items-center mb-6">
-            {conferences.length > 0 && (
-              <Button startContent={<Plus size={18} />} onClick={handleAdd}>
-                Add new
-              </Button>
-            )}
+            <Button startContent={<Plus size={18} />} onClick={handleAdd}>
+              Add new
+            </Button>
           </div>
 
-          {conferences.length === 0 ? (
+          {!user?.conferences?.length ? (
             <motion.div
               key="empty"
               initial={{ opacity: 0, y: 20 }}
@@ -192,18 +182,12 @@ const Conferences = () => {
               <p className="text-gray-500">
                 Start by adding your first conference!
               </p>
-              <Button
-                onClick={() => onOpen()}
-                startContent={<Plus size={18} />}
-              >
-                Add new
-              </Button>
             </motion.div>
           ) : (
             <div className="grid gap-4">
-              {conferences.map((conference) => (
+              {user.conferences.map((conference) => (
                 <motion.div
-                  key={conference.id}
+                  key={conference._id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="p-4 border rounded-lg"
@@ -212,8 +196,18 @@ const Conferences = () => {
                     <div>
                       <h3 className="font-medium">{conference.title}</h3>
                       <p className="text-small">{conference.organizer}</p>
-                      <p className="text-small">{conference.address}</p>
-                      <p className="text-small">{conference.date.toString()}</p>
+                      <p className="text-small">{conference.eventLocation}</p>
+                      <p className="text-small">{conference.eventDate}</p>
+                      {conference.link && (
+                        <p className="text-small">
+                          <a href={conference.link} target="_blank" rel="noopener noreferrer">
+                            Conference Link
+                          </a>
+                        </p>
+                      )}
+                      {conference.description && (
+                        <p className="text-small mt-2">{conference.description}</p>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <Button
@@ -227,7 +221,7 @@ const Conferences = () => {
                         isIconOnly
                         variant="light"
                         color="danger"
-                        onClick={() => handleDelete(conference.id)}
+                        onClick={() => handleDelete(conference._id || "")}
                       >
                         <Trash2 size={18} />
                       </Button>
@@ -274,19 +268,26 @@ const Conferences = () => {
                   />
                   <Input
                     label="Event Address"
-                    value={currentConference.address}
+                    value={currentConference.eventLocation}
                     onChange={(e) =>
-                      handleInputChange("address", e.target.value)
+                      handleInputChange("eventLocation", e.target.value)
                     }
-                    isInvalid={!!errors.address}
-                    errorMessage={errors.address}
+                    isInvalid={!!errors.eventLocation}
+                    errorMessage={errors.eventLocation}
                   />
                   <DateInput
                     label="Event Date"
-                    value={currentConference.date}
-                    onChange={(date) => handleInputChange("date", date)}
-                    isInvalid={!!errors.date}
-                    errorMessage={errors.date?.toString()}
+                    value={parseDate(currentConference.eventDate)}
+                    onChange={(date) => handleInputChange("eventDate", date)}
+                    isInvalid={!!errors.eventDate}
+                    errorMessage={errors.eventDate?.toString()}
+                  />
+                  <Input
+                    label="Conference Link (Optional)"
+                    value={currentConference.link}
+                    onChange={(e) => handleInputChange("link", e.target.value)}
+                    isInvalid={!!errors.link}
+                    errorMessage={errors.link}
                   />
                   <Textarea
                     label="Description"

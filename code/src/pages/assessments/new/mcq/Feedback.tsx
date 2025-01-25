@@ -50,6 +50,7 @@ const Feedback = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      className="h-[100vh]"
     >
       <p>Feedback</p>
       <p className="text-sm text-gray-400">
@@ -69,7 +70,7 @@ const Feedback = ({
         />
       </div>
       <Button
-        className="mt-5 absolute right-5 bottom-5"
+        className="mt-5 absolute bottom-10 right-0"
         color="success"
         variant="flat"
         onClick={handleClick}

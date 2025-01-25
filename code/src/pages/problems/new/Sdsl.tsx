@@ -3,29 +3,27 @@ import Monaco from "@/components/problem/Editor/Monaco";
 import { useState } from "react";
 import languages from "@/data/languages";
 import CustomSdsl from "./CustomSdsl";
-import { generateSdslCode } from "@/functions/sdsl";
+import { generateSdslCode } from "@shared-functions/sdsl";
 import {
   Modal,
   ModalContent,
   ModalBody,
   useDisclosure,
 } from "@nextui-org/react";
+import { CustomSDSL } from "@shared-types/Problem";
 
 type SupportedLanguages = "python" | "javascript" | "java";
-
-interface CodeState {
-  [key: string]: {
-    code: string;
-    lastEdited: Date;
-  };
-}
 
 const Sdsl = ({
   sdsl,
   setSdsl,
+  customCodeState,
+  setCustomCodeState,
 }: {
   sdsl: string;
   setSdsl: (sdsl: string) => void;
+  customCodeState: CustomSDSL[];
+  setCustomCodeState: React.Dispatch<React.SetStateAction<CustomSDSL[]>>;
 }) => {
   const [language, setLanguage] = useState<SupportedLanguages>("javascript");
   const [code, setCode] = useState("");
@@ -34,15 +32,6 @@ const Sdsl = ({
   const [errorMessage, setErrorMessage] = useState("");
   const [editorUpdateFlag, setEditorUpdateFlag] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
-
-  const [customCodeState, setCustomCodeState] = useState<CodeState>(() => ({
-    javascript: { code: "", lastEdited: new Date() },
-    python: { code: "", lastEdited: new Date() },
-    java: { code: "", lastEdited: new Date() },
-    c: { code: "", lastEdited: new Date() },
-    cpp: { code: "", lastEdited: new Date() },
-    typescript: { code: "", lastEdited: new Date() },
-  }));
 
   const handleModalClose = () => {
     onClose();
@@ -155,18 +144,19 @@ const Sdsl = ({
         </div>
       </div>
 
-      <Modal 
-        size="full" 
-        isOpen={isOpen} 
+      <Modal
+        size="full"
+        isOpen={isOpen}
         onClose={handleModalClose}
         hideCloseButton
       >
         <ModalContent>
           <ModalBody className="p-0">
-            <CustomSdsl 
-              onClose={handleModalClose} 
+            <CustomSdsl
+              onClose={handleModalClose}
               codeState={customCodeState}
               setCodeState={setCustomCodeState}
+              sdsl={sdsl}
             />
           </ModalBody>
         </ModalContent>

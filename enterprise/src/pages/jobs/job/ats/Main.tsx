@@ -33,8 +33,8 @@ const Main = ({ posting }: { posting: Posting }) => {
           (appliedPosting) => appliedPosting.postingId === posting._id
         );
         return {
-          _id: candidate._id,
-          name: candidate.firstName + " " + candidate.lastName,
+          _id: candidate._id || "",
+          name: candidate.name,
           email: candidate.email,
           received: new Date(
             currentPosting?.appliedAt || Date.now()

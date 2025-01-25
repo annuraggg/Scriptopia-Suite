@@ -130,7 +130,7 @@ const Grading = ({
                       ?.points?.toString()}
                     onChange={(e) => {
                       const value = parseInt(e.target.value, 10);
-                      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
+                      // @ts-expect-error - TS doesn't know that the value is a number
                       setQuestionsGrading((prev) => {
                         const exists = prev.find(
                           (q) => q.problemId === question._id

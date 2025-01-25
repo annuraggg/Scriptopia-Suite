@@ -30,7 +30,7 @@ export default {
     },
     extend: {
       boxShadow: {
-        'glow-primary': '0 0 15px rgba(var(--primary), 0.5)',
+        "glow-primary": "0 0 15px rgba(var(--primary), 0.5)",
       },
       dropShadow: {
         glow: [
@@ -48,6 +48,10 @@ export default {
         "glow-extralight": [
           "0 0px 1px rgba(255,255, 255, 0.1)",
           "0 0px 5px rgba(255, 255,255, 0.1)",
+        ],
+        "glow-red": [
+          "0 0px 30px rgba(255,0, 0, 0.75)",
+          "0 0px 65px rgba(255, 0,0, 0.2)",
         ],
       },
       colors: {
@@ -84,6 +88,9 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        default: {
+          100: "hsl(var(--input))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -106,15 +113,15 @@ export default {
           "40%, 60%": { transform: "translate3d(4px, 0, 0)" },
         },
         marquee: {
-          '0%': { transform: 'translateX(100%)' },
-          '100%': { transform: 'translateX(-100%)' },
-        }
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(-100%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         shake: "shake 0.82s cubic-bezier(.36,.07,.19,.97) both",
-        'marquee': 'marquee 15s linear infinite',
+        marquee: "marquee 15s linear infinite",
       },
     },
   },

@@ -1,97 +1,104 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@nextui-org/react";
 import Monaco from "@/components/problem/Editor/Monaco";
 import { Save, HelpCircle, X } from "lucide-react";
-
-interface Language {
-  id: string;
-  name: string;
-  icon: string;
-}
-
-interface CodeState {
-  [key: string]: {
-    code: string;
-    lastEdited: Date;
-  };
-}
-
+import { CustomSDSL } from "@shared-types/Problem";
+import { generateSdslCode } from "@shared-functions/sdsl";
+import allLanguages, { Language } from "@/data/languages";
 interface CustomSdslEditorProps {
   onClose?: () => void;
-  codeState: CodeState;
-  setCodeState: React.Dispatch<React.SetStateAction<CodeState>>;
+  codeState: CustomSDSL[];
+  setCodeState: React.Dispatch<React.SetStateAction<CustomSDSL[]>>;
+  sdsl: string;
 }
-
-const languages: Language[] = [
-  {
-    id: "javascript",
-    name: "JavaScript",
-    icon: "JS",
-  },
-  {
-    id: "python",
-    name: "Python",
-    icon: "PY",
-  },
-  {
-    id: "c",
-    name: "C",
-    icon: "C",
-  },
-  {
-    id: "cpp",
-    name: "C++",
-    icon: "C++",
-  },
-  {
-    id: "typescript",
-    name: "TypeScript",
-    icon: "TS",
-  },
-];
 
 const CustomSdslEditor = ({
   onClose,
   codeState,
   setCodeState,
+  sdsl,
 }: CustomSdslEditorProps) => {
-  const [selectedLanguage, setSelectedLanguage] = useState<string>(
-    languages[0].id
-  );
+  const [languages, setLanguages] = useState<Language[]>([]);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("js");
   const [showTooltip, setShowTooltip] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState<Record<string, string>>(
+    {}
+  );
+
+  // Generate code for all languages on component mount
+  useEffect(() => {
+    const genCodeForAllLanguages = () => {
+      console.log("Generating code for all languages");
+      const generated: Record<string, string> = {};
+      languages.forEach((lang) => {
+        const code = generateSdslCode(sdsl, lang.abbr)?.code || "";
+        if (code) {
+          generated[lang.abbr] = code;
+        }
+      });
+      setGeneratedCode(generated);
+    };
+
+    genCodeForAllLanguages();
+  }, [sdsl]);
+
+  useEffect(() => {
+    const languages = allLanguages.filter((lang) => lang.available);
+    setLanguages(languages);
+  }, []);
 
   const handleLanguageChange = (langId: string) => {
-    setCodeState((prev: CodeState) => ({
-      ...prev,
-      [selectedLanguage]: {
-        ...prev[selectedLanguage],
-        lastEdited: new Date(),
-      },
-    }));
     setSelectedLanguage(langId);
   };
 
   const handleCodeChange = (newCode: string) => {
-    setCodeState((prev: CodeState) => ({
-      ...prev,
-      [selectedLanguage]: {
-        code: newCode,
-        lastEdited: new Date(),
-      },
-    }));
+    // Remove from generated code if it exists
+    console.log(codeState);
+    if (generatedCode[selectedLanguage]) {
+      const newGeneratedCode = { ...generatedCode };
+      delete newGeneratedCode[selectedLanguage];
+      setGeneratedCode(newGeneratedCode);
+    }
+
+    // Update in codeState
+    const existingCodeIndex = codeState.findIndex(
+      (stub) => stub.language === selectedLanguage
+    );
+
+    if (existingCodeIndex !== -1) {
+      const newCodeState = [...codeState];
+      newCodeState[existingCodeIndex] = {
+        ...newCodeState[existingCodeIndex],
+        stub: newCode,
+      };
+      setCodeState(newCodeState);
+    } else {
+      setCodeState([
+        ...codeState,
+        {
+          language: selectedLanguage,
+          stub: newCode,
+        },
+      ]);
+    }
   };
 
   const handleSave = () => {
-    console.log("Saving all code states:", codeState);
     onClose?.();
   };
 
+  // Get current code - first check codeState, then fallback to generated code
+  const currentCode =
+    codeState.find((stub) => stub.language === selectedLanguage)?.stub ||
+    generatedCode[selectedLanguage] ||
+    "";
+
   return (
     <div className="flex h-full min-h-screen bg-background flex-col">
-      <div className="p-4 border-b border-border flex justify-between items-center">
-        <div className="flex items-center gap-2 relative">
+      <div className="p-4 flex justify-between items-center">
+        <div className="flex justify-center items-center gap-2 relative">
           <h1 className="text-xl font-semibold">
-            Custom Scriptopia Code Language (SCL) Builder
+            Custom Scriptopia Domain Specific Language (SDSL) Builder
           </h1>
           <div
             className="relative inline-block"
@@ -113,6 +120,7 @@ const CustomSdslEditor = ({
             )}
           </div>
         </div>
+
         <div className="flex gap-2">
           <Button onClick={handleSave} color="primary" className="gap-2">
             <Save size={16} />
@@ -125,24 +133,38 @@ const CustomSdslEditor = ({
         </div>
       </div>
 
+      <p className="text-sm my-2 px-3">
+        Learn more about custom SDSL{" "}
+        <span
+          className="underline cursor-pointer text-warning-500"
+          onClick={() =>
+            window.open(
+              "https://docs.scriptopia.tech/creating-a-problem/writing-the-sdsl-code-stub"
+            )
+          }
+        >
+          Here
+        </span>
+      </p>
+
       <div className="flex flex-1">
         <div className="w-64 border-r border-border bg-card p-4">
           <p className="text-m font-light text-gray-300 mb-4">Languages</p>
           <div className="space-y-8">
             {languages.map((lang) => (
               <Button
-                key={lang.id}
-                variant={selectedLanguage === lang.id ? "flat" : "light"}
+                key={lang.abbr}
+                variant={selectedLanguage === lang.abbr ? "flat" : "light"}
                 className={`w-full justify-start gap-3 h-12 rounded-md ${
-                  selectedLanguage === lang.id
+                  selectedLanguage === lang.abbr
                     ? "text-primary font-light"
                     : "text-gray-500 font-normal"
                 }`}
-                onClick={() => handleLanguageChange(lang.id)}
+                onClick={() => handleLanguageChange(lang.abbr)}
               >
-                <div className="w-8 h-8 flex items-center justify-center rounded bg-muted">
+                <div className="w-8 h-8 flex items-center justify-center rounded">
                   <img
-                    src={lang.icon}
+                    src={`/languages/${lang.abbr}.png` as string}
                     alt={`${lang.name} Icon`}
                     className="w-6 h-6"
                   />
@@ -156,7 +178,7 @@ const CustomSdslEditor = ({
         <div className="flex-1 flex flex-col">
           <div className="flex-1 p-4">
             <Monaco
-              code={codeState[selectedLanguage]?.code || ""}
+              code={currentCode}
               setCode={handleCodeChange}
               language={selectedLanguage}
               readOnly={false}

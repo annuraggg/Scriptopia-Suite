@@ -29,12 +29,6 @@ const atsSchema = new Schema({
   },
 });
 
-const autoSchema = new Schema({
-  step: { type: Number, required: true },
-  start: { type: Date, required: true },
-  end: { type: Date, required: true },
-});
-
 const workflowStepSchema = new Schema({
   name: { type: String, required: true },
   type: {
@@ -44,7 +38,7 @@ const workflowStepSchema = new Schema({
   },
   stepId: {
     type: mongoose.Types.ObjectId,
-    required: true,
+    required: false,
     default: new mongoose.Types.ObjectId(),
   },
 });
@@ -52,8 +46,6 @@ const workflowStepSchema = new Schema({
 const workflowSchema = new Schema({
   steps: { type: [workflowStepSchema] },
   currentStep: { type: Number, required: true },
-  behavior: { type: String, enum: ["manual", "auto"], required: true },
-  auto: { type: [autoSchema] },
 });
 
 const salarySchema = new Schema({ min: Number, max: Number, currency: String });
@@ -70,15 +62,23 @@ const assessmentSchema = new Schema({
   stepId: { type: mongoose.Types.ObjectId, required: true },
 });
 
+const additionalFieldConfigSchema = new Schema(
+  {
+    required: { type: Boolean, required: true },
+    allowEmpty: { type: Boolean, required: true },
+  },
+  { _id: false }
+);
+
 const postingSchema = new Schema({
   organizationId: { type: mongoose.Types.ObjectId, ref: "Organization" },
   title: { type: String, required: true },
-  description: { type: String, required: true },
+  description: { type: Object, required: true },
   department: { type: mongoose.Types.ObjectId, ref: "Department" },
   location: { type: String, required: true },
   type: {
     type: String,
-    enum: ["full_time", "part_time", "internship"],
+    enum: ["full_time", "part_time", "internship", "contract", "temporary"],
     required: true,
   },
   url: { type: String },
@@ -86,7 +86,6 @@ const postingSchema = new Schema({
   salary: { type: salarySchema, required: true },
   workflow: { type: workflowSchema },
   applicationRange: { type: { start: Date, end: Date }, required: true },
-  qualifications: { type: String, required: true },
   assignments: { type: [assignmentSchema], ref: "Assignment" },
   skills: [{ type: String, required: true }],
 
@@ -95,6 +94,44 @@ const postingSchema = new Schema({
   interview: { type: interviewSchema },
 
   candidates: { type: [mongoose.Types.ObjectId], ref: "Candidate" },
+  additionalDetails: {
+    type: {
+      basic: {
+        summary: { type: additionalFieldConfigSchema },
+      },
+      links: {
+        socialLinks: { type: additionalFieldConfigSchema },
+      },
+      background: {
+        education: { type: additionalFieldConfigSchema },
+        workExperience: { type: additionalFieldConfigSchema },
+      },
+      skills: {
+        technicalSkills: { type: additionalFieldConfigSchema },
+        languages: { type: additionalFieldConfigSchema },
+        subjects: { type: additionalFieldConfigSchema },
+      },
+      experience: {
+        responsibilities: { type: additionalFieldConfigSchema },
+        projects: { type: additionalFieldConfigSchema },
+      },
+      achievements: {
+        awards: { type: additionalFieldConfigSchema },
+        certificates: { type: additionalFieldConfigSchema },
+        competitions: { type: additionalFieldConfigSchema },
+      },
+      professional: {
+        conferences: { type: additionalFieldConfigSchema },
+        patents: { type: additionalFieldConfigSchema },
+        scholarships: { type: additionalFieldConfigSchema },
+      },
+      activities: {
+        volunteerings: { type: additionalFieldConfigSchema },
+        extraCurriculars: { type: additionalFieldConfigSchema },
+      },
+    },
+    required: false,
+  },
 
   published: { type: Boolean, default: false },
   publishedOn: { type: Date },

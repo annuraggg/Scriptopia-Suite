@@ -30,6 +30,7 @@ import { Problem as VanillaProblem } from "@shared-types/Problem";
 import { Problem as ProblemAssessment } from "@shared-types/Assessment";
 import { Key } from "react";
 import { Delta } from "quill/core";
+import Candidates from "./Candidates";
 
 interface Problem extends VanillaProblem {
   description: Delta;
@@ -40,10 +41,16 @@ const tabsList = [
   "Languages",
   "Problems",
   "Grading",
+  "Candidates",
   "Instructions",
   "Security",
   "Feedback",
 ];
+
+interface Candidate {
+  name: string;
+  email: string;
+}
 
 const New = () => {
   const [activeTab, setActiveTab] = useState("0");
@@ -57,6 +64,8 @@ const New = () => {
     start: today(getLocalTimeZone()),
     end: today(getLocalTimeZone()).add({ weeks: 1 }),
   });
+  const [focusedValue, setFocusedValue] = useState(today(getLocalTimeZone()));
+
   const [startTime, setStartTime] = useState<TimeInputValue>(
     parseAbsoluteToLocal(new Date().toISOString())
   );
@@ -82,6 +91,9 @@ const New = () => {
   const [questionsGrading, setQuestionsGrading] = useState<ProblemAssessment[]>(
     []
   );
+
+  const [access, setAccess] = useState("all");
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
 
   // Instructions Tab States
   const [instructions, setInstructions] = useState("");
@@ -142,13 +154,8 @@ const New = () => {
     rangeEnd.setMinutes(endTime.minute);
 
     const reqBody = {
-      assessmentpostingName: assessmentName,
-      postingId: postingId,
-      step: stepParam,
-      isEnterprise: true,
       name: assessmentName,
       description: assessmentDescription,
-      type: "code",
       timeLimit,
       passingPercentage,
       openRange: { start: rangeStart, end: rangeEnd },
@@ -158,9 +165,8 @@ const New = () => {
         gradingMetric === "testcase"
           ? { type: "testcase", testcases: testCaseGrading }
           : { type: "problem", problem: questionsGrading },
-      candidates: {
-        type: "all",
-      },
+      candidates: candidates,
+      public: access === "all",
       instructions,
       security: {
         codePlayback,
@@ -191,7 +197,7 @@ const New = () => {
         .finally(() => setSubmitting(false));
     } else {
       axios
-        .post("/assessments", reqBody)
+        .post("/assessments/code", reqBody)
         .then(() => {
           toast.success("Assessment created successfully");
         })
@@ -225,6 +231,8 @@ const New = () => {
         setStartTime,
         endTime,
         setEndTime,
+        focusedValue,
+        setFocusedValue,
       }}
     />,
     <Languages {...{ selectedLanguages, setSelectedLanguages }} />,
@@ -250,6 +258,7 @@ const New = () => {
         setQuestionsGrading,
       }}
     />,
+    <Candidates {...{ access, setAccess, candidates, setCandidates }} />,
     <Instructions {...{ instructions, setInstructions, errors: {} }} />,
     <Security
       {...{

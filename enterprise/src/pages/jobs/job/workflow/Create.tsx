@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import {
   FileText,
   Code,
-  MonitorPlay,
+  // MonitorPlay,
   Edit2,
   Trash,
   Combine,
@@ -59,7 +59,7 @@ const Create = () => {
     { icon: Code, label: "Code Assessment" },
     { icon: Combine, label: "MCQ + Code Assessment" },
     { icon: Book, label: "Assignment" },
-    { icon: MonitorPlay, label: "Interview" },
+    // { icon: MonitorPlay, label: "Interview" },
   ];
 
   const dragStart = (e: React.DragEvent<HTMLDivElement>, label: string) => {

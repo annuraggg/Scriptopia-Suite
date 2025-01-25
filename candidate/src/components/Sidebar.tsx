@@ -9,6 +9,8 @@ import {
   LucideIcon,
   User,
   FileText,
+  ClockAlert,
+  Briefcase,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { UserButton } from "@clerk/clerk-react";
@@ -42,6 +44,18 @@ const Sidebar = () => {
       link: "/resume",
       visible: true,
     },
+    {
+      icon: Briefcase,
+      label: "Jobs",
+      link: "/jobs",
+      visible: true,
+    },
+    {
+      icon: ClockAlert,
+      label: "Alerts",
+      link: "/alerts",
+      visible: true
+    }
   ];
 
   const bottomItems: SidebarProps[] = [
@@ -102,7 +116,7 @@ const Sidebar = () => {
                       : "text-muted-foreground opacity-50 hover:text-white"
                   } `}
                   onClick={() => {
-                    navigate(item.link);
+                    navigate("/dashboard"+ item.link);
                     setActive(item.label.toLowerCase());
                   }}
                 >
@@ -133,7 +147,7 @@ const Sidebar = () => {
                       : "text-muted-foreground opacity-50 hover:text-white"
                   } `}
                   onClick={() => {
-                    navigate(item.link);
+                    navigate("/dashboard" + item.link);
                     setActive(item.label.toLowerCase());
                   }}
                 >

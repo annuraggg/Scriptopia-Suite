@@ -9,12 +9,11 @@ import { useState } from "react";
 import { ChevronDownIcon, ChevronUpIcon, TrashIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion"; // @ts-expect-error - Types Not Available
 import toPlaintext from "quill-delta-to-plaintext";
-import { Problem as VanillaProblem} from "@shared-types/Problem";
+import { Problem as VanillaProblem } from "@shared-types/Problem";
 import { Delta } from "quill/core";
 
 interface Problem extends VanillaProblem {
-  _id: string;
-  description: Delta
+  description: Delta;
 }
 
 const Questions = ({

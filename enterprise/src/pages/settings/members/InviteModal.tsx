@@ -25,7 +25,7 @@ const InviteModal = ({
   roles: Role[];
 }) => {
   const [email, setEmail] = useState<string>("");
-  const [selectedRole, setSelectedRole] = useState<Role>({} as Role);
+  const [selectedRole, setSelectedRole] = useState<string>(roles[0]?.slug);
   const [error, setError] = useState<string>("");
 
   const handleInvite = () => {
@@ -34,7 +34,7 @@ const InviteModal = ({
       return;
     }
 
-    if (!selectedRole || !selectedRole.name) {
+    if (!selectedRole) {
       setError("Please select a role.");
       return;
     }
@@ -46,9 +46,9 @@ const InviteModal = ({
       addedOn: currentDate,
       status: "pending",
     });
-    
+
     setEmail("");
-    setSelectedRole(roles[0]);
+    setSelectedRole(roles[0].slug);
     setError("");
     onOpenChange(false);
   };
@@ -81,19 +81,16 @@ const InviteModal = ({
               <Select
                 label="Role"
                 placeholder="Select a role"
-                selectedKeys={selectedRole ? [selectedRole.name] : []}
+                selectedKeys={[selectedRole]}
                 onChange={(e) => {
                   const selectedKey = e.target.value;
-                  const role = roles.find((r) => r.name === selectedKey);
-                  setSelectedRole(role || ({} as Role));
-                }}
-                classNames={{
-                  trigger: "",
-                  label: "text-gray-600",
+                  const role = roles.find((r) => r?.slug === selectedKey);
+                  if (!role) return;
+                  setSelectedRole(role?.slug);
                 }}
               >
                 {roles.map((role) => (
-                  <SelectItem key={role.name} value={role.name}>
+                  <SelectItem key={role?.slug} value={role?.slug}>
                     {role.name}
                   </SelectItem>
                 ))}

@@ -11,14 +11,17 @@ const Workflow = () => {
 
   return (
     <div>
-      {(!posting?.workflow?.steps?.length && !create) && <Blank setCreate={setCreate} />}
-      {(!posting.workflow?.steps?.length && create) && <Create />}
+      {!posting?.workflow?.steps?.length && !create && (
+        <Blank setCreate={setCreate} />
+      )}
+      {!posting.workflow?.steps?.length && create && <Create />}
 
-      {posting?.workflow?.steps?.length && 
-      <Show 
-      workflowData={posting?.workflow?.steps} 
-      postingTitle={posting?.title}
-      behavior={posting?.workflow?.behavior}  />}
+      {posting?.workflow?.steps?.length && (
+        <Show
+          workflowData={posting?.workflow?.steps}
+          postingTitle={posting?.title}
+        />
+      )}
     </div>
   );
 };
