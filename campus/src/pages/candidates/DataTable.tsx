@@ -123,7 +123,7 @@ export function DataTable<TData>({ data = [] }: DataTableProps<TData>) {
             variant="light"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Received On
+            Received !
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );

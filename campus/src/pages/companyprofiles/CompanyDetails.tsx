@@ -27,6 +27,8 @@ import {
 import { motion } from 'framer-motion';
 import Filter from './Filter';
 
+import { CompanyTable } from './CompanyTable';
+
 const SORT_OPTIONS = {
     NEWEST: 'newest',
     OLDEST: 'oldest',
@@ -70,10 +72,8 @@ interface Student {
     year: string;
     status: 'placed' | 'pending' | 'rejected';
     package?: number;
-}
-
-interface StudentCardProps {
-    student: Student;
+    email?: string;
+    phone?: string;
 }
 
 // Custom Hooks
@@ -204,40 +204,6 @@ const useFilteredStudents = (
                     : a.year.localeCompare(b.year)
             );
     }, [students, searchTerm, filter, activeFilters, sort]);
-};
-
-// Components
-const StudentCard = ({ student }: StudentCardProps) => {
-    return (
-        <Card className="bg-default-50">
-            <CardBody>
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h3 className="font-semibold">{student.name}</h3>
-                        <p className="text-small text-default-500">
-                            {student.department} • {student.year}
-                        </p>
-                    </div>
-                    <Chip
-                        color={
-                            student.status === 'placed'
-                                ? 'success'
-                                : student.status === 'pending'
-                                    ? 'warning'
-                                    : 'danger'
-                        }
-                    >
-                        {student.status}
-                    </Chip>
-                </div>
-                {student.package && (
-                    <p className="mt-2 text-default-500">
-                        Package: {formatCurrency(student.package)}
-                    </p>
-                )}
-            </CardBody>
-        </Card>
-    );
 };
 
 // Main Component
@@ -442,38 +408,16 @@ export default function CompanyDetails() {
                             />
                         </div>
                         <div className="w-3/4">
-                            <div className="flex justify-between items-center mb-6">
-                                <div className="flex gap-4 items-center w-full">
-                                    <Select
-                                        className="w-[200px]"
-                                        selectedKeys={[sort]}
-                                        onChange={(e) => setSort(e.target.value as typeof SORT_OPTIONS.NEWEST | typeof SORT_OPTIONS.OLDEST)}
-                                    >
-                                        <SelectItem key={SORT_OPTIONS.NEWEST}>Newest First</SelectItem>
-                                        <SelectItem key={SORT_OPTIONS.OLDEST}>Oldest First</SelectItem>
-                                    </Select>
-
-                                    <Input
-                                        className="flex-1"
-                                        placeholder="Search Students"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        startContent={<Search className="text-default-400" size={20} />}
-                                    />
-                                </div>
+                            <div className="flex items-center gap-4 mb-6">
+                                <Input
+                                    className="w-full"
+                                    placeholder="Search Students"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    startContent={<Search className="text-default-400" size={20} />}
+                                />
                             </div>
-
-                            <div className="space-y-4">
-                                {filteredStudents.length > 0 ? (
-                                    filteredStudents.map((student) => (
-                                        <StudentCard key={student.id} student={student} />
-                                    ))
-                                ) : (
-                                    <div className="text-center text-default-500 py-8">
-                                        No students match your search criteria
-                                    </div>
-                                )}
-                            </div>
+                            <CompanyTable data={filteredStudents} />
                         </div>
                     </div>
                 </Tab>

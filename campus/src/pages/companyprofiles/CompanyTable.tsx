@@ -40,7 +40,7 @@ interface DataTableProps<TData> {
   data: TData[];
 }
 
-export function DataTable<TData>({ data = [] }: DataTableProps<TData>) {
+export function CompanyTable<TData>({ data = [] }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pageIndex, setPageIndex] = useState(0);
