@@ -66,14 +66,12 @@ interface CompanyDetail {
 }
 
 interface Student {
-    id: string;
     name: string;
+    id: string;
     department: string;
+    placed: string;   
+    package?: string;
     year: string;
-    status: 'placed' | 'pending' | 'rejected';
-    package?: number;
-    email?: string;
-    phone?: string;
 }
 
 // Custom Hooks
@@ -157,13 +155,29 @@ const useStudentData = () => {
             try {
                 setStudents([
                     {
-                        id: '1',
-                        name: 'John Doe',
-                        department: 'Computer Science',
-                        year: '2024',
-                        status: 'placed',
-                        package: 1100000
+                        id: '22204003',
+                        name: 'John C',
+                        department: 'Computer Engineering',
+                        placed: '2024',
+                        package: '₹12.5L',
+                        year: '2024'
                     },
+                    {
+                        id: '22204007',
+                        name: 'AJ Styles',
+                        department: 'Information Technology',
+                        placed: '2023',
+                        package: '₹10.0L',
+                        year: '2024'
+                    },
+                    {
+                        id: '22204016',
+                        name: 'Randy Orton',
+                        department: 'CSE-AIML',
+                        placed: '2022',
+                        package: '₹15.0L',
+                        year: '2024'
+                    }
                 ]);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An error occurred');
@@ -190,7 +204,7 @@ const useFilteredStudents = (
             .filter((student) => {
                 const matchesSearch = !searchTerm ||
                     student.name.toLowerCase().includes(searchTerm.toLowerCase());
-                const matchesFilter = filter === 'all' || student.status === filter;
+                const matchesFilter = filter === 'all' || student.placed === filter;
                 const matchesYear = !activeFilters.year ||
                     student.year === activeFilters.year;
                 const matchesDepartment = !activeFilters.departments.length ||
@@ -399,7 +413,7 @@ export default function CompanyDetails() {
                 </Tab>
 
                 {/* Students Tab */}
-                <Tab key="students" title="Student Details">
+                <Tab key="students" title="Candidate Details">
                     <div className="flex gap-8 mt-5">
                         <div className="w-1/4">
                             <Filter
@@ -408,15 +422,6 @@ export default function CompanyDetails() {
                             />
                         </div>
                         <div className="w-3/4">
-                            <div className="flex items-center gap-4 mb-6">
-                                <Input
-                                    className="w-full"
-                                    placeholder="Search Students"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    startContent={<Search className="text-default-400" size={20} />}
-                                />
-                            </div>
                             <CompanyTable data={filteredStudents} />
                         </div>
                     </div>
