@@ -199,29 +199,13 @@ export function DataTable<TData>({ data = [] }: DataTableProps<TData>) {
           </Button>
         </div>
         <Input
-          placeholder="Filter emails..."
+          placeholder="Search..."
           value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("email")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />{" "}
-        <Select
-          onChange={(event) => {
-            if (event.target.value === "all") {
-              table.getColumn("status")?.setFilterValue(undefined);
-            } else {
-              table.getColumn("status")?.setFilterValue(event.target.value);
-            }
-          }}
-          size="sm"
-          className="max-w-sm"
-        >
-          <SelectItem key="all">All</SelectItem>
-          <SelectItem key="qualified">Qualified</SelectItem>
-          <SelectItem key="disqualified">Disqualified</SelectItem>
-          <SelectItem key="hired">Hired</SelectItem>
-        </Select>
       </div>
       <Table className="mt-5">
         <TableHeader>

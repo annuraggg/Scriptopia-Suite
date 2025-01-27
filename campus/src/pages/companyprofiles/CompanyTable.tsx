@@ -47,10 +47,11 @@ export function CompanyTable<TData>({ data = [] }: DataTableProps<TData>) {
 
   interface Candidates {
     name: string;
-    email: string;
+    id: string;
     received: string;
     match: string;
-  }
+    package: string;
+}
 
   // @ts-expect-error - data is not assignable to type TData[]
   const exactTextFilter = (rows, id, filterValue) => {
@@ -102,47 +103,61 @@ export function CompanyTable<TData>({ data = [] }: DataTableProps<TData>) {
       },
     },
     {
-      accessorKey: "email",
+      accessorKey: "id",
       header: ({ column }) => {
         return (
           <Button
             variant="light"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Email
+            Student ID
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
     },
     {
-      accessorKey: "received",
+      accessorKey: "department",
       header: ({ column }) => {
         return (
           <Button
             variant="light"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Received On
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Status
+            Department
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
       filterFn: exactTextFilter,
+    },
+    {
+      accessorKey: "placed",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="light"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Placed On
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+    },
+    {
+      accessorKey: "package",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="light"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Package
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
     },
     {
       id: "actions",
