@@ -1,14 +1,12 @@
 import "./App.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-
-import Meet from "./pages/meet/Meet";
-
+import MeetV3 from "./pages/v3/Main";
 
 function App() {
   const router = createBrowserRouter([
     {
-      path: "/:id/:name",
-      element: <Meet />,
+      path: "/v3/:id",
+      element: <MeetV3 />,
     },
   ]);
 
