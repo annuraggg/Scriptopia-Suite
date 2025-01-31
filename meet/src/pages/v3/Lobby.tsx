@@ -3,7 +3,7 @@ import { Button, Input, Radio, RadioGroup } from "@nextui-org/react";
 import { useEffect, useState } from "react";
 
 interface LobbyProps {
-  setup: (userId: string, userToken: string) => void;
+  setup: (userId: string, userToken: string, role: "host" | "guest") => Promise<void>;
 }
 
 const Lobby = ({ setup }: LobbyProps) => {
@@ -15,7 +15,7 @@ const Lobby = ({ setup }: LobbyProps) => {
   const streamApiKey = import.meta.env.VITE_STREAM_API_SECRET as string;
 
   useEffect(() => {
-    const id = Math.random().toString(36).substr(2, 9);
+    const id = new URLSearchParams(window.location.search).get("id") || "";
     setId(id);
   }, []);
 
@@ -30,11 +30,10 @@ const Lobby = ({ setup }: LobbyProps) => {
       localStorage.setItem("streamUserId", id);
       localStorage.setItem("streamUserToken", token);
       localStorage.setItem("streamUserName", name);
-      setup(id, token);
+      await setup(id, token, role);
     } catch (error) {
       console.error("Error joining room:", error);
       setIsJoining(false);
-      alert("Failed to join room. Please try again.");
     }
   };
 
