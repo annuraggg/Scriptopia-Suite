@@ -1,7 +1,6 @@
 import "./App.css";
 import { Suspense, lazy, useEffect } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { Spinner } from "@nextui-org/react";
 import { useDispatch } from "react-redux";
 import { setOrganization } from "./reducers/organizationReducer";
 import {
@@ -11,6 +10,7 @@ import {
   useUser,
 } from "@clerk/clerk-react";
 import CreateJob from "./pages/jobs/create/CreateJob";
+import Loader from "./components/Loader";
 
 // Lazy load components
 const Lander = lazy(() => import("./pages/lander/Lander"));
@@ -82,13 +82,6 @@ const AuditLogs = lazy(
 const OrgData = lazy(() => import("./pages/settings/security/data/Data"));
 
 const StartOnboarding = lazy(() => import("./pages/onboarding/start/Start"));
-
-// Loader component for Suspense fallback
-const Loader = () => (
-  <div className="spinner-container">
-    <Spinner label="Loading..." color="default" />
-  </div>
-);
 
 function App() {
   const { user, isSignedIn } = useUser();
@@ -254,6 +247,112 @@ function App() {
           ),
         },
         {
+          path: "jobs/:id",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <JobLayout />
+            </Suspense>
+          ),
+          children: [
+            {
+              path: "dashboard",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <JobDashboard />
+                </Suspense>
+              ),
+            },
+            {
+              path: "workflow",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Workflow />
+                </Suspense>
+              ),
+            },
+            {
+              path: "ats",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Ats />
+                </Suspense>
+              ),
+            },
+            {
+              path: "candidates",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <JobCandidates />
+                </Suspense>
+              ),
+            },
+            {
+              path: "assessments",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Assessments />
+                </Suspense>
+              ),
+            },
+            {
+              path: "assessments/:id/view",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <ViewAssessment />
+                </Suspense>
+              ),
+            },
+            {
+              path: "assessments/:id/view/:candId",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <ViewUserAssessment />
+                </Suspense>
+              ),
+            },
+            {
+              path: "assessments/new/:type",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Selector />
+                </Suspense>
+              ),
+            },
+            {
+              path: "assignments",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Assignments />
+                </Suspense>
+              ),
+            },
+            {
+              path: "assignments/:id",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <ViewAssignment />
+                </Suspense>
+              ),
+            },
+            {
+              path: "assignments/new",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <NewAssignment />
+                </Suspense>
+              ),
+            },
+            {
+              path: "interviews",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Interviews />
+                </Suspense>
+              ),
+            },
+          ],
+        },
+        {
           path: "jobs/create",
           element: (
             <Suspense fallback={<Loader />}>
@@ -306,112 +405,6 @@ function App() {
           element: (
             <Suspense fallback={<Loader />}>
               <Support />
-            </Suspense>
-          ),
-        },
-      ],
-    },
-    {
-      path: "jobs/:id",
-      element: (
-        <Suspense fallback={<Loader />}>
-          <JobLayout />
-        </Suspense>
-      ),
-      children: [
-        {
-          path: "dashboard",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <JobDashboard />
-            </Suspense>
-          ),
-        },
-        {
-          path: "workflow",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Workflow />
-            </Suspense>
-          ),
-        },
-        {
-          path: "ats",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Ats />
-            </Suspense>
-          ),
-        },
-        {
-          path: "candidates",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <JobCandidates />
-            </Suspense>
-          ),
-        },
-        {
-          path: "assessments",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Assessments />
-            </Suspense>
-          ),
-        },
-        {
-          path: "assessments/:id/view",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <ViewAssessment />
-            </Suspense>
-          ),
-        },
-        {
-          path: "assessments/:id/view/:candId",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <ViewUserAssessment />
-            </Suspense>
-          ),
-        },
-        {
-          path: "assessments/new/:type",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Selector />
-            </Suspense>
-          ),
-        },
-        {
-          path: "assignments",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Assignments />
-            </Suspense>
-          ),
-        },
-        {
-          path: "assignments/:id",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <ViewAssignment />
-            </Suspense>
-          ),
-        },
-        {
-          path: "assignments/new",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <NewAssignment />
-            </Suspense>
-          ),
-        },
-        {
-          path: "interviews",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Interviews />
             </Suspense>
           ),
         },

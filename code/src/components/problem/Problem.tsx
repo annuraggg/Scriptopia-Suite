@@ -15,7 +15,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Button, Card, CardBody } from "@nextui-org/react";
+import { Button, Card, CardBody, Spinner } from "@nextui-org/react";
 import { CpuIcon, TimerIcon } from "lucide-react";
 import { Submission } from "@shared-types/Submission";
 import { useAuth } from "@clerk/clerk-react";
@@ -88,7 +88,7 @@ const Problem = ({
     return axios
       .post("/submissions/run", { code, language, problemId: problem._id })
       .then((res) => {
-        console.log(res.data.data)
+        console.log(res.data.data);
         setOutputCases(
           res.data.data.results.filter((r: { isSample: boolean }) => r.isSample)
         );
@@ -204,7 +204,12 @@ const Problem = ({
     })();
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Spinner />
+      </div>
+    );
 
   return (
     <>

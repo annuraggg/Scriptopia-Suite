@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardHeader, Chip } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Chip, Spinner } from "@nextui-org/react";
 import {
   Sheet,
   SheetContent,
@@ -69,7 +69,9 @@ const Questions: React.FC<QuestionsProps> = ({
       <div className="flex flex-col gap-4 mt-5">
         <AnimatePresence>
           {isLoading ? (
-            "Loading..."
+            <div className="flex items-center justify-center h-full">
+              <Spinner />
+            </div>
           ) : (
             <>
               {selectedQuestions.map((question, index) => (
