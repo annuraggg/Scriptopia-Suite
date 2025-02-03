@@ -1,7 +1,7 @@
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { NextUIProvider } from "@nextui-org/react";
+import { HeroUIProvider } from "@heroui/react";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { Toaster } from "sonner";
 import { Provider } from "react-redux";
@@ -16,7 +16,7 @@ if (!publishableKey) {
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <ThemeProvider defaultTheme="light" storageKey="ui-theme">
-    <NextUIProvider>
+    <HeroUIProvider>
       <Provider store={store}>
         <ClerkProvider publishableKey={publishableKey}>
           <Toaster richColors theme="light" />
@@ -24,6 +24,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <App />
         </ClerkProvider>
       </Provider>
-    </NextUIProvider>
+    </HeroUIProvider>
   </ThemeProvider>
 );

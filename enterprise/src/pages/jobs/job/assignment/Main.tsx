@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader } from "@nextui-org/react";
+import { Card, CardBody, CardHeader } from "@heroui/react";
 import { Posting } from "@shared-types/Posting";
 import { ChevronRight } from "lucide-react";
 import { useNavigate, useOutletContext } from "react-router-dom";

@@ -8,7 +8,7 @@ import {
   TableCell,
   Checkbox,
   Button,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { motion } from "framer-motion";
 import { ChevronRight, Info } from "lucide-react";
 import { AdditionalDetails as AdditionalDetailsType } from "@shared-types/Posting";

@@ -1,5 +1,5 @@
 import { Role } from "@shared-types/Organization";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 
 const Sidebar = ({
   builtInRoles,

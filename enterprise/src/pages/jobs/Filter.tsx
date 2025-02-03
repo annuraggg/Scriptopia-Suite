@@ -5,7 +5,7 @@ import {
   Select,
   SelectItem,
   Checkbox,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Department } from "@shared-types/Organization";
 
 interface FilterProps {

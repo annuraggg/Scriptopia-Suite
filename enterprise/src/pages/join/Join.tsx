@@ -8,7 +8,7 @@ import {
   CardFooter,
   CardHeader,
   CircularProgress,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { HeartCrack, Link } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";

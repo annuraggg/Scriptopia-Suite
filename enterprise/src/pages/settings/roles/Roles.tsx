@@ -1,9 +1,9 @@
 import Sidebar from "./Sidebar";
-import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
+import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { Role } from "@shared-types/Organization";
-import { Card, CardBody, Checkbox, Input } from "@nextui-org/react";
+import { Card, CardBody, Checkbox, Input } from "@heroui/react";
 import { useOutletContext } from "react-router-dom";
 import { SettingsContext } from "@/types/SettingsContext";
 

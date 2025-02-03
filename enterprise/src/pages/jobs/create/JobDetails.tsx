@@ -1,12 +1,12 @@
 import {
   Button,
-  DateRangePicker,
   Input,
   Select,
   SelectItem,
   DateValue,
   RangeValue,
-} from "@nextui-org/react";
+} from "@heroui/react";
+import { DateRangePicker } from "@heroui/date-picker";
 import TagsInput from "react-tagsinput";
 import "react-tagsinput/react-tagsinput.css";
 import ReactQuill from "react-quill";
@@ -211,7 +211,12 @@ const JobDetails = ({
           <DateRangePicker
             className="w-[500px]"
             value={applicationRange}
-            onChange={setApplicationRange}
+            aria-label="Application Range"
+            label="Application Range"
+            onChange={(e) => {
+              if (!e) return;
+              setApplicationRange({ start: e?.start, end: e?.end });
+            }}
           />
         </div>
       </div>

@@ -5,7 +5,7 @@ import {
   CardBody,
   CardFooter,
   CardHeader,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Eye, Link } from "lucide-react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { Assessment } from "@shared-types/Assessment";

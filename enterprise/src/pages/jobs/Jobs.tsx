@@ -18,7 +18,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import {
   ListIcon,

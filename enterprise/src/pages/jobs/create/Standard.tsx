@@ -1,13 +1,13 @@
 import { useRef, useState } from "react";
-import { FileText, Code, Edit2, Trash, Book, Copy } from "lucide-react";
+import { FileText, Code, Edit2, Trash, Book, Copy, MonitorPlay } from "lucide-react";
 import {
   Button,
   Chip,
   DateValue,
   Switch,
   TimeInputValue,
-} from "@nextui-org/react";
-import { Tooltip } from "@nextui-org/react";
+} from "@heroui/react";
+import { Tooltip } from "@heroui/react";
 import { motion, Reorder } from "framer-motion"; // Added framer-motion for animation
 
 interface Component {
@@ -47,7 +47,7 @@ const Create = ({
     { icon: Code, label: "Code Assessment" },
     // { icon: Combine, label: "MCQ + Code Assessment" },
     { icon: Book, label: "Assignment" },
-    // { icon: MonitorPlay, label: "Interview" },
+    { icon: MonitorPlay, label: "Interview" },
   ];
 
   const dragStart = (e: React.DragEvent<HTMLDivElement>, label: string) => {

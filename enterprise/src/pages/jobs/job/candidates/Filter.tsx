@@ -7,7 +7,7 @@ import {
     SelectItem,
     Checkbox,
     Chip
-} from '@nextui-org/react';
+} from "@heroui/react";
 import { ArrowDownWideNarrow } from 'lucide-react';
 
 const Filter: React.FC = () => {

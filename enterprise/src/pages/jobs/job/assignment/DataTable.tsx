@@ -28,8 +28,8 @@ import {
   X,
   Users,
 } from "lucide-react";
-import { Tooltip } from "@nextui-org/tooltip";
-import { Button, Input, Checkbox } from "@nextui-org/react";
+import { Tooltip } from "@heroui/tooltip";
+import { Button, Input, Checkbox } from "@heroui/react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";

@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader, Tabs, Tab } from "@nextui-org/react";
+import { Card, CardBody, CardHeader, Tabs, Tab } from "@heroui/react";
 import { Assignment, Posting } from "@shared-types/Posting";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";

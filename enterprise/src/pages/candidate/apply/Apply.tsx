@@ -3,7 +3,7 @@ import ContactInfo from "./ContactInfo";
 import Resume from "./Resume";
 import AdditionalQuestions from "./AdditionalQuestions";
 import Review from "./Review";
-import { Card, Progress, Button } from "@nextui-org/react";
+import { Card, Progress, Button } from "@heroui/react";
 
 import {
   CircleUserIcon,

@@ -1,5 +1,5 @@
 import { useAuth } from "@clerk/clerk-react";
-import { Button, Checkbox, Divider, Input, TimeInput } from "@nextui-org/react";
+import { Button, Checkbox, Divider, Input, TimeInput } from "@heroui/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import ax from "@/config/axios";

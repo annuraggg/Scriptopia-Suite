@@ -9,7 +9,7 @@ import {
   Input,
   Select,
   SelectItem,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Member } from "@shared-types/Organization";
 import { Role } from "@shared-types/Organization";
 

@@ -15,7 +15,7 @@ import {
   Progress,
   Select,
   SelectItem,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   BarChart,
   Bar,

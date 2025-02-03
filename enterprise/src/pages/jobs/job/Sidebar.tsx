@@ -2,8 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Badge } from "@nextui-org/badge";
-import { Button, Tooltip, Skeleton } from "@nextui-org/react";
+import { Badge } from "@heroui/badge";
+import { Button, Tooltip, Skeleton } from "@heroui/react";
 import type { Posting } from "@shared-types/Posting";
 import {
   IconLayoutDashboard,
@@ -21,7 +21,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@heroui/react";
 
 interface SidebarProps {
   posting: Posting;

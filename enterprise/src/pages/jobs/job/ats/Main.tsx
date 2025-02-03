@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { Card, CardBody, CardHeader, Input, Textarea } from "@nextui-org/react";
+import { Card, CardBody, CardHeader, Input, Textarea } from "@heroui/react";
 import { SelectionChart } from "./SelectionChart";
-import { Tabs, Tab } from "@nextui-org/react";
+import { Tabs, Tab } from "@heroui/react";
 import { DataTable } from "./DataTable";
 import { Posting } from "@shared-types/Posting";
 import { useEffect, useState } from "react";

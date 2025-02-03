@@ -1,4 +1,4 @@
-import { Button, Card } from "@nextui-org/react";
+import { Button, Card } from "@heroui/react";
 
 const prices = [
   { name: "Quaterly", price: 24.99, monthly: 8.33 },

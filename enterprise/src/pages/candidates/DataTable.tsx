@@ -26,14 +26,14 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-} from "@nextui-org/dropdown";
+} from "@heroui/dropdown";
 import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
 } from "lucide-react";
-import { Button, Checkbox, Input, Select, SelectItem } from "@nextui-org/react";
+import { Button, Checkbox, Input, Select, SelectItem } from "@heroui/react";
 import { useState } from "react";
 
 interface DataTableProps<TData> {

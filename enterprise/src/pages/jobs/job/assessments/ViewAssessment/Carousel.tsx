@@ -5,7 +5,7 @@ import {
   CardHeader,
   Pagination,
   Textarea,
-} from "@nextui-org/react";
+} from "@heroui/react";
 
 interface MCQ {
   question: string;
@@ -26,7 +26,7 @@ const Carousel = ({
   setIndex: React.Dispatch<React.SetStateAction<number>>;
 }) => {
   return (
-    <div className="w-full flex items-center justify-center flex-col gap-5 mb-3">
+    (<div className="w-full flex items-center justify-center flex-col gap-5 mb-3">
       <Card className="w-full border drop-shadow-sm min-h-[25vh]">
         <CardHeader className="flex-col justify-start items-start px-6">
           {mcqs[index - 1].grade > 0 && (
@@ -54,7 +54,7 @@ const Carousel = ({
           {mcqs[index - 1]?.type === "multiple" ||
           mcqs[index - 1]?.type === "checkbox" ? (
             // @ts-expect-error - Fix this
-            <ToggleGroup
+            (<ToggleGroup
               type={mcqs[index - 1]?.type === "multiple" ? "single" : "multiple"}
               value={
                 mcqs[index - 1]?.type === "multiple"
@@ -78,7 +78,7 @@ const Carousel = ({
                   )
                 )}
               </div>
-            </ToggleGroup>
+            </ToggleGroup>)
           ) : (
             <Textarea value={mcqs[index - 1]?.selected[0]} readOnly rows={3} />
           )}
@@ -91,7 +91,7 @@ const Carousel = ({
         page={index}
         onChange={setIndex}
       />
-    </div>
+    </div>)
   );
 };
 

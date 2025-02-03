@@ -30,8 +30,8 @@ import {
   UserX,
   Users,
 } from "lucide-react";
-import { Tooltip } from "@nextui-org/tooltip";
-import { Button, Checkbox, Input } from "@nextui-org/react";
+import { Tooltip } from "@heroui/tooltip";
+import { Button, Checkbox, Input } from "@heroui/react";
 import { useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";

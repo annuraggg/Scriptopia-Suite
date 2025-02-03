@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 
 import tca from "tailwindcss-animate";
-import { nextui } from "@nextui-org/react";
+import { heroui } from "@heroui/react";
 
 export default {
   darkMode: ["class"],
@@ -10,7 +10,7 @@ export default {
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
-    "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
   prefix: "",
   theme: {
@@ -125,5 +125,5 @@ export default {
       },
     },
   },
-  plugins: [tca, nextui()],
+  plugins: [tca, heroui()],
 };

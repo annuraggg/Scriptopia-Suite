@@ -17,7 +17,7 @@ import {
   Divider,
   TimeInput,
   TimeInputValue,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   Modal,
   ModalContent,
@@ -25,9 +25,9 @@ import {
   ModalBody,
   Tooltip,
   ModalFooter,
-} from "@nextui-org/react";
-import { Switch } from "@nextui-org/switch";
-import { DatePicker } from "@nextui-org/react";
+} from "@heroui/react";
+import { Switch } from "@heroui/switch";
+import { DatePicker } from "@heroui/react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";

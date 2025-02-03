@@ -16,7 +16,7 @@ import {
   Link,
   Tooltip,
   ScrollShadow,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   Briefcase,
   DollarSign,

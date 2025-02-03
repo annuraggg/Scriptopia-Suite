@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { MemberWithPermission as MWP } from "@shared-types/MemberWithPermission";
 import { OrganizationWithPostings as OWP } from "@/types/RootContext";
 import { Menu } from "lucide-react";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import { AnimatePresence, motion } from "framer-motion";
 
 const Layout = () => {

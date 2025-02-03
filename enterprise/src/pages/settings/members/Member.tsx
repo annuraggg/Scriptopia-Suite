@@ -10,9 +10,9 @@ import {
   Tabs,
   Select,
   SelectItem,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import InviteModal from "./InviteModal";
-import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
+import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
 import { Member } from "@shared-types/Organization";
 import {
   Modal,
@@ -22,7 +22,7 @@ import {
   ModalFooter,
   Button,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useOutletContext } from "react-router-dom";
 import { SettingsContext } from "@/types/SettingsContext";
 
