@@ -1,11 +1,5 @@
 import { motion } from "framer-motion";
-import {
-  Button,
-  Card,
-  CardBody,
-  CardFooter,
-  CardHeader,
-} from "@heroui/react";
+import { Button, Card, CardBody, CardFooter, CardHeader } from "@heroui/react";
 import { Eye, Link } from "lucide-react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { Assessment } from "@shared-types/Assessment";
@@ -28,12 +22,14 @@ const CodeAssess = ({
   const { posting } = useOutletContext() as { posting: Posting };
 
   const calculateStatus = (createdAssessment: Assessment) => {
-    const currentStep = posting.workflow?.currentStep || 0;
-    if (!posting?.workflow?.steps || !posting?.workflow?.steps[currentStep])
+    const currentStep = posting.workflow?.steps?.findIndex(
+      (step) => !step.completed
+    );
+    if (currentStep === undefined || !posting?.workflow?.steps || !posting?.workflow?.steps[currentStep])
       return "Inactive";
 
-    const currentStepId = posting?.workflow?.steps[currentStep].stepId;
-    if (currentStepId?.toString() !== createdAssessment._id.toString()) {
+    const currentStepId = posting?.workflow?.steps[currentStep]._id;
+    if (currentStepId?.toString() !== createdAssessment?._id?.toString()) {
       return "Inactive";
     }
 
@@ -82,14 +78,16 @@ const CodeAssess = ({
                 <Button
                   className="w-[48%] flex items-center justify-center text-xs gap-3"
                   variant="flat"
-                  onClick={() => navigate(`${CreatedAssessment._id}/view`)}
+                  onClick={() =>
+                    navigate(`${CreatedAssessment._id ?? ""}/view`)
+                  }
                 >
                   <Eye size={18} /> <p>View</p>
                 </Button>
                 <Button
                   className="w-[48%] flex items-center justify-center text-xs gap-3"
                   variant="flat"
-                  onClick={() => copyLink(CreatedAssessment._id)}
+                  onClick={() => copyLink(CreatedAssessment._id ?? "")}
                 >
                   <Link size={18} /> <p>Copy Link</p>
                 </Button>

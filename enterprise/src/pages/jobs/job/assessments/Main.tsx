@@ -5,7 +5,6 @@ import ax from "@/config/axios";
 import { useAuth } from "@clerk/clerk-react";
 import MCQAssess from "./MCQAssess";
 import CodeAssess from "./CodeAssess";
-import MCQCodeAssess from "./MCQCodeAssess";
 import { toast } from "sonner";
 import { Assessment } from "@shared-types/Assessment";
 
@@ -81,7 +80,6 @@ const Assessments = () => {
         <Sidebar active={active} setActive={setActive} />
         {active === 0 && <MCQAssess createdAssessments={data.mcqCreatedAssessments || []} />}
         {active === 1 && <CodeAssess createdAssessments={data.codeCreatedAssessments || []} />}
-        {active === 2 && <MCQCodeAssess createdAssessments={data.mcqCodeCreatedAssessments || []} />}
       </div>
     </motion.div>
   );

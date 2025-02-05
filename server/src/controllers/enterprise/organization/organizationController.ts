@@ -306,7 +306,9 @@ const getSettings = async (c: Context) => {
 
     for (const member of org?.members) {
       if (!member.user) continue;
-      const user = await clerkClient.users.getUser(member?.user || "");
+      const user = await clerkClient.users.getUser(
+        member?.user?.toString() || ""
+      );
       const role = org.roles.find((r: any) => (r as Role).slug === member.role);
 
       // @ts-expect-error - Converting string to User
@@ -325,7 +327,9 @@ const getSettings = async (c: Context) => {
 
         const data = await r2Client.send(command);
         const buffer = await data.Body?.transformToByteArray();
-        const base64 = Buffer.from(buffer as ArrayBuffer).toString("base64");
+        const base64 = Buffer.from(buffer as unknown as ArrayBuffer).toString(
+          "base64"
+        );
         org.logo = `data:image/png;base64,${base64}`;
       }
     } catch (e) {
@@ -484,11 +488,11 @@ const updateGeneralSettings = async (c: Context) => {
     if (name !== org.name) {
       for (const member of org.members) {
         if (!member.user) continue;
-        const u = await clerkClient.users.getUser(member.user);
+        const u = await clerkClient.users.getUser(member.user.toString());
         const publicMetadata = u.publicMetadata;
         publicMetadata.orgName = name;
 
-        await clerkClient.users.updateUser(member.user, {
+        await clerkClient.users.updateUser(member.user.toString(), {
           publicMetadata,
         });
       }
@@ -958,7 +962,9 @@ const getOrganization = async (c: Context): Promise<Response> => {
     ];
 
     const [selectedOrg, userDetails] = await Promise.all([
-      Organization.findById(org._id).populate("postings").select(fieldsToSelect.join(" ")),
+      Organization.findById(org._id)
+        .populate("postings")
+        .select(fieldsToSelect.join(" ")),
       User.findOne({ clerkId: member.user }).lean(),
     ]);
 

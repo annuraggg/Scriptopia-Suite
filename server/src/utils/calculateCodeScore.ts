@@ -1,9 +1,9 @@
 import Problem from "@/models/Problem";
 import { CodeAssessment } from "@shared-types/CodeAssessment";
-import { ProblemSubmissionSchema } from "@shared-types/CodeAssessmentSubmission";
+import { ProblemSubmission } from "@shared-types/CodeAssessmentSubmission";
 
 const getCodeScore = async (
-  problemSubmissions: ProblemSubmissionSchema[],
+  problemSubmissions: ProblemSubmission[],
   assessment: CodeAssessment
 ) => {
   let total = 0;
@@ -34,7 +34,7 @@ const getCodeScore = async (
       for (const testCase of problemDoc.testCases) {
         if (!testCase?._id?.toString()) continue;
 
-        const passed = submission.results.find(
+        const passed = submission?.results?.find(
           (result) =>
             result.caseId === testCase?._id?.toString() &&
             result.passed &&
@@ -65,12 +65,12 @@ const getCodeScore = async (
       if (!gradingProblemObj) continue;
 
       // Check if all non-sample test cases passed
-      const nonSampleResults = submission.results.filter(
+      const nonSampleResults = submission?.results?.filter(
         (result) => !result.isSample
       );
 
       const allPassed =
-        nonSampleResults.length > 0 &&
+        nonSampleResults && nonSampleResults.length > 0 &&
         nonSampleResults.every((result) => result.passed);
 
       if (allPassed) {

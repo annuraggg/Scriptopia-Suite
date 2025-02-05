@@ -97,12 +97,12 @@ export default function Home() {
     return `${symbol}${min.toLocaleString()} - ${symbol}${max.toLocaleString()}`;
   };
 
-  const isPostingExpired = (endDate: string) => {
-    return new Date(endDate) < new Date();
+  const isPostingExpired = (endDate: Date) => {
+    return endDate < new Date();
   };
 
   const getTimeUntilDeadline = (endDate: string) => {
-    if (isPostingExpired(endDate)) {
+    if (isPostingExpired(new Date(endDate))) {
       return "Expired";
     }
     const now = new Date();
@@ -201,7 +201,7 @@ export default function Home() {
           posting={{
             _id: selectedPosting._id,
             title: selectedPosting.title,
-            additionalDetails: selectedPosting.additionalDetails,
+            additionalDetails: selectedPosting.additionalDetails as { [category: string]: { [field: string]: { required: boolean; allowEmpty: boolean; }; }; } | undefined,
           }}
           onClose={() => setShowApplication(false)}
           onSubmit={async (formData) => {
@@ -394,7 +394,7 @@ export default function Home() {
                             : "text-default-500"
                         }`}
                       >
-                        {getTimeUntilDeadline(posting.applicationRange.end)}
+                        {getTimeUntilDeadline(posting.applicationRange.end.toString())}
                       </p>
                       <p className="text-sm text-default-400">
                         {posting.openings} opening

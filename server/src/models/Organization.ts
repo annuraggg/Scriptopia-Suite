@@ -33,18 +33,20 @@ const departmentsSchema = new Schema({
   description: { type: String, required: true },
 });
 
-const auditLogSchema = new Schema({
-  action: { type: String, required: true },
-  user: { type: String, required: true },
-  userId: { type: String, required: true },
-  date: { type: Date, default: Date.now },
-  type: {
-    type: String,
-    enum: ["info", "warning", "error", "success"],
-    default: "info",
-    required: true,
+const auditLogSchema = new Schema(
+  {
+    action: { type: String, required: true },
+    user: { type: String, required: true },
+    userId: { type: String, required: true },
+    type: {
+      type: String,
+      enum: ["info", "warning", "error", "success"],
+      default: "info",
+      required: true,
+    },
   },
-});
+  { timestamps: true }
+);
 
 const subscriptionSchema = new Schema({
   type: {

@@ -1,10 +1,13 @@
+// ! FIX THIS FILE
+// @ts-nocheck
 import Posting from "../../../models/Posting";
 import checkPermission from "../../../middlewares/checkOrganizationPermission";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import { Context } from "hono";
 import { Posting as PostingType, WorkflowStep } from "@shared-types/Posting";
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
-import { AppliedPosting, Candidate } from "@shared-types/Candidate";
+import { Candidate } from "@shared-types/Candidate";
+import { AppliedPosting } from "@shared-types/AppliedPosting";
 import loops from "@/config/loops";
 import Organization from "@/models/Organization";
 import { Assessment } from "@shared-types/Assessment";

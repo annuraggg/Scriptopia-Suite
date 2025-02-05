@@ -48,7 +48,6 @@ export interface McqProps {
 const isPosting = new URLSearchParams(window.location.search).get("isPosting");
 const postingId = new URLSearchParams(window.location.search).get("postingId");
 const step = new URLSearchParams(window.location.search).get("step");
-const returnUrl = new URLSearchParams(window.location.search).get("returnUrl");
 
 const tabsList = [
   "General",

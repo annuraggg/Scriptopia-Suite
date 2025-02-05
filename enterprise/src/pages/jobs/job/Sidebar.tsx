@@ -132,20 +132,20 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
 
     let totalCompleted = 0;
     steps.forEach((step) => {
-      if (step.type === "rs" && posting?.ats) totalCompleted++;
+      if (step.type === "RESUME_SCREENING" && posting?.ats) totalCompleted++;
       if (
-        ["ca", "mcqa", "mcqca"].includes(step.type) &&
-        posting?.assessments?.some((a) => a.assessmentId === step.stepId)
+        ["CODE_ASSESSMENT", "MCQ_ASSESSMENT",].includes(step.type) &&
+        posting?.assessments?.some((a) => a.assessmentId === step?._id)
       ) {
         totalCompleted++;
       }
       if (
-        step.type === "as" &&
-        posting?.assignments?.some((a) => a._id === step.stepId)
+        step.type === "ASSIGNMENT" &&
+        posting?.assignments?.some((a) => a._id === step?._id)
       ) {
         totalCompleted++;
       }
-      if (step.type === "pi" && posting?.interview) totalCompleted++;
+      if (step.type === "INTERVIEW" && posting?.interview) totalCompleted++;
     });
 
     return totalCompleted === steps.length ? 1 : 0;

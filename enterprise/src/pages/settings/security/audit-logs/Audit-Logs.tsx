@@ -33,7 +33,7 @@ const AuditLogsTable: React.FC<{ data: AuditLog[] }> = ({ data }) => {
   ]);
 
   const columns = [
-    columnHelper.accessor("date", {
+    columnHelper.accessor("createdAt", {
       header: ({ column }) => (
         <Button
           variant="ghost"

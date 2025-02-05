@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@nextui-org/react";
 import Monaco from "@/components/problem/Editor/Monaco";
 import { Save, HelpCircle, X } from "lucide-react";
-import { CustomSDSL } from "@shared-types/Problem";
+import { CustomStub as CustomSDSL } from "@shared-types/Problem";
 import { generateSdslCode } from "@shared-functions/sdsl";
 import allLanguages, { Language } from "@/data/languages";
 interface CustomSdslEditorProps {

@@ -27,7 +27,7 @@ const Configure = ({ posting }: { posting: Posting }) => {
 
       {posting?.workflow?.steps?.map((step, index: number) => (
         <>
-          {step.type === "as" && (
+          {step.type === "ASSIGNMENT" && (
             <Card className="w-[50%] mt-3">
               <CardBody className="flex flex-row items-center justify-between">
                 <div>

@@ -32,6 +32,9 @@ const ProblemSchema = new mongoose.Schema(
     sdsl: { type: [String], required: true },
     customStubs: { type: [customStubSchema], required: false },
     testCases: { type: [testCaseSchema], required: true },
+
+    successfulSubmissions: { type: Number, default: [] },
+    acceptanceRate: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

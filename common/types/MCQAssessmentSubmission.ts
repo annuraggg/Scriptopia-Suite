@@ -1,24 +1,29 @@
 interface Offense {
+  _id?: string;
   tabChange?: number;
   copyPaste?: number;
 }
 
 interface McqSubmission {
+  _id?: string;
   mcqId: string;
   selectedOptions: string[];
 }
 
 interface ObtainedMcqGrade {
+  _id?: string;
   mcqId: string;
   obtainedMarks: number;
 }
 
 interface ObtainedGrade {
+  _id?: string;
   mcq?: ObtainedMcqGrade[];
   total: number;
 }
 
 interface MCQAssessmentSubmission {
+  _id?: string;
   assessmentId: string;
   status?: "in-progress" | "completed";
   name: string;
@@ -29,8 +34,8 @@ interface MCQAssessmentSubmission {
   sessionRewindUrl?: string;
   obtainedGrades?: ObtainedGrade;
   cheatingStatus?: "No Copying" | "Light Copying" | "Heavy Copying";
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type {

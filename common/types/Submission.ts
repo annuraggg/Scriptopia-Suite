@@ -1,4 +1,5 @@
 interface Result {
+  _id?: string;
   caseNo: number;
   caseId: string;
   output: string;
@@ -10,11 +11,13 @@ interface Result {
 }
 
 interface DriverMeta {
+  _id?: string;
   driver: string;
   timestamp: Date;
 }
 
 interface Submission {
+  _id?: string;
   problem?: string;
   user?: string;
   code: string;
@@ -25,8 +28,8 @@ interface Submission {
   failedCaseNumber: number;
   results: Result[];
   meta: DriverMeta;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type { Result, DriverMeta, Submission };

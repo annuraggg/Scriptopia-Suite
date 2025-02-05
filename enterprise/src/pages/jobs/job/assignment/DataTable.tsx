@@ -78,11 +78,13 @@ function DataTable<TData>({
     });
     setGrades(initialGrades);
 
-    setCurrentStepId(posting?.workflow?.currentStep as number);
+    setCurrentStepId(
+      posting?.workflow?.steps?.findIndex((step) => step.completed === false) ?? -1
+    );
     const stepId = window.location.pathname.split("/")[4];
     if (!posting?.workflow?.steps) return;
     const step = posting?.workflow?.steps.findIndex(
-      (step) => step.stepId === stepId
+      (step) => step._id === stepId
     );
     setAssessmentStepId(step);
   }, [data]);
@@ -331,7 +333,7 @@ function DataTable<TData>({
                 variant="flat"
                 color="danger"
                 onClick={() => disqualifyCandidate(_id)}
-                isDisabled={currentStepId !== assessmentStepId }
+                isDisabled={currentStepId !== assessmentStepId}
               >
                 <X />
               </Button>

@@ -1,11 +1,13 @@
 interface Notification {
+  _id?: string;
   title: string;
   description: string;
   date: Date;
   read: boolean;
 }
 
-interface Members {
+interface Member {
+  _id?: string;
   user?: string;
   email: string;
   role: string;
@@ -14,7 +16,8 @@ interface Members {
   status: "pending" | "active";
 }
 
-interface Roles {
+interface Role {
+  _id?: string;
   name: string;
   slug: string;
   default: boolean;
@@ -22,20 +25,24 @@ interface Roles {
   permissions: string[];
 }
 
-interface Departments {
+interface Department {
+  _id?: string;
   name: string;
   description: string;
 }
 
 interface AuditLog {
+  _id?: string;
   action: string;
   user: string;
   userId: string;
-  date: Date;
   type: "info" | "warning" | "error" | "success";
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface Subscription {
+  _id?: string;
   type: "quarterly" | "annual" | "trial";
   status: "active" | "inactive";
   startedOn: Date;
@@ -43,27 +50,28 @@ interface Subscription {
 }
 
 interface Organization {
+  _id?: string;
   name: string;
   email: string;
   website: string;
   logo?: string;
-  members: Members[];
-  roles: Roles[];
-  departments: Departments[];
+  members: Member[];
+  roles: Role[];
+  departments: Department[];
   auditLogs: AuditLog[];
   subscription: Subscription;
   candidates?: string[];
   postings?: string[];
   isDeleted: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type {
   Notification,
-  Members,
-  Roles,
-  Departments,
+  Member,
+  Role,
+  Department,
   AuditLog,
   Subscription,
   Organization,

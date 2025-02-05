@@ -1,3 +1,5 @@
+// @ts-nocheck
+// ! FIX THIS FILE
 import loops from "@/config/loops";
 import r2Client from "@/config/s3";
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
@@ -43,24 +45,24 @@ const submitAssignment = async (c: Context) => {
       return sendError(c, 404, "Assignment not found");
     }
 
-    // @ts-expect-error - Type 'string' is not assignable to type 'ObjectId'
     if (assignment.submissions.includes(user._id)) {
       return sendError(c, 400, "Assignment already submitted");
     }
 
-    // @ts-expect-error - Type 'string' is not assignable to type 'ObjectId'
     if (!posting.candidates.includes(user._id)) {
       return sendError(c, 400, "User is not a candidate for this posting");
     }
 
-    const currentstep = posting?.workflow?.currentStep;
+    const currentstep = posting?.workflow?.steps.findIndex(
+      (step) => !step.completed
+    );
     const step = posting?.workflow?.steps[currentstep as number];
 
     if (!step) {
       return sendError(c, 400, "Invalid workflow");
     }
 
-    if (step?.stepId?.toString() !== assignment._id.toString()) {
+    if (step?._id?.toString() !== assignment._id.toString()) {
       return sendError(c, 400, "Invalid assignment");
     }
 

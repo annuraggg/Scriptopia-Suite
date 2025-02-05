@@ -142,7 +142,7 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
               </Button>
             </DropdownTrigger>
             <DropdownMenu>
-              <DropdownItem>View candidate</DropdownItem>
+              <DropdownItem key={"view"}>View candidate</DropdownItem>
             </DropdownMenu>
           </Dropdown>
         );

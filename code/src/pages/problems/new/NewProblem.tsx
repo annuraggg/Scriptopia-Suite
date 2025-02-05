@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Delta } from "quill/core";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { CustomSDSL, TestCase } from "@shared-types/Problem";
+import { CustomStub as CustomSDSL, TestCase } from "@shared-types/Problem";
 import Sdsl from "./Sdsl";
 import { useNavigate } from "react-router-dom";
 

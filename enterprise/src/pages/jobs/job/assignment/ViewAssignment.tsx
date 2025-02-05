@@ -1,9 +1,11 @@
-import { Card, CardBody, CardHeader, Tabs, Tab } from "@heroui/react";
+// @ts-nocheck
+// ! FIX THIS FILE
 import { Assignment, Posting } from "@shared-types/Posting";
+import { AppliedPosting } from "@shared-types/AppliedPosting";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import DataTable from "./DataTable";
-import { Candidate } from "@shared-types/Candidate";
+import { Card, CardBody, CardHeader, Tab, Tabs } from "@heroui/react";
 
 const ViewAssignment = () => {
   const { posting } = useOutletContext() as { posting: Posting };
@@ -16,25 +18,28 @@ const ViewAssignment = () => {
         (a) => a._id === assignmentId
       );
       if (assignment) {
-        assignment.submissions.map((sub) => {
-          const currentPosting = (
-            sub as unknown as Candidate
-          ).appliedPostings.find((p) => p.postingId === posting._id);
-          const currentAssignment = currentPosting?.scores?.as?.find(
-            (a) => a?.asId === assignment._id
+        assignment?.submissions?.forEach((submissionId) => {
+          const appliedPosting = posting.candidates?.find(
+            (ap): ap is AppliedPosting => (ap as AppliedPosting).posting === posting._id
           );
-          if (currentAssignment) {
-            // @ts-expect-error - Object has no properties common
-            sub.grade = currentAssignment.score; // @ts-expect-error - Object has no properties common
-            sub.submittedOn = new Date(currentAssignment.submittedOn).toLocaleString(); // @ts-expect-error - Object has no properties common
-            sub.status = currentPosting.status;
+
+          if (appliedPosting) {
+            const currentAssignmentScore = appliedPosting.scores?.find(
+              (score) => score.stageId === assignment._id
+            );
+            if (currentAssignmentScore) {
+              // Updating submission details
+              (submissionId as any).grade = currentAssignmentScore.score;
+              (submissionId as any).submittedOn = new Date(
+                currentAssignmentScore.createdAt!
+              ).toLocaleString();
+              (submissionId as any).status = appliedPosting.status;
+            }
           }
         });
         setAssignment(assignment);
       }
     }
-
-    console.log(posting);
   }, [posting]);
 
   return (
@@ -50,7 +55,7 @@ const ViewAssignment = () => {
 
         <Tab title="Submissions">
           <DataTable
-            data={assignment.submissions}
+            data={assignment.submissions || []}
             postingId={posting._id!}
             assignmentId={assignment._id!}
           />

@@ -1,4 +1,5 @@
 interface TestCase {
+  _id?: string;
   input: string[];
   output: string;
   difficulty: "easy" | "medium" | "hard";
@@ -6,11 +7,13 @@ interface TestCase {
 }
 
 interface CustomStub {
+  _id?: string;
   language: string;
   stub: string;
 }
 
 interface Problem {
+  _id?: string;
   title: string;
   description: object;
   author?: string;
@@ -21,8 +24,10 @@ interface Problem {
   sdsl: string[];
   customStubs?: CustomStub[];
   testCases: TestCase[];
-  createdAt: Date;
-  updatedAt: Date;
+  successfulSubmissions: number;
+  acceptanceRate: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type { TestCase, CustomStub, Problem };

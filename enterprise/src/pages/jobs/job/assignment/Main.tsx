@@ -23,7 +23,7 @@ const Main = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p>{assignment.description}</p>
-                  <p>Submissions: {assignment.submissions.length}</p>
+                  <p>Submissions: {assignment.submissions?.length ?? 0}</p>
                 </div>
                 <ChevronRight size={24} />
               </div>

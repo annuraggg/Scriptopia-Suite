@@ -14,7 +14,7 @@ const Assessments = () => {
   useEffect(() => {
     const noOfAssessments = posting?.workflow?.steps?.filter(
       (step) =>
-        step.type === "ca" || step.type === "mcqca" || step.type === "mcqa"
+        step.type === "CODING_ASSESSMENT" || step.type === "MCQ_ASSESSMENT"
     ).length;
 
     if (noOfAssessments) {
@@ -23,9 +23,8 @@ const Assessments = () => {
       const remainingToConfig = posting?.workflow?.steps?.length
         ? posting?.workflow?.steps?.filter(
             (step) =>
-              step.type === "ca" ||
-              step.type === "mcqca" ||
-              step.type === "mcqa"
+              step.type === "CODING_ASSESSMENT" ||
+              step.type === "MCQ_ASSESSMENT"
           ).length - (posting?.assessments?.length ?? 0)
         : 0;
 

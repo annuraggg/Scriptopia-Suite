@@ -5,7 +5,7 @@ import { CodeAssessment as CA } from "@shared-types/CodeAssessment";
 import { Problem } from "@shared-types/Problem";
 import { io, Socket } from "socket.io-client";
 import secureLocalStorage from "react-secure-storage";
-import { CodeAssessmentSubmissionsSchema as CASS } from "@shared-types/CodeAssessmentSubmission";
+import { CodeAssessmentSubmission as CASS } from "@shared-types/CodeAssessmentSubmission";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useDisclosure } from "@nextui-org/react";
@@ -149,7 +149,7 @@ const Assess = () => {
       if (!assessment) return;
 
       const assessmentSubmission: CASS = {
-        assessmentId: assessment._id,
+        assessmentId: assessment._id ?? "",
         name,
         email,
         timer: assessment.timeLimit * 60,

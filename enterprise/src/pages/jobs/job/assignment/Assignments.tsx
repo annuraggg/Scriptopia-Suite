@@ -13,14 +13,14 @@ const Assignments = () => {
 
   useEffect(() => {
     const noOfassignments = posting?.workflow?.steps?.filter(
-      (step) => step.type === "as"
+      (step) => step.type === "ASSIGNMENT"
     ).length;
 
     if (noOfassignments) {
       setAssignmentsEnabled(true);
 
       const remainingToConfig = posting?.workflow?.steps?.length
-        ? posting?.workflow?.steps?.filter((step) => step.type === "as")
+        ? posting?.workflow?.steps?.filter((step) => step.type === "ASSIGNMENT")
             .length - (posting?.assignments?.length ?? 0)
         : 0;
 

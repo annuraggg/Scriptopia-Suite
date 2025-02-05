@@ -7,9 +7,9 @@ import { useOutletContext } from "react-router-dom";
 import { toast } from "sonner";
 
 const Apply = () => {
-  const [posting, setPosting] = useState<Posting>({} as Posting);
+  const [_posting, setPosting] = useState<Posting>({} as Posting);
   const { getToken } = useAuth();
-  const axios = ax(getToken);
+  const axios = ax(getToken); // @ts-expect-error
   const candidate = useOutletContext() as { user: ExtendedCandidate };
 
   useEffect(() => {

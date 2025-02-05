@@ -3,9 +3,8 @@ import { Posting } from "@shared-types/Posting";
 import { useEffect, useState } from "react";
 
 const typeMap = {
-  ca: "Coding Assessment",
-  mcqca: "Multiple Choice and Coding Assessment",
-  mcqa: "Multiple Choice Assessment",
+  CODING_ASSESSMENT: "Coding Assessment",
+  MCQ_ASSESSMENT: "Multiple Choice Assessment",
 };
 
 const codeStepMap: { [key: string]: string } = {
@@ -39,9 +38,8 @@ const Configure = ({ posting }: { posting: Posting }) => {
 
       {posting?.workflow?.steps?.map(
         (step, index: number) =>
-          (step.type === "ca" ||
-            step.type === "mcqca" ||
-            step.type === "mcqa") && (
+          step.type === "CODING_ASSESSMENT" ||
+          (step.type === "MCQ_ASSESSMENT" && (
             <Card className="w-[50%] mt-3" key={step._id}>
               <CardBody className="flex flex-row items-center justify-between">
                 <div>
@@ -50,7 +48,7 @@ const Configure = ({ posting }: { posting: Posting }) => {
                     {typeMap[step?.type]}
                   </div>
                 </div>
-                {assessmentTitles.includes(step?.stepId || "") ? (
+                {assessmentTitles.includes(step?._id || "") ? (
                   <div className="text-green-500">Configured</div>
                 ) : (
                   <Button
@@ -71,7 +69,7 @@ const Configure = ({ posting }: { posting: Posting }) => {
                 )}
               </CardBody>
             </Card>
-          )
+          ))
       )}
     </div>
   );

@@ -2,7 +2,7 @@ import { useState } from "react";
 import Sidebar from "./Sidebar";
 import Sections from "./Sections";
 import { MCQAssessment as MA } from "@shared-types/MCQAssessment";
-import { MCQAssessmentSubmissionsSchema as MASS } from "@shared-types/MCQAssessmentSubmission";
+import { MCQAssessmentSubmission as MASS } from "@shared-types/MCQAssessmentSubmission";
 
 interface DashboardProps {
   timer: number;

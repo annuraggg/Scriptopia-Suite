@@ -4,7 +4,6 @@ import InfoPanel from "./InfoPanel";
 import Statement from "./LeftPanel/Statement";
 import Split from "@uiw/react-split";
 import ax from "@/config/axios";
-import { RunResponseResult } from "@shared-types/RunResponse";
 import confetti from "canvas-confetti";
 import {
   Drawer,
@@ -66,7 +65,7 @@ const Problem = ({
   const [code, setCode] = useState<string>("");
   const [language, setLanguage] = useState<string>(defaultLanguage);
 
-  const [outputCases, setOutputCases] = useState<RunResponseResult[]>([]);
+  const [outputCases, setOutputCases] = useState([]);
   const [, /*codeError*/ setCodeError] = useState<string>("");
   const [runningCode, setRunningCode] = useState<boolean>(false);
   const [currentSub, setCurrentSub] = useState<Submission | null>(null);
@@ -94,7 +93,7 @@ const Problem = ({
         );
 
         const firstError = res.data.data.results.find(
-          (r: RunResponseResult) => r.error && r.error
+          (r: { error: any; }) => r.error && r.error
         );
 
         let firstErrorFull = "";
@@ -139,7 +138,7 @@ const Problem = ({
         );
 
         const firstError = res.data.data.submission.results.find(
-          (r: RunResponseResult) => r.error && r.error
+          (r: { error: any; }) => r.error && r.error
         );
 
         let firstErrorFull = "";

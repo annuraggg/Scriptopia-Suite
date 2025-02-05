@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Button,
   Table,
   TableBody,
@@ -12,11 +11,11 @@ import { Check, Download, X } from "lucide-react";
 import { Tooltip } from "@nextui-org/tooltip";
 import { StreamVideoParticipant } from "@stream-io/video-react-sdk";
 
-function formatTime(date: Date) {
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  return `${hours}:${minutes}`;
-}
+// function formatTime(date: Date) {
+//   const hours = date.getHours().toString().padStart(2, "0");
+//   const minutes = date.getMinutes().toString().padStart(2, "0");
+//   return `${hours}:${minutes}`;
+// }
 
 const Participant = ({
   participant,
@@ -53,7 +52,7 @@ const Participant = ({
               !isCurrent && !finished ? "w-[65%]" : "w-full"
             }`}
           >
-            <Avatar src={participant?.photo} className="min-w-10 min-h-10" />
+            {/* <Avatar src={participant?.photo} className="min-w-10 min-h-10" /> */}
             <div className="overflow-hidden">
               <p
                 className={`${
@@ -62,13 +61,13 @@ const Participant = ({
               >
                 {participant?.name}
               </p>
-              <p
+              {/* <p
                 className={`${
                   !isCurrent && !finished ? "max-w-[80%]" : "max-w-[100%]"
                 } truncate overflow-ellipsis text-xs opacity-50 font-light`}
               >
                 {participant?.email}
-              </p>
+              </p> */}
             </div>
           </div>
           <div className="flex gap-2">
@@ -85,16 +84,16 @@ const Participant = ({
           </div>
         </div>
         <div className="flex justify-between mt-4 opacity-50 font-light">
-          {participant?.joinedAt && (
+          {/* {participant?.joinedAt && (
             <p className="text-xs">
               Joined: {formatTime(participant?.joinedAt)}
             </p>
-          )}
-          {participant?.scheduledAt && !isCurrent && (
+          )} */}
+          {/* {participant?.scheduledAt && !isCurrent && (
             <p className="text-xs text-green-400 font-light">
               Scheduled: {formatTime(participant?.scheduledAt)}
             </p>
-          )}
+          )} */}
         </div>
       </div>
     </Tooltip>

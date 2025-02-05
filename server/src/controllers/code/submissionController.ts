@@ -2,10 +2,10 @@ import { Context } from "hono";
 import { sendError, sendSuccess } from "../../utils/sendResponse";
 import Problem from "../../models/Problem";
 import { runCode as runCompilerCode } from "../../utils/runCode";
-import Submission from "../../models/Submission";
 import User from "../../models/User";
 import { TestCase } from "@shared-types/Problem";
 import { getAuth } from "@hono/clerk-auth";
+import Submission from "@/models/Submission";
 
 const runCode = async (c: Context) => {
   try {
@@ -96,11 +96,6 @@ const submitCode = async (c: Context) => {
     });
 
     if (result.failedCaseNo === -1) {
-      if (!prob.solvedBy.includes(u)) {
-        prob.solvedBy.push(u);
-        await prob.save();
-      }
-
       const date = new Date();
       const user = await User.findOne({ clerkId: u });
 
@@ -109,9 +104,6 @@ const submitCode = async (c: Context) => {
     }
 
     prob.totalSubmissions += 1;
-    if (result.failedCaseNo === -1) {
-      prob.successfulSubmissions += 1;
-    }
 
     await prob.save();
 

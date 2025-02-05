@@ -1,23 +1,27 @@
 interface Option {
+  _id?: string;
   option: string;
   isCorrect?: boolean;
   matchingPairText?: string;
 }
 
+type QuestionType =
+  | "single-select"
+  | "multi-select"
+  | "true-false"
+  | "short-answer"
+  | "long-answer"
+  | "visual"
+  | "peer-review"
+  | "output"
+  | "fill-in-blanks"
+  | "matching";
+
 interface Question {
+  _id?: string;
   question: string;
   grade?: number;
-  type:
-    | "single-select"
-    | "multi-select"
-    | "true-false"
-    | "short-answer"
-    | "long-answer"
-    | "visual"
-    | "peer-review"
-    | "output"
-    | "fill-in-blanks"
-    | "matching";
+  type: QuestionType;
   options?: Option[];
   codeSnippet?: string;
   imageSource?: string;
@@ -27,27 +31,32 @@ interface Question {
 }
 
 interface Section {
+  _id?: string;
   name: string;
   questions: Question[];
 }
 
 interface Candidate {
+  _id?: string;
   name: string;
   email: string;
 }
 
 interface OpenRange {
+  _id?: string;
   start?: Date;
   end?: Date;
 }
 
 interface Security {
+  _id?: string;
   sessionPlayback?: boolean;
   tabChangeDetection?: boolean;
   copyPasteDetection?: boolean;
 }
 
 interface MCQAssessment {
+  _id?: string;
   name: string;
   description: string;
   author: string;
@@ -63,8 +72,8 @@ interface MCQAssessment {
   obtainableScore: number;
   isEnterprise?: boolean;
   postingId?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type {
@@ -74,5 +83,6 @@ export type {
   Candidate,
   OpenRange,
   Security,
+  QuestionType,
   MCQAssessment,
 };

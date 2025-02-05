@@ -205,7 +205,7 @@ const updateAts = async (c: Context) => {
     }
 
     const atsStep = posting.workflow.steps.filter((step) => step.type === "rs");
-    atsStep[0].stepId = posting.ats._id!;
+    atsStep[0]._id = new mongoose.Types.ObjectId(posting?.ats?._id?.toString());
 
     await posting.save();
 
@@ -253,14 +253,14 @@ const updateAssessment = async (c: Context) => {
       return sendError(c, 400, "Workflow not found");
     }
 
-    existingAssessments.workflow.steps[step].stepId = resp.data._id;
+    existingAssessments.workflow.steps[step]._id = resp.data._id;
     await existingAssessments.save();
 
     await Posting.findByIdAndUpdate(postingId, {
       $push: {
         assessments: {
           assessmentId: resp.data._id,
-          stepId: existingAssessments.workflow.steps[step].stepId,
+          stepId: existingAssessments.workflow.steps[step]._id,
         },
       },
       updatedOn: new Date(),

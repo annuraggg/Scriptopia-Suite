@@ -1,4 +1,5 @@
 interface SocialLink {
+  _id?: string;
   platform:
     | "linkedin"
     | "github"
@@ -8,10 +9,11 @@ interface SocialLink {
     | "portfolio"
     | "other";
   url: string;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface Education {
+  _id?: string;
   school: string;
   degree: string;
   board: string;
@@ -21,10 +23,11 @@ interface Education {
   current: boolean;
   type: "fulltime" | "parttime" | "distance";
   percentage: number;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface WorkExperience {
+  _id?: string;
   company: string;
   sector: string;
   title: string;
@@ -35,38 +38,43 @@ interface WorkExperience {
   endDate?: Date;
   current: boolean;
   description?: string;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface Skill {
+  _id?: string;
   skill: string;
   proficiency: number;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface Language {
+  _id?: string;
   language: string;
   proficiency: number;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface Subject {
+  _id?: string;
   subject: string;
   proficiency: number;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface Responsibility {
+  _id?: string;
   title: string;
   organization: string;
   startDate: Date;
   endDate?: Date;
   current: boolean;
   description: string;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface Project {
+  _id?: string;
   title: string;
   domain: string;
   startDate: Date;
@@ -75,19 +83,21 @@ interface Project {
   associatedWith: "personal" | "academic" | "professional";
   description: string;
   url?: string;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface Award {
+  _id?: string;
   title: string;
   issuer: string;
   associatedWith: "personal" | "academic" | "professional";
   date: Date;
   description: string;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface Certificate {
+  _id?: string;
   title: string;
   issuer: string;
   url?: string;
@@ -98,30 +108,33 @@ interface Certificate {
   hasScore: boolean;
   score?: number;
   description: string;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface Competition {
+  _id?: string;
   title: string;
   position: string;
   organizer: string;
   associatedWith: "personal" | "academic" | "professional";
   date: Date;
   description: string;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface Conference {
+  _id?: string;
   title: string;
   organizer: string;
   eventLocation: string;
   eventDate: Date;
   link?: string;
   description: string;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface Patent {
+  _id?: string;
   title: string;
   patentOffice: string;
   patentNumber: string;
@@ -129,18 +142,20 @@ interface Patent {
   filingDate: Date;
   issueDate?: Date;
   description: string;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface Scholarship {
+  _id?: string;
   title: string;
   organization: string;
   grantDate: Date;
   description: string;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface Volunteering {
+  _id?: string;
   organization: string;
   role: string;
   cause: string;
@@ -148,20 +163,22 @@ interface Volunteering {
   endDate?: Date;
   current: boolean;
   description: string;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface ExtraCurricular {
+  _id?: string;
   title: string;
   category: string;
   startDate: Date;
   endDate?: Date;
   current: boolean;
   description: string;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface Candidate {
+  _id?: string;
   userId?: string;
   name: string;
   dob: Date;
@@ -188,8 +205,8 @@ interface Candidate {
   extraCurriculars?: ExtraCurricular[];
   resumeUrl?: string;
   resumeExtract?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type {

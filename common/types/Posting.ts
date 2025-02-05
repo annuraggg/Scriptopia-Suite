@@ -7,12 +7,14 @@ type StepType =
   | "CUSTOM";
 
 interface Slot {
+  _id?: string;
   candidate?: string;
   start: Date;
   end: Date;
 }
 
 interface Interview {
+  _id?: string;
   assignees?: string[];
   duration: number;
   slots: Slot[];
@@ -31,7 +33,7 @@ interface ATS {
 }
 
 interface WorkflowStep {
-  _id: string;
+  _id?: string;
   name: string;
   type: StepType;
   completed: boolean;
@@ -39,17 +41,19 @@ interface WorkflowStep {
 }
 
 interface Workflow {
+  _id?: string;
   steps: WorkflowStep[];
 }
 
 interface Salary {
+  _id?: string;
   min?: number;
   max?: number;
   currency?: string;
 }
 
 interface Assignment {
-  _id: string;
+  _id?: string;
   name: string;
   workflowId: string;
   description: string;
@@ -57,11 +61,13 @@ interface Assignment {
 }
 
 interface Assessment {
+  _id?: string;
   assessmentId: string;
   workflowId: string;
 }
 
 interface AdditionalFieldConfig {
+  _id?: string;
   required: boolean;
   allowEmpty: boolean;
 }
@@ -103,6 +109,7 @@ interface AdditionalDetails {
 }
 
 interface Posting {
+  _id?: string;
   organizationId?: string;
   title: string;
   description: Record<string, unknown>;
@@ -123,8 +130,8 @@ interface Posting {
   additionalDetails?: AdditionalDetails;
   published: boolean;
   publishedOn?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type {

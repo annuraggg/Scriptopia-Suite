@@ -1,9 +1,11 @@
 interface Offense {
+  _id?: string;
   tabChange?: { problemId: string; times: number }[];
   copyPaste?: { problemId: string; times: number }[];
 }
 
 interface Result {
+  _id?: string;
   caseNo: number;
   caseId: string;
   output?: string;
@@ -16,6 +18,7 @@ interface Result {
 }
 
 interface ProblemSubmission {
+  _id?: string;
   problemId: string;
   code: string;
   language: string;
@@ -24,11 +27,13 @@ interface ProblemSubmission {
 }
 
 interface ObtainedGrade {
+  _id?: string;
   problem?: { problemId: string; obtainedMarks: number }[];
   total: number;
 }
 
 interface CodeAssessmentSubmission {
+  _id?: string;
   assessmentId: string;
   status?: "in-progress" | "completed";
   name: string;
@@ -39,8 +44,8 @@ interface CodeAssessmentSubmission {
   sessionRewindUrl?: string;
   obtainedGrades?: ObtainedGrade;
   cheatingStatus?: "No Copying" | "Light Copying" | "Heavy Copying";
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type {

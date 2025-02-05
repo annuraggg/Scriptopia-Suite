@@ -15,7 +15,7 @@ const Ats = () => {
   console.log(posting);
   useEffect(() => {
     const noOfAts = posting?.workflow?.steps?.filter(
-      (step) => step.type === "rs"
+      (step) => step.type === "RESUME_SCREENING"
     ).length;
 
     if (noOfAts) {

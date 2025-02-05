@@ -8,6 +8,7 @@ import {
   HarmCategory,
   HarmBlockThreshold,
 } from "@google/generative-ai";
+import mongoose from "mongoose";
 
 const LIMIT_PER_PAGE = 20;
 
@@ -30,9 +31,9 @@ const getProblems = async (c: Context) => {
         user: userId,
         status: "SUCCESS",
       });
-      userSolvedProblems = successfulSubmissions.filter(
-        (submission): submission is string => submission !== null
-      );
+      userSolvedProblems = successfulSubmissions
+        .filter((submission): submission is mongoose.Types.ObjectId => submission !== null)
+        .map((submission) => submission.toString());
     }
 
     const problemsWithStatus = problems.map((problem) => {
@@ -77,9 +78,9 @@ const getUserGeneratedProblems = async (c: Context) => {
         user: userId,
         status: "SUCCESS",
       });
-      userSolvedProblems = successfulSubmissions.filter(
-        (submission): submission is string => submission !== null
-      );
+      userSolvedProblems = successfulSubmissions
+        .filter((submission): submission is mongoose.Types.ObjectId => submission !== null && submission !== undefined)
+        .map((submission) => submission.toString());
     }
 
     const problemsWithStatus = problems.map((problem) => {
@@ -133,7 +134,7 @@ const getMyProblems = async (c: Context) => {
       return {
         ...problem,
         acceptanceRate,
-        solved: successfulSubmissions.includes(problem._id.toString()),
+        solved: successfulSubmissions.includes(problem._id),
       };
     });
 

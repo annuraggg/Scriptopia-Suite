@@ -70,9 +70,11 @@ export function DataTable<TData>({
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
-
   const { posting } = useOutletContext() as { posting: Posting };
-  console.log(posting.workflow?.currentStep, stepNo);
+
+  const currentStep = posting.workflow?.steps?.findIndex(
+    (step) => !step.completed
+  );
 
   const downloadResume = (_id: string) => {
     axios
@@ -234,7 +236,7 @@ export function DataTable<TData>({
           }
           onValueChange={(value) => table.toggleAllPageRowsSelected(value)}
           aria-label="Select all"
-          isDisabled={posting.workflow?.currentStep !== stepNo}
+          isDisabled={currentStep !== stepNo}
         />
       ),
       cell: ({ row }) => (
@@ -331,7 +333,7 @@ export function DataTable<TData>({
                 className="ml-3"
                 onClick={() => selectCand(_id)}
                 isDisabled={
-                  posting.workflow?.currentStep !== stepNo ||
+                  currentStep !== stepNo ||
                   row.original.currentStepStatus === "qualified"
                 }
               >
@@ -347,7 +349,7 @@ export function DataTable<TData>({
                 className="ml-3"
                 onClick={() => disqualify(_id)}
                 isDisabled={
-                  posting.workflow?.currentStep !== stepNo ||
+                  currentStep !== stepNo ||
                   row.original.currentStepStatus === "disqualified"
                 }
               >
@@ -414,12 +416,12 @@ export function DataTable<TData>({
             table.getColumn("email")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
-          isDisabled={posting.workflow?.currentStep !== stepNo}
+          isDisabled={currentStep !== stepNo}
         />
         <Button
           onClick={disqualifyAllSelected}
           color="danger"
-          isDisabled={posting.workflow?.currentStep !== stepNo}
+          isDisabled={currentStep !== stepNo}
         >
           <UserX className="mr-2 h-4 w-4" />
           Disqualify Selected
@@ -427,7 +429,7 @@ export function DataTable<TData>({
         <Button
           onClick={qualifyAllSelected}
           color="success"
-          isDisabled={posting.workflow?.currentStep !== stepNo}
+          isDisabled={currentStep !== stepNo}
         >
           <UserCheck className="mr-2 h-4 w-4" />
           Qualify Selected
@@ -435,7 +437,7 @@ export function DataTable<TData>({
         <Button
           onClick={selectAllAboveThreshold}
           color="primary"
-          isDisabled={posting.workflow?.currentStep !== stepNo}
+          isDisabled={currentStep !== stepNo}
         >
           <Users className="mr-2 h-4 w-4" />
           Select All Above {matchThreshold}%
