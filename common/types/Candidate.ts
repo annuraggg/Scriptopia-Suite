@@ -1,5 +1,4 @@
 interface SocialLink {
-  _id?: string;
   platform:
     | "linkedin"
     | "github"
@@ -9,11 +8,10 @@ interface SocialLink {
     | "portfolio"
     | "other";
   url: string;
-  createdAt?: string;
+  createdAt: Date;
 }
 
 interface Education {
-  _id?: string;
   school: string;
   degree: string;
   board: string;
@@ -23,250 +21,181 @@ interface Education {
   current: boolean;
   type: "fulltime" | "parttime" | "distance";
   percentage: number;
-  createdAt?: string;
+  createdAt: Date;
 }
 
-interface Work {
-  _id?: string;
+interface WorkExperience {
   company: string;
   sector: string;
   title: string;
   location: string;
   type: "fulltime" | "parttime" | "internship" | "contract" | "freelance";
   jobFunction: string;
-  startDate: string;
-  endDate?: string;
+  startDate: Date;
+  endDate?: Date;
   current: boolean;
   description?: string;
-  createdAt?: string;
+  createdAt: Date;
 }
 
 interface Skill {
-  _id?: string;
   skill: string;
   proficiency: number;
-  createdAt?: string;
+  createdAt: Date;
 }
 
 interface Language {
-  _id?: string;
   language: string;
   proficiency: number;
-  createdAt?: string;
+  createdAt: Date;
 }
 
 interface Subject {
-  _id?: string;
   subject: string;
   proficiency: number;
-  createdAt?: string;
+  createdAt: Date;
 }
 
 interface Responsibility {
-  _id?: string;
   title: string;
   organization: string;
-  startDate: string;
-  endDate?: string;
+  startDate: Date;
+  endDate?: Date;
   current: boolean;
   description: string;
-  createdAt?: string;
+  createdAt: Date;
 }
 
 interface Project {
-  _id?: string;
   title: string;
   domain: string;
-  startDate: string;
-  endDate?: string;
+  startDate: Date;
+  endDate?: Date;
   current: boolean;
   associatedWith: "personal" | "academic" | "professional";
   description: string;
   url?: string;
-  createdAt?: string;
+  createdAt: Date;
 }
 
 interface Award {
-  _id?: string;
   title: string;
   issuer: string;
   associatedWith: "personal" | "academic" | "professional";
-  date: string;
+  date: Date;
   description: string;
-  createdAt?: string;
+  createdAt: Date;
 }
 
 interface Certificate {
-  _id?: string;
   title: string;
   issuer: string;
   url?: string;
   licenseNumber?: string;
-  issueDate: string;
+  issueDate: Date;
   doesExpire: boolean;
-  expiryDate?: string;
+  expiryDate?: Date;
   hasScore: boolean;
   score?: number;
   description: string;
-  createdAt?: string;
+  createdAt: Date;
 }
 
 interface Competition {
-  _id?: string;
   title: string;
   position: string;
   organizer: string;
   associatedWith: "personal" | "academic" | "professional";
-  date: string;
+  date: Date;
   description: string;
-  createdAt?: string;
+  createdAt: Date;
 }
 
 interface Conference {
-  _id?: string;
   title: string;
   organizer: string;
   eventLocation: string;
-  eventDate: string;
+  eventDate: Date;
   link?: string;
   description: string;
-  createdAt?: string;
+  createdAt: Date;
 }
 
 interface Patent {
-  _id?: string;
   title: string;
   patentOffice: string;
   patentNumber: string;
   status: "pending" | "granted" | "rejected";
-  filingDate: string;
-  issueDate?: string;
+  filingDate: Date;
+  issueDate?: Date;
   description: string;
-  createdAt?: string;
+  createdAt: Date;
 }
 
 interface Scholarship {
-  _id?: string;
   title: string;
   organization: string;
-  grantDate: string;
+  grantDate: Date;
   description: string;
-  createdAt?: string;
+  createdAt: Date;
 }
 
-interface Volunteer {
-  _id?: string;
+interface Volunteering {
   organization: string;
   role: string;
   cause: string;
-  startDate: string;
-  endDate?: string;
+  startDate: Date;
+  endDate?: Date;
   current: boolean;
   description: string;
-  createdAt?: string;
+  createdAt: Date;
 }
 
 interface ExtraCurricular {
-  _id?: string;
   title: string;
   category: string;
-  startDate: string;
-  endDate?: string;
+  startDate: Date;
+  endDate?: Date;
   current: boolean;
   description: string;
-  createdAt?: string;
-}
-
-interface AppliedPosting {
-  _id?: string;
-  postingId: string;
-  query?: string;
-  appliedAt?: string;
-  disqualifiedStage?: number;
-  disqualifiedReason?: string;
-  scores: {
-    rs?: {
-      score: number;
-      reason: string;
-    };
-    as?: {
-      score: number;
-      asId: string;
-      submittedOn?: string;
-    }[];
-    mcqa?: {
-      score: number;
-      mcqaId: string;
-    }[];
-    ca?: {
-      score: number;
-      caId: string;
-    }[];
-    mcqca?: {
-      score: number;
-      mcqaId: string;
-      caId: string;
-    }[];
-    pi?: {
-      score: number;
-      piId: string;
-    };
-    cu?: {
-      score: number;
-      cuId: string;
-    }[];
-  };
-  status?: "applied" | "inprogress" | "rejected" | "hired";
-  currentStepStatus?: "qualified" | "disqualified" | "pending";
-  createdAt?: string;
+  createdAt: Date;
 }
 
 interface Candidate {
-  _id?: string;
   userId?: string;
   name: string;
-  dob: string;
+  dob: Date;
   gender: string;
   email: string;
   phone: string;
   address: string;
-
   summary?: string;
-
   socialLinks?: SocialLink[];
   education?: Education[];
-  workExperience?: Work[];
-
+  workExperience?: WorkExperience[];
   technicalSkills?: Skill[];
   languages?: Language[];
   subjects?: Subject[];
-
   responsibilities?: Responsibility[];
   projects?: Project[];
-
   awards?: Award[];
   certificates?: Certificate[];
   competitions?: Competition[];
-
   conferences?: Conference[];
   patents?: Patent[];
   scholarships?: Scholarship[];
-  volunteerings?: Volunteer[];
+  volunteerings?: Volunteering[];
   extraCurriculars?: ExtraCurricular[];
-
   resumeUrl?: string;
   resumeExtract?: string;
-
-  appliedPostings: AppliedPosting[];
-  createdAt?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type {
-  Candidate,
-  AppliedPosting,
   SocialLink,
   Education,
-  Work,
+  WorkExperience,
   Skill,
   Language,
   Subject,
@@ -278,6 +207,7 @@ export type {
   Conference,
   Patent,
   Scholarship,
-  Volunteer,
+  Volunteering,
   ExtraCurricular,
+  Candidate,
 };

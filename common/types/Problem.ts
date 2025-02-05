@@ -1,33 +1,28 @@
 interface TestCase {
-  _id?: string;
   input: string[];
   output: string;
   difficulty: "easy" | "medium" | "hard";
   isSample: boolean;
 }
 
-interface CustomSDSL {
+interface CustomStub {
   language: string;
   stub: string;
 }
 
 interface Problem {
-  _id?: string;
   title: string;
   description: object;
   author?: string;
   difficulty: "easy" | "medium" | "hard";
-  solved: boolean;
-  acceptanceRate: number;
   tags: string[];
-  votes?: number;
+  isPrivate: boolean;
+  totalSubmissions: number;
   sdsl: string[];
-  customSdsl: CustomSDSL[];
+  customStubs?: CustomStub[];
   testCases: TestCase[];
-  isPrivate?: boolean;
-  allowInAssessments?: boolean;
-  totalSubmissions?: number;
-  successfulSubmissions?: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export type { Problem, TestCase, CustomSDSL };
+export type { TestCase, CustomStub, Problem };

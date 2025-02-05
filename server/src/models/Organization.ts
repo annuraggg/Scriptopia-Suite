@@ -9,7 +9,7 @@ const notificationSchema = new Schema({
 });
 
 const membersSchema = new Schema({
-  user: { type: String },
+  user: { type: Schema.Types.ObjectId, ref: "User" },
   email: { type: String, required: true },
   role: { type: String, required: true },
   addedOn: { type: Date, default: Date.now },
@@ -17,13 +17,16 @@ const membersSchema = new Schema({
   status: { type: String, enum: ["pending", "active"], default: "pending" },
 });
 
-const rolesSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  slug: { type: String, required: true },
-  default: { type: Boolean, default: true },
-  description: { type: String },
-  permissions: [{ type: String, required: true }],
-});
+const rolesSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    slug: { type: String, required: true, unique: true },
+    default: { type: Boolean, default: true },
+    description: { type: String },
+    permissions: [{ type: String, required: true }],
+  },
+  { timestamps: true }
+);
 
 const departmentsSchema = new Schema({
   name: { type: String, required: true },
@@ -52,36 +55,37 @@ const subscriptionSchema = new Schema({
   status: { type: String, enum: ["active", "inactive"], default: "inactive" },
   startedOn: { type: Date, default: Date.now, required: true },
   endsOn: { type: Date, required: true },
-  lemonSqueezyId: { type: String, required: true },
 });
 
-const organizationSchema = new Schema({
-  name: { required: true, type: String },
-  email: { required: true, type: String },
-  website: { required: true, type: String },
-  logo: { type: String },
+const organizationSchema = new Schema(
+  {
+    name: { required: true, type: String },
+    email: { required: true, type: String },
+    website: { required: true, type: String },
+    logo: { type: String },
 
-  members: [membersSchema],
-  roles: [{ type: rolesSchema }],
-  departments: [{ type: departmentsSchema }],
-  auditLogs: [{ type: auditLogSchema }],
+    members: [membersSchema],
+    roles: [{ type: rolesSchema }],
+    departments: [{ type: departmentsSchema }],
+    auditLogs: [{ type: auditLogSchema }],
 
-  subscription: {
-    type: subscriptionSchema,
-    required: true,
+    subscription: {
+      type: subscriptionSchema,
+      required: true,
+    },
+    candidates: { type: [Schema.Types.ObjectId], ref: "Candidate" },
+
+    postings: [{ type: Schema.Types.ObjectId, ref: "Posting" }],
+
+    isDeleted: { type: Boolean, default: false },
   },
-  candidates: { type: [Schema.Types.ObjectId], ref: "Candidate" },
+  { timestamps: true }
+);
 
-  postings: [{ type: Schema.Types.ObjectId, ref: "Posting" }],
-
-  createdOn: { type: Date, default: Date.now, required: true },
-  updatedOn: { type: Date, default: Date.now, required: true },
-});
-
-organizationSchema.pre("save", function (next) {
-  this.updatedOn = new Date();
-  next();
-});
+organizationSchema.index({ email: 1 }, { unique: true });
+organizationSchema.index({ name: 1 });
+organizationSchema.index({ "members.email": 1 });
+organizationSchema.index({ "subscription.status": 1 });
 
 const Organization = mongoose.model("Organization", organizationSchema);
 export default Organization;

@@ -6,7 +6,7 @@ import {
   DateValue,
   RangeValue,
 } from "@heroui/react";
-import { DateRangePicker } from "@heroui/date-picker";
+import { DatePicker } from "@heroui/react";
 import TagsInput from "react-tagsinput";
 import "react-tagsinput/react-tagsinput.css";
 import ReactQuill from "react-quill";
@@ -207,15 +207,25 @@ const JobDetails = ({
             Choose the period when the job will be open for applications
           </p>
         </div>
-        <div>
-          <DateRangePicker
+        <div className="flex gap-3 max-w-[500px]">
+          <DatePicker
             className="w-[500px]"
-            value={applicationRange}
-            aria-label="Application Range"
-            label="Application Range"
+            value={applicationRange?.start}
+            aria-label="Start"
+            label="Entry Starts"
             onChange={(e) => {
               if (!e) return;
-              setApplicationRange({ start: e?.start, end: e?.end });
+              setApplicationRange({ ...applicationRange, start: e });
+            }}
+          />
+          <DatePicker
+            className="w-[500px]"
+            value={applicationRange?.end}
+            aria-label="End"
+            label="Entry Ends"
+            onChange={(e) => {
+              if (!e) return;
+              setApplicationRange({ ...applicationRange, end: e });
             }}
           />
         </div>

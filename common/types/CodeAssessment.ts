@@ -3,7 +3,7 @@ interface OpenRange {
   end?: Date;
 }
 
-interface TestCases {
+interface Testcases {
   easy: number;
   medium: number;
   hard: number;
@@ -16,8 +16,13 @@ interface Problem {
 
 interface Grading {
   type: "testcase" | "problem";
-  testcases?: TestCases; // Make optional but depending on the type logic.
-  problem?: Problem[]; // Make optional but depending on the type logic.
+  testcases?: Testcases;
+  problem?: Problem[];
+}
+
+interface Candidate {
+  name: string;
+  email: string;
 }
 
 interface Security {
@@ -30,13 +35,7 @@ interface Security {
   enableSyntaxHighlighting: boolean;
 }
 
-interface Candidate {
-  name: string;
-  email: string;
-}
-
 interface CodeAssessment {
-  _id: string;
   name: string;
   description: string;
   author: string;
@@ -45,9 +44,8 @@ interface CodeAssessment {
   openRange?: OpenRange;
   languages: string[];
   problems: string[];
-  grading: Grading;
-  candidates: Candidate[];
-  public: boolean;
+  grading?: Grading;
+  candidates?: Candidate[];
   instructions: string;
   security: Security;
   feedbackEmail: string;
@@ -55,14 +53,15 @@ interface CodeAssessment {
   isEnterprise: boolean;
   postingId?: string;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export type {
-  CodeAssessment,
   OpenRange,
-  TestCases,
+  Testcases,
   Problem,
   Grading,
   Candidate,
   Security,
+  CodeAssessment,
 };

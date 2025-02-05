@@ -45,7 +45,20 @@ export interface McqProps {
   setSelectedSection: (section: Section | null) => void;
 }
 
-const tabsList = ["General", "MCQs", "Candidates", "Instructions", "Security", "Feedback"];
+const isPosting = new URLSearchParams(window.location.search).get("isPosting");
+const postingId = new URLSearchParams(window.location.search).get("postingId");
+const step = new URLSearchParams(window.location.search).get("step");
+const returnUrl = new URLSearchParams(window.location.search).get("returnUrl");
+
+const tabsList = [
+  "General",
+  "MCQs",
+  !postingId ? "Candidates" : null,
+  "Instructions",
+  "Security",
+  "Feedback",
+].filter(Boolean);
+
 const New = () => {
   const [activeTab, setActiveTab] = useState("0");
 
@@ -99,20 +112,24 @@ const New = () => {
     rangeEnd.setHours(endTime.hour);
     rangeEnd.setMinutes(endTime.minute);
 
+    console.log(isPosting);
+
     const reqBody = {
       assessmentPostingName: assessmentName,
       name: assessmentName,
-      isEnterprise: false,
+      isEnterprise: isPosting ? isPosting : false,
       description: assessmentDescription,
       timeLimit,
       passingPercentage,
-      openRange: {
-        start: rangeStart,
-        end: rangeEnd,
-      },
+      openRange: isPosting
+        ? null
+        : {
+            start: rangeStart,
+            end: rangeEnd,
+          },
       sections: sections,
-      candidates: candidates,
-      public: access === "all",
+      candidates: isPosting ? [] : candidates,
+      public: isPosting ? true : access === "all",
       instructions,
       security: {
         codePlayback,
@@ -120,6 +137,8 @@ const New = () => {
         copyPasteDetection,
       },
       feedbackEmail,
+      postingId,
+      step,
     };
 
     console.log(reqBody);
@@ -167,7 +186,9 @@ const New = () => {
       selectedSectionIndex={selectedSectionIndex}
       setSelectedSectionIndex={setSelectedSectionIndex}
     />,
-    <Candidates {...{ access, setAccess, candidates, setCandidates }} />,
+    !postingId && (
+      <Candidates {...{ access, setAccess, candidates, setCandidates }} />
+    ),
     <Instructions {...{ instructions, setInstructions }} />,
     <Security
       {...{
@@ -186,7 +207,7 @@ const New = () => {
         buildAssessmentData,
       }}
     />,
-  ];
+  ].filter(Boolean);
 
   return (
     <div className="flex items-center justify-center flex-col relative w-full">

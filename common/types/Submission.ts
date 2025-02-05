@@ -1,5 +1,4 @@
 interface Result {
-  _id?: string;
   caseNo: number;
   caseId: string;
   output: string;
@@ -11,15 +10,13 @@ interface Result {
 }
 
 interface DriverMeta {
-  _id?: string;
   driver: string;
   timestamp: Date;
 }
 
 interface Submission {
-  _id?: string;
-  problem: string; // should match the ObjectId type in the schema
-  user: string; // should match the ObjectId type in the schema
+  problem?: string;
+  user?: string;
   code: string;
   language: string;
   status: "FAILED" | "SUCCESS";
@@ -28,7 +25,8 @@ interface Submission {
   failedCaseNumber: number;
   results: Result[];
   meta: DriverMeta;
-  createdAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type { Result, DriverMeta, Submission };

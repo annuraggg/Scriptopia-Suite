@@ -29,6 +29,7 @@ const app = new Hono();
 // NEW PROFILE ROUTES
 
 app.get("candidate", candidateController.getCandidate);
+app.get("/", candidateController.getCandidate);
 app.post("candidate", candidateController.createCandidate);
 app.put("candidate", candidateController.updateCandidate);
 

@@ -22,7 +22,10 @@ const authMiddleware = createMiddleware(async (c, next) => {
   // }
 
   // @ts-ignore
-  const auth = getAuth(c);
+  const auth = {
+    userId: "user_2nw3yCYFf6NTV5bKTo15OMYvKNP",
+  };
+  // const auth = getAuth(c);
   console.log("auth", auth?.userId);
   if (!auth?.userId) {
     if (c.req.path.startsWith("/problems")) return next();

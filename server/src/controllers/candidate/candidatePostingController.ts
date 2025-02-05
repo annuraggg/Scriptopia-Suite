@@ -8,16 +8,10 @@ import {
   Organization as IOrganization,
   Department,
 } from "@shared-types/Organization";
+import { ExtendedPosting } from "@shared-types/ExtendedPosting";
 
 interface OrgPostings extends Omit<IOrganization, "postings"> {
   postings: IPosting[];
-}
-
-interface OrgData extends IPosting {
-  organization: {
-    name: string;
-    logo: string;
-  };
 }
 
 const getPublicPostings = async (c: Context) => {
@@ -25,7 +19,7 @@ const getPublicPostings = async (c: Context) => {
     const organizations = (await Organization.find()
       .populate("postings")
       .lean()) as unknown as OrgPostings[];
-    const activePosting: OrgData[] = [];
+    const activePosting: ExtendedPosting[] = [];
     organizations.forEach((org: OrgPostings) => {
       org.postings.forEach((posting) => {
         if (posting?.published) {
@@ -34,8 +28,8 @@ const getPublicPostings = async (c: Context) => {
             department: org?.departments?.find(
               (dept: Department) =>
                 dept?._id?.toString() === posting?.department?.toString()
-            )?.name,
-            organization: {
+            )?.name, // @ts-expect-error
+            organizationId: {
               name: org?.name,
               logo: org?.logo || "",
             },

@@ -24,31 +24,37 @@ const obtainedGradeSchema = new Schema({
   total: { type: Number, required: true },
 });
 
-const MCQAssessmentSubmissionsSchema = new Schema({
-  assessmentId: {
-    type: Schema.Types.ObjectId,
-    ref: "Assessment",
-    required: true,
+const MCQAssessmentSubmissionsSchema = new Schema(
+  {
+    assessmentId: {
+      type: Schema.Types.ObjectId,
+      ref: "Assessment",
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["in-progress", "completed"],
+      required: false,
+    },
+    name: { type: String, required: true },
+    email: { type: String, required: true },
+    offenses: { type: offenseSchema, required: false },
+    mcqSubmissions: { type: [McqSubmissionSchema], required: false },
+    timer: { type: Number, required: true },
+    sessionRewindUrl: { type: String, required: false },
+    obtainedGrades: { type: obtainedGradeSchema, required: false },
+    cheatingStatus: {
+      type: String,
+      enum: ["No Copying", "Light Copying", "Heavy Copying"],
+      required: false,
+    },
   },
-  status: {
-    type: String,
-    enum: ["in-progress", "completed"],
-    required: false,
-  },
-  name: { type: String, required: true },
-  email: { type: String, required: true },
-  offenses: { type: offenseSchema, required: false },
-  mcqSubmissions: { type: [McqSubmissionSchema], required: false },
-  timer: { type: Number, required: true },
-  sessionRewindUrl: { type: String, required: false },
-  createdAt: { type: Date, default: Date.now },
-  obtainedGrades: { type: obtainedGradeSchema, required: false },
-  cheatingStatus: {
-    type: String,
-    enum: ["No Copying", "Light Copying", "Heavy Copying"],
-    required: false,
-  },
-});
+  { timestamps: true }
+);
+
+MCQAssessmentSubmissionsSchema.index({ assessmentId: 1 });
+MCQAssessmentSubmissionsSchema.index({ email: 1 });
+MCQAssessmentSubmissionsSchema.index({ status: 1 });
 
 const MCQAssessmentSubmissions = mongoose.model(
   "MCQAssessmentSubmissions",

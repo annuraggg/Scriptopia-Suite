@@ -9,6 +9,7 @@ import Onboarding from "./pages/onboarding/Onboarding";
 import Posting from "./pages/posting/Posting";
 import jobRoutes from "./routes/jobroutes";
 import JobsLayout from "./pages/Jobs/JobsLayout";
+import Apply from "./pages/posting/apply/Apply";
 
 function App() {
   const router = createBrowserRouter([
@@ -27,6 +28,10 @@ function App() {
         {
           path: "postings/:id",
           element: <Posting />,
+        },
+        {
+          path: "postings/:id/apply",
+          element: <Apply />,
         },
       ],
     },
@@ -47,7 +52,7 @@ function App() {
           path: "jobs",
           element: <JobsLayout />,
           children: [...jobRoutes],
-        }
+        },
       ],
     },
   ]);

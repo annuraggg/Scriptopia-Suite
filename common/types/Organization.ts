@@ -1,77 +1,70 @@
 interface Notification {
-  _id?: string;
   title: string;
   description: string;
-  date?: Date;
-  read?: boolean;
+  date: Date;
+  read: boolean;
 }
 
-interface Role {
-  _id?: string;
+interface Members {
+  user?: string;
+  email: string;
+  role: string;
+  addedOn: Date;
+  notifications?: Notification[];
+  status: "pending" | "active";
+}
+
+interface Roles {
   name: string;
   slug: string;
-  default?: boolean;
+  default: boolean;
   description?: string;
   permissions: string[];
 }
 
-interface Member {
-  _id?: string;
-  user?: string;
-  email: string;
-  role: string;
-  addedOn?: Date;
-  notifications?: Notification[]; // Updated to include notifications
-  status?: "pending" | "active";
-}
-
-interface Department {
-  _id?: string;
+interface Departments {
   name: string;
   description: string;
 }
 
 interface AuditLog {
-  _id?: string;
   action: string;
   user: string;
   userId: string;
-  date?: Date;
+  date: Date;
   type: "info" | "warning" | "error" | "success";
 }
 
 interface Subscription {
-  _id?: string;
   type: "quarterly" | "annual" | "trial";
-  status?: "active" | "inactive";
+  status: "active" | "inactive";
   startedOn: Date;
   endsOn: Date;
-  lemonSqueezyId: string;
 }
 
 interface Organization {
-  _id?: string;
   name: string;
   email: string;
   website: string;
   logo?: string;
-  members?: Member[];
-  roles?: Role[];
-  departments?: Department[];
-  auditLogs?: AuditLog[];
+  members: Members[];
+  roles: Roles[];
+  departments: Departments[];
+  auditLogs: AuditLog[];
   subscription: Subscription;
-  candidates?: string[]; // Assuming these are string references to candidates
-  postings?: string[]; // Assuming these are string references to postings
-  createdOn?: Date;
-  updatedOn?: Date;
+  candidates?: string[];
+  postings?: string[];
+  isDeleted: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type {
-  Member,
-  Department,
+  Notification,
+  Members,
+  Roles,
+  Departments,
   AuditLog,
   Subscription,
   Organization,
-  Role,
-  Notification,
 };

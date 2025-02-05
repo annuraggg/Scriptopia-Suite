@@ -1,55 +1,42 @@
-interface OffenseEntry {
-  _id?: string;
-  problemId: string;
-  times: number;
+interface Offense {
+  tabChange?: number;
+  copyPaste?: number;
 }
 
-interface OffenseType {
-  _id?: string;
-  mcq: number; // Required
-  problem: OffenseEntry[]; // Required
+interface McqSubmission {
+  mcqId: string;
+  selectedOptions: string[];
 }
 
-interface OffenseSchema {
-  _id?: string;
-  tabChange?: OffenseType;
-  copyPaste?: OffenseType;
+interface ObtainedMcqGrade {
+  mcqId: string;
+  obtainedMarks: number;
 }
 
-interface McqSubmissionSchema {
-  _id?: string;
-  mcqId: string; // Required
-  selectedOptions: string[]; // Required
+interface ObtainedGrade {
+  mcq?: ObtainedMcqGrade[];
+  total: number;
 }
 
-interface ObtainedGradeSchema {
-  mcq?: {
-    mcqId: string;
-    obtainedMarks: number;
-  }[];
-  total: number; // Required
-}
-
-interface MCQAssessmentSubmissionsSchema {
-  _id?: string;
-  assessmentId: string; // Required
-  name: string; // Required
-  email: string; // Required
-  offenses?: OffenseSchema;
-  mcqSubmissions?: McqSubmissionSchema[];
-  timer: number; // Required
+interface MCQAssessmentSubmission {
+  assessmentId: string;
+  status?: "in-progress" | "completed";
+  name: string;
+  email: string;
+  offenses?: Offense;
+  mcqSubmissions?: McqSubmission[];
+  timer: number;
   sessionRewindUrl?: string;
-  obtainedGrades?: ObtainedGradeSchema; // Required
+  obtainedGrades?: ObtainedGrade;
   cheatingStatus?: "No Copying" | "Light Copying" | "Heavy Copying";
-  createdAt?: Date;
-  updatedAt?: Date; // Missing in interface, added here
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type {
-  OffenseEntry,
-  OffenseType,
-  OffenseSchema,
-  McqSubmissionSchema,
-  ObtainedGradeSchema,
-  MCQAssessmentSubmissionsSchema,
+  Offense,
+  McqSubmission,
+  ObtainedMcqGrade,
+  ObtainedGrade,
+  MCQAssessmentSubmission,
 };
