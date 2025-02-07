@@ -22,11 +22,9 @@ import { MemberWithPermission } from "@shared-types/MemberWithPermission";
 const createOrganization = async (c: Context) => {
   try {
     const { name, email, website, members } = await c.req.json();
-    const u = c.get("auth")._id;
+    const clerkUserId = c.get("auth").userId;
 
-    console.log(members);
-
-    const clerkUser = await clerkClient.users.getUser(u);
+    const clerkUser = await clerkClient.users.getUser(clerkUserId);
     const fName = clerkUser.firstName;
     const lName = clerkUser.lastName;
     const uid = clerkUser.publicMetadata._id;
@@ -75,7 +73,7 @@ const createOrganization = async (c: Context) => {
       );
 
       const mem = {
-        user: user?._id || "",
+        user: user?._id || null,
         email: member.email,
         role: role?.slug,
         addedOn: new Date(),
@@ -85,7 +83,7 @@ const createOrganization = async (c: Context) => {
       membersArr.push(mem);
     }
 
-    const creator = await clerkClient.users.getUser(u);
+    const creator = await clerkClient.users.getUser(clerkUserId);
 
     if (!creator) {
       return sendError(c, 404, "User not found");
@@ -126,12 +124,16 @@ const createOrganization = async (c: Context) => {
       auditLogs: [auditLog],
     });
 
-    clerkClient.users.updateUser(uid as string, {
+    const role = org.roles.find((r: any) => r.slug === "administrator");
+
+    clerkClient.users.updateUser(clerkUserId as string, {
       publicMetadata: {
-        orgId: org._id,
-        orgRole: "administrator",
-        orgName: org.name,
-        orgPermissions: adminRole?.permissions,
+        ...clerkUser.publicMetadata,
+        organization: {
+          _id: org._id,
+          name: org.name,
+          role: role,
+        },
       },
     });
 
@@ -145,7 +147,7 @@ const createOrganization = async (c: Context) => {
         role: role?.slug,
         organization: org._id,
         inviter: fName || "",
-        inviterId: uid,
+        inviterId: uid, 
         organizationname: name,
       };
 
@@ -243,16 +245,14 @@ const joinOrganization = async (c: Context) => {
     }
 
     if (status === "accept") {
-      const permissions = defaultOrganizationRoles.find(
-        (role) => role.slug === decoded.role
-      )?.permissions;
-
       clerkClient.users.updateUser(u, {
         publicMetadata: {
-          orgId: org._id,
-          orgName: organization.name,
-          orgRole: decoded.role,
-          orgPermissions: permissions,
+          ...clerkUser.publicMetadata,
+          organization: {
+            _id: decoded.organization,
+            name: org.name,
+            role: decoded.role,
+          },
         },
       });
 
@@ -480,7 +480,7 @@ const updateGeneralSettings = async (c: Context) => {
       type: "info",
     };
 
-    const org = await Organization.findById(orgId);
+    const org = await Organization.findById(orgId).populate("members.user");
     if (!org) {
       return sendError(c, 404, "Organization not found");
     }
@@ -488,11 +488,13 @@ const updateGeneralSettings = async (c: Context) => {
     if (name !== org.name) {
       for (const member of org.members) {
         if (!member.user) continue;
-        const u = await clerkClient.users.getUser(member.user.toString());
+        const userDoc = await User.findById(member.user);
+        if (!userDoc) continue;
+        const u = await clerkClient.users.getUser(userDoc?.clerkId);
         const publicMetadata = u.publicMetadata;
-        publicMetadata.orgName = name;
+        (publicMetadata.organization as { name: string }).name = name;
 
-        await clerkClient.users.updateUser(member.user.toString(), {
+        await clerkClient.users.updateUser(userDoc.clerkId, {
           publicMetadata,
         });
       }
@@ -931,8 +933,7 @@ const permissionFieldMap = {
 const getOrganization = async (c: Context): Promise<Response> => {
   try {
     const userId = c.get("auth")._id;
-    console.log(userId)
-    
+    console.log(userId);
 
     const org = await Organization.findOne({
       "members.user": userId,
