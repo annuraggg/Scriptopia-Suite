@@ -22,14 +22,14 @@ import { MemberWithPermission } from "@shared-types/MemberWithPermission";
 const createOrganization = async (c: Context) => {
   try {
     const { name, email, website, members } = await c.req.json();
-    const u = c.get("auth").userId;
+    const u = c.get("auth")._id;
 
     console.log(members);
 
     const clerkUser = await clerkClient.users.getUser(u);
     const fName = clerkUser.firstName;
     const lName = clerkUser.lastName;
-    const clerkId = clerkUser.id;
+    const uid = clerkUser.publicMetadata._id;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const websiteRegex = /(http|https):\/\/[^ "]*/;
@@ -52,7 +52,7 @@ const createOrganization = async (c: Context) => {
     }
 
     const userInOrg = await Organization.findOne({
-      members: { $elemMatch: { user: clerkId } },
+      members: { $elemMatch: { user: uid } },
     });
 
     if (userInOrg) {
@@ -75,7 +75,7 @@ const createOrganization = async (c: Context) => {
       );
 
       const mem = {
-        user: user?.clerkId || "",
+        user: user?._id || "",
         email: member.email,
         role: role?.slug,
         addedOn: new Date(),
@@ -96,7 +96,7 @@ const createOrganization = async (c: Context) => {
     );
 
     membersArr.push({
-      user: clerkId,
+      user: uid,
       email: creator.emailAddresses[0].emailAddress,
       role: adminRole?.slug,
       addedOn: new Date(),
@@ -105,7 +105,7 @@ const createOrganization = async (c: Context) => {
 
     const auditLog: AuditLog = {
       user: fName + " " + lName,
-      userId: clerkId,
+      userId: uid as string,
       action: "Organization Created",
       type: "info",
     };
@@ -126,7 +126,7 @@ const createOrganization = async (c: Context) => {
       auditLogs: [auditLog],
     });
 
-    clerkClient.users.updateUser(clerkId, {
+    clerkClient.users.updateUser(uid as string, {
       publicMetadata: {
         orgId: org._id,
         orgRole: "administrator",
@@ -145,7 +145,7 @@ const createOrganization = async (c: Context) => {
         role: role?.slug,
         organization: org._id,
         inviter: fName || "",
-        inviterId: clerkId,
+        inviterId: uid,
         organizationname: name,
       };
 
@@ -175,7 +175,7 @@ const createOrganization = async (c: Context) => {
 const verifyInvite = async (c: Context) => {
   try {
     const { token } = await c.req.json();
-    const u = c.get("auth").userId;
+    const u = c.get("auth")._id;
     const clerkUser = await clerkClient.users.getUser(u);
     const email = clerkUser.emailAddresses[0].emailAddress;
 
@@ -212,7 +212,7 @@ const verifyInvite = async (c: Context) => {
 const joinOrganization = async (c: Context) => {
   try {
     const { status, token } = await c.req.json();
-    const u = c.get("auth").userId;
+    const u = c.get("auth")._id;
     const clerkUser = await clerkClient.users.getUser(u);
     const email = clerkUser.emailAddresses[0].emailAddress;
 
@@ -398,7 +398,7 @@ const updateOrganization = async (c: Context) => {
           (email: string) => !oldPendingMembersEmails.includes(email)
         );
 
-      const user = await clerkClient.users.getUser(c.get("auth").userId);
+      const user = await clerkClient.users.getUser(c.get("auth")._id);
 
       for (const email of newPendingMembersNotInOldPendingMembers) {
         const reqObj = {
@@ -471,11 +471,11 @@ const updateGeneralSettings = async (c: Context) => {
       return sendError(c, 400, "Invalid website address");
     }
 
-    const user = await clerkClient.users.getUser(c.get("auth").userId);
+    const user = await clerkClient.users.getUser(c.get("auth")._id);
 
     const auditLog: AuditLog = {
       user: user.firstName + " " + user.lastName,
-      userId: c.get("auth").userId,
+      userId: c.get("auth")._id,
       action: "Organization General Settings Updated",
       type: "info",
     };
@@ -554,10 +554,10 @@ const updateLogo = async (c: Context) => {
 
     await upload.done();
 
-    const user = await clerkClient.users.getUser(c.get("auth").userId);
+    const user = await clerkClient.users.getUser(c.get("auth")._id);
     const auditLog: AuditLog = {
       user: user.firstName + " " + user.lastName,
-      userId: c.get("auth").userId,
+      userId: c.get("auth")._id,
       action: "Organization Logo Updated",
       type: "info",
     };
@@ -597,7 +597,7 @@ const updateMembers = async (c: Context) => {
       return sendError(c, 404, "Organization not found");
     }
 
-    const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+    const clerkUser = await clerkClient.users.getUser(c.get("auth")._id);
     const fName = clerkUser.firstName;
     const lName = clerkUser.lastName;
 
@@ -631,7 +631,7 @@ const updateMembers = async (c: Context) => {
             ._id,
           organization: orgId,
           inviter: fName || "",
-          inviterId: c.get("auth").userId,
+          inviterId: c.get("auth")._id,
           organizationname: organization.name,
         };
 
@@ -652,7 +652,7 @@ const updateMembers = async (c: Context) => {
 
     const auditLog = {
       user: fName + " " + lName,
-      userId: c.get("auth").userId,
+      userId: c.get("auth")._id,
       action: "Organization Members Updated",
       type: "info",
     };
@@ -719,13 +719,13 @@ const updateRoles = async (c: Context) => {
       return sendError(c, 404, "Organization not found");
     }
 
-    const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+    const clerkUser = await clerkClient.users.getUser(c.get("auth")._id);
     const fName = clerkUser.firstName;
     const lName = clerkUser.lastName;
 
     const auditLog: AuditLog = {
       user: fName + " " + lName,
-      userId: c.get("auth").userId,
+      userId: c.get("auth")._id,
       action: "Organization Roles Updated",
       type: "info",
     };
@@ -834,7 +834,7 @@ const updateDepartments = async (c: Context) => {
 
     const orgId = perms.data?.orgId;
 
-    const user = await clerkClient.users.getUser(c.get("auth").userId);
+    const user = await clerkClient.users.getUser(c.get("auth")._id);
     const fName = user.firstName;
     const lName = user.lastName;
 
@@ -846,7 +846,7 @@ const updateDepartments = async (c: Context) => {
     organization.departments = departments;
     organization.auditLogs.push({
       user: fName + " " + lName,
-      userId: c.get("auth").userId,
+      userId: c.get("auth")._id,
       action: "Departments Updated",
       type: "info",
     });
@@ -930,7 +930,9 @@ const permissionFieldMap = {
 
 const getOrganization = async (c: Context): Promise<Response> => {
   try {
-    const userId = c.get("auth").userId;
+    const userId = c.get("auth")._id;
+    console.log(userId)
+    
 
     const org = await Organization.findOne({
       "members.user": userId,
@@ -965,7 +967,7 @@ const getOrganization = async (c: Context): Promise<Response> => {
       Organization.findById(org._id)
         .populate("postings")
         .select(fieldsToSelect.join(" ")),
-      User.findOne({ clerkId: member.user }).lean(),
+      User.findOne({ _id: member.user }).lean(),
     ]);
 
     if (!selectedOrg || !userDetails) {
