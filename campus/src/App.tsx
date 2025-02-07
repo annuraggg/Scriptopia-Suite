@@ -11,6 +11,7 @@ import {
   useUser,
 } from "@clerk/clerk-react";
 import CreateJob from "./pages/jobs/create/CreateJob";
+import GroupDetails from "./pages/placementgroups/GroupDetails";
 
 // Lazy load components
 const Lander = lazy(() => import("./pages/lander/Lander"));
@@ -22,7 +23,6 @@ const Join = lazy(() => import("./pages/join/Join"));
 const Onboarding = lazy(() => import("./pages/onboarding/Onboarding"));
 const CandidateLayout = lazy(() => import("./pages/candidate/Layout"));
 const CompanyDetails = lazy(() => import("./pages/companyprofiles/CompanyDetails"));
-const GroupDetails = lazy(() => import("./pages/placementgroups/GroupDetails"));
 
 // Dashboard and other main views
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));

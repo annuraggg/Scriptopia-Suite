@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo } from "react";
 import {
@@ -79,6 +80,8 @@ const PlacementGroups = () => {
     },
   ]);
 
+
+  const navigate = useNavigate();
   const [sort, setSort] = useState<string>("newest");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filter, setFilter] = useState<"all" | "active" | "archived">("all");
@@ -223,7 +226,12 @@ const PlacementGroups = () => {
 
                   <div className="space-y-4">
                     {filteredGroups.map((group) => (
-                      <Card key={group.id} className=" p-4">
+                      <Card 
+                      key={group.id} 
+                      className="p-4 cursor-pointer w-full"
+                      isPressable
+                      onClick={() => navigate(`/group/${group.id}`)}
+                    >
                         <div className="flex justify-between items-start">
                           <div>
                             <div className="flex items-center gap-2 mb-2">
