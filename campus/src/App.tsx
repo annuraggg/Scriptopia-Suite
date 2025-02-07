@@ -22,6 +22,7 @@ const Join = lazy(() => import("./pages/join/Join"));
 const Onboarding = lazy(() => import("./pages/onboarding/Onboarding"));
 const CandidateLayout = lazy(() => import("./pages/candidate/Layout"));
 const CompanyDetails = lazy(() => import("./pages/companyprofiles/CompanyDetails"));
+const GroupDetails = lazy(() => import("./pages/placementgroups/GroupDetails"));
 
 // Dashboard and other main views
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
@@ -285,6 +286,22 @@ function App() {
           element: (
             <Suspense fallback={<Loader />}>
               <CompanyDetails />
+            </Suspense>
+          ),
+        },
+        {
+          path: "placementgroups",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <PlacementGroups />
+            </Suspense>
+          ),
+        },
+        {
+          path: "group/:id",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <GroupDetails />
             </Suspense>
           ),
         },
