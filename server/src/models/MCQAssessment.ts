@@ -41,7 +41,7 @@ const sectionSchema = new mongoose.Schema({
 
 const candidateSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
+  email: { type: String, required: true },
 });
 
 const openRangeSchema = new mongoose.Schema({
@@ -63,7 +63,7 @@ const mcqAssessmentSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, index: true },
     description: { type: String, required: true },
-    author: { type: String, required: true, index: true },
+    author: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
     timeLimit: { type: Number, required: true },
     passingPercentage: { type: Number, required: true },
     openRange: { type: openRangeSchema },

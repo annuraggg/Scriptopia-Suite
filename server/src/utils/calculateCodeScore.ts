@@ -1,11 +1,20 @@
 import Problem from "@/models/Problem";
-import { CodeAssessment } from "@shared-types/CodeAssessment";
-import { ProblemSubmission } from "@shared-types/CodeAssessmentSubmission";
+import {
+  CodeAssessment,
+  Problem as GradingProblem,
+} from "@shared-types/CodeAssessment";
+import {
+  ProblemSubmission,
+  Result,
+} from "@shared-types/CodeAssessmentSubmission";
 
 const getCodeScore = async (
   problemSubmissions: ProblemSubmission[],
   assessment: CodeAssessment
-) => {
+): Promise<{
+  problem: { problemId: string; obtainedMarks: number }[];
+  total: number;
+}> => {
   let total = 0;
   let problem: { problemId: string; obtainedMarks: number }[] = [];
 
@@ -14,12 +23,10 @@ const getCodeScore = async (
 
   for (const submission of problemSubmissions) {
     let grade = 0;
-    const problemId = submission.problemId.toString();
+    const problemId = submission.problemId;
 
     // Find the problem in the assessment
-    const problemExists = assessment.problems.some(
-      (p: any) => p.toString() === problemId
-    );
+    const problemExists = assessment.problems.some((p) => p === problemId);
     if (!problemExists) continue;
 
     if (assessment.grading.type === "testcase") {
@@ -32,11 +39,11 @@ const getCodeScore = async (
 
       // Calculate score based on testcase difficulty
       for (const testCase of problemDoc.testCases) {
-        if (!testCase?._id?.toString()) continue;
+        if (!testCase?._id) continue;
 
-        const passed = submission?.results?.find(
-          (result) =>
-            result.caseId === testCase?._id?.toString() &&
+        const passed = submission.results?.find(
+          (result: Result) =>
+            result.caseId === testCase._id?.toString() &&
             result.passed &&
             !result.isSample // Exclude sample test cases from scoring
         );
@@ -57,20 +64,21 @@ const getCodeScore = async (
       }
     }
 
-    if (assessment?.grading?.type && assessment.grading.type === "problem") {
-      const gradingProblemObj = assessment?.grading?.problem?.find(
-        (p: any) => p.problemId?.toString() === problemId
+    if (assessment.grading.type === "problem") {
+      const gradingProblemObj = assessment.grading.problem?.find(
+        (p: GradingProblem) => p.problemId === problemId
       );
 
       if (!gradingProblemObj) continue;
 
       // Check if all non-sample test cases passed
-      const nonSampleResults = submission?.results?.filter(
+      const nonSampleResults = submission.results?.filter(
         (result) => !result.isSample
       );
 
       const allPassed =
-        nonSampleResults && nonSampleResults.length > 0 &&
+        nonSampleResults &&
+        nonSampleResults.length > 0 &&
         nonSampleResults.every((result) => result.passed);
 
       if (allPassed) {

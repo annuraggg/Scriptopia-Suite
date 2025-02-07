@@ -1,8 +1,17 @@
-// import { getAuth } from "@hono/clerk-auth";
+import { getAuth } from "@hono/clerk-auth";
 import { createMiddleware } from "hono/factory";
+import { Context } from "hono";
 import { sendError } from "../utils/sendResponse";
 
-const authMiddleware = createMiddleware(async (c, next) => {
+const authMiddleware = createMiddleware(async (c: Context, next) => {
+  // @ts-expect-error
+  const auth = getAuth(c);
+  const credentials = {
+    userId: auth?.userId,
+    _id: auth?.sessionClaims?._id,
+  };
+  c.set("auth", credentials);
+
   if (c.req.path === "/health") return next();
   if (c.req.path.startsWith("/submissions")) return next();
   if (c.req.path.startsWith("/users")) return next();
@@ -21,17 +30,10 @@ const authMiddleware = createMiddleware(async (c, next) => {
   //   return sendError(c, 401, "Unauthorized");
   // }
 
-  // @ts-ignore
-  const auth = {
-    userId: "user_2nw3yCYFf6NTV5bKTo15OMYvKNP",
-  };
-  // const auth = getAuth(c);
-  console.log("auth", auth?.userId);
-  if (!auth?.userId) {
-    if (c.req.path.startsWith("/problems")) return next();
-    return sendError(c, 401, "Unauthorized");
+  if (!auth) {
+    return sendError(c, 401, "Request Unauthorized");
   }
-  c.set("auth", auth);
+
   return next();
 });
 

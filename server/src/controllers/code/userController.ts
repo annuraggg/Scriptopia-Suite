@@ -2,6 +2,7 @@ import { Context } from "hono";
 import User from "../../models/User";
 import { sendError, sendSuccess } from "../../utils/sendResponse";
 import logger from "../../utils/logger";
+import clerkClient from "@/config/clerk";
 
 const userCreated = async (c: Context) => {
   const { data } = await c.req.json();
@@ -11,9 +12,13 @@ const userCreated = async (c: Context) => {
   );
 
   try {
-    await User.create({
+    const user = await User.create({
       clerkId: id,
       email: email.email_address,
+    });
+
+    await clerkClient.users.updateUser(id, {
+      publicMetadata: { _id: user._id },
     });
 
     return sendSuccess(c, 200, "User created successfully");

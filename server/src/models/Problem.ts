@@ -28,12 +28,12 @@ const ProblemSchema = new mongoose.Schema(
     },
     tags: { type: [String], required: true },
     isPrivate: { type: Boolean, default: false },
-    totalSubmissions: { type: Number, default: 0 },
     sdsl: { type: [String], required: true },
     customStubs: { type: [customStubSchema], required: false },
     testCases: { type: [testCaseSchema], required: true },
 
-    successfulSubmissions: { type: Number, default: [] },
+    totalSubmissions: { type: Number, default: 0 },
+    successfulSubmissions: { type: Number, default: 0 },
     acceptanceRate: { type: Number, default: 0 },
   },
   { timestamps: true }

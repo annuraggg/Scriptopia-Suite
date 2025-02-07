@@ -1,7 +1,6 @@
 import { Context } from "hono";
 import Problem from "../../models/Problem";
 import { sendError, sendSuccess } from "../../utils/sendResponse";
-import { getAuth } from "@hono/clerk-auth";
 import Submission from "../../models/Submission";
 import {
   GoogleGenerativeAI,
@@ -16,8 +15,8 @@ const getProblems = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
     // @ts-ignore
-    const auth = getAuth(c);
-    const userId = auth?.userId;
+    const auth = c.get("auth");
+    const userId = auth?._id;
 
     const problems = await Problem.find()
       .skip((page - 1) * LIMIT_PER_PAGE)
@@ -32,7 +31,10 @@ const getProblems = async (c: Context) => {
         status: "SUCCESS",
       });
       userSolvedProblems = successfulSubmissions
-        .filter((submission): submission is mongoose.Types.ObjectId => submission !== null)
+        .filter(
+          (submission): submission is mongoose.Types.ObjectId =>
+            submission !== null
+        )
         .map((submission) => submission.toString());
     }
 
@@ -62,8 +64,8 @@ const getUserGeneratedProblems = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
     // @ts-ignore
-    const auth = getAuth(c);
-    const userId = auth?.userId;
+    const auth = c.get("auth");
+    const userId = auth?._id;
 
     const problems = await Problem.find({
       author: { $ne: process.env.SCRIPTOPIA_USER_ID },
@@ -79,7 +81,10 @@ const getUserGeneratedProblems = async (c: Context) => {
         status: "SUCCESS",
       });
       userSolvedProblems = successfulSubmissions
-        .filter((submission): submission is mongoose.Types.ObjectId => submission !== null && submission !== undefined)
+        .filter(
+          (submission): submission is mongoose.Types.ObjectId =>
+            submission !== null && submission !== undefined
+        )
         .map((submission) => submission.toString());
     }
 
@@ -109,19 +114,19 @@ const getMyProblems = async (c: Context) => {
   try {
     const page = parseInt(c.req.param("page")) || 1;
     // @ts-ignore
-    const auth = getAuth(c);
+    const auth = c.get("auth");
 
-    if (!auth?.userId) {
+    if (!auth?._id) {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const problems = await Problem.find({ author: auth.userId })
+    const problems = await Problem.find({ author: auth?._id })
       .skip((page - 1) * LIMIT_PER_PAGE)
       .limit(LIMIT_PER_PAGE)
       .lean();
 
     const successfulSubmissions = await Submission.distinct("problem", {
-      user: auth.userId,
+      user: auth?._id,
       status: "SUCCESS",
     });
 
@@ -148,15 +153,12 @@ const getMyProblems = async (c: Context) => {
 const getProblem = async (c: Context) => {
   try {
     const id = c.req.param("id");
-    const userId = c.get("auth")?.userId;
+    const userId = c.get("auth")?._id;
 
     const problem = await Problem.findById(id).lean();
     if (!problem) {
       return sendSuccess(c, 404, "Problem not found");
     }
-
-    console.log(userId);
-    console.log(id);
 
     if (!userId) return sendSuccess(c, 200, "Success", { problem });
 
@@ -175,9 +177,9 @@ const getProblem = async (c: Context) => {
 const createProblem = async (c: Context) => {
   try {
     // @ts-ignore
-    const auth = getAuth(c);
+    const auth = c.get("auth");
 
-    if (!auth?.userId) {
+    if (!auth?._id) {
       return sendError(c, 401, "Unauthorized");
     }
 
@@ -185,8 +187,8 @@ const createProblem = async (c: Context) => {
 
     const problem = new Problem({
       ...body,
-      isPrivate: true,
-      author: auth.userId,
+      isPrivate: auth?._id === process.env.SCRIPTOPIA_USER_ID ? false : true,
+      author: auth._id,
     });
 
     await problem.save();
@@ -257,6 +259,31 @@ const explain = async (c: Context) => {
   }
 };
 
+const deleteProblem = async (c: Context) => {
+  try {
+    const id = c.req.param("id");
+    const userId = c.get("auth")?._id;
+
+    if (!userId) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const problem = await Problem.findOneAndDelete({
+      _id: id,
+      author: userId,
+    });
+
+    if (!problem) {
+      return sendError(c, 404, "Problem not found");
+    }
+
+    return sendSuccess(c, 200, "Success", problem);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
 export default {
   getProblems,
   getUserGeneratedProblems,
@@ -264,4 +291,5 @@ export default {
   getProblem,
   createProblem,
   explain,
+  deleteProblem,
 };

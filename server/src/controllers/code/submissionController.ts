@@ -4,7 +4,6 @@ import Problem from "../../models/Problem";
 import { runCode as runCompilerCode } from "../../utils/runCode";
 import User from "../../models/User";
 import { TestCase } from "@shared-types/Problem";
-import { getAuth } from "@hono/clerk-auth";
 import Submission from "@/models/Submission";
 
 const runCode = async (c: Context) => {
@@ -73,8 +72,8 @@ const submitCode = async (c: Context) => {
     }));
 
     // @ts-ignore
-    const auth = getAuth(c);
-    const u = auth?.userId;
+    const auth = c.get("auth");
+    const u = auth?._id;
     if (!u) {
       return sendError(c, 401, "Unauthorized");
     }
@@ -104,12 +103,19 @@ const submitCode = async (c: Context) => {
     }
 
     prob.totalSubmissions += 1;
+    if (result.failedCaseNo === -1) {
+      console.log("Success");
+      prob.successfulSubmissions += 1;
+      const acceptanceRate =
+        (prob.successfulSubmissions / prob.totalSubmissions) * 100;
+      prob.acceptanceRate = acceptanceRate;
+    }
 
     await prob.save();
-
-    console.log("Passed", result.STATUS);
-    if (result.STATUS === "SUCCESS") {
+    if (result.STATUS === "PASSED") {
       await submission.save();
+    } else {
+      return sendError(c, 400, "Submission Failed", result);
     }
 
     return sendSuccess(c, 200, "Success", { submission, result });

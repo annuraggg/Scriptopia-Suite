@@ -20,10 +20,10 @@ interface Problem {
   difficulty: "easy" | "medium" | "hard";
   tags: string[];
   isPrivate: boolean;
-  totalSubmissions: number;
   sdsl: string[];
   customStubs?: CustomStub[];
   testCases: TestCase[];
+  totalSubmissions: number;
   successfulSubmissions: number;
   acceptanceRate: number;
   createdAt?: Date;
