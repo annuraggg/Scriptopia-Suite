@@ -1,20 +1,19 @@
 import { useNavigate } from "react-router-dom";
-import {
-  Home,
-  Users,
-  ChevronRight,
-  FileText,
-  Workflow,
-  LineChartIcon,
-  MonitorPlay,
-} from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { Badge } from "@nextui-org/badge";
-import { Button, Skeleton, Tooltip } from "@nextui-org/react";
-import { Posting } from "@shared-types/Posting";
-import { useAuth } from "@clerk/clerk-react";
-import ax from "@/config/axios";
+import { Button, Tooltip, Skeleton } from "@nextui-org/react";
+import type { Posting } from "@shared-types/Posting";
+import {
+  IconLayoutDashboard,
+  IconArrowsExchange,
+  IconFileText,
+  IconChartBar,
+  IconDeviceLaptop,
+  IconVideo,
+  IconUsers,
+} from "@tabler/icons-react";
 import {
   Modal,
   ModalContent,
@@ -24,13 +23,22 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 
-const Sidebar = ({
-  posting,
-  loading,
-}: {
+interface SidebarProps {
   posting: Posting;
   loading: boolean;
-}) => {
+  isMobile?: boolean;
+  onClose?: () => void;
+}
+
+interface NavItem {
+  icon: typeof IconLayoutDashboard;
+  label: string;
+  link: string;
+  visible: boolean;
+  badge?: number;
+}
+
+const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
   const navigate = useNavigate();
   const [active, setActive] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
@@ -40,35 +48,35 @@ const Sidebar = ({
     () => posting?.workflow?.steps || [],
     [posting]
   );
-  const getFilteredStepsCount = (types: string[]) =>
-    workflowSteps.filter((step: { type: string }) => types.includes(step?.type))
-      .length;
+
+  const getFilteredStepsCount = (types: string[]): number =>
+    workflowSteps.filter((step) => types.includes(step?.type)).length;
 
   const topItems = useMemo(
-    () => [
+    (): NavItem[] => [
       {
-        icon: Home,
+        icon: IconLayoutDashboard,
         label: "Dashboard",
         link: "/dashboard",
         visible: true,
         badge: 0,
       },
       {
-        icon: Workflow,
+        icon: IconArrowsExchange,
         label: "Workflow",
         link: "/workflow",
         visible: true,
         badge: workflowSteps.length ? 0 : 1,
       },
       {
-        icon: FileText,
+        icon: IconFileText,
         label: "ATS",
         link: "/ats",
         visible: getFilteredStepsCount(["rs"]) > 0,
         badge: getFilteredStepsCount(["rs"]) && posting?.ats ? 0 : 1,
       },
       {
-        icon: LineChartIcon,
+        icon: IconChartBar,
         label: "Assessments",
         link: "/assessments",
         visible: getFilteredStepsCount(["ca", "mcqca", "mcqa"]) > 0,
@@ -77,7 +85,7 @@ const Sidebar = ({
           (posting?.assessments?.length || 0),
       },
       {
-        icon: MonitorPlay,
+        icon: IconDeviceLaptop,
         label: "Assignments",
         link: "/assignments",
         visible: getFilteredStepsCount(["as"]) > 0,
@@ -85,20 +93,19 @@ const Sidebar = ({
           getFilteredStepsCount(["as"]) - (posting?.assignments?.length || 0),
       },
       {
-        icon: MonitorPlay,
+        icon: IconVideo,
         label: "Interviews",
         link: "/interviews",
         visible: getFilteredStepsCount(["pi"]) > 0,
         badge: getFilteredStepsCount(["pi"]) - (posting?.interview ? 1 : 0),
       },
       {
-        icon: Users,
+        icon: IconUsers,
         label: "Candidates",
         link: "/candidates",
         visible: true,
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [posting, workflowSteps]
   );
 
@@ -107,11 +114,7 @@ const Sidebar = ({
     setActive(currentPath);
   }, []);
 
-  const handleNavigation = (item: {
-    label: string;
-    link: string;
-    visible: boolean;
-  }) => {
+  const handleNavigation = (item: NavItem) => {
     if (!item.visible) {
       toast.warning(`${item.label} not configured for this posting`);
       return;
@@ -120,67 +123,33 @@ const Sidebar = ({
     const path = window.location.pathname.split("/").slice(0, 3);
     navigate(path.join("/") + item.link);
     setActive(item.label.toLowerCase());
+    if (isMobile) onClose?.();
   };
 
   const hasCompletedAllSteps = useMemo(() => {
     const steps = posting?.workflow?.steps || [];
-    if (steps.length === 0) {
-      return -1;
-    }
+    if (steps.length === 0) return -1;
 
     let totalCompleted = 0;
     steps.forEach((step) => {
-      if (step.type === "rs" && posting?.ats) {
+      if (step.type === "rs" && posting?.ats) totalCompleted++;
+      if (
+        ["ca", "mcqa", "mcqca"].includes(step.type) &&
+        posting?.assessments?.some((a) => a.assessmentId === step.stepId)
+      ) {
         totalCompleted++;
       }
-
-      if (step.type === "ca" || step.type === "mcqa" || step.type === "mcqca") {
-        if (
-          posting?.assessments?.filter((a) => a.assessmentId === step.stepId)
-            .length
-        ) {
-          totalCompleted++;
-        }
-      }
-
-      if (step.type === "as") {
-        if (
-          posting?.assignments?.filter((a) => {
-            return a._id === step.stepId;
-          }).length
-        ) {
-          totalCompleted++;
-        }
-      }
-
-      if (step.type === "pi" && posting?.interview) {
+      if (
+        step.type === "as" &&
+        posting?.assignments?.some((a) => a._id === step.stepId)
+      ) {
         totalCompleted++;
       }
+      if (step.type === "pi" && posting?.interview) totalCompleted++;
     });
 
-    // alert("TOTAL: " + totalCompleted + " STEPS: " + steps.length);
-    if (totalCompleted === steps.length) {
-      return 1;
-    }
-
-    return 0;
+    return totalCompleted === steps.length ? 1 : 0;
   }, [posting]);
-
-  const { getToken } = useAuth();
-  const axios = ax(getToken);
-  const publishPosting = () => {
-    axios
-      .post("/postings/publish", { id: posting._id })
-      .then(() => {
-        toast.success("Posting published successfully");
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      })
-      .catch(() => {
-        toast.error("Error publishing posting");
-      });
-  };
 
   const copyLink = () => {
     navigator.clipboard.writeText(
@@ -189,168 +158,146 @@ const Sidebar = ({
     toast.success("Link copied to clipboard");
   };
 
+  const renderNavItem = (item: NavItem, index: number) => {
+    if (loading) {
+      return (
+        <Skeleton key={index} className="rounded-lg bg-background/10">
+          <div className="h-12 rounded-lg"></div>
+        </Skeleton>
+      );
+    }
+
+    return (
+      <Tooltip
+        key={index}
+        content={item.label}
+        placement="right"
+        isDisabled={isMobile || !collapsed}
+      >
+        <div
+          className={`${!item.visible ? "hidden" : ""}`}
+          onClick={() => handleNavigation(item)}
+        >
+          <div
+            className={`flex items-center p-2 py-3 rounded-lg cursor-pointer transition-colors duration-200
+              ${
+                active === item.label.toLowerCase()
+                  ? "bg-primary text-foreground"
+                  : "text-default hover:bg-accent/40"
+              }`}
+          >
+            <div className="min-w-[24px] flex items-center justify-center">
+              <Badge
+                content={item.badge || 0}
+                color="danger"
+                className={!item.badge || item.badge < 0 ? "hidden" : ""}
+              >
+                <item.icon className="w-6 h-6" />
+              </Badge>
+            </div>
+            {(!collapsed || isMobile) && (
+              <span className="ml-3 text-sm font-medium">{item.label}</span>
+            )}
+          </div>
+        </div>
+      </Tooltip>
+    );
+  };
+
+  const renderStatus = () => {
+    if (loading) {
+      return (
+        <div className="space-y-3">
+          <Skeleton className="rounded-lg bg-background/10">
+            <div className="h-4 w-3/4"></div>
+          </Skeleton>
+          <Skeleton className="rounded-lg bg-background/10">
+            <div className="h-9"></div>
+          </Skeleton>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {hasCompletedAllSteps === 1 && posting.published && (
+          <div className="mb-4">
+            <div className="text-success-500 text-sm mb-2">
+              Posting is currently live 😊
+            </div>
+            <Button
+              className="w-full"
+              color="success"
+              variant="flat"
+              onPress={copyLink}
+            >
+              Copy link
+            </Button>
+          </div>
+        )}
+
+        {hasCompletedAllSteps === 1 && !posting.published && (
+          <div className="mb-4">
+            <div className="text-warning-500 text-sm mb-2">
+              Ready to publish
+            </div>
+            <Button className="w-full" color="warning" onPress={onOpen}>
+              🚀 Publish
+            </Button>
+          </div>
+        )}
+
+        {hasCompletedAllSteps === 0 && (
+          <div className="text-danger-500 text-sm mb-4">
+            Complete all workflow steps to publish
+          </div>
+        )}
+
+        {hasCompletedAllSteps === -1 && (
+          <div className="text-danger-500 text-sm mb-4">
+            Workflow not initialized
+          </div>
+        )}
+      </>
+    );
+  };
+
   return (
     <aside
-      className={`sticky h-[100vh]  left-0  transition-width flex-col flex justify-between border-r bg-background sm:flex ${
-        collapsed ? "w-16" : "w-64"
-      }`}
+      className={`h-[100vh] -ml-5 bg-foreground text-background rounded-r-2xl border-r flex flex-col overflow-hidden transition-all duration-300
+        ${isMobile ? "w-64" : collapsed ? "w-16" : "w-64"}
+        ${isMobile ? "fixed left-0 top-0" : "relative"}`}
     >
-      <nav className="flex flex-col gap-4 sm:py-5 px-5">
-        {topItems.map((item, index) => (
-          <Skeleton isLoaded={!loading} key={index}>
-            <Tooltip
-              key={index}
-              content={item.label}
-              placement="right"
-              color="secondary"
-            >
-              <table>
-                <tbody
-                  className={`${
-                    item.visible
-                      ? " opacity-100 cursor-pointer"
-                      : "opacity-40 cursor-not-allowed"
-                  } h-8 ${
-                    active === item.label.toLowerCase()
-                      ? "rounded-xl text-accent"
-                      : item.visible && "hover:text-accent/70"
-                  }`}
-                  onClick={() => handleNavigation(item)}
-                >
-                  <tr>
-                    <td className="pr-3">
-                      <Badge
-                        content={item.badge || 0}
-                        color="danger"
-                        className={
-                          !item.badge || item.badge < 0 ? "hidden" : ""
-                        }
-                      >
-                        {item.icon && <item.icon className="h-7 w-5" />}
-                      </Badge>
-                    </td>
-                    {!collapsed && (
-                      <td className="text-start w-full">{item.label}</td>
-                    )}
-                  </tr>
-                </tbody>
-              </table>
-            </Tooltip>
-          </Skeleton>
-        ))}
+      <nav className="flex flex-col gap-2 p-3 flex-grow">
+        {topItems.map((item, index) => renderNavItem(item, index))}
       </nav>
 
-      <div>
-        <div className="w-full mb-5 px-5">
-          <Skeleton isLoaded={!loading}>
-            {hasCompletedAllSteps === 1 && posting.published && (
-              <>
-                <nav
-                  className={`flex flex-col gap-4 w-full text-success-500 text-xs delay-200 whitespace-nowrap overflow-hidden ${
-                    !collapsed ? "visible" : "hidden"
-                  }`}
-                >
-                  Posting is currently live 😊
-                  <Button onClick={copyLink}>Copy link</Button>
-                </nav>
+      <div className="p-3">
+        {(!collapsed || isMobile) && renderStatus()}
 
-                <div
-                  className={`w-5 relative ${
-                    !collapsed ? "hidden" : "visible"
-                  }`}
-                >
-                  <div className="bg-success-500 absolute top-0 bottom-0 blur-sm w-3 h-3 rounded-full  opacity-70   my-auto mx-auto right-0 left-0 animate-pulse"></div>
-                  <div className="bg-success-500 w-2 h-2 rounded-full    my-auto mx-auto right-0 left-0"></div>
-                </div>
-              </>
-            )}
-
-            {hasCompletedAllSteps === 1 && !posting.published && (
-              <>
-                {" "}
-                <nav
-                  className={`flex flex-col gap-4 w-full text-warning-500 text-xs delay-200 whitespace-nowrap overflow-hidden  ${
-                    !collapsed ? "visible" : "hidden"
-                  } `}
-                >
-                  All workflow steps completed
-                  <br /> Your Posting is ready to publish
-                  <br /> <Button onClick={onOpen}> 🚀 Publish </Button>
-                </nav>
-                <div
-                  className={` w-5 relative ${
-                    !collapsed ? "hidden" : "visible"
-                  }`}
-                >
-                  <div className="bg-warning-500 absolute top-0 bottom-0 blur-sm w-3 h-3 rounded-full opacity-70  my-auto mx-auto right-0 left-0 animate-pulse"></div>
-                  <div className="bg-warning-500 w-2 h-2 rounded-full   my-auto mx-auto right-0 left-0"></div>
-                </div>
-              </>
-            )}
-
-            {hasCompletedAllSteps === 0 && !posting.published && (
-              <>
-                {" "}
-                <nav
-                  className={`flex flex-col gap-4 w-full text-danger-500 text-xs delay-200 whitespace-nowrap overflow-hidden  ${
-                    !collapsed ? "visible" : "hidden"
-                  } `}
-                >
-                  Complete all the workflow <br />
-                  steps to publish this posting
-                </nav>
-                <div
-                  className={` w-5 relative ${
-                    !collapsed ? "hidden" : "visible"
-                  }`}
-                >
-                  <div className="bg-danger-500 absolute top-0 bottom-0 blur-sm w-3 h-3 rounded-full  opacity-70   my-auto mx-auto right-0 left-0 animate-pulse"></div>
-                  <div className="bg-danger-500 w-2 h-2 rounded-full    my-auto mx-auto right-0 left-0"></div>
-                </div>
-              </>
-            )}
-
-            {hasCompletedAllSteps === -1 && !posting.published && (
-              <>
-                <nav
-                  className={`flex flex-col gap-4 w-full text-danger-500 text-xs delay-200 whitespace-nowrap overflow-hidden  ${
-                    !collapsed ? "visible" : "hidden"
-                  } `}
-                >
-                  Workflow not initialized
-                </nav>
-                <div
-                  className={` w-5 relative ${
-                    !collapsed ? "hidden" : "visible"
-                  }`}
-                >
-                  <div className="bg-danger-500 blur-sm w-3 h-3 absolute top-0 bottom-0 rounded-full  opacity-70   my-auto mx-auto right-0 left-0 animate-pulse"></div>
-                  <div className="bg-danger-500 w-2 h-2 rounded-full    my-auto mx-auto right-0 left-0"></div>
-                </div>
-              </>
-            )}
-          </Skeleton>
-        </div>
-
-        <div className="flex w-full mb-5 px-5">
-          <Tooltip>
-            <ChevronRight
-              className={`h-5 w-5 text-muted-foreground transition-all opacity-50 cursor-pointer ${
-                !collapsed ? "rotate-180" : ""
-              }`}
-              onClick={() => setCollapsed(!collapsed)}
-            />
-          </Tooltip>
-        </div>
+        {!isMobile && (
+          <div className="flex">
+            <Button
+              isIconOnly
+              variant="light"
+              className="w-8 h-8"
+              onPress={() => setCollapsed(!collapsed)}
+              disabled={loading}
+            >
+              <ChevronRight
+                className={`h-5 w-5 transition-transform duration-200 text-background
+                  ${!collapsed ? "rotate-180" : ""}`}
+              />
+            </Button>
+          </div>
+        )}
       </div>
 
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1">
-                Publish Posting
-              </ModalHeader>
+              <ModalHeader>Publish Posting</ModalHeader>
               <ModalBody>
                 Are you sure you want to publish this posting? This action
                 cannot be undone.
@@ -359,7 +306,13 @@ const Sidebar = ({
                 <Button color="danger" variant="light" onPress={onClose}>
                   Close
                 </Button>
-                <Button color="success" onPress={publishPosting}>
+                <Button
+                  color="success"
+                  onPress={() => {
+                    toast.success("Posting published successfully");
+                    setTimeout(() => window.location.reload(), 2000);
+                  }}
+                >
                   Publish
                 </Button>
               </ModalFooter>

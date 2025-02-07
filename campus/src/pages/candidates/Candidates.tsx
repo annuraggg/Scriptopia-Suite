@@ -6,6 +6,7 @@ import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useSelector } from "react-redux";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
+import { Spinner } from "@nextui-org/react";
 
 interface Candidate {
   _id: string;
@@ -48,7 +49,12 @@ const Candidates = () => {
     status: candidate.status || "N/A",
   }));
 
-  if (loading) return <div>Loading...</div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Spinner />
+      </div>
+    );
   if (error) return <div>Error: {error}</div>;
 
   return (

@@ -123,10 +123,10 @@ const ActionButtons = ({
         <Users />
       </Button>
 
-      <Button size="md" className="bg-red-700 ml-5" radius="full">
+      <Button size="md" className="bg-red-700 ml-5" radius="full" onClick={() => call}>
         <PhoneOff />
       </Button>
-
+{/* 
       <Button
         radius="full"
         variant="light"
@@ -136,7 +136,7 @@ const ActionButtons = ({
         onClick={() => setSettings((prev) => !prev)}
       >
         <Settings />
-      </Button>
+      </Button> */}
     </div>
   );
 };

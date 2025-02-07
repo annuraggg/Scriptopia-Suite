@@ -1,7 +1,6 @@
 import "./App.css";
 import { Suspense, lazy, useEffect } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { Spinner } from "@nextui-org/react";
 import { useDispatch } from "react-redux";
 import { setOrganization } from "./reducers/organizationReducer";
 import {
@@ -14,6 +13,7 @@ import CreateJob from "./pages/jobs/create/CreateJob";
 import GroupDetails from "./pages/placementgroups/GroupDetails";
 
 // Lazy load components
+import Loader from "./components/Loader";
 const Lander = lazy(() => import("./pages/lander/Lander"));
 const Layout = lazy(() => import("./components/Layout"));
 const JobLayout = lazy(() => import("./pages/jobs/job/Layout"));
@@ -22,13 +22,19 @@ const Start = lazy(() => import("./pages/start/Start"));
 const Join = lazy(() => import("./pages/join/Join"));
 const Onboarding = lazy(() => import("./pages/onboarding/Onboarding"));
 const CandidateLayout = lazy(() => import("./pages/candidate/Layout"));
-const CompanyDetails = lazy(() => import("./pages/companyprofiles/CompanyDetails"));
+const CompanyDetails = lazy(
+  () => import("./pages/companyprofiles/CompanyDetails")
+);
 
 // Dashboard and other main views
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
 const Jobs = lazy(() => import("./pages/jobs/Jobs"));
-const PlacementGroups = lazy(() => import("./pages/placementgroups/PlacementGroups"));
-const CompanyProfiles = lazy(() => import("./pages/companyprofiles/CompanyProfiles"));
+const PlacementGroups = lazy(
+  () => import("./pages/placementgroups/PlacementGroups")
+);
+const CompanyProfiles = lazy(
+  () => import("./pages/companyprofiles/CompanyProfiles")
+);
 const Candidates = lazy(() => import("./pages/candidates/Candidates"));
 const Analytics = lazy(() => import("./pages/analytics/Analytics"));
 const Notifications = lazy(() => import("./pages/notifications/Notifications"));
@@ -86,13 +92,6 @@ const AuditLogs = lazy(
 const OrgData = lazy(() => import("./pages/settings/security/data/Data"));
 
 const StartOnboarding = lazy(() => import("./pages/onboarding/start/Start"));
-
-// Loader component for Suspense fallback
-const Loader = () => (
-  <div className="spinner-container">
-    <Spinner label="Loading..." color="default" />
-  </div>
-);
 
 function App() {
   const { user, isSignedIn } = useUser();

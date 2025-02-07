@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Button,
   Dropdown,
@@ -16,23 +16,34 @@ import {
   MicOff,
   MonitorUp,
   PhoneOff,
-  Settings,
   Users,
 } from "lucide-react";
-import { Call, useCallStateHooks } from "@stream-io/video-react-sdk";
+import {
+  Call,
+  OwnCapability,
+  useCallStateHooks,
+} from "@stream-io/video-react-sdk";
+import { toast } from "sonner";
 
 interface ActionButtonsProps {
   call: Call;
   onChatToggle: (isOpen: boolean) => void;
-  onSettingsToggle: (isOpen: boolean) => void;
+  participantsOpen: boolean;
+  setParticipantsOpen: (isOpen: boolean) => void;
 }
 
 const ActionButtons = ({
   call,
   onChatToggle,
-  onSettingsToggle,
+  participantsOpen,
+  setParticipantsOpen,
 }: ActionButtonsProps) => {
-  const { useCameraState, useMicrophoneState } = useCallStateHooks();
+  const {
+    useCameraState,
+    useMicrophoneState,
+    useScreenShareState,
+    useIsCallRecordingInProgress,
+  } = useCallStateHooks();
   const {
     camera,
     devices: camDevices,
@@ -45,11 +56,55 @@ const ActionButtons = ({
     isMute: isMicOff,
     selectedDevice: selectedMic,
   } = useMicrophoneState();
+  const { isMute: isScreenShareOff, screenShare } = useScreenShareState();
 
-  const [present, setPresent] = React.useState(false);
-  const [recording, setRecording] = React.useState(false);
-  const [waitingRoom, setWaitingRoom] = React.useState(false);
+  const [isCallRecordingLoading, setIsCallRecordingLoading] = useState(false);
+  const [callRecordPermission, setCallRecordPermission] = useState(false);
+
+  const isCallRecordingInProgress = useIsCallRecordingInProgress();
+
   const [chat, setChat] = React.useState(false);
+
+  const handleShareScreen = async () => {
+    const canScreenShare = call.permissionsContext.hasPermission(
+      OwnCapability.SCREENSHARE
+    );
+
+    if (!isScreenShareOff) {
+      await screenShare.toggle();
+      return;
+    }
+
+    if (canScreenShare) {
+      await screenShare.toggle();
+      return;
+    }
+
+    if (!call.permissionsContext.canRequest(OwnCapability.SCREENSHARE)) {
+      toast.error(
+        "The host has disabled the ability to request this permission"
+      );
+      return;
+    }
+
+    toast("You do not have the permission to share your screen.", {
+      action: {
+        label: "Request",
+        onClick: () =>
+          call.requestPermissions({
+            permissions: [OwnCapability.SCREENSHARE],
+          }),
+      },
+    });
+  };
+
+  useEffect(() => {
+    const canRecord = call.permissionsContext.hasPermission(
+      OwnCapability.START_RECORD_CALL
+    );
+
+    setCallRecordPermission(canRecord);
+  }, []);
 
   const handleMicrophoneChange = async (deviceId: string) => {
     await microphone.select(deviceId);
@@ -58,6 +113,21 @@ const ActionButtons = ({
   const handleCameraChange = async (deviceId: string) => {
     await camera.select(deviceId);
   };
+
+  const toggleRecording = useCallback(async () => {
+    try {
+      setIsCallRecordingLoading(true);
+      if (isCallRecordingInProgress) {
+        await call?.stopRecording();
+        toast.info("Recording stopped");
+      } else {
+        await call?.startRecording();
+        toast.info("This call is now being recorded");
+      }
+    } catch (e) {
+      console.error(`Failed start recording`, e);
+    }
+  }, [call, isCallRecordingInProgress]);
 
   const handleChatToggle = () => {
     const newValue = !chat;
@@ -156,6 +226,49 @@ const ActionButtons = ({
         </Dropdown>
       </div>
 
+      {/* Present Screen */}
+      <Button
+        radius="full"
+        variant="flat"
+        size="lg"
+        isIconOnly
+        className={
+          !isScreenShareOff ? "text-blue-500 bg-blue-900 bg-opacity-50" : ""
+        }
+        onClick={handleShareScreen}
+      >
+        <MonitorUp />
+      </Button>
+
+      {/* Recording */}
+      {callRecordPermission && (
+        <Button
+          radius="full"
+          variant="flat"
+          size="lg"
+          isIconOnly
+          color={isCallRecordingInProgress ? "danger" : "default"}
+          isLoading={isCallRecordingLoading}
+          onClick={async () => toggleRecording()}
+        >
+          <Disc2 />
+        </Button>
+      )}
+
+      {/* Waiting Room */}
+      <Button
+        radius="full"
+        variant="flat"
+        size="lg"
+        isIconOnly
+        className={
+          participantsOpen ? "text-blue-500 bg-blue-800 bg-opacity-50" : ""
+        }
+        onClick={() => setParticipantsOpen(!participantsOpen)}
+      >
+        <Users />
+      </Button>
+
       {/* Chat Toggle */}
       <Button
         radius="full"
@@ -165,42 +278,6 @@ const ActionButtons = ({
         onClick={handleChatToggle}
       >
         {chat ? <MessageSquare /> : <MessageSquareOff />}
-      </Button>
-
-      {/* Present Screen */}
-      <Button
-        radius="full"
-        variant="flat"
-        size="lg"
-        isIconOnly
-        className={present ? "text-blue-500 bg-blue-900 bg-opacity-50" : ""}
-        onClick={() => setPresent((prev) => !prev)}
-      >
-        <MonitorUp />
-      </Button>
-
-      {/* Recording */}
-      <Button
-        radius="full"
-        variant="flat"
-        size="lg"
-        isIconOnly
-        color={recording ? "danger" : "default"}
-        onClick={() => setRecording((prev) => !prev)}
-      >
-        <Disc2 />
-      </Button>
-
-      {/* Waiting Room */}
-      <Button
-        radius="full"
-        variant="flat"
-        size="lg"
-        isIconOnly
-        className={waitingRoom ? "text-blue-500 bg-blue-800 bg-opacity-50" : ""}
-        onClick={() => setWaitingRoom((prev) => !prev)}
-      >
-        <Users />
       </Button>
 
       {/* End Call */}
@@ -215,7 +292,7 @@ const ActionButtons = ({
       </Button>
 
       {/* Settings */}
-      <Button
+      {/* <Button
         radius="full"
         variant="light"
         size="lg"
@@ -224,7 +301,7 @@ const ActionButtons = ({
         onClick={() => onSettingsToggle(true)}
       >
         <Settings />
-      </Button>
+      </Button> */}
     </div>
   );
 };
