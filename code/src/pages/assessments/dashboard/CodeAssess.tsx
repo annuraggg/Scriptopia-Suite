@@ -130,15 +130,8 @@ const CodeAssess = ({
               onView={() =>
                 navigate(`/assessments/c/${CreatedAssessment._id ?? ""}`)
               }
-              onDelete={async () => {
-                try {
-                  await confirmDelete(() =>
-                    handleDelete(CreatedAssessment._id ?? "")
-                  );
-                  handleDelete(CreatedAssessment._id ?? "");
-                } catch (error) {
-                  console.error(error);
-                }
+              onDelete={() => {
+                confirmDelete(() => handleDelete(CreatedAssessment._id ?? ""));
               }}
               onCopyLink={() => copyLink(CreatedAssessment._id ?? "")}
             />

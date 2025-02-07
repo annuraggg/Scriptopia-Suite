@@ -57,7 +57,7 @@ const Assessments = () => {
     if (active === 0)
       return <AssessmentsTaken takenAssessments={data[0]?.data.data || []} />;
     if (active === 1)
-      return <MCQAssess createdAssessments={data[1]?.data.data || []} />;
+      return <MCQAssess createdAssessments={data[1]?.data.data || []}  />;
     if (active === 2)
       return <CodeAssess createdAssessments={data[2]?.data.data || []} />;
   };

@@ -554,10 +554,6 @@ const codeSubmit = async (c: Context) => {
       submission?.submissions || [],
       assessment
     );
-
-    console.log(submission?.submissions);
-    console.log(grades);
-
     // @ts-ignore
     submission.obtainedGrades = grades;
     submission.timer = timer;
@@ -615,7 +611,7 @@ const deleteMcqAssessment = async (c: Context) => {
       return sendError(c, 404, "Assessment not found");
     }
 
-    if (assessment.author !== auth?._id) {
+    if (assessment.author?.toString() !== auth?._id) {
       return sendError(c, 403, "Unauthorized");
     }
 
@@ -638,7 +634,7 @@ const deleteCodeAssessment = async (c: Context) => {
       return sendError(c, 404, "Assessment not found");
     }
 
-    if (assessment.author !== auth?._id) {
+    if (assessment.author?.toString() !== auth?._id) {
       return sendError(c, 403, "Unauthorized");
     }
 
@@ -681,8 +677,8 @@ const verifyAccess = async (c: Context) => {
       MCQAssessment.findOne({ _id: body.id }).lean(),
     ]);
 
-    // @ts-expect-error
     const assessment =
+      // @ts-expect-error
       (result1 as ICodeAssessment) || (result2 as IMCQAssessment);
 
     if (!assessment) {
@@ -949,8 +945,8 @@ const getAssessmentSubmissions = async (c: Context) => {
       MCQAssessment.findById(id).lean(),
     ]);
 
-    // @ts-expect-error
     const assessment =
+      // @ts-expect-error
       (queries[0] as ICodeAssessment) || (queries[1] as IMCQAssessment);
     if (!assessment) {
       return sendError(c, 404, "Assessment not found");
