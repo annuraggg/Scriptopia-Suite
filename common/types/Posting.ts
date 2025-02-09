@@ -124,7 +124,8 @@ interface Posting {
   workflow?: Workflow;
   assignments?: Assignment[];
   ats?: ATS;
-  assessments?: Assessment[];
+  mcqAssessments?: Assessment[];
+  codeAssessments?: Assessment[];
   interview?: Interview;
   candidates?: string[];
   additionalDetails?: AdditionalDetails;

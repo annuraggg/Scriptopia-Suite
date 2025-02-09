@@ -1,4 +1,4 @@
-import { Copy, Code, Combine } from "lucide-react";
+import { Copy, Code } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const createdLinks: {
@@ -16,11 +16,6 @@ const createdLinks: {
     title: "Code Assessments",
     icon: Code,
     hash: "codecreated",
-  },
-  {
-    title: "MCQ + Code Assessments",
-    icon: Combine,
-    hash: "mcqcodecreated",
   },
 ];
 
@@ -46,9 +41,7 @@ const Sidebar = ({
                 key={link.title}
                 href={`#${link.hash}`}
                 className={`flex items-center gap-3 rounded-lg py-4 text-muted-foreground transition-all hover:text-primary ${
-                  active === createdLinks.indexOf(link)
-                    ? "text-primary "
-                    : ""
+                  active === createdLinks.indexOf(link) ? "text-primary " : ""
                 }`}
                 onClick={() => setActive(createdLinks.indexOf(link))}
               >

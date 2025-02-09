@@ -103,6 +103,11 @@ const New = () => {
 
   const { getToken } = useAuth();
 
+  const getParam = (name: string) => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+  };
+
   const buildAssessmentData = () => {
     const rangeStart = testOpenRange.start.toDate("UTC");
     const rangeEnd = testOpenRange.end.toDate("UTC");
@@ -111,7 +116,7 @@ const New = () => {
     rangeEnd.setHours(endTime.hour);
     rangeEnd.setMinutes(endTime.minute);
 
-    console.log(isPosting);
+    const redirectParam = getParam("returnUrl");
 
     const reqBody = {
       assessmentPostingName: assessmentName,
@@ -147,10 +152,14 @@ const New = () => {
       .post("/assessments/mcq", reqBody)
       .then(() => {
         toast.success("Assessment created successfully");
-        // window.location.href = window.location.pathname
-        //   .split("/")
-        //   .slice(0, -2)
-        //   .join("/");
+        if (redirectParam) {
+          window.location.href = redirectParam;
+        } else {
+          window.location.href = window.location.pathname
+            .split("/")
+            .slice(0, -2)
+            .join("/");
+        }
       })
       .catch((err) => {
         console.error(err);

@@ -25,7 +25,7 @@ const Assessments = () => {
             (step) =>
               step.type === "CODING_ASSESSMENT" ||
               step.type === "MCQ_ASSESSMENT"
-          ).length - (posting?.assessments?.length ?? 0)
+          ).length - (posting?.codeAssessments?.length || 0) - (posting?.mcqAssessments?.length || 0)
         : 0;
 
       if (remainingToConfig) {

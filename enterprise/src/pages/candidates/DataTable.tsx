@@ -214,8 +214,12 @@ export function DataTable<TData>({ data = [] }: DataTableProps<TData>) {
               table.getColumn("status")?.setFilterValue(event.target.value);
             }
           }}
-          size="sm"
           className="max-w-sm"
+          selectedKeys={
+            table.getColumn("status")?.getFilterValue()
+              ? [table.getColumn("status")?.getFilterValue() as string]
+              : ["all"]
+          }
         >
           <SelectItem key="all">All</SelectItem>
           <SelectItem key="qualified">Qualified</SelectItem>
@@ -233,9 +237,9 @@ export function DataTable<TData>({ data = [] }: DataTableProps<TData>) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </TableHead>
                 );
               })}
