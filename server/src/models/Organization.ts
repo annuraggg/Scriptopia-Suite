@@ -20,7 +20,7 @@ const membersSchema = new Schema({
 const rolesSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    slug: { type: String, required: true, unique: true },
+    slug: { type: String, required: true },
     default: { type: Boolean, default: true },
     description: { type: String },
     permissions: [{ type: String, required: true }],
