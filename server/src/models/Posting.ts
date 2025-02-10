@@ -176,7 +176,6 @@ postingSchema.index({ organizationId: 1 });
 postingSchema.index({ department: 1 });
 postingSchema.index({ title: 1 });
 postingSchema.index({ "ats.status": 1 });
-postingSchema.index({ "workflow.currentStep": 1 });
 
 const Posting = mongoose.model("Posting", postingSchema);
 export default Posting;

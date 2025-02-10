@@ -10,12 +10,17 @@ import Posting from "./pages/posting/Posting";
 import jobRoutes from "./routes/jobroutes";
 import JobsLayout from "./pages/Jobs/JobsLayout";
 import Apply from "./pages/posting/apply/Apply";
+import Register from "./pages/register/Register";
 
 function App() {
   const router = createBrowserRouter([
     {
       path: "/",
       element: <Lander />,
+    },
+    {
+      path: "/register",
+      element: <Register />,
     },
     {
       path: "/onboarding",

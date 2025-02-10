@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import ax from "@/config/axios";
@@ -15,6 +15,8 @@ import {
 import { Posting as PostingType } from "@shared-types/Posting";
 import { Organization } from "@shared-types/Organization";
 import Quill from "quill";
+import Loader from "@/components/Loader";
+import { Candidate } from "@shared-types/Candidate";
 
 const routineMap = {
   full_time: "Full Time",
@@ -33,12 +35,28 @@ const Posting = () => {
   const navigate = useNavigate();
   const { getToken } = useAuth();
   const axios = ax(getToken);
+  const [loading, setLoading] = useState(false);
   const [posting, setPosting] = useState<PostingOrganization>(
     {} as PostingOrganization
   );
+  const [applied, setApplied] = useState(false);
   const [timeLeft, setTimeLeft] = useState("");
 
+  const { user } = useUser();
+
   useEffect(() => {
+    const filter = posting?.candidates?.filter(
+      (candidate: any) =>
+        candidate._id?.toString() === user?.publicMetadata?._id?.toString()
+    );
+
+    if (filter && filter.length > 0) {
+      setApplied(true);
+    }
+  }, [user, posting]);
+
+  useEffect(() => {
+    setLoading(true);
     const postingId = window.location.pathname.split("/")[2];
     axios
       .get(`/postings/slug/${postingId}`)
@@ -60,7 +78,8 @@ const Posting = () => {
       .catch((err) => {
         toast.error("Failed to fetch posting details");
         console.error(err);
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const updateTimeLeft = (endDate: string) => {
@@ -78,16 +97,26 @@ const Posting = () => {
   };
 
   const apply = () => {
-    navigate("/postings/" + posting?.url + "/apply");
+    navigate("/postings/" + posting?.url + "/apply?id=" + posting?._id);
   };
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div className="p-10">
       <div className="flex justify-between">
         <h2>{posting?.title}</h2>
-        <Button onClick={apply} color="warning" variant="flat">
-          Apply Now
-        </Button>
+        {applied ? (
+          <Chip color="success" variant="flat">
+            Applied
+          </Chip>
+        ) : (
+          <Button onClick={apply} color="warning" variant="flat">
+            Apply Now
+          </Button>
+        )}
       </div>
 
       <div className="flex gap-5">
@@ -119,7 +148,7 @@ const Posting = () => {
                 <div>
                   <p className="opacity-50 text-sm">Posted At</p>
                   <p className="mt-2 text-xl">
-                    {new Date(posting?.createdOn || "").toDateString()}
+                    {new Date(posting?.createdAt || "").toDateString()}
                   </p>
                 </div>
                 <ArrowRight size={40} className="opacity-50" />

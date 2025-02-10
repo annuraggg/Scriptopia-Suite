@@ -1,5 +1,3 @@
-// @ts-nocheck
-// ! FIX THIS FILE
 import { motion } from "framer-motion";
 import { Card, CardBody, CardHeader, Input, Textarea } from "@heroui/react";
 import { SelectionChart } from "./SelectionChart";
@@ -7,7 +5,7 @@ import { Tabs, Tab } from "@heroui/react";
 import { DataTable } from "./DataTable";
 import { Posting } from "@shared-types/Posting";
 import { useEffect, useState } from "react";
-import { Candidate } from "@shared-types/Candidate";
+import { ExtendedCandidate as Candidate } from "@shared-types/ExtendedCandidate";
 import { AppliedPosting } from "@shared-types/AppliedPosting";
 
 interface CandidateTable {

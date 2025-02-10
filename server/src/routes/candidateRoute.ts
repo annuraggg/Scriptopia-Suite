@@ -8,7 +8,7 @@ const app = new Hono();
 // app.post("sendVerificationMail", candidateController.sendVerificationMail);
 // app.post("verifyOtp", candidateController.verifyOtp);
 
-// app.post("apply", candidateController.apply);
+app.post("apply", candidateController.apply);
 
 // app.post("verify", candidateController.verifyCandidate);
 

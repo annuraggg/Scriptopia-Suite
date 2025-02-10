@@ -79,10 +79,8 @@ const Show = ({ workflowData }: ShowProps) => {
                 <TableRow key={index}>
                   <TableCell>{step.name}</TableCell>
                   <TableCell>{stepTypeMap[step.type]}</TableCell>
-                  {posting.workflow?.steps.findIndex(
-                    (s) => s._id === step._id
-                  ) ===
-                  index - 1 ? (
+                  {posting.workflow?.steps.filter((s) => !s.completed)[0]
+                    ._id === step._id ? (
                     <TableCell className="h-16">
                       <Button
                         variant="flat"
@@ -95,16 +93,11 @@ const Show = ({ workflowData }: ShowProps) => {
                         Advance
                       </Button>
                     </TableCell>
-                  ) : (posting.workflow?.steps.findIndex(
-                      (s) => s._id === step._id
-                    ) ?? -1) > index ? (
+                  ) : step.completed ? (
                     <TableCell className="h-16 text-success-500">
                       Step Completed
                     </TableCell>
-                  ) : (posting.workflow?.steps.findIndex(
-                      (s) => s._id === step._id
-                    ) ?? -1) >
-                    index - 1 ? (
+                  ) : posting.workflow?.steps.filter((s) => !s.completed)[0]._id === step._id ? (
                     <TableCell className="h-16 text-warning-500">
                       Ongoing
                     </TableCell>

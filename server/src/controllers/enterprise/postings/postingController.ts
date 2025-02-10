@@ -45,6 +45,7 @@ const getPosting = async (c: Context) => {
       .populate("mcqAssessments.assessmentId")
       .populate("codeAssessments.assessmentId")
       .populate("candidates")
+      .populate("candidates.appliedPostings")
       .populate("organizationId")
       .populate("assignments.submissions");
 
@@ -62,7 +63,8 @@ const getPosting = async (c: Context) => {
 const getPostingBySlug = async (c: Context) => {
   try {
     const posting = await Posting.findOne({ url: c.req.param("slug") })
-      .populate("assessments.assessmentId")
+      .populate("mcqAssessments.assessmentId")
+      .populate("codeAssessments.assessmentId")
       .populate("candidates")
       .populate("organizationId")
       .populate("assignments.submissions");

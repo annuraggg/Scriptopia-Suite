@@ -28,7 +28,8 @@ const Layout = () => {
       })
       .catch((err) => {
         if (err.response.status === 404) {
-          navigate("/");
+          navigate("/register");
+          return;
         }
         toast.error(err.response.data.message || "An error occurred");
       })
