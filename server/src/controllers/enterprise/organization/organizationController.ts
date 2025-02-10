@@ -18,18 +18,17 @@ import Posting from "@/models/Posting";
 import { Candidate } from "@shared-types/Candidate";
 import { UserJSON } from "@clerk/backend";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
+import { UserMeta } from "@shared-types/UserMeta";
 
 const createOrganization = async (c: Context) => {
   try {
     const { name, email, website, members } = await c.req.json();
-    const u = c.get("auth").userId;
+    const clerkUserId = c.get("auth").userId;
 
-    console.log(members);
-
-    const clerkUser = await clerkClient.users.getUser(u);
+    const clerkUser = await clerkClient.users.getUser(clerkUserId);
     const fName = clerkUser.firstName;
     const lName = clerkUser.lastName;
-    const clerkId = clerkUser.id;
+    const uid = clerkUser.publicMetadata._id;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const websiteRegex = /(http|https):\/\/[^ "]*/;
@@ -52,7 +51,7 @@ const createOrganization = async (c: Context) => {
     }
 
     const userInOrg = await Organization.findOne({
-      members: { $elemMatch: { user: clerkId } },
+      members: { $elemMatch: { user: uid } },
     });
 
     if (userInOrg) {
@@ -75,7 +74,7 @@ const createOrganization = async (c: Context) => {
       );
 
       const mem = {
-        user: user?.clerkId || "",
+        user: user?._id || null,
         email: member.email,
         role: role?.slug,
         addedOn: new Date(),
@@ -85,7 +84,7 @@ const createOrganization = async (c: Context) => {
       membersArr.push(mem);
     }
 
-    const creator = await clerkClient.users.getUser(u);
+    const creator = await clerkClient.users.getUser(clerkUserId);
 
     if (!creator) {
       return sendError(c, 404, "User not found");
@@ -96,7 +95,7 @@ const createOrganization = async (c: Context) => {
     );
 
     membersArr.push({
-      user: clerkId,
+      user: uid,
       email: creator.emailAddresses[0].emailAddress,
       role: adminRole?.slug,
       addedOn: new Date(),
@@ -105,7 +104,7 @@ const createOrganization = async (c: Context) => {
 
     const auditLog: AuditLog = {
       user: fName + " " + lName,
-      userId: clerkId,
+      userId: uid as string,
       action: "Organization Created",
       type: "info",
     };
@@ -126,12 +125,16 @@ const createOrganization = async (c: Context) => {
       auditLogs: [auditLog],
     });
 
-    clerkClient.users.updateUser(clerkId, {
+    const role = org.roles.find((r: any) => r.slug === "administrator");
+
+    clerkClient.users.updateUser(clerkUserId as string, {
       publicMetadata: {
-        orgId: org._id,
-        orgRole: "administrator",
-        orgName: org.name,
-        orgPermissions: adminRole?.permissions,
+        ...clerkUser.publicMetadata,
+        organization: {
+          _id: org._id,
+          name: org.name,
+          role: role,
+        },
       },
     });
 
@@ -145,7 +148,7 @@ const createOrganization = async (c: Context) => {
         role: role?.slug,
         organization: org._id,
         inviter: fName || "",
-        inviterId: clerkId,
+        inviterId: uid,
         organizationname: name,
       };
 
@@ -175,8 +178,8 @@ const createOrganization = async (c: Context) => {
 const verifyInvite = async (c: Context) => {
   try {
     const { token } = await c.req.json();
-    const u = c.get("auth").userId;
-    const clerkUser = await clerkClient.users.getUser(u);
+    const cid = c.get("auth").userId;
+    const clerkUser = await clerkClient.users.getUser(cid);
     const email = clerkUser.emailAddresses[0].emailAddress;
 
     if (!token) {
@@ -187,6 +190,7 @@ const verifyInvite = async (c: Context) => {
       organization: string;
     };
 
+    console.log(decoded);
     const org = await Organization.findById(decoded.organization);
     if (!org) {
       return sendError(c, 404, "Organization not found");
@@ -212,8 +216,9 @@ const verifyInvite = async (c: Context) => {
 const joinOrganization = async (c: Context) => {
   try {
     const { status, token } = await c.req.json();
-    const u = c.get("auth").userId;
-    const clerkUser = await clerkClient.users.getUser(u);
+    const userId = c.get("auth")._id;
+    const cid = c.get("auth").userId;
+    const clerkUser = await clerkClient.users.getUser(cid);
     const email = clerkUser.emailAddresses[0].emailAddress;
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
@@ -242,24 +247,31 @@ const joinOrganization = async (c: Context) => {
       return sendError(c, 400, "Invalid Invite");
     }
 
-    if (status === "accept") {
-      const permissions = defaultOrganizationRoles.find(
-        (role) => role.slug === decoded.role
-      )?.permissions;
+    const role = org.roles.find((r: any) => r.slug === decoded.role);
 
-      clerkClient.users.updateUser(u, {
+    if (status === "accept") {
+      clerkClient.users.updateUser(cid, {
         publicMetadata: {
-          orgId: org._id,
-          orgName: organization.name,
-          orgRole: decoded.role,
-          orgPermissions: permissions,
+          ...clerkUser.publicMetadata,
+          organization: {
+            _id: decoded.organization,
+            name: org.name,
+            role: role,
+          },
         },
       });
 
-      const inviterClerk = await clerkClient.users.getUser(decoded.inviterId);
+      const inviterUser = await User.findById(decoded.inviterId);
+      if (!inviterUser) {
+        return sendError(c, 404, "Inviter not found");
+      }
+
+      const inviterClerk = await clerkClient.users.getUser(
+        inviterUser?.clerkId
+      );
       const auditLog: AuditLog = {
         user: clerkUser.firstName + " " + clerkUser.lastName,
-        userId: u,
+        userId: userId,
         action: `User Joined Organization. Invited By: ${
           inviterClerk.firstName + " " + inviterClerk.lastName
         }`,
@@ -268,7 +280,7 @@ const joinOrganization = async (c: Context) => {
 
       await Organization.updateOne(
         { _id: decoded.organization, "members.email": email },
-        { $set: { "members.$.status": "active", "members.$.user": u } },
+        { $set: { "members.$.status": "active", "members.$.user": userId } },
         { $push: { auditLogs: auditLog } }
       );
     } else {
@@ -296,23 +308,13 @@ const getSettings = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const org = await Organization.findById(perms.data?.orgId)
+    const org = await Organization.findById(perms.data?.organization?._id)
       .populate("auditLogs.user")
+      .populate("members.user")
       .lean();
 
     if (!org) {
       return sendError(c, 404, "Organization not found");
-    }
-
-    for (const member of org?.members) {
-      if (!member.user) continue;
-      const user = await clerkClient.users.getUser(member?.user || "");
-      const role = org.roles.find((r: any) => (r as Role).slug === member.role);
-
-      // @ts-expect-error - Converting string to User
-      if (user) member.user = user;
-      // @ts-expect-error - Converting string to Role
-      if (role) member.role = role;
     }
 
     const logoUrl = org.logo;
@@ -325,7 +327,9 @@ const getSettings = async (c: Context) => {
 
         const data = await r2Client.send(command);
         const buffer = await data.Body?.transformToByteArray();
-        const base64 = Buffer.from(buffer as ArrayBuffer).toString("base64");
+        const base64 = Buffer.from(buffer as unknown as ArrayBuffer).toString(
+          "base64"
+        );
         org.logo = `data:image/png;base64,${base64}`;
       }
     } catch (e) {
@@ -345,87 +349,194 @@ const getSettings = async (c: Context) => {
 
 const updateOrganization = async (c: Context) => {
   try {
+    // Check permissions for managing organization
     const perms = await checkOrganizationPermission.all(c, [
       "manage_organization",
     ]);
-
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const orgId = perms.data?.orgId;
+    const orgId = perms.data?.organization?._id;
     const body = await c.req.json();
 
+    // Fetch original organization
     const org = await Organization.findById(orgId).lean();
     if (!org) {
+      logger.error("Organization not found:");
       return sendError(c, 404, "Organization not found");
     }
 
+    // Get current user for audit and invitation purposes
+    const currentUser = await clerkClient.users.getUser(c.get("auth").userId);
+    const inviterName = `${currentUser.firstName || ""} ${
+      currentUser.lastName || ""
+    }`.trim();
+
+    // Handle member changes
+    const oldMembers = org.members || [];
+    const newMembers = body.members || [];
+
+    // Find removed members (present in old but not in new)
+    const oldEmails = oldMembers.map((m) => m.email);
+    const newEmails = newMembers.map((m: Member) => m.email);
+    const removedEmails = oldEmails.filter(
+      (email) => !newEmails.includes(email)
+    );
+
+    // Process metadata updates for removed members
+    if (removedEmails.length > 0) {
+      const removedMembers = oldMembers.filter(
+        (member) => removedEmails.includes(member.email) && member.user
+      );
+
+      await Promise.all(
+        removedMembers.map(async (member) => {
+          if (!member.user) return;
+
+          try {
+            const user = await User.findById(member.user);
+            if (!user?.clerkId) return;
+
+            const clerkUserToUpdate = await clerkClient.users.getUser(
+              user.clerkId
+            );
+            const currentMetadata =
+              clerkUserToUpdate.publicMetadata as unknown as UserMeta;
+
+            // Remove organization from metadata if it matches current org
+            if (currentMetadata.organization?._id === orgId) {
+              await clerkClient.users.updateUser(user.clerkId, {
+                publicMetadata: {
+                  ...currentMetadata,
+                  organization: null,
+                },
+              });
+            }
+          } catch (error) {
+            logger.error(
+              `Failed to update Clerk metadata for removed user: ${member.user}`
+            );
+          }
+        })
+      );
+    }
+
+    // Handle role changes for existing members
+    const existingMembers = newMembers.filter(
+      (member: Member) =>
+        oldEmails.includes(member.email) && member.status === "active"
+    );
+
+    await Promise.all(
+      existingMembers.map(async (newMember: Member) => {
+        const oldMember = oldMembers.find((m) => m.email === newMember.email);
+        if (!oldMember?.user || oldMember.role === newMember.role) return;
+
+        try {
+          const user = await User.findById(oldMember.user);
+          if (!user?.clerkId) return;
+
+          const clerkUserToUpdate = await clerkClient.users.getUser(
+            user.clerkId
+          );
+          const currentMetadata =
+            clerkUserToUpdate.publicMetadata as unknown as UserMeta;
+
+          if (currentMetadata.organization?._id === orgId) {
+            const role = org.roles.find(
+              (r: any) => r.slug === newMember.role
+            ) as Role | undefined;
+            if (!role) return;
+
+            await clerkClient.users.updateUser(user.clerkId, {
+              publicMetadata: {
+                ...currentMetadata,
+                organization: {
+                  ...currentMetadata.organization,
+                  role: role,
+                },
+              },
+            });
+          }
+        } catch (error) {
+          logger.error(
+            `Failed to update role in Clerk metadata for user: ${oldMember.user}`
+          );
+        }
+      })
+    );
+
+    // Handle new pending invites
+    const oldPendingEmails = oldMembers
+      .filter((member) => member.status === "pending")
+      .map((member) => member.email);
+
+    const newPendingMembers = newMembers.filter(
+      (member: Member) =>
+        member.status === "pending" && !oldPendingEmails.includes(member.email)
+    );
+
+    // Send invites to new pending members
+    await Promise.all(
+      newPendingMembers.map(async (member: Member) => {
+        const role = org.roles.find((r: any) => r.slug === member.role) as
+          | Role
+          | undefined;
+        if (!role) {
+          logger.error(`Role not found for member: ${member.email}`);
+          return;
+        }
+
+        const reqObj = {
+          email: member.email,
+          role: role.slug,
+          organization: orgId,
+          inviter: inviterName,
+          inviterId: currentUser?.publicMetadata?._id,
+          organizationname: body.name || org.name,
+        };
+
+        const token = jwt.sign(reqObj, process.env.JWT_SECRET!);
+
+        try {
+          await loops.sendTransactionalEmail({
+            transactionalId: process.env.LOOPS_INVITE_EMAIL!,
+            email: member.email,
+            dataVariables: {
+              inviter: inviterName,
+              joinlink: `${process.env
+                .ENTERPRISE_FRONTEND_URL!}/join?token=${token}`,
+              organizationname: body.name || org.name,
+            },
+          });
+          logger.info(`Invite sent to: ${member.email}`);
+        } catch (error) {
+          logger.error(`Failed to send invite to: ${member.email}`);
+        }
+      })
+    );
+
+    // Create audit log
+    const auditLog = {
+      user: inviterName,
+      userId: currentUser?.publicMetadata?._id,
+      action: "Organization Updated",
+      type: "info",
+    };
+
+    // Update organization with new data and audit log
     const updatedOrg = await Organization.findByIdAndUpdate(
       orgId,
-      { ...body },
+      {
+        ...body,
+        $push: { auditLog: auditLog },
+      },
       { new: true }
     );
 
     if (!updatedOrg) {
       return sendError(c, 404, "Organization not found");
-    }
-
-    // check if any new members were added and send them an invite ONLY IF THEY WERE NOT ALREADY IN THE PENDING LIST
-    const oldPendingMembers = org.members.filter(
-      (member) => member.status === "pending"
-    );
-
-    const newPendingMembers = updatedOrg.members.filter(
-      (member) => member.status === "pending"
-    );
-
-    if (oldPendingMembers.length !== newPendingMembers.length) {
-      console.log("New pending members found");
-      const newPendingMembersEmails = newPendingMembers.map(
-        (member) => member.email
-      );
-      const oldPendingMembersEmails = oldPendingMembers.map(
-        (member) => member.email
-      );
-
-      const newPendingMembersNotInOldPendingMembers =
-        newPendingMembersEmails.filter(
-          (email: string) => !oldPendingMembersEmails.includes(email)
-        );
-
-      const user = await clerkClient.users.getUser(c.get("auth").userId);
-
-      for (const email of newPendingMembersNotInOldPendingMembers) {
-        const reqObj = {
-          email,
-          role: body.members.find((member: Member) => member.email === email)
-            .role.name,
-          roleId: body.members.find((member: Member) => member.email === email)
-            .role._id,
-          organization: orgId,
-          inviter: body.members.find((member: Member) => member.email === email)
-            .addedBy,
-          organizationname: updatedOrg.name,
-        };
-
-        console.log("Found new member with email: ", email);
-
-        const token = jwt.sign(reqObj, process.env.JWT_SECRET!);
-
-        const loopsResp = await loops.sendTransactionalEmail({
-          transactionalId: process.env.LOOPS_INVITE_EMAIL!,
-          email: email,
-          dataVariables: {
-            inviter: user.firstName + " " + user.lastName,
-            joinlink:
-              process.env.ENTERPRISE_FRONTEND_URL! + "/join?token=" + token,
-            organizationname: updatedOrg.name,
-          },
-        });
-
-        console.log("Loops response: ", loopsResp);
-      }
     }
 
     return sendSuccess(
@@ -450,7 +561,7 @@ const updateGeneralSettings = async (c: Context) => {
     }
 
     const { name, email, website } = await c.req.json();
-    const orgId = perms.data?.orgId;
+    const orgId = perms.data?.organization?._id;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const websiteRegex = /(http|https):\/\/[^ "]*/;
@@ -471,12 +582,12 @@ const updateGeneralSettings = async (c: Context) => {
 
     const auditLog: AuditLog = {
       user: user.firstName + " " + user.lastName,
-      userId: c.get("auth").userId,
+      userId: c.get("auth")._id,
       action: "Organization General Settings Updated",
       type: "info",
     };
 
-    const org = await Organization.findById(orgId);
+    const org = await Organization.findById(orgId).populate("members.user");
     if (!org) {
       return sendError(c, 404, "Organization not found");
     }
@@ -484,11 +595,13 @@ const updateGeneralSettings = async (c: Context) => {
     if (name !== org.name) {
       for (const member of org.members) {
         if (!member.user) continue;
-        const u = await clerkClient.users.getUser(member.user);
+        const userDoc = await User.findById(member.user);
+        if (!userDoc) continue;
+        const u = await clerkClient.users.getUser(userDoc?.clerkId);
         const publicMetadata = u.publicMetadata;
-        publicMetadata.orgName = name;
+        (publicMetadata.organization as { name: string }).name = name;
 
-        await clerkClient.users.updateUser(member.user, {
+        await clerkClient.users.updateUser(userDoc.clerkId, {
           publicMetadata,
         });
       }
@@ -534,7 +647,7 @@ const updateLogo = async (c: Context) => {
       "base64"
     );
 
-    const orgId = perms.data?.orgId;
+    const orgId = perms.data?.organization?._id;
     const uploadParams = {
       Bucket: process.env.R2_S3_BUCKET!,
       Key: `org-logos/${orgId}.png`,
@@ -553,7 +666,7 @@ const updateLogo = async (c: Context) => {
     const user = await clerkClient.users.getUser(c.get("auth").userId);
     const auditLog: AuditLog = {
       user: user.firstName + " " + user.lastName,
-      userId: c.get("auth").userId,
+      userId: c.get("auth")._id,
       action: "Organization Logo Updated",
       type: "info",
     };
@@ -576,6 +689,7 @@ const updateLogo = async (c: Context) => {
 
 const updateMembers = async (c: Context) => {
   try {
+    // Check permissions for managing organization
     const perms = await checkOrganizationPermission.all(c, [
       "manage_organization",
     ]);
@@ -583,90 +697,204 @@ const updateMembers = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
+    console.log("Perms: ", perms);
+
     const { members } = await c.req.json();
-    const orgId = perms.data?.orgId;
+    const orgId = perms.data?.organization?._id;
 
-    // compare old pending members with new pending members. If there are new pending members, send them an invite
+    // Fetch organization and validate existence
     const organization = await Organization.findById(orgId);
-
     if (!organization) {
       return sendError(c, 404, "Organization not found");
     }
 
+    // Get current user details for audit logging
     const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
-    const fName = clerkUser.firstName;
-    const lName = clerkUser.lastName;
+    const fullName = `${clerkUser.firstName || ""} ${
+      clerkUser.lastName || ""
+    }`.trim();
 
+    // Find members that were removed (present in old members but not in new members)
+    const oldMemberEmails = organization.members.map((member) => member.email);
+    const newMemberEmails = members.map((member: Member) => member.email);
+    const removedMemberEmails = oldMemberEmails.filter(
+      (email) => !newMemberEmails.includes(email)
+    );
+
+    console.log(oldMemberEmails, newMemberEmails, removedMemberEmails);
+
+    // Process metadata updates for both removed members and role changes
+    const metadataUpdates = [];
+
+    // Handle removed members
+    if (removedMemberEmails.length > 0) {
+      const removedMembers = organization.members.filter(
+        (member) => removedMemberEmails.includes(member.email) && member.user
+      );
+
+      metadataUpdates.push(
+        ...removedMembers.map(async (member) => {
+          if (!member.user) return;
+
+          try {
+            const user = await User.findById(member.user);
+            if (!user?.clerkId) return;
+
+            const clerkUserToUpdate = await clerkClient.users.getUser(
+              user.clerkId
+            );
+            const currentMetadata: UserMeta =
+              clerkUserToUpdate.publicMetadata as unknown as UserMeta;
+
+            // Remove organization from metadata if it matches current org
+            if (currentMetadata.organization?._id === orgId) {
+              await clerkClient.users.updateUser(user.clerkId, {
+                publicMetadata: {
+                  ...currentMetadata,
+                  organization: null,
+                },
+              });
+            }
+          } catch (error) {
+            logger.error(
+              `Failed to update Clerk metadata for user: ${member.user}`
+            );
+          }
+        })
+      );
+    }
+
+    // Handle role changes for existing members
+    const existingMembers = members.filter(
+      (member: Member) =>
+        oldMemberEmails.includes(member.email) && member.status === "active"
+    );
+
+    console.log("Existing members: ", existingMembers);
+
+    existingMembers.forEach((newMember: Member) => {
+      const oldMember = organization.members.find(
+        (m) => m.email === newMember.email
+      );
+
+      console.log("Old role: ", oldMember);
+      console.log("New role: ", newMember);
+      if (!oldMember || !oldMember.user) return;
+
+      // Check if role has changed
+
+      if (oldMember.role !== newMember.role) {
+        metadataUpdates.push(async () => {
+          try {
+            const user = await User.findById(oldMember.user);
+            if (!user?.clerkId) return;
+
+            const clerkUserToUpdate = await clerkClient.users.getUser(
+              user.clerkId
+            );
+            const currentMetadata: UserMeta =
+              clerkUserToUpdate.publicMetadata as unknown as UserMeta;
+
+            // Update organization role in metadata
+            if (currentMetadata.organization?._id === orgId) {
+              const role = organization.roles.find(
+                (r: any) => r.slug === newMember.role
+              );
+
+              console.log("New role: ", role);
+              await clerkClient.users.updateUser(user.clerkId, {
+                publicMetadata: {
+                  ...currentMetadata,
+                  organization: {
+                    ...currentMetadata.organization,
+                    role: role,
+                  },
+                },
+              });
+            }
+          } catch (error) {
+            logger.error(
+              `Failed to update role in Clerk metadata for user: ${oldMember.user}`
+            );
+          }
+        });
+      }
+    });
+
+    // Execute all metadata updates in parallel
+    await Promise.all(metadataUpdates);
+
+    // Handle new pending member invites
     const oldPendingMembers = organization.members.filter(
       (member) => member.status === "pending"
     );
-
     const newPendingMembers = members.filter(
       (member: Member) => member.status === "pending"
     );
 
+    // Send invites to new pending members
     if (oldPendingMembers.length !== newPendingMembers.length) {
-      const newPendingMembersEmails = newPendingMembers.map(
-        (member: Member) => member.email
+      const newPendingEmails = newPendingMembers.map((m: Member) => m.email);
+      const oldPendingEmails = oldPendingMembers.map((m) => m.email);
+      const newInviteEmails = newPendingEmails.filter(
+        (email: string) => !oldPendingEmails.includes(email)
       );
-      const oldPendingMembersEmails = oldPendingMembers.map(
-        (member) => member.email
-      );
 
-      const newPendingMembersNotInOldPendingMembers =
-        newPendingMembersEmails.filter(
-          (email: string) => !oldPendingMembersEmails.includes(email)
-        );
-
-      for (const email of newPendingMembersNotInOldPendingMembers) {
-        const reqObj = {
-          email,
-          role: members.find((member: Member) => member.email === email).role
-            .name,
-          roleId: members.find((member: Member) => member.email === email).role
-            ._id,
-          organization: orgId,
-          inviter: fName || "",
-          inviterId: c.get("auth").userId,
-          organizationname: organization.name,
-        };
-
-        const token = jwt.sign(reqObj, process.env.JWT_SECRET!);
-
-        await loops.sendTransactionalEmail({
-          transactionalId: process.env.LOOPS_INVITE_EMAIL!,
-          email: email,
-          dataVariables: {
-            inviter: fName || "",
-            joinlink:
-              process.env.ENTERPRISE_FRONTEND_URL! + "/join?token=" + token,
+      await Promise.all(
+        newInviteEmails.map(async (email: string) => {
+          const member = members.find((m: Member) => m.email === email);
+          const reqObj = {
+            email,
+            role: member.role.name,
+            roleId: member.role._id,
+            organization: orgId,
+            inviter: clerkUser.firstName || "",
+            inviterId: c.get("auth")._id,
             organizationname: organization.name,
-          },
-        });
-      }
+          };
+
+          const token = jwt.sign(reqObj, process.env.JWT_SECRET!);
+
+          return loops.sendTransactionalEmail({
+            transactionalId: process.env.LOOPS_INVITE_EMAIL!,
+            email,
+            dataVariables: {
+              inviter: clerkUser.firstName || "",
+              joinlink: `${process.env
+                .ENTERPRISE_FRONTEND_URL!}/join?token=${token}`,
+              organizationname: organization.name,
+            },
+          });
+        })
+      );
     }
 
+    // Prepare final member updates
+    const finalMembers = members.map((member: Member) => ({
+      user: (member.user as unknown as UserJSON)?.id,
+      email: member.email,
+      role: member.role,
+      addedOn: member.addedOn,
+      status: member.status,
+    }));
+
+    // Create audit log
     const auditLog = {
-      user: fName + " " + lName,
-      userId: c.get("auth").userId,
+      user: fullName,
+      userId: c.get("auth")._id,
       action: "Organization Members Updated",
       type: "info",
     };
 
-    const finalUpdatedMembers = members.map((member: Member) => {
-      return {
-        user: (member.user as unknown as UserJSON)?.id,
-        email: member.email,
-        role: member.role,
-        addedOn: member.addedOn,
-        status: member.status,
-      };
-    });
-
-    const updatedOrg = await Organization.findByIdAndUpdate(orgId, {
-      $set: { members: finalUpdatedMembers },
-      $push: { auditLogs: auditLog },
-    });
+    // Update organization with new members and audit log
+    const updatedOrg = await Organization.findByIdAndUpdate(
+      orgId,
+      {
+        $set: { members: finalMembers },
+        $push: { auditLogs: auditLog },
+      },
+      { new: true }
+    );
 
     if (!updatedOrg) {
       return sendError(c, 404, "Organization not found");
@@ -708,7 +936,7 @@ const updateRoles = async (c: Context) => {
       finalRoles.push(roleObj);
     }
 
-    const orgId = perms.data?.orgId;
+    const orgId = perms.data?.organization?._id;
     const organization = await Organization.findById(orgId);
 
     if (!organization) {
@@ -721,7 +949,7 @@ const updateRoles = async (c: Context) => {
 
     const auditLog: AuditLog = {
       user: fName + " " + lName,
-      userId: c.get("auth").userId,
+      userId: c.get("auth")._id,
       action: "Organization Roles Updated",
       type: "info",
     };
@@ -756,7 +984,7 @@ const getCandidates = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const orgId = perms.data?.orgId;
+    const orgId = perms.data?.organization?._id;
 
     const posting = await Posting.find({ organizationId: orgId })
       .populate("candidates")
@@ -798,7 +1026,7 @@ const getDepartments = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const orgId = perms.data?.orgId;
+    const orgId = perms.data?.organization?._id;
     const org = await Organization.findById(orgId).lean();
 
     if (!org) {
@@ -828,7 +1056,7 @@ const updateDepartments = async (c: Context) => {
 
     const { departments } = await c.req.json();
 
-    const orgId = perms.data?.orgId;
+    const orgId = perms.data?.organization?._id;
 
     const user = await clerkClient.users.getUser(c.get("auth").userId);
     const fName = user.firstName;
@@ -842,7 +1070,7 @@ const updateDepartments = async (c: Context) => {
     organization.departments = departments;
     organization.auditLogs.push({
       user: fName + " " + lName,
-      userId: c.get("auth").userId,
+      userId: c.get("auth")._id,
       action: "Departments Updated",
       type: "info",
     });
@@ -926,18 +1154,21 @@ const permissionFieldMap = {
 
 const getOrganization = async (c: Context): Promise<Response> => {
   try {
-    const userId = c.get("auth").userId;
+    const userId = c.get("auth")._id;
 
     const org = await Organization.findOne({
       "members.user": userId,
-    }).lean();
+    })
+      .populate("postings")
+      .populate("members.user")
+      .lean();
 
     if (!org) {
       return sendError(c, 404, "Organization not found");
     }
 
     // Find member and validate role in one pass
-    const member = org.members.find((m) => m?.user?.toString() === userId);
+    const member = org.members.find((m) => m?.user?._id?.toString() === userId);
     if (!member?.role) {
       return sendError(c, 403, "Invalid member access");
     }
@@ -958,8 +1189,10 @@ const getOrganization = async (c: Context): Promise<Response> => {
     ];
 
     const [selectedOrg, userDetails] = await Promise.all([
-      Organization.findById(org._id).populate("postings").select(fieldsToSelect.join(" ")),
-      User.findOne({ clerkId: member.user }).lean(),
+      Organization.findById(org._id)
+        .populate("postings")
+        .select(fieldsToSelect.join(" ")),
+      User.findOne({ _id: member.user }).lean(),
     ]);
 
     if (!selectedOrg || !userDetails) {
@@ -972,7 +1205,28 @@ const getOrganization = async (c: Context): Promise<Response> => {
       permissions: role.permissions,
     };
 
-    console.log(selectedOrg);
+    const logoUrl = selectedOrg.logo;
+    try {
+      if (logoUrl) {
+        const command = new GetObjectCommand({
+          Bucket: process.env.R2_S3_BUCKET!,
+          Key: logoUrl,
+        });
+
+        let data = null;
+        try {
+          data = await r2Client.send(command);
+          const buffer = await data?.Body?.transformToByteArray();
+          const base64 = Buffer.from(buffer as unknown as ArrayBuffer).toString(
+            "base64"
+          );
+          selectedOrg.logo = `data:image/png;base64,${base64}`;
+        } catch (e) {}
+      }
+    } catch (e) {
+      console.log("Failed to fetch logo", e);
+      console.log(e);
+    }
 
     return sendSuccess(c, 200, "Organization fetched successfully", {
       organization: selectedOrg,

@@ -1,6 +1,15 @@
 import { Card, Code, Spinner, Tab, Tabs } from "@nextui-org/react";
 import { FlaskConical } from "lucide-react";
-import { RunResponseResult } from "@shared-types/RunResponse";
+
+interface RunResponseResult {
+  input: string[];
+  output: string;
+  expected: string;
+  passed: boolean;
+  error: string;
+  consoleOutput: string[];
+  isSample: boolean;
+}
 
 const InfoPanel = ({
   cases,

@@ -1,6 +1,6 @@
 import ax from "@/config/axios";
 import { useAuth } from "@clerk/clerk-react";
-import { Button, Input, Textarea } from "@nextui-org/react";
+import { Button, Input, Textarea } from "@heroui/react";
 import { useState } from "react";
 import { toast } from "sonner";
 

@@ -1,3 +1,5 @@
+// @ts-nocheck
+// ! FIX THIS FILE
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
 import Candidate from "@/models/Candidate";
 import Posting from "@/models/Posting";

@@ -36,16 +36,20 @@ interface Problem extends VanillaProblem {
   description: Delta;
 }
 
+const isPosting = new URLSearchParams(window.location.search).get("isPosting");
+const postingId = new URLSearchParams(window.location.search).get("postingId");
+const step = new URLSearchParams(window.location.search).get("step");
+
 const tabsList = [
   "General",
   "Languages",
   "Problems",
   "Grading",
-  "Candidates",
+  !postingId ? "Candidates" : null,
   "Instructions",
   "Security",
   "Feedback",
-];
+].filter(Boolean);
 
 interface Candidate {
   name: string;
@@ -135,16 +139,6 @@ const New = () => {
   const buildAssessmentData = () => {
     setSubmitting(true);
     const redirectParam = getParam("returnUrl");
-    const stepParam = getParam("step");
-    const isPosting = getParam("isPosting") === "true";
-    const postingId = getParam("postingId");
-
-    console.log({
-      redirectParam,
-      stepParam,
-      isPosting,
-      postingId,
-    });
 
     const rangeStart = testOpenRange.start.toDate("UTC");
     const rangeEnd = testOpenRange.end.toDate("UTC");
@@ -158,14 +152,15 @@ const New = () => {
       description: assessmentDescription,
       timeLimit,
       passingPercentage,
-      openRange: { start: rangeStart, end: rangeEnd },
+      isEnterprise: isPosting ? isPosting : false,
+      openRange: isPosting ? null : { start: rangeStart, end: rangeEnd },
       languages: selectedLanguages,
       problems: selectedQuestions.map((q) => q._id),
       grading:
         gradingMetric === "testcase"
           ? { type: "testcase", testcases: testCaseGrading }
           : { type: "problem", problem: questionsGrading },
-      candidates: candidates,
+      candidates: isPosting ? [] : candidates,
       public: access === "all",
       instructions,
       security: {
@@ -178,35 +173,30 @@ const New = () => {
         enableSyntaxHighlighting: syntaxHighlighting,
       },
       feedbackEmail,
+      postingId,
+      step,
     };
 
     const axios = ax(getToken);
 
-    if (isPosting && postingId) {
-      axios
-        .post("/postings/assessment", reqBody)
-        .then(() => {
-          toast.success("Assessment created successfully");
-          if (redirectParam) window.location.href = redirectParam;
-          else window.location.href = "/assessments";
-        })
-        .catch((err) => {
-          console.error(err);
-          toast.error("Error creating assessment");
-        })
-        .finally(() => setSubmitting(false));
-    } else {
-      axios
-        .post("/assessments/code", reqBody)
-        .then(() => {
-          toast.success("Assessment created successfully");
-        })
-        .catch((err) => {
-          console.error(err);
-          toast.error("Error creating assessment");
-        })
-        .finally(() => setSubmitting(false));
-    }
+    axios
+      .post("/assessments/code", reqBody)
+      .then(() => {
+        toast.success("Assessment created successfully");
+        if (redirectParam) {
+          window.location.href = redirectParam;
+        } else {
+          window.location.href = window.location.pathname
+            .split("/")
+            .slice(0, -2)
+            .join("/");
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Error creating assessment");
+      })
+      .finally(() => setSubmitting(false));
   };
 
   const handleTabChange = (key: Key) => {
@@ -258,7 +248,9 @@ const New = () => {
         setQuestionsGrading,
       }}
     />,
-    <Candidates {...{ access, setAccess, candidates, setCandidates }} />,
+    !postingId && (
+      <Candidates {...{ access, setAccess, candidates, setCandidates }} />
+    ),
     <Instructions {...{ instructions, setInstructions, errors: {} }} />,
     <Security
       {...{
@@ -286,7 +278,7 @@ const New = () => {
         submitting,
       }}
     />,
-  ];
+  ].filter(Boolean);
 
   return (
     <div className="flex items-center justify-center flex-col relative w-full">

@@ -20,7 +20,7 @@ const Layout = () => {
   useEffect(() => {
     setNewOrganization(organization);
     setRerender(!rerender);
-  }, []);
+  }, [organization]);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);

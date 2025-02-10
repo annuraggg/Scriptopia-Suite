@@ -27,11 +27,11 @@ const Awards = () => {
   };
   // States
   const [currentAward, setCurrentAward] = useState<Award | null>(null);
-  const [formData, setFormData] = useState<Award>({
+  const [formData, setFormData] = useState<Omit<Award, "date"> & { date: string }>({
     title: "",
     issuer: "",
     associatedWith: "academic",
-    date: parseDate(today("IST").toString()).toString(),
+    date: today("IST").toString(),
     description: "",
   });
 
@@ -62,7 +62,10 @@ const Awards = () => {
   const handleOpenModal = (award?: Award) => {
     if (award) {
       setCurrentAward(award);
-      setFormData(award);
+      setFormData({
+        ...award,
+        date: award.date.toString(),
+      });
     } else {
       resetForm();
     }
@@ -86,15 +89,21 @@ const Awards = () => {
         award._id === currentAward._id
           ? { ...formData, id: currentAward._id }
           : award
-      );
+      ) || [];
 
-      setUser({ ...user, awards: newAwards });
+      setUser({ 
+        ...user, 
+        awards: newAwards?.map(award => ({
+          ...award,
+          date: new Date(award.date)
+        })) 
+      });
     } else {
       // Add new award
       const newAwards = user?.awards || [];
       setUser({
         ...user,
-        awards: [...newAwards, { ...formData }],
+        awards: [...newAwards, { ...formData, date: new Date(formData.date) }],
       });
     }
 
@@ -253,8 +262,8 @@ const Awards = () => {
                   <div>
                     <label className="block text-sm mb-1">Issue Date</label>
                     <DateInput
-                      value={parseDate(formData.date)}
-                      onChange={(date) => handleInputChange("date", date.toString())}
+                      value={parseDate(formData.date.toString())}
+                      onChange={(date) => handleInputChange("date", date)}
                       maxValue={today("IST")}
                     />
                   </div>

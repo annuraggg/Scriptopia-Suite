@@ -1,5 +1,5 @@
 import { useAuth } from "@clerk/clerk-react";
-import { Button, Checkbox, Divider, Input, TimeInput } from "@nextui-org/react";
+import { Button, Checkbox, Divider, Input, TimeInput } from "@heroui/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import ax from "@/config/axios";
@@ -68,7 +68,7 @@ const Configure = () => {
   const save = async () => {
     setLoading(true);
     const step = posting?.workflow?.steps?.findIndex(
-      (step) => step.type === "pi"
+      (step) => step.type === "INTERVIEW"
     );
     if (step === undefined) {
       return toast.error("Failed to save interview configuration");
@@ -160,12 +160,12 @@ const Configure = () => {
                   <TimeInput
                     label="Start"
                     value={timeSlotStart}
-                    onChange={setTimeSlotStart}
+                    onChange={(value) => value && setTimeSlotStart(value)}
                   />
                   <TimeInput
                     label="End"
                     value={timeSlotEnd}
-                    onChange={setTimeSlotEnd}
+                    onChange={(value) => value && setTimeSlotEnd(value)}
                   />
                 </div>
               </div>

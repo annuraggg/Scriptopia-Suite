@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Delta } from "quill/core";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { CustomSDSL, TestCase } from "@shared-types/Problem";
+import { CustomStub as CustomSDSL, TestCase } from "@shared-types/Problem";
 import Sdsl from "./Sdsl";
 import { useNavigate } from "react-router-dom";
 
@@ -38,6 +38,7 @@ const NewProblem = () => {
 
   const [completed, setCompleted] = useState<boolean[]>([false, false, false]);
   const [activeStep, setActiveStep] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   // Details State
   const [title, setTitle] = useState("");
@@ -68,8 +69,9 @@ const NewProblem = () => {
   const { getToken } = useAuth();
   const buildRequestData = () => {
     const axios = ax(getToken);
+    setLoading(true);
 
-    axios
+    return axios
       .post("/problems", {
         title,
         isPrivate,
@@ -90,7 +92,8 @@ const NewProblem = () => {
       })
       .catch(() => {
         toast.error("Error creating problem");
-      });
+      })
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -240,6 +243,7 @@ const NewProblem = () => {
                     minimum100Words,
                     completed,
                     buildRequestData,
+                    loading,
                   }}
                 />
               )}

@@ -40,7 +40,7 @@ const Conferences = () => {
     title: "",
     organizer: "",
     eventLocation: "",
-    eventDate: today("IST").toString(),
+    eventDate: today("IST").toDate("IST"),
     link: "",
     description: "",
   });
@@ -85,7 +85,7 @@ const Conferences = () => {
       title: "",
       organizer: "",
       eventLocation: "",
-      eventDate: today("IST").toString(),
+      eventDate: today("IST").toDate("IST"),
       link: "",
       description: "",
     });
@@ -197,7 +197,7 @@ const Conferences = () => {
                       <h3 className="font-medium">{conference.title}</h3>
                       <p className="text-small">{conference.organizer}</p>
                       <p className="text-small">{conference.eventLocation}</p>
-                      <p className="text-small">{conference.eventDate}</p>
+                      <p className="text-small">{conference.eventDate.toDateString()}</p>
                       {conference.link && (
                         <p className="text-small">
                           <a href={conference.link} target="_blank" rel="noopener noreferrer">
@@ -277,7 +277,7 @@ const Conferences = () => {
                   />
                   <DateInput
                     label="Event Date"
-                    value={parseDate(currentConference.eventDate)}
+                    value={parseDate(currentConference.eventDate.toISOString().split("T")[0])}
                     onChange={(date) => handleInputChange("eventDate", date)}
                     isInvalid={!!errors.eventDate}
                     errorMessage={errors.eventDate?.toString()}

@@ -5,24 +5,25 @@ const openRangeSchema = new mongoose.Schema({
   end: { type: Date, required: false },
 });
 
-const gradingSchema = new mongoose.Schema({
-  type: { type: String, enum: ["testcase", "problem"], required: true },
-  testcases: {
-    type: {
-      easy: { type: Number, required: true },
-      medium: { type: Number, required: true },
-      hard: { type: Number, required: true },
-    },
-  },
-  problem: {
-    type: [
-      {
-        problemId: { type: mongoose.Schema.Types.ObjectId, ref: "Problem" },
-        points: { type: Number, required: true },
-      },
-    ],
+const testcasesSchema = new mongoose.Schema({
+  easy: { type: Number, required: true },
+  medium: { type: Number, required: true },
+  hard: { type: Number, required: true },
+});
+
+const problemSchema = new mongoose.Schema({
+  problemId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Problem",
     required: true,
   },
+  points: { type: Number, required: true },
+});
+
+const gradingSchema = new mongoose.Schema({
+  type: { type: String, enum: ["testcase", "problem"], required: true },
+  testcases: { type: testcasesSchema, required: false }, // Only applicable when type = "testcase"
+  problem: { type: [problemSchema], required: false }, // Only applicable when type = "problem"
 });
 
 const candidateSchema = new mongoose.Schema({
@@ -40,36 +41,45 @@ const securitySchema = new mongoose.Schema({
   enableSyntaxHighlighting: { type: Boolean, required: true, default: false },
 });
 
-const assessmentSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  description: { type: String, required: true },
-  author: { type: String, ref: "User", required: true },
-  timeLimit: { type: Number, required: true },
-  passingPercentage: { type: Number, required: true },
-  openRange: { type: openRangeSchema, required: false },
-  languages: { type: [String], required: true },
-  problems: {
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: "Problem",
-    required: true,
-  },
-  grading: { type: gradingSchema },
-  candidates: { type: [candidateSchema], required: true },
-  public: { type: Boolean, required: true },
-  instructions: { type: String, required: true },
-  security: { type: securitySchema, required: true },
-  feedbackEmail: { type: String, required: true },
-  obtainableScore: { type: Number, required: true },
+const assessmentSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    description: { type: String, required: true },
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    timeLimit: { type: Number, required: true },
+    passingPercentage: { type: Number, required: true },
+    openRange: { type: openRangeSchema, default: null },
+    languages: { type: [String], required: true },
+    problems: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Problem",
+        required: true,
+      },
+    ],
+    grading: { type: gradingSchema },
+    candidates: { type: [candidateSchema], default: [] },
+    instructions: { type: String, required: true },
+    security: { type: securitySchema, required: true },
+    feedbackEmail: { type: String, required: true },
+    obtainableScore: { type: Number, required: true },
 
-  isEnterprise: { type: Boolean, required: true, default: false },
-  postingId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Posting",
-    required: false,
+    isEnterprise: { type: Boolean, required: true, default: false },
+    postingId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Posting",
+      required: false,
+    },
   },
+  { timestamps: true }
+);
 
-  createdAt: { type: Date, default: Date.now },
-});
+assessmentSchema.index({ author: 1 });
+assessmentSchema.index({ postingId: 1 });
 
 const CodeAssessment = mongoose.model("CodeAssessment", assessmentSchema);
 export default CodeAssessment;

@@ -50,6 +50,7 @@ class checkPermission {
       const userPermissions = await checkPermission.getUserPermissions(
         auth.userId
       );
+      console.log(userPermissions);
 
       const hasPermission = permissions.every((permission) =>
         userPermissions.role.permissions.includes(permission)

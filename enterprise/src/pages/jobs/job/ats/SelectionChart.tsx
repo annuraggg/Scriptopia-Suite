@@ -7,7 +7,7 @@ import {
   RadialBarChart,
 } from "recharts";
 
-import { Card, CardBody, CardFooter, CardHeader } from "@nextui-org/react";
+import { Card, CardBody, CardFooter, CardHeader } from "@heroui/react";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
 
 const chartConfig = {

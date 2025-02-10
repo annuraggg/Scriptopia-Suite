@@ -1,78 +1,91 @@
-import { Button, Card, CardBody } from "@nextui-org/react";
-import { Posting } from "@shared-types/Posting";
+import { Button } from "@heroui/react";
+import { Card, CardBody } from "@heroui/react";
 import { useEffect, useState } from "react";
+import type { Posting, WorkflowStep } from "@shared-types/Posting";
 
-const typeMap = {
-  ca: "Coding Assessment",
-  mcqca: "Multiple Choice and Coding Assessment",
-  mcqa: "Multiple Choice Assessment",
-};
+const ASSESSMENT_TYPES = {
+  CODING_ASSESSMENT: "Coding Assessment",
+  MCQ_ASSESSMENT: "Multiple Choice Assessment",
+} as const;
 
-const codeStepMap: { [key: string]: string } = {
-  ca: "code",
-  mcqca: "mcq_coding",
-  mcqa: "mcq",
-  rs: "rs",
-  as: "as",
-  pi: "pi",
-  cu: "cu",
-};
+const STEP_TYPE_MAP = {
+  CODING_ASSESSMENT: "code",
+  MCQ_ASSESSMENT: "mcq",
+} as const;
 
-const Configure = ({ posting }: { posting: Posting }) => {
-  const [assessmentTitles, setAssessmentTitles] = useState<string[]>([]);
+interface ConfigureProps {
+  posting: Posting;
+}
+
+const Configure = ({ posting }: ConfigureProps) => {
+  const [configuredAssessments, setConfiguredAssessments] = useState<
+    Set<string>
+  >(new Set());
 
   useEffect(() => {
-    setAssessmentTitles(
-      posting?.assessments?.map((assessment) => assessment.assessmentId) || []
-    );
+    const configuredIds = new Set([
+      ...(posting?.codeAssessments?.map((a) => a.workflowId) || []),
+      ...(posting?.mcqAssessments?.map((a) => a.workflowId) || []),
+    ]);
+
+    setConfiguredAssessments(configuredIds);
   }, [posting]);
 
+  const handleConfigure = (step: WorkflowStep, index: number): void => {
+    const baseUrl = import.meta.env.VITE_CODE_URL;
+    const params = new URLSearchParams({
+      isPosting: "true",
+      postingId: posting._id || "",
+      step: index.toString(),
+      returnUrl: window.location.href,
+    });
+
+    window.location.href = `${baseUrl}/assessments/new/${
+      STEP_TYPE_MAP[step.type as keyof typeof STEP_TYPE_MAP]
+    }?${params}`;
+  };
+
+  const isAssessmentStep = (step: WorkflowStep): boolean =>
+    step.type === "CODING_ASSESSMENT" || step.type === "MCQ_ASSESSMENT";
+
   return (
-    <div className="flex items-center justify-center h-[100vh] flex-col p-10">
+    <div className="flex items-center justify-center h-screen flex-col p-10">
       <p className="text-xl">
         Assessments are enabled but not configured for this posting
       </p>
-      <p className="opacity-50 mt-2 mb-10">
+      <p className="text-muted-foreground mt-2 mb-10">
         Please configure assessments for this posting by clicking on the
         configure button
       </p>
 
-      {posting?.workflow?.steps?.map(
-        (step, index: number) =>
-          (step.type === "ca" ||
-            step.type === "mcqca" ||
-            step.type === "mcqa") && (
-            <Card className="w-[50%] mt-3" key={step._id}>
-              <CardBody className="flex flex-row items-center justify-between">
+      <div className="w-full max-w-2xl space-y-3">
+        {posting?.workflow?.steps
+          ?.filter(isAssessmentStep)
+          .map((step, index) => (
+            <Card key={step._id}>
+              <CardBody className="flex flex-row items-center justify-between p-6">
                 <div>
-                  {step?.name}
-                  <div className="text-sm opacity-50">
-                    {typeMap[step?.type]}
+                  <div>{step.name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {
+                      ASSESSMENT_TYPES[
+                        step.type as keyof typeof ASSESSMENT_TYPES
+                      ]
+                    }
                   </div>
                 </div>
-                {assessmentTitles.includes(step?.stepId || "") ? (
+
+                {configuredAssessments.has(step._id || "") ? (
                   <div className="text-green-500">Configured</div>
                 ) : (
-                  <Button
-                    variant="flat"
-                    color="warning"
-                    onClick={() => {
-                      window.location.href = `${
-                        import.meta.env.VITE_CODE_URL
-                      }/assessments/new/${
-                        codeStepMap[step.type]
-                      }?isPosting=true&postingId=${
-                        posting._id
-                      }&step=${index}&returnUrl=${window.location.href}`;
-                    }}
-                  >
+                  <Button onPress={() => handleConfigure(step, index)}>
                     Configure
                   </Button>
                 )}
               </CardBody>
             </Card>
-          )
-      )}
+          ))}
+      </div>
     </div>
   );
 };

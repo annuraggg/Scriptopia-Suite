@@ -1,74 +1,57 @@
-interface OffenseEntry {
+interface Offense {
   _id?: string;
-  problemId: string;
-  times: number;
+  tabChange?: { problemId: string; times: number }[];
+  copyPaste?: { problemId: string; times: number }[];
 }
 
-interface OffenseType {
-  _id?: string;
-  mcq: number; // Required
-  problem: OffenseEntry[]; // Required
-}
-
-interface OffenseSchema {
-  _id?: string;
-  tabChange?: OffenseType;
-  copyPaste?: OffenseType;
-}
-
-interface ResultSchema {
+interface Result {
   _id?: string;
   caseNo: number;
   caseId: string;
-  output?: string; // Optional, default is " "
+  output?: string;
   isSample: boolean;
   memory: number;
   time: number;
   passed: boolean;
   console?: string;
+  errorMessage?: string;
 }
 
-interface ProblemSubmissionSchema {
+interface ProblemSubmission {
   _id?: string;
-  problemId: string; // Required
-  code: string; // Required
-  language: string; // Required
-  results: ResultSchema[]; // Required
+  problemId: string;
+  code: string;
+  language: string;
+  results?: Result[];
+  submittedAt: Date;
 }
 
-interface ObtainedGradeSchema {
-  mcq?: {
-    mcqId: string;
-    obtainedMarks: number;
-  }[];
-  problem?: {
-    problemId: string;
-    obtainedMarks: number;
-  }[];
-  total: number; // Required
-}
-
-interface CodeAssessmentSubmissionsSchema {
+interface ObtainedGrade {
   _id?: string;
-  assessmentId: string; // Required
-  name: string; // Required
-  email: string; // Required
-  offenses?: OffenseSchema;
-  submissions?: ProblemSubmissionSchema[]; // Optional
-  timer: number; // Required
+  problem?: { problemId: string; obtainedMarks: number }[];
+  total: number;
+}
+
+interface CodeAssessmentSubmission {
+  _id?: string;
+  assessmentId: string;
+  status?: "in-progress" | "completed";
+  name: string;
+  email: string;
+  offenses?: Offense;
+  submissions?: ProblemSubmission[];
+  timer: number;
   sessionRewindUrl?: string;
-  obtainedGrades?: ObtainedGradeSchema; // Required
+  obtainedGrades?: ObtainedGrade;
   cheatingStatus?: "No Copying" | "Light Copying" | "Heavy Copying";
   createdAt?: Date;
-  updatedAt?: Date; // Missing in interface, added here
+  updatedAt?: Date;
 }
 
 export type {
-  OffenseEntry,
-  OffenseType,
-  OffenseSchema,
-  ResultSchema,
-  ProblemSubmissionSchema,
-  ObtainedGradeSchema,
-  CodeAssessmentSubmissionsSchema,
+  Offense,
+  Result,
+  ProblemSubmission,
+  ObtainedGrade,
+  CodeAssessmentSubmission,
 };

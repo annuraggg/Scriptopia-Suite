@@ -94,8 +94,8 @@ const Responsibilities = () => {
   const handleEdit = (responsibility: Responsibility) => {
     setEditingResponsibility(responsibility);
     setOrganization(responsibility.organization);
-    setStartDate(parseDate(responsibility.startDate));
-    setEndDate(parseDate(responsibility.endDate || ""));
+    setStartDate(parseDate(responsibility.startDate.toISOString().split("T")[0]));
+    setEndDate(parseDate(responsibility.endDate ? responsibility.endDate.toString() : ""));
     setIsCurrentPosition(responsibility.current);
     setDescription(responsibility.description);
     onOpen();
@@ -125,8 +125,8 @@ const Responsibilities = () => {
     const newResponsibility: Responsibility = {
       title: sanitizeInput(position),
       organization: sanitizeInput(organization),
-      startDate: startDate?.toString() || "",
-      endDate: isCurrentPosition ? undefined : endDate?.toString(),
+      startDate: startDate ? new Date(startDate.toString()) : new Date(),
+      endDate: isCurrentPosition ? undefined : endDate ? new Date(endDate.toString()) : undefined,
       current: isCurrentPosition,
       description: sanitizeInput(description),
     };
@@ -235,53 +235,58 @@ const Responsibilities = () => {
               </div>
               <div className="space-y-4">
                 <AnimatePresence>
-                  {user?.responsibilities && user?.responsibilities?.map((responsibility) => (
-                    <motion.div
-                      key={responsibility._id}
-                      variants={cardVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit={{ opacity: 0, y: -20 }}
-                      layout
-                    >
-                      <Card className="p-4 hover:shadow-lg transition-shadow duration-300">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-semibold">
-                              {responsibility.title}
-                            </h3>
-                            <p className="text-gray-500">
-                              {responsibility.organization}
-                            </p>
-                            <p className="text-sm text-gray-400">
-                              {responsibility.startDate.toString()} -{" "}
-                              {responsibility.current
-                                ? "Present"
-                                : responsibility.endDate?.toString()}
-                            </p>
-                            <p className="mt-2">{responsibility.description}</p>
+                  {user?.responsibilities &&
+                    user?.responsibilities?.map((responsibility) => (
+                      <motion.div
+                        key={responsibility._id}
+                        variants={cardVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit={{ opacity: 0, y: -20 }}
+                        layout
+                      >
+                        <Card className="p-4 hover:shadow-lg transition-shadow duration-300">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-semibold">
+                                {responsibility.title}
+                              </h3>
+                              <p className="text-gray-500">
+                                {responsibility.organization}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                {responsibility.startDate.toString()} -{" "}
+                                {responsibility.current
+                                  ? "Present"
+                                  : responsibility.endDate?.toString()}
+                              </p>
+                              <p className="mt-2">
+                                {responsibility.description}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                isIconOnly
+                                variant="light"
+                                onPress={() => handleEdit(responsibility)}
+                              >
+                                <Edit2 size={18} />
+                              </Button>
+                              <Button
+                                isIconOnly
+                                variant="light"
+                                color="danger"
+                                onPress={() =>
+                                  handleDelete(responsibility?._id || "")
+                                }
+                              >
+                                <Trash2 size={18} />
+                              </Button>
+                            </div>
                           </div>
-                          <div className="flex gap-2">
-                            <Button
-                              isIconOnly
-                              variant="light"
-                              onPress={() => handleEdit(responsibility)}
-                            >
-                              <Edit2 size={18} />
-                            </Button>
-                            <Button
-                              isIconOnly
-                              variant="light"
-                              color="danger"
-                              onPress={() => handleDelete(responsibility?._id || "")}
-                            >
-                              <Trash2 size={18} />
-                            </Button>
-                          </div>
-                        </div>
-                      </Card>
-                    </motion.div>
-                  ))}
+                        </Card>
+                      </motion.div>
+                    ))}
                 </AnimatePresence>
               </div>
             </motion.div>

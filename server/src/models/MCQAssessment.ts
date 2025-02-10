@@ -8,7 +8,7 @@ const optionSchema = new mongoose.Schema({
 
 const questionSchema = new mongoose.Schema({
   question: { type: String, required: true },
-  grade: { type: Number, required: false },
+  grade: { type: Number, default: 1 },
   type: {
     type: String,
     enum: [
@@ -31,6 +31,7 @@ const questionSchema = new mongoose.Schema({
   maxCharactersAllowed: { type: Number, required: false },
   fillInBlankAnswers: { type: [String], required: false },
   correct: { type: String, required: false },
+  // allowPartialGrading: { type: Boolean, default: false },
 });
 
 const sectionSchema = new mongoose.Schema({
@@ -44,39 +45,45 @@ const candidateSchema = new mongoose.Schema({
 });
 
 const openRangeSchema = new mongoose.Schema({
-  start: { type: Date, required: false },
-  end: { type: Date, required: false },
+  start: { type: Date },
+  end: { type: Date },
+  // timeZone: { type: String },
 });
 
 const securitySchema = new mongoose.Schema({
-  sessionPlayback: { type: Boolean, required: true, default: false },
-  tabChangeDetection: { type: Boolean, required: true, default: false },
-  copyPasteDetection: { type: Boolean, required: true, default: false },
+  sessionPlayback: { type: Boolean, default: false },
+  tabChangeDetection: { type: Boolean, default: false },
+  copyPasteDetection: { type: Boolean, default: false },
+  // fullScreenEnforcement: { type: Boolean, default: false },
+  // cameraProctoring: { type: Boolean, default: false },
+  // ipLogging: { type: Boolean, default: false },
 });
 
-const mcqAssessmentSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  description: { type: String, required: true },
-  author: { type: String, required: true },
-  timeLimit: { type: Number, required: true },
-  passingPercentage: { type: Number, required: true },
-  openRange: { type: openRangeSchema, required: false },
-  sections: { type: [sectionSchema], required: true },
-  candidates: { type: [candidateSchema], required: true },
-  public: { type: Boolean, required: true, default: false },
-  instructions: { type: String, required: true },
-  security: { type: securitySchema, required: true },
-  feedbackEmail: { type: String, required: true },
-  obtainableScore: { type: Number, required: true },
-
-  isEnterprise: { type: Boolean, required: true, default: false },
-  postingId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Posting",
-    required: false,
+const mcqAssessmentSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, index: true },
+    description: { type: String, required: true },
+    author: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+    timeLimit: { type: Number, required: true },
+    passingPercentage: { type: Number, required: true },
+    openRange: { type: openRangeSchema },
+    sections: { type: [sectionSchema], required: true },
+    candidates: { type: [candidateSchema], required: true },
+    public: { type: Boolean, default: false },
+    instructions: { type: String, required: true },
+    security: { type: securitySchema, required: true },
+    feedbackEmail: { type: String, required: true },
+    obtainableScore: { type: Number, required: true },
+    isEnterprise: { type: Boolean, default: false },
+    postingId: { type: mongoose.Schema.Types.ObjectId, ref: "Posting" },
   },
-  createdAt: { type: Date, default: Date.now },
-});
+  { timestamps: true }
+);
+
+mcqAssessmentSchema.index({ name: 1 });
+mcqAssessmentSchema.index({ author: 1 });
+mcqAssessmentSchema.index({ "candidates.email": 1 });
+mcqAssessmentSchema.index({ postingId: 1 });
 
 const MCQAssessment = mongoose.model("MCQAssessment", mcqAssessmentSchema);
 export default MCQAssessment;

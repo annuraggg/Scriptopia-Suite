@@ -5,7 +5,7 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Spinner } from "@nextui-org/react";
+import { Spinner } from "@heroui/react";
 
 const Layout = () => {
   const [posting, setPosting] = useState<Posting>({} as Posting);

@@ -15,7 +15,7 @@ import { ChevronRight } from "lucide-react";
 import { CodeAssessment as Assessment } from "@shared-types/CodeAssessment";
 import ProblemComponent from "@/components/problem/Problem";
 import languagesArray from "@/data/languages";
-import { CodeAssessmentSubmissionsSchema as CASS } from "@shared-types/CodeAssessmentSubmission";
+import { CodeAssessmentSubmission as CASS } from "@shared-types/CodeAssessmentSubmission";
 import secureLocalStorage from "react-secure-storage";
 import ax from "@/config/axios";
 import { toast } from "sonner";

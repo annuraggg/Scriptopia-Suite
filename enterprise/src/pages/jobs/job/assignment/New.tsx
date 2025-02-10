@@ -1,4 +1,4 @@
-import { Input, Textarea, Button } from "@nextui-org/react";
+import { Input, Textarea, Button } from "@heroui/react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Posting } from "@shared-types/Posting";

@@ -13,7 +13,7 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Plus } from "lucide-react";
 import MonacoEditor from "@monaco-editor/react";
 

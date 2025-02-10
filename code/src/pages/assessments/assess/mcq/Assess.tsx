@@ -4,7 +4,7 @@ import Start from "./Start";
 import { MCQAssessment as MA } from "@shared-types/MCQAssessment";
 import { io, Socket } from "socket.io-client";
 import secureLocalStorage from "react-secure-storage";
-import { MCQAssessmentSubmissionsSchema as MASS } from "@shared-types/MCQAssessmentSubmission";
+import { MCQAssessmentSubmission as MASS } from "@shared-types/MCQAssessmentSubmission";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import Submit from "./Submit";
@@ -176,7 +176,7 @@ const Assess = () => {
       if (!assessment) return;
 
       const assessmentSubmission: MASS = {
-        assessmentId: assessment._id,
+        assessmentId: assessment._id ?? "",
         name,
         email,
         mcqSubmissions: [],

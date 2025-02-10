@@ -10,7 +10,6 @@ import {
   MicOff,
   MonitorUp,
   PhoneOff,
-  Settings,
   Users,
 } from "lucide-react";
 
@@ -36,7 +35,6 @@ const ActionButtons = ({
   chat,
   present,
   recording,
-  setSettings,
   setMic,
   setCamera,
   setChat,
@@ -123,7 +121,7 @@ const ActionButtons = ({
         <Users />
       </Button>
 
-      <Button size="md" className="bg-red-700 ml-5" radius="full" onClick={() => call}>
+      <Button size="md" className="bg-red-700 ml-5" radius="full">
         <PhoneOff />
       </Button>
 {/* 

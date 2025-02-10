@@ -15,12 +15,13 @@ const offenseSchema = new Schema({
 const ResultSchema = new mongoose.Schema({
   caseNo: { type: Number, required: true },
   caseId: { type: String, required: true },
-  output: { type: String, required: false, default: " " },
+  output: { type: String, default: "" },
   isSample: { type: Boolean, required: true },
   memory: { type: Number, required: true },
   time: { type: Number, required: true },
   passed: { type: Boolean, required: true },
-  console: { type: String },
+  console: { type: String, default: "" },
+  errorMessage: { type: String, default: "" }, // Store runtime errors
 });
 
 const ProblemSubmissionSchema = new Schema({
@@ -28,6 +29,7 @@ const ProblemSubmissionSchema = new Schema({
   code: { type: String, required: true },
   language: { type: String, required: true },
   results: { type: [ResultSchema], required: false },
+  submittedAt: { type: Date, default: Date.now },
 });
 
 const obtainedGradeSchema = new Schema({
@@ -48,31 +50,37 @@ const obtainedGradeSchema = new Schema({
   total: { type: Number, required: true },
 });
 
-const CodeAssessmentSubmissionsSchema = new Schema({
-  assessmentId: {
-    type: Schema.Types.ObjectId,
-    ref: "Assessment",
-    required: true,
+const CodeAssessmentSubmissionsSchema = new Schema(
+  {
+    assessmentId: {
+      type: Schema.Types.ObjectId,
+      ref: "Assessment",
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["in-progress", "completed"],
+      required: false,
+    },
+    name: { type: String, required: true },
+    email: { type: String, required: true },
+    offenses: { type: offenseSchema, required: false },
+    submissions: { type: [ProblemSubmissionSchema], required: false },
+    timer: { type: Number, required: true },
+    sessionRewindUrl: { type: String, required: false },
+    obtainedGrades: { type: obtainedGradeSchema, required: false },
+    cheatingStatus: {
+      type: String,
+      enum: ["No Copying", "Light Copying", "Heavy Copying"],
+      required: false,
+    },
   },
-  status: {
-    type: String,
-    enum: ["in-progress", "completed"],
-    required: false,
-  },
-  name: { type: String, required: true },
-  email: { type: String, required: true },
-  offenses: { type: offenseSchema, required: false },
-  submissions: { type: [ProblemSubmissionSchema], required: false },
-  timer: { type: Number, required: true },
-  sessionRewindUrl: { type: String, required: false },
-  createdAt: { type: Date, default: Date.now },
-  obtainedGrades: { type: obtainedGradeSchema, required: false },
-  cheatingStatus: {
-    type: String,
-    enum: ["No Copying", "Light Copying", "Heavy Copying"],
-    required: false,
-  },
-});
+  { timestamps: true }
+);
+
+CodeAssessmentSubmissionsSchema.index({ assessmentId: 1 });
+CodeAssessmentSubmissionsSchema.index({ email: 1 });
+CodeAssessmentSubmissionsSchema.index({ status: 1 });
 
 const CodeAssessmentSubmissions = mongoose.model(
   "CodeAssessmentSubmissions",

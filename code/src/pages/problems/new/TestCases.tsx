@@ -180,30 +180,26 @@ const TestCases = ({
     }
 
     const inputMap = inputs.inputs.map((input) => input.name);
-    const columns = [];
-
-    for (let i = 0; i < inputMap.length; i++) {
-      columns.push(inputMap[i]);
-    }
-
-    columns.push("Output");
-    columns.push("Difficulty");
-    columns.push("Is Sample");
+    const columns = [...inputMap, "Output", "Difficulty", "Is Sample"];
 
     const finalCSV = [columns.join(",")];
 
-    // Download the file
-    const element = document.createElement("a");
+    // Create a Blob with the CSV content
     const file = new Blob([finalCSV.join("\n")], {
-      type: "text/csv",
+      type: "text/csv;charset=utf-8;",
     });
-    element.href = URL.createObjectURL(file);
-    element.download = "sample.csv";
 
-    document.body.appendChild(element);
-    element.click();
+    // Create a temporary link element
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(file);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "sample.csv");
+
+    // Append to body, trigger click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
-
   const importCSV = () => {
     const file = document.querySelector(
       'input[type="file"]'
@@ -352,7 +348,7 @@ const TestCases = ({
 
           const difficulty = row["difficulty"]?.toLowerCase();
           if (!["easy", "medium", "hard"].includes(difficulty)) {
-            console.log(difficulty)
+            console.log(difficulty);
             toast.error(
               `Row ${
                 index + 1

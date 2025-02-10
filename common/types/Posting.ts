@@ -1,129 +1,151 @@
+type StepType =
+  | "RESUME_SCREENING"
+  | "MCQ_ASSESSMENT"
+  | "CODING_ASSESSMENT"
+  | "ASSIGNMENT"
+  | "INTERVIEW"
+  | "CUSTOM";
+
 interface Slot {
   _id?: string;
-  candidate?: string; // Should match the ObjectId type from Mongoose
+  candidate?: string;
   start: Date;
   end: Date;
 }
 
-interface Interviewer {
-  _id?: string;
-  interviewer: string; // Name or identifier for the interviewer
-  candidates: string[]; // Candidate IDs
-  meetingLink: string; // Link for the interview meeting
-  timeSlot?: {
-    start: Date;
-    end?: Date; // Made optional to match Mongoose schema
-  };
-}
-
 interface Interview {
   _id?: string;
-  assignees: Interviewer[]; // Array of Interviewer objects
-  duration: number; // Duration in minutes
-  slots: Slot[]; // Match with Mongoose schema for slots
-  days: string[]; // Days when the interviews will occur
-  timeSlotStart: string; // Start time for the time slots
-  timeSlotEnd: string; // End time for the time slots
+  assignees?: string[];
+  duration: number;
+  slots: Slot[];
+  days: string[];
+  timeSlotStart: string;
+  timeSlotEnd: string;
 }
 
-interface Ats {
-  _id?: string; // Optional ID
-  minimumScore: number; // Minimum score required
-  negativePrompts?: string[]; // Optional negative prompts
-  positivePrompts?: string[]; // Optional positive prompts
-  status: "pending" | "processing" | "finished"; // Status of the ATS
-}
-
-interface Auto {
-  _id?: string; // Optional ID
-  step: number; // Step number
-  start: Date; // Start time of the auto step
-  end?: Date; // End time of the auto step, optional
+interface ATS {
+  _id?: string;
+  minimumScore: number;
+  negativePrompts?: string[];
+  positivePrompts?: string[];
+  status: "pending" | "processing" | "finished";
+  lastUpdated: Date;
 }
 
 interface WorkflowStep {
-  _id?: string; // Optional ID
-  name: string; // Name of the workflow step
-  type: "rs" | "mcqa" | "ca" | "mcqca" | "as" | "pi" | "cu"; // Type of step
-  stepId?: string; // ID of the step
+  _id?: string;
+  name: string;
+  type: StepType;
+  completed: boolean;
+  timestamp: Date;
 }
 
 interface Workflow {
-  _id?: string; // Optional ID
-  steps?: WorkflowStep[]; // Array of workflow steps
-  currentStep: number; // Current step number
+  _id?: string;
+  steps: WorkflowStep[];
 }
 
 interface Salary {
-  _id?: string; // Optional ID
-  min?: number; // Minimum salary
-  max?: number; // Maximum salary
-  currency?: string; // Currency type
+  _id?: string;
+  min?: number;
+  max?: number;
+  currency?: string;
 }
 
 interface Assignment {
-  _id?: string; // Optional ID
-  name: string; // Assignment name
-  description: string; // Assignment description
-  submissions: string[]; // Array of candidate IDs who submitted
+  _id?: string;
+  name: string;
+  workflowId: string;
+  description: string;
+  submissions?: string[];
 }
 
 interface Assessment {
-  assessmentId: string; // Assessment ID
-  stepId: string; // Step ID
-  _id?: string; // Optional ID
+  _id?: string;
+  assessmentId: string;
+  workflowId: string;
 }
 
 interface AdditionalFieldConfig {
+  _id?: string;
   required: boolean;
   allowEmpty: boolean;
 }
 
 interface AdditionalDetails {
-  [category: string]: {
-    [field: string]: AdditionalFieldConfig;
+  basic?: {
+    summary?: AdditionalFieldConfig;
+  };
+  links?: {
+    socialLinks?: AdditionalFieldConfig;
+  };
+  background?: {
+    education?: AdditionalFieldConfig;
+    workExperience?: AdditionalFieldConfig;
+  };
+  skills?: {
+    technicalSkills?: AdditionalFieldConfig;
+    languages?: AdditionalFieldConfig;
+    subjects?: AdditionalFieldConfig;
+  };
+  experience?: {
+    responsibilities?: AdditionalFieldConfig;
+    projects?: AdditionalFieldConfig;
+  };
+  achievements?: {
+    awards?: AdditionalFieldConfig;
+    certificates?: AdditionalFieldConfig;
+    competitions?: AdditionalFieldConfig;
+  };
+  professional?: {
+    conferences?: AdditionalFieldConfig;
+    patents?: AdditionalFieldConfig;
+    scholarships?: AdditionalFieldConfig;
+  };
+  activities?: {
+    volunteerings?: AdditionalFieldConfig;
+    extraCurriculars?: AdditionalFieldConfig;
   };
 }
 
 interface Posting {
-  _id?: string; // Optional ID
-  organizationId?: string; // Organization ID
-  title: string; // Posting title
-  description: string; // Job description
-  department?: string; // Department ID
-  location: string; // Job location
-  type: "full_time" | "part_time" | "internship" | "contract" | "temporary"; // Job type
-  url?: string; // URL for the job posting
-  openings: number; // Number of openings
-  salary: Salary; // Salary details
-  workflow?: Workflow; // Workflow associated with the posting
-  applicationRange: {
-    start: string; // Start date for applications
-    end: string; // End date for applications
-  };
-  assignments?: Assignment[]; // Array of assignments related to the job
-  skills: string[]; // Required skills
-  ats?: Ats; // ATS configuration
-  assessments?: Assessment[]; // Array of assessment IDs
-  interview?: Interview; // Interview details
-  candidates?: string[]; // Array of candidate IDs
-  additionalDetails?: AdditionalDetails; // Additional details for the posting
-  published?: boolean; // Published status
-  publishedOn?: Date; // Date published
-  createdOn?: Date; // Creation date
-  updatedOn?: Date; // Last updated date
+  _id?: string;
+  organizationId?: string;
+  title: string;
+  description: Record<string, unknown>;
+  department?: string;
+  location: string;
+  type: "full_time" | "part_time" | "internship" | "contract" | "temporary";
+  url?: string;
+  openings: number;
+  salary: Salary;
+  applicationRange: { start: Date; end: Date };
+  skills: string[];
+  workflow?: Workflow;
+  assignments?: Assignment[];
+  ats?: ATS;
+  mcqAssessments?: Assessment[];
+  codeAssessments?: Assessment[];
+  interview?: Interview;
+  candidates?: string[];
+  additionalDetails?: AdditionalDetails;
+  published: boolean;
+  publishedOn?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type {
-  Posting,
-  Salary,
-  Workflow,
-  WorkflowStep,
-  Auto,
-  Ats,
+  StepType,
+  Slot,
   Interview,
-  Interviewer,
+  ATS,
+  WorkflowStep,
+  Workflow,
+  Salary,
   Assignment,
-  Slot, // Exporting Slot interface as well
+  Assessment,
+  AdditionalFieldConfig,
   AdditionalDetails,
+  Posting,
 };

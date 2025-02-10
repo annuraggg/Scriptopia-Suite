@@ -5,7 +5,7 @@ import {
   ScrollShadow,
   RangeValue,
   DateValue,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   Building2,
   Calendar,

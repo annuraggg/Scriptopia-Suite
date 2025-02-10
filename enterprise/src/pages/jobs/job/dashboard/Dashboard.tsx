@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import { Card, CardBody, Switch, CardFooter } from "@nextui-org/react";
+import { Card, CardBody, Switch, CardFooter } from "@heroui/react";
 import {
   MapPinIcon,
   BriefcaseIcon,

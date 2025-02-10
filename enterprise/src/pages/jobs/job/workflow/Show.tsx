@@ -7,8 +7,8 @@ import {
   TableBody,
   TableRow,
   Button,
-} from "@nextui-org/react";
-import { Posting, WorkflowStep } from "@shared-types/Posting";
+} from "@heroui/react";
+import { Posting, WorkflowStep, StepType } from "@shared-types/Posting";
 import { useOutletContext } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
@@ -20,14 +20,13 @@ interface ShowProps {
   postingTitle: string;
 }
 
-const stepTypeMap = {
-  rs: "Resume Screening",
-  mcqa: "MCQ Assessment",
-  ca: "Coding Assessment",
-  mcqca: "MCQ + Coding Assessment",
-  as: "Assignment",
-  pi: "Interview",
-  cu: "Custom",
+const stepTypeMap: Record<StepType, string> = {
+  RESUME_SCREENING: "Resume Screening",
+  MCQ_ASSESSMENT: "MCQ Assessment",
+  CODING_ASSESSMENT: "Coding Assessment",
+  ASSIGNMENT: "Assignment",
+  INTERVIEW: "Interview",
+  CUSTOM: "Custom",
 };
 
 const Show = ({ workflowData }: ShowProps) => {
@@ -80,8 +79,10 @@ const Show = ({ workflowData }: ShowProps) => {
                 <TableRow key={index}>
                   <TableCell>{step.name}</TableCell>
                   <TableCell>{stepTypeMap[step.type]}</TableCell>
-
-                  {posting.workflow?.currentStep === index - 1 ? (
+                  {posting.workflow?.steps.findIndex(
+                    (s) => s._id === step._id
+                  ) ===
+                  index - 1 ? (
                     <TableCell className="h-16">
                       <Button
                         variant="flat"
@@ -94,11 +95,16 @@ const Show = ({ workflowData }: ShowProps) => {
                         Advance
                       </Button>
                     </TableCell>
-                  ) : (posting.workflow?.currentStep ?? -1) > index ? (
+                  ) : (posting.workflow?.steps.findIndex(
+                      (s) => s._id === step._id
+                    ) ?? -1) > index ? (
                     <TableCell className="h-16 text-success-500">
                       Step Completed
                     </TableCell>
-                  ) : (posting.workflow?.currentStep ?? -1) > index - 1 ? (
+                  ) : (posting.workflow?.steps.findIndex(
+                      (s) => s._id === step._id
+                    ) ?? -1) >
+                    index - 1 ? (
                     <TableCell className="h-16 text-warning-500">
                       Ongoing
                     </TableCell>

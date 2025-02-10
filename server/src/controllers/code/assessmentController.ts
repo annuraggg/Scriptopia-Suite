@@ -15,7 +15,13 @@ import CodeAssessmentSubmissions from "@/models/CodeAssessmentSubmission";
 import mongoose from "mongoose";
 import calculateMCQScore from "@/utils/calculateMCQScore";
 import calculateCodeScore from "@/utils/calculateCodeScore";
-import { MCQAssessmentSubmissionsSchema as IMCQAssessmentSubmission } from "@shared-types/MCQAssessmentSubmission";
+import { MCQAssessmentSubmission as IMCQAssessmentSubmission } from "@shared-types/MCQAssessmentSubmission";
+import Organization from "@/models/Organization";
+import { AuditLog, Member } from "@shared-types/Organization";
+import clerkClient from "@/config/clerk";
+import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
+import AppliedPosting from "@/models/AppliedPosting";
+import { AppliedPosting as IAppliedPosting } from "@shared-types/AppliedPosting";
 
 async function getIoServer() {
   const { ioServer } = await import("@/config/init");
@@ -112,7 +118,6 @@ getIoServer().then((server) => {
 
     socket.on("tab-change-mcq", async ({ assessmentId, email }) => {
       if (!assessmentId || !email) return;
-      console.log("Received Tab Change Offence for MCQ Assessment");
 
       const submission = await MCQAssessmentSubmissions.findOne({
         email,
@@ -137,7 +142,6 @@ getIoServer().then((server) => {
       "external-paste-code",
       async ({ assessmentId, email, problem }) => {
         if (!assessmentId || !email || !problem) return;
-        console.log("Received Copy Paste Offence for Code Assessment");
 
         const submission = await CodeAssessmentSubmissions.findOne({
           email,
@@ -250,7 +254,60 @@ getIoServer().then((server) => {
 const createMcqAssessment = async (c: Context) => {
   try {
     const body = await c.req.json();
-    const userid = c.get("auth")?.userId;
+    const userid = c.get("auth")?._id;
+
+    const isEnterprise = body.isEnterprise;
+    const newAssessment = new MCQAssessment();
+
+    console.log(isEnterprise);
+    console.log(c.get("auth"));
+
+    if (isEnterprise) {
+      const perms = await checkOrganizationPermission.all(c, ["manage_job"]);
+      if (!perms.allowed) {
+        return sendError(c, 401, "Unauthorized");
+      }
+
+      const { postingId, step } = body;
+      console.log("Enterprise Assessment");
+      console.log(postingId, step);
+
+      const posting = await Posting.findOne({
+        _id: postingId,
+      }).populate("mcqAssessments");
+      console.log("posting got");
+      if (!posting) {
+        return sendError(c, 404, "job not found");
+      }
+
+      if (!posting.workflow) {
+        return sendError(c, 400, "Workflow not found");
+      }
+
+      const assessmentstep = parseInt(step) + 1;
+      const workflowId = posting.workflow.steps[assessmentstep]?._id;
+      await Posting.findByIdAndUpdate(postingId, {
+        $push: {
+          mcqAssessments: {
+            assessmentId: newAssessment._id,
+            workflowId: workflowId,
+          },
+        },
+        updatedOn: new Date(),
+      });
+
+      const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+      const auditLog: AuditLog = {
+        user: clerkUser.firstName + " " + clerkUser.lastName,
+        userId: clerkUser.publicMetadata?._id as string,
+        action: `Created New Assessment for Job Posting: ${posting.title}`,
+        type: "info",
+      };
+
+      await Organization.findByIdAndUpdate(perms.data!.organization?._id, {
+        $push: { auditLogs: auditLog },
+      });
+    }
 
     if (!userid) {
       return sendError(c, 401, "Unauthorized");
@@ -272,7 +329,7 @@ const createMcqAssessment = async (c: Context) => {
       obtainableScore: totalScore,
     };
 
-    const newAssessment = new MCQAssessment(assessmentObj);
+    newAssessment.set(assessmentObj);
     await newAssessment.save();
 
     return sendSuccess(c, 200, "Success", newAssessment);
@@ -288,7 +345,7 @@ const createMcqAssessment = async (c: Context) => {
 const createCodeAssessment = async (c: Context) => {
   try {
     const body = await c.req.json();
-    const userid = c.get("auth")?.userId;
+    const userid = c.get("auth")?._id;
 
     if (!userid) {
       return sendError(c, 401, "Unauthorized");
@@ -297,7 +354,57 @@ const createCodeAssessment = async (c: Context) => {
     // calculate total obtainable score
     let totalScore = 0;
     const assessment: ICodeAssessment = body;
-    const gradingType = assessment.grading.type;
+    const gradingType = assessment?.grading?.type;
+    const isEnterprise = body.isEnterprise;
+
+    const newAssessment = new CodeAssessment();
+
+    if (isEnterprise) {
+      const perms = await checkOrganizationPermission.all(c, ["manage_job"]);
+      if (!perms.allowed) {
+        return sendError(c, 401, "Unauthorized");
+      }
+
+      const { postingId, step } = body;
+      console.log("Enterprise Assessment");
+      console.log(postingId, step);
+
+      const posting = await Posting.findOne({
+        _id: postingId,
+      }).populate("codeAssessments");
+      if (!posting) {
+        return sendError(c, 404, "job not found");
+      }
+
+      if (!posting.workflow) {
+        return sendError(c, 400, "Workflow not found");
+      }
+
+      const assessmentstep = parseInt(step) + 1;
+      const workflowId = posting.workflow.steps[assessmentstep]?._id;
+
+      await Posting.findByIdAndUpdate(postingId, {
+        $push: {
+          codeAssessments: {
+            assessmentId: newAssessment._id,
+            workflowId: workflowId,
+          },
+        },
+        updatedOn: new Date(),
+      });
+
+      const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+      const auditLog: AuditLog = {
+        user: clerkUser.firstName + " " + clerkUser.lastName,
+        userId: clerkUser.publicMetadata?._id as string,
+        action: `Created New Assessment for Job Posting: ${posting.title}`,
+        type: "info",
+      };
+
+      await Organization.findByIdAndUpdate(perms.data!.organization?._id, {
+        $push: { auditLogs: auditLog },
+      });
+    }
 
     if (gradingType === "testcase") {
       const problems = assessment.problems;
@@ -307,17 +414,17 @@ const createCodeAssessment = async (c: Context) => {
           return sendError(c, 404, "Problem not found");
         }
 
-        if (!assessment.grading.testcases) {
+        if (!assessment?.grading?.testcases) {
           return sendError(c, 400, "Grading not found");
         }
 
         for (const testCase of p.testCases) {
           if (testCase.difficulty === "easy") {
-            totalScore += assessment.grading.testcases.easy;
+            totalScore += assessment?.grading?.testcases.easy;
           } else if (testCase.difficulty === "medium") {
-            totalScore += assessment.grading.testcases.medium;
+            totalScore += assessment?.grading?.testcases.medium;
           } else {
-            totalScore += assessment.grading.testcases.hard;
+            totalScore += assessment?.grading?.testcases.hard;
           }
         }
       }
@@ -335,7 +442,7 @@ const createCodeAssessment = async (c: Context) => {
       obtainableScore: totalScore,
     };
 
-    const newAssessment = new CodeAssessment(assessmentObj);
+    newAssessment.set(assessmentObj);
     await newAssessment.save();
 
     return sendSuccess(c, 200, "Success", newAssessment);
@@ -473,6 +580,7 @@ const submitIndividualProblem = async (c: Context) => {
 
 const codeSubmit = async (c: Context) => {
   try {
+    console.log("Code Submit");
     const { assessmentId, email, timer } = await c.req.json();
     const assessment = await CodeAssessment.findById(assessmentId).populate(
       "problems"
@@ -491,12 +599,11 @@ const codeSubmit = async (c: Context) => {
       return sendError(c, 404, "Submission not found");
     }
 
-    const grades = calculateCodeScore(
+    const grades = await calculateCodeScore(
       // @ts-expect-error - TS doesn't know that the obtainedGrades field is added in the schema
       submission?.submissions || [],
       assessment
     );
-
     // @ts-ignore
     submission.obtainedGrades = grades;
     submission.timer = timer;
@@ -554,7 +661,7 @@ const deleteMcqAssessment = async (c: Context) => {
       return sendError(c, 404, "Assessment not found");
     }
 
-    if (assessment.author !== auth?.userId) {
+    if (assessment.author?.toString() !== auth?._id) {
       return sendError(c, 403, "Unauthorized");
     }
 
@@ -577,7 +684,7 @@ const deleteCodeAssessment = async (c: Context) => {
       return sendError(c, 404, "Assessment not found");
     }
 
-    if (assessment.author !== auth?.userId) {
+    if (assessment.author?.toString() !== auth?._id) {
       return sendError(c, 403, "Unauthorized");
     }
 
@@ -592,7 +699,7 @@ const deleteCodeAssessment = async (c: Context) => {
 const getCreatedCodeAssessments = async (c: Context) => {
   try {
     const auth = c.get("auth");
-    const assessments = await CodeAssessment.find({ author: auth?.userId });
+    const assessments = await CodeAssessment.find({ author: auth?._id });
 
     return sendSuccess(c, 200, "Success", assessments);
   } catch (error) {
@@ -603,7 +710,7 @@ const getCreatedCodeAssessments = async (c: Context) => {
 const getCreatedMcqAssessments = async (c: Context) => {
   try {
     const auth = c.get("auth");
-    const assessments = await MCQAssessment.find({ author: auth?.userId });
+    const assessments = await MCQAssessment.find({ author: auth?._id });
 
     return sendSuccess(c, 200, "Success", assessments);
   } catch (error) {
@@ -620,7 +727,9 @@ const verifyAccess = async (c: Context) => {
       MCQAssessment.findOne({ _id: body.id }).lean(),
     ]);
 
-    const assessment = result1 || result2;
+    const assessment =
+      // @ts-expect-error
+      (result1 as ICodeAssessment) || (result2 as IMCQAssessment);
 
     if (!assessment) {
       return sendError(c, 404, "Assessment not found");
@@ -639,8 +748,10 @@ const verifyAccess = async (c: Context) => {
         return sendError(c, 400, "No workflow found");
       }
 
-      const currentStep = workflow.steps[workflow.currentStep];
-      if (currentStep?.stepId?.toString() !== assessment._id.toString()) {
+      const currentStepIndex =
+        workflow.steps.findIndex((step) => !step.completed) ?? 0;
+      const currentStep = workflow.steps[currentStepIndex];
+      if (currentStep?._id?.toString() !== assessment?._id?.toString()) {
         return sendError(c, 403, "Assessment not active", {
           allowedForTest: false,
           testActive: false,
@@ -698,7 +809,7 @@ const verifyAccess = async (c: Context) => {
       });
     }
 
-    if (assessment.public) {
+    if (assessment) {
       return sendSuccess(c, 200, "Access Granted", {
         instructions: assessment.instructions,
         type: result1 ? "code" : "mcq",
@@ -706,9 +817,10 @@ const verifyAccess = async (c: Context) => {
       });
     }
 
-    const candidate = assessment.candidates.find(
-      (candidate) => candidate.email === body.email
-    );
+    // @ts-expect-error
+    const candidate = (
+      assessment as IMCQAssessment | ICodeAssessment
+    ).candidates.find((candidate) => candidate.email === body.email);
 
     if (!candidate) {
       return sendError(c, 403, "You are not allowed to take this assessment", {
@@ -718,6 +830,7 @@ const verifyAccess = async (c: Context) => {
     }
 
     return sendSuccess(c, 200, "Access Granted", {
+      // @ts-expect-error
       instructions: assessment.instructions,
       assessment: assessment,
     });
@@ -882,7 +995,12 @@ const getAssessmentSubmissions = async (c: Context) => {
       MCQAssessment.findById(id).lean(),
     ]);
 
-    const assessment = queries[0] ? queries[0] : queries[1];
+    const assessment =
+      // @ts-expect-error
+      (queries[0] as ICodeAssessment) || (queries[1] as IMCQAssessment);
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
     if (!assessment) {
       return sendError(c, 404, "Assessment not found");
     }
@@ -892,7 +1010,7 @@ const getAssessmentSubmissions = async (c: Context) => {
         return sendError(c, 403, "Unauthorized");
       }
     } else {
-      if (assessment.author !== auth?.userId) {
+      if (assessment.author !== auth?._id) {
         return sendError(c, 403, "Unauthorized");
       }
     }
@@ -908,8 +1026,6 @@ const getAssessmentSubmissions = async (c: Context) => {
 
     const submissions = subQueries[0].length ? subQueries[0] : subQueries[1];
     const finalSubmissions = [];
-
-    console.log(submissions);
 
     const getTimeUsed = (time: number) => {
       const totalTime = assessment.timeLimit * 60;
@@ -956,9 +1072,17 @@ const getAssessmentSubmissions = async (c: Context) => {
           return sendError(c, 404, "Candidate not found");
         }
 
-        const status = candidate.appliedPostings.find(
-          (ap) => ap.postingId.toString() === postingId
-        )?.currentStepStatus;
+        const appliedPostings = AppliedPosting.find({
+          candidateId: candidate._id,
+        });
+
+        if (!appliedPostings) {
+          return sendError(c, 404, "Applied Postings not found");
+        }
+
+        const status = appliedPostings.find(
+          (ap: IAppliedPosting) => ap.posting.toString() === postingId
+        );
 
         finalSubmissions.push({
           _id: submission._id,
@@ -1017,7 +1141,13 @@ const getAssessmentSubmission = async (c: Context) => {
       MCQAssessment.findById(id).lean(),
     ]);
 
-    const assessment = queries[0] ? queries[0] : queries[1];
+    // @ts-expect-error
+    const assessment: IMCQAssessment | ICodeAssessment | null = queries[0]
+      ? queries[0]
+      : queries[1];
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
 
     const subQueries = await Promise.all([
       CodeAssessmentSubmissions.findById(submissionId).lean(),
@@ -1035,7 +1165,7 @@ const getAssessmentSubmission = async (c: Context) => {
         return sendError(c, 403, "Unauthorized in Posts");
       }
     } else {
-      if (assessment.author !== auth?.userId) {
+      if (assessment.author !== auth?._id) {
         return sendError(c, 403, "Unauthorized");
       }
     }
@@ -1045,6 +1175,78 @@ const getAssessmentSubmission = async (c: Context) => {
     }
 
     return sendSuccess(c, 200, "Success", { submission, assessment });
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const getPostingMCQAssessments = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const postingId = c.req.param("postingId");
+
+    const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const posting = await Posting.findById(postingId)
+      .populate("mcqAssessments.assessmentId")
+      .populate("organizationId");
+
+    if (!posting) {
+      return sendError(c, 404, "Posting not found");
+    }
+
+    if (
+      // @ts-expect-error
+      posting?.organizationId?.members?.filter(
+        (member: Member) => member?.user?.toString() === auth?._id.toString()
+      ).length === 0
+    ) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const assessments = posting.mcqAssessments.map((assessment: any) => assessment.assessmentId);
+
+    return sendSuccess(c, 200, "Success", assessments);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const getPostingCodeAssessments = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const postingId = c.req.param("postingId");
+
+    const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const posting = await Posting.findById(postingId)
+      .populate("codeAssessments.assessmentId")
+      .populate("organizationId");
+
+    if (!posting) {
+      return sendError(c, 404, "Posting not found");
+    }
+
+    if (
+      // @ts-expect-error
+      posting?.organizationId?.members?.filter(
+        (member: Member) => member?.user?.toString() === auth?._id.toString()
+      ).length === 0
+    ) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const assessments = posting.codeAssessments.map((assessment: any) => assessment.assessmentId);
+
+    return sendSuccess(c, 200, "Success", assessments);
   } catch (error) {
     console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
@@ -1070,4 +1272,6 @@ export default {
   submitMcqAssessment,
   getAssessmentSubmissions,
   getAssessmentSubmission,
+  getPostingMCQAssessments,
+  getPostingCodeAssessments,
 };

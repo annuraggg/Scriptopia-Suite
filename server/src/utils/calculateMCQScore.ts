@@ -1,8 +1,8 @@
 import { MCQAssessment } from "@shared-types/MCQAssessment";
-import { McqSubmissionSchema } from "@shared-types/MCQAssessmentSubmission";
+import { McqSubmission } from "@shared-types/MCQAssessmentSubmission";
 
 const calculateMCQScore = (
-  mcqSubmissions: McqSubmissionSchema[],
+  mcqSubmissions: McqSubmission[],
   assessment: MCQAssessment
 ) => {
   let total = 0;

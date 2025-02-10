@@ -195,7 +195,7 @@ function ApplicationForm({ posting, onClose, onSubmit }: ApplicationFormProps) {
           if (experiences.length > 0) {
             value = experiences.map(exp =>
               `${exp.title} at ${exp.company}\n` +
-              `Duration: ${formatDateRange(exp.startDate, exp.endDate, exp.current)}\n` +
+              `Duration: ${formatDateRange(exp.startDate.toString(), exp.endDate?.toString(), exp.current)}\n` +
               `Location: ${exp.location}\n` +
               `Sector: ${exp.sector}\n` +
               `Type: ${exp.type}\n` +

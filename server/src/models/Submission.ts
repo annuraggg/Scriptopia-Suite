@@ -8,7 +8,7 @@ const ResultSchema = new mongoose.Schema({
   memory: { type: Number, required: true },
   time: { type: Number, required: true },
   passed: { type: Boolean, required: true },
-  console: { type: String },
+  console: { type: String, default: "" },
 });
 
 const DriverMetaSchema = new mongoose.Schema({
@@ -16,23 +16,25 @@ const DriverMetaSchema = new mongoose.Schema({
   timestamp: { type: Date, required: true },
 });
 
-const SubmissionSchema = new mongoose.Schema({
-  problem: { type: String, ref: "Problem" },
-  user: { type: String, ref: "User" },
-  code: { type: String, required: true },
-  language: { type: String, required: true },
-  status: {
-    type: String,
-    enum: ["FAILED", "SUCCESS"],
-    required: true,
+const SubmissionSchema = new mongoose.Schema(
+  {
+    problem: { type: mongoose.Schema.Types.ObjectId, ref: "Problem" },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    code: { type: String, required: true },
+    language: { type: String, required: true },
+    status: {
+      type: String,
+      enum: ["FAILED", "SUCCESS"],
+      required: true,
+    },
+    avgMemory: { type: Number, required: true },
+    avgTime: { type: Number, required: true },
+    failedCaseNumber: { type: Number, required: true, default: -1 },
+    results: { type: [ResultSchema], required: true },
+    meta: { type: DriverMetaSchema, required: true },
   },
-  avgMemory: { type: Number, required: true },
-  avgTime: { type: Number, required: true },
-  failedCaseNumber: { type: Number, required: true },
-  results: { type: [ResultSchema], required: true },
-  meta: { type: DriverMetaSchema, required: true },
-  createdAt: { type: Date, default: Date.now },
-});
+  { timestamps: true }
+);
 
 const Submission = mongoose.model("Submission", SubmissionSchema);
 export default Submission;

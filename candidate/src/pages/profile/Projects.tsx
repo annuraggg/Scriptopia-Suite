@@ -73,8 +73,8 @@ const Projects = () => {
       const projectData: Project = {
         title,
         domain,
-        startDate: startDate.toString(),
-        endDate: endDate?.toString() || "",
+        startDate: new Date(startDate.toString()),
+        endDate: endDate ? new Date(endDate.toString()) : undefined,
         current: isCurrentlyWorking,
         associatedWith: associatedWith as
           | "personal"
@@ -116,8 +116,8 @@ const Projects = () => {
       setEditingProject(project);
       setTitle(project.title);
       setDomain(project.domain);
-      setStartDate(parseDate(project.startDate?.split("T")[0]));
-      setEndDate(project.endDate ? parseDate(project.endDate?.split("T")[0]) : null);
+      setStartDate(parseDate(project.startDate?.toISOString().split("T")[0]));
+      setEndDate(project.endDate ? parseDate(project.endDate.toISOString().split("T")[0]) : null);
       setIsCurrentlyWorking(project.current);
       setAssociatedWith(project.associatedWith);
       setDescription(project.description);

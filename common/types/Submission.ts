@@ -18,8 +18,8 @@ interface DriverMeta {
 
 interface Submission {
   _id?: string;
-  problem: string; // should match the ObjectId type in the schema
-  user: string; // should match the ObjectId type in the schema
+  problem?: string;
+  user?: string;
   code: string;
   language: string;
   status: "FAILED" | "SUCCESS";
@@ -29,6 +29,7 @@ interface Submission {
   results: Result[];
   meta: DriverMeta;
   createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type { Result, DriverMeta, Submission };

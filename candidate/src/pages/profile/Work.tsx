@@ -22,7 +22,7 @@ import { Edit2, Trash2, Download, Plus, BriefcaseBusiness } from "lucide-react";
 import { motion } from "framer-motion";
 import { parseDate, today, CalendarDate } from "@internationalized/date";
 import { useOutletContext } from "react-router-dom";
-import { Candidate } from "@shared-types/Candidate";
+import { Candidate, WorkExperience as Work } from "@shared-types/Candidate";
 
 const positionTypes = [
   "fulltime",
@@ -47,39 +47,13 @@ const sectors = [
   "Manufacturing",
 ] as const;
 
-interface Work {
-  _id?: string;
-  company: string;
-  sector: string;
-  type: typeof positionTypes[number];
-  title: string;
-  location: string;
-  jobFunction: string;
-  startDate: string;
-  endDate?: string;
-  current: boolean;
-  description?: string;
-  createdAt?: string;
-}
-
-const initialWorkData: Work = {
-  company: "",
-  sector: "",
-  type: "fulltime",
-  title: "",
-  location: "",
-  jobFunction: "",
-  startDate: today("IST").toString(),
-  endDate: today("IST").toString(),
-  current: false,
-  description: "",
-};
-
 export default function WorkExperience() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [editingExperience, setEditingExperience] = useState<Work | null>(null);
-  const [formData, setFormData] = useState<Work>(initialWorkData);
-  const [validationErrors, setValidationErrors] = useState<Partial<Record<keyof Work, boolean>>>({});
+  const [formData, setFormData] = useState<Work>({} as Work);
+  const [validationErrors, setValidationErrors] = useState<
+    Partial<Record<keyof Work, boolean>>
+  >({});
 
   const { user, setUser } = useOutletContext<{
     user: Candidate;
@@ -88,7 +62,6 @@ export default function WorkExperience() {
 
   const handleAdd = () => {
     setEditingExperience(null);
-    setFormData(initialWorkData);
     setValidationErrors({});
     onOpen();
   };
@@ -102,16 +75,24 @@ export default function WorkExperience() {
 
   const handleDelete = (id: string) => {
     if (!user.workExperience) return;
-    
+
     const newExp = user.workExperience.filter((exp) => exp._id !== id);
     setUser({ ...user, workExperience: newExp });
   };
 
   const validateForm = (): boolean => {
     const errors: Partial<Record<keyof Work, boolean>> = {};
-    const requiredFields: (keyof Work)[] = ['company', 'sector', 'title', 'location', 'type', 'jobFunction', 'startDate'];
-    
-    requiredFields.forEach(field => {
+    const requiredFields: (keyof Work)[] = [
+      "company",
+      "sector",
+      "title",
+      "location",
+      "type",
+      "jobFunction",
+      "startDate",
+    ];
+
+    requiredFields.forEach((field) => {
       if (!formData[field]) {
         errors[field] = true;
       }
@@ -125,14 +106,17 @@ export default function WorkExperience() {
     return Object.keys(errors).length === 0;
   };
 
-  const handleDateChange = (date: CalendarDate | null, field: 'startDate' | 'endDate') => {
+  const handleDateChange = (
+    date: CalendarDate | null,
+    field: "startDate" | "endDate"
+  ) => {
     if (!date) return;
-    
+
     const dateObj = new Date(date.year, date.month - 1, date.day);
-    
+
     setFormData({
       ...formData,
-      [field]: dateObj.toISOString().split('T')[0],
+      [field]: dateObj.toISOString().split("T")[0],
     });
   };
 
@@ -147,22 +131,36 @@ export default function WorkExperience() {
     const preparedData = {
       ...formData,
       startDate: new Date(formData.startDate).toISOString(),
-      endDate: formData.current ? undefined : formData.endDate ? new Date(formData.endDate).toISOString() : undefined,
+      endDate: formData.current
+        ? undefined
+        : formData.endDate
+        ? new Date(formData.endDate).toISOString()
+        : undefined,
     };
 
     if (editingExperience?._id) {
-      newWorkExperience = (user?.workExperience || []).map((exp) => 
-        exp._id === editingExperience._id ? { ...preparedData, _id: exp._id } : exp
+      //@ts-expect-error
+      newWorkExperience = (user?.workExperience || []).map((exp) =>
+        exp._id === editingExperience._id
+          ? { ...preparedData, _id: exp._id }
+          : {
+              ...exp,
+              startDate: exp.startDate.toISOString(),
+              endDate: exp.endDate ? exp.endDate.toISOString() : undefined,
+            }
       );
     } else {
       const newExp: Work = {
         ...preparedData,
-        createdAt: new Date().toISOString(),
+        startDate: new Date(preparedData.startDate),
+        endDate: preparedData.endDate ? new Date(preparedData.endDate) : undefined,
+        createdAt: new Date(),
       };
       newWorkExperience = [...(user?.workExperience || []), newExp];
     }
-    newWorkExperience.sort((a, b) => 
-      new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+    newWorkExperience.sort(
+      (a, b) =>
+        new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
     );
 
     setUser({
@@ -170,7 +168,6 @@ export default function WorkExperience() {
       workExperience: newWorkExperience,
     });
 
-    setFormData(initialWorkData);
     setEditingExperience(null);
     setValidationErrors({});
     onClose();
@@ -241,8 +238,14 @@ export default function WorkExperience() {
                           {experience.title}
                         </h3>
                         <p className="text-default-500 text-sm">
-                          {experience.company} | {new Date(experience.startDate).toLocaleDateString()} -{" "}
-                          {experience.current ? "Present" : experience.endDate ? new Date(experience.endDate).toLocaleDateString() : ""}{" "}
+                          {experience.company} |{" "}
+                          {new Date(experience.startDate).toLocaleDateString()}{" "}
+                          -{" "}
+                          {experience.current
+                            ? "Present"
+                            : experience.endDate
+                            ? new Date(experience.endDate).toLocaleDateString()
+                            : ""}{" "}
                           | {experience.location}
                         </p>
                       </div>
@@ -258,7 +261,9 @@ export default function WorkExperience() {
                       <Button
                         isIconOnly
                         variant="light"
-                        onClick={() => experience._id && handleDelete(experience._id)}
+                        onClick={() =>
+                          experience._id && handleDelete(experience._id)
+                        }
                       >
                         <Trash2 size={18} />
                       </Button>
@@ -292,7 +297,9 @@ export default function WorkExperience() {
                     value={formData.company}
                     isRequired
                     isInvalid={validationErrors.company}
-                    errorMessage={validationErrors.company ? "Company name is required" : ""}
+                    errorMessage={
+                      validationErrors.company ? "Company name is required" : ""
+                    }
                     onChange={(e) =>
                       setFormData({ ...formData, company: e.target.value })
                     }
@@ -303,7 +310,9 @@ export default function WorkExperience() {
                     selectedKeys={formData.sector ? [formData.sector] : []}
                     isRequired
                     isInvalid={validationErrors.sector}
-                    errorMessage={validationErrors.sector ? "Sector is required" : ""}
+                    errorMessage={
+                      validationErrors.sector ? "Sector is required" : ""
+                    }
                     onChange={(e) =>
                       setFormData({ ...formData, sector: e.target.value })
                     }
@@ -320,7 +329,9 @@ export default function WorkExperience() {
                     value={formData.title}
                     isRequired
                     isInvalid={validationErrors.title}
-                    errorMessage={validationErrors.title ? "Job title is required" : ""}
+                    errorMessage={
+                      validationErrors.title ? "Job title is required" : ""
+                    }
                     onChange={(e) =>
                       setFormData({ ...formData, title: e.target.value })
                     }
@@ -331,7 +342,9 @@ export default function WorkExperience() {
                     value={formData.location}
                     isRequired
                     isInvalid={validationErrors.location}
-                    errorMessage={validationErrors.location ? "Location is required" : ""}
+                    errorMessage={
+                      validationErrors.location ? "Location is required" : ""
+                    }
                     onChange={(e) =>
                       setFormData({ ...formData, location: e.target.value })
                     }
@@ -342,11 +355,13 @@ export default function WorkExperience() {
                     selectedKeys={[formData.type]}
                     isRequired
                     isInvalid={validationErrors.type}
-                    errorMessage={validationErrors.type ? "Position type is required" : ""}
+                    errorMessage={
+                      validationErrors.type ? "Position type is required" : ""
+                    }
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        type: e.target.value as typeof positionTypes[number],
+                        type: e.target.value as (typeof positionTypes)[number],
                       })
                     }
                   >
@@ -359,10 +374,16 @@ export default function WorkExperience() {
                   <Select
                     label="Job Function"
                     placeholder="Select Job Function"
-                    selectedKeys={formData.jobFunction ? [formData.jobFunction] : []}
+                    selectedKeys={
+                      formData.jobFunction ? [formData.jobFunction] : []
+                    }
                     isRequired
                     isInvalid={validationErrors.jobFunction}
-                    errorMessage={validationErrors.jobFunction ? "Job function is required" : ""}
+                    errorMessage={
+                      validationErrors.jobFunction
+                        ? "Job function is required"
+                        : ""
+                    }
                     onChange={(e) =>
                       setFormData({ ...formData, jobFunction: e.target.value })
                     }
@@ -375,20 +396,30 @@ export default function WorkExperience() {
                   </Select>
                   <DateInput
                     label="Start Date"
-                    value={parseDate(formData.startDate.split('T')[0])}
+                    value={parseDate(formData.startDate.toISOString().split("T")[0])}
                     isRequired
                     isInvalid={validationErrors.startDate}
-                    errorMessage={validationErrors.startDate ? "Start date is required" : ""}
-                    onChange={(date) => handleDateChange(date, 'startDate')}
+                    errorMessage={
+                      validationErrors.startDate ? "Start date is required" : ""
+                    }
+                    onChange={(date) => handleDateChange(date, "startDate")}
                   />
                   <DateInput
                     label="End Date"
-                    value={formData.endDate ? parseDate(formData.endDate.split('T')[0]) : today("IST")}
+                    value={
+                      formData.endDate
+                        ? parseDate(formData.endDate.toISOString().split("T")[0])
+                        : today("IST")
+                    }
                     isDisabled={formData.current}
                     isRequired={!formData.current}
                     isInvalid={validationErrors.endDate}
-                    errorMessage={validationErrors.endDate ? "End date is required when not current" : ""}
-                    onChange={(date) => handleDateChange(date, 'endDate')}
+                    errorMessage={
+                      validationErrors.endDate
+                        ? "End date is required when not current"
+                        : ""
+                    }
+                    onChange={(date) => handleDateChange(date, "endDate")}
                   />
                   <div className="col-span-2">
                     <Checkbox

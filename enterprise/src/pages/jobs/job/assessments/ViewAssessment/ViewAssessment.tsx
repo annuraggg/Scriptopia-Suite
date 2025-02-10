@@ -11,7 +11,7 @@ import {
   TableCell,
   Button,
   Tooltip,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
@@ -66,10 +66,12 @@ const ViewAssessment = () => {
     }
 
     const stepId = window.location.pathname.split("/")[4];
-    setCurrentStepId(posting?.workflow?.currentStep as number);
+    setCurrentStepId(
+      posting?.workflow?.steps?.findIndex((step) => !step.completed) ?? -1
+    );
     if (!posting?.workflow?.steps) return;
     const step = posting?.workflow?.steps.findIndex(
-      (step) => step.stepId === stepId
+      (step) => step._id === stepId
     );
     setAssessmentStepId(step);
   }, [getToken, isLoaded]);
@@ -234,7 +236,10 @@ const ViewAssessment = () => {
                       isIconOnly
                       className="ml-2"
                       color="success"
-                      isDisabled={currentStepId !== assessmentStepId || submission?.status === "qualified"}
+                      isDisabled={
+                        currentStepId !== assessmentStepId ||
+                        submission?.status === "qualified"
+                      }
                       variant="flat"
                     >
                       <Check />
@@ -246,7 +251,10 @@ const ViewAssessment = () => {
                       isIconOnly
                       className="ml-2"
                       color="danger"
-                      isDisabled={currentStepId !== assessmentStepId || submission?.status === "disqualified"}
+                      isDisabled={
+                        currentStepId !== assessmentStepId ||
+                        submission?.status === "disqualified"
+                      }
                       variant="flat"
                     >
                       <X />

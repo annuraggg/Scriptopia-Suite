@@ -10,13 +10,15 @@ const QualityGate = ({
   minimum100Words,
   completed,
   buildRequestData,
+  loading,
 }: {
   minimumFiveCases: boolean;
   minimumThreeSampleCases: boolean;
   minimumTwoTags: boolean;
   minimum100Words: boolean;
   completed: boolean[];
-  buildRequestData: () => void;
+  buildRequestData: () => Promise<void>;
+  loading: boolean;
 }) => {
   const [value, setValue] = React.useState(0);
 
@@ -32,8 +34,8 @@ const QualityGate = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onClickHandle = () => {
-    buildRequestData();
+  const onClickHandle = async () => {
+    await buildRequestData();
   };
 
   return (
@@ -117,6 +119,7 @@ const QualityGate = ({
           isDisabled={value !== 100}
           aria-label="Submit"
           onClick={onClickHandle}
+          isLoading={loading}
         >
           Submit
         </Button>

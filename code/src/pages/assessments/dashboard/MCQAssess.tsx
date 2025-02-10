@@ -124,15 +124,15 @@ const MCQAssess: React.FC<{ createdAssessments: MCQAssessment[] }> = ({
         <div className="mt-5 flex gap-5 flex-wrap">
           {filteredAssessments.map((CreatedAssessment) => (
             <AssessmentCard
-              key={CreatedAssessment._id}
+              key={CreatedAssessment._id ?? ""}
               assessment={CreatedAssessment}
               onView={() => {
-                navigate(`/assessments/m/${CreatedAssessment._id}`);
+                navigate(`/assessments/m/${CreatedAssessment._id ?? ""}`);
               }}
               onDelete={() => {
-                confirmDelete(() => handleDelete(CreatedAssessment._id));
+                confirmDelete(() => handleDelete(CreatedAssessment._id ?? ""));
               }}
-              onCopyLink={() => copyLink(CreatedAssessment._id)}
+              onCopyLink={() => copyLink(CreatedAssessment._id ?? "" ?? "")}
             />
           ))}
         </div>
@@ -199,7 +199,11 @@ const AssessmentCard = ({
         <div className="flex flex-col gap-2">
           <InfoRow
             icon={IconCalendarFilled}
-            text={new Date(assessment.createdAt).toLocaleDateString()}
+            text={
+              assessment?.createdAt
+                ? new Date(assessment.createdAt).toLocaleDateString()
+                : "N/A"
+            }
           />
           <InfoRow
             icon={IconClockFilled}
