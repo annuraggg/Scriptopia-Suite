@@ -1,18 +1,22 @@
 import "./App.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-
-import Meet from "./pages/meet/Meet";
-
+import MeetV3 from "./pages/v3/Main";
+import { Toaster } from "@/components/ui/sonner"
 
 function App() {
   const router = createBrowserRouter([
     {
-      path: "/:id/:name",
-      element: <Meet />,
+      path: "/v3/:id",
+      element: <MeetV3 />,
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} /> 
+      <Toaster />
+    </>
+  );
 }
 
 export default App;

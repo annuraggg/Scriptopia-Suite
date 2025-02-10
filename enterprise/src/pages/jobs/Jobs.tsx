@@ -18,7 +18,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import {
   ListIcon,
@@ -59,7 +59,8 @@ const Cards = [
 
 const Postings: React.FC = () => {
   const navigate = useNavigate();
-  const { organization, setOrganization, rerender } = useOutletContext() as RootContext;
+  const { organization, setOrganization, rerender } =
+    useOutletContext() as RootContext;
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   useEffect(() => {
@@ -158,7 +159,7 @@ const Postings: React.FC = () => {
 
   const openCreateJobModal = () => {
     if (!departments.length) {
-      toast.error("Please create a department first");
+      toast.error("Please create a department first from the settings page");
       return;
     }
     navigate("create");
@@ -218,8 +219,9 @@ const Postings: React.FC = () => {
           initial={{ x: -50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className={`${isMobileFilterOpen ? 'block' : 'hidden'
-            } lg:block w-full lg:w-1/5 mb-4 lg:mb-0`}
+          className={`${
+            isMobileFilterOpen ? "block" : "hidden"
+          } lg:block w-full lg:w-1/5 mb-4 lg:mb-0`}
         >
           <Filter
             workScheduleFilter={workScheduleFilter}
@@ -273,7 +275,9 @@ const Postings: React.FC = () => {
                 <Select
                   className="w-[120px]"
                   selectedKeys={sort}
-                  onSelectionChange={(keys) => setSort(new Set(keys as unknown as string[]))}
+                  onSelectionChange={(keys) =>
+                    setSort(new Set(keys as unknown as string[]))
+                  }
                 >
                   <SelectItem key="newest">Newest</SelectItem>
                   <SelectItem key="oldest">Oldest</SelectItem>
@@ -297,6 +301,11 @@ const Postings: React.FC = () => {
 
           {/* Job Cards */}
           <div className="flex flex-col gap-3 w-full mt-6">
+            {filteredPostings.length === 0 && (
+              <div className="flex flex-col items-center justify-center w-full">
+                <p className="text-lg font-medium">No postings found</p>
+              </div>
+            )}
             {filteredPostings?.map((posting, index) => (
               <Card
                 className="p-4"
@@ -307,24 +316,38 @@ const Postings: React.FC = () => {
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 w-full p-2">
                   <div className="w-full md:w-auto">
                     <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
-                      <p className="font-medium cursor-pointer">{posting.title}</p>
+                      <p className="font-medium cursor-pointer">
+                        {posting.title}
+                      </p>
                       <span className="text-xs md:ml-2">
-                        {departments.find((department) => department._id === posting.department)?.name}
+                        {
+                          departments.find(
+                            (department) =>
+                              department._id === posting.department
+                          )?.name
+                        }
                       </span>
                       <span
-                        className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${getPostingStatus(posting) === "active"
-                          ? "text-success-500 bg-success-100"
-                          : "text-danger-500 bg-danger-100"
-                          }`}
+                        className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
+                          getPostingStatus(posting) === "active"
+                            ? "text-success-500 bg-success-100"
+                            : "text-danger-500 bg-danger-100"
+                        }`}
                       >
-                        {getPostingStatus(posting) === "active" ? "Active" : "Closed"}
+                        {getPostingStatus(posting) === "active"
+                          ? "Active"
+                          : "Closed"}
                       </span>
                     </div>
 
                     <p className="text-xs mt-2 md:mt-3">
                       {getPostingStatus(posting) === "active"
-                        ? `Open Until ${new Date(posting.applicationRange.end).toLocaleString()}`
-                        : `Closed at ${new Date(posting.applicationRange.end).toLocaleString()}`}
+                        ? `Open Until ${new Date(
+                            posting.applicationRange.end
+                          ).toLocaleString()}`
+                        : `Closed at ${new Date(
+                            posting.applicationRange.end
+                          ).toLocaleString()}`}
                     </p>
                   </div>
 
@@ -337,7 +360,9 @@ const Postings: React.FC = () => {
                           e.stopPropagation();
                           if (!posting?.url) return;
                           navigator.clipboard.writeText(
-                            import.meta.env.VITE_CANDIDATE_URL + "/" + posting?.url
+                            import.meta.env.VITE_CANDIDATE_URL +
+                              "/" +
+                              posting?.url
                           );
                           toast.success("Link copied to clipboard");
                         }}
@@ -409,6 +434,5 @@ const Postings: React.FC = () => {
     </div>
   );
 };
-
 
 export default Postings;

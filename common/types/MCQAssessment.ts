@@ -1,35 +1,8 @@
-interface Security {
-  sessionPlayback: boolean;
-  tabChangeDetection: boolean;
-  copyPasteDetection: boolean;
-}
-
-interface OpenRange {
-  start?: Date;
-  end?: Date;
-}
-
-interface Candidate {
-  name: string;
-  email: string;
-}
-
-interface Section {
-  name: string;
-  questions: Question[];
-}
-
-interface Question {
+interface Option {
   _id?: string;
-  question: string;
-  grade?: number;
-  type: QuestionType;
-  options?: Option[];
-  codeSnippet?: string;
-  imageSource?: string;
-  maxCharactersAllowed?: number;
-  fillInBlankAnswers?: string[];
-  correct?: string;
+  option: string;
+  isCorrect?: boolean;
+  matchingPairText?: string;
 }
 
 type QuestionType =
@@ -44,14 +17,46 @@ type QuestionType =
   | "fill-in-blanks"
   | "matching";
 
-interface Option {
-  option: string;
-  isCorrect?: boolean;
-  matchingPairText?: string;
+interface Question {
+  _id?: string;
+  question: string;
+  grade?: number;
+  type: QuestionType;
+  options?: Option[];
+  codeSnippet?: string;
+  imageSource?: string;
+  maxCharactersAllowed?: number;
+  fillInBlankAnswers?: string[];
+  correct?: string;
+}
+
+interface Section {
+  _id?: string;
+  name: string;
+  questions: Question[];
+}
+
+interface Candidate {
+  _id?: string;
+  name: string;
+  email: string;
+}
+
+interface OpenRange {
+  _id?: string;
+  start?: Date;
+  end?: Date;
+}
+
+interface Security {
+  _id?: string;
+  sessionPlayback?: boolean;
+  tabChangeDetection?: boolean;
+  copyPasteDetection?: boolean;
 }
 
 interface MCQAssessment {
-  _id: string;
+  _id?: string;
   name: string;
   description: string;
   author: string;
@@ -60,23 +65,24 @@ interface MCQAssessment {
   openRange?: OpenRange;
   sections: Section[];
   candidates: Candidate[];
-  public: boolean;
+  public?: boolean;
   instructions: string;
   security: Security;
   feedbackEmail: string;
   obtainableScore: number;
-  isEnterprise: boolean;
+  isEnterprise?: boolean;
   postingId?: string;
-  createdAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type {
-  MCQAssessment,
-  Candidate,
-  Section,
-  Question,
   Option,
-  Security,
+  Question,
+  Section,
+  Candidate,
   OpenRange,
+  Security,
   QuestionType,
+  MCQAssessment,
 };

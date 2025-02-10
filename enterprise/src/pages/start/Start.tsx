@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, Input } from "@nextui-org/react";
+import { Button, Card, CardBody, Input } from "@heroui/react";
 import { ArrowLeftIcon, Briefcase, Link, Mail } from "lucide-react";
 import { Trash2Icon } from "lucide-react";
 import {
@@ -10,7 +10,7 @@ import {
   TableColumn,
   Select,
   SelectItem,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth, useUser } from "@clerk/clerk-react";

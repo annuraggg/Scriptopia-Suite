@@ -26,14 +26,14 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-} from "@nextui-org/dropdown";
+} from "@heroui/dropdown";
 import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
 } from "lucide-react";
-import { Button, Checkbox, Input } from "@nextui-org/react";
+import { Button, Checkbox, Input } from "@heroui/react";
 import { useState } from "react";
 
 interface DataTableProps<TData> {
@@ -142,7 +142,7 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
               </Button>
             </DropdownTrigger>
             <DropdownMenu>
-              <DropdownItem>View candidate</DropdownItem>
+              <DropdownItem key={"view"}>View candidate</DropdownItem>
             </DropdownMenu>
           </Dropdown>
         );

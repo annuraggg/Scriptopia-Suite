@@ -15,7 +15,7 @@ import {
 } from "@nextui-org/react";
 import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
-import { parseDate, today, CalendarDate } from "@internationalized/date";
+import { parseDate, today } from "@internationalized/date";
 import { Plus, Pencil, Trash2, Gem } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -37,7 +37,7 @@ const Competitions = () => {
     position: "",
     organizer: "",
     associatedWith: "academic",
-    date: today("IST").toString(),
+    date: new Date(today("IST").toString()),
     description: "",
   };
 
@@ -46,10 +46,8 @@ const Competitions = () => {
       const formattedCompetition = {
         ...competition,
         date: competition.date 
-          ? new CalendarDate(new Date(competition.date).getFullYear(),
-              new Date(competition.date).getMonth() + 1,
-              new Date(competition.date).getDate()).toString()
-          : today("IST").toString()
+          ? new Date(competition.date)
+          : new Date(today("IST").toString())
       };
       setCurrentCompetition(formattedCompetition);
       setIsEditing(true);
@@ -83,7 +81,13 @@ const Competitions = () => {
       const newCompetitions = user?.competitions?.map((comp) =>
         comp._id === currentCompetition._id ? competitionToSave : comp
       );
-      setUser({ ...user, competitions: newCompetitions });
+      setUser({ 
+        ...user, 
+        competitions: newCompetitions?.map(comp => ({
+          ...comp,
+          date: new Date(comp.date)
+        })) 
+      });
       toast.success("Competition updated successfully");
     } else {
       const newCompetition = {
@@ -94,7 +98,13 @@ const Competitions = () => {
         ...(user?.competitions || []),
         newCompetition,
       ];
-      setUser({ ...user, competitions: newCompetitions });
+      setUser({ 
+        ...user, 
+        competitions: newCompetitions.map(comp => ({
+          ...comp,
+          date: new Date(comp.date)
+        })) 
+      });
       toast.success("Competition added successfully");
     }
     handleClose();
@@ -196,7 +206,7 @@ const Competitions = () => {
                         {competition.position}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {formatDate(competition.date)}
+                        {formatDate(competition.date.toISOString())}
                       </p>
                       <p className="mt-2">{competition.description}</p>
                     </div>
@@ -288,11 +298,11 @@ const Competitions = () => {
                   </Select>
                   <DateInput
                     label="Competition Date"
-                    value={parseDate(currentCompetition?.date || today("IST").toString(), )}
+                    value={parseDate(currentCompetition?.date.toString() || today("IST").toString())}
                     onChange={(date) =>
                       setCurrentCompetition((prev) => ({
                         ...prev,
-                        date: date.toString(),
+                        date: new Date(date.toString()),
                       }))
                     }
                     isRequired

@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { MemberWithPermission as MWP } from "@shared-types/MemberWithPermission";
 import { OrganizationWithPostings as OWP } from "@/types/RootContext";
 import { Menu } from "lucide-react";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import { AnimatePresence, motion } from "framer-motion";
 
 const Layout = () => {
@@ -49,6 +49,9 @@ const Layout = () => {
         setNotifications(res.data.data.notifications);
       })
       .catch((err) => {
+        if (err.response.status === 404) {
+          return window.location.href = "/onboarding";
+        }
         toast.error(err.response.data.message || "An error occurred");
       })
       .finally(() => {
@@ -68,7 +71,7 @@ const Layout = () => {
   return (
     <>
       <SignedIn>
-        <div className="relative min-h-screen bg-background">
+        <div className="relative min-h-screen">
           {/* Mobile Header */}
           <div className="sm:hidden fixed top-0 left-0 right-0 h-16 border-b z-40 px-5 flex items-center justify-between">
             <img

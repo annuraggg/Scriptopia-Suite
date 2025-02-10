@@ -1,5 +1,5 @@
 import { AlertCircleIcon } from "lucide-react";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import {
   Briefcase,
   FileText,

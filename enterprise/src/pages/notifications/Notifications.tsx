@@ -18,7 +18,7 @@ import {
   Chip,
   Breadcrumbs,
   BreadcrumbItem
-} from "@nextui-org/react";
+} from "@heroui/react";
 
 const MOCK_NOTIFICATIONS = [
   {

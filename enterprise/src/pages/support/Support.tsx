@@ -1,5 +1,5 @@
 import { RootState } from "@/types/Reducer";
-import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
+import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
 import { useSelector } from "react-redux";
 
 const Support = () => {

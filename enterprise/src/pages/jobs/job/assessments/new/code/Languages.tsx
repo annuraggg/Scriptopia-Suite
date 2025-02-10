@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import availableLanguages from "@/data/languages";
-import { Checkbox } from "@nextui-org/react";
+import { Checkbox } from "@heroui/react";
 
 interface LanguagesProps {
   selectedLanguages: string[];

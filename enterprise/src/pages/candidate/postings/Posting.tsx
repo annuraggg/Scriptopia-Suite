@@ -3,7 +3,7 @@ import { useAuth } from "@clerk/clerk-react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { toast } from "sonner";
 import ax from "@/config/axios";
-import { AppliedPosting } from "@shared-types/Candidate";
+import { AppliedPosting } from "@shared-types/AppliedPosting";
 import { Organization } from "@shared-types/Organization";
 import { Posting as PostingType } from "@shared-types/Posting";
 import {
@@ -16,7 +16,7 @@ import {
   Link,
   Tooltip,
   ScrollShadow,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   Briefcase,
   DollarSign,
@@ -53,7 +53,7 @@ const Posting = () => {
       .then((res) => {
         console.log(res.data);
         const posted = res.data.data.posted;
-        if (posted?.some((p: AppliedPosting) => p.postingId === posting._id)) {
+        if (posted?.some((p: AppliedPosting) => p.posting === posting._id)) {
           setApplied(true);
         }
       })
@@ -170,7 +170,7 @@ const Posting = () => {
             <Divider />
             <CardBody>
               <pre className="whitespace-pre-wrap text-foreground-700">
-                {posting?.description}
+                {typeof posting?.description === 'string' ? posting.description : 'No description available'}
               </pre>
             </CardBody>
           </Card>

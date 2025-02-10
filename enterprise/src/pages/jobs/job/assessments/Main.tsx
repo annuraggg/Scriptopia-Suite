@@ -5,9 +5,9 @@ import ax from "@/config/axios";
 import { useAuth } from "@clerk/clerk-react";
 import MCQAssess from "./MCQAssess";
 import CodeAssess from "./CodeAssess";
-import MCQCodeAssess from "./MCQCodeAssess";
 import { toast } from "sonner";
-import { Assessment } from "@shared-types/Assessment";
+import { CodeAssessment } from "@shared-types/CodeAssessment";
+import { MCQAssessment } from "@shared-types/MCQAssessment";
 
 const Assessments = () => {
   const [active, setActive] = useState(0);
@@ -16,13 +16,11 @@ const Assessments = () => {
   const axios = ax(getToken);
 
   const [data, setData] = useState<{
-    mcqCreatedAssessments: Assessment[];
-    codeCreatedAssessments: Assessment[];
-    mcqCodeCreatedAssessments: Assessment[];
+    mcqCreatedAssessments: MCQAssessment[];
+    codeCreatedAssessments: CodeAssessment[];
   }>({
     mcqCreatedAssessments: [],
     codeCreatedAssessments: [],
-    mcqCodeCreatedAssessments: [],
   });
 
   useEffect(() => {
@@ -30,19 +28,15 @@ const Assessments = () => {
       const postingId = window.location.pathname.split("/")[2];
       try {
         const mcqCreatedAssessments = await axios.get(
-          "/assessments/mcq/created/1/enterprise/" + postingId
+          "/assessments/mcq/created/enterprise/" + postingId
         );
         const codeCreatedAssessments = await axios.get(
-          "/assessments/code/created/1/enterprise/" + postingId
-        );
-        const mcqCodeCreatedAssessments = await axios.get(
-          "/assessments/mcqcode/created/1/enterprise/" + postingId
+          "/assessments/code/created/enterprise/" + postingId
         );
 
         setData({
           mcqCreatedAssessments: mcqCreatedAssessments.data.data,
           codeCreatedAssessments: codeCreatedAssessments.data.data,
-          mcqCodeCreatedAssessments: mcqCodeCreatedAssessments.data.data,
         });
       } catch (error) {
         toast.error("Failed to fetch assessments");
@@ -79,9 +73,12 @@ const Assessments = () => {
     >
       <div className="h-full flex gap-5">
         <Sidebar active={active} setActive={setActive} />
-        {active === 0 && <MCQAssess createdAssessments={data.mcqCreatedAssessments || []} />}
-        {active === 1 && <CodeAssess createdAssessments={data.codeCreatedAssessments || []} />}
-        {active === 2 && <MCQCodeAssess createdAssessments={data.mcqCodeCreatedAssessments || []} />}
+        {active === 0 && (
+          <MCQAssess createdAssessments={data.mcqCreatedAssessments || []} />
+        )}
+        {active === 1 && (
+          <CodeAssess createdAssessments={data.codeCreatedAssessments || []} />
+        )}
       </div>
     </motion.div>
   );

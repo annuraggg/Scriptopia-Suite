@@ -1,5 +1,5 @@
 import { Button, Card, CardBody, Progress } from "@nextui-org/react";
-import { CodeAssessmentSubmissionsSchema as CASS } from "@shared-types/CodeAssessmentSubmission";
+import { CodeAssessmentSubmission as CASS } from "@shared-types/CodeAssessmentSubmission";
 import { Problem } from "@shared-types/Problem";
 
 interface SidebarProps {

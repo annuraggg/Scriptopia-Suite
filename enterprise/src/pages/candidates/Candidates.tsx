@@ -2,10 +2,11 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { DataTable } from "./DataTable";
 import { RootState } from "@/types/Reducer";
-import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
+import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
 import { useSelector } from "react-redux";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
+import { Spinner } from "@heroui/react";
 
 interface Candidate {
   _id: string;
@@ -48,7 +49,12 @@ const Candidates = () => {
     status: candidate.status || "N/A",
   }));
 
-  if (loading) return <div>Loading...</div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Spinner />
+      </div>
+    );
   if (error) return <div>Error: {error}</div>;
 
   return (

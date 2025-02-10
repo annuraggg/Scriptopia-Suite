@@ -8,8 +8,8 @@ import {
   Button,
   Input,
   Textarea,
-} from "@nextui-org/react";
-import { Select, SelectItem } from "@nextui-org/select";
+} from "@heroui/react";
+import { Select, SelectItem } from "@heroui/select";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";

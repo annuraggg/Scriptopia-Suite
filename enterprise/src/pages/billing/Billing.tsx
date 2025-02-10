@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { RootState } from "@/types/Reducer";
-import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
+import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import NotSubscribed from "./NotSubscribed";

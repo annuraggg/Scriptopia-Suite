@@ -15,14 +15,14 @@ import {
   Question,
   QuestionType,
 } from "@shared-types/MCQAssessment";
-import { MCQAssessmentSubmissionsSchema } from "@shared-types/MCQAssessmentSubmission";
+import { MCQAssessmentSubmission } from "@shared-types/MCQAssessmentSubmission";
 import { CheckboxGroup, Checkbox } from "@nextui-org/checkbox";
 
 interface QuestionCardProps {
   question: Question;
   currentAnswer: string | string[];
-  assessmentSub: MCQAssessmentSubmissionsSchema;
-  setAssessmentSub: (assessmentSub: MCQAssessmentSubmissionsSchema) => void;
+  assessmentSub: MCQAssessmentSubmission;
+  setAssessmentSub: (assessmentSub: MCQAssessmentSubmission) => void;
 }
 
 const QuestionCard: React.FC<QuestionCardProps> = ({
@@ -365,8 +365,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
 interface SectionsProps {
   assessment: MA;
   currentSection: number;
-  assessmentSub: MCQAssessmentSubmissionsSchema;
-  setAssessmentSub: (assessmentSub: MCQAssessmentSubmissionsSchema) => void;
+  assessmentSub: MCQAssessmentSubmission;
+  setAssessmentSub: (assessmentSub: MCQAssessmentSubmission) => void;
 }
 
 const Sections = ({

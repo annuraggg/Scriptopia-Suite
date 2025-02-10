@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/table";
 
 import { ArrowUpDown, ChevronLeft, ChevronRight, Download } from "lucide-react";
-import { Button, Checkbox } from "@nextui-org/react";
+import { Button, Checkbox } from "@heroui/react";
 import { useOutletContext } from "react-router-dom";
 import { Posting as PostingType } from "@shared-types/Posting";
 import { Candidate } from "@shared-types/Candidate";

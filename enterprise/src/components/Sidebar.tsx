@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Tooltip } from "@nextui-org/tooltip";
+import { Tooltip } from "@heroui/tooltip";
 import { ChevronRight, X } from "lucide-react";
 import {
   IconLayoutDashboardFilled,
@@ -12,7 +12,7 @@ import {
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
-import { Badge, Button } from "@nextui-org/react";
+import { Badge, Button } from "@heroui/react";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
 import { Notification } from "@shared-types/Organization";
 import { OrganizationWithPostings as OWP } from "@/types/RootContext";
@@ -109,13 +109,19 @@ const Sidebar = ({
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
 
+  const subNavbarRoutes = ["jobs", "settings"];
+
   useEffect(() => {
     setActive(window.location.pathname.split("/")[1]);
   }, []);
 
   return (
     <aside
-      className={`h-[100vh] bg-foreground text-background rounded-r-2xl border-r flex flex-col overflow-hidden transition-all duration-300 
+      className={`h-[100vh] bg-foreground text-background ${
+        subNavbarRoutes.includes(window.location.pathname.split("/")[1])
+          ? "border-r-background/10"
+          : "rounded-r-2xl"
+      } border-r flex flex-col overflow-hidden transition-all duration-300 
         ${isMobile ? "w-64" : collapsed ? "w-16" : "w-64"}
         ${isMobile ? "fixed left-0 top-0" : "relative"}`}
     >
@@ -233,7 +239,7 @@ const Sidebar = ({
               className="p-1 rounded-xl transition-colors duration-200 w-full"
             >
               <ChevronRight
-                className={`h-5 w-5 text-default-500 transition-transform duration-200 
+                className={`h-5 w-5 transition-transform duration-200 text-background
                   ${!collapsed ? "rotate-180" : ""}`}
               />
             </button>

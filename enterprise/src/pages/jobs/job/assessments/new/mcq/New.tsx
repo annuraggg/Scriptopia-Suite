@@ -8,7 +8,7 @@ import {
   Tab,
   Tabs,
   TimeInputValue,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState, Key } from "react";
 import General from "./General";
 import Instructions from "./Instructions";

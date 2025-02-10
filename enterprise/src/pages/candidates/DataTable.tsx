@@ -26,14 +26,14 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-} from "@nextui-org/dropdown";
+} from "@heroui/dropdown";
 import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
 } from "lucide-react";
-import { Button, Checkbox, Input, Select, SelectItem } from "@nextui-org/react";
+import { Button, Checkbox, Input, Select, SelectItem } from "@heroui/react";
 import { useState } from "react";
 
 interface DataTableProps<TData> {
@@ -155,7 +155,7 @@ export function DataTable<TData>({ data = [] }: DataTableProps<TData>) {
               </Button>
             </DropdownTrigger>
             <DropdownMenu>
-              <DropdownItem>View candidate</DropdownItem>
+              <DropdownItem key={"view"}>View candidate</DropdownItem>
             </DropdownMenu>
           </Dropdown>
         );
@@ -214,8 +214,12 @@ export function DataTable<TData>({ data = [] }: DataTableProps<TData>) {
               table.getColumn("status")?.setFilterValue(event.target.value);
             }
           }}
-          size="sm"
           className="max-w-sm"
+          selectedKeys={
+            table.getColumn("status")?.getFilterValue()
+              ? [table.getColumn("status")?.getFilterValue() as string]
+              : ["all"]
+          }
         >
           <SelectItem key="all">All</SelectItem>
           <SelectItem key="qualified">Qualified</SelectItem>
@@ -233,9 +237,9 @@ export function DataTable<TData>({ data = [] }: DataTableProps<TData>) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </TableHead>
                 );
               })}

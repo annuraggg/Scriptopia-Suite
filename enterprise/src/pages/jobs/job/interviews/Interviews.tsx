@@ -13,7 +13,7 @@ const Interviews = () => {
 
   useEffect(() => {
     const noOfInterviews = posting?.workflow?.steps?.filter(
-      (step) => step.type === "pi"
+      (step) => step.type === "INTERVIEW"
     ).length;
 
     if (noOfInterviews) {

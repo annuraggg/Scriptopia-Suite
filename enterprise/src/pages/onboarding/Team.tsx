@@ -1,4 +1,4 @@
-import { Button, Input, Select, SelectItem } from "@nextui-org/react";
+import { Button, Input, Select, SelectItem } from "@heroui/react";
 import { Trash } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";

@@ -1,26 +1,37 @@
 interface OpenRange {
+  _id?: string;
   start?: Date;
   end?: Date;
 }
 
-interface TestCases {
+interface Testcases {
+  _id?: string;
   easy: number;
   medium: number;
   hard: number;
 }
 
 interface Problem {
+  _id?: string;
   problemId: string;
   points: number;
 }
 
 interface Grading {
+  _id?: string;
   type: "testcase" | "problem";
-  testcases?: TestCases; // Make optional but depending on the type logic.
-  problem?: Problem[]; // Make optional but depending on the type logic.
+  testcases?: Testcases;
+  problem?: Problem[];
+}
+
+interface Candidate {
+  _id?: string;
+  name: string;
+  email: string;
 }
 
 interface Security {
+  _id?: string;
   codePlayback: boolean;
   codeExecution: boolean;
   tabChangeDetection: boolean;
@@ -30,13 +41,8 @@ interface Security {
   enableSyntaxHighlighting: boolean;
 }
 
-interface Candidate {
-  name: string;
-  email: string;
-}
-
 interface CodeAssessment {
-  _id: string;
+  _id?: string;
   name: string;
   description: string;
   author: string;
@@ -45,24 +51,24 @@ interface CodeAssessment {
   openRange?: OpenRange;
   languages: string[];
   problems: string[];
-  grading: Grading;
-  candidates: Candidate[];
-  public: boolean;
+  grading?: Grading;
+  candidates?: Candidate[];
   instructions: string;
   security: Security;
   feedbackEmail: string;
   obtainableScore: number;
   isEnterprise: boolean;
   postingId?: string;
-  createdAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type {
-  CodeAssessment,
   OpenRange,
-  TestCases,
+  Testcases,
   Problem,
   Grading,
   Candidate,
   Security,
+  CodeAssessment,
 };

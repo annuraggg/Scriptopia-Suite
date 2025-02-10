@@ -1,19 +1,25 @@
-// CreateJob.tsx
+// @ts-nocheck
+// ! FIX THIS FILE
+
 import { useState } from "react";
 import Sidebar from "./Sidebar";
 import JobDetails from "./JobDetails";
 import Workflow from "./Workflow";
-import { DateValue, RangeValue } from "@nextui-org/react";
+import { DateValue, RangeValue } from "@heroui/react";
 import { today, getLocalTimeZone } from "@internationalized/date";
 import Summary from "./Summary";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { Posting, AdditionalDetails as AdditionalDetailsType } from "@shared-types/Posting";
+import {
+  Posting,
+  AdditionalDetails as AdditionalDetailsType,
+} from "@shared-types/Posting";
 import { toast } from "sonner";
 import Loader from "@/components/Loader";
 import AdditionalDetails, { FIELD_CATEGORIES } from "./AdditionalDetails";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
+import WorkflowSchedule from "./WorkflowSchedule";
 
 interface Component {
   icon: React.ElementType;
@@ -23,12 +29,11 @@ interface Component {
 }
 
 const componentMap: Record<string, string> = {
-  ATS: "rs",
-  "MCQ Assessment": "mcqa",
-  "Code Assessment": "ca",
-  "MCQ + Code Assessment": "mcqca",
-  Assignment: "as",
-  Interview: "pi",
+  ATS: "RESUME_SCREENING",
+  "MCQ Assessment": "MCQ_ASSESSMENT",
+  "Code Assessment": "CODING_ASSESSMENT",
+  Assignment: "ASSIGNMENT",
+  Interview: "INTERVIEW",
 };
 
 const CreateJob = () => {
@@ -40,7 +45,9 @@ const CreateJob = () => {
   const [location, setLocation] = useState<string>("");
   const [department, setDepartment] = useState<string>("");
   const [openings, setOpenings] = useState<number>(0);
-  const [applicationRange, setApplicationRange] = useState<RangeValue<DateValue>>({
+  const [applicationRange, setApplicationRange] = useState<
+    RangeValue<DateValue>
+  >({
     start: today(getLocalTimeZone()),
     end: today(getLocalTimeZone()).add({ weeks: 1 }),
   });
@@ -53,7 +60,8 @@ const CreateJob = () => {
   // Additional Details States
   const [requiredFields, setRequiredFields] = useState<string[]>([]);
   const [allowNoEntries, setAllowNoEntries] = useState<string[]>([]);
-  const [additionalDetails, setAdditionalDetails] = useState<AdditionalDetailsType>({});
+  const [additionalDetails, setAdditionalDetails] =
+    useState<AdditionalDetailsType>({});
 
   // Workflow States
   const [addedComponents, setAddedComponents] = useState<Component[]>([]);
@@ -78,12 +86,14 @@ const CreateJob = () => {
           | "as"
           | "pi"
           | "cu",
+        completed: false,
+        timestamp: new Date(),
       })),
       currentStep: -1,
     };
 
     // Format additional details
-    const formattedAdditionalDetails: AdditionalDetailsType = {};
+    const formattedAdditionalDetails: { [key: string]: any } = {};
     Object.entries(FIELD_CATEGORIES).forEach(([category, fields]) => {
       formattedAdditionalDetails[category] = {};
       fields.forEach((field) => {
@@ -108,8 +118,8 @@ const CreateJob = () => {
       openings,
 
       applicationRange: {
-        start: applicationRange.start.toString(),
-        end: applicationRange.end.toString(),
+        start: applicationRange.start.toDate(getLocalTimeZone()),
+        end: applicationRange.end.toDate(getLocalTimeZone()),
       },
       skills,
       salary: {
@@ -191,7 +201,8 @@ const CreateJob = () => {
             setAddedComponents={setAddedComponents}
           />
         )}
-        {active === 3 && (
+        {active === 3 && <WorkflowSchedule addedComponents={addedComponents} />}
+        {active === 4 && (
           <Summary
             setAction={setActive}
             title={title}

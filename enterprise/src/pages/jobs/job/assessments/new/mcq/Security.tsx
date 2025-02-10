@@ -1,4 +1,4 @@
-import { Checkbox, Divider } from "@nextui-org/react";
+import { Checkbox, Divider } from "@heroui/react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 

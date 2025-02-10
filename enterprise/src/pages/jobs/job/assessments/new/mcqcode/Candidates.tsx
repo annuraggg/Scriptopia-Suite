@@ -1,4 +1,4 @@
-import { Button, Input, Select, SelectItem } from "@nextui-org/react";
+import { Button, Input, Select, SelectItem } from "@heroui/react";
 import {
   Table,
   TableHeader,
@@ -6,7 +6,7 @@ import {
   TableColumn,
   TableRow,
   TableCell,
-} from "@nextui-org/table";
+} from "@heroui/table";
 import { useState } from "react";
 import { motion } from "framer-motion";
 

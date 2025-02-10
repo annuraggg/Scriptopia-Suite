@@ -580,7 +580,8 @@ function generateJavaScript(
       char: "String",
       long: "BigInt",
     };
-    return `inputData[${inputIndex}].split(',').map(${ // @ts-expect-error - TS doesn't like the type of converters
+    return `inputData[${inputIndex}].split(',').map(${
+      // @ts-expect-error - TS doesn't like the type of converters
       parsers[input.elementType] || "String"
     })`;
   }

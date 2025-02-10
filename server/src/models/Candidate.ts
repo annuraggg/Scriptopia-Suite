@@ -1,41 +1,6 @@
 import mongoose from "mongoose";
 import { Schema } from "mongoose";
 
-const appliedPostingSchema = new Schema({
-  postingId: { type: Schema.Types.ObjectId, required: true, ref: "Posting" },
-  query: { type: String },
-  appliedAt: { type: Date, default: Date.now },
-  disqualifiedStage: { type: Number },
-  disqualifiedReason: { type: String },
-  scores: {
-    rs: { type: { score: Number, reason: String } },
-    as: {
-      type: [
-        {
-          score: Number,
-          asId: String,
-          submittedOn: { type: Date, default: Date.now },
-        },
-      ],
-    },
-    mcqa: { type: [{ score: Number, mcqaId: String }] },
-    ca: { type: [{ score: Number, caId: String }] },
-    mcqca: { type: [{ score: Number, mcqaId: String, caId: String }] },
-    pi: { type: { score: Number, piId: String } },
-    cu: { type: [{ score: Number, cuId: String }] },
-  },
-  status: {
-    type: String,
-    enum: ["applied", "inprogress", "rejected", "hired"],
-    default: "applied",
-  },
-  currentStepStatus: {
-    type: String,
-    enum: ["qualified", "disqualified", "pending"],
-    default: "pending",
-  },
-});
-
 const socialLinkSchema = new Schema({
   platform: {
     type: String,
@@ -231,44 +196,48 @@ const extraCurricularSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-const candidateSchema = new Schema({
-  userId: { type: String, ref: "User" },
-  name: { type: String, required: true },
-  dob: { type: Date, required: true },
-  gender: { type: String, required: true },
-  email: { type: String, required: true },
-  phone: { type: String, required: true },
-  address: { type: String, required: true },
+const candidateSchema = new Schema(
+  {
+    userId: { type: mongoose.Types.ObjectId, ref: "User" },
+    name: { type: String, required: true },
+    dob: { type: Date, required: true },
+    gender: { type: String, required: true },
+    email: { type: String, required: true },
+    phone: { type: String, required: true },
+    address: { type: String, required: true },
 
-  summary: { type: String, required: false },
+    summary: { type: String, required: false },
 
-  socialLinks: { type: [socialLinkSchema], required: false },
-  education: { type: [educationSchema], required: false },
-  workExperience: { type: [workSchema], required: false },
+    socialLinks: { type: [socialLinkSchema], required: false },
+    education: { type: [educationSchema], required: false },
+    workExperience: { type: [workSchema], required: false },
 
-  technicalSkills: { type: [skillSchema], required: false },
-  languages: { type: [languageSchema], required: false },
-  subjects: { type: [subjectSchema], required: false },
+    technicalSkills: { type: [skillSchema], required: false },
+    languages: { type: [languageSchema], required: false },
+    subjects: { type: [subjectSchema], required: false },
 
-  responsibilities: { type: [responsibilitySchema], required: false },
-  projects: { type: [projectSchema], required: false },
+    responsibilities: { type: [responsibilitySchema], required: false },
+    projects: { type: [projectSchema], required: false },
 
-  awards: { type: [awardSchema], required: false },
-  certificates: { type: [certificateSchema], required: false },
-  competitions: { type: [competitionSchema], required: false },
+    awards: { type: [awardSchema], required: false },
+    certificates: { type: [certificateSchema], required: false },
+    competitions: { type: [competitionSchema], required: false },
 
-  conferences: { type: [conferenceSchema], required: false },
-  patents: { type: [patentSchema], required: false },
-  scholarships: { type: [scholarshipSchema], required: false },
-  volunteerings: { type: [volunteerSchema], required: false },
-  extraCurriculars: { type: [extraCurricularSchema], required: false },
+    conferences: { type: [conferenceSchema], required: false },
+    patents: { type: [patentSchema], required: false },
+    scholarships: { type: [scholarshipSchema], required: false },
+    volunteerings: { type: [volunteerSchema], required: false },
+    extraCurriculars: { type: [extraCurricularSchema], required: false },
 
-  resumeUrl: { type: String, required: false },
-  resumeExtract: { type: String },
+    resumeUrl: { type: String, required: false },
+    resumeExtract: { type: String },
+  },
+  { timestamps: true }
+);
 
-  appliedPostings: { type: [appliedPostingSchema] },
-  createdAt: { type: Date, default: Date.now },
-});
+candidateSchema.index({ email: 1 });
+candidateSchema.index({ userId: 1 });
+candidateSchema.index({ "appliedPostings.postingId": 1 });
 
 const Candidate = mongoose.model("Candidate", candidateSchema);
 export default Candidate;

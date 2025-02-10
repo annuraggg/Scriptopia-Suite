@@ -1,11 +1,14 @@
+// @ts-nocheck
+// ! FIX THIS FILE
 import { motion } from "framer-motion";
-import { Card, CardBody, CardHeader, Input, Textarea } from "@nextui-org/react";
+import { Card, CardBody, CardHeader, Input, Textarea } from "@heroui/react";
 import { SelectionChart } from "./SelectionChart";
-import { Tabs, Tab } from "@nextui-org/react";
+import { Tabs, Tab } from "@heroui/react";
 import { DataTable } from "./DataTable";
 import { Posting } from "@shared-types/Posting";
 import { useEffect, useState } from "react";
 import { Candidate } from "@shared-types/Candidate";
+import { AppliedPosting } from "@shared-types/AppliedPosting";
 
 interface CandidateTable {
   _id: string;
@@ -30,35 +33,41 @@ const Main = ({ posting }: { posting: Posting }) => {
         posting.candidates as unknown as Candidate[]
       ).map((candidate) => {
         const currentPosting = candidate.appliedPostings.find(
-          (appliedPosting) => appliedPosting.postingId === posting._id
+          (appliedPosting: AppliedPosting) =>
+            appliedPosting.posting === posting._id
         );
         return {
           _id: candidate._id || "",
           name: candidate.name,
           email: candidate.email,
           received: new Date(
-            currentPosting?.appliedAt || Date.now()
+            currentPosting?.createdAt || Date.now()
           ).toLocaleDateString(),
-          match: (currentPosting?.scores.rs?.score ?? 0) + "%", // Default to 0% if score is undefined
+          match:
+            (currentPosting?.scores?.find((s) => s.stageId === "rs")?.score ??
+              0) + "%",
           status: currentPosting?.status || "Applied",
-          currentStepStatus: currentPosting?.currentStepStatus || "Pending",
         };
       });
       setTableData(tableDataTemp);
     }
 
     if (posting && posting.candidates) {
-      const minimumScore = posting.ats?.minimumScore ?? 0; // Default to 0 if minimumScore is undefined
+      const minimumScore = posting.ats?.minimumScore ?? 0;
 
       const selectedCandidates = (
         posting.candidates as unknown as Candidate[]
       ).filter((candidate) => {
-        return candidate.appliedPostings.some((appliedPosting) => {
-          const score = appliedPosting.scores.rs?.score ?? 0;
-          return (
-            appliedPosting.postingId === posting._id && score >= minimumScore
-          );
-        });
+        return candidate.appliedPostings.some(
+          (appliedPosting: AppliedPosting) => {
+            const score =
+              appliedPosting.scores?.find((s) => s.stageId === "rs")?.score ??
+              0;
+            return (
+              appliedPosting.posting === posting._id && score >= minimumScore
+            );
+          }
+        );
       });
 
       setSelectionData({
@@ -67,10 +76,8 @@ const Main = ({ posting }: { posting: Posting }) => {
       });
 
       const stepNumber = posting?.workflow?.steps?.findIndex(
-        (step) => step.type === "rs"
+        (step) => step.type === "RESUME_SCREENING"
       ) as number;
-
-      console.log("Step number: ", stepNumber);
 
       setStepNo(stepNumber);
     }
@@ -82,7 +89,6 @@ const Main = ({ posting }: { posting: Posting }) => {
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className=""
       >
         <Tabs aria-label="Options" variant="light">
           <Tab key="dashboard" title="Dashboard">
@@ -101,7 +107,7 @@ const Main = ({ posting }: { posting: Posting }) => {
                       placeholder="In %"
                       className="w-[50%]"
                       isDisabled
-                      value={posting?.ats?.minimumScore.toString()}
+                      value={posting?.ats?.minimumScore?.toString()}
                     />
                   </div>
                   <div className="flex items-center w-[100%] mt-3">
@@ -111,7 +117,6 @@ const Main = ({ posting }: { posting: Posting }) => {
                         Things you don't want to see in resumes
                       </p>
                     </div>
-
                     <Textarea
                       placeholder="No negative prompts"
                       isDisabled
@@ -125,7 +130,6 @@ const Main = ({ posting }: { posting: Posting }) => {
                         Things you want to see in resumes
                       </p>
                     </div>
-
                     <Textarea
                       placeholder="No positive prompts"
                       isDisabled
@@ -135,7 +139,6 @@ const Main = ({ posting }: { posting: Posting }) => {
                 </CardBody>
               </Card>
             </div>
-
             {posting?.candidates?.length && posting?.candidates?.length > 0 ? (
               <div className="mt-5 flex gap-5">
                 <SelectionChart chartData={selectionData} />

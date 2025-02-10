@@ -21,9 +21,6 @@ import postingRoutes from "../routes/postingRoute";
 import candidateRoute from "../routes/candidateRoute";
 
 import userRoute from "../routes/userRoute";
-
-import instituteRoute from "../routes/instituteRoute";
-import driveRoute from "../routes/driveRoute";
 import { clerkMiddleware } from "@hono/clerk-auth";
 
 import { Server } from "socket.io";
@@ -71,9 +68,6 @@ app.route("/users", userRoute);
 app.route("/organizations", organizationRoute);
 app.route("/postings", postingRoutes);
 app.route("/candidates", candidateRoute);
-
-app.route("/campus", instituteRoute);
-app.route("/drives", driveRoute);
 
 export default app;
 export { ioServer };

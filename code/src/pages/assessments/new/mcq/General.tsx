@@ -70,6 +70,10 @@ const General = ({
     end: endOfMonth(nextMonth),
   };
 
+  const isPosting = new URLSearchParams(window.location.search).get(
+    "isPosting"
+  );
+
   return (
     <div className="flex gap-10 h-full">
       <motion.div
@@ -113,88 +117,91 @@ const General = ({
           />
         </div>
       </motion.div>
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
-        className="max-w-[22%] w-[22%] min-w-[22%]"
-      >
-        <p className="text-sm mb-3">Test Open Range</p>
-        <RangeCalendar
-          classNames={{
-            content: "w-full",
-          }}
-          className="w-full "
-          focusedValue={focusedValue}
-          topContent={
-            <ButtonGroup
-              fullWidth
-              className="px-3 max-w-full pb-2 pt-3 bg-content1 [&>button]:text-default-500 [&>button]:border-default-200/60"
-              radius="full"
+      {!isPosting && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="max-w-[22%] w-[22%] min-w-[22%]"
+        >
+          <p className="text-sm mb-3">Test Open Range</p>
+          <RangeCalendar
+            classNames={{
+              content: "w-full",
+            }}
+            className="w-full "
+            focusedValue={focusedValue}
+            topContent={
+              <ButtonGroup
+                fullWidth
+                className="px-3 max-w-full pb-2 pt-3 bg-content1 [&>button]:text-default-500 [&>button]:border-default-200/60"
+                radius="full"
+                size="sm"
+                variant="light"
+              >
+                <Button
+                  onPress={() => {
+                    setTestOpenRange(nextWeek);
+                    setFocusedValue(nextWeek.end);
+                  }}
+                >
+                  Next week
+                </Button>
+                <Button
+                  onPress={() => {
+                    setTestOpenRange(thisMonth);
+                    setFocusedValue(thisMonth.start);
+                  }}
+                >
+                  This month
+                </Button>
+                <Button
+                  onPress={() => {
+                    setTestOpenRange(nextMonthValue),
+                      setFocusedValue(nextMonthValue.start);
+                  }}
+                >
+                  Next month
+                </Button>
+              </ButtonGroup>
+            }
+            value={testOpenRange}
+            onChange={setTestOpenRange}
+            onFocusChange={setFocusedValue}
+          />
+
+          <div className="flex gap-3 w-full">
+            <TimeInput
+              label="From Time"
+              className="mt-3 w-full"
               size="sm"
-              variant="light"
-            >
-              <Button
-                onPress={() => {
-                  setTestOpenRange(nextWeek);
-                  setFocusedValue(nextWeek.end);
-                }}
-              >
-                Next week
-              </Button>
-              <Button
-                onPress={() => {
-                  setTestOpenRange(thisMonth);
-                  setFocusedValue(thisMonth.start);
-                }}
-              >
-                This month
-              </Button>
-              <Button
-                onPress={() => {
-                  setTestOpenRange(nextMonthValue),
-                    setFocusedValue(nextMonthValue.start);
-                }}
-              >
-                Next month
-              </Button>
-            </ButtonGroup>
-          }
-          value={testOpenRange}
-          onChange={setTestOpenRange}
-          onFocusChange={setFocusedValue}
-        />
+              value={startTime}
+              onChange={setStartTime}
+              hideTimeZone
+            />
+            <TimeInput
+              label="To Time"
+              className="mt-3 w-full"
+              size="sm"
+              value={endTime}
+              onChange={setEndTime}
+              hideTimeZone
+            />
+          </div>
 
-        <div className="flex gap-3 w-full">
-          <TimeInput
-            label="From Time"
-            className="mt-3 w-full"
-            size="sm"
-            value={startTime}
-            onChange={setStartTime}
-            hideTimeZone
-          />
-          <TimeInput
-            label="To Time"
-            className="mt-3 w-full"
-            size="sm"
-            value={endTime}
-            onChange={setEndTime}
-            hideTimeZone
-          />
-        </div>
-
-        <p className="text-xs my-2 opacity-50 mt-3">
-          Test will be open from{" "}
-          {testOpenRange.start?.toDate("GMT")?.toDateString()},{" "}
-          {startTime.hour % 12 || 12}:
-          {startTime.minute.toString().padStart(2, "0")}{" "}
-          {startTime.hour < 12 ? "AM" : "PM"} to{" "}
-          {testOpenRange.end?.toDate("GMT")?.toDateString()},{" "}
-          {endTime.hour % 12 || 12}:{endTime.minute.toString().padStart(2, "0")}{" "}
-          {endTime.hour < 12 ? "AM" : "PM"}
-        </p>
-      </motion.div>
+          <p className="text-xs my-2 opacity-50 mt-3">
+            Test will be open from{" "}
+            {testOpenRange.start?.toDate("GMT")?.toDateString()},{" "}
+            {startTime.hour % 12 || 12}:
+            {startTime.minute.toString().padStart(2, "0")}{" "}
+            {startTime.hour < 12 ? "AM" : "PM"} to{" "}
+            {testOpenRange.end?.toDate("GMT")?.toDateString()},{" "}
+            {endTime.hour % 12 || 12}:
+            {endTime.minute.toString().padStart(2, "0")}{" "}
+            {endTime.hour < 12 ? "AM" : "PM"}
+          </p>
+        </motion.div>
+      )}
     </div>
   );
 };

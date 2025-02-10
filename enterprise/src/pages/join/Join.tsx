@@ -1,5 +1,9 @@
 import ax from "@/config/axios";
-import { useAuth, useUser } from "@clerk/clerk-react";
+import {
+  SignOutButton,
+  useAuth,
+  useUser,
+} from "@clerk/clerk-react";
 import {
   Avatar,
   Button,
@@ -8,19 +12,18 @@ import {
   CardFooter,
   CardHeader,
   CircularProgress,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { HeartCrack, Link } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 const bgStyle = {
-  backgroundImage: "url(./join-bg.svg)",
+  backgroundImage: "url(./join-bg1.svg)",
   backgroundSize: "cover",
   height: "100vh",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  backdropFilter: "blur(100px)",
 };
 
 interface Token {
@@ -66,7 +69,7 @@ const Join = () => {
       .then(() => {
         toast.success("Joined Organization");
         setTimeout(() => {
-          window.location.href = "/dashboard"
+          window.location.href = "/dashboard";
         }, 1000);
       })
       .catch((err) => {
@@ -79,14 +82,16 @@ const Join = () => {
   return (
     <div
       style={bgStyle}
-      className={`${loading ? "opacity-50" : ""} transition-all`}
+      className={`${
+        loading ? "opacity-50" : ""
+      } transition-all flex flex-col gap-5`}
     >
       <div>
         {!isSignedIn || !isLoaded || loading ? (
           <CircularProgress />
         ) : error ? (
           <Card>
-            <CardHeader className="justify-center">
+            <CardHeader className="justify-center ">
               You received an invite but...
             </CardHeader>
             <CardBody className="items-center px-10 w-[30vw]">
@@ -145,6 +150,23 @@ const Join = () => {
           </Card>
         )}
       </div>
+
+      <Card>
+        <CardBody className="flex flex-col items-center justify-center p-5 w-full">
+          <p>
+            Signed In as{" "}
+            <span className="underline">
+              {user?.emailAddresses[0].emailAddress}
+            </span>
+          </p>
+
+          <SignOutButton signOutOptions={{ redirectUrl: "/join" }}>
+            <a className="underline cursor-pointer">
+              Sign In to a different account
+            </a>
+          </SignOutButton>
+        </CardBody>
+      </Card>
     </div>
   );
 };

@@ -26,6 +26,7 @@ const routineMap = {
 
 interface PostingOrganization extends Omit<PostingType, "organizationId"> {
   organizationId: Organization;
+  createdOn: string;
 }
 
 const Posting = () => {
@@ -90,7 +91,7 @@ const Posting = () => {
       </div>
 
       <div className="flex gap-5">
-        {posting?.applicationRange?.end > new Date().toISOString() ? (
+        {new Date(posting?.applicationRange?.end) > new Date() ? (
           <Chip color="success" variant="flat">
             Open
           </Chip>

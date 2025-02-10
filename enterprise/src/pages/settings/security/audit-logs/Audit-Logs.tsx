@@ -7,8 +7,8 @@ import {
   createColumnHelper,
   SortingState,
 } from "@tanstack/react-table";
-import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
-import { Input } from "@nextui-org/react";
+import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
+import { Input } from "@heroui/react";
 import {
   Table,
   TableBody,
@@ -33,7 +33,7 @@ const AuditLogsTable: React.FC<{ data: AuditLog[] }> = ({ data }) => {
   ]);
 
   const columns = [
-    columnHelper.accessor("date", {
+    columnHelper.accessor("createdAt", {
       header: ({ column }) => (
         <Button
           variant="ghost"

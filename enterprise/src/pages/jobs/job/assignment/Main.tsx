@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader } from "@nextui-org/react";
+import { Card, CardBody, CardHeader } from "@heroui/react";
 import { Posting } from "@shared-types/Posting";
 import { ChevronRight } from "lucide-react";
 import { useNavigate, useOutletContext } from "react-router-dom";
@@ -23,7 +23,7 @@ const Main = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p>{assignment.description}</p>
-                  <p>Submissions: {assignment.submissions.length}</p>
+                  <p>Submissions: {assignment.submissions?.length ?? 0}</p>
                 </div>
                 <ChevronRight size={24} />
               </div>

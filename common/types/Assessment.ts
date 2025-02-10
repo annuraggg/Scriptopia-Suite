@@ -1,31 +1,37 @@
 interface OpenRange {
+  _id?: string;
   start?: Date;
   end?: Date;
 }
 
 interface TestCases {
+  _id?: string;
   easy: number;
   medium: number;
   hard: number;
 }
 
 interface Problem {
+  _id?: string;
   problemId: string;
   points: number;
 }
 
 interface Grading {
+  _id?: string;
   type: "testcase" | "problem";
   testcases?: TestCases; // Make optional but depending on the type logic.
   problem?: Problem[]; // Make optional but depending on the type logic.
 }
 
 interface Candidate {
+  _id?: string;
   name: string;
   email: string;
 }
 
 interface Candidates {
+  _id?: string;
   type: "all" | "specific";
   candidates: Candidate[];
 }
@@ -40,6 +46,7 @@ interface Mcq {
 }
 
 interface Security {
+  _id?: string;
   codePlayback: boolean;
   codeExecution: boolean;
   tabChangeDetection: boolean;
@@ -50,7 +57,7 @@ interface Security {
 }
 
 interface Assessment extends Document {
-  _id: string;
+  _id?: string;
   name: string;
   description: string;
   author: string;

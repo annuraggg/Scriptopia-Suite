@@ -1,5 +1,5 @@
 import React from 'react';
-import { Input, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@nextui-org/react";
+import { Input, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
 
 
 interface AddParticipantModalProps {

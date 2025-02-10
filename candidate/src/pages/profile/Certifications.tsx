@@ -39,7 +39,7 @@ const Certificates = () => {
     issuer: "",
     url: "",
     licenseNumber: "",
-    issueDate: today("IST").toString(),
+    issueDate: today("IST").toDate("IST"),
     doesExpire: false,
     hasScore: false,
     description: "",
@@ -258,7 +258,7 @@ const Certificates = () => {
                   />
                   <DateInput
                     label="Certification Date"
-                    value={parseDate(currentCertificate?.issueDate)}
+                    value={parseDate(currentCertificate?.issueDate.toISOString().split("T")[0])}
                     onChange={(date) =>
                       setCurrentCertificate((prev) => ({
                         ...prev!,

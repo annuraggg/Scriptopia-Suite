@@ -10,7 +10,7 @@ import {
   ModalBody,
   useDisclosure,
 } from "@nextui-org/react";
-import { CustomSDSL } from "@shared-types/Problem";
+import { CustomStub as CustomSDSL } from "@shared-types/Problem";
 
 type SupportedLanguages = "python" | "javascript" | "java";
 

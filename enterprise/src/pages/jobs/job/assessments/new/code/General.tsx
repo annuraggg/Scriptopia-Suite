@@ -1,7 +1,5 @@
-import { Input, Textarea } from "@nextui-org/react";
+import { DateValue, Input, RangeValue, Textarea } from "@heroui/react";
 import { motion } from "framer-motion";
-import type { DateValue } from "@react-types/calendar";
-import type { RangeValue } from "@react-types/shared";
 
 const General = ({
   assessmentName,

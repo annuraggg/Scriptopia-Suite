@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, Button, Input, CardHeader, CardFooter } from "@nextui-org/react";
+import { Card, Button, Input, CardHeader, CardFooter } from "@heroui/react";
 import { motion } from "framer-motion";
 import { Pencil, Trash2, Plus, Save } from "lucide-react";
 

@@ -1,7 +1,7 @@
-import { Image } from "@nextui-org/image";
-import { Button, Input } from "@nextui-org/react";
+import { Image } from "@heroui/image";
+import { Button, Input } from "@heroui/react";
 import { useRef, useState } from "react";
-import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
+import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
 import { Upload } from "lucide-react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
@@ -14,7 +14,7 @@ import {
   ModalFooter,
   Slider,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import AvatarEditor from "react-avatar-editor";
 import { useOutletContext } from "react-router-dom";
 import { SettingsContext } from "@/types/SettingsContext";

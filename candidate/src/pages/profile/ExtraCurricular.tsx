@@ -54,8 +54,8 @@ const ExtraCurricular = () => {
   const [currentActivity, setCurrentActivity] = useState<IExtraCurricular>({
     title: "",
     category: "",
-    startDate: today("IST").toString(),
-    endDate: today("IST").toString(),
+    startDate: today("IST").toDate("IST"),
+    endDate: today("IST").toDate("IST"),
     current: false,
     description: "",
   });
@@ -104,8 +104,8 @@ const ExtraCurricular = () => {
     setCurrentActivity({
       title: "",
       category: "",
-      startDate: today("IST").toString(),
-      endDate: today("IST").toString(),
+      startDate: today("IST").toDate("IST"),
+      endDate: today("IST").toDate("IST"),
       current: false,
       description: "",
     });
@@ -233,7 +233,7 @@ const ExtraCurricular = () => {
                     <div>
                       <h3 className="font-medium">{activity.category}</h3>
                       <p className="text-small">
-                        {activity.startDate} - {activity.endDate}
+                        {activity.startDate.toString()} - {activity.endDate?.toString()}
                       </p>
                       <p className="text-small mt-2">{activity.description}</p>
                     </div>
@@ -293,14 +293,14 @@ const ExtraCurricular = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <DateInput
                       label="Start Date"
-                      value={parseDate(currentActivity.startDate)}
+                      value={parseDate(currentActivity.startDate.toISOString().split("T")[0])}
                       onChange={(date) => handleInputChange("startDate", date)}
                       isInvalid={!!errors.startDate}
                       errorMessage={errors.startDate?.toString()}
                     />
                     <DateInput
                       label="End Date"
-                      value={parseDate(currentActivity.endDate || "")}
+                      value={parseDate((currentActivity.endDate ?? today("IST").toDate("IST")).toISOString().split("T")[0])}
                       onChange={(date) => handleInputChange("endDate", date)}
                       isInvalid={!!errors.endDate}
                       errorMessage={errors.endDate?.toString()}

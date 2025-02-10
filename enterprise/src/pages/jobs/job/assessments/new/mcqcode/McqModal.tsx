@@ -4,10 +4,10 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-} from "@nextui-org/modal";
-import { Input, Select, SelectItem, Button } from "@nextui-org/react";
-import { RadioGroup, Radio } from "@nextui-org/radio";
-import { CheckboxGroup, Checkbox } from "@nextui-org/checkbox";
+} from "@heroui/modal";
+import { Input, Select, SelectItem, Button } from "@heroui/react";
+import { RadioGroup, Radio } from "@heroui/radio";
+import { CheckboxGroup, Checkbox } from "@heroui/checkbox";
 import { useState } from "react";
 import { motion } from "framer-motion";
 

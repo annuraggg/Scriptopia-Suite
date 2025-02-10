@@ -1,4 +1,4 @@
-import { Button, Card, CardBody } from "@nextui-org/react";
+import { Button, Card, CardBody } from "@heroui/react";
 import { Assignment } from "@shared-types/Posting";
 import { Posting } from "@shared-types/Posting";
 import { useEffect, useState } from "react";
@@ -27,7 +27,7 @@ const Configure = ({ posting }: { posting: Posting }) => {
 
       {posting?.workflow?.steps?.map((step, index: number) => (
         <>
-          {step.type === "as" && (
+          {step.type === "ASSIGNMENT" && (
             <Card className="w-[50%] mt-3">
               <CardBody className="flex flex-row items-center justify-between">
                 <div>
