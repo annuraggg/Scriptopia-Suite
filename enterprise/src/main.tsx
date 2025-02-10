@@ -7,7 +7,6 @@ import { Toaster } from "sonner";
 import { Provider } from "react-redux";
 import store from "@/store/store.ts";
 import { Toaster as ShadToaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "./components/theme-provider.tsx";
 
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 if (!publishableKey) {
@@ -15,15 +14,13 @@ if (!publishableKey) {
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <ThemeProvider defaultTheme="light" storageKey="ui-theme">
-    <HeroUIProvider>
-      <Provider store={store}>
-        <ClerkProvider publishableKey={publishableKey}>
-          <Toaster richColors theme="light" />
-          <ShadToaster />
-          <App />
-        </ClerkProvider>
-      </Provider>
-    </HeroUIProvider>
-  </ThemeProvider>
+  <HeroUIProvider>
+    <Provider store={store}>
+      <ClerkProvider publishableKey={publishableKey}>
+        <Toaster richColors />
+        <ShadToaster />
+        <App />
+      </ClerkProvider>
+    </Provider>
+  </HeroUIProvider>
 );

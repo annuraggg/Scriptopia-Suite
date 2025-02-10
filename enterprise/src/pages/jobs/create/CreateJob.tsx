@@ -29,12 +29,11 @@ interface Component {
 }
 
 const componentMap: Record<string, string> = {
-  ATS: "rs",
-  "MCQ Assessment": "mcqa",
-  "Code Assessment": "ca",
-  "MCQ + Code Assessment": "mcqca",
-  Assignment: "as",
-  Interview: "pi",
+  ATS: "RESUME_SCREENING",
+  "MCQ Assessment": "MCQ_ASSESSMENT",
+  "Code Assessment": "CODING_ASSESSMENT",
+  Assignment: "ASSIGNMENT",
+  Interview: "INTERVIEW",
 };
 
 const CreateJob = () => {

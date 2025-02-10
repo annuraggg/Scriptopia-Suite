@@ -22,6 +22,8 @@ import {
   ModalFooter,
   useDisclosure,
 } from "@heroui/react";
+import ax from "@/config/axios";
+import { useAuth } from "@clerk/clerk-react";
 
 interface SidebarProps {
   posting: Posting;
@@ -49,6 +51,9 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
     [posting]
   );
 
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+
   const getFilteredStepsCount = (types: string[]): number =>
     workflowSteps.filter((step) => types.includes(step?.type)).length;
 
@@ -72,32 +77,37 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
         icon: IconFileText,
         label: "ATS",
         link: "/ats",
-        visible: getFilteredStepsCount(["rs"]) > 0,
-        badge: getFilteredStepsCount(["rs"]) && posting?.ats ? 0 : 1,
+        visible: getFilteredStepsCount(["RESUME_SCREENING"]) > 0,
+        badge:
+          getFilteredStepsCount(["RESUME_SCREENING"]) && posting?.ats ? 0 : 1,
       },
       {
         icon: IconChartBar,
         label: "Assessments",
         link: "/assessments",
-        visible: getFilteredStepsCount(["ca", "mcqca", "mcqa"]) > 0,
+        visible:
+          getFilteredStepsCount(["CODING_ASSESSMENT", "MCQ_ASSESSMENT"]) > 0,
         badge:
-          getFilteredStepsCount(["ca", "mcqca", "mcqa"]) -
-          (posting?.assessments?.length || 0),
+          getFilteredStepsCount(["CODING_ASSESSMENT", "MCQ_ASSESSMENT"]) -
+          ((posting?.codeAssessments?.length ?? 0) +
+            (posting?.mcqAssessments?.length ?? 0)),
       },
       {
         icon: IconDeviceLaptop,
         label: "Assignments",
         link: "/assignments",
-        visible: getFilteredStepsCount(["as"]) > 0,
+        visible: getFilteredStepsCount(["ASSIGNMENT"]) > 0,
         badge:
-          getFilteredStepsCount(["as"]) - (posting?.assignments?.length || 0),
+          getFilteredStepsCount(["ASSIGNMENT"]) -
+          (posting?.assignments?.length || 0),
       },
       {
         icon: IconVideo,
         label: "Interviews",
         link: "/interviews",
-        visible: getFilteredStepsCount(["pi"]) > 0,
-        badge: getFilteredStepsCount(["pi"]) - (posting?.interview ? 1 : 0),
+        visible: getFilteredStepsCount(["INTERVIEW"]) > 0,
+        badge:
+          getFilteredStepsCount(["INTERVIEW"]) - (posting?.interview ? 1 : 0),
       },
       {
         icon: IconUsers,
@@ -134,20 +144,32 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
     steps.forEach((step) => {
       if (step.type === "RESUME_SCREENING" && posting?.ats) totalCompleted++;
       if (
-        ["CODE_ASSESSMENT", "MCQ_ASSESSMENT",].includes(step.type) &&
-        posting?.assessments?.some((a) => a.assessmentId === step?._id)
+        ["CODING_ASSESSMENT", "MCQ_ASSESSMENT"].includes(step.type) &&
+        (posting?.codeAssessments?.some(
+          (a) => a.workflowId.toString() === step?._id?.toString()
+        )
+          ? 1
+          : 0) +
+          (posting?.mcqAssessments?.some(
+            (a) => a.workflowId.toString() === step?._id?.toString()
+          )
+            ? 1
+            : 0)
       ) {
         totalCompleted++;
       }
       if (
         step.type === "ASSIGNMENT" &&
-        posting?.assignments?.some((a) => a._id === step?._id)
+        posting?.assignments?.some(
+          (a) => a.workflowId.toString() === step?._id?.toString()
+        )
       ) {
         totalCompleted++;
       }
       if (step.type === "INTERVIEW" && posting?.interview) totalCompleted++;
     });
 
+    console.log(totalCompleted, steps.length);
     return totalCompleted === steps.length ? 1 : 0;
   }, [posting]);
 
@@ -156,6 +178,20 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
       `${window.location.origin}/postings/${posting?.url}`
     );
     toast.success("Link copied to clipboard");
+  };
+
+  const publishPosting = () => {
+    axios
+      .post("/postings/publish", { id: posting._id })
+      .then(() => {
+        toast.success("Posting published successfully");
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      })
+      .catch(() => {
+        toast.error("Error publishing posting");
+      });
   };
 
   const renderNavItem = (item: NavItem, index: number) => {
@@ -222,7 +258,7 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
       <>
         {hasCompletedAllSteps === 1 && posting.published && (
           <div className="mb-4">
-            <div className="text-success-500 text-sm mb-2">
+            <div className="text-success-500 text-sm mb-2  items-center justify-center flex flex-col text-center">
               Posting is currently live 😊
             </div>
             <Button
@@ -237,7 +273,7 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
         )}
 
         {hasCompletedAllSteps === 1 && !posting.published && (
-          <div className="mb-4">
+          <div className="mb-4 items-center justify-center flex flex-col text-center">
             <div className="text-warning-500 text-sm mb-2">
               Ready to publish
             </div>
@@ -248,7 +284,7 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
         )}
 
         {hasCompletedAllSteps === 0 && (
-          <div className="text-danger-500 text-sm mb-4">
+          <div className="text-danger-500 text-sm mb-4  items-center justify-center flex flex-col text-center">
             Complete all workflow steps to publish
           </div>
         )}
@@ -306,13 +342,7 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
                 <Button color="danger" variant="light" onPress={onClose}>
                   Close
                 </Button>
-                <Button
-                  color="success"
-                  onPress={() => {
-                    toast.success("Posting published successfully");
-                    setTimeout(() => window.location.reload(), 2000);
-                  }}
-                >
+                <Button color="success" onPress={publishPosting}>
                   Publish
                 </Button>
               </ModalFooter>

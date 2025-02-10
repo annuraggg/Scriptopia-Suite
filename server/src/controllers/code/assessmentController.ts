@@ -17,7 +17,7 @@ import calculateMCQScore from "@/utils/calculateMCQScore";
 import calculateCodeScore from "@/utils/calculateCodeScore";
 import { MCQAssessmentSubmission as IMCQAssessmentSubmission } from "@shared-types/MCQAssessmentSubmission";
 import Organization from "@/models/Organization";
-import { AuditLog } from "@shared-types/Organization";
+import { AuditLog, Member } from "@shared-types/Organization";
 import clerkClient from "@/config/clerk";
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
 import AppliedPosting from "@/models/AppliedPosting";
@@ -269,11 +269,13 @@ const createMcqAssessment = async (c: Context) => {
       }
 
       const { postingId, step } = body;
+      console.log("Enterprise Assessment");
       console.log(postingId, step);
 
       const posting = await Posting.findOne({
         _id: postingId,
-      }).populate("assessments");
+      }).populate("mcqAssessments");
+      console.log("posting got");
       if (!posting) {
         return sendError(c, 404, "job not found");
       }
@@ -282,21 +284,19 @@ const createMcqAssessment = async (c: Context) => {
         return sendError(c, 400, "Workflow not found");
       }
 
-      // @ts-expect-error
-      posting.workflow.steps[step].stepId = newAssessment._id;
-      await posting.save();
-
+      const assessmentstep = parseInt(step) + 1;
+      const workflowId = posting.workflow.steps[assessmentstep]?._id;
       await Posting.findByIdAndUpdate(postingId, {
         $push: {
-          assessments: {
+          mcqAssessments: {
             assessmentId: newAssessment._id,
-            stepId: posting.workflow.steps[step]._id,
+            workflowId: workflowId,
           },
         },
         updatedOn: new Date(),
       });
 
-      const clerkUser = await clerkClient.users.getUser(c.get("auth")._id);
+      const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
       const auditLog: AuditLog = {
         user: clerkUser.firstName + " " + clerkUser.lastName,
         userId: clerkUser.publicMetadata?._id as string,
@@ -304,7 +304,7 @@ const createMcqAssessment = async (c: Context) => {
         type: "info",
       };
 
-      await Organization.findByIdAndUpdate(perms.data!.orgId, {
+      await Organization.findByIdAndUpdate(perms.data!.organization?._id, {
         $push: { auditLogs: auditLog },
       });
     }
@@ -355,6 +355,56 @@ const createCodeAssessment = async (c: Context) => {
     let totalScore = 0;
     const assessment: ICodeAssessment = body;
     const gradingType = assessment?.grading?.type;
+    const isEnterprise = body.isEnterprise;
+
+    const newAssessment = new CodeAssessment();
+
+    if (isEnterprise) {
+      const perms = await checkOrganizationPermission.all(c, ["manage_job"]);
+      if (!perms.allowed) {
+        return sendError(c, 401, "Unauthorized");
+      }
+
+      const { postingId, step } = body;
+      console.log("Enterprise Assessment");
+      console.log(postingId, step);
+
+      const posting = await Posting.findOne({
+        _id: postingId,
+      }).populate("codeAssessments");
+      if (!posting) {
+        return sendError(c, 404, "job not found");
+      }
+
+      if (!posting.workflow) {
+        return sendError(c, 400, "Workflow not found");
+      }
+
+      const assessmentstep = parseInt(step) + 1;
+      const workflowId = posting.workflow.steps[assessmentstep]?._id;
+
+      await Posting.findByIdAndUpdate(postingId, {
+        $push: {
+          codeAssessments: {
+            assessmentId: newAssessment._id,
+            workflowId: workflowId,
+          },
+        },
+        updatedOn: new Date(),
+      });
+
+      const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+      const auditLog: AuditLog = {
+        user: clerkUser.firstName + " " + clerkUser.lastName,
+        userId: clerkUser.publicMetadata?._id as string,
+        action: `Created New Assessment for Job Posting: ${posting.title}`,
+        type: "info",
+      };
+
+      await Organization.findByIdAndUpdate(perms.data!.organization?._id, {
+        $push: { auditLogs: auditLog },
+      });
+    }
 
     if (gradingType === "testcase") {
       const problems = assessment.problems;
@@ -392,7 +442,7 @@ const createCodeAssessment = async (c: Context) => {
       obtainableScore: totalScore,
     };
 
-    const newAssessment = new CodeAssessment(assessmentObj);
+    newAssessment.set(assessmentObj);
     await newAssessment.save();
 
     return sendSuccess(c, 200, "Success", newAssessment);
@@ -554,10 +604,6 @@ const codeSubmit = async (c: Context) => {
       submission?.submissions || [],
       assessment
     );
-
-    console.log(submission?.submissions);
-    console.log(grades);
-
     // @ts-ignore
     submission.obtainedGrades = grades;
     submission.timer = timer;
@@ -615,7 +661,7 @@ const deleteMcqAssessment = async (c: Context) => {
       return sendError(c, 404, "Assessment not found");
     }
 
-    if (assessment.author !== auth?._id) {
+    if (assessment.author?.toString() !== auth?._id) {
       return sendError(c, 403, "Unauthorized");
     }
 
@@ -638,7 +684,7 @@ const deleteCodeAssessment = async (c: Context) => {
       return sendError(c, 404, "Assessment not found");
     }
 
-    if (assessment.author !== auth?._id) {
+    if (assessment.author?.toString() !== auth?._id) {
       return sendError(c, 403, "Unauthorized");
     }
 
@@ -681,8 +727,8 @@ const verifyAccess = async (c: Context) => {
       MCQAssessment.findOne({ _id: body.id }).lean(),
     ]);
 
-    // @ts-expect-error
     const assessment =
+      // @ts-expect-error
       (result1 as ICodeAssessment) || (result2 as IMCQAssessment);
 
     if (!assessment) {
@@ -949,8 +995,8 @@ const getAssessmentSubmissions = async (c: Context) => {
       MCQAssessment.findById(id).lean(),
     ]);
 
-    // @ts-expect-error
     const assessment =
+      // @ts-expect-error
       (queries[0] as ICodeAssessment) || (queries[1] as IMCQAssessment);
     if (!assessment) {
       return sendError(c, 404, "Assessment not found");
@@ -1135,6 +1181,78 @@ const getAssessmentSubmission = async (c: Context) => {
   }
 };
 
+const getPostingMCQAssessments = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const postingId = c.req.param("postingId");
+
+    const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const posting = await Posting.findById(postingId)
+      .populate("mcqAssessments.assessmentId")
+      .populate("organizationId");
+
+    if (!posting) {
+      return sendError(c, 404, "Posting not found");
+    }
+
+    if (
+      // @ts-expect-error
+      posting?.organizationId?.members?.filter(
+        (member: Member) => member?.user?.toString() === auth?._id.toString()
+      ).length === 0
+    ) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const assessments = posting.mcqAssessments.map((assessment: any) => assessment.assessmentId);
+
+    return sendSuccess(c, 200, "Success", assessments);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const getPostingCodeAssessments = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const postingId = c.req.param("postingId");
+
+    const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const posting = await Posting.findById(postingId)
+      .populate("codeAssessments.assessmentId")
+      .populate("organizationId");
+
+    if (!posting) {
+      return sendError(c, 404, "Posting not found");
+    }
+
+    if (
+      // @ts-expect-error
+      posting?.organizationId?.members?.filter(
+        (member: Member) => member?.user?.toString() === auth?._id.toString()
+      ).length === 0
+    ) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const assessments = posting.codeAssessments.map((assessment: any) => assessment.assessmentId);
+
+    return sendSuccess(c, 200, "Success", assessments);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
 export default {
   checkCodeProgress,
   codeSubmit,
@@ -1154,4 +1272,6 @@ export default {
   submitMcqAssessment,
   getAssessmentSubmissions,
   getAssessmentSubmission,
+  getPostingMCQAssessments,
+  getPostingCodeAssessments,
 };

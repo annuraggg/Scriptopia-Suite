@@ -44,6 +44,8 @@ app.post("/code", assessmentController.createCodeAssessment);
 // Get User Created Assessments
 app.get("/mcq/created", assessmentController.getCreatedMcqAssessments);
 app.get("/code/created", assessmentController.getCreatedCodeAssessments);
+app.get("/mcq/created/enterprise/:postingId", assessmentController.getPostingMCQAssessments);
+app.get("/code/created/enterprise/:postingId", assessmentController.getPostingCodeAssessments);
 
 // Get User Taken Assessments
 app.get("/mcq/taken", assessmentController.getTakenMcqAssessments);
@@ -69,6 +71,7 @@ app.post("/submit/mcq", assessmentController.submitMcqAssessment);
 
 app.get("/:id/get-submissions", assessmentController.getAssessmentSubmissions);
 app.get("/:id/get-submissions/:submissionId", assessmentController.getAssessmentSubmission);
+
 
 
 

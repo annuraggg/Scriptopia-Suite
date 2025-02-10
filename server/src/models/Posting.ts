@@ -25,24 +25,32 @@ const interviewSchema = new Schema({
   timeSlotEnd: { type: String, required: true },
 });
 
-const atsSchema = new Schema({
-  _id: { type: mongoose.Types.ObjectId, required: false },
-  minimumScore: { type: Number, required: true },
-  negativePrompts: [{ type: String, required: false, default: ["none"] }],
-  positivePrompts: [{ type: String, required: false, default: ["none"] }],
-  status: {
-    type: String,
-    enum: ["pending", "processing", "finished"],
-    required: true,
-    default: "pending",
+const atsSchema = new Schema(
+  {
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: new mongoose.Types.ObjectId(),
+      required: false,
+    },
+    minimumScore: { type: Number, required: true },
+    negativePrompts: [{ type: String, required: false, default: ["none"] }],
+    positivePrompts: [{ type: String, required: false, default: ["none"] }],
+    status: {
+      type: String,
+      enum: ["pending", "processing", "finished"],
+      required: true,
+      default: "pending",
+    },
   },
-  lastUpdated: { type: Date, default: Date.now },
-});
-
+  { timestamps: true }
+);
 const workflowSchema = new Schema({
   steps: [
     {
-      _id: { type: mongoose.Schema.Types.ObjectId, required: true },
+      _id: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: () => new mongoose.Types.ObjectId(),
+      },
       name: { type: String, required: true },
       type: { type: String, required: true, enum: Object.values(StepType) },
       completed: { type: Boolean, default: false },
@@ -61,8 +69,21 @@ const assignmentSchema = new Schema({
   submissions: { type: [mongoose.Schema.Types.ObjectId], ref: "Candidate" },
 });
 
-const assessmentSchema = new Schema({
-  assessmentId: { type: mongoose.Schema.Types.ObjectId, required: true },
+const codeAssessmentSchema = new Schema({
+  assessmentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: "CodeAssessment",
+  },
+  workflowId: { type: mongoose.Schema.Types.ObjectId, required: true },
+});
+
+const mcqAssessmentSchema = new Schema({
+  assessmentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: "MCQAssessment",
+  },
   workflowId: { type: mongoose.Schema.Types.ObjectId, required: true },
 });
 
@@ -99,7 +120,9 @@ const postingSchema = new Schema(
 
     assignments: { type: [assignmentSchema], ref: "Assignment" },
     ats: { type: atsSchema },
-    assessments: { type: [assessmentSchema], ref: "Assessment" },
+
+    mcqAssessments: { type: [mcqAssessmentSchema] },
+    codeAssessments: { type: [codeAssessmentSchema] },
     interview: { type: interviewSchema },
 
     candidates: { type: [mongoose.Schema.Types.ObjectId], ref: "Candidate" },

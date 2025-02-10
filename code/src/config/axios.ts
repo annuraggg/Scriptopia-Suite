@@ -9,7 +9,6 @@ const ax = (getToken?: any) => {
     api.interceptors.request.use(async (request) => {
       api.defaults.baseURL = import.meta.env.VITE_API_URL as string;
       const token = await getToken();
-      const id = ""
       request.headers.Authorization = `Bearer ${token}`;
       axios.defaults.headers.Authorization = `Bearer ${token}`;
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;

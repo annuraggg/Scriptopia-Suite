@@ -4,7 +4,6 @@ import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import logger from "../../../utils/logger";
 import { Context } from "hono";
 import Organization from "@/models/Organization";
-import assessmentController from "@/controllers/code/assessmentController";
 import mongoose from "mongoose";
 import clerkClient from "@/config/clerk";
 import { AuditLog } from "@shared-types/Organization";
@@ -18,10 +17,12 @@ const getPostings = async (c: Context) => {
     }
 
     const posting = await Posting.find({
-      organizationId: perms.data!.orgId,
+      organizationId: perms.data?.organization?._id,
     });
 
-    const organization = await Organization.findById(perms.data!.orgId);
+    const organization = await Organization.findById(
+      perms.data?.organization?._id
+    );
 
     return sendSuccess(c, 200, "Posting fetched successfully", {
       postings: posting,
@@ -41,7 +42,8 @@ const getPosting = async (c: Context) => {
     }
 
     const posting = await Posting.findById(c.req.param("id"))
-      .populate("assessments.assessmentId")
+      .populate("mcqAssessments.assessmentId")
+      .populate("codeAssessments.assessmentId")
       .populate("candidates")
       .populate("organizationId")
       .populate("assignments.submissions");
@@ -88,21 +90,25 @@ const createPosting = async (c: Context) => {
     if (posting.additionalDetails) {
       Object.entries(posting.additionalDetails).forEach(
         ([category, fields]) => {
-          Object.entries(fields as { [key: string]: any }).forEach(([field, config]: [string, any]) => {
-            if (
-              typeof config.required !== "boolean" ||
-              typeof config.allowEmpty !== "boolean"
-            ) {
-              throw new Error(`Invalid configuration for ${category}.${field}`);
+          Object.entries(fields as { [key: string]: any }).forEach(
+            ([field, config]: [string, any]) => {
+              if (
+                typeof config.required !== "boolean" ||
+                typeof config.allowEmpty !== "boolean"
+              ) {
+                throw new Error(
+                  `Invalid configuration for ${category}.${field}`
+                );
+              }
             }
-          });
+          );
         }
       );
     }
 
     const newPosting = new Posting({
       ...posting,
-      organizationId: perms.data!.orgId,
+      organizationId: perms.data?.organization?._id,
     });
 
     await newPosting.save();
@@ -115,7 +121,7 @@ const createPosting = async (c: Context) => {
       type: "info",
     };
 
-    await Organization.findByIdAndUpdate(perms.data!.orgId, {
+    await Organization.findByIdAndUpdate(perms.data?.organization?._id, {
       $push: {
         auditLogs: auditLog,
         postings: newPosting._id,
@@ -155,7 +161,7 @@ const createWorkflow = async (c: Context) => {
       type: "info",
     };
 
-    await Organization.findByIdAndUpdate(perms.data!.orgId, {
+    await Organization.findByIdAndUpdate(perms.data?.organization?._id, {
       $push: { auditLogs: auditLog },
     });
 
@@ -181,14 +187,16 @@ const updateAts = async (c: Context) => {
       return sendError(c, 404, "Posting not found");
     }
 
+    console.log(posting);
+
     if (!posting.ats) {
       posting.ats = {
-        // @ts-expect-error - Object has no properties common
-        _id: new mongoose.Types.ObjectId(),
         minimumScore: minimumScore,
         negativePrompts: negativePrompts,
         positivePrompts: positivePrompts,
         status: "pending",
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
     } else {
       posting.ats.minimumScore = minimumScore;
@@ -204,7 +212,9 @@ const updateAts = async (c: Context) => {
       return sendError(c, 400, "ATS not found");
     }
 
-    const atsStep = posting.workflow.steps.filter((step) => step.type === "rs");
+    const atsStep = posting.workflow.steps.filter(
+      (step) => step.type === "RESUME_SCREENING"
+    );
     atsStep[0]._id = new mongoose.Types.ObjectId(posting?.ats?._id?.toString());
 
     await posting.save();
@@ -217,69 +227,11 @@ const updateAts = async (c: Context) => {
       type: "info",
     };
 
-    await Organization.findByIdAndUpdate(perms.data!.orgId, {
+    await Organization.findByIdAndUpdate(perms.data?.organization?._id, {
       $push: { auditLogs: auditLog },
     });
 
     return sendSuccess(c, 201, "ATS updated successfully", posting);
-  } catch (e: any) {
-    logger.error(e);
-    return sendError(c, 500, "Something went wrong");
-  }
-};
-
-const updateAssessment = async (c: Context) => {
-  try {
-    const perms = await checkPermission.all(c, ["manage_job"]);
-    if (!perms.allowed) {
-      return sendError(c, 401, "Unauthorized");
-    }
-
-    const newAssessment = await assessmentController.createCodeAssessment(c);
-    const { postingId, step } = await c.req.json();
-
-    console.log(postingId, step);
-
-    const resp = await newAssessment.json();
-
-    const existingAssessments = await Posting.findOne({
-      _id: postingId,
-    }).populate("assessments");
-    if (!existingAssessments) {
-      return sendError(c, 404, "job not found");
-    }
-
-    if (!existingAssessments.workflow) {
-      return sendError(c, 400, "Workflow not found");
-    }
-
-    existingAssessments.workflow.steps[step]._id = resp.data._id;
-    await existingAssessments.save();
-
-    await Posting.findByIdAndUpdate(postingId, {
-      $push: {
-        assessments: {
-          assessmentId: resp.data._id,
-          stepId: existingAssessments.workflow.steps[step]._id,
-        },
-      },
-      updatedOn: new Date(),
-    });
-
-    const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
-    const auditLog: AuditLog = {
-      user: clerkUser.firstName + " " + clerkUser.lastName,
-      userId: clerkUser.id,
-      action: `Created New Assessment for Job Posting: ${existingAssessments.title}`,
-      type: "info",
-    };
-
-    await Organization.findByIdAndUpdate(perms.data!.orgId, {
-      $push: { auditLogs: auditLog },
-    });
-
-    console.log(resp.data._id);
-    return sendSuccess(c, 200, "Success", resp.data._id);
   } catch (e: any) {
     logger.error(e);
     return sendError(c, 500, "Something went wrong");
@@ -305,10 +257,9 @@ const updateAssignment = async (c: Context) => {
     }
 
     const _id = new mongoose.Types.ObjectId();
-    // @ts-expect-error - Object has no properties common
-    posting.workflow.steps[step].stepId = _id;
+    const workflowId = posting.workflow.steps[step]._id;
 
-    posting.assignments.push({ _id, name, description });
+    posting.assignments.push({ _id, name, description, workflowId });
     await posting.save();
 
     const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
@@ -319,7 +270,7 @@ const updateAssignment = async (c: Context) => {
       type: "info",
     };
 
-    await Organization.findByIdAndUpdate(perms.data!.orgId, {
+    await Organization.findByIdAndUpdate(perms.data?.organization?._id, {
       $push: { auditLogs: auditLog },
     });
 
@@ -363,7 +314,7 @@ const updateInterview = async (c: Context) => {
       type: "info",
     };
 
-    await Organization.findByIdAndUpdate(perms.data!.orgId, {
+    await Organization.findByIdAndUpdate(perms.data?.organization?._id, {
       $push: { auditLogs: auditLog },
     });
 
@@ -403,7 +354,7 @@ const publishPosting = async (c: Context) => {
       type: "info",
     };
 
-    await Organization.findByIdAndUpdate(perms.data!.orgId, {
+    await Organization.findByIdAndUpdate(perms.data?.organization?._id, {
       $push: { auditLogs: auditLog },
     });
 
@@ -426,7 +377,7 @@ const deletePosting = async (c: Context) => {
       return sendError(c, 404, "job not found");
     }
 
-    await Organization.findByIdAndUpdate(perms.data!.orgId, {
+    await Organization.findByIdAndUpdate(perms.data?.organization?._id, {
       $pull: { postings: posting._id },
     });
 
@@ -443,7 +394,6 @@ export default {
   createPosting,
   createWorkflow,
   updateAts,
-  updateAssessment,
   updateAssignment,
   updateInterview,
   publishPosting,

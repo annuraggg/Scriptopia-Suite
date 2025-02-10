@@ -21,22 +21,6 @@
   --chart-colors: 12 76% 61%, 173 58% 39%, 197 37% 24%, 43 74% 66%, 27 87% 67%;
 }
 
-.dark {
-  --background: 228 19% 15%;
-  --foreground: 0 0% 98%;
-  --card: 228 19% 15%;
-  --popover: 228 19% 15%;
-  --primary: 0 0% 98%;
-  --secondary: 240 3.7% 15.9%;
-  --muted: 240 3.7% 15.9%;
-  --accent: 240 3.7% 15.9%;
-  --destructive: 0 62.8% 30.6%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --ring: 240 4.9% 83.9%;
-  --chart-colors: 220 70% 50%, 160 60% 45%, 30 80% 55%, 280 65% 60%, 340 75% 55%;
-}
-
 *,
 *::before,
 *::after {
@@ -49,12 +33,6 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-}
-
-body {
-  background: rgb(22, 22, 24);
-  color: #fff;
-  font-family: "geist", sans-serif;
 }
 
 /* Typography */
@@ -431,6 +409,7 @@ h6 {
 .react-tagsinput {
   background-color: #ffffff !important;
   border: 1px solid #e4e4e7 !important;
+  width: fit-content;
 }
 
 .react-tagsinput-tag {

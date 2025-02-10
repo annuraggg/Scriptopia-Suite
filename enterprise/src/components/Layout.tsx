@@ -49,6 +49,9 @@ const Layout = () => {
         setNotifications(res.data.data.notifications);
       })
       .catch((err) => {
+        if (err.response.status === 404) {
+          return window.location.href = "/onboarding";
+        }
         toast.error(err.response.data.message || "An error occurred");
       })
       .finally(() => {

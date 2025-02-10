@@ -76,8 +76,6 @@ const Members: React.FC = () => {
     const updatedMembers = [...(newOrganization.members || [])];
     updatedMembers[index].role = newRole;
     setOrganization({ ...newOrganization, members: updatedMembers });
-
-    onRemoveConfirmOpenChange();
   };
 
   const removeMember = (email: string) => {

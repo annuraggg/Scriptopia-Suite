@@ -1,16 +1,13 @@
 import Problem from "@/models/Problem";
 import {
-  CodeAssessment,
-  Problem as GradingProblem,
-} from "@shared-types/CodeAssessment";
-import {
   ProblemSubmission,
   Result,
 } from "@shared-types/CodeAssessmentSubmission";
+import { ExtendedCodeAssessment } from "@shared-types/ExtendedCodeAssessment";
 
 const getCodeScore = async (
   problemSubmissions: ProblemSubmission[],
-  assessment: CodeAssessment
+  assessment: ExtendedCodeAssessment
 ): Promise<{
   problem: { problemId: string; obtainedMarks: number }[];
   total: number;
@@ -25,8 +22,7 @@ const getCodeScore = async (
     let grade = 0;
     const problemId = submission.problemId;
 
-    // Find the problem in the assessment
-    const problemExists = assessment.problems.some((p) => p === problemId);
+    const problemExists = assessment.problems.some((p) => p._id?.toString() === problemId.toString());
     if (!problemExists) continue;
 
     if (assessment.grading.type === "testcase") {
@@ -66,7 +62,7 @@ const getCodeScore = async (
 
     if (assessment.grading.type === "problem") {
       const gradingProblemObj = assessment.grading.problem?.find(
-        (p: GradingProblem) => p.problemId === problemId
+        (p) => p.problemId.toString() === problemId.toString()
       );
 
       if (!gradingProblemObj) continue;

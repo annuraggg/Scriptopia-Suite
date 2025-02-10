@@ -5,32 +5,22 @@ import { getAuth } from "@hono/clerk-auth";
 import clerkClient from "../config/clerk";
 import { Context } from "hono";
 import logger from "../utils/logger";
+import { Role } from "@shared-types/Organization";
+import { UserMeta } from "@shared-types/UserMeta";
 
 interface ReturnType {
   allowed: boolean;
-  data: userMeta | null;
-}
-
-interface userMeta {
-  orgId?: string;
-  role: {
-    _id: string;
-    name: string;
-    default: boolean;
-    description: string;
-    permissions: string[];
-  };
+  data: UserMeta | null;
 }
 
 class checkOrganizationPermission {
-  private static async getUserPermissions(userId: string) {
+  private static async getUserMeta(userId: string) {
     try {
       const user = await clerkClient.users.getUser(userId);
-      const perms: userMeta = user.publicMetadata as unknown as userMeta;
-
+      const perms = user.publicMetadata as UserMeta;
       return perms;
     } catch (error) {
-      throw new Error("Error retrieving or verifying user permissions");
+      throw new Error("Error retrieving or verifying user Meta");
     }
   }
 
@@ -45,14 +35,15 @@ class checkOrganizationPermission {
     }
 
     try {
-      const userPermissions =
-        await checkOrganizationPermission.getUserPermissions(auth.userId);
-
-      const hasPermission = permissions.every((permission) =>
-        userPermissions.orgPermissions.includes(permission)
+      const userMeta = await checkOrganizationPermission.getUserMeta(
+        auth.userId
       );
 
-      return { allowed: hasPermission, data: userPermissions };
+      const hasPermission = permissions.every((permission) =>
+        userMeta.organization?.role?.permissions.includes(permission)
+      );
+
+      return { allowed: hasPermission, data: userMeta };
     } catch (error) {
       logger.error(error as string);
       return { allowed: false, data: null };
@@ -70,13 +61,14 @@ class checkOrganizationPermission {
     }
 
     try {
-      const userPermissions =
-        await checkOrganizationPermission.getUserPermissions(auth.userId);
+      const userMeta = await checkOrganizationPermission.getUserMeta(
+        auth.userId
+      );
       const hasPermission = permissions.some((permission) =>
-        userPermissions.orgPermissions.includes(permission)
+        userMeta.organization?.role?.permissions.includes(permission)
       );
 
-      return { allowed: hasPermission, data: userPermissions };
+      return { allowed: hasPermission, data: userMeta };
     } catch (error) {
       logger.error(error as string);
       return { allowed: false, data: null };
