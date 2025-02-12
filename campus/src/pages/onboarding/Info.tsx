@@ -1,25 +1,25 @@
 import { Input } from "@nextui-org/react";
 
 const Info = ({
-  companyName,
-  setCompanyName,
+  instituteName,
+  setInstituteName,
 }: {
-  companyName: string;
-  setCompanyName: React.Dispatch<React.SetStateAction<string>>;
+  instituteName: string;
+  setInstituteName: React.Dispatch<React.SetStateAction<string>>;
 }) => {
   return (
     <div className="pt-16">
       <h2>
-        Welcome to Scriptopia Enterprise. <br /> Let's get you started.
+        Welcome to Scriptopia Campus. <br /> Let's get you started.
       </h2>
-      <p className="opacity-50 mt-1">First, tell us about your organization.</p>
+      <p className="opacity-50 mt-1">First, tell us about your institute.</p>
 
       <div className="mt-5 w-[500px]">
         <Input
-          label="Organization Name"
+          label="Institute Name"
           type="text"
-          value={companyName}
-          onChange={(e) => setCompanyName(e.target.value)}
+          value={instituteName}
+          onChange={(e) => setInstituteName(e.target.value)}
         />
       </div>
     </div>

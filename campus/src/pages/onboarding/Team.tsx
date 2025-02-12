@@ -9,15 +9,13 @@ interface Role {
 }
 
 const roles: Role[] = [
-  { role: "Admin", slug: "administrator" },
-  { role: "Hiring Manager", slug: "hiring_manager" },
-  { role: "Finance", slug: "finance" },
+  { role: "Administrator", slug: "administrator" },
+  { role: "Faculty", slug: "faculty" },
   { role: "Read Only", slug: "read_only" },
 ];
 
 interface InvitedMember {
   email: string;
-  invited: string;
   role: string;
 }
 
@@ -53,22 +51,18 @@ const Team = ({
       (member) => member.email === email
     );
 
-    const currentDate = new Date().toLocaleDateString("en-GB");
-
-    // Update the existing member if a duplicate is found, else add a new one
     if (existingMemberIndex !== -1) {
       const updatedMembers = [...invitedMembers];
       updatedMembers[existingMemberIndex] = {
         email,
         role: selectedRole,
-        invited: currentDate,
       };
       setInvitedMembers(updatedMembers);
       toast.success("Member updated successfully.");
     } else {
       setInvitedMembers([
         ...invitedMembers,
-        { email, role: selectedRole, invited: currentDate },
+        { email, role: selectedRole },
       ]);
       toast.success("Member added successfully.");
     }
@@ -86,7 +80,7 @@ const Team = ({
   return (
     <div>
       <p className="opacity-50 mt-1">
-        Finally, add your team members to your organization.
+        Finally, add your team members to your institute.
       </p>
 
       <div className="mt-5 w-[700px] flex gap-5 items-center">

@@ -42,7 +42,7 @@ const Layout = () => {
 
   useEffect(() => {
     axios
-      .get("/organizations")
+      .get("/institutes")
       .then((res) => {
         setOrganization(res.data.data.organization);
         setUser(res.data.data.user);
