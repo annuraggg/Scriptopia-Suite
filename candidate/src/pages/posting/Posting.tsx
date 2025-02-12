@@ -16,7 +16,6 @@ import { Posting as PostingType } from "@shared-types/Posting";
 import { Organization } from "@shared-types/Organization";
 import Quill from "quill";
 import Loader from "@/components/Loader";
-import { Candidate } from "@shared-types/Candidate";
 
 const routineMap = {
   full_time: "Full Time",

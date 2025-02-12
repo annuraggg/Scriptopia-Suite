@@ -1,10 +1,7 @@
-// @ts-nocheck
-// ! FIX THIS FILE
-import loops from "@/config/loops";
 import r2Client from "@/config/s3";
+import AppliedPosting from "@/models/AppliedPosting";
 import Candidate from "@/models/Candidate";
 import Organization from "@/models/Organization";
-import Otp from "@/models/Otp";
 import Posting from "@/models/Posting";
 import logger from "@/utils/logger";
 import { sendError, sendSuccess } from "@/utils/sendResponse";
@@ -30,82 +27,6 @@ const getPosting = async (c: Context) => {
     logger.error(e);
     return sendError(c, 500, "Something went wrong");
   }
-};
-
-const sendVerificationMail = async (c: Context) => {
-  const { email } = await c.req.json();
-  const otp = Math.floor(100000 + Math.random() * 900000);
-  const identifierKey = Math.random().toString(36).substring(7);
-  const expiry = new Date(Date.now() + 10 * 60 * 1000);
-
-  const cand = await Candidate.findOne({ email });
-  let exists = false;
-  let candId = "";
-  if (cand) {
-    exists = true;
-    candId = cand._id.toString();
-  }
-
-  try {
-    await loops.sendTransactionalEmail({
-      transactionalId: "cm0wpse9a01hox6359mu40yq9",
-      email: email,
-      dataVariables: {
-        otp: otp,
-      },
-    });
-
-    await Otp.create({
-      email,
-      identifierKey,
-      expiry,
-      otp,
-    });
-
-    return sendSuccess(c, 200, "Verification mail sent successfully", {
-      identifierKey,
-      exists,
-      candId,
-    });
-  } catch (e: any) {
-    logger.error(e);
-    return sendError(c, 500, "Something went wrong");
-  }
-};
-
-const verifyOtp = async (c: Context) => {
-  const { email, identifierKey, otp } = await c.req.json();
-  console.log(email, identifierKey, otp);
-  const otpDoc = await Otp.findOne({ email, identifierKey });
-  const candidate = await Candidate.findOne({ email });
-  let exists = false;
-  let name = "";
-  let countryCode = "";
-  let phone = "";
-
-  if (candidate) {
-    exists = true;
-    name = candidate.name;
-    countryCode = candidate.phone.slice(0, 3);
-    phone = candidate.phone.slice(3);
-  }
-
-  if (!otpDoc) {
-    return sendError(c, 404, "Otp not found");
-  }
-
-  if (otpDoc.otp != otp) {
-    return sendError(c, 400, "Invalid otp");
-  }
-
-  Otp.findOneAndDelete({ email, identifierKey });
-
-  return sendSuccess(c, 200, "Otp verified successfully", {
-    exists,
-    name,
-    countryCode,
-    phone,
-  });
 };
 
 const getCandidate = async (c: Context) => {
@@ -145,7 +66,6 @@ const apply = async (c: Context) => {
     const phone = formData.get("phone");
     const email = formData.get("email");
     const website = formData.get("website");
-    const query = formData.get("query");
     const resume = formData.get("resume");
     const postingId = formData.get("postingId");
     const exists = formData.get("exists") === "true";
@@ -168,14 +88,16 @@ const apply = async (c: Context) => {
     }
 
     if (exists) {
-      const candidate = await Candidate.findById(candId);
+      const candidate = await Candidate.findById(candId).populate(
+        "appliedPostings"
+      );
       if (!candidate) {
         return sendError(c, 404, "Candidate not found");
       }
 
       if (
         candidate.appliedPostings.some(
-          (posting) => posting.postingId.toString() === postingId
+          (posting) => posting._id?.toString() === postingId
         )
       ) {
         return sendError(c, 400, "You have already applied for this posting");
@@ -185,11 +107,13 @@ const apply = async (c: Context) => {
       candidate.phone = candidate.phone;
       candidate.email = email?.toString() || candidate.email;
 
-      candidate.appliedPostings.push({
-        postingId: postingId,
-        queries: query,
+      const appliedPosting = new AppliedPosting({
+        posting: postingId,
+        user: candidate._id,
       });
 
+      await appliedPosting.save();
+      candidate.appliedPostings.push(appliedPosting._id);
       await candidate.save();
     }
 
@@ -212,10 +136,13 @@ const apply = async (c: Context) => {
         userId,
       });
 
-      candidate.appliedPostings.push({
-        postingId: postingId,
-        queries: query,
+      const appliedPosting = new AppliedPosting({
+        posting: postingId,
+        user: candidate._id,
       });
+
+      await appliedPosting.save();
+      candidate.appliedPostings.push(appliedPosting._id);
 
       await candidate.save();
       finalCandId = candidate._id.toString();
@@ -269,7 +196,7 @@ const apply = async (c: Context) => {
 };
 
 const extractTextFromResume = async (resume: File, candidateId: string) => {
-  const resumeBuffer = (await resume.arrayBuffer()) as Buffer;
+  const resumeBuffer = Buffer.from(await resume.arrayBuffer());
   const pdfExtract = new PDFExtract();
   const options = {}; /* see below */
 
@@ -327,8 +254,6 @@ const verifyCandidate = async (c: Context) => {
 
 export default {
   getPosting,
-  sendVerificationMail,
-  verifyOtp,
   apply,
   getCandidate,
   verifyCandidate,

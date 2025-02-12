@@ -1,5 +1,3 @@
-// @ts-nocheck
-// ! FIX THIS FILE
 import React from "react";
 import {
   Table,
@@ -104,7 +102,7 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
     if (category) {
       setAdditionalDetails((prev: AdditionalDetailsType) => ({
         ...prev,
-        [category]: {
+        [category]: { // @ts-expect-error - TS doesn't know that category is a valid key
           ...prev[category],
           [field]: {
             required: !required.includes(field),
@@ -129,7 +127,7 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
     if (category) {
       setAdditionalDetails((prev: AdditionalDetailsType) => ({
         ...prev,
-        [category]: {
+        [category]: { // @ts-expect-error - TS doesn't know that category is a valid key
           ...prev[category],
           [field]: {
             required: required.includes(field),
@@ -151,7 +149,6 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
         <h3 className="text-xl font-semibold capitalize">{title}</h3>
       </div>
       <Table
-       
         aria-label={`${title} configuration`}
         classNames={{
           wrapper: "p-0",

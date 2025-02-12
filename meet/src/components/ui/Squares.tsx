@@ -1,25 +1,48 @@
-// @ts-nocheck
 import { useRef, useEffect, useState } from "react";
 
-const Squares = ({
+interface SquaresProps {
+  direction?: "right" | "left" | "up" | "down" | "diagonal";
+  speed?: number;
+  borderColor?: string;
+  squareSize?: number;
+  hoverFillColor?: string;
+}
+
+interface HoveredSquare {
+  x: number;
+  y: number;
+}
+
+interface GridOffset {
+  x: number;
+  y: number;
+}
+
+const Squares: React.FC<SquaresProps> = ({
   direction = "right",
   speed = 1,
   borderColor = "#999",
   squareSize = 40,
   hoverFillColor = "#222",
 }) => {
-  const canvasRef = useRef(null);
-  const requestRef = useRef(null);
-  const numSquaresX = useRef();
-  const numSquaresY = useRef();
-  const gridOffset = useRef({ x: 0, y: 0 });
-  const [hoveredSquare, setHoveredSquare] = useState(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const requestRef = useRef<number | null>(null);
+  const numSquaresX = useRef<number>();
+  const numSquaresY = useRef<number>();
+  const gridOffset = useRef<GridOffset>({ x: 0, y: 0 });
+  const [hoveredSquare, setHoveredSquare] = useState<HoveredSquare | null>(
+    null
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
+    if (!canvas) return;
 
-    const resizeCanvas = () => {
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resizeCanvas = (): void => {
+      if (!canvas) return;
       canvas.width = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
       numSquaresX.current = Math.ceil(canvas.width / squareSize) + 1;
@@ -29,7 +52,9 @@ const Squares = ({
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    const drawGrid = () => {
+    const drawGrid = (): void => {
+      if (!canvas || !ctx) return;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const startX = Math.floor(gridOffset.current.x / squareSize) * squareSize;
@@ -60,7 +85,7 @@ const Squares = ({
         0,
         canvas.width / 2,
         canvas.height / 2,
-        Math.sqrt(Math.pow(canvas.width, 2) + Math.pow(canvas.height, 2)) / 2,
+        Math.sqrt(Math.pow(canvas.width, 2) + Math.pow(canvas.height, 2)) / 2
       );
       gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
       gradient.addColorStop(1, "#060606");
@@ -69,7 +94,7 @@ const Squares = ({
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     };
 
-    const updateAnimation = () => {
+    const updateAnimation = (): void => {
       const effectiveSpeed = Math.max(speed, 0.1);
       switch (direction) {
         case "right":
@@ -102,8 +127,7 @@ const Squares = ({
       requestRef.current = requestAnimationFrame(updateAnimation);
     };
 
-    // Track mouse hover
-    const handleMouseMove = (event) => {
+    const handleMouseMove = (event: MouseEvent): void => {
       const rect = canvas.getBoundingClientRect();
       const mouseX = event.clientX - rect.left;
       const mouseY = event.clientY - rect.top;
@@ -112,16 +136,16 @@ const Squares = ({
       const startY = Math.floor(gridOffset.current.y / squareSize) * squareSize;
 
       const hoveredSquareX = Math.floor(
-        (mouseX + gridOffset.current.x - startX) / squareSize,
+        (mouseX + gridOffset.current.x - startX) / squareSize
       );
       const hoveredSquareY = Math.floor(
-        (mouseY + gridOffset.current.y - startY) / squareSize,
+        (mouseY + gridOffset.current.y - startY) / squareSize
       );
 
       setHoveredSquare({ x: hoveredSquareX, y: hoveredSquareY });
     };
 
-    const handleMouseLeave = () => {
+    const handleMouseLeave = (): void => {
       setHoveredSquare(null);
     };
 
@@ -132,7 +156,9 @@ const Squares = ({
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
-      cancelAnimationFrame(requestRef.current);
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current);
+      }
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mouseleave", handleMouseLeave);
     };

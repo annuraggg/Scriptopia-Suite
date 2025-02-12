@@ -28,7 +28,7 @@ interface SummaryProps {
   minSalary: number;
   maxSalary: number;
   skills: string[];
-  description: string;
+  description: Record<string, unknown>;
   addedComponents: { id: string; name: string }[];
   location: string;
   handleSave: () => void;
