@@ -1,6 +1,3 @@
-// @ts-nocheck
-// ! FIX THIS FILE
-
 import { useState } from "react";
 import Sidebar from "./Sidebar";
 import JobDetails from "./JobDetails";
@@ -55,7 +52,7 @@ const CreateJob = () => {
   const [minSalary, setMinSalary] = useState<number>(0);
   const [maxSalary, setMaxSalary] = useState<number>(0);
   const [skills, setSkills] = useState<string[]>([]);
-  const [description, setDescription] = useState<string>("");
+  const [description, setDescription] = useState<Record<string, unknown>>({});
 
   // Additional Details States
   const [requiredFields, setRequiredFields] = useState<string[]>([]);
@@ -79,13 +76,11 @@ const CreateJob = () => {
       steps: addedComponents.map((component) => ({
         name: component.label, // @ts-ignore
         type: componentMap[component.label] as
-          | "rs"
-          | "mcqa"
-          | "ca"
-          | "mcqca"
-          | "as"
-          | "pi"
-          | "cu",
+          | "RESUME_SCREENING"
+          | "MCQ_ASSESSMENT"
+          | "CODING_ASSESSMENT"
+          | "ASSIGNMENT"
+          | "INTERVIEW",
         completed: false,
         timestamp: new Date(),
       })),
@@ -129,6 +124,7 @@ const CreateJob = () => {
       },
       workflow: formattedData,
       additionalDetails: formattedAdditionalDetails,
+      published: false,
     };
 
     axios

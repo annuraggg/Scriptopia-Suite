@@ -36,8 +36,8 @@ interface JobDetailsProps {
   setMaxSalary: (value: number) => void;
   skills: string[];
   setSkills: (value: string[]) => void;
-  description: string;
-  setDescription: (value: string) => void;
+  description: Record<string, unknown>;
+  setDescription: (value: Record<string, unknown>) => void;
   location: string;
   setLocation: (value: string) => void;
 }

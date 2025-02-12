@@ -1,5 +1,3 @@
-// @ts-nocheck
-// ! FIX THIS FILE
 import loops from "@/config/loops";
 import r2Client from "@/config/s3";
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
@@ -8,6 +6,7 @@ import Posting from "@/models/Posting";
 import logger from "@/utils/logger";
 import { sendError, sendSuccess } from "@/utils/sendResponse";
 import { Upload } from "@aws-sdk/lib-storage";
+import { AppliedPosting } from "@shared-types/AppliedPosting";
 import { Context } from "hono";
 
 const submitAssignment = async (c: Context) => {
@@ -85,7 +84,7 @@ const submitAssignment = async (c: Context) => {
 
     loops.sendTransactionalEmail({
       transactionalId: "cm13tu50l02mc80gpi76joqvy",
-      email: user.email,
+      email: user.email as string,
       dataVariables: {
         // @ts-expect-error - Type 'string' is not assignable to type 'DataVariables'
         organization: posting?.organizationId?.name,
@@ -163,7 +162,9 @@ const gradeAssignment = async (c: Context) => {
       return sendError(c, 404, "Assignment not found");
     }
 
-    const candidate = await Candidate.findById(candidateId);
+    const candidate = await Candidate.findById(candidateId).populate<{
+      appliedPostings: AppliedPosting[];
+    }>("appliedPostings");
     if (!candidate) {
       return sendError(c, 404, "Candidate not found");
     }
@@ -176,21 +177,21 @@ const gradeAssignment = async (c: Context) => {
     }
 
     const currentPosting = candidate.appliedPostings.find(
-      (p) => p.postingId.toString() === postingId
+      (p) => (p as unknown as AppliedPosting).posting.toString() === postingId
     );
 
     if (!currentPosting) {
       return sendError(c, 404, "Posting not found");
     }
 
-    const currentAssignment = currentPosting?.scores?.as?.find(
-      (a) => a?.asId?.toString() === assignmentId
+    const currentAssignment = currentPosting?.scores?.find(
+      (a) => a?.stageId?.toString() === assignmentId
     );
 
     if (currentAssignment) {
       currentAssignment.score = grade;
     } else {
-      currentPosting?.scores?.as?.push({ score: grade, asId: assignmentId });
+      currentPosting?.scores?.push({ score: grade, stageId: assignmentId });
     }
 
     await candidate.save();
@@ -218,13 +219,15 @@ const qualifyCandidate = async (c: Context) => {
       return sendError(c, 404, "Posting not found");
     }
 
-    const candidate = await Candidate.findOne({ _id: candidateId });
+    const candidate = await Candidate.findOne({ _id: candidateId }).populate<{
+      appliedPostings: AppliedPosting[];
+    }>("appliedPostings");
     if (!candidate) {
       return sendError(c, 404, "Candidate not found");
     }
 
     const appliedPosting = candidate.appliedPostings.find(
-      (ap) => ap.postingId.toString() === postingId
+      (ap) => ap.posting.toString() === postingId
     );
 
     if (!appliedPosting) {
@@ -232,7 +235,6 @@ const qualifyCandidate = async (c: Context) => {
     }
 
     appliedPosting.status = "inprogress";
-    appliedPosting.currentStepStatus = "qualified";
     await candidate.save();
 
     return sendSuccess(c, 200, "Success");
@@ -258,23 +260,24 @@ const disqualifyCandidate = async (c: Context) => {
       return sendError(c, 404, "Posting not found");
     }
 
-    const candidate = await Candidate.findOne({ _id: candidateId });
+    const candidate = await Candidate.findOne({ _id: candidateId }).populate<{
+      appliedPostings: AppliedPosting[];
+    }>("appliedPostings");
     if (!candidate) {
       return sendError(c, 404, "Candidate not found");
     }
 
     const appliedPosting = candidate.appliedPostings.find(
-      (ap) => ap.postingId.toString() === postingId
+      (ap) => ap.posting.toString() === postingId
     );
 
     if (!appliedPosting) {
       return sendError(c, 404, "Candidate not applied to this posting");
     }
 
-    const step = posting.workflow?.currentStep;
+    const step = posting.workflow?.steps.findIndex((step) => !step.completed);
 
     appliedPosting.status = "rejected";
-    appliedPosting.currentStepStatus = "disqualified";
     appliedPosting.disqualifiedStage = step;
     appliedPosting.disqualifiedReason = "Disqualified at Assignment Round";
 
@@ -303,11 +306,13 @@ const bulkQualifyCandidates = async (c: Context) => {
       return sendError(c, 404, "Posting not found");
     }
 
-    const candidates = await Candidate.find({ _id: { $in: candidateIds } });
+    const candidates = await Candidate.find({
+      _id: { $in: candidateIds },
+    }).populate<{ appliedPostings: AppliedPosting[] }>("appliedPostings");
 
     for (const candidate of candidates) {
       const appliedPosting = candidate.appliedPostings.find(
-        (ap) => ap.postingId.toString() === postingId
+        (ap) => ap.posting.toString() === postingId
       );
 
       if (appliedPosting) {
@@ -339,13 +344,15 @@ const bulkDisqualifyCandidates = async (c: Context) => {
       return sendError(c, 404, "Posting not found");
     }
 
-    const step = posting.workflow?.currentStep;
+    const step = posting.workflow?.steps.findIndex((step) => !step.completed);
 
-    const candidates = await Candidate.find({ _id: { $in: candidateIds } });
+    const candidates = await Candidate.find({
+      _id: { $in: candidateIds },
+    }).populate<{ appliedPostings: AppliedPosting[] }>("appliedPostings");
 
     for (const candidate of candidates) {
       const appliedPosting = candidate.appliedPostings.find(
-        (ap) => ap.postingId.toString() === postingId
+        (ap) => ap.posting.toString() === postingId
       );
 
       if (appliedPosting) {

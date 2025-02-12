@@ -1,5 +1,3 @@
-// @ts-nocheck
-// ! FIX THIS FILE
 import { Assignment, Posting } from "@shared-types/Posting";
 import { AppliedPosting } from "@shared-types/AppliedPosting";
 import { useEffect, useState } from "react";
@@ -20,20 +18,16 @@ const ViewAssignment = () => {
       if (assignment) {
         assignment?.submissions?.forEach((submissionId) => {
           const appliedPosting = posting.candidates?.find(
-            (ap): ap is AppliedPosting => (ap as AppliedPosting).posting === posting._id
+            (ap) => (ap as unknown as AppliedPosting).posting === posting._id
           );
 
           if (appliedPosting) {
-            const currentAssignmentScore = appliedPosting.scores?.find(
-              (score) => score.stageId === assignment._id
-            );
+            const currentAssignmentScore = (
+              appliedPosting as unknown as AppliedPosting
+            ).scores?.find((score) => score.stageId === assignment._id);
             if (currentAssignmentScore) {
               // Updating submission details
               (submissionId as any).grade = currentAssignmentScore.score;
-              (submissionId as any).submittedOn = new Date(
-                currentAssignmentScore.createdAt!
-              ).toLocaleString();
-              (submissionId as any).status = appliedPosting.status;
             }
           }
         });

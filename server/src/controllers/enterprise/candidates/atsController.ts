@@ -1,11 +1,10 @@
-// @ts-nocheck
-// ! FIX THIS FILE
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
 import Candidate from "@/models/Candidate";
 import Posting from "@/models/Posting";
 import logger from "@/utils/logger";
 import { sendError, sendSuccess } from "@/utils/sendResponse";
 import { Context } from "hono";
+import mongoose from "mongoose";
 
 const getResume = async (c: Context) => {
   try {
@@ -20,9 +19,11 @@ const getResume = async (c: Context) => {
       return sendError(c, 404, "Candidate not found");
     }
 
-    const resumeUrl = `${process.env.RESUMES_PUBLIC_URL}/${candidateId}.pdf`;
+    if (!candidate.resumeUrl) {
+      return sendError(c, 404, "Resume not found for this candidate");
+    }
 
-    return sendSuccess(c, 200, "Success", resumeUrl);
+    return sendSuccess(c, 200, "Success", candidate.resumeUrl);
   } catch (err) {
     logger.error(err as string);
     return sendError(c, 500, "Internal server error");
@@ -37,12 +38,22 @@ const qualifyCandidate = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const posting = await Posting.findOne({ _id: postingId }).populate(
-      "organizationId"
-    );
+    const posting = await Posting.findOne({ _id: postingId })
+      .populate("organizationId")
+      .populate("workflow");
 
     if (!posting) {
       return sendError(c, 404, "Posting not found");
+    }
+
+    // Verify if posting has a workflow and is in resume screening step
+    if (!posting.workflow?.steps?.length) {
+      return sendError(c, 400, "Posting workflow not configured");
+    }
+
+    const currentStep = posting.workflow.steps.find((step) => !step.completed);
+    if (!currentStep || currentStep.type !== "RESUME_SCREENING") {
+      return sendError(c, 400, "Current step is not resume screening");
     }
 
     const candidate = await Candidate.findOne({ _id: candidateId });
@@ -50,19 +61,21 @@ const qualifyCandidate = async (c: Context) => {
       return sendError(c, 404, "Candidate not found");
     }
 
-    const appliedPosting = candidate.appliedPostings.find(
-      (ap) => ap.postingId.toString() === postingId
+    const appliedPostingIndex = candidate.appliedPostings.findIndex(
+      (ap) => ap.toString() === postingId
     );
 
-    if (!appliedPosting) {
+    if (appliedPostingIndex === -1) {
       return sendError(c, 404, "Candidate not applied to this posting");
     }
 
-    appliedPosting.status = "inprogress";
-    appliedPosting.currentStepStatus = "qualified";
-    await candidate.save();
+    // Update candidate status in posting's candidates array
+    if (!posting.candidates.includes(candidateId as mongoose.Types.ObjectId)) {
+      posting.candidates.push(candidateId as mongoose.Types.ObjectId);
+      await posting.save();
+    }
 
-    return sendSuccess(c, 200, "Success");
+    return sendSuccess(c, 200, "Candidate qualified successfully");
   } catch (err) {
     logger.error(err as string);
     return sendError(c, 500, "Internal server error");
@@ -77,12 +90,22 @@ const disqualifyCandidate = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const posting = await Posting.findOne({ _id: postingId }).populate(
-      "organizationId"
-    );
+    const posting = await Posting.findOne({ _id: postingId })
+      .populate("organizationId")
+      .populate("workflow");
 
     if (!posting) {
       return sendError(c, 404, "Posting not found");
+    }
+
+    // Verify current workflow step
+    if (!posting.workflow?.steps?.length) {
+      return sendError(c, 400, "Posting workflow not configured");
+    }
+
+    const currentStep = posting.workflow.steps.find((step) => !step.completed);
+    if (!currentStep) {
+      return sendError(c, 400, "No active workflow step found");
     }
 
     const candidate = await Candidate.findOne({ _id: candidateId });
@@ -90,24 +113,13 @@ const disqualifyCandidate = async (c: Context) => {
       return sendError(c, 404, "Candidate not found");
     }
 
-    const appliedPosting = candidate.appliedPostings.find(
-      (ap) => ap.postingId.toString() === postingId
+    // Remove candidate from posting's candidates array
+    posting.candidates = posting.candidates.filter(
+      (cid) => cid.toString() !== candidateId
     );
+    await posting.save();
 
-    if (!appliedPosting) {
-      return sendError(c, 404, "Candidate not applied to this posting");
-    }
-
-    const step = posting.workflow?.currentStep;
-
-    appliedPosting.status = "rejected";
-    appliedPosting.currentStepStatus = "disqualified";
-    appliedPosting.disqualifiedStage = step;
-    appliedPosting.disqualifiedReason = "Disqualified at Resume Round";
-
-    await candidate.save();
-
-    return sendSuccess(c, 200, "Success");
+    return sendSuccess(c, 200, "Candidate disqualified successfully");
   } catch (err) {
     logger.error(err as string);
     return sendError(c, 500, "Internal server error");
@@ -122,26 +134,34 @@ const bulkQualifyCandidates = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const posting = await Posting.findOne({ _id: postingId }).populate(
-      "organizationId"
-    );
+    const posting = await Posting.findOne({ _id: postingId })
+      .populate("organizationId")
+      .populate("workflow");
 
     if (!posting) {
       return sendError(c, 404, "Posting not found");
     }
 
-    const candidates = await Candidate.find({ _id: { $in: candidateIds } });
+    // Verify workflow step
+    if (!posting.workflow?.steps?.length) {
+      return sendError(c, 400, "Posting workflow not configured");
+    }
 
-    for (const candidate of candidates) {
-      const appliedPosting = candidate.appliedPostings.find(
-        (ap) => ap.postingId.toString() === postingId
-      );
+    const currentStep = posting.workflow.steps.find((step) => !step.completed);
+    if (!currentStep || currentStep.type !== "RESUME_SCREENING") {
+      return sendError(c, 400, "Current step is not resume screening");
+    }
 
-      if (appliedPosting) {
-        appliedPosting.status = "inprogress";
-        await candidate.save();
+    // Update posting's candidates array
+    const uniqueCandidateIds = [...new Set(candidateIds)];
+    for (const candidateId of uniqueCandidateIds) {
+      if (
+        !posting.candidates.includes(candidateId as mongoose.Types.ObjectId)
+      ) {
+        posting.candidates.push(candidateId as mongoose.Types.ObjectId);
       }
     }
+    await posting.save();
 
     return sendSuccess(c, 200, "Candidates qualified successfully");
   } catch (err) {
@@ -158,30 +178,29 @@ const bulkDisqualifyCandidates = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const posting = await Posting.findOne({ _id: postingId }).populate(
-      "organizationId"
-    );
+    const posting = await Posting.findOne({ _id: postingId })
+      .populate("organizationId")
+      .populate("workflow");
 
     if (!posting) {
       return sendError(c, 404, "Posting not found");
     }
 
-    const step = posting.workflow?.currentStep;
-
-    const candidates = await Candidate.find({ _id: { $in: candidateIds } });
-
-    for (const candidate of candidates) {
-      const appliedPosting = candidate.appliedPostings.find(
-        (ap) => ap.postingId.toString() === postingId
-      );
-
-      if (appliedPosting) {
-        appliedPosting.status = "rejected";
-        appliedPosting.disqualifiedStage = step;
-        appliedPosting.disqualifiedReason = "Disqualified at Resume Round";
-        await candidate.save();
-      }
+    // Verify workflow step
+    if (!posting.workflow?.steps?.length) {
+      return sendError(c, 400, "Posting workflow not configured");
     }
+
+    const currentStep = posting.workflow.steps.find((step) => !step.completed);
+    if (!currentStep) {
+      return sendError(c, 400, "No active workflow step found");
+    }
+
+    // Remove candidates from posting's candidates array
+    posting.candidates = posting.candidates.filter(
+      (cid) => !candidateIds.includes(cid.toString())
+    );
+    await posting.save();
 
     return sendSuccess(c, 200, "Candidates disqualified successfully");
   } catch (err) {

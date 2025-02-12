@@ -1,11 +1,8 @@
-// @ts-nocheck
-
 import { sendError } from "../utils/sendResponse";
 import { getAuth } from "@hono/clerk-auth";
 import clerkClient from "../config/clerk";
 import { Context } from "hono";
 import logger from "../utils/logger";
-import { Role } from "@shared-types/Organization";
 import { UserMeta } from "@shared-types/UserMeta";
 
 interface ReturnType {
@@ -17,7 +14,7 @@ class checkOrganizationPermission {
   private static async getUserMeta(userId: string) {
     try {
       const user = await clerkClient.users.getUser(userId);
-      const perms = user.publicMetadata as UserMeta;
+      const perms = user.publicMetadata as unknown as UserMeta;
       return perms;
     } catch (error) {
       throw new Error("Error retrieving or verifying user Meta");
@@ -28,6 +25,7 @@ class checkOrganizationPermission {
     c: Context<any, any, {}>,
     permissions: string[]
   ): Promise<ReturnType> => {
+    // @ts-expect-error - TS doesn't know that auth is a valid key
     const auth = getAuth(c);
     if (!auth?.userId) {
       sendError(c, 401, "Unauthorized in checkPermission");
@@ -54,6 +52,7 @@ class checkOrganizationPermission {
     c: Context<any, any, {}>,
     permissions: string[]
   ): Promise<ReturnType> => {
+    // @ts-expect-error - TS doesn't know that auth is a valid key
     const auth = getAuth(c);
     if (!auth?.userId) {
       sendError(c, 401, "Unauthorized in checkPermission");

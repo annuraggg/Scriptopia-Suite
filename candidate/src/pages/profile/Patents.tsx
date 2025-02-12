@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   Button,
   Input,
@@ -53,8 +52,8 @@ const Patents = () => {
     patentOffice: "",
     patentNumber: "",
     status: "pending",
-    filingDate: today("IST").toString(),
-    issueDate: "",
+    filingDate: today("IST").toDate("UTC"),
+    issueDate: today("IST").toDate("UTC"),
     description: "",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof Patent, string>>>({});
@@ -160,8 +159,8 @@ const Patents = () => {
       patentOffice: "",
       patentNumber: "",
       status: "pending",
-      filingDate: today("IST").toString(),
-      issueDate: "",
+      filingDate: today("IST").toDate("UTC"),
+      issueDate: today("IST").toDate("UTC"),
       description: "",
     });
     setErrors({});
@@ -201,8 +200,8 @@ const Patents = () => {
               <TableCell>{patent.patentOffice}</TableCell>
               <TableCell>{patent.patentNumber}</TableCell>
               <TableCell>{patent.status}</TableCell>
-              <TableCell>{formatDate(patent.filingDate)}</TableCell>
-              <TableCell>{patent.issueDate ? formatDate(patent.issueDate) : "-"}</TableCell>
+              <TableCell>{formatDate(patent.filingDate.toString())}</TableCell>
+              <TableCell>{patent.issueDate ? formatDate(patent.issueDate.toString()) : "-"}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
                   <Button
@@ -295,7 +294,7 @@ const Patents = () => {
                   <div className="flex gap-4">
                     <DateInput
                       label="Filing Date"
-                      value={parseDate(formData.filingDate)}
+                      value={parseDate(formData.filingDate.toString())}
                       onChange={(date) => handleInputChange("filingDate", date)}
                       isRequired
                       maxValue={today("IST")}
@@ -303,7 +302,7 @@ const Patents = () => {
 
                     <DateInput
                       label="Issue Date"
-                      value={formData.issueDate ? parseDate(formData.issueDate) : undefined}
+                      value={formData.issueDate ? parseDate(formData.issueDate.toString()) : undefined}
                       onChange={(date) => handleInputChange("issueDate", date)}
                       maxValue={today("IST")}
                     />
