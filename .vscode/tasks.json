@@ -1,0 +1,120 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "1. All Dev Server",
+        "dependsOn": [
+          "Code",
+          "Main",
+          "Enterprise",
+          "Candidate",
+          "Meet",
+          "Campus",
+          "Server"
+        ],
+        "dependsOrder": "parallel",
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        }
+      },
+      {
+        "label": "Code",
+        "type": "shell",
+        "command": "cd code; npm run dev",
+        "options": {
+          "cwd": "${workspaceFolder}"
+        },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "panel": "dedicated",
+          "reveal": "always"
+        }
+      },
+      {
+        "label": "Main",
+        "type": "shell",
+        "command": "cd main; npm run dev",
+        "options": {
+          "cwd": "${workspaceFolder}"
+        },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "panel": "dedicated",
+          "reveal": "always"
+        }
+      },
+      {
+        "label": "Enterprise",
+        "type": "shell",
+        "command": "cd enterprise; npm run dev",
+        "options": {
+          "cwd": "${workspaceFolder}"
+        },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "panel": "dedicated",
+          "reveal": "always"
+        }
+      },
+      {
+        "label": "Candidate",
+        "type": "shell",
+        "command": "cd candidate; npm run dev",
+        "options": {
+          "cwd": "${workspaceFolder}"
+        },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "panel": "dedicated",
+          "reveal": "always"
+        }
+      },
+      {
+        "label": "Meet",
+        "type": "shell",
+        "command": "cd meet; npm run dev",
+        "options": {
+          "cwd": "${workspaceFolder}"
+        },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "panel": "dedicated",
+          "reveal": "always"
+        }
+      },
+      {
+        "label": "Campus",
+        "type": "shell",
+        "command": "cd campus; npm run dev",
+        "options": {
+          "cwd": "${workspaceFolder}"
+        },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "panel": "dedicated",
+          "reveal": "always"
+        }
+      },
+      {
+        "label": "Server",
+        "type": "shell",
+        "command": "cd server; npm run dev",
+        "options": {
+          "cwd": "${workspaceFolder}"
+        },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": {
+          "panel": "dedicated",
+          "reveal": "always"
+        }
+      }
+    ]
+  }
