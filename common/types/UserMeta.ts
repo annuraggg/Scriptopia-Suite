@@ -7,6 +7,11 @@ interface UserMeta {
     name: string;
     role: Role;
   };
+  institute?: {
+    _id: string;
+    name: string;
+    role: Role;
+  };
 }
 
 export type { UserMeta };
