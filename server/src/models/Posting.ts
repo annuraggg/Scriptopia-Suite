@@ -44,6 +44,7 @@ const atsSchema = new Schema(
   },
   { timestamps: true }
 );
+
 const workflowSchema = new Schema({
   steps: [
     {
@@ -66,6 +67,11 @@ const assignmentSchema = new Schema({
   name: { type: String, required: true },
   workflowId: { type: mongoose.Schema.Types.ObjectId, required: true },
   description: { type: String, required: true },
+  submissionType: {
+    type: String,
+    enum: ["file", "text", "link"],
+    required: true,
+  },
   submissions: { type: [mongoose.Schema.Types.ObjectId], ref: "Candidate" },
 });
 

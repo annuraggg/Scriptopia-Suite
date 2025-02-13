@@ -7,15 +7,15 @@ import {
   DateValue,
 } from "@heroui/react";
 import {
-  Building2,
   Calendar,
   Users,
   DollarSign,
   CheckCircle2,
-  LocateIcon,
   Edit2,
-  Trash2
+  Trash2,
 } from "lucide-react";
+import { QuillDeltaToHtmlConverter } from "quill-delta-to-html";
+import { useEffect, useState } from "react";
 
 interface SummaryProps {
   setAction: (page: number) => void;
@@ -38,7 +38,6 @@ const Preview = ({
   setAction,
   title,
   category,
-  department,
   openings,
   applicationRange,
   currency,
@@ -50,6 +49,8 @@ const Preview = ({
   location,
   handleSave,
 }: SummaryProps) => {
+  const [parsedDescription, setParsedDescription] = useState<string>("");
+
   const formatDate = (date: string) => {
     if (!date) return "";
     return new Date(date.toString()).toLocaleDateString("en-US", {
@@ -57,17 +58,6 @@ const Preview = ({
       month: "short",
       day: "numeric",
     });
-  };
-
-  const getCategoryColor = (category: string) => {
-    const colors = {
-      fulltime: "success",
-      parttime: "warning",
-      contract: "primary",
-      internship: "secondary",
-      temporary: "danger",
-    }; // @ts-ignore
-    return colors[category] || "default";
   };
 
   const formatCurrency = (amount: string) => {
@@ -80,6 +70,20 @@ const Preview = ({
     return `${currencySymbols[currency] || ""}${amount.toLocaleString()}`;
   };
 
+  const cleanCategory = (category: string) => {
+    const cleaned = category.replace("_", " ");
+    const titleCase = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+    return titleCase;
+  };
+
+  useEffect(() => {
+    const delta = description;
+    if (!delta) return;
+
+    const html = new QuillDeltaToHtmlConverter(delta.ops as any, {});
+    setParsedDescription(html.convert());
+  }, []);
+
   return (
     <div className="w-full max-w-5xl px-4 py-6">
       <div className="w-full space-y-6">
@@ -89,21 +93,11 @@ const Preview = ({
             <h1 className="text-3xl font-bold tracking-tight">
               {title || "Untitled Position"}
             </h1>
-            <div className="flex gap-3 items-center flex-wrap">
-              <Chip 
-                color={getCategoryColor(category)} 
-                variant="flat" 
-                size="sm" 
-                className="transition-all duration-300 hover:scale-105"
-              >
-                {category?.charAt(0)?.toUpperCase() + category?.slice(1) || "No Category"}
-              </Chip>
-              <div className="flex items-center gap-2 text-sm opacity-70">
-                <Building2 size={16} className="stroke-current" />
-                <span>{department || "No Department"}</span>
+            <div className="flex gap-2">
+              <div className="text-sm opacity-70">
+                <span>{cleanCategory(category) || "No Category"}</span>
               </div>
-              <div className="flex items-center gap-2 text-sm opacity-70">
-                <LocateIcon size={16} className="stroke-current" />
+              <div className="text-sm opacity-70">
                 <span>{location || "No Location"}</span>
               </div>
             </div>
@@ -119,16 +113,20 @@ const Preview = ({
             {[
               {
                 icon: <Calendar size={16} />,
-                content: `${formatDate(applicationRange?.start.toString())} - ${formatDate(applicationRange?.end.toString())}`
+                content: `${formatDate(
+                  applicationRange?.start.toString()
+                )} - ${formatDate(applicationRange?.end.toString())}`,
               },
               {
                 icon: <Users size={16} />,
-                content: `${openings} Opening${openings !== 1 ? "s" : ""}`
+                content: `${openings} Opening${openings !== 1 ? "s" : ""}`,
               },
               {
                 icon: <DollarSign size={16} />,
-                content: `${formatCurrency(minSalary.toString())} - ${formatCurrency(maxSalary.toString())}`
-              }
+                content: `${formatCurrency(
+                  minSalary.toString()
+                )} - ${formatCurrency(maxSalary.toString())}`,
+              },
             ].map((item, index) => (
               <Chip
                 key={index}
@@ -146,9 +144,9 @@ const Preview = ({
             <h2 className="text-lg font-semibold">Required Skills</h2>
             <div className="flex gap-2 flex-wrap">
               {skills.map((skill, index) => (
-                <Chip 
-                  key={index} 
-                  variant="flat" 
+                <Chip
+                  key={index}
+                  variant="flat"
                   size="sm"
                   className="transition-all duration-300 hover:scale-105"
                 >
@@ -164,7 +162,7 @@ const Preview = ({
             <ScrollShadow className="max-h-64">
               <div
                 className="prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: description }}
+                dangerouslySetInnerHTML={{ __html: parsedDescription }}
               />
             </ScrollShadow>
           </div>
@@ -204,8 +202,8 @@ const Preview = ({
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-3 mt-6">
-          <Button 
-            variant="flat" 
+          <Button
+            variant="flat"
             onClick={() => setAction(1)}
             className="transition-all duration-300 hover:scale-105"
           >
