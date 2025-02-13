@@ -25,12 +25,7 @@ jobs:
       - name: Checkout Code  
         uses: actions/checkout@v2
         with:
-          path: ../backups  # Ensures code is checked out into the 'backups' folder
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18.x'
+          path: backups  # Ensures code is checked out into the 'backups' folder
 
       - name: Install mongo-tools
         run: |
@@ -39,16 +34,22 @@ jobs:
           sudo apt install ./mongodb-database-tools-*.deb
           echo "MongoDB tools installed successfully."
 
-      - name: Install npm dependencies
+      - name: Install Node.js and dependencies
+        with:
+          path: backups 
         run: |
+          echo "Installing Node.js..."
+          sudo apt-get install -y nodejs
+          echo "Node.js installed."
+
           echo "Installing npm dependencies..."
-          cd backups  # Make sure you're in the backups directory
-          npm install  # Ensure dependencies are installed from package.json inside backups
+          npm i
           echo "npm dependencies installed."
 
       - name: Run backup
+        with:
+          path: backups 
         run: |
           echo "Starting backup process..."
-          cd backups  # Make sure you're in the backups directory
-          node makeBackup.js  # Run your backup script
+          node makeBackup.js
           echo "Backup process completed."
