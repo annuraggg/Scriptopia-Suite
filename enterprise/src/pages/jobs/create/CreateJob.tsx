@@ -16,7 +16,7 @@ import Loader from "@/components/Loader";
 import AdditionalDetails, { FIELD_CATEGORIES } from "./AdditionalDetails";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
-import WorkflowSchedule from "./WorkflowSchedule";
+// import WorkflowSchedule from "./WorkflowSchedule";
 
 interface Component {
   icon: React.ElementType;
@@ -26,7 +26,7 @@ interface Component {
 }
 
 const componentMap: Record<string, string> = {
-  ATS: "RESUME_SCREENING",
+  "Resume Screening": "RESUME_SCREENING",
   "MCQ Assessment": "MCQ_ASSESSMENT",
   "Code Assessment": "CODING_ASSESSMENT",
   Assignment: "ASSIGNMENT",
@@ -74,7 +74,7 @@ const CreateJob = () => {
 
     const formattedData = {
       steps: addedComponents.map((component) => ({
-        name: component.label, // @ts-ignore
+        name: component.name, // @ts-ignore
         type: componentMap[component.label] as
           | "RESUME_SCREENING"
           | "MCQ_ASSESSMENT"
@@ -197,8 +197,8 @@ const CreateJob = () => {
             setAddedComponents={setAddedComponents}
           />
         )}
-        {active === 3 && <WorkflowSchedule addedComponents={addedComponents} />}
-        {active === 4 && (
+        {/* {active === 3 && <WorkflowSchedule addedComponents={addedComponents} />} */}
+        {active === 3 && (
           <Summary
             setAction={setActive}
             title={title}

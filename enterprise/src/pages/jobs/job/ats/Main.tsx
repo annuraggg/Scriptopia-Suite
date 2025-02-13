@@ -150,7 +150,7 @@ const Main = ({ posting }: { posting: Posting }) => {
               </div>
             )}
           </Tab>
-          <Tab key="candidates" title="Candidates">
+          <Tab key="results" title="Results">
             <DataTable
               data={tableData}
               postingId={posting._id!}

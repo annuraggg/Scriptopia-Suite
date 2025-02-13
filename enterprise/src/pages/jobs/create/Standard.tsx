@@ -1,15 +1,16 @@
 import { useRef, useState } from "react";
-import { FileText, Code, Edit2, Trash, Book, Copy, MonitorPlay } from "lucide-react";
 import {
-  Button,
-  Chip,
-  DateValue,
-  Switch,
-  TimeInputValue,
-} from "@heroui/react";
-import { Tooltip } from "@heroui/react";
+  FileText,
+  Code,
+  Edit2,
+  Trash,
+  Book,
+  Copy,
+  MonitorPlay,
+} from "lucide-react";
+import { Button, Chip, DateValue, TimeInputValue } from "@heroui/react";
 import { motion, Reorder } from "framer-motion"; // Added framer-motion for animation
-
+import { Tooltip } from "@heroui/react";
 interface Component {
   icon: React.ElementType;
   label: string;
@@ -21,7 +22,6 @@ const Create = ({
   setAction,
   addedComponents,
   setAddedComponents,
-  setMode,
 }: {
   setAction: (page: number) => void;
   addedComponents: Component[];
@@ -42,7 +42,7 @@ const Create = ({
   >([]);
 
   const components = [
-    { icon: FileText, label: "ATS" },
+    { icon: FileText, label: "Resume Screening", isUnidirectional: true },
     { icon: Copy, label: "MCQ Assessment" },
     { icon: Code, label: "Code Assessment" },
     // { icon: Combine, label: "MCQ + Code Assessment" },
@@ -138,23 +138,23 @@ const Create = ({
               >
                 <motion.div
                   layout
-                  className="border p-5 gap-5 rounded-xl min-h-20 flex justify-start items-center relative"
+                  className="border p-5 gap-5 bg-card shadow-sm rounded-xl min-h-20 flex justify-start items-center relative"
                 >
                   <component.icon />
                   <div>
                     <input
                       ref={(el) => (inputRefs.current[component.id] = el)} // Assign ref to input
-                      className={`border-none outline-none bg-transparent max-w-fit transition-all ${
+                      className={`border-none bg-transparent outline-none  max-w-fit transition-all ${
                         editingId === component.id
                           ? "opacity-100 text-xl"
-                          : "opacity-50 text-base" // Increase text size when editing
+                          : "opacity-100 text-base" // Increase text size when editing
                       }`}
                       value={component.name}
                       onChange={(e) => editName(component.id, e.target.value)}
                       onBlur={() => handleBlur(component.id, component.name)} // Call onBlur handler
                       onFocus={() => setEditingId(component.id)} // Set editingId on focus
                     />
-                    <p className="text-sm opacity-50 mt-2">{component.label}</p>
+                    <p className="text-sm opacity-50">{component.label}</p>
                   </div>
                   <Tooltip content="Delete Component">
                     <Trash
@@ -195,8 +195,8 @@ const Create = ({
             {isDragging ? "Drop here!" : "+ Add Component"}
           </motion.div>
         </div>
-        <div className="w-[40%] flex flex-col gap-5">
-          <div className="flex gap-3 text-xs items-center">
+        <div className="w-[70%] flex flex-col gap-5">
+          {/* <div className="flex gap-3 text-xs items-center">
             <p>Enable Canvas Mode</p>
             <Chip color="warning" size="sm">
               Beta
@@ -206,19 +206,26 @@ const Create = ({
               isSelected={false}
               size="sm"
             />
-          </div>
+          </div> */}
           {components.map((component, index) => (
             <motion.div
               key={index}
               draggable // @ts-expect-error - TS doesn't know the keys of componentMap
               onDragStart={(e) => dragStart(e, component.label)}
               onDragEnd={dragEnd}
-              className="p-5 border rounded-xl cursor-pointer hover:bg-gray-800 transition-colors flex items-center gap-5"
+              className="p-5 border rounded-xl cursor-pointer hover:bg-primary/70 transition-colors flex items-center gap-5"
               whileHover={{ scale: 1.05 }}
               whileDrag={{ scale: 1.1, opacity: 0.8 }}
             >
               <component.icon />
               {component.label}
+              {component?.isUnidirectional && (
+                <Tooltip content="This means that in this workflow step, there is no input required from the candidate.">
+                  <Chip color="warning" size="sm">
+                    Non Interactive
+                  </Chip>
+                </Tooltip>
+              )}
             </motion.div>
           ))}
           <Button

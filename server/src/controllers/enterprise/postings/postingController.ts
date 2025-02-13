@@ -108,6 +108,8 @@ const createPosting = async (c: Context) => {
       );
     }
 
+    console.log(posting.workflow.steps);
+
     const newPosting = new Posting({
       ...posting,
       organizationId: perms.data?.organization?._id,
@@ -242,7 +244,7 @@ const updateAts = async (c: Context) => {
 
 const updateAssignment = async (c: Context) => {
   try {
-    const { name, description, postingId, step } = await c.req.json();
+    const { name, description, postingId, step, submissionType } = await c.req.json();
 
     const perms = await checkPermission.all(c, ["manage_job"]);
     if (!perms.allowed) {
@@ -261,7 +263,7 @@ const updateAssignment = async (c: Context) => {
     const _id = new mongoose.Types.ObjectId();
     const workflowId = posting.workflow.steps[step]._id;
 
-    posting.assignments.push({ _id, name, description, workflowId });
+    posting.assignments.push({ _id, name, description, workflowId, submissionType });
     await posting.save();
 
     const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
