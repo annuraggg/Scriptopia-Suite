@@ -32,19 +32,20 @@ jobs:
           sudo apt install ./mongodb-database-tools-*.deb
           echo "MongoDB tools installed successfully."
 
-      - name: Install Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '14.x'
-
-      - name: Install npm dependencies
+      - name: Install Node.js and dependencies
         run: |
+          echo "Installing Node.js..."
+          sudo apt-get install -y nodejs
+          echo "Node.js installed."
+
           echo "Installing npm dependencies..."
-          npm install
+          cd backups
+          npm i
           echo "npm dependencies installed."
 
       - name: Run backup
         run: |
           echo "Starting backup process..."
-          node backups/makeBackup.js
+          cd backups
+          node makeBackup.js
           echo "Backup process completed."
