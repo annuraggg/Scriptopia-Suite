@@ -11,7 +11,7 @@ interface Member {
   user?: string;
   email: string;
   role: string;
-  addedOn: Date;
+  createdAt: Date;
   notifications?: Notification[];
   status: "pending" | "active";
 }

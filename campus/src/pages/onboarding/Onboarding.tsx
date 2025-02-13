@@ -22,6 +22,11 @@ const Onboarding = () => {
   const [instituteEmail, setInstituteEmail] = useState<string>("");
   const [instituteWebsite, setInstituteWebsite] = useState<string>("");
   const [instituteAddress, setInstituteAddress] = useState<string>("");
+  const [instituteStreetAddress, setInstituteStreetAddress] = useState<string>("");
+  const [instituteCity, setInstituteCity] = useState<string>("");
+  const [instituteState, setInstituteState] = useState<string>("");
+  const [instituteCountry, setInstituteCountry] = useState<string>("");
+  const [instituteZipCode, setInstituteZipCode] = useState<string>("");
 
   const [invitedMembers, setInvitedMembers] = useState<InvitedMember[]>([]);
 
@@ -49,6 +54,16 @@ const Onboarding = () => {
           setInstituteWebsite={setInstituteWebsite}
           instituteAddress={instituteAddress}
           setInstituteAddress={setInstituteAddress}
+          instituteStreetAddress={instituteStreetAddress}
+          setInstituteStreetAddress={setInstituteStreetAddress}
+          instituteCity={instituteCity}
+          setInstituteCity={setInstituteCity}
+          instituteState={instituteState}
+          setInstituteState={setInstituteState}
+          instituteCountry={instituteCountry}
+          setInstituteCountry={setInstituteCountry}
+          instituteZipCode={instituteZipCode}
+          setInstituteZipCode={setInstituteZipCode}
         />
       ),
     },
@@ -69,7 +84,9 @@ const Onboarding = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const websiteRegex = /^(http|https):\/\/[^ "]+$/;
 
-    if (!instituteName || !instituteEmail || !instituteWebsite || !instituteAddress) {
+    if (!instituteName || !instituteEmail || !instituteWebsite ||
+      !instituteStreetAddress || !instituteCity || !instituteState ||
+      !instituteCountry || !instituteZipCode) {
       toast.error("Please fill all fields");
       return false;
     }
@@ -101,7 +118,13 @@ const Onboarding = () => {
         name: instituteName,
         email: instituteEmail,
         website: instituteWebsite,
-        address: instituteAddress,
+        address: {
+          street: instituteStreetAddress,
+          city: instituteCity,
+          state: instituteState,
+          country: instituteCountry,
+          zipCode: instituteZipCode
+        },
         members: invitedMembers,
       })
       .then(() => {
@@ -132,13 +155,12 @@ const Onboarding = () => {
           {steps.map((_s, i) => (
             <div
               className={`w-14 h-3 rounded-full transition-colors
-              ${
-                currentStep === i
+              ${currentStep === i
                   ? "bg-success-200"
                   : currentStep > i
-                  ? "bg-success-300"
-                  : "bg-gray-700 opacity-50"
-              }
+                    ? "bg-success-300"
+                    : "bg-gray-700 opacity-50"
+                }
               `}
             ></div>
           ))}

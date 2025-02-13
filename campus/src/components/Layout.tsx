@@ -10,14 +10,14 @@ import { useEffect, useState } from "react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { MemberWithPermission as MWP } from "@shared-types/MemberWithPermission";
-import { OrganizationWithPostings as OWP } from "@/types/RootContext";
+import { InstituteWithDrives as IWD } from "@/types/RootContext";
 import { Menu } from "lucide-react";
 import { Button } from "@nextui-org/react";
 import { AnimatePresence, motion } from "framer-motion";
 
 const Layout = () => {
   const [notifications, setNotifications] = useState([]);
-  const [organization, setOrganization] = useState<OWP>({} as OWP);
+  const [institute, setInstitute] = useState<IWD>({} as IWD);
   const [user, setUser] = useState<MWP>({} as MWP);
   const [rerender, setRerender] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -44,7 +44,7 @@ const Layout = () => {
     axios
       .get("/institutes")
       .then((res) => {
-        setOrganization(res.data.data.organization);
+        setInstitute(res.data.data.institute);
         setUser(res.data.data.user);
         setNotifications(res.data.data.notifications);
       })
@@ -56,8 +56,8 @@ const Layout = () => {
       });
   }, []);
 
-  const updateOrganization = (newOrganization: OWP) => {
-    setOrganization(newOrganization);
+  const updateOrganization = (newOrganization: IWD) => {
+    setInstitute(newOrganization);
     setRerender(!rerender);
   };
 
@@ -115,7 +115,7 @@ const Layout = () => {
                 >
                   <Sidebar
                     notifications={notifications}
-                    org={organization}
+                    institute={institute}
                     user={user}
                     isMobile={isMobile}
                     onClose={() => setIsMobileMenuOpen(false)}
@@ -131,7 +131,7 @@ const Layout = () => {
                 context={{
                   notifications,
                   user,
-                  organization,
+                  institute,
                   setOrganization: updateOrganization,
                   rerender,
                 }}

@@ -26,6 +26,7 @@ import { Candidate } from "@shared-types/Candidate";
 import { UserJSON } from "@clerk/backend";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
 import { UserMeta } from "@shared-types/UserMeta";
+import { User as IUser } from "@shared-types/User";
 
 const createInstitute = async (c: Context) => {
   try {
@@ -54,7 +55,7 @@ const createInstitute = async (c: Context) => {
     }
 
     const userInInstitute = await Institute.findOne({
-      "members.user": uid
+      "members.user": uid,
     });
     if (userInInstitute) {
       return sendError(c, 400, "User is already part of an institute");
@@ -66,24 +67,27 @@ const createInstitute = async (c: Context) => {
         return sendError(c, 400, "Please fill all fields for members");
       }
       if (!emailRegex.test(member.email)) {
-        return sendError(c, 400, `Invalid email address for member: ${member.email}`);
+        return sendError(
+          c,
+          400,
+          `Invalid email address for member: ${member.email}`
+        );
       }
-      
-      const user = await User.findOne({ email: member.email });
+
       const role = defaultInstituteRoles.find(
         (r) => r.name.toLowerCase() === member.role.toLowerCase()
       );
-      
+
       if (!role) {
         return sendError(c, 400, `Invalid role for member: ${member.email}`);
       }
 
       membersArr.push({
-        user: user?._id || null,
+        user: uid || null,
         email: member.email,
-        role: role,
+        role: role?.slug,
         addedOn: new Date(),
-        status: "pending"
+        status: "pending",
       });
     }
 
@@ -97,32 +101,32 @@ const createInstitute = async (c: Context) => {
     membersArr.push({
       user: uid,
       email: clerkUser.emailAddresses[0].emailAddress,
-      role: adminRole,
+      role: adminRole?.slug,
       addedOn: new Date(),
-      status: "active"
+      status: "active",
     });
 
     const auditLog = {
       user: `${fName} ${lName}`,
       userId: uid as string,
       action: "Institute Created",
-      type: "info"
+      type: "info",
     };
 
-    const addressParts = address.split(',').map((part: string) => part.trim());
-    const formattedAddress = {
-      street: addressParts[0] || '',
-      city: addressParts[1] || '',
-      state: addressParts[2] || '',
-      country: addressParts[3] || '',
-      zipCode: addressParts[4] || ''
-    };
+    // const addressParts = address.split(',').map((part: string) => part.trim());
+    // const formattedAddress = {
+    //   street: addressParts[0] || '',
+    //   city: addressParts[1] || '',
+    //   state: addressParts[2] || '',
+    //   country: addressParts[3] || '',
+    //   zipCode: addressParts[4] || ''
+    // };
 
     const institute = await Institute.create({
       name,
       email,
       website,
-      address: formattedAddress,
+      address,
       members: membersArr,
       roles: defaultInstituteRoles,
       subscription: {
@@ -132,9 +136,9 @@ const createInstitute = async (c: Context) => {
         endsOn: new Date(new Date().setDate(new Date().getDate() + 15)),
         maxStudents: 50,
         maxFaculty: 10,
-        features: []
+        features: [],
       },
-      auditLogs: [auditLog]
+      auditLogs: [auditLog],
     });
 
     await clerkClient.users.updateUser(clerkUserId, {
@@ -143,9 +147,9 @@ const createInstitute = async (c: Context) => {
         institute: {
           id: institute._id,
           name: institute.name,
-          role: adminRole
-        }
-      }
+          role: adminRole,
+        },
+      },
     });
 
     for (const member of members) {
@@ -158,27 +162,30 @@ const createInstitute = async (c: Context) => {
         institute: institute._id,
         inviter: fName || "",
         inviterId: uid,
-        institutename: name
+        institutename: name,
       };
       const token = jwt.sign(reqObj, process.env.JWT_SECRET!);
-      
+
       try {
         await loops.sendTransactionalEmail({
           transactionalId: process.env.LOOPS_INVITE_EMAIL!,
           email: member.email,
           dataVariables: {
             inviter: fName || "",
-            joinlink: `${process.env.ENTERPRISE_FRONTEND_URL!}/join?token=${token}`,
-            institutename: name
-          }
+            joinlink: `${process.env
+              .ENTERPRISE_FRONTEND_URL!}/join?token=${token}`,
+            institutename: name,
+          },
         });
       } catch (error) {
-        logger.error(`Failed to send invite email to ${member.email}: ${error}`);
+        logger.error(
+          `Failed to send invite email to ${member.email}: ${error}`
+        );
       }
     }
 
     return sendSuccess(c, 201, "Institute created successfully", {
-      institute: institute._id
+      institute: institute._id,
     });
   } catch (error) {
     logger.error(`Failed to create institute: ${error}`);
@@ -418,7 +425,7 @@ const updateInstitute = async (c: Context) => {
     await Promise.all(
       existingMembers.map(async (newMember: Member) => {
         const oldMember = oldMembers.find((m) => m.email === newMember.email);
-        if (!oldMember?._id || oldMember.role?.slug === newMember.role) return;
+        if (!oldMember?._id || oldMember.role === newMember.role) return;
         try {
           const user = await User.findById(oldMember._id);
           if (!user?.clerkId) return;
@@ -654,9 +661,7 @@ const updateMembers = async (c: Context) => {
     }`.trim();
 
     const oldMemberEmails = institute.members.map((member) => member.email);
-    const newMemberEmails = members.map(
-      (member: Member) => member.email
-    );
+    const newMemberEmails = members.map((member: Member) => member.email);
     const removedMemberEmails = oldMemberEmails.filter(
       (email) => !newMemberEmails.includes(email)
     );
@@ -703,7 +708,7 @@ const updateMembers = async (c: Context) => {
         (m) => m.email === newMember.email
       );
       if (!oldMember || !oldMember._id) return;
-      if (oldMember.role?.slug !== newMember.role) {
+      if (oldMember.role !== newMember.role) {
         metadataUpdates.push(async () => {
           try {
             const user = await User.findById(oldMember._id);
@@ -746,18 +751,14 @@ const updateMembers = async (c: Context) => {
     );
 
     if (oldPendingMembers.length !== newPendingMembers.length) {
-      const newPendingEmails = newPendingMembers.map(
-        (m: Member) => m.email
-      );
+      const newPendingEmails = newPendingMembers.map((m: Member) => m.email);
       const oldPendingEmails = oldPendingMembers.map((m) => m.email);
       const newInviteEmails = newPendingEmails.filter(
         (email: string) => !oldPendingEmails.includes(email)
       );
       await Promise.all(
         newInviteEmails.map(async (email: string) => {
-          const member = members.find(
-            (m: Member) => m.email === email
-          );
+          const member = members.find((m: Member) => m.email === email);
           const reqObj = {
             email,
             role: member.role.name,
@@ -1034,8 +1035,7 @@ const getInstitute = async (c: Context): Promise<any> => {
     const institute = await Institute.findOne({
       "members.user": userId,
     })
-      .populate("postings")
-      .populate("members.user")
+      .populate<{ user: IUser }>("members.user")
       .lean();
 
     if (!institute) {
@@ -1043,7 +1043,7 @@ const getInstitute = async (c: Context): Promise<any> => {
     }
 
     const member = institute.members.find(
-      (m) => m?._id?._id?.toString() === userId
+      (m) => m?.user?._id?.toString() === userId.toString()
     );
 
     if (!member?.role) {
@@ -1068,9 +1068,7 @@ const getInstitute = async (c: Context): Promise<any> => {
     ];
 
     const [selectedInstitute, userDoc] = await Promise.all([
-      Institute.findById(institute._id)
-        .populate("postings")
-        .select(fieldsToSelect.join(" ")),
+      Institute.findById(institute._id).select(fieldsToSelect.join(" ")),
       User.findOne({ _id: userId }).lean(),
     ]);
 
@@ -1080,9 +1078,10 @@ const getInstitute = async (c: Context): Promise<any> => {
 
     const user: MemberWithPermission = {
       ...member, // @ts-expect-error - TS sucks
-      userInfo: userDetails,
+      _id: member._id,
+      // userInfo: userDetails,
       permissions: role.permissions,
-      addedOn: member.addedOn || new Date(),
+      createdAt: member.createdAt || new Date(),
     };
 
     const logoUrl = selectedInstitute.logo;
