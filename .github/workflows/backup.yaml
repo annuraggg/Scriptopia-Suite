@@ -3,8 +3,8 @@ name: Backup
 on:
   schedule:
     - cron: '21 15 * * *'  # Schedule: Runs at 15:21 UTC every day
-  # push:
-  #   branches: [main, dev] 
+  push:
+    branches: [main, dev] 
 
 jobs:
   backup:
@@ -27,6 +27,11 @@ jobs:
         with:
           path: backups  # Ensures code is checked out into the 'backups' folder
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
       - name: Install mongo-tools
         run: |
           echo "Installing MongoDB tools..."
@@ -34,20 +39,16 @@ jobs:
           sudo apt install ./mongodb-database-tools-*.deb
           echo "MongoDB tools installed successfully."
 
-      - name: Install Node.js and dependencies
+      - name: Install npm dependencies
         run: |
-          echo "Installing Node.js..."
-          sudo apt-get install -y nodejs
-          echo "Node.js installed."
-
           echo "Installing npm dependencies..."
-          cd backups
-          npm i
+          cd backups  # Make sure you're in the backups directory
+          npm install  # Ensure dependencies are installed from package.json inside backups
           echo "npm dependencies installed."
 
       - name: Run backup
         run: |
           echo "Starting backup process..."
-          cd backups
-          node makeBackup.js
+          cd backups  # Make sure you're in the backups directory
+          node makeBackup.js  # Run your backup script
           echo "Backup process completed."
