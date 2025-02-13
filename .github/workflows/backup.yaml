@@ -24,8 +24,6 @@ jobs:
     steps:
       - name: Checkout Code  
         uses: actions/checkout@v2
-        with:
-          path: backups  # Ensures code is checked out into the 'backups' folder
 
       - name: Install mongo-tools
         run: |
