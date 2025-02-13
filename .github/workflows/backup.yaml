@@ -37,6 +37,7 @@ jobs:
       - name: Install Node.js and dependencies
         with:
           path: backups 
+
         run: |
           echo "Installing Node.js..."
           sudo apt-get install -y nodejs
@@ -49,6 +50,7 @@ jobs:
       - name: Run backup
         with:
           path: backups 
+          
         run: |
           echo "Starting backup process..."
           node makeBackup.js
