@@ -54,8 +54,8 @@ const Sidebar = () => {
       icon: ClockAlert,
       label: "Alerts",
       link: "/alerts",
-      visible: true
-    }
+      visible: true,
+    },
   ];
 
   const bottomItems: SidebarProps[] = [
@@ -80,7 +80,7 @@ const Sidebar = () => {
   ];
 
   const [active, setActive] = useState("dashboard");
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,16 +90,16 @@ const Sidebar = () => {
   return (
     <>
       <aside
-        className={` sticky h-[100vh] min-w-16 px-5 top-0 left-0 z-10 hidden transition-width flex-col border-r bg-background sm:flex overflow-x-hidden ${
+        className={`bg-foreground text-background sticky h-[100vh] min-w-16 px-5 top-0 left-0 z-10 hidden transition-width flex-col border-r sm:flex overflow-x-hidden ${
           collapsed ? "w-16" : "w-64"
         }`}
       >
         <nav className={`flex flex-col gap-4 sm:py-5 `}>
           <div>
             <img
-              src="/logo.png"
+              src="/logo.svg"
               alt="logo"
-              className="cursor-pointer h-6"
+              className="cursor-pointer h-8"
               onClick={() => {
                 window.location.href = "/";
               }}
@@ -112,11 +112,11 @@ const Sidebar = () => {
                 <tbody
                   className={`cursor-pointer h-8 ${
                     active === item.label.toLowerCase()
-                      ? " text-white-500 rounded-xl"
-                      : "text-muted-foreground opacity-50 hover:text-white"
+                      ? "rounded-xl"
+                      : "hover:opacity-70"
                   } `}
                   onClick={() => {
-                    navigate("/dashboard"+ item.link);
+                    navigate("/dashboard" + item.link);
                     setActive(item.label.toLowerCase());
                   }}
                 >
@@ -143,8 +143,8 @@ const Sidebar = () => {
                 <tbody
                   className={`cursor-pointer h-7 ${
                     active === item.label.toLowerCase()
-                      ? " text-white rounded-xl"
-                      : "text-muted-foreground opacity-50 hover:text-white"
+                      ? "rounded-xl"
+                      : "hover:opacity-70"
                   } `}
                   onClick={() => {
                     navigate("/dashboard" + item.link);
@@ -181,7 +181,7 @@ const Sidebar = () => {
         <div className={` flex w-full mb-5 `}>
           <Tooltip content="Collapse sidebar" placement="right">
             <ChevronRight
-              className={`h-5 w-5 text-muted-foreground transition-all  opacity-50 ${
+              className={`h-5 w-5 transition-all cursor-pointer ${
                 !collapsed ? "rotate-180" : ""
               }`}
               onClick={() => setCollapsed(!collapsed)}

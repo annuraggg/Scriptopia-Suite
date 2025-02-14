@@ -40,6 +40,7 @@ const createCandidate = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
+    console.log(auth)
     const candidate = await Candidate.findOne({ userId: auth._id });
 
     if (candidate) {
