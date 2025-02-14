@@ -27,7 +27,7 @@ const General = () => {
   const newLogoRef = useRef<AvatarEditor>(null);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  const { organization, setOrganization } =
+  const { institute, setInstitute } =
     useOutletContext() as SettingsContext;
 
   const { getToken } = useAuth();
@@ -36,7 +36,7 @@ const General = () => {
   const handleInputChange =
     (key: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
       console.log(key, e.target.value);
-      setOrganization({ ...organization, [key]: e.target.value });
+      setInstitute({ ...institute, [key]: e.target.value });
     };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,7 +50,7 @@ const General = () => {
   const updateLogo = () => {
     const canvas = newLogoRef.current?.getImage().toDataURL("image/png");
     axios
-      .post("organizations/settings/logo", { logo: canvas })
+      .post("institutes/settings/logo", { logo: canvas })
       .then(() => {
         toast.success("Logo updated successfully");
         onOpenChange();
@@ -65,15 +65,15 @@ const General = () => {
     <>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem>{organization.name}</BreadcrumbItem>
+          <BreadcrumbItem>{institute.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/general"}>General</BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <div className="p-5 px-10">
         <div className="w-fit">
-          {organization.logo ? (
-            <Image src={organization.logo} width={200} height={200} />
+          {institute?.logo ? (
+            <Image src={institute.logo} width={200} height={200} />
           ) : (
             <p className="mt-5 text-center text-sm opacity-50">
               No Logo. Upload one to make your organization look better.
@@ -144,7 +144,7 @@ const General = () => {
         <div className="flex gap-3 w-[50%] items-center mt-10">
           <p className="w-[40%]">Company Name</p>
           <Input
-            value={organization.name}
+            value={institute?.name}
             onChange={handleInputChange("name")}
           />
         </div>
@@ -152,7 +152,7 @@ const General = () => {
         <div className="flex gap-3 w-[50%] items-center mt-3">
           <p className="w-[40%]">Company Email</p>
           <Input
-            value={organization.email}
+            value={institute?.email}
             onChange={handleInputChange("email")}
           />
         </div>
@@ -160,7 +160,7 @@ const General = () => {
         <div className="flex gap-3 w-[50%] items-center mt-3">
           <p className="w-[40%]">Company Website</p>
           <Input
-            value={organization.website}
+            value={institute?.website}
             onChange={handleInputChange("website")}
           />
         </div>

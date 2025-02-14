@@ -47,6 +47,7 @@ const Layout = () => {
         setInstitute(res.data.data.institute);
         setUser(res.data.data.user);
         setNotifications(res.data.data.notifications);
+        console.log(res.data.data.institute);
       })
       .catch((err) => {
         toast.error(err.response.data.message || "An error occurred");
@@ -132,7 +133,7 @@ const Layout = () => {
                   notifications,
                   user,
                   institute,
-                  setOrganization: updateOrganization,
+                  setInstitute: updateOrganization,
                   rerender,
                 }}
               />

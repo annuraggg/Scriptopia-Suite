@@ -1,6 +1,6 @@
 import { Institute } from "@shared-types/Instititue";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
-import { Notification, Organization } from "@shared-types/Organization";
+import { Notification } from "@shared-types/Organization";
 import { Posting } from "@shared-types/Posting";
 
 interface InstituteWithDrives extends Omit<Institute, "drives"> {
@@ -9,8 +9,8 @@ interface InstituteWithDrives extends Omit<Institute, "drives"> {
 
 interface RootContext {
   user: MemberWithPermission;
-  organization: InstituteWithDrives;
-  setOrganization: (organization: InstituteWithDrives) => void;
+  institute: InstituteWithDrives;
+  setInstitute: (institute: InstituteWithDrives) => void;
   notifications: Notification[];
   rerender: boolean;
 }

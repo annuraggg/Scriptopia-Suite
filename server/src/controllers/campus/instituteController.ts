@@ -145,7 +145,7 @@ const createInstitute = async (c: Context) => {
       publicMetadata: {
         ...clerkUser.publicMetadata,
         institute: {
-          id: institute._id,
+          _id: institute._id,
           name: institute.name,
           role: adminRole,
         },
@@ -357,6 +357,7 @@ const getSettings = async (c: Context) => {
 const updateInstitute = async (c: Context) => {
   try {
     const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
+    console.log(perms);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
@@ -365,6 +366,7 @@ const updateInstitute = async (c: Context) => {
       return sendError(c, 404, "Institute not found");
     }
     const body = await c.req.json();
+    console.log(body.departments);
 
     const institute = await Institute.findById(instituteId).lean();
     if (!institute) {
@@ -507,6 +509,7 @@ const updateInstitute = async (c: Context) => {
       action: "Institute Updated",
       type: "info",
     };
+    console.log("abc")
 
     const updatedInstitute = await Institute.findByIdAndUpdate(
       instituteId,
@@ -516,6 +519,7 @@ const updateInstitute = async (c: Context) => {
       },
       { new: true }
     );
+      console.log(updatedInstitute)
     if (!updatedInstitute) {
       return sendError(c, 404, "Institute not found");
     }
