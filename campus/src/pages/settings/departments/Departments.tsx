@@ -14,17 +14,21 @@ import {
   ModalFooter,
   useDisclosure,
 } from "@nextui-org/react";
-import { Department } from "@shared-types/Organization";
+import { Department } from "@shared-types/Instititue";
 import { useOutletContext } from "react-router-dom";
 import { SettingsContext } from "@/types/SettingsContext";
 
 const Departments: React.FC = () => {
-  const { organization, setOrganization } =
+  const { institute, setInstitute } =
     useOutletContext() as SettingsContext;
+    console.log(institute);
 
   const [newDepartment, setNewDepartment] = useState<Omit<Department, "_id">>({
     name: "",
     description: "",
+    head: "",
+    faculty: [],
+    courses: [],
   });
 
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(
@@ -47,11 +51,17 @@ const Departments: React.FC = () => {
       return;
     }
 
-    const newOrg = { ...organization };
+    const newOrg = { ...institute };
     newOrg.departments = [...(newOrg.departments || []), newDepartment];
-    setOrganization(newOrg);
+    setInstitute(newOrg);
     onOpenChange();
-    setNewDepartment({ name: "", description: "" });
+    setNewDepartment({
+      name: "",
+      description: "",
+      head: "",
+      faculty: [],
+      courses: [],
+    });
   };
 
   const updateDepartment = () => {
@@ -61,18 +71,24 @@ const Departments: React.FC = () => {
       return;
     }
 
-    const newOrg = { ...organization };
+    const newOrg = { ...institute };
     newOrg.departments = newOrg.departments?.map((dept) =>
       dept._id === editingDepartment._id ? editingDepartment : dept
     );
-    setOrganization(newOrg);
+    setInstitute(newOrg);
     onEditOpenChange();
-    setNewDepartment({ name: "", description: "" });
+    setNewDepartment({
+      name: "",
+      description: "",
+      head: "",
+      faculty: [],
+      courses: [],
+    });
   };
 
   const deleteDepartment = (id: string, name: string) => {
 
-    const newOrg = { ...organization };
+    const newOrg = { ...institute };
 
     if (id) {
       newOrg.departments = newOrg.departments?.filter(
@@ -84,14 +100,14 @@ const Departments: React.FC = () => {
       );
     }
 
-    setOrganization(newOrg);
+    setInstitute(newOrg);
   };
 
   return (
     <div>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem>{organization.name}</BreadcrumbItem>
+          <BreadcrumbItem>{institute.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/departments"}>
             Departments
@@ -105,14 +121,14 @@ const Departments: React.FC = () => {
               + Add Department
             </Button>
             <div className="space-y-4 h-full">
-              {organization?.departments?.map((dept) => (
+              {institute?.departments?.map((dept) => (
                 <Card key={dept._id}>
                   <CardBody>
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="text-lg">{dept.name}</p>
+                        <p className="text-lg">{dept?.name}</p>
                         <p className="text-sm text-gray-400">
-                          {dept.description}
+                          {dept?.description}
                         </p>
                       </div>
                       <div>
@@ -130,7 +146,7 @@ const Departments: React.FC = () => {
                           color="danger"
                           variant="flat"
                           onClick={() => {
-                            deleteDepartment(dept._id || "", dept.name);
+                            deleteDepartment(dept?._id || "", dept?.name || "");
                           }}
                         >
                           Delete
