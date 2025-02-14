@@ -509,17 +509,17 @@ const updateInstitute = async (c: Context) => {
       action: "Institute Updated",
       type: "info",
     };
-    console.log("abc")
+    console.log("abc");
 
     const updatedInstitute = await Institute.findByIdAndUpdate(
       instituteId,
       {
-        body,
+        ...body,
         $push: { auditLog: auditLog },
       },
       { new: true }
     );
-      console.log(updatedInstitute)
+
     if (!updatedInstitute) {
       return sendError(c, 404, "Institute not found");
     }
@@ -1102,7 +1102,7 @@ const getInstitute = async (c: Context): Promise<any> => {
           const base64 = Buffer.from(buffer as unknown as ArrayBuffer).toString(
             "base64"
           );
-          selectedInstitute.logo = `data:image/png;base64,${base64}`;
+          selectedInstitute.logo = `data:image/png;base64,${base64.toString()}`;
         }
       } catch (e) {
         logger.error(`Failed to fetch logo: ${e}`);
