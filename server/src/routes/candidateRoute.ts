@@ -32,5 +32,7 @@ app.get("candidate", candidateController.getCandidate);
 app.get("/", candidateController.getCandidate);
 app.post("candidate", candidateController.createCandidate);
 app.put("candidate", candidateController.updateCandidate);
+app.put("/resume", candidateController.updateResume);
+app.get("resume", candidateController.getResume);
 
 export default app;

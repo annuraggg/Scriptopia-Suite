@@ -10,6 +10,7 @@ import Posting from "./pages/posting/Posting";
 import jobRoutes from "./routes/jobroutes";
 import JobsLayout from "./pages/jobs/JobsLayout";
 import Apply from "./pages/posting/apply/Apply";
+import Resume from "./pages/resume/Resume";
 
 function App() {
   const router = createBrowserRouter([
@@ -52,6 +53,10 @@ function App() {
           path: "jobs",
           element: <JobsLayout />,
           children: [...jobRoutes],
+        },
+        {
+          path: "resume",
+          element: <Resume />,
         },
       ],
     },

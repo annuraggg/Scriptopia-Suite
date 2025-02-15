@@ -1,21 +1,39 @@
 import { useEffect, useState } from "react";
 import { useAuth, useUser } from "@clerk/clerk-react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import ax from "@/config/axios";
-import { Button, Card, CardBody, CardHeader, Chip } from "@nextui-org/react";
 import {
-  ArrowRight,
-  Clock,
-  Building2,
-  Workflow,
-  CalendarRange,
-  BriefcaseBusiness,
-} from "lucide-react";
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Chip,
+  Divider,
+  useDisclosure,
+} from "@nextui-org/react";
+import {
+  IconBriefcase,
+  IconBuilding,
+  IconCalendar,
+  IconClock,
+  IconMapPin,
+  IconBone as IconMoney,
+  IconUsers,
+  IconAdjustments as IconDepartment,
+  IconEscalator as IconSteps,
+  IconArrowNarrowRight,
+} from "@tabler/icons-react";
 import { Posting as PostingType } from "@shared-types/Posting";
 import { Organization } from "@shared-types/Organization";
 import Quill from "quill";
 import Loader from "@/components/Loader";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+} from "@nextui-org/react";
 
 const routineMap = {
   full_time: "Full Time",
@@ -31,7 +49,6 @@ interface PostingOrganization extends Omit<PostingType, "organizationId"> {
 }
 
 const Posting = () => {
-  const navigate = useNavigate();
   const { getToken } = useAuth();
   const axios = ax(getToken);
   const [loading, setLoading] = useState(false);
@@ -40,6 +57,7 @@ const Posting = () => {
   );
   const [applied, setApplied] = useState(false);
   const [timeLeft, setTimeLeft] = useState("");
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const { user } = useUser();
 
@@ -96,94 +114,148 @@ const Posting = () => {
   };
 
   const apply = () => {
-    navigate("/postings/" + posting?.url + "/apply?id=" + posting?._id);
+    onOpen();
   };
 
   if (loading) {
     return <Loader />;
   }
 
+  const isJobOpen = new Date(posting?.applicationRange?.end) > new Date();
+
   return (
-    <div className="p-10">
-      <div className="flex justify-between">
-        <h2>{posting?.title}</h2>
-        {applied ? (
-          <Chip color="success" variant="flat">
-            Applied
-          </Chip>
-        ) : (
-          <Button onClick={apply} color="warning" variant="flat">
-            Apply Now
-          </Button>
-        )}
-      </div>
-
-      <div className="flex gap-5">
-        {new Date(posting?.applicationRange?.end) > new Date() ? (
-          <Chip color="success" variant="flat">
-            Open
-          </Chip>
-        ) : (
-          <Chip color="danger" variant="flat">
-            Closed
-          </Chip>
-        )}
-
-        <div className="flex gap-2">
-          <Building2 size={24} />
-          <p>{posting?.organizationId?.name}</p>
+    <div className="max-w-7xl mx-auto px-4 py-8 bg-gray-50 min-h-screen">
+      {/* Header Section */}
+      <div className="bg-white rounded-xl p-8 shadow-sm">
+        <div className="flex justify-between items-start">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-16 w-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                <IconBuilding className="h-8 w-8 text-gray-600" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800">
+                  {posting?.title}
+                </h1>
+                <p className="text-gray-600">{posting?.organizationId?.name}</p>
+              </div>
+            </div>
+            <div className="flex gap-3 flex-wrap">
+              <Chip
+                startContent={<IconClock size={16} />}
+                color={isJobOpen ? "success" : "danger"}
+                variant="flat"
+              >
+                {isJobOpen ? "Active" : "Closed"}
+              </Chip>
+              <Chip
+                startContent={<IconBriefcase size={16} />}
+                color="primary"
+                variant="flat"
+              >
+                {" "}
+                {/* @ts-expect-error */}
+                {routineMap[posting?.type]}
+              </Chip>
+              <Chip
+                startContent={<IconMapPin size={16} />}
+                color="secondary"
+                variant="flat"
+              >
+                {posting?.location}
+              </Chip>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            {applied ? (
+              <Button color="success" variant="flat" disabled>
+                Application Submitted
+              </Button>
+            ) : (
+              <Button
+                onClick={apply}
+                color="primary"
+                className="font-semibold"
+                size="lg"
+              >
+                Apply Now
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="flex gap-5 mt-5 min-h-[50vh]">
-        <div className="min-w-[70%] h-full">
-          <Card>
-            <CardHeader className="p-5">
-              <CalendarRange />
-              <h5 className="ml-3">Hiring Period</h5>
-            </CardHeader>
-            <CardBody className="flex flex-row items-center justify-between w-full p-10 pt-0">
-              <div className="flex justify-center items-center gap-10">
-                <div>
-                  <p className="opacity-50 text-sm">Posted At</p>
-                  <p className="mt-2 text-xl">
-                    {new Date(posting?.createdAt || "").toDateString()}
-                  </p>
-                </div>
-                <ArrowRight size={40} className="opacity-50" />
-                <div>
-                  <p className="opacity-50 text-sm">Deadline</p>
-                  <p className="mt-2 text-xl">
-                    {new Date(
-                      posting?.applicationRange?.end || ""
-                    ).toDateString()}
-                  </p>
-                </div>
+      <div className="grid grid-cols-3 gap-6 mt-6">
+        {/* Main Content - Left 2 Columns */}
+        <div className="col-span-2 space-y-6">
+          {/* Timeline Card */}
+          <Card className="shadow-sm">
+            <CardHeader className="px-6 py-4">
+              <div className="flex items-center gap-2">
+                <IconCalendar className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-semibold">Application Timeline</h3>
               </div>
-
-              <div className="self-end flex items-center">
-                <Clock size={24} />
-                <span className="ml-2">
-                  {parseInt(timeLeft) < 0 ? 0 : timeLeft} days left
-                </span>
+            </CardHeader>
+            <CardBody className="px-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-12">
+                  <div>
+                    <p className="text-sm text-gray-500">Posted On</p>
+                    <p className="text-lg font-medium mt-1">
+                      {new Date(posting?.createdAt || "").toLocaleDateString()}
+                    </p>
+                  </div>
+                  <IconArrowNarrowRight className="h-6 w-6 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-500">Deadline</p>
+                    <p className="text-lg font-medium mt-1">
+                      {new Date(
+                        posting?.applicationRange?.end || ""
+                      ).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <Chip
+                  startContent={<IconClock size={16} />}
+                  variant="flat"
+                  color={parseInt(timeLeft) < 7 ? "danger" : "primary"}
+                >
+                  {parseInt(timeLeft) < 0 ? "Closed" : `${timeLeft} remaining`}
+                </Chip>
               </div>
             </CardBody>
           </Card>
 
-          <Card className="mt-5">
-            <CardHeader className="p-5">
-              <Workflow />
-              <h5 className="ml-3">Workflow</h5>
+          {/* Job Description */}
+          <Card className="shadow-sm">
+            <CardHeader className="px-6 py-4">
+              <div className="flex items-center gap-2">
+                <IconBriefcase className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-semibold">Job Description</h3>
+              </div>
             </CardHeader>
-            <CardBody className="w-full max-h-[50vh] px-7 overflow-y-auto mb-10">
-              <div className="flex flex-col gap-5">
+            <CardBody className="px-6">
+              <div id="editor-div" className="prose max-w-none" />
+            </CardBody>
+          </Card>
+
+          {/* Application Process */}
+          <Card className="shadow-sm">
+            <CardHeader className="px-6 py-4">
+              <div className="flex items-center gap-2">
+                <IconSteps className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-semibold">Application Process</h3>
+              </div>
+            </CardHeader>
+            <CardBody className="px-6">
+              <div>
                 {posting?.workflow?.steps?.map((step, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div key={index} className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full text-sm flex items-center justify-center  font-medium">
                       {index + 1}
                     </div>
-                    <div className="flex-grow">
-                      <p className="font-medium">{step.name}</p>
+                    <div>
+                      <h6>{step.name}</h6>
                     </div>
                   </div>
                 ))}
@@ -191,306 +263,165 @@ const Posting = () => {
             </CardBody>
           </Card>
         </div>
-        <div className="w-full h-full">
-          <Card>
-            <CardHeader>
-              <h4>Job Details</h4>
+
+        {/* Right Column - Job Details */}
+        <div className="space-y-6">
+          <Card className="shadow-sm">
+            <CardHeader className="px-6 py-4">
+              <h3 className="text-lg font-semibold">Job Overview</h3>
             </CardHeader>
-            <CardBody>
+            <CardBody className="px-6">
+              <div className="space-y-6">
+                <div className="flex items-start gap-3">
+                  <IconMoney className="h-5 w-5 text-gray-500 mt-1" />
+                  <div>
+                    <p className="text-sm text-gray-500">Salary Range</p>
+                    <p className="font-medium mt-1">
+                      {posting?.salary?.min?.toLocaleString()} -{" "}
+                      {posting?.salary?.max?.toLocaleString()}{" "}
+                      {posting?.salary?.currency?.toUpperCase()}
+                    </p>
+                  </div>
+                </div>
+
+                <Divider />
+
+                <div className="flex items-start gap-3">
+                  <IconUsers className="h-5 w-5 text-gray-500 mt-1" />
+                  <div>
+                    <p className="text-sm text-gray-500">Number of Openings</p>
+                    <p className="font-medium mt-1">
+                      {posting?.openings} positions
+                    </p>
+                  </div>
+                </div>
+
+                <Divider />
+
+                <div className="flex items-start gap-3">
+                  <IconDepartment className="h-5 w-5 text-gray-500 mt-1" />
+                  <div>
+                    <p className="text-sm text-gray-500">Department</p>
+                    <p className="font-medium mt-1">
+                      {
+                        posting?.organizationId?.departments?.find(
+                          (d) => d._id === posting?.department
+                        )?.name
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card className="shadow-sm">
+            <CardHeader className="px-6 py-4">
+              <h3 className="text-lg font-semibold">About the Company</h3>
+            </CardHeader>
+            <CardBody className="px-6">
               <div>
-                <p className="text-sm opacity-50">Job Role</p>
-                <p>{posting?.title}</p>
-              </div>
-
-              <div className="mt-5">
-                <p className="text-sm opacity-50">Type</p>
-                {/* @ts-ignore */}
-                <p>{routineMap[posting?.type]}</p>
-              </div>
-
-              <div className="mt-5">
-                <p className="text-sm opacity-50">Location</p>
-                <p>{posting?.location}</p>
-              </div>
-
-              <div className="mt-5">
-                <p className="text-sm opacity-50">Salary</p>
-                <p>
-                  {posting?.salary?.min?.toLocaleString()} -{" "}
-                  {posting?.salary?.max?.toLocaleString()}{" "}
-                  {posting?.salary?.currency?.toUpperCase()}
-                </p>
-              </div>
-
-              <div className="mt-5">
-                <p className="text-sm opacity-50">Openings</p>
-                <p>{posting?.openings}</p>
-              </div>
-
-              <div className="mt-5">
-                <p className="text-sm opacity-50">Department</p>
-                <p>
-                  {
-                    posting?.organizationId?.departments?.find(
-                      (d) => d._id === posting?.department
-                    )?.name
+                <img
+                  src={
+                    posting?.organizationId?.logo || "/api/placeholder/200/100"
                   }
-                </p>
-              </div>
-
-              <div className="mt-5">
-                <p className="text-sm opacity-50">Organization</p>
-                <p>{posting?.organizationId?.name}</p>
+                  alt="Company logo"
+                  className=" rounded-2xl h-20"
+                />
+                <h4 className="font-medium text-lg">
+                  {posting?.organizationId?.name}
+                </h4>
+                <a
+                  className="text-gray-600 text-sm hover:underline hover:text-primary cursor-pointer"
+                  href={`mailto:${posting?.organizationId?.email}`}
+                >
+                  {posting?.organizationId?.email}
+                </a>
+                <br />
+                <a
+                  className="text-gray-600 text-sm hover:underline hover:text-primary cursor-pointer"
+                  href={`${posting?.organizationId?.website}`}
+                >
+                  {posting?.organizationId?.website}
+                </a>
               </div>
             </CardBody>
           </Card>
         </div>
       </div>
 
-      <Card className="mt-5">
-        <CardHeader className="p-5">
-          <BriefcaseBusiness />
-          <h5 className="ml-3">About the Job</h5>
-        </CardHeader>
-        <CardBody className="w-full max-h-[50vh] px-7 overflow-y-auto mb-10">
-          <div id="editor-div" className="max-h-[50vh] -mt-7" />
-        </CardBody>
-      </Card>
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">Apply</ModalHeader>
+              <ModalBody>
+                <p>
+                  Please note that the following details of your profile are
+                  required.
+                </p>
+
+                {posting?.additionalDetails?.basic?.summary?.required && (
+                  <p>Summary</p>
+                )}
+
+                {posting?.additionalDetails?.links?.socialLinks?.required && (
+                  <p>Social Links</p>
+                )}
+
+                {posting?.additionalDetails?.background?.education
+                  ?.required && <p>Education</p>}
+
+                {posting?.additionalDetails?.background?.workExperience
+                  ?.required && <p>Work Experience</p>}
+
+                {posting?.additionalDetails?.skills?.technicalSkills
+                  ?.required && <p>Technical Skills</p>}
+
+                {posting?.additionalDetails?.skills?.languages?.required && (
+                  <p>Languages</p>
+                )}
+
+                {posting?.additionalDetails?.skills?.subjects?.required && (
+                  <p>Subjects</p>
+                )}
+
+                {posting?.additionalDetails?.experience?.responsibilities
+                  ?.required && <p>Responsibilities</p>}
+
+                {posting?.additionalDetails?.experience?.projects?.required && (
+                  <p>Projects</p>
+                )}
+
+                {posting?.additionalDetails?.achievements?.awards?.required && (
+                  <p>Awards</p>
+                )}
+
+                {posting?.additionalDetails?.achievements?.certificates
+                  ?.required && <p>Certificates</p>}
+
+                {posting?.additionalDetails?.achievements?.competitions
+                  ?.required && <p>Competitions</p>}
+
+                <p>
+                  Please make sure these fields are updated in your profile. If
+                  not we will redirect you to the profile page to update them.
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Close
+                </Button>
+                <Button color="primary" onPress={onClose}>
+                  Apply
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
-
-  // return (
-  //   <div className="p-5">
-  //     <div className="mx-auto space-y-6">
-  //       <Card className="shadow-lg">
-  //         <CardBody className="p-6">
-  //           <div className="flex flex-col md:flex-row items-start gap-6">
-  //             <div className="w-24 h-24 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-  //               {posting?.organizationId?.logo ? (
-  //                 <img
-  //                   src={posting.organizationId.logo}
-  //                   alt="Company Logo"
-  //                   className="w-20 h-20 object-contain"
-  //                 />
-  //               ) : (
-  //                 <Building2 size={40} className="text-gray-400" />
-  //               )}
-  //             </div>
-
-  //             {/* Middle - Job Info */}
-  //             <div className="flex-grow">
-  //               <h1 className="text-2xl font-bold mb-2">{posting?.title}</h1>
-  //               <h2 className="text-lg text-gray-600 dark:text-gray-300 mb-4">
-  //                 Organization: {posting?.organizationId?.name}
-  //               </h2>
-
-  //               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-  //                 <Chip
-  //                   startContent={<Briefcase size={16} />}
-  //                   variant="flat"
-  //                   size="sm"
-  //                 >
-  //                   {routineMap[posting?.type]}
-  //                 </Chip>
-  //                 <Chip
-  //                   startContent={<MapPin size={16} />}
-  //                   variant="flat"
-  //                   size="sm"
-  //                 >
-  //                   {posting?.location}
-  //                 </Chip>
-  //                 <Chip
-  //                   startContent={<DollarSign size={16} />}
-  //                   variant="flat"
-  //                   color="success"
-  //                   size="sm"
-  //                 >
-  //                   {posting?.salary?.min?.toLocaleString()} -{" "}
-  //                   {posting?.salary?.max?.toLocaleString()}{" "}
-  //                   {posting?.salary?.currency?.toUpperCase()}
-  //                 </Chip>
-  //                 <Chip
-  //                   startContent={<Users size={16} />}
-  //                   variant="flat"
-  //                   size="sm"
-  //                 >
-  //                   {posting?.openings}{" "}
-  //                   {posting?.openings > 1 ? "Positions" : "Position"}
-  //                 </Chip>
-  //                 {posting?.department && (
-  //                   <Chip
-  //                     startContent={<p>Department: </p>}
-  //                     variant="flat"
-  //                     size="sm"
-  //                   >
-  //                     {
-  //                       posting?.organizationId?.departments?.find(
-  //                         (d) => d._id === posting?.department
-  //                       )?.name
-  //                     }
-  //                   </Chip>
-  //                 )}
-  //               </div>
-  //             </div>
-
-  //             <div className="flex flex-col items-end gap-4">
-  //               <div className="flex gap-3">
-  //                 <Tooltip content="Visit Website">
-  //                   <Link
-  //                     href={posting?.organizationId?.website}
-  //                     target="_blank"
-  //                     color="primary"
-  //                   >
-  //                     <Globe size={24} />
-  //                   </Link>
-  //                 </Tooltip>
-  //                 <Tooltip content="Send Email">
-  //                   <Link
-  //                     href={`mailto:${posting?.organizationId?.email}`}
-  //                     color="primary"
-  //                   >
-  //                     <Mail size={24} />
-  //                   </Link>
-  //                 </Tooltip>
-  //               </div>
-
-  //               <Card>
-  //                 <CardBody className="py-2 px-4">
-  //                   <div className="text-center">
-  //                     <p className="text-sm">Application Deadline</p>
-  //                     <div className="flex items-center gap-2 mt-1">
-  //                       <Clock size={16} className="text-primary" />
-  //                       <span className="font-semibold">{timeLeft} left</span>
-  //                     </div>
-  //                   </div>
-  //                 </CardBody>
-  //               </Card>
-
-  //               {applied ? (
-  //                 <Chip
-  //                   color="success"
-  //                   variant="flat"
-  //                   size="lg"
-  //                   startContent={<CheckCircle size={20} />}
-  //                 >
-  //                   Application Submitted
-  //                 </Chip>
-  //               ) : (
-  //                 <Button
-  //                   variant="flat"
-  //                   endContent={<ArrowRight size={20} />}
-  //                   onClick={apply}
-  //                   color="success"
-  //                   className="w-full"
-  //                 >
-  //                   Apply Now
-  //                 </Button>
-  //               )}
-  //             </div>
-  //           </div>
-  //         </CardBody>
-  //       </Card>
-
-  //       {/* Main Content Grid */}
-  //       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-  //         {/* Left Column - Job Details */}
-  //         <div className="md:col-span-2 space-y-6">
-  //           <Card className="shadow-md">
-  //             <CardHeader className="flex gap-3">
-  //               <FileText className="text-primary" />
-  //               <div className="flex flex-col">
-  //                 <p className="text-lg font-semibold">Job Description</p>
-  //                 <p className="text-sm text-gray-600 dark:text-gray-400">
-  //                   What you'll be doing
-  //                 </p>
-  //               </div>
-  //             </CardHeader>
-  //             <Divider />
-  //             <CardBody>
-  //               <ScrollShadow className="h-[300px]">
-  //                 <pre className="whitespace-pre-wrap text-foreground-700">
-  //                   {posting?.description}
-  //                 </pre>
-  //               </ScrollShadow>
-  //             </CardBody>
-  //           </Card>
-
-  //           <Card>
-  //             <CardHeader className="flex gap-3">
-  //               <GraduationCap className="text-primary" />
-  //               <div className="flex flex-col">
-  //                 <p className="text-lg font-semibold">Qualifications</p>
-  //                 <p className="text-sm text-gray-600 dark:text-gray-400">
-  //                   What we're looking for
-  //                 </p>
-  //               </div>
-  //             </CardHeader>
-  //             <Divider />
-  //             <CardBody>
-  //               <ScrollShadow className="h-[250px]">
-  //                 <pre className="whitespace-pre-wrap text-foreground-700">
-  //                   {posting?.qualifications}
-  //                 </pre>
-  //               </ScrollShadow>
-  //             </CardBody>
-  //           </Card>
-  //         </div>
-
-  //         {/* Right Column - Additional Info */}
-  //         <div className="space-y-6">
-  //           <Card className="shadow-md">
-  //             <CardHeader className="flex gap-3">
-  //               <Tags className="text-primary" />
-  //               <div className="flex flex-col">
-  //                 <p className="text-lg font-semibold">Required Skills</p>
-  //                 <p className="text-sm text-gray-600 dark:text-gray-400">
-  //                   Technical expertise
-  //                 </p>
-  //               </div>
-  //             </CardHeader>
-  //             <CardBody>
-  //               <div className="flex flex-wrap gap-2">
-  //                 {posting?.skills?.map((skill, i) => (
-  //                   <Chip key={i} variant="flat" size="sm">
-  //                     {skill}
-  //                   </Chip>
-  //                 ))}
-  //               </div>
-  //             </CardBody>
-  //           </Card>
-
-  //           {posting?.workflow && (
-  //             <Card className="shadow-md">
-  //               <CardHeader className="flex gap-3">
-  //                 <Workflow className="text-primary" />
-  //                 <div className="flex flex-col">
-  //                   <p className="text-lg font-semibold">Selection Process</p>
-  //                   <p className="text-sm text-gray-600 dark:text-gray-400">
-  //                     Application workflow
-  //                   </p>
-  //                 </div>
-  //               </CardHeader>
-  //               <CardBody>
-  //                 <div className="space-y-4">
-  //                   {posting.workflow.steps?.map((step, index) => (
-  //                     <div key={index} className="flex items-center gap-3">
-  //                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-  //                         {index + 1}
-  //                       </div>
-  //                       <div className="flex-grow">
-  //                         <p className="font-medium">{step.name}</p>
-  //                       </div>
-  //                     </div>
-  //                   ))}
-  //                 </div>
-  //               </CardBody>
-  //             </Card>
-  //           )}
-  //         </div>
-  //       </div>
-  //     </div>
-  //   </div>
-  // );
 };
 
 export default Posting;

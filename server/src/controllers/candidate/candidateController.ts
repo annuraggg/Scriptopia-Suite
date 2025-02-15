@@ -5,10 +5,12 @@ import Organization from "@/models/Organization";
 import Posting from "@/models/Posting";
 import logger from "@/utils/logger";
 import { sendError, sendSuccess } from "@/utils/sendResponse";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { AuditLog } from "@shared-types/Organization";
 import { Context } from "hono";
 import { PDFExtract } from "pdf.js-extract";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const getCandidate = async (c: Context) => {
   try {
@@ -40,7 +42,7 @@ const createCandidate = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    console.log(auth)
+    console.log(auth);
     const candidate = await Candidate.findOne({ userId: auth._id });
 
     if (candidate) {
@@ -83,6 +85,84 @@ const updateCandidate = async (c: Context) => {
     );
 
     return sendSuccess(c, 200, "Candidate Profile Updated", newCandidate);
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Internal Server Error");
+  }
+};
+
+const updateResume = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+
+    if (!auth) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const candidate = await Candidate.findOne({ userId: auth._id });
+
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const formData = await c.req.formData();
+    const resume = formData.get("resume");
+
+    if (!resume) {
+      return sendError(c, 400, "No file found");
+    }
+
+    const uploadParams = {
+      Bucket: process.env.R2_S3_RESUME_BUCKET!,
+      Key: `${auth._id}.pdf`,
+      Body: resume, // @ts-expect-error - Type 'File' is not assignable to type 'Body'
+      ContentType: resume.type,
+    };
+
+    const upload = new Upload({
+      client: r2Client,
+      params: uploadParams,
+    });
+
+    await upload.done();
+
+    candidate.resumeUrl = `${process.env.R2_S3_RESUME_BUCKET}/${auth._id}.pdf`;
+    await candidate.save();
+
+    return sendSuccess(c, 200, "Resume uploaded successfully", {
+      url: candidate.resumeUrl,
+    });
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Internal Server Error");
+  }
+};
+
+const getResume = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+
+    if (!auth) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const candidate = await Candidate.findOne({ userId: auth._id });
+
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    // fetch resume from s3 and send it as a response
+
+    const command = new GetObjectCommand({
+      Bucket: process.env.R2_S3_RESUME_BUCKET!,
+      Key: `${auth._id}.pdf`,
+    });
+
+    // @ts-expect-error - Type 'Promise<GetObjectOutput>' is not assignable to type 'string'
+    const url = await getSignedUrl(r2Client, command, { expiresIn: 600 });
+
+    return sendSuccess(c, 200, "Resume URL", { url });
   } catch (error) {
     logger.error(error as string);
     return sendError(c, 500, "Internal Server Error");
@@ -210,6 +290,8 @@ const extractTextFromResume = async (resume: File, candidateId: string) => {
 export default {
   getCandidate,
   createCandidate,
+  updateResume,
   updateCandidate,
   apply,
+  getResume,
 };

@@ -6,10 +6,10 @@ import {
   IconBriefcaseFilled,
   IconUserFilled,
   IconFileTextFilled,
-  IconBellFilled,
-  IconSettingsFilled,
-  IconHelpCircleFilled,
-  IconAlertCircleFilled,
+  // IconBellFilled,
+  // IconSettingsFilled,
+  // IconHelpCircleFilled,
+  // IconAlertCircleFilled,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { UserButton } from "@clerk/clerk-react";
@@ -55,34 +55,28 @@ const Sidebar = ({
       link: "/jobs",
       visible: true,
     },
-    {
-      icon: IconAlertCircleFilled,
-      label: "Alerts",
-      link: "/alerts",
-      visible: true,
-    },
+    // {
+    //   icon: IconAlertCircleFilled,
+    //   label: "Alerts",
+    //   link: "/alerts",
+    //   visible: true,
+    // },
   ];
 
   const bottomItems: SidebarProps[] = [
-    {
-      icon: IconBellFilled,
-      label: "Notifications",
-      link: "/notifications",
-      visible: true,
-      length: 3, // Example notification count
-    },
-    {
-      icon: IconSettingsFilled,
-      label: "Settings",
-      link: "/settings",
-      visible: true,
-    },
-    {
-      icon: IconHelpCircleFilled,
-      label: "Support",
-      link: "/support",
-      visible: true,
-    },
+    // {
+    //   icon: IconBellFilled,
+    //   label: "Notifications",
+    //   link: "/notifications",
+    //   visible: true,
+    //   length: 3, // Example notification count
+    // },
+    // {
+    //   icon: IconSettingsFilled,
+    //   label: "Settings",
+    //   link: "/settings",
+    //   visible: true,
+    // },
   ];
 
   const [active, setActive] = useState("dashboard");

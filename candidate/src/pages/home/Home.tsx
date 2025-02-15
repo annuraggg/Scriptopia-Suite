@@ -10,21 +10,37 @@ import {
   CheckboxGroup,
   Chip,
   Divider,
+  Input,
   Slider,
 } from "@nextui-org/react";
 import { ExtendedPosting } from "@shared-types/ExtendedPosting";
-import { Clock, DotIcon } from "lucide-react";
+import { Clock, DotIcon, Search } from "lucide-react";
+import { Delta } from "quill";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const [postings, setPostings] = useState<ExtendedPosting[]>([]);
+  const [filteredPostings, setFilteredPostings] = useState<ExtendedPosting[]>(
+    []
+  );
   const [loading, setLoading] = useState(false);
+  const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
+  const [salaryRange, setSalaryRange] = useState([0, 1000000]);
+  const [searchQuery, setSearchQuery] = useState("");
+
   const { getToken } = useAuth();
+  const navigate = useNavigate();
   const axios = ax(getToken);
 
   useEffect(() => {
     fetchPostings();
   }, []);
+
+  // Apply filters whenever the filter values or postings change
+  useEffect(() => {
+    applyFilters();
+  }, [selectedJobTypes, salaryRange, postings, searchQuery]);
 
   const fetchPostings = async () => {
     setLoading(true);
@@ -32,14 +48,64 @@ const Home = () => {
       const response = await axios.get("/postings/candidate/postings");
       if (response.data?.data) {
         setPostings(response.data.data);
-        console.log("Postings:", response.data.data);
+        setFilteredPostings(response.data.data);
       }
     } catch (err) {
       console.error("Failed to fetch job postings:", err);
       setPostings([]);
+      setFilteredPostings([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  const applyFilters = () => {
+    let filtered = [...postings];
+
+    // Apply job type filter
+    if (selectedJobTypes.length > 0) {
+      filtered = filtered.filter((posting) =>
+        selectedJobTypes.includes(posting.type.toLowerCase())
+      );
+    }
+
+    // Apply salary filter
+    filtered = filtered.filter((posting) => {
+      const minSalary = posting.salary?.min || 0;
+      const maxSalary = posting.salary?.max || 0;
+
+      // Check if the salary range overlaps with the filter range
+      return (
+        (minSalary >= salaryRange[0] && minSalary <= salaryRange[1]) ||
+        (maxSalary >= salaryRange[0] && maxSalary <= salaryRange[1]) ||
+        (minSalary <= salaryRange[0] && maxSalary >= salaryRange[1])
+      );
+    });
+
+    // Apply search query filter
+    if (searchQuery) {
+      filtered = filtered.filter((posting) =>
+        posting.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    setFilteredPostings(filtered);
+  };
+
+  const handleJobTypeChange = (values: string[]) => {
+    setSelectedJobTypes(values);
+  };
+
+  const handleSalaryChange = (value: number | number[]) => {
+    if (Array.isArray(value)) {
+      setSalaryRange(value);
+    }
+  };
+
+  const clearFilters = () => {
+    setSelectedJobTypes([]);
+    setSalaryRange([0, 1000]);
+    setFilteredPostings(postings);
   };
 
   const normalizeText = (text: string) => {
@@ -61,16 +127,29 @@ const Home = () => {
     <div className="flex p-10 gap-5">
       <div className="flex flex-col gap-5 w-[25%]">
         <Card>
+          <Input
+            placeholder="Search"
+            startContent={<Search size={16} />}
+            className="w-full"
+            variant="bordered"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </Card>
+        <Card>
           <CardHeader className="flex items-center justify-between">
             <p>Job Type</p>
-            <Button variant="light" color="danger">
+            <Button variant="light" color="danger" onClick={clearFilters}>
               Clear
             </Button>
           </CardHeader>
           <CardBody>
-            <CheckboxGroup>
-              <Checkbox value="full-time">Full Time</Checkbox>
-              <Checkbox value="part-time">Part Time</Checkbox>
+            <CheckboxGroup
+              value={selectedJobTypes}
+              onChange={handleJobTypeChange}
+            >
+              <Checkbox value="full_time">Full Time</Checkbox>
+              <Checkbox value="part_time">Part Time</Checkbox>
               <Checkbox value="contract">Contract</Checkbox>
               <Checkbox value="internship">Internship</Checkbox>
               <Checkbox value="temporary">Temporary</Checkbox>
@@ -84,19 +163,21 @@ const Home = () => {
           </CardHeader>
           <CardBody>
             <Slider
-              defaultValue={[100, 500]}
+              value={salaryRange}
+              onChange={handleSalaryChange}
               formatOptions={{ style: "currency", currency: "USD" }}
-              label="Price Range"
-              maxValue={1000}
+              label=" "
+              maxValue={1000000}
               minValue={0}
               step={50}
+              className="max-w-md"
             />
           </CardBody>
         </Card>
       </div>
-      <div className="h-[88vh] w-full flex gap-5">
-        {postings?.map((posting) => (
-          <Card className="w-[450px] h-[230px]">
+      <div className="h-[88vh] w-full flex flex-wrap gap-5">
+        {filteredPostings.map((posting) => (
+          <Card key={posting._id} className="w-[450px] h-[230px]" isPressable onPress={() => navigate(`/postings/${posting.url}`)}>
             <CardBody>
               <div className="flex gap-5 mb-3">
                 <div
@@ -134,10 +215,8 @@ const Home = () => {
 
               <div className="my-2 min-h-[20%] text-sm opacity-90 line-clamp-2 overflow-hidden text-justify">
                 <p>
-                  {" "}
-                  {/** @ts-ignore */}
-                  {posting?.description?.ops?.map((line) => (
-                    <p>{line?.insert}</p>
+                  {(posting?.description?.ops as Delta)?.map((line, index) => (
+                    <span key={index}>{line?.insert?.toString()}</span>
                   ))}
                 </p>
               </div>

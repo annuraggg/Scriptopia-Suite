@@ -142,7 +142,7 @@ const Sidebar = () => {
             <div
               className={`${!item.visible ? "hidden" : ""}`}
               onClick={() => {
-                navigate("/dashboard/profile" + item.link);
+                navigate("/profile" + item.link);
                 setActive(item.label.toLowerCase());
               }}
             >
