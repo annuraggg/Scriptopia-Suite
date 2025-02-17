@@ -3,7 +3,7 @@ import mongoose, { Schema } from "mongoose";
 const appliedPostingSchema = new Schema(
   {
     posting: { type: Schema.Types.ObjectId, required: true, ref: "Posting" },
-    user: { type: Schema.Types.ObjectId, required: true, ref: "User" },
+    user: { type: Schema.Types.ObjectId, required: true, ref: "Candidate" },
     disqualifiedStage: { type: Number },
     disqualifiedReason: { type: String },
     scores: [
@@ -18,6 +18,9 @@ const appliedPostingSchema = new Schema(
       enum: ["applied", "inprogress", "rejected", "hired"],
       default: "applied",
     },
+
+    resumeUrl: { type: String },
+    resumeExtract: { type: String },
   },
   { timestamps: true }
 );

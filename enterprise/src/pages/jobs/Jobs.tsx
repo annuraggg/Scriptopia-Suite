@@ -206,7 +206,7 @@ const Postings: React.FC = () => {
         <div className="lg:hidden w-full flex justify-end mb-4">
           <Button
             variant="flat"
-            onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+            onPress={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
             className="flex items-center gap-2"
           >
             <FilterIcon size={16} />
@@ -290,7 +290,7 @@ const Postings: React.FC = () => {
               <Button
                 color="success"
                 variant="flat"
-                onClick={openCreateJobModal}
+                onPress={openCreateJobModal}
                 className="w-full md:w-auto"
               >
                 <PlusIcon size={16} />
@@ -301,7 +301,7 @@ const Postings: React.FC = () => {
 
           {/* Job Cards */}
           <div className="flex flex-col gap-3 w-full mt-6">
-            {filteredPostings.length === 0 && (
+            {filteredPostings?.length === 0 && (
               <div className="flex flex-col items-center justify-center w-full">
                 <p className="text-lg font-medium">No postings found</p>
               </div>
@@ -311,7 +311,7 @@ const Postings: React.FC = () => {
                 className="p-4"
                 key={index}
                 isPressable
-                onClick={() => handleDetailsClick(posting)}
+                onPress={() => handleDetailsClick(posting)}
               >
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 w-full p-2">
                   <div className="w-full md:w-auto">
@@ -338,9 +338,19 @@ const Postings: React.FC = () => {
                           ? "Active"
                           : "Closed"}
                       </span>
+
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
+                          posting?.published
+                            ? "text-success-500 bg-success-100"
+                            : "text-danger-500 bg-danger-100"
+                        }`}
+                      >
+                        {posting?.published ? "Published" : "Pending Publish"}
+                      </span>
                     </div>
 
-                    <p className="text-xs mt-2 md:mt-3">
+                    <p className="text-xs mt-2 md:mt-3 text-left">
                       {getPostingStatus(posting) === "active"
                         ? `Open Until ${new Date(
                             posting.applicationRange.end
@@ -356,8 +366,7 @@ const Postings: React.FC = () => {
                       <Button
                         isIconOnly
                         variant="flat"
-                        onClick={(e) => {
-                          e.stopPropagation();
+                        onPress={() => {
                           if (!posting?.url) return;
                           navigator.clipboard.writeText(
                             import.meta.env.VITE_CANDIDATE_URL +
@@ -373,11 +382,7 @@ const Postings: React.FC = () => {
 
                     <Dropdown>
                       <DropdownTrigger>
-                        <Button
-                          isIconOnly
-                          variant="flat"
-                          onClick={(e) => e.stopPropagation()}
-                        >
+                        <Button isIconOnly variant="flat">
                           <EllipsisVertical />
                         </Button>
                       </DropdownTrigger>
@@ -386,8 +391,7 @@ const Postings: React.FC = () => {
                           <DropdownItem
                             key={item.key}
                             className={item.color ? `text-${item.color}` : ""}
-                            onClick={(e) => {
-                              e.stopPropagation();
+                            onPress={() => {
                               item.onClick(posting._id!);
                             }}
                           >

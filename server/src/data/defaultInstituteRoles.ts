@@ -1,6 +1,7 @@
 const defaultInstituteRoles = [
   {
     name: "administrator",
+    slug: "administrator",
     default: true,
     description: "Administrator role",
     permissions: [
@@ -18,6 +19,7 @@ const defaultInstituteRoles = [
 
   {
     name: "read_only",
+    slug: "read_only",
     default: true,
     description: "Read Only role",
     permissions: [
@@ -30,6 +32,7 @@ const defaultInstituteRoles = [
 
   {
     name: "finance",
+    slug: "finance",
     default: true,
     description: "Finance role",
     permissions: ["view_billing", "manage_billing"],
@@ -37,6 +40,7 @@ const defaultInstituteRoles = [
 
   {
     name: "drive_manager",
+    slug: "drive_manager",
     default: true,
     description: "Drive Manager role",
     permissions: ["manage_drive", "view_drive"],
@@ -44,6 +48,7 @@ const defaultInstituteRoles = [
 
   {
     name: "employer",
+    slug: "employer",
     default: true,
     description: "Employer role",
     permissions: ["hire_candidate", "verify_hiring"],

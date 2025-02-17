@@ -10,6 +10,7 @@ import {
   useUser,
 } from "@clerk/clerk-react";
 import CreateJob from "./pages/jobs/create/CreateJob";
+import GroupDetails from "./pages/placementgroups/GroupDetails";
 
 // Lazy load components
 import Loader from "./components/Loader";
@@ -284,6 +285,22 @@ function App() {
           element: (
             <Suspense fallback={<Loader />}>
               <CompanyDetails />
+            </Suspense>
+          ),
+        },
+        {
+          path: "placementgroups",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <PlacementGroups />
+            </Suspense>
+          ),
+        },
+        {
+          path: "group/:id",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <GroupDetails />
             </Suspense>
           ),
         },

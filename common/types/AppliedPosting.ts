@@ -12,6 +12,8 @@ interface AppliedPosting {
   disqualifiedReason?: string;
   scores?: AppliedPostingScore[];
   status: "applied" | "inprogress" | "rejected" | "hired";
+  resumeUrl?: string;
+  resumeExtract?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

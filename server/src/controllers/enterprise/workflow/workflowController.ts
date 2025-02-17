@@ -1,19 +1,16 @@
-// ! FIX THIS FILE
-// @ts-nocheck
-import Posting from "../../../models/Posting";
-import checkPermission from "../../../middlewares/checkOrganizationPermission";
-import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import { Context } from "hono";
-import { Posting as PostingType, WorkflowStep } from "@shared-types/Posting";
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
-import { Candidate } from "@shared-types/Candidate";
-import { AppliedPosting } from "@shared-types/AppliedPosting";
 import loops from "@/config/loops";
-import Organization from "@/models/Organization";
-import { Assessment } from "@shared-types/Assessment";
 import clerkClient from "@/config/clerk";
-import { AuditLog, Role } from "@shared-types/Organization";
-import CandidateModel from "@/models/Candidate";
+
+import Posting from "../../../models/Posting";
+import Organization from "../../../models/Organization";
+import CandidateModel from "../../../models/Candidate";
+import { sendError, sendSuccess } from "../../../utils/sendResponse";
+import checkPermission from "../../../middlewares/checkOrganizationPermission";
+import { Role } from "@shared-types/Organization";
+import { Assessment, Assignment } from "@shared-types/Posting";
+
 const REGION = "ap-south-1";
 
 const advanceWorkflow = async (c: Context) => {
@@ -35,85 +32,108 @@ const advanceWorkflow = async (c: Context) => {
       return sendError(c, 400, "No workflow found");
     }
 
-    if (workflow.currentStep >= workflow.steps.length) {
+    if (workflow.steps.length === 0) {
+      return sendError(c, 400, "No workflow steps found");
+    }
+
+    // Find current incomplete step
+    const currentStepIndex = workflow.steps.findIndex(
+      (step) => !step.completed
+    );
+    if (currentStepIndex === -1) {
       return sendError(c, 400, "Workflow already completed");
     }
 
-    const newStepIndex = workflow.currentStep + 1;
-    workflow.currentStep = newStepIndex;
+    // Mark current step as completed
+    workflow.steps[currentStepIndex].completed = true;
+    workflow.steps[currentStepIndex].timestamp = new Date();
 
-    if (workflow.steps[newStepIndex].type === "rs")
-      await handleResumeScreening(posting as unknown as PostingType);
+    // Process based on step type
+    const currentStep = workflow.steps[currentStepIndex];
 
-    if (workflow.steps[newStepIndex].type === "as")
-      await handleAssignmentRound(
-        posting as unknown as PostingType,
-        workflow.steps[newStepIndex] as unknown as WorkflowStep
-      );
-
-    console.log(workflow.steps[newStepIndex].type);
-    if (
-      workflow.steps[newStepIndex].type === "ca" ||
-      workflow.steps[newStepIndex].type === "mcqa" ||
-      workflow.steps[newStepIndex].type === "mcqca"
-    ) {
-      await handleAssessmentRound(
-        posting as unknown as PostingType,
-        workflow.steps[newStepIndex] as unknown as WorkflowStep
-      );
+    if (currentStep.type === "RESUME_SCREENING") {
+      await handleResumeScreening(posting);
     }
 
-    for (const candidate of posting.candidates) {
-      const cand = await CandidateModel.findById(candidate._id);
-      if (!cand) continue;
+    if (currentStep.type === "ASSIGNMENT") {
+      await handleAssignmentRound(posting, currentStep);
+    }
 
-      const appliedPosting = cand.appliedPostings.find(
-        (ap) => ap.postingId.toString() === posting._id.toString()
+    if (
+      currentStep.type === "CODING_ASSESSMENT" ||
+      currentStep.type === "MCQ_ASSESSMENT"
+    ) {
+      await handleAssessmentRound(posting, currentStep);
+    }
+
+    // Update candidate statuses
+    for (const candidateId of posting.candidates) {
+      const candidate = await CandidateModel.findById(candidateId);
+      if (!candidate) continue;
+
+      const appliedPosting = candidate.appliedPostings.find(
+        (ap) => ap.toString() === posting._id.toString()
       );
 
       if (!appliedPosting) continue;
 
-      if (appliedPosting.currentStepStatus === "disqualified")
-        appliedPosting.status = "rejected";
-      else if (appliedPosting.currentStepStatus === "qualified")
-        appliedPosting.status = "inprogress";
-      appliedPosting.currentStepStatus = "pending";
-
-      await cand.save();
+      // Update the applied posting status based on current workflow step
+      await CandidateModel.findByIdAndUpdate(
+        candidateId,
+        {
+          $set: {
+            "appliedPostings.$[posting].status": "inprogress",
+            "appliedPostings.$[posting].currentStepStatus": "pending",
+          },
+        },
+        {
+          arrayFilters: [{ "posting._id": appliedPosting._id }],
+        }
+      );
     }
 
     await posting.save();
 
+    // Create audit log and notifications
     const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
-    const auditLog: AuditLog = {
-      user: clerkUser.firstName + " " + clerkUser.lastName,
-      userId: clerkUser.id,
-      action: `Advanced Workflow for ${posting.title} to step ${newStepIndex}`,
-      type: "info",
-    };
+    const organization = await Organization.findById(
+      perms.data!.organization?._id
+    );
 
-    const notification = {
-      title: "Workflow Advanced",
-      description: `Workflow for ${posting.title} has been advanced to step ${workflow.steps[newStepIndex].name}`,
-    };
-
-    const organization = await Organization.findById(perms.data!.orgId);
     if (!organization) {
       return sendError(c, 404, "Organization not found");
     }
 
-    for (const member of organization.members) {
+    // Add audit log
+    organization.auditLogs.push({
+      action: `Advanced workflow for ${posting.title} to next step`,
+      user: `${clerkUser.firstName} ${clerkUser.lastName}`,
+      userId: clerkUser.id,
+      type: "info",
+    });
+
+    // Create notification for members with manage_job permission
+    const notification = {
+      title: "Workflow Advanced",
+      description: `Workflow for ${posting.title} has been advanced to the next step`,
+      date: new Date(),
+      read: false,
+    };
+
+    organization.members.forEach((member) => {
       const memberRole = organization.roles.find(
-        (role) => role?._id?.toString() == member.role.toString()
-      ) as unknown as Role;
+        (role: any) => role.slug === member.role
+      ) as Role | undefined;
 
-      if (!memberRole) continue;
-      if (!memberRole.permissions.includes("manage_job")) continue;
+      if (memberRole && memberRole.permissions.includes("manage_job")) {
+        member.notifications.push(notification);
+      }
 
-      member.notifications.push(notification);
-    }
+      if (memberRole?.permissions.includes("manage_job")) {
+        member.notifications.push(notification);
+      }
+    });
 
-    organization.auditLogs.push(auditLog);
     await organization.save();
 
     return sendSuccess(c, 200, "Workflow advanced successfully", posting);
@@ -123,7 +143,7 @@ const advanceWorkflow = async (c: Context) => {
   }
 };
 
-const handleResumeScreening = async (posting: PostingType) => {
+const handleResumeScreening = async (posting: any) => {
   const lambdaClient = new LambdaClient({
     region: REGION,
     credentials: {
@@ -134,132 +154,103 @@ const handleResumeScreening = async (posting: PostingType) => {
 
   const resumes = [];
 
-  for (const candidate of posting.candidates as unknown as Candidate[]) {
-    const currentPosting = candidate.appliedPostings.find(
-      (ap: AppliedPosting) =>
-        ap.postingId.toString() === posting?._id?.toString()
+  for (const candidateId of posting.candidates) {
+    const candidate = await CandidateModel.findById(candidateId);
+    if (!candidate) continue;
+
+    const appliedPosting = candidate.appliedPostings.find(
+      (ap) => ap.toString() === posting._id.toString()
     );
 
-    if (!currentPosting) continue;
-    if (currentPosting.currentStepStatus === "disqualified") continue;
+    if (!appliedPosting) continue;
 
-    const data = {
-      candidateId: candidate?._id?.toString() || "",
+    resumes.push({
+      candidateId: candidate._id.toString(),
       resume: candidate.resumeExtract,
-    };
-
-    resumes.push(data);
+    });
   }
 
   const event = {
     jobDescription: posting.description,
-    skills: posting?.skills?.join(","),
-    negativePrompts: posting?.ats?.negativePrompts?.join(","),
-    positivePrompts: posting?.ats?.positivePrompts?.join(","),
-    postingId: posting?._id?.toString(),
-    resumes: resumes,
+    skills: posting.skills?.join(","),
+    negativePrompts: posting.ats?.negativePrompts?.join(","),
+    positivePrompts: posting.ats?.positivePrompts?.join(","),
+    postingId: posting._id.toString(),
+    resumes,
   };
 
-  const params = {
-    FunctionName: `resume-screener`,
-    Payload: JSON.stringify(event),
-  };
-
-  lambdaClient.send(new InvokeCommand(params));
-  return;
+  await lambdaClient.send(
+    new InvokeCommand({
+      FunctionName: "resume-screener",
+      Payload: JSON.stringify(event),
+    })
+  );
 };
 
-const handleAssignmentRound = async (
-  posting: PostingType,
-  step: WorkflowStep
-) => {
-  const { name } = step;
-  const assignment = posting?.assignments?.find((a) => a.name === name);
+const handleAssignmentRound = async (posting: any, step: any) => {
+  const assignment = posting.assignments?.find(
+    (a: Assignment) => a.name === step.name
+  );
   const organization = await Organization.findById(posting.organizationId);
 
-  if (!assignment || !organization || !posting) return;
+  if (!assignment || !organization) return;
 
-  const qualifiedCandidates = posting?.candidates?.filter(
-    // @ts-expect-error - candidates is not defined in PostingType
-    (candidate: Candidate) => {
-      const current = candidate.appliedPostings.find(
-        (ap: AppliedPosting) =>
-          ap.postingId.toString() === posting?._id?.toString()
-      );
+  const candidates = await CandidateModel.find({
+    _id: { $in: posting.candidates },
+    appliedPostings: {
+      $elemMatch: {
+        status: { $ne: "rejected" },
+      },
+    },
+  });
 
-      if (!current) return false;
-
-      return current.status !== "rejected";
-    }
-  );
-
-  for (const candidate of qualifiedCandidates as unknown as Candidate[]) {
-    loops.sendTransactionalEmail({
+  for (const candidate of candidates) {
+    await loops.sendTransactionalEmail({
       transactionalId: "cm0zk1vd900966e8e6czepc4d",
-      email: candidate?.email!,
+      email: candidate.email as string,
       dataVariables: {
-        name: candidate?.name || "",
-        postingName: posting?.title || "",
-        company: organization?.name || "",
-        assignmentLink: `${process.env.ENTERPRISE_FRONTEND_URL}/postings/${posting?.url}/assignments/${assignment._id}`,
+        name: candidate.name as string,
+        postingName: posting.title,
+        company: organization.name,
+        assignmentLink: `${process.env.ENTERPRISE_FRONTEND_URL}/postings/${posting.url}/assignments/${assignment._id}`,
       },
     });
   }
 };
 
-const handleAssessmentRound = async (
-  posting: PostingType,
-  step: WorkflowStep
-) => {
-  const { type, stepId } = step;
-
-  if (!stepId) return;
-
-  const assessment = posting?.assessments?.find(
-    (a) => a.toString() === stepId?.toString()
-  );
+const handleAssessmentRound = async (posting: any, step: any) => {
+  const assessment =
+    posting.mcqAssessments?.find(
+      (a: Assessment) => a.workflowId.toString() === step._id.toString()
+    ) ||
+    posting.codeAssessments?.find(
+      (a: Assessment) => a.workflowId.toString() === step._id.toString()
+    );
 
   const organization = await Organization.findById(posting.organizationId);
-  if (!assessment || !organization || !posting) return;
+  if (!assessment || !organization) return;
 
-  const qualifiedCandidates = posting?.candidates?.filter(
-    // @ts-expect-error - candidates is not defined in PostingType
-    (candidate: Candidate) => {
-      const current = candidate.appliedPostings.find(
-        (ap: AppliedPosting) =>
-          ap.postingId.toString() === posting?._id?.toString()
-      );
+  const candidates = await CandidateModel.find({
+    _id: { $in: posting.candidates },
+    appliedPostings: {
+      $elemMatch: {
+        status: { $ne: "rejected" },
+      },
+    },
+  });
 
-      if (!current) return false;
-      return current.status !== "rejected";
-    }
-  );
+  const assessmentType = step.type === "CODING_ASSESSMENT" ? "Coding" : "MCQ";
 
-  let assessmentType = "";
-  if (type === "ca") {
-    assessmentType = "Coding";
-  }
-
-  if (type === "mcqa") {
-    assessmentType = "MCQ";
-  }
-
-  if (type === "mcqca") {
-    assessmentType = "MCQ + Coding";
-  }
-
-  for (const candidate of qualifiedCandidates as unknown as Candidate[]) {
-    loops.sendTransactionalEmail({
+  for (const candidate of candidates) {
+    await loops.sendTransactionalEmail({
       transactionalId: "cm16lbamn012iyfq0agp9wl54",
-      email: candidate?.email!,
+      email: candidate.email as string,
       dataVariables: {
-        name: candidate?.name || "",
-        postingName: posting?.title || "",
+        name: candidate.name as string,
+        postingName: posting.title,
         type: assessmentType,
-        assessmentLink: `${process.env.SCRIPTOPIA_FRONTEND_URL}/assessments/${
-          (assessment as unknown as Assessment)?._id
-        }`,
-        company: organization?.name || "",
+        assessmentLink: `${process.env.SCRIPTOPIA_FRONTEND_URL}/assessments/${assessment.assessmentId}`,
+        company: organization.name,
       },
     });
   }

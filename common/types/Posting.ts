@@ -57,6 +57,7 @@ interface Assignment {
   name: string;
   workflowId: string;
   description: string;
+  submissionType: "file" | "text" | "link";
   submissions?: string[];
 }
 

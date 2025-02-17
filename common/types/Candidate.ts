@@ -205,6 +205,7 @@ interface Candidate {
   extraCurriculars?: ExtraCurricular[];
   resumeUrl?: string;
   resumeExtract?: string;
+  appliedPostings?: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }

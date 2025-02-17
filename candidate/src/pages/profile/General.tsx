@@ -14,12 +14,14 @@ import {
 import { DateInput } from "@nextui-org/date-input";
 import { useEffect, useState } from "react";
 import { parseDate, CalendarDate, today } from "@internationalized/date";
-import { Edit2 } from "lucide-react";
+import { Check, Edit2, SquareArrowOutUpRight, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useOutletContext } from "react-router-dom";
 import { Candidate } from "@shared-types/Candidate";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
 
 const phoneRegex = /^\+?[1-9]\d{1,14}$/;
 
@@ -36,10 +38,10 @@ const formSchema = z.object({
 const General = () => {
   const [candidate, setCandidate] = useState<Candidate>({} as Candidate);
   const [loading, setLoading] = useState<boolean>(false);
-
   const [editSummary, setEditSummary] = useState<string>("");
-  // prettier-ignore
-  const [errors, setErrors] = useState<Partial<Record<keyof Candidate, string>>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof Candidate, string>>
+  >({});
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user, setUser } = useOutletContext() as {
@@ -102,13 +104,47 @@ const General = () => {
       formSchema.parse(candidate);
 
       setUser(candidate);
+      toast.success("Saved");
     } catch (error) {
       if (error instanceof z.ZodError) {
         error.errors.forEach((err) => {
           toast.error(`${err.path.join(".")}: ${err.message}`);
         });
       }
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+
+  const uploadResume = (file?: File) => {
+    if (!file) toast.error("No file selected");
+
+    const formData = new FormData();
+    formData.append("resume", file as Blob);
+
+    axios
+      .put("/candidates/resume", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((res) => {
+        setCandidate((prev) => ({ ...prev, resumeUrl: res.data.data.url }));
+        toast.success("Resume uploaded successfully");
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to upload resume");
+      });
+  };
+
+  const getAndOpenResume = () => {
+    axios.get("/candidates/resume").then((res) => {
+      window.open(res.data.data.url);
+    });
   };
 
   return (
@@ -178,6 +214,33 @@ const General = () => {
                 isInvalid={!!errors.address}
                 errorMessage={errors.address}
               />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <label className="w-32 text-right">Resume</label>
+              <p>
+                {candidate?.resumeUrl ? (
+                  <div className="flex items-center text-xs text-success gap-1">
+                    <Check size={16} />
+                    <span className="text-xs"> Uploaded</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center text-xs text-danger gap-1 min-w-24">
+                    <X size={16} />
+                    <span className="text-xs">Not uploaded</span>
+                  </div>
+                )}
+              </p>
+              <div className="flex gap-3">
+                <Input
+                  type="file"
+                  variant="flat"
+                  onChange={(e) => uploadResume(e.target.files?.[0])}
+                />
+                <Button isIconOnly variant="flat" onClick={getAndOpenResume}>
+                  <SquareArrowOutUpRight />
+                </Button>
+              </div>
             </div>
 
             <div>

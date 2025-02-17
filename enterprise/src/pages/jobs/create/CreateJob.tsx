@@ -1,6 +1,3 @@
-// @ts-nocheck
-// ! FIX THIS FILE
-
 import { useState } from "react";
 import Sidebar from "./Sidebar";
 import JobDetails from "./JobDetails";
@@ -19,7 +16,7 @@ import Loader from "@/components/Loader";
 import AdditionalDetails, { FIELD_CATEGORIES } from "./AdditionalDetails";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
-import WorkflowSchedule from "./WorkflowSchedule";
+// import WorkflowSchedule from "./WorkflowSchedule";
 
 interface Component {
   icon: React.ElementType;
@@ -29,7 +26,7 @@ interface Component {
 }
 
 const componentMap: Record<string, string> = {
-  ATS: "RESUME_SCREENING",
+  "Resume Screening": "RESUME_SCREENING",
   "MCQ Assessment": "MCQ_ASSESSMENT",
   "Code Assessment": "CODING_ASSESSMENT",
   Assignment: "ASSIGNMENT",
@@ -55,7 +52,7 @@ const CreateJob = () => {
   const [minSalary, setMinSalary] = useState<number>(0);
   const [maxSalary, setMaxSalary] = useState<number>(0);
   const [skills, setSkills] = useState<string[]>([]);
-  const [description, setDescription] = useState<string>("");
+  const [description, setDescription] = useState<Record<string, unknown>>({});
 
   // Additional Details States
   const [requiredFields, setRequiredFields] = useState<string[]>([]);
@@ -77,15 +74,13 @@ const CreateJob = () => {
 
     const formattedData = {
       steps: addedComponents.map((component) => ({
-        name: component.label, // @ts-ignore
+        name: component.name, // @ts-ignore
         type: componentMap[component.label] as
-          | "rs"
-          | "mcqa"
-          | "ca"
-          | "mcqca"
-          | "as"
-          | "pi"
-          | "cu",
+          | "RESUME_SCREENING"
+          | "MCQ_ASSESSMENT"
+          | "CODING_ASSESSMENT"
+          | "ASSIGNMENT"
+          | "INTERVIEW",
         completed: false,
         timestamp: new Date(),
       })),
@@ -129,6 +124,7 @@ const CreateJob = () => {
       },
       workflow: formattedData,
       additionalDetails: formattedAdditionalDetails,
+      published: false,
     };
 
     axios
@@ -201,8 +197,8 @@ const CreateJob = () => {
             setAddedComponents={setAddedComponents}
           />
         )}
-        {active === 3 && <WorkflowSchedule addedComponents={addedComponents} />}
-        {active === 4 && (
+        {/* {active === 3 && <WorkflowSchedule addedComponents={addedComponents} />} */}
+        {active === 3 && (
           <Summary
             setAction={setActive}
             title={title}

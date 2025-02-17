@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   Table,
   TableHeader,
@@ -47,9 +46,7 @@ const ViewUserAssessmentBottom = ({
 
   const [mcqIndex, setMcqIndex] = useState(1);
   const [mcqFormat, setMcqFormat] = useState<MCQ[]>([]);
-
-  const [problemIndex, setProblemIndex] = useState(1);
-  const [problems, setProblems] = useState<Problem[]>([]);
+  const [_problems, setProblems] = useState<Problem[]>([]);
 
   useEffect(() => {
     if (assessment?.mcqs) {

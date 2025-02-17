@@ -5,7 +5,12 @@ import Contact from "./Contact";
 import { Button } from "@nextui-org/react";
 import { CalendarDate } from "@internationalized/date";
 import { toast } from "sonner";
-import { useAuth } from "@clerk/clerk-react";
+import {
+  RedirectToSignIn,
+  SignedIn,
+  SignedOut,
+  useAuth,
+} from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import Address from "./Address";
 
@@ -112,13 +117,16 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen p-10">
-      <div className="min-w-[60%] h-full pr-10">
-        <img src="logo.png" alt="logo" className="w-14 h-14" />
-        <div className="flex gap-3 mt-10">
-          {steps.map((_s, i) => (
-            <div
-              className={`w-14 h-3 rounded-full transition-colors
+    <>
+      <SignedIn>
+        {" "}
+        <div className="flex items-center justify-center h-screen p-10">
+          <div className="min-w-[60%] h-full pr-10">
+            <img src="logo.svg" alt="logo" className="w-14 h-14" />
+            <div className="flex gap-3 mt-10">
+              {steps.map((_s, i) => (
+                <div
+                  className={`w-14 h-3 rounded-full transition-colors
               ${
                 currentStep === i
                   ? "bg-success-200"
@@ -127,40 +135,45 @@ const Onboarding = () => {
                   : "bg-gray-700 opacity-50"
               }
               `}
-            ></div>
-          ))}
-        </div>
-        <p className="mt-3 opacity-50">
-          {currentStep + 1} of {steps.length}
-        </p>
+                ></div>
+              ))}
+            </div>
+            <p className="mt-3 opacity-50">
+              {currentStep + 1} of {steps.length}
+            </p>
 
-        <div className="h-[65%]">{steps[currentStep].component}</div>
+            <div className="h-[65%]">{steps[currentStep].component}</div>
 
-        <div className="flex items-center gap-3 justify-end self-end">
-          <Button
-            onClick={() => setCurrentStep(currentStep - 1)}
-            color="default"
-            isDisabled={currentStep === 0 || loading}
-          >
-            Back
-          </Button>
-          <Button
-            onClick={() => {
-              if (currentStep === steps.length - 1) {
-                submit();
-              } else {
-                setCurrentStep(currentStep + 1);
-              }
-            }}
-            color="success"
-            isLoading={loading}
-          >
-            {currentStep === steps.length - 1 ? "Continue" : "Next"}
-          </Button>
+            <div className="flex items-center gap-3 justify-end self-end">
+              <Button
+                onClick={() => setCurrentStep(currentStep - 1)}
+                color="default"
+                isDisabled={currentStep === 0 || loading}
+              >
+                Back
+              </Button>
+              <Button
+                onClick={() => {
+                  if (currentStep === steps.length - 1) {
+                    submit();
+                  } else {
+                    setCurrentStep(currentStep + 1);
+                  }
+                }}
+                color="success"
+                isLoading={loading}
+              >
+                {currentStep === steps.length - 1 ? "Continue" : "Next"}
+              </Button>
+            </div>
+          </div>
+          <div className="container h-full w-full rounded-3xl mix-blend-difference"></div>
         </div>
-      </div>
-      <div className="container h-full w-full rounded-3xl mix-blend-difference"></div>
-    </div>
+      </SignedIn>
+      <SignedOut>
+        <RedirectToSignIn />
+      </SignedOut>
+    </>
   );
 };
 

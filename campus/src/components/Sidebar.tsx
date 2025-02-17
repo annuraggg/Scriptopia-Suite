@@ -16,7 +16,7 @@ import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
 import { Badge, Button } from "@nextui-org/react";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
 import { Notification } from "@shared-types/Organization";
-import { OrganizationWithPostings as OWP } from "@/types/RootContext";
+import { InstituteWithDrives as IWD } from "@/types/RootContext";
 // import { useTheme } from "./theme-provider";
 
 const Sidebar = ({
@@ -26,7 +26,7 @@ const Sidebar = ({
   onClose,
 }: {
   notifications: Notification[];
-  org: OWP;
+  institute: IWD;
   user: MemberWithPermission;
   isMobile: boolean;
   onClose?: () => void;
@@ -43,32 +43,32 @@ const Sidebar = ({
       label: "Jobs",
       link: "/jobs",
       visible:
-        user?.permissions?.includes("view_job") ||
-        user?.permissions?.includes("manage_job"),
+        user?.permissions?.includes("view_drive") ||
+        user?.permissions?.includes("manage_drive"),
     },
     {
       icon: IconUsersGroup,
       label: "Placement Groups",
       link: "/placementgroups",
       visible:
-        user?.permissions?.includes("view_job") ||
-        user?.permissions?.includes("manage_job"),
+        user?.permissions?.includes("view_drive") ||
+        user?.permissions?.includes("manage_drive"),
     },
     {
       icon: IconBuilding,
       label: "Company Profiles",
       link: "/companyprofiles",
       visible:
-        user?.permissions?.includes("view_job") ||
-        user?.permissions?.includes("manage_job"),
+        user?.permissions?.includes("view_drive") ||
+        user?.permissions?.includes("manage_drive"),
     },
     {
       icon: IconUserFilled,
       label: "Candidates",
       link: "/candidates",
       visible:
-        user?.permissions?.includes("view_job") ||
-        user?.permissions?.includes("manage_job"),
+        user?.permissions?.includes("view_drive") ||
+        user?.permissions?.includes("manage_drive"),
     },
     {
       icon: IconChartPieFilled,
@@ -76,7 +76,7 @@ const Sidebar = ({
       link: "/analytics",
       visible:
         user?.permissions?.includes("view_analytics") ||
-        user?.permissions?.includes("manage_organization"),
+        user?.permissions?.includes("manage_institute"),
     },
     // {
     //   icon: Calendar,
@@ -98,7 +98,7 @@ const Sidebar = ({
       icon: IconSettingsFilled,
       label: "Settings",
       link: "/settings/general",
-      visible: user?.permissions?.includes("manage_organization"),
+      visible: user?.permissions?.includes("manage_institute"),
     },
     // {
     //   icon: IconCreditCardFilled,

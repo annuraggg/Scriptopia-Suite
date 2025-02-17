@@ -1,5 +1,3 @@
-// @ts-nocheck
-// ! FIX THIS FILE
 import React from "react";
 import {
   Table,
@@ -105,6 +103,7 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
       setAdditionalDetails((prev: AdditionalDetailsType) => ({
         ...prev,
         [category]: {
+          // @ts-expect-error - TS doesn't know that category is a valid key
           ...prev[category],
           [field]: {
             required: !required.includes(field),
@@ -130,6 +129,7 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
       setAdditionalDetails((prev: AdditionalDetailsType) => ({
         ...prev,
         [category]: {
+          // @ts-expect-error - TS doesn't know that category is a valid key
           ...prev[category],
           [field]: {
             required: required.includes(field),
@@ -151,7 +151,6 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
         <h3 className="text-xl font-semibold capitalize">{title}</h3>
       </div>
       <Table
-       
         aria-label={`${title} configuration`}
         classNames={{
           wrapper: "p-0",
@@ -170,7 +169,15 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
           {fields.map((field) => (
             <TableRow key={field}>
               <TableCell className="font-medium">
-                {field.replace(/([A-Z])/g, " $1").trim()}
+                {field
+                  .replace(/([A-Z])/g, " $1")
+                  .trim()
+                  .slice(0, 1)
+                  .toUpperCase() +
+                  field
+                    .replace(/([A-Z])/g, " $1")
+                    .trim()
+                    .slice(1)}
               </TableCell>
               <TableCell className="text-center">
                 <Checkbox

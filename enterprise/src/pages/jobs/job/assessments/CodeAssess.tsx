@@ -17,7 +17,7 @@ import { Posting } from "@shared-types/Posting";
 
 const copyLink = (assessmentId: string) => {
   navigator.clipboard.writeText(
-    `${import.meta.env.VITE_SCRIPTOPIA_URL}/assessments/${assessmentId}`
+    `${import.meta.env.VITE_CODE_URL}/assessments/c/${assessmentId}`
   );
   toast.success("Link copied to clipboard");
 };

@@ -1,9 +1,9 @@
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
-import { Organization } from "@shared-types/Organization";
+import { Institute } from "@shared-types/Instititue";
 
 interface SettingsContext {
-  organization: Organization;
-  setOrganization: (organization: Organization) => void;
+  institute: Institute;
+  setInstitute: (institute: Institute) => void;
   rerender: boolean;
 
   toast: boolean;

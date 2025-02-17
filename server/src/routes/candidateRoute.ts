@@ -8,7 +8,7 @@ const app = new Hono();
 // app.post("sendVerificationMail", candidateController.sendVerificationMail);
 // app.post("verifyOtp", candidateController.verifyOtp);
 
-// app.post("apply", candidateController.apply);
+app.post("apply", candidateController.apply);
 
 // app.post("verify", candidateController.verifyCandidate);
 
@@ -32,5 +32,7 @@ app.get("candidate", candidateController.getCandidate);
 app.get("/", candidateController.getCandidate);
 app.post("candidate", candidateController.createCandidate);
 app.put("candidate", candidateController.updateCandidate);
+app.put("/resume", candidateController.updateResume);
+app.get("resume", candidateController.getResume);
 
 export default app;

@@ -231,6 +231,8 @@ const candidateSchema = new Schema(
 
     resumeUrl: { type: String, required: false },
     resumeExtract: { type: String },
+
+    appliedPostings: [{ type: mongoose.Schema.Types.ObjectId, ref: "AppliedPosting" }],
   },
   { timestamps: true }
 );

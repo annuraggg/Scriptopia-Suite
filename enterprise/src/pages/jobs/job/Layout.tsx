@@ -19,6 +19,7 @@ const Layout = () => {
       .get("/postings/" + window.location.pathname.split("/")[2])
       .then((res) => {
         setPosting(res.data.data);
+        console.log(res.data.data);
       })
       .catch((err) => {
         toast.error(err.response.data);

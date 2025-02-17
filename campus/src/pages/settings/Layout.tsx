@@ -6,21 +6,21 @@ import UnsavedToast from "@/components/UnsavedToast";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast as sonner } from "sonner";
-import { OrganizationWithPostings as OWP } from "@/types/RootContext";
+import { InstituteWithDrives as IWD } from "@/types/RootContext";
 
 const Layout = () => {
-  const { organization, setOrganization, user } =
+  const { institute, setInstitute, user } =
     useOutletContext() as RootContext;
 
   const [toast, setToast] = useState<boolean>(false);
   const [shakeToast, setShakeToast] = useState<boolean>(false);
   const [rerender, setRerender] = useState<boolean>(false);
-  const [newOrganization, setNewOrganization] = useState<OWP>({} as OWP);
+  const [newOrganization, setNewOrganization] = useState<IWD>({} as IWD);
 
   useEffect(() => {
-    setNewOrganization(organization);
+    setNewOrganization(institute);
     setRerender(!rerender);
-  }, []);
+  }, [institute]);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -29,29 +29,29 @@ const Layout = () => {
     setToast(false);
     console.log(newOrganization);
     axios
-      .put("organizations", newOrganization)
+      .put("institutes", newOrganization)
       .then(() => {
-        setOrganization(newOrganization);
+        setInstitute(newOrganization);
         sonner.success("Saved", { position: "top-right" });
       })
       .catch((err) => {
-        sonner.error("Error updating organization. Please try again.");
+        sonner.error("Error updating institute. Please try again.");
         console.error(err);
       });
   };
 
   const reset = () => {
     setToast(false);
-    setNewOrganization(organization);
+    setNewOrganization(institute);
     setRerender(!rerender);
   };
 
-  const handleToast = (toast: boolean, newOrganization?: OWP) => {
+  const handleToast = (toast: boolean, newOrganization?: IWD) => {
     setToast(toast);
     if (newOrganization) setNewOrganization(newOrganization);
   };
 
-  const updateLocalOrganization = (newOrganization: OWP) => {
+  const updateLocalOrganization = (newOrganization: IWD) => {
     setNewOrganization(newOrganization);
     setToast(true);
   };
@@ -63,8 +63,8 @@ const Layout = () => {
         <div className="h-full w-full overflow-x-auto">
           <Outlet
             context={{
-              organization: newOrganization,
-              setOrganization: updateLocalOrganization,
+              institute: newOrganization,
+              setInstitute: updateLocalOrganization,
               setToast: handleToast,
               toast,
               rerender,

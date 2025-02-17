@@ -45,6 +45,7 @@ const getPosting = async (c: Context) => {
       .populate("mcqAssessments.assessmentId")
       .populate("codeAssessments.assessmentId")
       .populate("candidates")
+      .populate("candidates.appliedPostings")
       .populate("organizationId")
       .populate("assignments.submissions");
 
@@ -62,7 +63,8 @@ const getPosting = async (c: Context) => {
 const getPostingBySlug = async (c: Context) => {
   try {
     const posting = await Posting.findOne({ url: c.req.param("slug") })
-      .populate("assessments.assessmentId")
+      .populate("mcqAssessments.assessmentId")
+      .populate("codeAssessments.assessmentId")
       .populate("candidates")
       .populate("organizationId")
       .populate("assignments.submissions");
@@ -105,6 +107,8 @@ const createPosting = async (c: Context) => {
         }
       );
     }
+
+    console.log(posting.workflow.steps);
 
     const newPosting = new Posting({
       ...posting,
@@ -240,7 +244,7 @@ const updateAts = async (c: Context) => {
 
 const updateAssignment = async (c: Context) => {
   try {
-    const { name, description, postingId, step } = await c.req.json();
+    const { name, description, postingId, step, submissionType } = await c.req.json();
 
     const perms = await checkPermission.all(c, ["manage_job"]);
     if (!perms.allowed) {
@@ -259,7 +263,7 @@ const updateAssignment = async (c: Context) => {
     const _id = new mongoose.Types.ObjectId();
     const workflowId = posting.workflow.steps[step]._id;
 
-    posting.assignments.push({ _id, name, description, workflowId });
+    posting.assignments.push({ _id, name, description, workflowId, submissionType });
     await posting.save();
 
     const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);

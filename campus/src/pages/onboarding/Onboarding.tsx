@@ -6,21 +6,27 @@ import Team from "./Team";
 import { Button } from "@nextui-org/react";
 import { toast } from "sonner";
 import { useAuth, useUser } from "@clerk/clerk-react";
-import { setOrganization } from "@/reducers/organizationReducer";
+import { setInstitute } from "@/reducers/instituteReducer";
 import { useDispatch } from "react-redux";
 import ax from "@/config/axios";
+
 interface InvitedMember {
   email: string;
-  invited: string;
   role: string;
 }
 
 const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(0);
 
-  const [companyName, setCompanyName] = useState<string>("");
-  const [companyEmail, setCompanyEmail] = useState<string>("");
-  const [companyWebsite, setCompanyWebsite] = useState<string>("");
+  const [instituteName, setInstituteName] = useState<string>("");
+  const [instituteEmail, setInstituteEmail] = useState<string>("");
+  const [instituteWebsite, setInstituteWebsite] = useState<string>("");
+  const [instituteAddress, setInstituteAddress] = useState<string>("");
+  const [instituteStreetAddress, setInstituteStreetAddress] = useState<string>("");
+  const [instituteCity, setInstituteCity] = useState<string>("");
+  const [instituteState, setInstituteState] = useState<string>("");
+  const [instituteCountry, setInstituteCountry] = useState<string>("");
+  const [instituteZipCode, setInstituteZipCode] = useState<string>("");
 
   const [invitedMembers, setInvitedMembers] = useState<InvitedMember[]>([]);
 
@@ -28,21 +34,36 @@ const Onboarding = () => {
 
   const steps = [
     {
-      name: "Organization Info",
-      description: "Tell us about your organization",
+      name: "Institute Info",
+      description: "Tell us about your institute",
       component: (
-        <Info companyName={companyName} setCompanyName={setCompanyName} />
+        <Info
+          instituteName={instituteName}
+          setInstituteName={setInstituteName}
+        />
       ),
     },
     {
-      name: "Organization Contact",
-      description: "Contact details of your organization",
+      name: "Institute Contact",
+      description: "Contact details of your institute",
       component: (
         <Contact
-          companyEmail={companyEmail}
-          setCompanyEmail={setCompanyEmail}
-          companyWebsite={companyWebsite}
-          setCompanyWebsite={setCompanyWebsite}
+          instituteEmail={instituteEmail}
+          setInstituteEmail={setInstituteEmail}
+          instituteWebsite={instituteWebsite}
+          setInstituteWebsite={setInstituteWebsite}
+          instituteAddress={instituteAddress}
+          setInstituteAddress={setInstituteAddress}
+          instituteStreetAddress={instituteStreetAddress}
+          setInstituteStreetAddress={setInstituteStreetAddress}
+          instituteCity={instituteCity}
+          setInstituteCity={setInstituteCity}
+          instituteState={instituteState}
+          setInstituteState={setInstituteState}
+          instituteCountry={instituteCountry}
+          setInstituteCountry={setInstituteCountry}
+          instituteZipCode={instituteZipCode}
+          setInstituteZipCode={setInstituteZipCode}
         />
       ),
     },
@@ -63,17 +84,19 @@ const Onboarding = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const websiteRegex = /^(http|https):\/\/[^ "]+$/;
 
-    if (!companyName || !companyEmail || !companyWebsite) {
+    if (!instituteName || !instituteEmail || !instituteWebsite ||
+      !instituteStreetAddress || !instituteCity || !instituteState ||
+      !instituteCountry || !instituteZipCode) {
       toast.error("Please fill all fields");
       return false;
     }
 
-    if (!emailRegex.test(companyEmail)) {
+    if (!emailRegex.test(instituteEmail)) {
       toast.error("Invalid email");
       return false;
     }
 
-    if (!websiteRegex.test(companyWebsite)) {
+    if (!websiteRegex.test(instituteWebsite)) {
       toast.error("Invalid website");
       return false;
     }
@@ -91,28 +114,35 @@ const Onboarding = () => {
     const axios = ax(getToken);
     setLoading(true);
     axios
-      .post("/organizations/create", {
-        name: companyName,
-        email: companyEmail,
-        website: companyWebsite,
+      .post("/institutes/create", {
+        name: instituteName,
+        email: instituteEmail,
+        website: instituteWebsite,
+        address: {
+          street: instituteStreetAddress,
+          city: instituteCity,
+          state: instituteState,
+          country: instituteCountry,
+          zipCode: instituteZipCode
+        },
         members: invitedMembers,
       })
       .then(() => {
         setLoading(false);
-        toast.success("Organization created successfully");
+        toast.success("Institute created successfully");
         window.location.href = "/dashboard";
         const data = {
-          _id: user?.publicMetadata?.orgId,
+          _id: user?.publicMetadata?.instituteId,
           role: user?.publicMetadata?.roleName,
           permissions: user?.publicMetadata?.permissions,
         };
-        dispatch(setOrganization(data));
+        dispatch(setInstitute(data));
       })
       .catch((err) => {
         console.error(err);
         setLoading(false);
         toast.error(
-          err.response.data.message || "Failed to create organization"
+          err.response.data.message || "Failed to create institute"
         );
       });
   };
@@ -125,13 +155,12 @@ const Onboarding = () => {
           {steps.map((_s, i) => (
             <div
               className={`w-14 h-3 rounded-full transition-colors
-              ${
-                currentStep === i
+              ${currentStep === i
                   ? "bg-success-200"
                   : currentStep > i
-                  ? "bg-success-300"
-                  : "bg-gray-700 opacity-50"
-              }
+                    ? "bg-success-300"
+                    : "bg-gray-700 opacity-50"
+                }
               `}
             ></div>
           ))}

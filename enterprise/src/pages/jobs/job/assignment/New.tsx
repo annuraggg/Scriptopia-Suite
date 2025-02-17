@@ -1,4 +1,4 @@
-import { Input, Textarea, Button } from "@heroui/react";
+import { Input, Textarea, Button, Select, SelectItem } from "@heroui/react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Posting } from "@shared-types/Posting";
@@ -7,11 +7,18 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 
+const typeOpts = [
+  { key: "file", label: "File Upload" },
+  { key: "text", label: "Text" },
+  { key: "link", label: "Link" },
+];
+
 const New = () => {
   const { posting } = useOutletContext() as { posting: Posting };
 
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
+  const [type, setType] = useState<string>("file");
 
   useEffect(() => {
     console.log(posting);
@@ -24,18 +31,22 @@ const New = () => {
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
-  const step = window.history.state.usr.step
+  const step = window.history.state.usr.step;
   const handleCreateAssignment = () => {
     axios
       .post("/postings/assignment", {
         name,
         description,
+        submissionType: type,
         postingId: posting._id,
-        step
+        step,
       })
       .then(() => {
         toast.success("Assignment created successfully");
-        const newLOC = window.location.pathname.split("/").slice(0, 3).join("/");
+        const newLOC = window.location.pathname
+          .split("/")
+          .slice(0, 3)
+          .join("/");
         window.location.href = newLOC;
       })
       .catch((err) => {
@@ -63,6 +74,25 @@ const New = () => {
         <div className="flex gap-5 mt-10">
           {/* Additional inputs if needed */}
         </div>
+
+        <Select
+          className="max-w-xs"
+          label="Assignment Type"
+          placeholder="Select an animal"
+          selectedKeys={[type]}
+          onSelectionChange={(keys) => setType(keys.currentKey as string)}
+        >
+          {typeOpts.map((opt) => (
+            <SelectItem key={opt.key}>{opt.label}</SelectItem>
+          ))}
+        </Select>
+
+        {type === "file" && (
+          <p className="text-sm text-blue-500 mt-2">
+            Please note that files upto 10MB are allowed. If you need to upload
+            a larger file, please consider using upload type link.
+          </p>
+        )}
       </motion.div>
 
       <Button

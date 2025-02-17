@@ -175,7 +175,7 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
 
   const copyLink = () => {
     navigator.clipboard.writeText(
-      `${window.location.origin}/postings/${posting?.url}`
+      `${import.meta.env.VITE_CANDIDATE_URL}/postings/${posting?.url}`
     );
     toast.success("Link copied to clipboard");
   };
