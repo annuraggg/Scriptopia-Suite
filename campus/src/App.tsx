@@ -9,14 +9,14 @@ import {
   SignedOut,
   useUser,
 } from "@clerk/clerk-react";
-import CreateJob from "./pages/jobs/create/CreateJob";
+import CreateDrive from "./pages/jobs/create/CreateDrive";
 import GroupDetails from "./pages/placementgroups/GroupDetails";
 
 // Lazy load components
 import Loader from "./components/Loader";
 const Lander = lazy(() => import("./pages/lander/Lander"));
 const Layout = lazy(() => import("./components/Layout"));
-const JobLayout = lazy(() => import("./pages/jobs/job/Layout"));
+const DriveLayout = lazy(() => import("./pages/jobs/job/Layout"));
 const SettingsLayout = lazy(() => import("./pages/settings/Layout"));
 const Start = lazy(() => import("./pages/start/Start"));
 const Join = lazy(() => import("./pages/join/Join"));
@@ -28,7 +28,7 @@ const CompanyDetails = lazy(
 
 // Dashboard and other main views
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
-const Jobs = lazy(() => import("./pages/jobs/Jobs"));
+const Drives = lazy(() => import("./pages/jobs/Drives"));
 const PlacementGroups = lazy(
   () => import("./pages/placementgroups/PlacementGroups")
 );
@@ -43,7 +43,7 @@ const Documentation = lazy(() => import("./pages/documentation/Documentation"));
 const Support = lazy(() => import("./pages/support/Support"));
 
 // Job specific routes
-const JobDashboard = lazy(() => import("./pages/jobs/job/dashboard/Dashboard"));
+const DriveDashboard = lazy(() => import("./pages/jobs/job/dashboard/Dashboard"));
 const Workflow = lazy(() => import("./pages/jobs/job/workflow/Workflow"));
 const Ats = lazy(() => import("./pages/jobs/job/ats/Ats"));
 const JobCandidates = lazy(
@@ -249,18 +249,18 @@ function App() {
           ),
         },
         {
-          path: "jobs",
+          path: "drives",
           element: (
             <Suspense fallback={<Loader />}>
-              <Jobs />
+              <Drives />
             </Suspense>
           ),
         },
         {
-          path: "jobs/create",
+          path: "drives/create",
           element: (
             <Suspense fallback={<Loader />}>
-              <CreateJob />
+              <CreateDrive />
             </Suspense>
           ),
         },
@@ -358,7 +358,7 @@ function App() {
       path: "jobs/:id",
       element: (
         <Suspense fallback={<Loader />}>
-          <JobLayout />
+          <DriveLayout />
         </Suspense>
       ),
       children: [
@@ -366,7 +366,7 @@ function App() {
           path: "dashboard",
           element: (
             <Suspense fallback={<Loader />}>
-              <JobDashboard />
+              <DriveDashboard />
             </Suspense>
           ),
         },

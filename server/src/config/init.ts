@@ -18,6 +18,7 @@ import assessmentRoute from "../routes/assessmentRoute";
 import submissionRoute from "../routes/submissionRoute";
 import organizationRoute from "../routes/organizationRoute";
 import instituteRoute from "../routes/instituteRoute";
+import driveRoutes from "../routes/driveRoute";
 import postingRoutes from "../routes/postingRoute";
 import candidateRoute from "../routes/candidateRoute";
 
@@ -70,6 +71,8 @@ app.route("/organizations", organizationRoute);
 app.route("/postings", postingRoutes);
 app.route("/candidates", candidateRoute);
 app.route("/institutes", instituteRoute);
+app.route("/drives", driveRoutes);
+
 
 export default app;
 export { ioServer };

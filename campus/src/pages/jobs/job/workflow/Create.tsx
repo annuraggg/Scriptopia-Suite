@@ -8,6 +8,7 @@ import {
   Combine,
   Book,
   Copy,
+  DockIcon,
 } from "lucide-react";
 import {
   Button,
@@ -31,7 +32,7 @@ import { DatePicker } from "@nextui-org/react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { motion, Reorder } from "framer-motion"; // Added framer-motion for animation
+import { motion, Reorder } from "framer-motion";
 
 const Create = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -43,7 +44,7 @@ const Create = () => {
   const [addedComponents, setAddedComponents] = useState<
     { icon: React.ElementType; label: string; name: string; id: string }[]
   >([]);
-  const [isDragging, setIsDragging] = useState(false); // State for handling dragging status
+  const [isDragging, setIsDragging] = useState(false);
   const [autoSchedule, setAutoSchedule] = useState<
     {
       start: DateValue | null;
@@ -60,20 +61,21 @@ const Create = () => {
     { icon: Combine, label: "MCQ + Code Assessment" },
     { icon: Book, label: "Assignment" },
     // { icon: MonitorPlay, label: "Interview" },
+    { icon: DockIcon, label: "Offer Letter" },
   ];
 
   const dragStart = (e: React.DragEvent<HTMLDivElement>, label: string) => {
     e.dataTransfer.setData("text", label);
-    setIsDragging(true); // Set dragging state to true
+    setIsDragging(true);
   };
 
   const dragEnd = () => {
-    setIsDragging(false); // Reset dragging state after drop
+    setIsDragging(false);
   };
 
   const drop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setIsDragging(false); // Reset dragging state on drop
+    setIsDragging(false);
     const label = e.dataTransfer.getData("text");
     const component = components.find((c) => c.label === label);
 
@@ -119,6 +121,7 @@ const Create = () => {
     "MCQ + Code Assessment": "mcqca",
     Assignment: "as",
     Interview: "pi",
+    "Offer Letter": "ol",
   };
 
   const handleSave = () => {
@@ -127,7 +130,7 @@ const Create = () => {
       formattedAutoSchedule = autoSchedule.map((schedule) => {
         const startDate = new Date(
           schedule.start!.year,
-          schedule.start!.month - 1, // Months are zero-indexed in JS Date
+          schedule.start!.month - 1,
           schedule.start!.day,
           schedule.startTime?.hour || 0,
           schedule.startTime?.minute || 0
@@ -143,8 +146,8 @@ const Create = () => {
 
         return {
           step: 0,
-          start: startDate.getTime(), // Convert to timestamp
-          end: endDate.getTime(), // Convert to timestamp
+          start: startDate.getTime(),
+          end: endDate.getTime(),
         };
       });
     }
@@ -160,36 +163,35 @@ const Create = () => {
     };
 
     axios
-      .post("/postings/workflow/create", {
+      .post("/drives/workflow/create", {
         formattedData,
         _id: window.location.pathname.split("/")[2],
       })
       .then(() => {
-        toast.success("Workflow saved successfully");
+        toast.success("Drive Workflow saved successfully");
         setTimeout(() => {
           window.location.reload();
         }, 1000);
       })
       .catch((err) => {
-        toast.error("Failed to save workflow");
+        toast.error("Failed to save driveworkflow");
         console.error(err);
       });
   };
 
   const handleEditClick = (id: string) => {
     setEditingId(editingId === id ? null : id);
-    // Auto-focus the input field if it's being edited
     if (editingId !== id) {
       setTimeout(() => {
-        inputRefs.current[id]?.focus(); // Use a timeout to ensure it focuses after the state change
+        inputRefs.current[id]?.focus();
       }, 0);
     }
   };
 
   const handleBlur = (id: string, value: string) => {
     if (editingId === id) {
-      editName(id, value); // Save changes on blur
-      setEditingId(null); // Reset editing state
+      editName(id, value);
+      setEditingId(null);
     }
   };
 
@@ -220,16 +222,16 @@ const Create = () => {
                     <component.icon />
                     <div>
                       <input
-                        ref={(el) => (inputRefs.current[component.id] = el)} // Assign ref to input
+                        ref={(el) => (inputRefs.current[component.id] = el)}
                         className={`border-none outline-none bg-transparent max-w-fit transition-all ${
                           editingId === component.id
                             ? "opacity-100 text-xl"
-                            : "opacity-50 text-base" // Increase text size when editing
+                            : "opacity-50 text-base"
                         }`}
                         value={component.name}
                         onChange={(e) => editName(component.id, e.target.value)}
-                        onBlur={() => handleBlur(component.id, component.name)} // Call onBlur handler
-                        onFocus={() => setEditingId(component.id)} // Set editingId on focus
+                        onBlur={() => handleBlur(component.id, component.name)}
+                        onFocus={() => setEditingId(component.id)}
                       />
                       <p className="text-sm opacity-50 mt-2">
                         {component.label}
@@ -247,7 +249,7 @@ const Create = () => {
                         <Edit2
                           className="cursor-pointer absolute right-16 -mt-[8px]"
                           size={20}
-                          onClick={() => handleEditClick(component.id)} // Call new edit handler
+                          onClick={() => handleEditClick(component.id)}
                           style={{
                             transition: "transform 0.2s",
                             transform:

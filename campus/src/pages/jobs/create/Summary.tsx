@@ -160,7 +160,7 @@ const Preview = ({
 
           {/* Job Description */}
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold">Job Description</h2>
+            <h2 className="text-lg font-semibold">Drive Description</h2>
             <ScrollShadow className="max-h-64">
               <div
                 className="prose prose-sm max-w-none"
@@ -218,7 +218,7 @@ const Preview = ({
             onClick={handleSave}
             className="transition-all duration-300 hover:scale-105"
           >
-            Publish Job
+            Publish Drive
           </Button>
         </div>
       </div>

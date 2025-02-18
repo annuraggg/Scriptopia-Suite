@@ -127,6 +127,8 @@ const instituteSchema = new Schema(
       required: true,
     },
 
+    drives: [{ type: Schema.Types.ObjectId, ref: "Drive" }],
+
     companies: [companySchema],
     placementGroups: [placementGroupSchema],
 

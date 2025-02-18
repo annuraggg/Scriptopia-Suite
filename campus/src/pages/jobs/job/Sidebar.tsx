@@ -12,7 +12,7 @@ import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { Badge } from "@nextui-org/badge";
 import { Button, Skeleton, Tooltip } from "@nextui-org/react";
-import { Posting } from "@shared-types/Posting";
+import { Drive } from "@shared-types/Drive";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import {
@@ -25,10 +25,10 @@ import {
 } from "@nextui-org/react";
 
 const Sidebar = ({
-  posting,
+  drive,
   loading,
 }: {
-  posting: Posting;
+  drive: Drive;
   loading: boolean;
 }) => {
   const navigate = useNavigate();
@@ -37,8 +37,8 @@ const Sidebar = ({
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const workflowSteps = useMemo(
-    () => posting?.workflow?.steps || [],
-    [posting]
+    () => drive?.workflow?.steps || [],
+    [drive]
   );
   const getFilteredStepsCount = (types: string[]) =>
     workflowSteps.filter((step: { type: string }) => types.includes(step?.type))
@@ -65,16 +65,15 @@ const Sidebar = ({
         label: "ATS",
         link: "/ats",
         visible: getFilteredStepsCount(["rs"]) > 0,
-        badge: getFilteredStepsCount(["rs"]) && posting?.ats ? 0 : 1,
+        badge: getFilteredStepsCount(["rs"]) && drive?.ats ? 0 : 1,
       },
       {
         icon: LineChartIcon,
         label: "Assessments",
         link: "/assessments",
         visible: getFilteredStepsCount(["ca", "mcqca", "mcqa"]) > 0,
-        badge:
-          getFilteredStepsCount(["ca", "mcqca", "mcqa"]) -
-          (posting?.assessments?.length || 0),
+        badge: getFilteredStepsCount(["ca", "mcqca", "mcqa"]) -
+          ((drive?.mcqAssessments?.length || 0) + (drive?.codeAssessments?.length || 0)),
       },
       {
         icon: MonitorPlay,
@@ -82,14 +81,14 @@ const Sidebar = ({
         link: "/assignments",
         visible: getFilteredStepsCount(["as"]) > 0,
         badge:
-          getFilteredStepsCount(["as"]) - (posting?.assignments?.length || 0),
+          getFilteredStepsCount(["as"]) - (drive?.assignments?.length || 0),
       },
       {
         icon: MonitorPlay,
         label: "Interviews",
         link: "/interviews",
         visible: getFilteredStepsCount(["pi"]) > 0,
-        badge: getFilteredStepsCount(["pi"]) - (posting?.interview ? 1 : 0),
+        badge: getFilteredStepsCount(["pi"]) - (drive?.interview ? 1 : 0),
       },
       {
         icon: Users,
@@ -99,7 +98,7 @@ const Sidebar = ({
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [posting, workflowSteps]
+    [drive, workflowSteps]
   );
 
   useEffect(() => {
@@ -113,7 +112,7 @@ const Sidebar = ({
     visible: boolean;
   }) => {
     if (!item.visible) {
-      toast.warning(`${item.label} not configured for this posting`);
+      toast.warning(`${item.label} not configured for this drive`);
       return;
     }
 
@@ -123,37 +122,35 @@ const Sidebar = ({
   };
 
   const hasCompletedAllSteps = useMemo(() => {
-    const steps = posting?.workflow?.steps || [];
+    const steps = drive?.workflow?.steps || [];
     if (steps.length === 0) {
       return -1;
     }
 
     let totalCompleted = 0;
     steps.forEach((step) => {
-      if (step.type === "rs" && posting?.ats) {
+      if (step.type === "rs" && drive?.ats) {
         totalCompleted++;
       }
 
       if (step.type === "ca" || step.type === "mcqa" || step.type === "mcqca") {
-        if (
-          posting?.assessments?.filter((a) => a.assessmentId === step.stepId)
-            .length
-        ) {
+        if ((drive?.mcqAssessments?.filter(a => a.workflowId === step._id?.toString())?.length || 0) +
+          (drive?.codeAssessments?.filter(a => a.workflowId === step._id?.toString())?.length || 0)) {
           totalCompleted++;
         }
       }
 
       if (step.type === "as") {
         if (
-          posting?.assignments?.filter((a) => {
-            return a._id === step.stepId;
+          drive?.assignments?.filter((a) => {
+            return a._id === step._id;
           }).length
         ) {
           totalCompleted++;
         }
       }
 
-      if (step.type === "pi" && posting?.interview) {
+      if (step.type === "pi" && drive?.interview) {
         totalCompleted++;
       }
     });
@@ -164,36 +161,35 @@ const Sidebar = ({
     }
 
     return 0;
-  }, [posting]);
+  }, [drive]);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
-  const publishPosting = () => {
+  const publishDrive = () => {
     axios
-      .post("/postings/publish", { id: posting._id })
+      .post("/drives/publish", { id: drive._id })
       .then(() => {
-        toast.success("Posting published successfully");
+        toast.success("Drive published successfully");
         setTimeout(() => {
           window.location.reload();
         }, 2000);
       })
       .catch(() => {
-        toast.error("Error publishing posting");
+        toast.error("Error publishing drive");
       });
   };
 
   const copyLink = () => {
     navigator.clipboard.writeText(
-      `${window.location.origin}/postings/${posting?.url}`
+      `${window.location.origin}/drives/${drive?.url}`
     );
     toast.success("Link copied to clipboard");
   };
 
   return (
     <aside
-      className={`sticky h-[100vh]  left-0  transition-width flex-col flex justify-between border-r bg-background sm:flex ${
-        collapsed ? "w-16" : "w-64"
-      }`}
+      className={`sticky h-[100vh]  left-0  transition-width flex-col flex justify-between border-r bg-background sm:flex ${collapsed ? "w-16" : "w-64"
+        }`}
     >
       <nav className="flex flex-col gap-4 sm:py-5 px-5">
         {topItems.map((item, index) => (
@@ -206,15 +202,13 @@ const Sidebar = ({
             >
               <table>
                 <tbody
-                  className={`${
-                    item.visible
-                      ? " opacity-100 cursor-pointer"
-                      : "opacity-40 cursor-not-allowed"
-                  } h-8 ${
-                    active === item.label.toLowerCase()
+                  className={`${item.visible
+                    ? " opacity-100 cursor-pointer"
+                    : "opacity-40 cursor-not-allowed"
+                    } h-8 ${active === item.label.toLowerCase()
                       ? "rounded-xl text-accent"
                       : item.visible && "hover:text-accent/70"
-                  }`}
+                    }`}
                   onClick={() => handleNavigation(item)}
                 >
                   <tr>
@@ -243,21 +237,19 @@ const Sidebar = ({
       <div>
         <div className="w-full mb-5 px-5">
           <Skeleton isLoaded={!loading}>
-            {hasCompletedAllSteps === 1 && posting.published && (
+            {hasCompletedAllSteps === 1 && drive.published && (
               <>
                 <nav
-                  className={`flex flex-col gap-4 w-full text-success-500 text-xs delay-200 whitespace-nowrap overflow-hidden ${
-                    !collapsed ? "visible" : "hidden"
-                  }`}
+                  className={`flex flex-col gap-4 w-full text-success-500 text-xs delay-200 whitespace-nowrap overflow-hidden ${!collapsed ? "visible" : "hidden"
+                    }`}
                 >
-                  Posting is currently live 😊
+                  Drive is currently live 😊
                   <Button onClick={copyLink}>Copy link</Button>
                 </nav>
 
                 <div
-                  className={`w-5 relative ${
-                    !collapsed ? "hidden" : "visible"
-                  }`}
+                  className={`w-5 relative ${!collapsed ? "hidden" : "visible"
+                    }`}
                 >
                   <div className="bg-success-500 absolute top-0 bottom-0 blur-sm w-3 h-3 rounded-full  opacity-70   my-auto mx-auto right-0 left-0 animate-pulse"></div>
                   <div className="bg-success-500 w-2 h-2 rounded-full    my-auto mx-auto right-0 left-0"></div>
@@ -265,22 +257,20 @@ const Sidebar = ({
               </>
             )}
 
-            {hasCompletedAllSteps === 1 && !posting.published && (
+            {hasCompletedAllSteps === 1 && !drive.published && (
               <>
                 {" "}
                 <nav
-                  className={`flex flex-col gap-4 w-full text-warning-500 text-xs delay-200 whitespace-nowrap overflow-hidden  ${
-                    !collapsed ? "visible" : "hidden"
-                  } `}
+                  className={`flex flex-col gap-4 w-full text-warning-500 text-xs delay-200 whitespace-nowrap overflow-hidden  ${!collapsed ? "visible" : "hidden"
+                    } `}
                 >
                   All workflow steps completed
-                  <br /> Your Posting is ready to publish
+                  <br /> Your Drive is ready to publish
                   <br /> <Button onClick={onOpen}> 🚀 Publish </Button>
                 </nav>
                 <div
-                  className={` w-5 relative ${
-                    !collapsed ? "hidden" : "visible"
-                  }`}
+                  className={` w-5 relative ${!collapsed ? "hidden" : "visible"
+                    }`}
                 >
                   <div className="bg-warning-500 absolute top-0 bottom-0 blur-sm w-3 h-3 rounded-full opacity-70  my-auto mx-auto right-0 left-0 animate-pulse"></div>
                   <div className="bg-warning-500 w-2 h-2 rounded-full   my-auto mx-auto right-0 left-0"></div>
@@ -288,21 +278,19 @@ const Sidebar = ({
               </>
             )}
 
-            {hasCompletedAllSteps === 0 && !posting.published && (
+            {hasCompletedAllSteps === 0 && !drive.published && (
               <>
                 {" "}
                 <nav
-                  className={`flex flex-col gap-4 w-full text-danger-500 text-xs delay-200 whitespace-nowrap overflow-hidden  ${
-                    !collapsed ? "visible" : "hidden"
-                  } `}
+                  className={`flex flex-col gap-4 w-full text-danger-500 text-xs delay-200 whitespace-nowrap overflow-hidden  ${!collapsed ? "visible" : "hidden"
+                    } `}
                 >
                   Complete all the workflow <br />
-                  steps to publish this posting
+                  steps to publish this drive
                 </nav>
                 <div
-                  className={` w-5 relative ${
-                    !collapsed ? "hidden" : "visible"
-                  }`}
+                  className={` w-5 relative ${!collapsed ? "hidden" : "visible"
+                    }`}
                 >
                   <div className="bg-danger-500 absolute top-0 bottom-0 blur-sm w-3 h-3 rounded-full  opacity-70   my-auto mx-auto right-0 left-0 animate-pulse"></div>
                   <div className="bg-danger-500 w-2 h-2 rounded-full    my-auto mx-auto right-0 left-0"></div>
@@ -310,19 +298,17 @@ const Sidebar = ({
               </>
             )}
 
-            {hasCompletedAllSteps === -1 && !posting.published && (
+            {hasCompletedAllSteps === -1 && !drive.published && (
               <>
                 <nav
-                  className={`flex flex-col gap-4 w-full text-danger-500 text-xs delay-200 whitespace-nowrap overflow-hidden  ${
-                    !collapsed ? "visible" : "hidden"
-                  } `}
+                  className={`flex flex-col gap-4 w-full text-danger-500 text-xs delay-200 whitespace-nowrap overflow-hidden  ${!collapsed ? "visible" : "hidden"
+                    } `}
                 >
                   Workflow not initialized
                 </nav>
                 <div
-                  className={` w-5 relative ${
-                    !collapsed ? "hidden" : "visible"
-                  }`}
+                  className={` w-5 relative ${!collapsed ? "hidden" : "visible"
+                    }`}
                 >
                   <div className="bg-danger-500 blur-sm w-3 h-3 absolute top-0 bottom-0 rounded-full  opacity-70   my-auto mx-auto right-0 left-0 animate-pulse"></div>
                   <div className="bg-danger-500 w-2 h-2 rounded-full    my-auto mx-auto right-0 left-0"></div>
@@ -335,9 +321,8 @@ const Sidebar = ({
         <div className="flex w-full mb-5 px-5">
           <Tooltip>
             <ChevronRight
-              className={`h-5 w-5 text-muted-foreground transition-all opacity-50 cursor-pointer ${
-                !collapsed ? "rotate-180" : ""
-              }`}
+              className={`h-5 w-5 text-muted-foreground transition-all opacity-50 cursor-pointer ${!collapsed ? "rotate-180" : ""
+                }`}
               onClick={() => setCollapsed(!collapsed)}
             />
           </Tooltip>
@@ -349,17 +334,17 @@ const Sidebar = ({
           {(onClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1">
-                Publish Posting
+                Publish Drive
               </ModalHeader>
               <ModalBody>
-                Are you sure you want to publish this posting? This action
+                Are you sure you want to publish this drive? This action
                 cannot be undone.
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
                   Close
                 </Button>
-                <Button color="success" onPress={publishPosting}>
+                <Button color="success" onPress={publishDrive}>
                   Publish
                 </Button>
               </ModalFooter>

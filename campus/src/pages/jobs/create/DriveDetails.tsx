@@ -16,7 +16,7 @@ import { Dispatch, SetStateAction } from "react";
 import { useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
 
-interface JobDetailsProps {
+interface DriveDetailsProps {
   setAction: Dispatch<SetStateAction<number>>;
   title: string;
   setTitle: (value: string) => void;
@@ -42,7 +42,7 @@ interface JobDetailsProps {
   setLocation: (value: string) => void;
 }
 
-const JobDetails = ({
+const DriveDetails = ({
   setAction,
   title,
   setTitle,
@@ -66,8 +66,8 @@ const JobDetails = ({
   setDescription,
   location,
   setLocation,
-}: JobDetailsProps) => {
-  const { organization } = useOutletContext() as RootContext;
+}: DriveDetailsProps) => {
+  const { institute } = useOutletContext() as RootContext;
 
   return (
     <div className="w-full">
@@ -90,9 +90,9 @@ const JobDetails = ({
 
       <div className="flex justify-between mt-7">
         <div className="text-sm w-[30%]">
-          <p>Job Description</p>
+          <p>Drive Description</p>
           <p className="opacity-50">
-            Provide a short description of the job. Keep it short and to the
+            Provide a short description of the drive. Keep it short and to the
             point.
           </p>
         </div>
@@ -111,12 +111,12 @@ const JobDetails = ({
         <div className="text-sm w-[30%]">
           <p>Employment Type</p>
           <p className="opacity-50">
-            Select the type of employment for this job
+            Select the type of employment for this drive
           </p>
         </div>
         <div className="flex flex-col items-end">
           <Select
-            label="Job Category"
+            label="Drive Category"
             selectedKeys={[category]}
             onChange={(e) => setCategory(e.target.value)}
             className="w-[500px]"
@@ -144,7 +144,7 @@ const JobDetails = ({
             onChange={(e) => setDepartment(e.target.value)}
             className="max-w-[300px] mt-3"
           >
-            {(organization?.departments || [])?.map((department) => (
+            {(institute?.departments || [])?.map((department) => (
               <SelectItem value={department._id} key={department?._id || ""}>
                 {department.name}
               </SelectItem>
@@ -165,7 +165,7 @@ const JobDetails = ({
         <div className="text-sm w-[30%]">
           <p>Salary</p>
           <p className="opacity-50">
-            Choose how much you prefer to pay for this job
+            Choose how much you prefer to pay for this drive
           </p>
         </div>
         <div className="flex w-[500px] gap-3">
@@ -204,7 +204,7 @@ const JobDetails = ({
         <div className="text-sm w-[30%]">
           <p>Application Range</p>
           <p className="opacity-50">
-            Choose the period when the job will be open for applications
+            Choose the period when the drive will be open for applications
           </p>
         </div>
         <div>
@@ -220,7 +220,7 @@ const JobDetails = ({
         <div className="text-sm w-[30%]">
           <p>Location</p>
           <p className="opacity-50">
-            Choose the location where the job will be based at. For remote jobs,
+            Choose the location where the job will be based at. For remote drives,
             write "Remote" or "Anywhere"
           </p>
         </div>
@@ -237,7 +237,7 @@ const JobDetails = ({
         <div className="text-sm w-[30%]">
           <p>Skills</p>
           <p className="opacity-50">
-            Choose the skills that are required for this job. You can add as
+            Choose the skills that are required for this drive. You can add as
             many as you want
           </p>
         </div>
@@ -267,4 +267,4 @@ const JobDetails = ({
   );
 };
 
-export default JobDetails;
+export default DriveDetails;

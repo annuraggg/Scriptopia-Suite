@@ -8,7 +8,7 @@ import {
   TableRow,
   Button,
 } from "@nextui-org/react";
-import { Posting, WorkflowStep } from "@shared-types/Posting";
+import { Drive, WorkflowStep } from "@shared-types/Drive";
 import { useOutletContext } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
@@ -28,10 +28,11 @@ const stepTypeMap = {
   as: "Assignment",
   pi: "Interview",
   cu: "Custom",
+  ol: "Offer Letter",
 };
 
 const Show = ({ workflowData }: ShowProps) => {
-  const { posting } = useOutletContext() as { posting: Posting };
+  const { drive } = useOutletContext() as { drive: Drive };
   const [loading, setLoading] = useState(false);
 
   const { getToken } = useAuth();
@@ -39,13 +40,13 @@ const Show = ({ workflowData }: ShowProps) => {
 
   const advance = async (step: number) => {
     setLoading(true);
-    if (!posting.published) {
-      toast.error("Posting is not published");
+    if (!drive.published) {
+      toast.error("Drive is not published");
       setLoading(false);
       return;
     }
     axios
-      .post("/postings/advance-workflow", { _id: posting._id, step })
+      .post("/drives/advance-workflow", { _id: drive._id, step })
       .then(() => {
         toast.success("Workflow advanced successfully");
         setTimeout(() => {
@@ -81,24 +82,24 @@ const Show = ({ workflowData }: ShowProps) => {
                   <TableCell>{step.name}</TableCell>
                   <TableCell>{stepTypeMap[step.type]}</TableCell>
 
-                  {posting.workflow?.currentStep === index - 1 ? (
+                  {drive.workflow?.currentStep === index - 1 ? (
                     <TableCell className="h-16">
                       <Button
                         variant="flat"
                         size="sm"
                         color="primary"
-                        className={posting.published ? "" : "hidden"}
+                        className={drive.published ? "" : "hidden"}
                         onClick={() => advance(index)}
                         isLoading={loading}
                       >
                         Advance
                       </Button>
                     </TableCell>
-                  ) : (posting.workflow?.currentStep ?? -1) > index ? (
+                  ) : (drive.workflow?.currentStep ?? -1) > index ? (
                     <TableCell className="h-16 text-success-500">
                       Step Completed
                     </TableCell>
-                  ) : (posting.workflow?.currentStep ?? -1) > index - 1 ? (
+                  ) : (drive.workflow?.currentStep ?? -1) > index - 1 ? (
                     <TableCell className="h-16 text-warning-500">
                       Ongoing
                     </TableCell>
