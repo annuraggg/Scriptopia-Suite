@@ -18,9 +18,6 @@ const appliedPostingSchema = new Schema(
       enum: ["applied", "inprogress", "rejected", "hired"],
       default: "applied",
     },
-
-    resumeUrl: { type: String },
-    resumeExtract: { type: String },
   },
   { timestamps: true }
 );

@@ -68,6 +68,7 @@ const getPostingBySlug = async (c: Context) => {
       .populate("candidates")
       .populate("organizationId")
       .populate("assignments.submissions");
+      
 
     if (!posting) {
       return sendError(c, 404, "job not found");

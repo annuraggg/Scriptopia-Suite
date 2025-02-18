@@ -34,6 +34,8 @@ import {
   ModalBody,
   ModalFooter,
 } from "@nextui-org/react";
+import { useOutletContext } from "react-router-dom";
+import { Candidate } from "@shared-types/Candidate";
 
 const routineMap = {
   full_time: "Full Time",
@@ -60,16 +62,18 @@ const Posting = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const { user } = useUser();
+  const { user: userDoc } = useOutletContext() as { user: Candidate };
 
   useEffect(() => {
     const filter = posting?.candidates?.filter(
-      (candidate: any) =>
-        candidate._id?.toString() === user?.publicMetadata?._id?.toString()
+      (candidate: any) => candidate._id?.toString() === userDoc?._id?.toString()
     );
 
     if (filter && filter.length > 0) {
       setApplied(true);
     }
+
+    console.log(userDoc);
   }, [user, posting]);
 
   useEffect(() => {
@@ -117,11 +121,132 @@ const Posting = () => {
     onOpen();
   };
 
+  const [applyLoading, setApplyLoading] = useState(false);
+  const applyToJob = () => {
+    setApplyLoading(true);
+    axios
+      .post(`/candidates/apply`, { postingId: posting?._id })
+      .then(() => {
+        setApplied(true);
+        toast.success("Application submitted successfully");
+        onOpenChange();
+      })
+      .catch((err) => {
+        toast.error(
+          err.response.data.message || "Failed to submit application"
+        );
+        console.error(err);
+      })
+      .finally(() => setApplyLoading(false));
+  };
+
   if (loading) {
     return <Loader />;
   }
 
   const isJobOpen = new Date(posting?.applicationRange?.end) > new Date();
+
+  const getRequiredFieldsMissingCount = () => {
+    let count = 0;
+
+    if (
+      posting?.additionalDetails?.basic?.summary?.required &&
+      !userDoc?.summary &&
+      !posting?.additionalDetails?.basic?.summary?.allowEmpty
+    ) {
+      count++;
+    }
+
+    if (
+      posting?.additionalDetails?.links?.socialLinks?.required &&
+      (userDoc?.socialLinks?.length ?? 0) <= 0 &&
+      !posting?.additionalDetails?.links?.socialLinks?.allowEmpty
+    ) {
+      count++;
+    }
+
+    if (
+      posting?.additionalDetails?.background?.education?.required &&
+      (userDoc?.education?.length ?? 0) <= 0 &&
+      !posting?.additionalDetails?.background?.education?.allowEmpty
+    ) {
+      count++;
+    }
+
+    if (
+      posting?.additionalDetails?.background?.workExperience?.required &&
+      (userDoc?.workExperience?.length ?? 0) <= 0 &&
+      !posting?.additionalDetails?.background?.workExperience?.allowEmpty
+    ) {
+      count++;
+    }
+
+    if (
+      posting?.additionalDetails?.skills?.technicalSkills?.required &&
+      (userDoc?.technicalSkills?.length ?? 0) <= 0 &&
+      !posting?.additionalDetails?.skills?.technicalSkills?.allowEmpty
+    ) {
+      count++;
+    }
+
+    if (
+      posting?.additionalDetails?.skills?.languages?.required &&
+      (userDoc?.languages?.length ?? 0) <= 0 &&
+      !posting?.additionalDetails?.skills?.languages?.allowEmpty
+    ) {
+      count++;
+    }
+
+    if (
+      posting?.additionalDetails?.skills?.subjects?.required &&
+      (userDoc?.subjects?.length ?? 0) <= 0 &&
+      !posting?.additionalDetails?.skills?.subjects?.allowEmpty
+    ) {
+      count++;
+    }
+
+    if (
+      posting?.additionalDetails?.experience?.responsibilities?.required &&
+      (userDoc?.responsibilities?.length ?? 0) <= 0 &&
+      !posting?.additionalDetails?.experience?.responsibilities?.allowEmpty
+    ) {
+      count++;
+    }
+
+    if (
+      posting?.additionalDetails?.experience?.projects?.required &&
+      (userDoc?.projects?.length ?? 0) <= 0 &&
+      !posting?.additionalDetails?.experience?.projects?.allowEmpty
+    ) {
+      count++;
+    }
+
+    if (
+      posting?.additionalDetails?.achievements?.awards?.required &&
+      (userDoc?.awards?.length ?? 0) <= 0 &&
+      !posting?.additionalDetails?.achievements?.awards?.allowEmpty
+    ) {
+      count++;
+    }
+
+    if (
+      posting?.additionalDetails?.achievements?.certificates?.required &&
+      (userDoc?.certificates?.length ?? 0) <= 0 &&
+      !posting?.additionalDetails?.achievements?.certificates?.allowEmpty
+    ) {
+      count++;
+    }
+
+    if (
+      posting?.additionalDetails?.achievements?.competitions?.required &&
+      (userDoc?.competitions?.length ?? 0) <= 0 &&
+      !posting?.additionalDetails?.achievements?.competitions?.allowEmpty
+    ) {
+      count++;
+    }
+
+    return count;
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 bg-gray-50 min-h-screen">
@@ -362,57 +487,264 @@ const Posting = () => {
                 </p>
 
                 {posting?.additionalDetails?.basic?.summary?.required && (
-                  <p>Summary</p>
+                  <div className="flex items-center gap-2">
+                    <p>Summary</p>
+                    {!userDoc?.summary && (
+                      <>
+                        <Chip color="danger" variant="flat">
+                          Missing
+                        </Chip>
+                        {posting?.additionalDetails?.basic?.summary
+                          ?.allowEmpty && (
+                          <Chip color="warning" variant="flat">
+                            Optional
+                          </Chip>
+                        )}
+                      </>
+                    )}
+                  </div>
                 )}
 
                 {posting?.additionalDetails?.links?.socialLinks?.required && (
-                  <p>Social Links</p>
+                  <div className="flex items-center gap-2">
+                    <p>Social Links</p>
+                    {(userDoc?.socialLinks?.length ?? 0) <= 0 && (
+                      <>
+                        <Chip color="danger" variant="flat">
+                          Missing
+                        </Chip>
+                        {posting?.additionalDetails?.links?.socialLinks
+                          ?.allowEmpty && (
+                          <Chip color="warning" variant="flat">
+                            Optional
+                          </Chip>
+                        )}
+                      </>
+                    )}
+                  </div>
                 )}
 
                 {posting?.additionalDetails?.background?.education
-                  ?.required && <p>Education</p>}
+                  ?.required && (
+                  <div className="flex items-center gap-2">
+                    <p>Education</p>
+                    {(userDoc?.education?.length ?? 0) <= 0 && (
+                      <>
+                        <Chip color="danger" variant="flat">
+                          Missing
+                        </Chip>
+                        {posting?.additionalDetails?.background?.education
+                          ?.allowEmpty && (
+                          <Chip color="warning" variant="flat">
+                            Optional
+                          </Chip>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
 
                 {posting?.additionalDetails?.background?.workExperience
-                  ?.required && <p>Work Experience</p>}
+                  ?.required && (
+                  <div className="flex items-center gap-2">
+                    <p>Work Experience</p>
+                    {(userDoc?.workExperience?.length ?? 0) <= 0 && (
+                      <>
+                        {" "}
+                        <Chip color="danger" variant="flat">
+                          Missing
+                        </Chip>
+                        {posting?.additionalDetails?.background?.workExperience
+                          ?.allowEmpty && (
+                          <Chip color="warning" variant="flat">
+                            Optional
+                          </Chip>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
 
                 {posting?.additionalDetails?.skills?.technicalSkills
-                  ?.required && <p>Technical Skills</p>}
+                  ?.required && (
+                  <div className="flex items-center gap-2">
+                    <p>Technical Skills</p>
+                    {(userDoc?.technicalSkills?.length ?? 0) <= 0 && (
+                      <>
+                        {" "}
+                        <Chip color="danger" variant="flat">
+                          Missing
+                        </Chip>
+                        {posting?.additionalDetails?.skills?.technicalSkills
+                          ?.allowEmpty && (
+                          <Chip color="warning" variant="flat">
+                            Optional
+                          </Chip>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
 
                 {posting?.additionalDetails?.skills?.languages?.required && (
-                  <p>Languages</p>
+                  <div className="flex items-center gap-2">
+                    <p>Languages</p>
+                    {(userDoc?.languages?.length ?? 0) <= 0 && (
+                      <>
+                        <Chip color="danger" variant="flat">
+                          Missing
+                          {posting?.additionalDetails?.skills?.languages
+                            ?.allowEmpty && (
+                            <Chip color="warning" variant="flat">
+                              Optional
+                            </Chip>
+                          )}
+                        </Chip>
+                      </>
+                    )}
+                  </div>
                 )}
 
                 {posting?.additionalDetails?.skills?.subjects?.required && (
-                  <p>Subjects</p>
+                  <div className="flex items-center gap-2">
+                    <p>Subjects</p>
+                    {(userDoc?.subjects?.length ?? 0) <= 0 && (
+                      <>
+                        <Chip color="danger" variant="flat">
+                          Missing
+                        </Chip>
+                        {posting?.additionalDetails?.skills?.subjects
+                          ?.allowEmpty && (
+                          <Chip color="warning" variant="flat">
+                            Optional
+                          </Chip>
+                        )}
+                      </>
+                    )}
+                  </div>
                 )}
 
                 {posting?.additionalDetails?.experience?.responsibilities
-                  ?.required && <p>Responsibilities</p>}
+                  ?.required && (
+                  <div className="flex items-center gap-2">
+                    <p>Responsibilities</p>
+                    {(userDoc?.responsibilities?.length ?? 0) <= 0 && (
+                      <>
+                        <Chip color="danger" variant="flat">
+                          Missing
+                        </Chip>
+                        {posting?.additionalDetails?.experience
+                          ?.responsibilities?.allowEmpty && (
+                          <Chip color="warning" variant="flat">
+                            Optional
+                          </Chip>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
 
                 {posting?.additionalDetails?.experience?.projects?.required && (
-                  <p>Projects</p>
+                  <div className="flex items-center gap-2">
+                    <p>Projects</p>
+                    {(userDoc?.projects?.length ?? 0) <= 0 && (
+                      <>
+                        <Chip color="danger" variant="flat">
+                          Missing
+                        </Chip>
+                        {posting?.additionalDetails?.experience?.projects
+                          ?.allowEmpty && (
+                          <Chip color="warning" variant="flat">
+                            Optional
+                          </Chip>
+                        )}
+                      </>
+                    )}
+                  </div>
                 )}
 
                 {posting?.additionalDetails?.achievements?.awards?.required && (
-                  <p>Awards</p>
+                  <div className="flex items-center gap-2">
+                    <p>Awards</p>
+                    {(userDoc?.awards?.length ?? 0) <= 0 && (
+                      <>
+                        <Chip color="danger" variant="flat">
+                          Missing
+                        </Chip>
+                        {posting?.additionalDetails?.achievements?.awards
+                          ?.allowEmpty && (
+                          <Chip color="warning" variant="flat">
+                            Optional
+                          </Chip>
+                        )}
+                      </>
+                    )}
+                  </div>
                 )}
 
                 {posting?.additionalDetails?.achievements?.certificates
-                  ?.required && <p>Certificates</p>}
+                  ?.required && (
+                  <div className="flex items-center gap-2">
+                    {" "}
+                    <p>Certificates</p>
+                    {(userDoc?.certificates?.length ?? 0) <= 0 && (
+                      <>
+                        <Chip color="danger" variant="flat">
+                          Missing
+                        </Chip>
+                        {posting?.additionalDetails?.achievements?.certificates
+                          ?.allowEmpty && (
+                          <Chip color="warning" variant="flat">
+                            Optional
+                          </Chip>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
 
                 {posting?.additionalDetails?.achievements?.competitions
-                  ?.required && <p>Competitions</p>}
+                  ?.required && (
+                  <div className="flex items-center gap-2">
+                    <p>Competitions</p>
+                    {(userDoc?.competitions?.length ?? 0) <= 0 && (
+                      <>
+                        <Chip color="danger" variant="flat">
+                          Missing
+                        </Chip>
+                        {posting?.additionalDetails?.achievements?.competitions
+                          ?.allowEmpty && (
+                          <Chip color="warning" variant="flat">
+                            Optional
+                          </Chip>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
 
                 <p>
-                  Please make sure these fields are updated in your profile. If
-                  not we will redirect you to the profile page to update them.
+                  Please make sure these fields are updated in your{" "}
+                  <a
+                    href="/profile"
+                    target="_blank"
+                    className="underline hover:text-blue-500"
+                  >
+                    profile
+                  </a>
+                  .
                 </p>
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
                   Close
                 </Button>
-                <Button color="primary" onPress={onClose}>
+                <Button
+                  color="primary"
+                  onPress={applyToJob}
+                  isDisabled={getRequiredFieldsMissingCount() > 0}
+                  isLoading={applyLoading}
+                >
                   Apply
                 </Button>
               </ModalFooter>
