@@ -37,6 +37,7 @@ const Education = () => {
     current: false,
     percentage: 0,
   });
+  
   const [isEditing, setIsEditing] = useState(false);
 
   // Add state for branch modal
