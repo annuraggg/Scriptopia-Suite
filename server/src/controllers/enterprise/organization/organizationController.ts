@@ -874,7 +874,6 @@ const updateMembers = async (c: Context) => {
       user: (member.user as unknown as UserJSON)?.id,
       email: member.email,
       role: member.role,
-      addedOn: member.addedOn,
       status: member.status,
     }));
 

@@ -10,295 +10,340 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
+  DatePicker,
+  Card,
+  CardBody,
 } from "@nextui-org/react";
-import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
-import { CalendarDate, parseDate, today } from "@internationalized/date";
-import { Plus, Edit2, Trash2, Users } from "lucide-react";
+import {
+  getLocalTimeZone,
+  parseAbsoluteToLocal,
+  today,
+  ZonedDateTime,
+} from "@internationalized/date";
+import { Plus, Edit2, Trash2, Users, Download } from "lucide-react";
 import { motion } from "framer-motion";
-import { toast } from "sonner";
-import { z } from "zod";
 import { Candidate, Conference } from "@shared-types/Candidate";
 import { useOutletContext } from "react-router-dom";
 
-const conferenceSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  organizer: z.string().min(2, "Organizer name must be at least 2 characters"),
-  eventLocation: z.string().min(5, "Please enter a valid address"),
-  eventDate: z.string(),
-  link: z.string().optional(),
-  description: z.string().max(1000, "Description cannot exceed 1000 characters"),
-});
+export default function Conferences() {
+  // State for managing current editing item
+  const [editingConference, setEditingConference] = useState<string | null>(
+    null
+  );
+  const [validationErrors, setValidationErrors] = useState<
+    Partial<Record<keyof Conference, boolean>>
+  >({});
 
-const Conferences = () => {
-  const { user, setUser } = useOutletContext() as {
+  // Modal states
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [title, setTitle] = useState("");
+  const [organizer, setOrganizer] = useState("");
+  const [eventLocation, setEventLocation] = useState("");
+  const [eventDate, setEventDate] = useState<Date>(
+    today(getLocalTimeZone()).toDate(getLocalTimeZone())
+  );
+  const [link, setLink] = useState("");
+  const [description, setDescription] = useState("");
+
+  const { user, setUser } = useOutletContext<{
     user: Candidate;
     setUser: (user: Candidate) => void;
-  };
-
-  const [currentConference, setCurrentConference] = useState<Conference>({
-    title: "",
-    organizer: "",
-    eventLocation: "",
-    eventDate: today("IST").toDate("IST"),
-    link: "",
-    description: "",
-  });
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof Conference, string>>
-  >({});
-  const [isEditing, setIsEditing] = useState(false);
-  const { isOpen, onOpen, onClose } = useDisclosure();
-
-  const validateField = (name: keyof Conference, value: any) => {
-    try {
-      // @ts-expect-error
-      conferenceSchema.shape[name].parse(value);
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-      return true;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        setErrors((prev) => ({ ...prev, [name]: error.errors[0].message }));
-        return false;
-      }
-      return false;
-    }
-  };
-
-  const handleInputChange = (name: keyof Conference, value: any) => {
-    const sanitizedValue = name === "eventDate" && value instanceof CalendarDate 
-      ? value.toString() 
-      : typeof value === "string" 
-        ? value.trim() 
-        : value;
-    
-    setCurrentConference((prev) => ({ ...prev, [name]: sanitizedValue }));
-
-    if (typeof sanitizedValue === "string") {
-      validateField(name, sanitizedValue);
-    }
-  };
+  }>();
 
   const handleAdd = () => {
-    setIsEditing(false);
-    setCurrentConference({
-      title: "",
-      organizer: "",
-      eventLocation: "",
-      eventDate: today("IST").toDate("IST"),
-      link: "",
-      description: "",
-    });
-    setErrors({});
+    setEditingConference(null);
+    setValidationErrors({});
+    setTitle("");
+    setOrganizer("");
+    setEventLocation("");
+    setEventDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
+    setLink("");
+    setDescription("");
     onOpen();
   };
 
   const handleEdit = (conference: Conference) => {
-    setIsEditing(true);
-    setCurrentConference(conference);
-    setErrors({});
+    setEditingConference(conference?._id || null);
+    setTitle(conference.title);
+    setOrganizer(conference.organizer);
+    setEventLocation(conference.eventLocation);
+    setEventDate(new Date(conference.eventDate));
+    setLink(conference.link || "");
+    setDescription(conference.description || "");
+    setValidationErrors({});
     onOpen();
   };
 
   const handleDelete = (id: string) => {
-    const newConferences = user?.conferences?.filter((conf) => conf._id !== id);
+    if (!user.conferences) return;
+
+    const newConferences = user.conferences.filter((conf) => conf._id !== id);
     setUser({ ...user, conferences: newConferences });
   };
 
+  const validateForm = (): boolean => {
+    const errors = {
+      title: false,
+      organizer: false,
+      eventLocation: false,
+    };
+
+    if (!title) errors.title = true;
+    if (!organizer) errors.organizer = true;
+    if (!eventLocation) errors.eventLocation = true;
+
+    setValidationErrors(errors);
+    return !Object.values(errors).some((error) => error);
+  };
+
+  const handleDateChange = (date: ZonedDateTime | null) => {
+    if (!date) return;
+    const dateObj = new Date(date.year, date.month - 1, date.day);
+    setEventDate(dateObj);
+  };
+
   const handleSave = () => {
-    try {
-      conferenceSchema.parse(currentConference);
+    if (!validateForm()) return;
 
-      if (isEditing) {
-        const newConferences = user?.conferences?.map((conf) =>
-          conf._id === currentConference._id ? currentConference : conf
-        );
-        setUser({ ...user, conferences: newConferences });
-      } else {
-        const newConferences = user?.conferences
-          ? [...user.conferences, currentConference]
-          : [currentConference];
+    let newConferences: Conference[] = [];
 
-        setUser({ ...user, conferences: newConferences });
-      }
+    const preparedData: Conference = {
+      title,
+      organizer,
+      eventLocation,
+      eventDate,
+      link,
+      description,
+    };
 
-      onClose();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        error.errors.forEach((err) => {
-          toast.error(`${err.path.join(".")}: ${err.message}`);
-        });
-      }
+    if (editingConference) {
+      newConferences = (user?.conferences || []).map((conf) =>
+        conf._id === editingConference
+          ? { ...preparedData, _id: conf._id }
+          : {
+              ...conf,
+            }
+      );
+    } else {
+      const newConf: Conference = {
+        ...preparedData,
+        eventDate: new Date(preparedData.eventDate),
+        createdAt: new Date(),
+      };
+      newConferences = [...(user?.conferences || []), newConf];
     }
+    newConferences.sort(
+      (a, b) =>
+        new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime()
+    );
+
+    setUser({
+      ...user,
+      conferences: newConferences,
+    });
+
+    setEditingConference(null);
+    setValidationErrors({});
+    closeAndReset();
+  };
+
+  const closeAndReset = () => {
+    setEditingConference(null);
+    setValidationErrors({});
+    setTitle("");
+    setOrganizer("");
+    setEventLocation("");
+    setEventDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
+    setLink("");
+    setDescription("");
+    onClose();
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="p-5"
-    >
+    <div className="p-5">
       <Breadcrumbs>
         <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
         <BreadcrumbItem href="/profile/conferences">Conferences</BreadcrumbItem>
       </Breadcrumbs>
 
-      <div className="py-5">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-          className="p-5 rounded-xl"
-        >
-          <div className="flex justify-end items-center mb-6">
-            <Button startContent={<Plus size={18} />} onClick={handleAdd}>
-              Add new
-            </Button>
-          </div>
-
-          {!user?.conferences?.length ? (
-            <motion.div
-              key="empty"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col items-center justify-center gap-4 p-10"
-            >
-              <motion.div
-                animate={{
-                  scale: [1, 1.1, 1],
-                  rotate: [0, 5, -5, 0],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  repeatType: "reverse",
-                }}
-              >
-                <Users size={50} />
-              </motion.div>
-
-              <h3 className="text-xl mt-3">No Conference Added Yet</h3>
-              <p className="text-gray-500">
-                Start by adding your first conference!
-              </p>
-            </motion.div>
-          ) : (
-            <div className="grid gap-4">
-              {user.conferences.map((conference) => (
-                <motion.div
-                  key={conference._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-4 border rounded-lg"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium">{conference.title}</h3>
-                      <p className="text-small">{conference.organizer}</p>
-                      <p className="text-small">{conference.eventLocation}</p>
-                      <p className="text-small">{conference.eventDate.toDateString()}</p>
-                      {conference.link && (
-                        <p className="text-small">
-                          <a href={conference.link} target="_blank" rel="noopener noreferrer">
-                            Conference Link
-                          </a>
-                        </p>
-                      )}
-                      {conference.description && (
-                        <p className="text-small mt-2">{conference.description}</p>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        isIconOnly
-                        variant="light"
-                        onClick={() => handleEdit(conference)}
-                      >
-                        <Edit2 size={18} />
-                      </Button>
-                      <Button
-                        isIconOnly
-                        variant="light"
-                        color="danger"
-                        onClick={() => handleDelete(conference._id || "")}
-                      >
-                        <Trash2 size={18} />
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </motion.div>
+      <div className="py-5 flex justify-end items-center">
+        {user.conferences && user.conferences.length > 0 && (
+          <Button
+            variant="flat"
+            onClick={handleAdd}
+            startContent={<Plus size={18} />}
+          >
+            Add New
+          </Button>
+        )}
       </div>
 
-      <Modal
-        isOpen={isOpen}
-        onClose={() => {
-          onClose();
-          setErrors({});
-        }}
-        size="2xl"
-      >
+      <div className="space-y-6">
+        {!user.conferences?.length ? (
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex flex-col items-center justify-center gap-4 p-10"
+          >
+            <motion.div
+              animate={{
+                scale: [1, 1.1, 1],
+                rotate: [0, 5, -5, 0],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                repeatType: "reverse",
+              }}
+            >
+              <Users size={50} />
+            </motion.div>
+
+            <h3 className="text-xl mt-3">No Conferences Added Yet</h3>
+            <p className="text-gray-500">
+              Start by adding your first conference!
+            </p>
+            <Button onClick={handleAdd} startContent={<Plus size={18} />}>
+              Add new
+            </Button>
+          </motion.div>
+        ) : (
+          <>
+            {user.conferences.map((conference) => (
+              <Card key={conference._id} className="w-full">
+                <CardBody>
+                  <div className="flex items-center w-full gap-5">
+                    <div className="w-16 h-16 bg-default-100 rounded-full flex items-center justify-center">
+                      {conference.title.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex items-start justify-between w-full">
+                      <div className="w-full">
+                        <h3 className="text-lg font-semibold">
+                          {conference.title}
+                        </h3>
+                        <p className="text-default-500 text-sm">
+                          {conference.organizer} |{" "}
+                          {new Date(conference.eventDate).toLocaleDateString()}{" "}
+                          | {conference.eventLocation}
+                        </p>
+                        {conference.link && (
+                          <p className="text-sm mt-2">
+                            <a
+                              href={conference.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-500 hover:underline"
+                            >
+                              Conference Link
+                            </a>
+                          </p>
+                        )}
+                        <div className="mt-4 whitespace-pre-line">
+                          {conference.description}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button
+                          isIconOnly
+                          variant="light"
+                          onClick={() => handleEdit(conference)}
+                        >
+                          <Edit2 size={18} />
+                        </Button>
+                        <Button
+                          isIconOnly
+                          variant="light"
+                          onClick={() =>
+                            conference._id && handleDelete(conference._id)
+                          }
+                        >
+                          <Trash2 size={18} />
+                        </Button>
+                        <Button isIconOnly variant="light">
+                          <Download size={18} />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            ))}
+          </>
+        )}
+      </div>
+
+      <Modal isOpen={isOpen} onClose={closeAndReset} size="2xl">
         <ModalContent>
           {(onClose) => (
             <>
               <ModalHeader>
-                {isEditing ? "Edit Conference" : "Add New Conference"}
+                {editingConference ? "Edit Conference" : "Add New Conference"}
               </ModalHeader>
               <ModalBody>
-                <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <Input
                     label="Title"
-                    value={currentConference.title}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                    isInvalid={!!errors.title}
-                    errorMessage={errors.title}
+                    placeholder="Enter conference title"
+                    isRequired
+                    isInvalid={validationErrors.title}
+                    errorMessage={
+                      validationErrors.title ? "Title is required" : ""
+                    }
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                   />
                   <Input
                     label="Organizer"
-                    value={currentConference.organizer}
-                    onChange={(e) =>
-                      handleInputChange("organizer", e.target.value)
+                    placeholder="Enter organizer name"
+                    isRequired
+                    isInvalid={validationErrors.organizer}
+                    errorMessage={
+                      validationErrors.organizer ? "Organizer is required" : ""
                     }
-                    isInvalid={!!errors.organizer}
-                    errorMessage={errors.organizer}
+                    value={organizer}
+                    onChange={(e) => setOrganizer(e.target.value)}
                   />
                   <Input
-                    label="Event Address"
-                    value={currentConference.eventLocation}
-                    onChange={(e) =>
-                      handleInputChange("eventLocation", e.target.value)
+                    label="Event Location"
+                    placeholder="Enter event location"
+                    isRequired
+                    isInvalid={validationErrors.eventLocation}
+                    errorMessage={
+                      validationErrors.eventLocation
+                        ? "Location is required"
+                        : ""
                     }
-                    isInvalid={!!errors.eventLocation}
-                    errorMessage={errors.eventLocation}
+                    value={eventLocation}
+                    onChange={(e) => setEventLocation(e.target.value)}
                   />
-                  <DateInput
-                    label="Event Date"
-                    value={parseDate(currentConference.eventDate.toISOString().split("T")[0])}
-                    onChange={(date) => handleInputChange("eventDate", date)}
-                    isInvalid={!!errors.eventDate}
-                    errorMessage={errors.eventDate?.toString()}
+                  <DatePicker
+                    className="max-w-xs"
+                    label="Event Date (mm/dd/yyyy)"
+                    granularity="day"
+                    maxValue={today(getLocalTimeZone())}
+                    value={parseAbsoluteToLocal(eventDate.toISOString())}
+                    onChange={handleDateChange}
                   />
                   <Input
                     label="Conference Link (Optional)"
-                    value={currentConference.link}
-                    onChange={(e) => handleInputChange("link", e.target.value)}
-                    isInvalid={!!errors.link}
-                    errorMessage={errors.link}
+                    placeholder="Enter conference website URL"
+                    value={link}
+                    onChange={(e) => setLink(e.target.value)}
+                    className="col-span-2"
                   />
-                  <Textarea
-                    label="Description"
-                    value={currentConference.description}
-                    onChange={(e) =>
-                      handleInputChange("description", e.target.value)
-                    }
-                    isInvalid={!!errors.description}
-                    errorMessage={errors.description}
-                  />
+                  <p className="text-xs">Time Zone: {getLocalTimeZone()}</p>
                 </div>
+                <Textarea
+                  label="Description"
+                  placeholder="Enter conference description"
+                  className="mt-4"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
@@ -312,8 +357,6 @@ const Conferences = () => {
           )}
         </ModalContent>
       </Modal>
-    </motion.div>
+    </div>
   );
-};
-
-export default Conferences;
+}

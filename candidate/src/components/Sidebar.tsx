@@ -1,195 +1,226 @@
 import { useNavigate } from "react-router-dom";
 import { Tooltip } from "@nextui-org/tooltip";
+import { ChevronRight, X } from "lucide-react";
 import {
-  Home,
-  Settings,
-  HelpCircle,
-  ChevronRight,
-  Bell,
-  LucideIcon,
-  User,
-  FileText,
-  ClockAlert,
-  Briefcase,
-} from "lucide-react";
+  IconLayoutDashboardFilled,
+  IconBriefcaseFilled,
+  IconUserFilled,
+  IconFileTextFilled,
+  // IconBellFilled,
+  // IconSettingsFilled,
+  // IconHelpCircleFilled,
+  // IconAlertCircleFilled,
+} from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { UserButton } from "@clerk/clerk-react";
-import { Badge } from "@nextui-org/react";
+import { Badge, Button } from "@nextui-org/react";
 
 interface SidebarProps {
-  icon: LucideIcon;
+  icon: any; // Using any for Tabler icons compatibility
   label: string;
   link: string;
   visible?: boolean;
   length?: number;
 }
 
-const Sidebar = () => {
+const Sidebar = ({
+  isMobile,
+  onClose,
+}: {
+  isMobile?: boolean;
+  onClose?: () => void;
+}) => {
   const topItems: SidebarProps[] = [
     {
-      icon: Home,
-      label: "Home",
-      link: "/home",
+      icon: IconLayoutDashboardFilled,
+      label: "Dashboard",
+      link: "/dashboard",
       visible: true,
     },
     {
-      icon: User,
+      icon: IconUserFilled,
       label: "Profile",
       link: "/profile",
       visible: true,
     },
     {
-      icon: FileText,
+      icon: IconFileTextFilled,
       label: "Resume",
       link: "/resume",
       visible: true,
     },
     {
-      icon: Briefcase,
+      icon: IconBriefcaseFilled,
       label: "Jobs",
       link: "/jobs",
       visible: true,
     },
-    {
-      icon: ClockAlert,
-      label: "Alerts",
-      link: "/alerts",
-      visible: true,
-    },
+    // {
+    //   icon: IconAlertCircleFilled,
+    //   label: "Alerts",
+    //   link: "/alerts",
+    //   visible: true,
+    // },
   ];
 
   const bottomItems: SidebarProps[] = [
-    {
-      icon: Bell,
-      label: "Notifications",
-      link: "/notifications",
-      visible: true,
-    },
-    {
-      icon: Settings,
-      label: "Settings",
-      link: "/settings",
-      visible: true,
-    },
-    {
-      icon: HelpCircle,
-      label: "Support",
-      link: "/support",
-      visible: true,
-    },
+    // {
+    //   icon: IconBellFilled,
+    //   label: "Notifications",
+    //   link: "/notifications",
+    //   visible: true,
+    //   length: 3, // Example notification count
+    // },
+    // {
+    //   icon: IconSettingsFilled,
+    //   label: "Settings",
+    //   link: "/settings",
+    //   visible: true,
+    // },
   ];
 
   const [active, setActive] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
 
+  const subNavbarRoutes = ["profile"];
+
   useEffect(() => {
-    setActive(window.location.pathname.split("/")[2]);
+    setActive(window.location.pathname.split("/")[1]);
   }, []);
 
   return (
-    <>
-      <aside
-        className={`bg-foreground text-background sticky h-[100vh] min-w-16 px-5 top-0 left-0 z-10 hidden transition-width flex-col border-r sm:flex overflow-x-hidden ${
-          collapsed ? "w-16" : "w-64"
-        }`}
-      >
-        <nav className={`flex flex-col gap-4 sm:py-5 `}>
-          <div>
+    <aside
+      className={`h-[100vh] bg-foreground text-background ${
+        subNavbarRoutes.includes(window.location.pathname.split("/")[1])
+          ? "border-r-background/10"
+          : "rounded-r-2xl"
+      } border-r flex flex-col overflow-hidden transition-all duration-300 
+        ${isMobile ? "w-64" : collapsed ? "w-16" : "w-64"}
+        ${isMobile ? "fixed left-0 top-0 z-50" : "relative"}`}
+    >
+      {/* Mobile Close Button */}
+      {isMobile && (
+        <Button
+          isIconOnly
+          variant="light"
+          className="absolute top-4 right-4"
+          onPress={onClose}
+        >
+          <X className="h-6 w-6" />
+        </Button>
+      )}
+
+      <nav className="flex flex-col gap-2 p-3">
+        {(!isMobile || !collapsed) && (
+          <div className={`${isMobile ? "mt-12" : "mt-4"} mb-6`}>
             <img
               src="/logo.svg"
               alt="logo"
-              className="cursor-pointer h-8"
+              className="cursor-pointer h-10"
               onClick={() => {
                 window.location.href = "/";
               }}
             />
           </div>
+        )}
 
-          {topItems.map((item, index) => (
-            <Tooltip key={index} content={item.label} placement="right">
-              <table className={!item.visible ? "hidden" : ""}>
-                <tbody
-                  className={`cursor-pointer h-8 ${
-                    active === item.label.toLowerCase()
-                      ? "rounded-xl"
-                      : "hover:opacity-70"
-                  } `}
-                  onClick={() => {
-                    navigate("/dashboard" + item.link);
-                    setActive(item.label.toLowerCase());
-                  }}
-                >
-                  <tr>
-                    <td className="pr-3">
-                      {item.icon && <item.icon className="h-7 w-5" />}
-                    </td>
-                    {collapsed ? null : (
-                      <td className="text-start w-full">{item.label}</td>
-                    )}
-                  </tr>
-                </tbody>
-              </table>
-            </Tooltip>
-          ))}
-        </nav>
-        <nav className={`mt-auto flex flex-col gap-4 sm:py-5`}>
-          <div className="-ml-1">
-            <UserButton />
-          </div>
-          {bottomItems.map((item, index) => (
-            <Tooltip key={index} content={item.label} placement="right">
-              <table className={!item.visible ? "hidden" : ""}>
-                <tbody
-                  className={`cursor-pointer h-7 ${
-                    active === item.label.toLowerCase()
-                      ? "rounded-xl"
-                      : "hover:opacity-70"
-                  } `}
-                  onClick={() => {
-                    navigate("/dashboard" + item.link);
-                    setActive(item.label.toLowerCase());
-                  }}
-                >
-                  <tr>
-                    <td className="pr-3">
-                      <Badge
-                        content={item?.length}
-                        color="warning"
-                        className={!item?.length ? "hidden" : ""}
-                      >
-                        {item.label === "Profile" ? (
-                          <div className="flex items-center justify-center user-button-small">
-                            <UserButton />
-                          </div>
-                        ) : (
-                          item.icon && <item.icon className="h-5 w-5" />
-                        )}{" "}
-                      </Badge>
-                    </td>
-
-                    {collapsed ? null : (
-                      <td className="text-start w-full">{item.label}</td>
-                    )}
-                  </tr>
-                </tbody>
-              </table>
-            </Tooltip>
-          ))}
-        </nav>
-
-        <div className={` flex w-full mb-5 `}>
-          <Tooltip content="Collapse sidebar" placement="right">
-            <ChevronRight
-              className={`h-5 w-5 transition-all cursor-pointer ${
-                !collapsed ? "rotate-180" : ""
-              }`}
-              onClick={() => setCollapsed(!collapsed)}
-            />
+        {topItems.map((item, index) => (
+          <Tooltip
+            key={index}
+            content={item.label}
+            placement="right"
+            isDisabled={isMobile || !collapsed}
+          >
+            <div
+              className={`${!item.visible ? "hidden" : ""}`}
+              onClick={() => {
+                navigate(item.link);
+                setActive(item.label.toLowerCase());
+                if (isMobile) onClose?.();
+              }}
+            >
+              <div
+                className={`flex items-center p-2 py-3 rounded-lg cursor-pointer transition-colors duration-200  
+                  ${
+                    active?.toLowerCase() === item.label.toLowerCase()
+                      ? "bg-primary text-foreground"
+                      : "text-default hover:bg-accent/40"
+                  }`}
+              >
+                <div className="min-w-[24px] flex items-center justify-center">
+                  <item.icon className="w-6 h-6" />
+                </div>
+                {(!collapsed || isMobile) && (
+                  <span className="ml-3 text-sm font-medium">{item.label}</span>
+                )}
+              </div>
+            </div>
           </Tooltip>
+        ))}
+      </nav>
+
+      <nav className="mt-auto flex flex-col gap-2 p-3">
+        <div className="ml-[6px] mb-4">
+          <UserButton />
         </div>
-      </aside>
-    </>
+
+        {bottomItems.map((item, index) => (
+          <Tooltip
+            key={index}
+            content={item.label}
+            placement="right"
+            isDisabled={isMobile || !collapsed}
+          >
+            <div
+              className={`${!item.visible ? "hidden" : ""}`}
+              onClick={() => {
+                navigate(item.link);
+                setActive(item.label.toLowerCase());
+                if (isMobile) onClose?.();
+              }}
+            >
+              <div
+                className={`flex items-center p-2 py-3 rounded-xl cursor-pointer transition-colors duration-200   
+                  ${
+                    active?.toLowerCase() === item.label.toLowerCase()
+                      ? "bg-primary text-foreground"
+                      : "text-default hover:bg-accent/40"
+                  }`}
+              >
+                <div className="min-w-[24px] flex items-center justify-center relative">
+                  <Badge
+                    content={item?.length}
+                    color="warning"
+                    className={!item?.length ? "hidden" : ""}
+                  >
+                    <item.icon className="w-5 h-5" />
+                  </Badge>
+                </div>
+                {(!collapsed || isMobile) && (
+                  <span className="ml-3 text-sm font-medium">{item.label}</span>
+                )}
+              </div>
+            </div>
+          </Tooltip>
+        ))}
+
+        {/* Collapse Button */}
+        {!isMobile && (
+          <div className="flex w-full mt-4 px-2">
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="p-1 rounded-xl transition-colors duration-200 w-full"
+            >
+              <ChevronRight
+                className={`h-5 w-5 transition-transform duration-200 text-background
+                  ${!collapsed ? "rotate-180" : ""}`}
+              />
+            </button>
+          </div>
+        )}
+      </nav>
+    </aside>
   );
 };
 

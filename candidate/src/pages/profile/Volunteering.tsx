@@ -11,14 +11,21 @@ import {
   Checkbox,
   Textarea,
   useDisclosure,
+  Card,
+  CardBody,
+  DatePicker,
 } from "@nextui-org/react";
-import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
-import { parseDate, CalendarDate, today } from "@internationalized/date";
-import { Plus, Edit2, Trash2, Earth } from "lucide-react";
+import { Edit2, Trash2, Earth, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { z } from "zod";
+import {
+  today,
+  ZonedDateTime,
+  parseAbsoluteToLocal,
+  getLocalTimeZone,
+} from "@internationalized/date";
+import { useOutletContext } from "react-router-dom";
 
 // Interface matching the backend schema
 interface Volunteer {
@@ -26,159 +33,192 @@ interface Volunteer {
   organization: string;
   role: string;
   cause: string;
-  startDate: string;
-  endDate?: string;
+  startDate: Date | string;
+  endDate?: Date | string;
   current: boolean;
   description: string;
   createdAt?: string;
 }
 
-// Frontend state interface with CalendarDate for date handling
-interface VolunteerFormState {
-  _id?: string;
-  organization: string;
-  role: string;
-  cause: string;
-  startDate: CalendarDate;
-  endDate: CalendarDate | null;
-  current: boolean;
-  description: string;
+// User context interface
+interface UserContext {
+  user: {
+    volunteering?: Volunteer[];
+  };
+  setUser: (user: any) => void;
 }
 
-// Validation Schema
-const volunteerSchema = z.object({
-  organization: z.string().min(2, "Organization name must be at least 2 characters"),
-  role: z.string().min(2, "Role must be at least 2 characters"),
-  cause: z.string().min(2, "Please select a cause"),
-  startDate: z.instanceof(CalendarDate),
-  endDate: z.instanceof(CalendarDate).nullable(),
-  current: z.boolean(),
-  description: z.string().min(10, "Please provide a brief description of your volunteer work"),
-});
+const causes = [
+  "Education",
+  "Healthcare",
+  "Environment",
+  "Animal Welfare",
+  "Community Development",
+  "Arts & Culture",
+  "Social Justice",
+  "Disaster Relief",
+] as const;
 
 const Volunteering = () => {
-  const [experiences, setExperiences] = useState<Volunteer[]>([]);
-  const [currentExperience, setCurrentExperience] = useState<VolunteerFormState | null>(null);
+  const [editingExperience, setEditingExperience] = useState<string | null>(
+    null
+  );
+  const [validationErrors, setValidationErrors] = useState<
+    Partial<Record<keyof Volunteer, boolean>>
+  >({});
+
+  // Modal States
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [organization, setOrganization] = useState("");
+  const [role, setRole] = useState("");
+  const [cause, setCause] = useState("");
+  const [startDate, setStartDate] = useState<Date>(
+    today(getLocalTimeZone()).toDate(getLocalTimeZone())
+  );
+  const [current, setCurrent] = useState(false);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [description, setDescription] = useState("");
 
-  const causes = [
-    "Education",
-    "Healthcare",
-    "Environment",
-    "Animal Welfare",
-    "Community Development",
-    "Arts & Culture",
-    "Social Justice",
-    "Disaster Relief",
-  ];
-
-  const resetForm = () => {
-    setCurrentExperience({
-      organization: "",
-      role: "",
-      cause: "",
-      startDate: parseDate(today("IST").toString()),
-      endDate: null,
-      current: false,
-      description: "",
-    });
-    setErrors({});
-  };
+  const { user, setUser } = useOutletContext<UserContext>();
 
   const handleAdd = () => {
-    resetForm();
+    setEditingExperience(null);
+    setValidationErrors({});
+    setOrganization("");
+    setRole("");
+    setCause("");
+    setStartDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
+    setCurrent(false);
+    setEndDate(undefined);
+    setDescription("");
     onOpen();
   };
 
   const handleEdit = (experience: Volunteer) => {
-    setCurrentExperience({
-      _id: experience._id,
-      organization: experience.organization,
-      role: experience.role,
-      cause: experience.cause,
-      startDate: parseDate(experience.startDate),
-      endDate: experience.endDate ? parseDate(experience.endDate) : null,
-      current: experience.current,
-      description: experience.description,
-    });
+    setEditingExperience(experience?._id || null);
+    setOrganization(experience.organization);
+    setRole(experience.role);
+    setCause(experience.cause);
+    setStartDate(new Date(experience.startDate));
+    setCurrent(experience.current);
+    setEndDate(experience.endDate ? new Date(experience.endDate) : undefined);
+    setDescription(experience.description || "");
+    setValidationErrors({});
     onOpen();
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
+    if (!user.volunteering) return;
+
     try {
-      // Add your API delete call here
-      // await deleteVolunteer(id);
-      setExperiences((prev) => prev.filter((exp) => exp._id !== id));
+      const newVolunteering = user.volunteering.filter((exp) => exp._id !== id);
+      setUser({ ...user, volunteering: newVolunteering });
       toast.success("Volunteer experience deleted successfully");
     } catch (error) {
       toast.error("Failed to delete volunteer experience");
     }
   };
 
-  const validateForm = (data: Omit<VolunteerFormState, "_id">) => {
-    try {
-      volunteerSchema.parse(data);
-      return true;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const newErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
-          const path = err.path[0] as string;
-          newErrors[path] = err.message;
-        });
-        setErrors(newErrors);
-      }
-      return false;
+  const validateForm = (): boolean => {
+    const errors = {
+      organization: false,
+      role: false,
+      cause: false,
+    };
+
+    if (!organization) errors.organization = true;
+    if (!role) errors.role = true;
+    if (!cause) errors.cause = true;
+
+    setValidationErrors(errors);
+    return !Object.values(errors).some((error) => error);
+  };
+
+  const handleDateChange = (
+    date: ZonedDateTime | null,
+    field: "startDate" | "endDate"
+  ) => {
+    if (!date) return;
+
+    const dateObj = new Date(date.year, date.month - 1, date.day);
+
+    if (field === "startDate") {
+      setStartDate(dateObj);
+    } else {
+      setEndDate(dateObj);
     }
   };
 
-  const transformFormToVolunteer = (form: VolunteerFormState): Omit<Volunteer, '_id' | 'createdAt'> => {
-    return {
-      organization: form.organization,
-      role: form.role,
-      cause: form.cause,
-      startDate: form.startDate.toString(),
-      endDate: form.endDate?.toString(),
-      current: form.current,
-      description: form.description,
-    };
-  };
-
-  const handleSave = async () => {
-    if (!currentExperience) return;
-
-    if (!validateForm(currentExperience)) {
+  const handleSave = () => {
+    if (!validateForm()) {
       toast.error("Please check the form for errors");
       return;
     }
 
     try {
-      const volunteerData = transformFormToVolunteer(currentExperience);
+      let newVolunteering: Volunteer[] = [];
 
-      if (currentExperience._id) {
-        // Update existing volunteer
-        // Add your API update call here
-        // const updated = await updateVolunteer(currentExperience._id, volunteerData);
-        setExperiences((prev) =>
-          prev.map((exp) =>
-            exp._id === currentExperience._id
-              ? { ...volunteerData, _id: currentExperience._id }
-              : exp
-          )
+      const preparedData: Volunteer = {
+        organization,
+        role,
+        cause,
+        startDate,
+        current,
+        endDate,
+        description,
+      };
+
+      if (editingExperience) {
+        newVolunteering = (user?.volunteering || []).map((exp) =>
+          exp._id === editingExperience
+            ? { ...preparedData, _id: exp._id }
+            : { ...exp }
         );
         toast.success("Volunteer experience updated successfully");
       } else {
-        // Create new volunteer
-        // Add your API create call here
-        // const created = await createVolunteer(volunteerData);
-        setExperiences((prev) => [...prev, { ...volunteerData, _id: Date.now().toString() }]);
+        const newExp: Volunteer = {
+          ...preparedData,
+          startDate: new Date(preparedData.startDate),
+          endDate: preparedData.endDate
+            ? new Date(preparedData.endDate)
+            : undefined,
+          createdAt: new Date().toISOString(),
+          _id: Date.now().toString(), // Temporary ID until we get one from API
+        };
+        newVolunteering = [...(user?.volunteering || []), newExp];
         toast.success("Volunteer experience added successfully");
       }
+
+      // Sort by most recent
+      newVolunteering.sort(
+        (a, b) =>
+          new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+      );
+
+      setUser({
+        ...user,
+        volunteering: newVolunteering,
+      });
+
+      setEditingExperience(null);
+      setValidationErrors({});
       onClose();
     } catch (error) {
       toast.error("Failed to save volunteer experience");
     }
+  };
+
+  const closeAndReset = () => {
+    setEditingExperience(null);
+    setValidationErrors({});
+    setOrganization("");
+    setRole("");
+    setCause("");
+    setStartDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
+    setCurrent(false);
+    setEndDate(undefined);
+    setDescription("");
+    onClose();
   };
 
   return (
@@ -187,140 +227,150 @@ const Volunteering = () => {
       animate={{ opacity: 1, y: 0 }}
       className="p-5"
     >
-      <div className="flex justify-end items-center mb-6">
-        {experiences.length > 0 && (
-          <Button startContent={<Plus size={20} />} onPress={handleAdd}>
-            Add new
+      <div className="py-5 flex justify-end items-center">
+        {user.volunteering && user.volunteering.length > 0 && (
+          <Button
+            variant="flat"
+            onClick={handleAdd}
+            startContent={<Plus size={18} />}
+          >
+            Add New
           </Button>
         )}
       </div>
 
-      {experiences.length === 0 ? (
-        <motion.div
-          key="empty"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="flex flex-col items-center justify-center gap-4 p-10"
-        >
+      <div className="space-y-6">
+        {!user.volunteering?.length ? (
           <motion.div
-            animate={{
-              scale: [1, 1.1, 1],
-              rotate: [0, 5, -5, 0],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              repeatType: "reverse",
-            }}
+            key="empty"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex flex-col items-center justify-center gap-4 p-10"
           >
-            <Earth size={50} />
-          </motion.div>
-
-          <h3 className="text-xl mt-3">No Volunteering Added Yet</h3>
-          <p className="text-gray-500">Start by adding your first volunteering!</p>
-          <Button onPress={handleAdd} startContent={<Plus size={18} />}>
-            Add new
-          </Button>
-        </motion.div>
-      ) : (
-        <div className="space-y-4">
-          {experiences.map((experience) => (
             <motion.div
-              key={experience._id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="p-4 border rounded-lg"
+              animate={{
+                scale: [1, 1.1, 1],
+                rotate: [0, 5, -5, 0],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                repeatType: "reverse",
+              }}
             >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-medium">{experience.organization}</h3>
-                  <p className="text-gray-600">{experience.role}</p>
-                  <p className="text-sm text-gray-500">
-                    {experience.startDate} - {experience.current ? "Present" : experience.endDate}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    isIconOnly
-                    variant="light"
-                    onPress={() => handleEdit(experience)}
-                  >
-                    <Edit2 size={18} />
-                  </Button>
-                  <Button
-                    isIconOnly
-                    variant="light"
-                    color="danger"
-                    onPress={() => experience._id && handleDelete(experience._id)}
-                  >
-                    <Trash2 size={18} />
-                  </Button>
-                </div>
-              </div>
+              <Earth size={50} />
             </motion.div>
-          ))}
-        </div>
-      )}
 
-      <Modal isOpen={isOpen} onClose={onClose} size="2xl">
+            <h3 className="text-xl mt-3">No Volunteering Added Yet</h3>
+            <p className="text-gray-500">
+              Start by adding your first volunteering experience!
+            </p>
+            <Button onClick={handleAdd} startContent={<Plus size={18} />}>
+              Add new
+            </Button>
+          </motion.div>
+        ) : (
+          <>
+            {user.volunteering.map((experience) => (
+              <Card key={experience._id} className="w-full">
+                <CardBody>
+                  <div className="flex items-center w-full gap-5">
+                    <div className="w-16 h-16 bg-default-100 rounded-full flex items-center justify-center">
+                      {experience.organization.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex items-start justify-between w-full">
+                      <div className="w-full">
+                        <h3 className="text-lg font-semibold">
+                          {experience.role}
+                        </h3>
+                        <p className="text-default-500 text-sm">
+                          {experience.organization} |{" "}
+                          {new Date(experience.startDate).toLocaleDateString()}{" "}
+                          -{" "}
+                          {experience.current
+                            ? "Present"
+                            : experience.endDate
+                            ? new Date(experience.endDate).toLocaleDateString()
+                            : ""}{" "}
+                          | {experience.cause}
+                        </p>
+                        <div className="mt-4 whitespace-pre-line">
+                          {experience.description}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button
+                          isIconOnly
+                          variant="light"
+                          onClick={() => handleEdit(experience)}
+                        >
+                          <Edit2 size={18} />
+                        </Button>
+                        <Button
+                          isIconOnly
+                          variant="light"
+                          color="danger"
+                          onClick={() =>
+                            experience._id && handleDelete(experience._id)
+                          }
+                        >
+                          <Trash2 size={18} />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            ))}
+          </>
+        )}
+      </div>
+
+      <Modal isOpen={isOpen} onClose={closeAndReset} size="2xl">
         <ModalContent>
           {(onClose) => (
             <>
               <ModalHeader>
-                {currentExperience?._id ? "Edit" : "Add New"} Volunteer Experience
+                {editingExperience ? "Edit" : "Add New"} Volunteer Experience
               </ModalHeader>
               <ModalBody>
-                <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <Input
                     label="Organization Name"
-                    value={currentExperience?.organization}
-                    onChange={(e) =>
-                      setCurrentExperience((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              organization: e.target.value,
-                            }
-                          : null
-                      )
+                    placeholder="Enter Organization Name"
+                    isRequired
+                    isInvalid={validationErrors.organization}
+                    errorMessage={
+                      validationErrors.organization
+                        ? "Organization name is required"
+                        : ""
                     }
-                    isInvalid={!!errors.organization}
-                    errorMessage={errors.organization}
+                    value={organization}
+                    onChange={(e) => setOrganization(e.target.value)}
                   />
                   <Input
                     label="Your Role"
-                    value={currentExperience?.role}
-                    onChange={(e) =>
-                      setCurrentExperience((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              role: e.target.value,
-                            }
-                          : null
-                      )
+                    placeholder="Enter Your Role"
+                    isRequired
+                    isInvalid={validationErrors.role}
+                    errorMessage={
+                      validationErrors.role ? "Role is required" : ""
                     }
-                    isInvalid={!!errors.role}
-                    errorMessage={errors.role}
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
                   />
                   <Select
                     label="Select Cause"
-                    selectedKeys={
-                      currentExperience?.cause ? [currentExperience.cause] : []
+                    placeholder="Select Cause"
+                    selectedKeys={cause ? [cause] : []}
+                    isRequired
+                    isInvalid={validationErrors.cause}
+                    errorMessage={
+                      validationErrors.cause ? "Cause is required" : ""
                     }
-                    onChange={(e) =>
-                      setCurrentExperience((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              cause: e.target.value,
-                            }
-                          : null
-                      )
-                    }
-                    isInvalid={!!errors.cause}
-                    errorMessage={errors.cause}
+                    onSelectionChange={(e) => setCause(e.currentKey as string)}
                   >
                     {causes.map((cause) => (
                       <SelectItem key={cause} value={cause}>
@@ -328,72 +378,50 @@ const Volunteering = () => {
                       </SelectItem>
                     ))}
                   </Select>
-                  <div className="flex gap-4">
-                    <DateInput
-                      label="Start Date"
-                      value={currentExperience?.startDate}
-                      onChange={(date) =>
-                        setCurrentExperience((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                startDate: date,
-                              }
-                            : null
-                        )
-                      }
-                      maxValue={today("IST")}
-                    />
-                    <DateInput
-                      label="End Date"
-                      value={currentExperience?.endDate}
-                      onChange={(date) =>
-                        setCurrentExperience((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                endDate: date,
-                              }
-                            : null
-                        )
-                      }
-                      maxValue={today("IST")}
-                      isDisabled={currentExperience?.current}
-                    />
-                  </div>
-                  <Checkbox
-                    isSelected={currentExperience?.current}
-                    onValueChange={(checked) =>
-                      setCurrentExperience((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              current: checked,
-                              endDate: checked ? null : prev.endDate,
-                            }
-                          : null
-                      )
-                    }
-                  >
-                    I am currently volunteering with this organization
-                  </Checkbox>
-                  <Textarea
-                    label="Description"
-                    value={currentExperience?.description}
-                    onChange={(e) =>
-                      setCurrentExperience((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              description: e.target.value,
-                            }
-                          : null
-                      )
-                    }
-                    isInvalid={!!errors.description}
-                    errorMessage={errors.description}
+                  <div></div>
+                  <DatePicker
+                    className="max-w-xs"
+                    label="Start Date (mm/dd/yyyy)"
+                    granularity="day"
+                    maxValue={today(getLocalTimeZone())}
+                    value={parseAbsoluteToLocal(startDate.toISOString())}
+                    onChange={(date) => handleDateChange(date, "startDate")}
                   />
+                  <DatePicker
+                    className="max-w-xs"
+                    label="End Date (mm/dd/yyyy)"
+                    granularity="day"
+                    value={
+                      endDate
+                        ? parseAbsoluteToLocal(endDate.toISOString())
+                        : undefined
+                    }
+                    onChange={(date) => handleDateChange(date, "endDate")}
+                    maxValue={today(getLocalTimeZone())}
+                    isDisabled={current}
+                  />
+                  <p className="text-xs">Time Zone: {getLocalTimeZone()}</p>
+                  <div className="col-span-2">
+                    <Checkbox
+                      checked={current}
+                      onChange={(e) => {
+                        setCurrent(e.target.checked);
+                        if (e.target.checked) {
+                          setEndDate(undefined);
+                        }
+                      }}
+                    >
+                      I am currently volunteering with this organization
+                    </Checkbox>
+                  </div>
                 </div>
+                <Textarea
+                  label="Description"
+                  placeholder="Enter description of your volunteer work"
+                  className="mt-4"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>

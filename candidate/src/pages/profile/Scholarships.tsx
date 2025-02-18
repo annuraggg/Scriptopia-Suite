@@ -12,42 +12,42 @@ import {
   SelectItem,
   Breadcrumbs,
   BreadcrumbItem,
+  DatePicker,
 } from "@nextui-org/react";
-import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
-import { parseDate, CalendarDate, today } from "@internationalized/date";
+import {
+  today,
+  ZonedDateTime,
+  parseAbsoluteToLocal,
+  getLocalTimeZone,
+} from "@internationalized/date";
 import { Plus, Pencil, Trash2, School } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { z } from "zod";
 
 // Types and Interfaces
 interface Scholarship {
   id: string;
   position: string;
   associatedWith: string;
-  grantDate: CalendarDate;
+  grantDate: Date;
   description: string;
 }
 
-// Validation Schema
-const scholarshipSchema = z.object({
-  position: z.string().min(1, "Position is required"),
-  associatedWith: z.string().min(1, "Associated organization is required"),
-  grantDate: z.instanceof(CalendarDate),
-  description: z.string().optional(),
-});
-
 const Scholarships = () => {
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
-  const [editingScholarship, setEditingScholarship] =
-    useState<Scholarship | null>(null);
-  const [formData, setFormData] = useState<Omit<Scholarship, "id">>({
-    position: "",
-    associatedWith: "",
-    grantDate: parseDate(today("IST").toString()),
-    description: "",
-  });
+  const [editingScholarshipId, setEditingScholarshipId] = useState<
+    string | null
+  >(null);
+
+  // Split states for each field
+  const [position, setPosition] = useState("");
+  const [associatedWith, setAssociatedWith] = useState("");
+  const [grantDate, setGrantDate] = useState<Date>(
+    today(getLocalTimeZone()).toDate(getLocalTimeZone())
+  );
+  const [description, setDescription] = useState("");
+
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -58,42 +58,34 @@ const Scholarships = () => {
     { label: "Stanford University", value: "stanford" },
   ];
 
-  const validateField = (name: keyof typeof formData, value: any) => {
-    try {
-      scholarshipSchema.shape[name].parse(value);
-      // @ts-expect-error - Ignore the error
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-      return true;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        setErrors((prev) => ({ ...prev, [name]: error.errors[0].message }));
-        return false;
-      }
-      return false;
+  const validateForm = () => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!position || position.trim() === "") {
+      newErrors.position = "Position is required";
     }
+
+    if (!associatedWith || associatedWith.trim() === "") {
+      newErrors.associatedWith = "Associated organization is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (
-    name: keyof typeof formData,
-    value: string | CalendarDate
-  ) => {
-    const sanitizedValue = typeof value === "string" ? value.trim() : value;
-    setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
-
-    if (typeof value === "string") {
-      validateField(name, value);
-    }
+  const handleDateChange = (date: ZonedDateTime | null) => {
+    if (!date) return;
+    const dateObj = new Date(date.year, date.month - 1, date.day);
+    setGrantDate(dateObj);
   };
 
   const resetForm = () => {
-    setFormData({
-      position: "",
-      associatedWith: "",
-      grantDate: parseDate(today("IST").toString()),
-      description: "",
-    });
+    setPosition("");
+    setAssociatedWith("");
+    setGrantDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
+    setDescription("");
     setErrors({});
-    setEditingScholarship(null);
+    setEditingScholarshipId(null);
   };
 
   const handleClose = () => {
@@ -102,46 +94,40 @@ const Scholarships = () => {
   };
 
   const handleSave = () => {
-    try {
-      scholarshipSchema.parse(formData);
+    if (!validateForm()) return;
 
-      if (editingScholarship) {
-        setScholarships((prev) =>
-          prev.map((s) =>
-            s.id === editingScholarship.id ? { ...formData, id: s.id } : s
-          )
-        );
-        toast.success("Scholarship updated successfully");
-      } else {
-        setScholarships((prev) => [
-          ...prev,
-          { ...formData, id: Math.random().toString(36).substr(2, 9) },
-        ]);
-        toast.success("Scholarship added successfully");
-      }
+    const preparedData: Omit<Scholarship, "id"> = {
+      position,
+      associatedWith,
+      grantDate,
+      description,
+    };
 
-      handleClose();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        error.errors.forEach((err) => {
-          setErrors((prev) => ({
-            ...prev,
-            [err.path[0]]: err.message,
-          }));
-        });
-        toast.error("Please check all required fields");
-      }
+    if (editingScholarshipId) {
+      setScholarships((prev) =>
+        prev.map((s) =>
+          s.id === editingScholarshipId ? { ...preparedData, id: s.id } : s
+        )
+      );
+      toast.success("Scholarship updated successfully");
+    } else {
+      setScholarships((prev) => [
+        ...prev,
+        { ...preparedData, id: Math.random().toString(36).substr(2, 9) },
+      ]);
+      toast.success("Scholarship added successfully");
     }
+
+    handleClose();
   };
 
   const handleEdit = (scholarship: Scholarship) => {
-    setEditingScholarship(scholarship);
-    setFormData({
-      position: scholarship.position,
-      associatedWith: scholarship.associatedWith,
-      grantDate: scholarship.grantDate,
-      description: scholarship.description,
-    });
+    setEditingScholarshipId(scholarship.id);
+    setPosition(scholarship.position);
+    setAssociatedWith(scholarship.associatedWith);
+    setGrantDate(new Date(scholarship.grantDate));
+    setDescription(scholarship.description);
+    setErrors({});
     onOpen();
   };
 
@@ -214,7 +200,8 @@ const Scholarships = () => {
                   <h3 className="font-medium">{scholarship.position}</h3>
                   <p className="text-sm">{scholarship.associatedWith}</p>
                   <p className="text-sm">
-                    Grant Date: {scholarship.grantDate.toString()}
+                    Grant Date:{" "}
+                    {new Date(scholarship.grantDate).toLocaleDateString()}
                   </p>
                   {scholarship.description && (
                     <p className="mt-2">{scholarship.description}</p>
@@ -248,7 +235,7 @@ const Scholarships = () => {
           {() => (
             <>
               <ModalHeader>
-                {editingScholarship
+                {editingScholarshipId
                   ? "Edit Scholarship"
                   : "Add New Scholarship"}
               </ModalHeader>
@@ -256,20 +243,16 @@ const Scholarships = () => {
                 <div className="flex flex-col gap-4">
                   <Input
                     label="Position Title"
-                    value={formData.position}
-                    onChange={(e) =>
-                      handleInputChange("position", e.target.value)
-                    }
+                    value={position}
+                    onChange={(e) => setPosition(e.target.value)}
                     isRequired
                     isInvalid={!!errors.position}
                     errorMessage={errors.position}
                   />
                   <Select
                     label="Associated With"
-                    selectedKeys={[formData.associatedWith]}
-                    onChange={(e) =>
-                      handleInputChange("associatedWith", e.target.value)
-                    }
+                    selectedKeys={[associatedWith]}
+                    onChange={(e) => setAssociatedWith(e.target.value)}
                     isRequired
                     isInvalid={!!errors.associatedWith}
                     errorMessage={errors.associatedWith}
@@ -280,19 +263,18 @@ const Scholarships = () => {
                       </SelectItem>
                     ))}
                   </Select>
-                  <DateInput
-                    label="Grant Date"
-                    value={formData.grantDate}
-                    onChange={(date) => handleInputChange("grantDate", date)}
-                    isRequired
-                    maxValue={today("IST")}
+                  <DatePicker
+                    label="Grant Date (mm/dd/yyyy)"
+                    granularity="day"
+                    maxValue={today(getLocalTimeZone())}
+                    value={parseAbsoluteToLocal(grantDate.toISOString())}
+                    onChange={handleDateChange}
                   />
+                  <p className="text-xs">Time Zone: {getLocalTimeZone()}</p>
                   <Textarea
                     label="Description"
-                    value={formData.description}
-                    onChange={(e) =>
-                      handleInputChange("description", e.target.value)
-                    }
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                     minRows={3}
                   />
                 </div>

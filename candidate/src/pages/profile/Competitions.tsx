@@ -12,10 +12,15 @@ import {
   useDisclosure,
   Select,
   SelectItem,
+  DatePicker,
 } from "@nextui-org/react";
-import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
-import { parseDate, today } from "@internationalized/date";
+import {
+  getLocalTimeZone,
+  parseAbsoluteToLocal,
+  today,
+  ZonedDateTime,
+} from "@internationalized/date";
 import { Plus, Pencil, Trash2, Gem } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -28,82 +33,85 @@ const Competitions = () => {
     setUser: (user: Candidate) => void;
   };
 
-  const [currentCompetition, setCurrentCompetition] = useState<Competition>({} as Competition);
-  const [isEditing, setIsEditing] = useState(false);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  const initialCompetition: Competition = {
-    title: "",
-    position: "",
-    organizer: "",
-    associatedWith: "academic",
-    date: new Date(today("IST").toString()),
-    description: "",
-  };
+  // Modal States
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [title, setTitle] = useState("");
+  const [position, setPosition] = useState("");
+  const [organizer, setOrganizer] = useState("");
+  const [associatedWith, setAssociatedWith] = useState<
+    "academic" | "personal" | "professional"
+  >("academic");
+  const [date, setDate] = useState(
+    today(getLocalTimeZone()).toDate(getLocalTimeZone())
+  );
+  const [description, setDescription] = useState("");
 
   const handleOpen = (competition?: Competition) => {
     if (competition) {
-      const formattedCompetition = {
-        ...competition,
-        date: competition.date 
-          ? new Date(competition.date)
-          : new Date(today("IST").toString())
-      };
-      setCurrentCompetition(formattedCompetition);
-      setIsEditing(true);
+      setTitle(competition.title);
+      setPosition(competition.position);
+      setOrganizer(competition.organizer);
+      setAssociatedWith(competition.associatedWith);
+      setDate(new Date(competition.date));
+      setEditingId(competition._id || null);
     } else {
-      setCurrentCompetition(initialCompetition);
-      setIsEditing(false);
+      setEditingId(null);
     }
     onOpen();
   };
 
   const handleClose = () => {
-    setCurrentCompetition({} as Competition);
-    setIsEditing(false);
+    setTitle("");
+    setPosition("");
+    setOrganizer("");
+    setAssociatedWith("academic");
+    setDate(new Date());
+    setDescription("");
+    setEditingId(null);
     onClose();
   };
 
   const handleSave = () => {
-    if (!currentCompetition) return;
-
-    if (!currentCompetition.title || !currentCompetition.position || !currentCompetition.organizer) {
+    if (!title || !position || !organizer) {
       toast.error("Please fill in all required fields");
       return;
     }
 
     const competitionToSave = {
-      ...currentCompetition,
-      date: new Date(currentCompetition.date).toISOString()
+      _id: editingId || undefined,
+      title,
+      position,
+      organizer,
+      associatedWith,
+      date,
+      description,
     };
 
-    if (isEditing) {
+    if (editingId) {
       const newCompetitions = user?.competitions?.map((comp) =>
-        comp._id === currentCompetition._id ? competitionToSave : comp
+        comp._id === editingId ? competitionToSave : comp
       );
-      setUser({ 
-        ...user, 
-        competitions: newCompetitions?.map(comp => ({
+      setUser({
+        ...user,
+        competitions: newCompetitions?.map((comp) => ({
           ...comp,
-          date: new Date(comp.date)
-        })) 
+          date: new Date(comp.date),
+        })),
       });
       toast.success("Competition updated successfully");
     } else {
       const newCompetition = {
         ...competitionToSave,
-        _id: Date.now().toString(),
       };
-      const newCompetitions = [
-        ...(user?.competitions || []),
-        newCompetition,
-      ];
-      setUser({ 
-        ...user, 
-        competitions: newCompetitions.map(comp => ({
+      const newCompetitions = [...(user?.competitions || []), newCompetition];
+      setUser({
+        ...user,
+        competitions: newCompetitions.map((comp) => ({
           ...comp,
-          date: new Date(comp.date)
-        })) 
+          date: new Date(comp.date),
+        })),
       });
       toast.success("Competition added successfully");
     }
@@ -124,6 +132,12 @@ const Competitions = () => {
     } catch (e) {
       return "Invalid date";
     }
+  };
+
+  const handleDateChange = (date: ZonedDateTime | null) => {
+    if (!date) return;
+    const dateObj = new Date(date.year, date.month - 1, date.day);
+    setDate(dateObj);
   };
 
   return (
@@ -206,7 +220,7 @@ const Competitions = () => {
                         {competition.position}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {formatDate(competition.date.toISOString())}
+                        {formatDate(new Date(competition.date).toISOString())}
                       </p>
                       <p className="mt-2">{competition.description}</p>
                     </div>
@@ -240,55 +254,42 @@ const Competitions = () => {
           {() => (
             <>
               <ModalHeader>
-                {isEditing ? "Edit Competition" : "Add New Competition"}
+                {editingId ? "Edit Competition" : "Add New Competition"}
               </ModalHeader>
               <ModalBody>
                 <div className="grid gap-4">
                   <Input
                     label="Competition Title"
                     placeholder="Enter competition title"
-                    value={currentCompetition?.title || ""}
-                    onChange={(e) =>
-                      setCurrentCompetition((prev) => ({
-                        ...prev,
-                        title: e.target.value,
-                      }))
-                    }
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                     isRequired
                   />
                   <Input
                     label="Position"
                     placeholder="E.g. First, Runners Up"
-                    value={currentCompetition?.position || ""}
-                    onChange={(e) =>
-                      setCurrentCompetition((prev) => ({
-                        ...prev,
-                        position: e.target.value,
-                      }))
-                    }
+                    value={position}
+                    onChange={(e) => setPosition(e.target.value)}
                     isRequired
                   />
                   <Input
                     label="Organizer"
                     placeholder="Enter organizer name"
-                    value={currentCompetition?.organizer || ""}
-                    onChange={(e) =>
-                      setCurrentCompetition((prev) => ({
-                        ...prev,
-                        organizer: e.target.value,
-                      }))
-                    }
+                    value={organizer}
+                    onChange={(e) => setOrganizer(e.target.value)}
                     isRequired
                   />
                   <Select
                     label="Associated With"
                     placeholder="Select association"
-                    selectedKeys={[currentCompetition?.associatedWith || "academic"]}
-                    onChange={(e) =>
-                      setCurrentCompetition((prev) => ({
-                        ...prev,
-                        associatedWith: e.target.value as "academic" | "personal" | "professional",
-                      }))
+                    selectedKeys={[associatedWith]}
+                    onSelectionChange={(keys) =>
+                      setAssociatedWith(
+                        keys.currentKey as
+                          | "personal"
+                          | "academic"
+                          | "professional"
+                      )
                     }
                     isRequired
                   >
@@ -296,27 +297,19 @@ const Competitions = () => {
                     <SelectItem key="academic">Academic</SelectItem>
                     <SelectItem key="professional">Professional</SelectItem>
                   </Select>
-                  <DateInput
-                    label="Competition Date"
-                    value={parseDate(currentCompetition?.date.toString() || today("IST").toString())}
-                    onChange={(date) =>
-                      setCurrentCompetition((prev) => ({
-                        ...prev,
-                        date: new Date(date.toString()),
-                      }))
-                    }
-                    isRequired
+                  <DatePicker
+                    className="max-w-xs"
+                    label="Competition Date (mm/dd/yyyy)"
+                    granularity="day"
+                    maxValue={today(getLocalTimeZone())}
+                    value={parseAbsoluteToLocal(date.toISOString())}
+                    onChange={handleDateChange}
                   />
                   <Textarea
                     label="Description"
                     placeholder="Enter competition details"
-                    value={currentCompetition?.description || ""}
-                    onChange={(e) =>
-                      setCurrentCompetition((prev) => ({
-                        ...prev,
-                        description: e.target.value,
-                      }))
-                    }
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                     minRows={3}
                   />
                 </div>

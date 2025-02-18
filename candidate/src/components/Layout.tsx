@@ -44,10 +44,10 @@ const Layout = () => {
     <>
       <SignedIn>
         <div className="">
-          <div className="flex w-full">
+          <div className="flex w-full h-screen">
             <Sidebar />
 
-            <div className="h-full w-full">
+            <div className="h-full w-full overflow-y-auto">
               <Outlet context={{ user, setUser }} />
             </div>
           </div>

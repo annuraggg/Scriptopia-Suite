@@ -8,8 +8,9 @@ import Lander from "./pages/lander/Lander";
 import Onboarding from "./pages/onboarding/Onboarding";
 import Posting from "./pages/posting/Posting";
 import jobRoutes from "./routes/jobroutes";
-import JobsLayout from "./pages/Jobs/JobsLayout";
+import JobsLayout from "./pages/jobs/JobsLayout";
 import Apply from "./pages/posting/apply/Apply";
+import Resume from "./pages/resume/Resume";
 
 function App() {
   const router = createBrowserRouter([
@@ -36,11 +37,11 @@ function App() {
       ],
     },
     {
-      path: "dashboard",
+      path: "/",
       element: <Layout />,
       children: [
         {
-          path: "home",
+          path: "dashboard",
           element: <Home />,
         },
         {
@@ -52,6 +53,10 @@ function App() {
           path: "jobs",
           element: <JobsLayout />,
           children: [...jobRoutes],
+        },
+        {
+          path: "resume",
+          element: <Resume />,
         },
       ],
     },
