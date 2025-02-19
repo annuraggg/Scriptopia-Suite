@@ -124,9 +124,11 @@ const updateResume = async (c: Context) => {
       params: uploadParams,
     });
 
-    await upload.done();
+    await upload.done(); // @ts-expect-error - Type 'Promise<UploadOutput>' is not assignable to type 'void'
+    const extractedText = await extractTextFromResume(resume, candidate._id);
 
     candidate.resumeUrl = `${process.env.R2_S3_RESUME_BUCKET}/${auth._id}.pdf`;
+    candidate.resumeExtract = extractedText
     await candidate.save();
 
     return sendSuccess(c, 200, "Resume uploaded successfully", {
@@ -171,16 +173,14 @@ const getResume = async (c: Context) => {
 
 const apply = async (c: Context) => {
   try {
-    const formData = await c.req.formData();
-    const resume = formData.get("resume");
-    const postingId = formData.get("postingId");
-
+    const { postingId } = await c.req.json();
     const userId = c.get("auth")?._id;
 
     const candidate = await Candidate.findOne({ userId });
     const candId = candidate?._id;
-
+    console.log("Candidate ID: ", candId);
     const posting = await Posting.findById(postingId);
+
     if (!posting) {
       return sendError(c, 404, "Posting not found");
     }
@@ -193,41 +193,11 @@ const apply = async (c: Context) => {
       return sendError(c, 400, "Posting is closed for applications");
     }
 
-    const appliedPosting = await AppliedPosting.create({
+    await AppliedPosting.create({
       posting: postingId,
       user: candId,
     });
 
-    if (resume) {
-      const uploadParams = {
-        Bucket: process.env.R2_S3_RESUME_BUCKET!,
-        Key: `${candId?.toString()}.pdf`,
-        Body: resume, // @ts-expect-error - Type 'File' is not assignable to type 'Body'
-        ContentType: resume.type,
-      };
-
-      const upload = new Upload({
-        client: r2Client,
-        params: uploadParams,
-      });
-
-      await upload.done();
-
-      appliedPosting.resumeUrl = `${
-        process.env.R2_S3_RESUME_BUCKET
-      }/${candId?.toString()}.pdf`;
-      await extractTextFromResume(
-        resume as File,
-        appliedPosting._id?.toString()
-      );
-      await appliedPosting.save();
-
-      await Candidate.findByIdAndUpdate(candId, {
-        $push: {
-          appliedPostings: appliedPosting._id,
-        },
-      });
-    }
     const postingUp = await Posting.findByIdAndUpdate(postingId, {
       $push: {
         candidates: candId,
@@ -245,6 +215,12 @@ const apply = async (c: Context) => {
 
     await Organization.findByIdAndUpdate(posting.organizationId, {
       $push: { auditLogs: auditLog },
+    });
+
+    await Candidate.findByIdAndUpdate(candId, {
+      $push: {
+        appliedPostings: postingId,
+      },
     });
 
     return sendSuccess(c, 200, "Application submitted successfully");
