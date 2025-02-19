@@ -1,14 +1,13 @@
-// CreateJob.tsx
 import { useState } from "react";
 import Sidebar from "./Sidebar";
-import JobDetails from "./JobDetails";
+import DriveDetails from "./DriveDetails";
 import Workflow from "./Workflow";
 import { DateValue, RangeValue } from "@nextui-org/react";
 import { today, getLocalTimeZone } from "@internationalized/date";
 import Summary from "./Summary";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { Posting, AdditionalDetails as AdditionalDetailsType } from "@shared-types/Posting";
+import { Drive, AdditionalDetails as AdditionalDetailsType, StepType } from "@shared-types/Drive";
 import { toast } from "sonner";
 import Loader from "@/components/Loader";
 import AdditionalDetails, { FIELD_CATEGORIES } from "./AdditionalDetails";
@@ -22,16 +21,17 @@ interface Component {
   id: string;
 }
 
-const componentMap: Record<string, string> = {
-  ATS: "rs",
+const componentMap: Record<string, StepType> = {
+  "ATS": "rs",
   "MCQ Assessment": "mcqa",
   "Code Assessment": "ca",
   "MCQ + Code Assessment": "mcqca",
-  Assignment: "as",
-  Interview: "pi",
+  "Assignment": "as",
+  "OfferLetter": "ol",
+  "Interview": "pi",
 };
 
-const CreateJob = () => {
+const CreateDrive = () => {
   const [active, setActive] = useState(0);
 
   // Job Details States
@@ -61,7 +61,7 @@ const CreateJob = () => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
   const [loading, setLoading] = useState(false);
-  const { organization, setOrganization } = useOutletContext() as RootContext;
+  const { institute, setInstitute } = useOutletContext() as RootContext;
   const navigate = useNavigate();
 
   const handleSave = () => {
@@ -77,13 +77,16 @@ const CreateJob = () => {
           | "mcqca"
           | "as"
           | "pi"
+          | "ol"
           | "cu",
+        completed: false,
+        timestamp: new Date(),
       })),
       currentStep: -1,
     };
 
     // Format additional details
-    const formattedAdditionalDetails: AdditionalDetailsType = {};
+    const formattedAdditionalDetails: { [key: string]: { [key: string]: { required: boolean; allowEmpty: boolean } } } = {};
     Object.entries(FIELD_CATEGORIES).forEach(([category, fields]) => {
       formattedAdditionalDetails[category] = {};
       fields.forEach((field) => {
@@ -94,7 +97,7 @@ const CreateJob = () => {
       });
     });
 
-    const posting: Posting = {
+    const drive: Drive = {
       title,
       description,
       department,
@@ -108,8 +111,8 @@ const CreateJob = () => {
       openings,
 
       applicationRange: {
-        start: applicationRange.start.toString(),
-        end: applicationRange.end.toString(),
+        start: applicationRange.start.toDate(getLocalTimeZone()),
+        end: applicationRange.end.toDate(getLocalTimeZone()),
       },
       skills,
       salary: {
@@ -119,21 +122,22 @@ const CreateJob = () => {
       },
       workflow: formattedData,
       additionalDetails: formattedAdditionalDetails,
+      published: false,
     };
 
     axios
-      .post("/postings", posting)
+      .post("/drives", drive)
       .then((res) => {
-        toast.success("Job created successfully");
-        const newOrganization = { ...organization };
-        newOrganization.postings.push(res.data.data);
-        setOrganization(newOrganization);
-        console.log(newOrganization);
-        navigate("/jobs");
+        toast.success("Drive created successfully");
+        const newInstitute = { ...institute };
+        newInstitute.drives.push(res.data.data);
+        setInstitute(newInstitute);
+        console.log(newInstitute);
+        navigate("/drives");
       })
       .catch((err) => {
         console.error(err);
-        toast.error("Failed to create job");
+        toast.error("Failed to create drive");
       })
       .finally(() => {
         setLoading(false);
@@ -147,7 +151,7 @@ const CreateJob = () => {
       <Sidebar active={active} setActive={setActive} />
       <div className="float-right overflow-y-auto w-full px-10 py-10">
         {active === 0 && (
-          <JobDetails
+          <DriveDetails
             setAction={setActive}
             title={title}
             setTitle={setTitle}
@@ -214,4 +218,4 @@ const CreateJob = () => {
   );
 };
 
-export default CreateJob;
+export default CreateDrive;

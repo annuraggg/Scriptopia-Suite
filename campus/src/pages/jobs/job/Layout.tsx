@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import { Posting } from "@shared-types/Posting";
+import { Drive } from "@shared-types/Drive";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { useEffect, useState } from "react";
@@ -8,15 +8,15 @@ import { toast } from "sonner";
 import { Spinner } from "@nextui-org/react";
 
 const Layout = () => {
-  const [posting, setPosting] = useState<Posting>({} as Posting);
-  const [postingLoading, setPostingLoading] = useState(true);
+  const [drive, setPosting] = useState<Drive>({} as Drive);
+  const [driveLoading, setDriveLoading] = useState(true);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
   useEffect(() => {
-    setPostingLoading(true);
+    setDriveLoading(true);
     axios
-      .get("/postings/" + window.location.pathname.split("/")[2])
+      .get("/drives/" + window.location.pathname.split("/")[2])
       .then((res) => {
         setPosting(res.data.data);
       })
@@ -25,7 +25,7 @@ const Layout = () => {
         console.log(err);
       })
       .finally(() => {
-        setPostingLoading(false);
+        setDriveLoading(false);
       });
   }, []);
 
@@ -40,9 +40,9 @@ const Layout = () => {
   return (
     <div className="">
       <div className="flex w-full">
-        <Sidebar posting={posting} loading={postingLoading} />
+        <Sidebar drive={drive} loading={driveLoading} />
         <div className="h-full w-full overflow-x-auto">
-          {postingLoading ? <Loader /> : <Outlet context={{ posting }} />}
+          {driveLoading ? <Loader /> : <Outlet context={{ drive }} />}
         </div>
       </div>
     </div>

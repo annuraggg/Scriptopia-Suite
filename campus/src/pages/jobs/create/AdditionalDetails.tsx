@@ -11,7 +11,7 @@ import {
 } from "@nextui-org/react";
 import { motion } from "framer-motion";
 import { ChevronRight, Info } from "lucide-react";
-import { AdditionalDetails as AdditionalDetailsType } from "@shared-types/Posting";
+import { AdditionalDetails as AdditionalDetailsType } from "@shared-types/Drive";
 
 type FieldKey = string;
 
@@ -66,10 +66,10 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
 
     Object.entries(additionalDetails).forEach(([_, fields]) => {
       Object.entries(fields).forEach(([field, config]) => {
-        if (config.required) {
+        if ((config as { required: boolean }).required) {
           initialRequired.push(field);
         }
-        if (config.allowEmpty) {
+        if ((config as { allowEmpty: boolean }).allowEmpty) {
           initialAllowEmpty.push(field);
         }
       });
@@ -90,7 +90,6 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
 
     onRequiredChange(newRequired);
 
-    // If field is being unchecked from required, also remove it from allowedEmpty
     if (required.includes(field)) {
       onAllowedEmptyChange(allowedEmpty.filter((f) => f !== field));
     }
@@ -100,16 +99,20 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
     )?.[0];
 
     if (category) {
-      setAdditionalDetails((prev: AdditionalDetailsType) => ({
-        ...prev,
-        [category]: {
-          ...prev[category],
-          [field]: {
-            required: !required.includes(field),
-            allowEmpty: false,
-          },
-        },
-      }));
+      setAdditionalDetails((prev: AdditionalDetailsType) => {
+        const newState = { ...prev };
+        
+        if (!newState[category as keyof AdditionalDetailsType]) {
+          (newState as any)[category] = {};
+        }
+        
+        (newState as any)[category][field] = {
+          required: !required.includes(field),
+          allowEmpty: false,
+        };
+        
+        return newState;
+      });
     }
   };
 
@@ -125,16 +128,20 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
     )?.[0];
 
     if (category) {
-      setAdditionalDetails((prev: AdditionalDetailsType) => ({
-        ...prev,
-        [category]: {
-          ...prev[category],
-          [field]: {
-            required: required.includes(field),
-            allowEmpty: !allowedEmpty.includes(field),
-          },
-        },
-      }));
+      setAdditionalDetails((prev: AdditionalDetailsType) => {
+        const newState = { ...prev };
+        
+        if (!newState[category as keyof AdditionalDetailsType]) {
+          (newState as any)[category] = {};
+        }
+        
+        (newState as any)[category][field] = {
+          required: required.includes(field),
+          allowEmpty: !allowedEmpty.includes(field),
+        };
+        
+        return newState;
+      });
     }
   };
 

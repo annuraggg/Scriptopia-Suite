@@ -40,8 +40,8 @@ const Sidebar = ({
     },
     {
       icon: IconBriefcaseFilled,
-      label: "Jobs",
-      link: "/jobs",
+      label: "Drives",
+      link: "/drives",
       visible:
         user?.permissions?.includes("view_drive") ||
         user?.permissions?.includes("manage_drive"),

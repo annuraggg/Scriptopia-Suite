@@ -10,8 +10,8 @@ import {
   Select,
   SelectItem,
 } from "@nextui-org/react";
-import { Member } from "@shared-types/Organization";
-import { Role } from "@shared-types/Organization";
+import { Member } from "@shared-types/Instititue";
+import { Role } from "@shared-types/Instititue";
 
 const InviteModal = ({
   isOpen,

@@ -10,7 +10,7 @@ const Sidebar = ({
   const steps = [
     {
       id: 1,
-      title: "Job Details",
+      title: "Drive Details",
     },
     {
       id: 2,

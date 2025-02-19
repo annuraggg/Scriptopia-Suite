@@ -232,7 +232,12 @@ const candidateSchema = new Schema(
     resumeUrl: { type: String, required: false },
     resumeExtract: { type: String },
 
-    appliedPostings: [{ type: mongoose.Schema.Types.ObjectId, ref: "AppliedPosting" }],
+    appliedPostings: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "AppliedPosting" },
+    ],
+    appliedDrives: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "AppliedDrives" },
+    ],
   },
   { timestamps: true }
 );
@@ -240,6 +245,7 @@ const candidateSchema = new Schema(
 candidateSchema.index({ email: 1 });
 candidateSchema.index({ userId: 1 });
 candidateSchema.index({ "appliedPostings.postingId": 1 });
+candidateSchema.index({ "appliedDrives.driveId": 1 });
 
 const Candidate = mongoose.model("Candidate", candidateSchema);
 export default Candidate;

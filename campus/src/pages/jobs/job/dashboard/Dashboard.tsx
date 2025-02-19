@@ -11,7 +11,7 @@ import {
   FolderOutputIcon,
 } from "lucide-react";
 import { ChevronLeftIcon } from "lucide-react";
-import { Posting } from "@shared-types/Posting";
+import { Drive } from "@shared-types/Drive";
 
 interface Participant {
   id: string;
@@ -29,9 +29,9 @@ interface Participant {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { posting } = useOutletContext() as { posting: Posting };
+  const { posting } = useOutletContext() as { posting: Drive };
 
-  const getPostingStatus = (posting: Posting) => {
+  const getPostingStatus = (posting: Drive) => {
     const currentDate = new Date();
     const endDate = new Date(posting.applicationRange.end);
     return currentDate < endDate ? "active" : "closed";

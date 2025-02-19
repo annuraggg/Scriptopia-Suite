@@ -27,8 +27,8 @@ import Filter from "./Filter";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { Posting } from "@shared-types/Posting";
-import { Department } from "@shared-types/Organization";
+import { Drive } from "@shared-types/Drive";
+import { Department } from "@shared-types/Instititue";
 import {
   Modal,
   ModalContent,
@@ -58,16 +58,16 @@ const Cards = [
   },
 ];
 
-const Postings: React.FC = () => {
+const Drives: React.FC = () => {
   const navigate = useNavigate();
-  const { organization, setOrganization, rerender } =
+  const { institute, setInstitute, rerender } =
     useOutletContext() as RootContext;
 
   useEffect(() => {
-    console.log(organization);
-  }, [organization]);
+    console.log(institute);
+  }, [institute]);
 
-  const [postings, setPostings] = useState<Posting[]>([]);
+  const [drives, setDrives] = useState<Drive[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
 
   const [sort, setSort] = useState(new Set(["newest"]));
@@ -94,7 +94,7 @@ const Postings: React.FC = () => {
     },
   ];
 
-  const filteredPostings = postings?.filter((post) => {
+  const filteredDrives = drives?.filter((post) => {
     if (searchTerm) {
       return post.title.toLowerCase().includes(searchTerm.toLowerCase());
     }
@@ -126,33 +126,33 @@ const Postings: React.FC = () => {
   });
 
   useEffect(() => {
-    let sortedPostings = [...filteredPostings];
+    let sortedDrives = [...filteredDrives];
 
     if (sort.has("newest")) {
-      sortedPostings = sortedPostings.sort(
+      sortedDrives = sortedDrives.sort(
         (a, b) =>
           new Date(b.applicationRange.start).getTime() -
           new Date(a.applicationRange.start).getTime()
       );
     } else if (sort.has("oldest")) {
-      sortedPostings = sortedPostings.sort(
+      sortedDrives = sortedDrives.sort(
         (a, b) =>
           new Date(a.applicationRange.start).getTime() -
           new Date(b.applicationRange.start).getTime()
       );
     } else if (sort.has("salary")) {
-      sortedPostings = sortedPostings.sort((a, b) => {
+      sortedDrives = sortedDrives.sort((a, b) => {
         if (!a?.salary?.min || !b?.salary?.min) {
           return 0;
         }
         return a?.salary?.min - b?.salary?.min;
       });
     }
-    setPostings(sortedPostings);
+    setDrives(sortedDrives);
   }, [sort]);
 
-  const handleDetailsClick = (posting: Posting) => {
-    navigate(`${posting._id}/dashboard`, { state: { posting } });
+  const handleDetailsClick = (drive: Drive) => {
+    navigate(`${drive._id}/dashboard`, { state: { drive } });
   };
 
   const openCreateJobModal = () => {
@@ -163,31 +163,31 @@ const Postings: React.FC = () => {
     navigate("create");
   };
 
-  const getPostingStatus = (posting: Posting) => {
-    if (new Date(posting.applicationRange.end) < new Date()) {
+  const getDriveStatus = (drive: Drive) => {
+    if (new Date(drive.applicationRange.end) < new Date()) {
       return "closed";
     }
     return "active";
   };
 
   useEffect(() => {
-    setPostings(organization?.postings);
-    setDepartments(organization?.departments || []);
+    setDrives(institute?.drives);
+    setDepartments(institute?.departments || []);
   }, [rerender]);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
   const handleDelete = () => {
-    const newOrganization = { ...organization };
-    const newPostings = newOrganization.postings?.filter(
-      (posting) => posting._id !== deleteId
+    const newOrganization = { ...institute };
+    const newPostings = newOrganization.drives?.filter(
+      (drive) => drive._id !== deleteId
     );
 
-    setOrganization({ ...newOrganization, postings: newPostings });
+    setInstitute({ ...newOrganization, drives: newPostings });
     onOpenChange();
 
-    axios.delete(`/postings/${deleteId}`).catch((err) => {
+    axios.delete(`/drives/${deleteId}`).catch((err) => {
       toast.error(err.response.data.message || "An error occurred");
     });
   };
@@ -196,7 +196,7 @@ const Postings: React.FC = () => {
     <div className="flex gap-5 w-full p-5">
       <div className="w-full">
         <Breadcrumbs>
-          <BreadcrumbItem href="/postings">Postings</BreadcrumbItem>
+          <BreadcrumbItem href="/drives">Drives</BreadcrumbItem>
         </Breadcrumbs>
         <div className="flex justify-between items-start w-full gap-5 mt-5">
           <motion.div
@@ -230,7 +230,7 @@ const Postings: React.FC = () => {
               <div className="flex gap-5 mt-5 w-full items-center">
                 <Input
                   className="w-[300px]"
-                  placeholder="Search Postings"
+                  placeholder="Search Drives"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   startContent={
@@ -238,7 +238,7 @@ const Postings: React.FC = () => {
                   }
                 />
 
-                <p className="text-sm">Job Status</p>
+                <p className="text-sm">Drive Status</p>
                 <Select
                   className="w-[100px]"
                   value={selectedFilter}
@@ -272,69 +272,69 @@ const Postings: React.FC = () => {
                     onClick={openCreateJobModal}
                   >
                     <PlusIcon size={16} />
-                    <p>Create job</p>
+                    <p>Create drive</p>
                   </Button>
                 </div>
               </div>
 
               <div className="flex flex-col gap-3 w-full mt-6">
-                {filteredPostings?.map((posting, index) => (
+                {filteredDrives?.map((drive, index) => (
                   <Card
                     className="p-4"
                     key={index}
                     isPressable
-                    onClick={() => handleDetailsClick(posting)}
+                    onClick={() => handleDetailsClick(drive)}
                   >
                     <div className="flex items-center justify-between gap-3 w-full p-2">
                       <div>
                         <div className="flex flex-row items-center justify-start gap-2">
-                          <p className="mr-1 cursor-pointer">{posting.title}</p>
+                          <p className="mr-1 cursor-pointer">{drive.title}</p>
                           <span
                             className={`text-xs mr-3 rounded-full whitespace-nowrap`}
                           >
                             {
                               departments.find(
                                 (department) =>
-                                  department._id === posting.department
+                                  department._id === drive.department
                               )?.name
                             }
                           </span>
                           <span
                             className={`text-xs px-2 rounded-full whitespace-nowrap ${
-                              getPostingStatus(posting) === "active"
+                              getDriveStatus(drive) === "active"
                                 ? " text-success-500 bg-success-100"
                                 : " text-danger-500 bg-danger-100"
                             }`}
                           >
-                            {getPostingStatus(posting) === "active"
+                            {getDriveStatus(drive) === "active"
                               ? "Active"
                               : "Closed"}
                           </span>
                         </div>
 
                         <p className="text-xs mt-3">
-                          {getPostingStatus(posting) === "active"
+                          {getDriveStatus(drive) === "active"
                             ? `Open Until ${new Date(
-                                posting.applicationRange.end
+                                drive.applicationRange.end
                               ).toLocaleString()}`
                             : `Closed at ${new Date(
-                                posting.applicationRange.end
+                                drive.applicationRange.end
                               ).toLocaleString()}`}
                         </p>
                       </div>
 
                       <div className="flex items-center gap-3">
-                        {posting?.published && posting?.url && (
+                        {drive?.published && drive?.url && (
                           <Button
                             isIconOnly
                             variant="flat"
                             onClick={() => {
                               // copy link to clipboard
-                              if (!posting?.url) return;
+                              if (!drive?.url) return;
                               navigator.clipboard.writeText(
                                 import.meta.env.VITE_CANDIDATE_URL +
                                   "/" +
-                                  posting?.url
+                                  drive?.url
                               );
                               toast.success("Link copied to clipboard");
                             }}
@@ -359,7 +359,7 @@ const Postings: React.FC = () => {
                               >
                                 <div
                                   className="flex items-center gap-2"
-                                  onClick={() => item.onClick(posting._id!)}
+                                  onClick={() => item.onClick(drive._id!)}
                                 >
                                   {item.icon}
                                   <p>{item.title}</p>
@@ -387,7 +387,7 @@ const Postings: React.FC = () => {
               </ModalHeader>
               <ModalBody>
                 This action cannot be undone. Are you sure you want to delete
-                this posting?F
+                this drive?
               </ModalBody>
               <ModalFooter>
                 <Button color="primary" variant="light" onPress={onClose}>
@@ -405,4 +405,4 @@ const Postings: React.FC = () => {
   );
 };
 
-export default Postings;
+export default Drives;

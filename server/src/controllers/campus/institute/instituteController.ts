@@ -1,12 +1,12 @@
 import { Context } from "hono";
-import { sendError, sendSuccess } from "../../utils/sendResponse";
-import Institute from "../../models/Institute";
-import User from "../../models/User";
+import { sendError, sendSuccess } from "../../../utils/sendResponse";
+import Institute from "../../../models/Institute";
+import User from "../../../models/User";
 import jwt from "jsonwebtoken";
-import loops from "../../config/loops";
-import clerkClient from "../../config/clerk";
-import logger from "../../utils/logger";
-import r2Client from "../../config/s3";
+import loops from "../../../config/loops";
+import clerkClient from "../../../config/clerk";
+import logger from "../../../utils/logger";
+import r2Client from "../../../config/s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import {

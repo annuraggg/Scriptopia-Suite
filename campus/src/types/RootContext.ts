@@ -1,10 +1,10 @@
 import { Institute } from "@shared-types/Instititue";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
-import { Notification } from "@shared-types/Organization";
-import { Posting } from "@shared-types/Posting";
+import { Notification } from "@shared-types/Instititue";
+import { Drive } from "@shared-types/Drive";
 
 interface InstituteWithDrives extends Omit<Institute, "drives"> {
-  drives: Posting[]
+  drives: Drive[]
 }
 
 interface RootContext {
