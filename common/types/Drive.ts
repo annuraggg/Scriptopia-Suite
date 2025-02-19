@@ -108,7 +108,7 @@ interface Drive {
   _id?: string;
   instituteId?: string;
   title: string;
-  description: Record<string, unknown>;
+  description: string;
   department?: string;
   location: string;
   type: "full_time" | "part_time" | "internship" | "contract" | "temporary";

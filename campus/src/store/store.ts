@@ -1,11 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
-import organizationReducer from "@/reducers/organizationReducer";
+import instituteReducer from "@/reducers/instituteReducer";
 import settingsReducer from "@/reducers/settingsReducer";
 import toastReducer from "@/reducers/toastReducer";
 
 export default configureStore({
   reducer: {
-    organization: organizationReducer,
+    institute: instituteReducer,
     settings: settingsReducer,
     toast: toastReducer,
   },

@@ -49,7 +49,7 @@ const Create = ({
     // { icon: Combine, label: "MCQ + Code Assessment" },
     { icon: Book, label: "Assignment" },
     // { icon: MonitorPlay, label: "Interview" },
-    { icon: IconUserScan, label: "Offer Letter Review" },
+    { icon: IconUserScan, label: "Offer Letter" }
   ];
 
   const dragStart = (e: React.DragEvent<HTMLDivElement>, label: string) => {
