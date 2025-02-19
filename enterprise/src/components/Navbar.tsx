@@ -30,7 +30,7 @@ const Navbar = () => {
         <div className="flex items-center gap-2 sm:gap-5">
           <div className="border-r p-[9.5px]">
             <img
-              src="/logo.png"
+              src="/logo.svg"
               alt="logo"
               className="h-9 w-9 cursor-pointer"
               onClick={() => {

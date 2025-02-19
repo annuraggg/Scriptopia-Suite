@@ -120,7 +120,7 @@ const Onboarding = () => {
   return (
     <div className="flex items-center justify-center h-screen p-10">
       <div className="min-w-[60%] h-full pr-10">
-        <img src="logo.png" alt="logo" className="w-14 h-14" />
+        <img src="logo.svg" alt="logo" className="w-14 h-14" />
         <div className="flex gap-3 mt-10">
           {steps.map((_s, i) => (
             <div

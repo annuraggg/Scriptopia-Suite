@@ -22,7 +22,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { ArrowUpDown, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  User,
+} from "lucide-react";
 import { Button, Checkbox } from "@heroui/react";
 import { useOutletContext } from "react-router-dom";
 import { Posting as PostingType } from "@shared-types/Posting";
@@ -70,25 +76,13 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
       enableHiding: false,
     },
     {
-      accessorKey: "firstName",
+      accessorKey: "name",
       header: ({ column }) => (
         <Button
           variant="light"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          First Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-    },
-    {
-      accessorKey: "lastName",
-      header: ({ column }) => (
-        <Button
-          variant="light"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Last Name
+          Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
@@ -122,13 +116,25 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
       header: () => <span>Resume</span>,
       cell: ({ row }) => {
         return (
-          <Button
-            variant="flat"
-            onClick={() => downloadResume(row.original._id as string)}
-          >
-            <Download size={16} />
-            Resume
-          </Button>
+          <>
+            {" "}
+            <Button
+              variant="flat"
+              onPress={() => downloadResume(row.original._id as string)}
+              color="success"
+            >
+              <Download size={16} />
+              Resume
+            </Button>
+            <Button
+              variant="flat"
+              onPress={() => downloadResume(row.original._id as string)}
+              className="ml-3"
+            >
+              <User size={16} />
+              View
+            </Button>
+          </>
         );
       },
     },

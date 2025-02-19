@@ -43,7 +43,7 @@ const Layout = () => {
       <div className="flex w-full">
         <Sidebar posting={posting} loading={postingLoading} />
         <div className="h-full w-full overflow-x-auto">
-          {postingLoading ? <Loader /> : <Outlet context={{ posting }} />}
+          {postingLoading ? <Loader /> : <Outlet context={{ posting, setPosting }} />}
         </div>
       </div>
     </div>

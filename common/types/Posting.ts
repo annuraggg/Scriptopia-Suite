@@ -1,10 +1,24 @@
-type StepType =
-  | "RESUME_SCREENING"
-  | "MCQ_ASSESSMENT"
-  | "CODING_ASSESSMENT"
-  | "ASSIGNMENT"
-  | "INTERVIEW"
-  | "CUSTOM";
+enum StepType {
+  RESUME_SCREENING = "RESUME_SCREENING",
+  MCQ_ASSESSMENT = "MCQ_ASSESSMENT",
+  CODING_ASSESSMENT = "CODING_ASSESSMENT",
+  ASSIGNMENT = "ASSIGNMENT",
+  INTERVIEW = "INTERVIEW",
+  CUSTOM = "CUSTOM",
+}
+
+enum StepStatus {
+  PENDING = "pending",
+  IN_PROGRESS = "in-progress",
+  COMPLETED = "completed",
+  FAILED = "failed",
+}
+
+interface Schedule {
+  startTime: Date | null;
+  endTime: Date | null;
+  actualCompletionTime?: Date;
+}
 
 interface Slot {
   _id?: string;
@@ -33,11 +47,11 @@ interface ATS {
 }
 
 interface WorkflowStep {
-  _id?: string;
+  _id: string;
   name: string;
   type: StepType;
-  completed: boolean;
-  timestamp: Date;
+  status: StepStatus;
+  schedule?: Schedule;
 }
 
 interface Workflow {
@@ -137,7 +151,6 @@ interface Posting {
 }
 
 export type {
-  StepType,
   Slot,
   Interview,
   ATS,
@@ -149,4 +162,7 @@ export type {
   AdditionalFieldConfig,
   AdditionalDetails,
   Posting,
+  Schedule,
 };
+
+export { StepType, StepStatus };

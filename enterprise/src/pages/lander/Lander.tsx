@@ -156,7 +156,7 @@ const Lander = () => {
     <div className="relative min-h-screen bg-white text-gray-900 ">
       {/* Header */}
       <header className="relative z-20 px-6 lg:px-20 py-6 flex justify-between items-center border-b border-gray-100">
-        <img src="/logo.png" alt="logo" className="w-12 h-12" />
+        <img src="/logo.svg" alt="logo" className="w-12 h-12" />
         <div className="flex items-center gap-4">
           <Button
             onClick={redirectUser}
