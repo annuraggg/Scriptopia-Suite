@@ -27,8 +27,9 @@ const componentMap: Record<string, StepType> = {
   "Code Assessment": "ca",
   "MCQ + Code Assessment": "mcqca",
   "Assignment": "as",
-  "OfferLetter": "ol",
   "Interview": "pi",
+  "OfferLetter": "ol",
+  "Custom": "cu",
 };
 
 const CreateDrive = () => {

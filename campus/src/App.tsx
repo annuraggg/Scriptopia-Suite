@@ -2,7 +2,7 @@ import "./App.css";
 import { Suspense, lazy, useEffect } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { setOrganization } from "./reducers/organizationReducer";
+import { setInstitute } from "./reducers/instituteReducer";
 import {
   RedirectToSignIn,
   SignedIn,
@@ -106,7 +106,7 @@ function App() {
         permissions: user?.publicMetadata?.orgPermissions,
         name: user?.publicMetadata?.orgName,
       };
-      dispatch(setOrganization(data));
+      dispatch(setInstitute(data));
     }
   }, [isSignedIn]);
 

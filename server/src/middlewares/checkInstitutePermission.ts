@@ -1,5 +1,4 @@
 // @ts-nocheck
-
 import { sendError } from "../utils/sendResponse";
 import { getAuth } from "@hono/clerk-auth";
 import clerkClient from "../config/clerk";

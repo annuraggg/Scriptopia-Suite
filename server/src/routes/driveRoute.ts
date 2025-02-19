@@ -24,5 +24,6 @@ app.post("/publish", driveController.publishDrive);
 app.post("/advance-workflow", instituteWorkflowController.advanceWorkflow);
 
 app.delete("/:id", driveController.deleteDrive);
+app.post("/", driveController.createDrive);
 
 export default app;
