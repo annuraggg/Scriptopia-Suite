@@ -33,7 +33,9 @@ import {
   ChevronRight,
   MoreHorizontal,
 } from "lucide-react";
-import { Button, Checkbox, Input } from "@heroui/react";
+import { Button } from "@heroui/button";
+import { Checkbox } from "@heroui/checkbox";
+import { Input } from "@heroui/input";
 import { useState } from "react";
 
 interface DataTableProps<TData> {
@@ -149,7 +151,7 @@ export function DataTable<TData>({ data }: DataTableProps<TData>) {
       },
     },
   ];
-  
+
   const table = useReactTable({
     data, // @ts-expect-error - data is not assignable to type TData[]
     columns,

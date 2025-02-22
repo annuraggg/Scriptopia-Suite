@@ -1,4 +1,7 @@
-import { DateValue, Input, RangeValue, Textarea } from "@heroui/react";
+import { Input, Textarea } from "@heroui/input";
+import type { DateValue } from "@internationalized/date";
+import type { RangeValue } from "@react-types/shared";
+
 import { motion } from "framer-motion";
 
 const General = ({

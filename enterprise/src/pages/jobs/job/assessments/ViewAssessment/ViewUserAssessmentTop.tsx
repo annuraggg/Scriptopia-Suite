@@ -1,4 +1,6 @@
-import { Card, CardHeader, CardBody, Link, Divider } from "@heroui/react";
+import { Card, CardHeader, CardBody } from "@heroui/card";
+import { Link } from "@heroui/link";
+import { Divider } from "@heroui/divider";
 import { Clock, CodeXml, SquareStack } from "lucide-react";
 import {
   AlignVerticalDistributeCenter,
@@ -163,8 +165,9 @@ const ViewUserAssessmentTop = ({
               </div>
               <p
                 className={`text-smml-[90px]
-              ${calculateTotalCopies() === 0 ? "text-green-500" : "text-red-500"
-                  }
+              ${
+                calculateTotalCopies() === 0 ? "text-green-500" : "text-red-500"
+              }
                 `}
               >
                 {calculateTotalCopies() === 0 ? "NO" : calculateTotalCopies()}
@@ -177,10 +180,11 @@ const ViewUserAssessmentTop = ({
               </div>
               <p
                 className={`text-sm  ml-[68px]
-              ${calculateTotalWindowSwitch() === 0
-                    ? "text-green-500"
-                    : "text-red-500"
-                  }
+              ${
+                calculateTotalWindowSwitch() === 0
+                  ? "text-green-500"
+                  : "text-red-500"
+              }
                 `}
               >
                 {calculateTotalWindowSwitch() === 0
@@ -199,21 +203,22 @@ const ViewUserAssessmentTop = ({
             <CardBody className="flex justify-center items-center pb-5">
               <p
                 className={`text-xl 
-              ${assessment?.passingPercentage <
-                    getPercentage(
-                      submission?.obtainedGrades?.total,
-                      assessment?.obtainableScore
-                    )
-                    ? "text-green-500"
-                    : "text-red-500"
-                  }
+              ${
+                assessment?.passingPercentage <
+                getPercentage(
+                  submission?.obtainedGrades?.total,
+                  assessment?.obtainableScore
+                )
+                  ? "text-green-500"
+                  : "text-red-500"
+              }
                 `}
               >
                 {assessment?.passingPercentage <
-                  getPercentage(
-                    submission?.obtainedGrades?.total,
-                    assessment?.obtainableScore
-                  )
+                getPercentage(
+                  submission?.obtainedGrades?.total,
+                  assessment?.obtainableScore
+                )
                   ? "PASSED"
                   : "FAILED"}
               </p>
@@ -226,7 +231,9 @@ const ViewUserAssessmentTop = ({
             </CardHeader>
             <CardBody
               className="flex justify-center items-center pb-5 cursor-pointer hover:bg-gray-700 hover:bg-opacity-20 transition-all duration-300"
-              onClick={() => window.open(submission?.sessionRewindUrl, "_blank")}
+              onClick={() =>
+                window.open(submission?.sessionRewindUrl, "_blank")
+              }
             >
               <Play size={20} />
             </CardBody>

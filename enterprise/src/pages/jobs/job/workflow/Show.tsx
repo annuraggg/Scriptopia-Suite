@@ -1,19 +1,19 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+
+import { Card, CardHeader } from "@heroui/card";
+import { Button } from "@heroui/button";
+import { Chip } from "@heroui/chip";
+import { Progress } from "@heroui/progress";
+import { Alert } from "@heroui/alert";
 import {
-  Card,
-  CardHeader,
-  Button,
-  Progress,
-  Chip,
-  Alert,
   Modal,
+  ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
   useDisclosure,
-  ModalContent,
-} from "@heroui/react";
+} from "@heroui/modal";
 import { useAuth } from "@clerk/clerk-react";
 import { useOutletContext } from "react-router-dom";
 import { toast } from "sonner";

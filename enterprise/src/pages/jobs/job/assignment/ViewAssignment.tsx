@@ -3,7 +3,8 @@ import { AppliedPosting } from "@shared-types/AppliedPosting";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import DataTable from "./DataTable";
-import { Card, CardBody, CardHeader, Tab, Tabs } from "@heroui/react";
+import { Card, CardBody, CardHeader } from "@heroui/card";
+import {Tab, Tabs} from "@heroui/tabs";
 
 const ViewAssignment = () => {
   const { posting } = useOutletContext() as { posting: Posting };

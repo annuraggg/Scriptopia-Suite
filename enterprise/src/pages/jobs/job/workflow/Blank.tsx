@@ -1,4 +1,4 @@
-import { Button } from "@heroui/react";
+import { Button } from "@heroui/button";
 import { GitBranch } from "lucide-react";
 
 const Blank = ({

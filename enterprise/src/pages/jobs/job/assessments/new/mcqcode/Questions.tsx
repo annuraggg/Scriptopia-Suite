@@ -1,4 +1,7 @@
-import { Button, Card, CardBody, CardHeader, Chip, Spinner } from "@heroui/react";
+import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Button } from "@heroui/button";
+import { Chip } from "@heroui/chip";
+import { Spinner } from "@heroui/spinner";
 import {
   Sheet,
   SheetContent,

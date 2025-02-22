@@ -1,4 +1,5 @@
-import { Button, Input } from "@heroui/react";
+import { Button } from "@heroui/button";
+import { Input } from "@heroui/input";
 import axios from "axios";
 import React, { useState } from "react";
 import { toast } from "sonner";

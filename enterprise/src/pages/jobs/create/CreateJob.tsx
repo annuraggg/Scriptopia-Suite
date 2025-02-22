@@ -2,8 +2,7 @@ import { useState } from "react";
 import Sidebar from "./Sidebar";
 import JobDetails from "./JobDetails";
 import Workflow from "./Workflow";
-import { DateValue, RangeValue } from "@heroui/react";
-import { today, getLocalTimeZone } from "@internationalized/date";
+import { today, getLocalTimeZone, DateValue } from "@internationalized/date";
 import Summary from "./Summary";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
@@ -20,7 +19,7 @@ import AdditionalDetails, { FIELD_CATEGORIES } from "./AdditionalDetails";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
 // import WorkflowSchedule from "./WorkflowSchedule";
-
+import type { RangeValue } from "@react-types/shared";
 interface Component {
   icon: React.ElementType;
   label: string;

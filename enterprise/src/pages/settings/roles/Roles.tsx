@@ -3,7 +3,9 @@ import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { Role } from "@shared-types/Organization";
-import { Card, CardBody, Checkbox, Input } from "@heroui/react";
+import { Card, CardBody} from "@heroui/card";
+import { Input } from "@heroui/input";
+import { Checkbox } from "@heroui/checkbox";
 import { useOutletContext } from "react-router-dom";
 import { SettingsContext } from "@/types/SettingsContext";
 

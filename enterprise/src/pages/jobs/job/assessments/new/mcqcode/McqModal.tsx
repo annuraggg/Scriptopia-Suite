@@ -5,7 +5,9 @@ import {
   ModalBody,
   ModalFooter,
 } from "@heroui/modal";
-import { Input, Select, SelectItem, Button } from "@heroui/react";
+import { Select, SelectItem } from "@heroui/select";
+import { Button } from "@heroui/button";
+import { Input } from "@heroui/input";
 import { RadioGroup, Radio } from "@heroui/radio";
 import { CheckboxGroup, Checkbox } from "@heroui/checkbox";
 import { useState } from "react";
@@ -126,7 +128,13 @@ const McqModal = ({
       correct: correctCheckboxes,
     };
 
-    save(question, type as "multiple" | "checkbox" | "text", mcq, checkbox, grade);
+    save(
+      question,
+      type as "multiple" | "checkbox" | "text",
+      mcq,
+      checkbox,
+      grade
+    );
 
     setError("");
   };
@@ -164,13 +172,13 @@ const McqModal = ({
                     )
                   }
                 >
-                  <SelectItem key="multiple" value="multiple">
+                  <SelectItem key="multiple" >
                     Multiple Choice
                   </SelectItem>
-                  <SelectItem key="checkbox" value="checkbox">
+                  <SelectItem key="checkbox" >
                     Checkbox
                   </SelectItem>
-                  <SelectItem key="text" value="text">
+                  <SelectItem key="text">
                     Text
                   </SelectItem>
                 </Select>

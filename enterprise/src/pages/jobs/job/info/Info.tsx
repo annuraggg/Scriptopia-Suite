@@ -1,13 +1,9 @@
 import { useOutletContext } from "react-router-dom";
-import {
-  Card,
-  CardBody,
-  CardHeader,
-  Chip,
-  Divider,
-  Button,
-  Progress,
-} from "@heroui/react";
+import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Chip } from "@heroui/chip";
+import { Divider } from "@heroui/divider";
+import { Button } from "@heroui/button";
+import { Progress } from "@heroui/progress";
 import {
   IconBuilding,
   IconMapPin,
@@ -107,7 +103,11 @@ const Info = () => {
               </Chip>
             </div>
           </div>
-          <Button variant="ghost" className="hidden" startContent={<IconTemplate size={20} />}>
+          <Button
+            variant="ghost"
+            className="hidden"
+            startContent={<IconTemplate size={20} />}
+          >
             Save as Template
           </Button>
         </CardHeader>
@@ -209,8 +209,12 @@ const Info = () => {
                       <IconWriting size={18} />
                     )}
                     {step.type === "INTERVIEW" && <IconUserCheck size={18} />}
-                    {step.type === "RESUME_SCREENING" && <IconCertificate size={18} />}
-                    {step.type === "ASSIGNMENT" && <IconDeviceLaptop size={18} />}
+                    {step.type === "RESUME_SCREENING" && (
+                      <IconCertificate size={18} />
+                    )}
+                    {step.type === "ASSIGNMENT" && (
+                      <IconDeviceLaptop size={18} />
+                    )}
                     <span>{step.name}</span>
                   </div>
                   <Chip

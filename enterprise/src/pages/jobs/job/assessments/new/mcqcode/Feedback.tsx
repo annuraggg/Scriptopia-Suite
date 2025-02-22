@@ -1,6 +1,7 @@
-import { Button, Input } from "@heroui/react";
+import { Input } from "@heroui/input";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { Button } from "@heroui/button";
 
 const Feedback = ({
   feedbackEmail,

@@ -1,4 +1,6 @@
-import { Button, Card, CardBody, Input } from "@heroui/react";
+import { Card, CardBody } from "@heroui/card";
+import { Input } from "@heroui/input";
+import { Button } from "@heroui/button";
 import { ArrowLeftIcon, Briefcase, Link, Mail } from "lucide-react";
 import { Trash2Icon } from "lucide-react";
 import {
@@ -8,9 +10,8 @@ import {
   TableHeader,
   TableCell,
   TableColumn,
-  Select,
-  SelectItem,
-} from "@heroui/react";
+} from "@heroui/table";
+import { Select, SelectItem } from "@heroui/select";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth, useUser } from "@clerk/clerk-react";
@@ -216,7 +217,7 @@ const Start = () => {
                   }
                 >
                   {roles.map((role) => (
-                    <SelectItem key={role.role} value={role.role}>
+                    <SelectItem key={role.role}>
                       {role.role}
                     </SelectItem>
                   ))}

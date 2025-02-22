@@ -22,7 +22,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { Button } from "@heroui/react";
+import { Button } from "@heroui/button";
 
 interface Metric {
   title: string;

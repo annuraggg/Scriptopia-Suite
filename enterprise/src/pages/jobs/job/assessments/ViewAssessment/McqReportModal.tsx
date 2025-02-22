@@ -1,4 +1,4 @@
-import { Modal, ModalContent, ModalHeader, ModalBody } from "@heroui/react";
+import { Modal, ModalContent, ModalHeader, ModalBody } from "@heroui/modal";
 import Carousel from "./Carousel";
 
 interface MCQ {

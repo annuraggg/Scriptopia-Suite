@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { Card, CardBody, CardHeader, Input, Textarea } from "@heroui/react";
+import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Input, Textarea } from "@heroui/input";
 import SelectionChart from "./SelectionChart";
-import { Tabs, Tab } from "@heroui/react";
+import { Tabs, Tab } from "@heroui/tabs";
 import { DataTable } from "./DataTable";
 import { useEffect, useState } from "react";
 import { ExtendedCandidate as Candidate } from "@shared-types/ExtendedCandidate";

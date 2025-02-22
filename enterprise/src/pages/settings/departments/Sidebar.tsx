@@ -1,5 +1,5 @@
 import { Department } from "@shared-types/Organization";
-import { Button } from "@heroui/react";
+import { Button } from "@heroui/button";
 
 const Sidebar = ({ departments }: { departments: Department[] }) => {
   return (

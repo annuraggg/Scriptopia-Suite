@@ -1,21 +1,18 @@
 import { useState } from "react";
 import { RootState } from "@/types/Reducer";
 import { useSelector } from "react-redux";
+
+import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
+import { Card, CardHeader, CardBody } from "@heroui/card";
+import { Button } from "@heroui/button";
+import { Progress } from "@heroui/progress";
+import { Select, SelectItem } from "@heroui/select";
 import {
-  BreadcrumbItem,
-  Breadcrumbs,
-  Card,
-  CardBody,
-  CardHeader,
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-  Button,
-  Progress,
-  Select,
-  SelectItem,
-} from "@heroui/react";
+} from "@heroui/dropdown";
 import {
   BarChart,
   Bar,
@@ -512,10 +509,7 @@ const Analytics = () => {
                   </thead>
                   <tbody>
                     {jobPerformanceData.map((job, index) => (
-                      <tr
-                        key={job.position}
-                        className="border-b"
-                      >
+                      <tr key={job.position} className="border-b">
                         <td className="py-4 px-4 text-sm font-medium">
                           {job.position}
                         </td>
@@ -662,9 +656,7 @@ const Analytics = () => {
             <CardHeader className="flex justify-between items-center px-6 py-4">
               <div>
                 <h3 className="text-lg font-semibold">Posting Growth Trends</h3>
-                <p className="text-sm  opacity-80">
-                  Month-over-month changes
-                </p>
+                <p className="text-sm  opacity-80">Month-over-month changes</p>
               </div>
               <div className="flex gap-2 w-[40%]">
                 <Select
@@ -673,9 +665,7 @@ const Analytics = () => {
                   className=""
                 >
                   {Object.keys(monthlyGrowthData).map((year) => (
-                    <SelectItem key={year} value={year}>
-                      {year}
-                    </SelectItem>
+                    <SelectItem key={year}>{year}</SelectItem>
                   ))}
                 </Select>
                 <Select
@@ -685,9 +675,7 @@ const Analytics = () => {
                 >
                   {Object.keys(monthlyGrowthData[selectedYear] || {}).map(
                     (month) => (
-                      <SelectItem key={month} value={month}>
-                        {month}
-                      </SelectItem>
+                      <SelectItem key={month}>{month}</SelectItem>
                     )
                   )}
                 </Select>

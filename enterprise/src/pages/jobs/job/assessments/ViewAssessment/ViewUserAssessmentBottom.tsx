@@ -6,10 +6,9 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Tabs,
-  Tab,
-  Button,
-} from "@heroui/react";
+} from "@heroui/table";
+import { Tabs, Tab } from "@heroui/tabs";
+import { Button } from "@heroui/button";
 import { useEffect, useState } from "react";
 import CodeSolutionModal from "./CodeSolutionModal";
 import McqReportModal from "./McqReportModal";

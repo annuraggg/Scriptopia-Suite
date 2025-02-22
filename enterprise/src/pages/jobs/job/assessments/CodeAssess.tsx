@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Button, Card } from "@heroui/react";
+import { Button } from "@heroui/button";
+import { Card } from "@heroui/card";
 import {
   Eye,
   Link,

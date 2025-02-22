@@ -2,18 +2,15 @@ import React, { useState, useEffect } from "react";
 import {
   Modal,
   ModalContent,
-  Button,
-  Select,
-  SelectItem,
-  Input,
-  Textarea,
-  Checkbox,
-  RadioGroup,
-  Radio,
   ModalHeader,
   ModalBody,
   ModalFooter,
-} from "@heroui/react";
+} from "@heroui/modal";
+import { Button } from "@heroui/button";
+import { Select, SelectItem } from "@heroui/select";
+import { Input, Textarea } from "@heroui/input";
+import { Checkbox } from "@heroui/checkbox";
+import { Radio, RadioGroup } from "@heroui/radio";
 import { Plus } from "lucide-react";
 import MonacoEditor from "@monaco-editor/react";
 
@@ -400,7 +397,7 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
             isDisabled={!!editingQuestion}
           >
             {questionTypes.map((type) => (
-              <SelectItem key={type} value={type}>
+              <SelectItem key={type}>
                 {type
                   .split("-")
                   .map((word) => word.charAt(0).toUpperCase() + word.slice(1))

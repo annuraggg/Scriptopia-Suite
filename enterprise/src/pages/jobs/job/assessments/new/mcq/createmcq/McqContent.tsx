@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Card, CardHeader, Button } from "@heroui/react";
+import { Card, CardHeader } from "@heroui/card";
+import { Button } from "@heroui/button";
 import { Plus, Upload, HelpCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import QuestionModal from "./AddQuestionModal";

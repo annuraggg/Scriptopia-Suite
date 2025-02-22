@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { EditIcon, Paperclip } from "lucide-react";
+
+import { Textarea } from "@heroui/input";
+import { Button } from "@heroui/button";
+import { Checkbox } from "@heroui/checkbox";
 import {
-  Textarea,
-  Checkbox,
-  Button,
   Modal,
   ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
-} from "@heroui/react";
+} from "@heroui/modal";
 
 import { toast } from "sonner";
 import { useOutletContext } from "react-router-dom";

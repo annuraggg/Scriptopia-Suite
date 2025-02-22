@@ -1,4 +1,5 @@
-import { Checkbox, Divider } from "@heroui/react";
+import { Divider } from "@heroui/divider";
+import { Checkbox } from "@heroui/checkbox";
 import { motion } from "framer-motion";
 import { useState } from "react";
 

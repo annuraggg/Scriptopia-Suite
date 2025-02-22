@@ -1,4 +1,5 @@
-import { Button, useDisclosure } from "@heroui/react";
+import { Button } from "@heroui/button";
+import { useDisclosure } from "@heroui/modal";
 import McqModal from "./McqModal";
 import { Mcq } from "@shared-types/Assessment";
 import { useState, useRef } from "react";
@@ -113,30 +114,30 @@ const Mcqs = ({
   };
 
   const processCSV = (csv: string) => {
-    const lines = csv.split('\n');
+    const lines = csv.split("\n");
     const newMcqs: Mcq[] = [];
 
     lines.forEach((line, index) => {
       if (index === 0) return; // Skip header row
-      const [question, type, options, correct, gradeStr] = line.split(',');
-      
-      const mcqOptions = options.split(';');
+      const [question, type, options, correct, gradeStr] = line.split(",");
+
+      const mcqOptions = options.split(";");
       const grade = parseInt(gradeStr, 10) || 1;
 
-      if (type === 'multiple') {
+      if (type === "multiple") {
         newMcqs.push({
           question,
-          type: 'multiple',
+          type: "multiple",
           mcq: { options: mcqOptions, correct },
           checkbox: { options: [], correct: [] },
           grade,
         });
-      } else if (type === 'checkbox') {
-        const correctOptions = correct.split(';');
+      } else if (type === "checkbox") {
+        const correctOptions = correct.split(";");
         newMcqs.push({
           question,
-          type: 'checkbox',
-          mcq: { options: [], correct: '' },
+          type: "checkbox",
+          mcq: { options: [], correct: "" },
           checkbox: { options: mcqOptions, correct: correctOptions },
           grade,
         });
@@ -168,14 +169,15 @@ const Mcqs = ({
         <div className="flex flex-row justify-start gap-2">
           <Button onClick={handleOpen}>Add Question</Button>
           <Button variant="ghost" onClick={handleImportCSV}>
-            <ImportIcon size={22} />Import CSV
+            <ImportIcon size={22} />
+            Import CSV
           </Button>
           <input
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
             accept=".csv"
-            style={{ display: 'none' }}
+            style={{ display: "none" }}
           />
         </div>
         <McqModal
@@ -215,7 +217,9 @@ const Mcqs = ({
               className="flex mb-5 gap-2 border p-5 rounded-xl w-full justify-between"
             >
               <div>
-                <h4>{i + 1}.{" "}{mcq.question}</h4>
+                <h4>
+                  {i + 1}. {mcq.question}
+                </h4>
                 <p className="text-xs">
                   {mcq.type === "multiple" && "Multiple Choice"}
                   {mcq.type === "checkbox" && "Checkbox"}

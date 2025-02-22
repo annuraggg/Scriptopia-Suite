@@ -1,4 +1,5 @@
-import { Input, Select, SelectItem } from "@heroui/react";
+import { Select, SelectItem } from "@heroui/select";
+import { Input } from "@heroui/input";
 import { motion } from "framer-motion";
 import { Problem } from "@shared-types/Problem";
 import {
@@ -32,12 +33,18 @@ const Grading: React.FC<GradingProps> = ({
   if (selectedQuestions.length === 0) return "No Problems Selected";
 
   const isTestCaseGradingValid = () => {
-    return testCaseGrading.easy > 0 && testCaseGrading.medium > 0 && testCaseGrading.hard > 0;
+    return (
+      testCaseGrading.easy > 0 &&
+      testCaseGrading.medium > 0 &&
+      testCaseGrading.hard > 0
+    );
   };
 
   const isQuestionGradingValid = () => {
-    return questionsGrading.length === selectedQuestions.length && 
-           questionsGrading.every(q => q.points > 0);
+    return (
+      questionsGrading.length === selectedQuestions.length &&
+      questionsGrading.every((q) => q.points > 0)
+    );
   };
 
   return (
@@ -54,12 +61,8 @@ const Grading: React.FC<GradingProps> = ({
         selectedKeys={[gradingMetric]}
         onChange={(e) => setGradingMetric(e.target.value)}
       >
-        <SelectItem key="testcase" value="testcase">
-          By Test Case Difficulty
-        </SelectItem>
-        <SelectItem key="questions" value="questions">
-          By Questions
-        </SelectItem>
+        <SelectItem key="testcase">By Test Case Difficulty</SelectItem>
+        <SelectItem key="questions">By Questions</SelectItem>
       </Select>
 
       <div className="mt-5">
@@ -85,7 +88,9 @@ const Grading: React.FC<GradingProps> = ({
                 })
               }
               isInvalid={testCaseGrading.easy <= 0}
-              errorMessage={testCaseGrading.easy <= 0 ? "Score must be greater than 0" : ""}
+              errorMessage={
+                testCaseGrading.easy <= 0 ? "Score must be greater than 0" : ""
+              }
             />
             <Input
               type="number"
@@ -102,7 +107,11 @@ const Grading: React.FC<GradingProps> = ({
                 })
               }
               isInvalid={testCaseGrading.medium <= 0}
-              errorMessage={testCaseGrading.medium <= 0 ? "Score must be greater than 0" : ""}
+              errorMessage={
+                testCaseGrading.medium <= 0
+                  ? "Score must be greater than 0"
+                  : ""
+              }
             />
             <Input
               type="number"
@@ -119,10 +128,14 @@ const Grading: React.FC<GradingProps> = ({
                 })
               }
               isInvalid={testCaseGrading.hard <= 0}
-              errorMessage={testCaseGrading.hard <= 0 ? "Score must be greater than 0" : ""}
+              errorMessage={
+                testCaseGrading.hard <= 0 ? "Score must be greater than 0" : ""
+              }
             />
             {!isTestCaseGradingValid() && (
-              <p className="text-red-500 mt-4">Please enter valid scores for all test case difficulties</p>
+              <p className="text-red-500 mt-4">
+                Please enter valid scores for all test case difficulties
+              </p>
             )}
           </div>
         )}
@@ -171,17 +184,32 @@ const Grading: React.FC<GradingProps> = ({
                         ];
                       });
                     }}
-                    isInvalid={!questionsGrading.find((q) => q.problemId === question._id)?.points || 
-                               (questionsGrading.find((q) => q.problemId === question._id)?.points ?? 0) <= 0}
-                    errorMessage={!questionsGrading.find((q) => q.problemId === question._id)?.points || 
-                                  (questionsGrading.find((q) => q.problemId === question._id)?.points ?? 0) <= 0
-                                  ? "Score must be greater than 0" : ""}
+                    isInvalid={
+                      !questionsGrading.find(
+                        (q) => q.problemId === question._id
+                      )?.points ||
+                      (questionsGrading.find(
+                        (q) => q.problemId === question._id
+                      )?.points ?? 0) <= 0
+                    }
+                    errorMessage={
+                      !questionsGrading.find(
+                        (q) => q.problemId === question._id
+                      )?.points ||
+                      (questionsGrading.find(
+                        (q) => q.problemId === question._id
+                      )?.points ?? 0) <= 0
+                        ? "Score must be greater than 0"
+                        : ""
+                    }
                   />
                 </div>
               ))}
             </div>
             {!isQuestionGradingValid() && (
-              <p className="text-red-500 mt-4">Please enter valid scores for all questions</p>
+              <p className="text-red-500 mt-4">
+                Please enter valid scores for all questions
+              </p>
             )}
           </div>
         )}

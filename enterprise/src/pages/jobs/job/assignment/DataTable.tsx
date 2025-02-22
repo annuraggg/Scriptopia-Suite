@@ -29,7 +29,9 @@ import {
   Users,
 } from "lucide-react";
 import { Tooltip } from "@heroui/tooltip";
-import { Button, Input, Checkbox } from "@heroui/react";
+import { Input } from "@heroui/input";
+import { Button } from "@heroui/button";
+import { Checkbox } from "@heroui/checkbox";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";

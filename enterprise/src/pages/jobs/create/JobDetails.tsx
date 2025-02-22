@@ -1,12 +1,8 @@
-import {
-  Button,
-  Input,
-  Select,
-  SelectItem,
-  DateValue,
-  RangeValue,
-} from "@heroui/react";
-import { DatePicker } from "@heroui/react";
+import { Input } from "@heroui/input";
+import { Select, SelectItem } from "@heroui/select";
+import type { DateValue } from "@internationalized/date";
+import type { RangeValue } from "@react-types/shared";
+import { DatePicker } from "@heroui/date-picker";
 import TagsInput from "react-tagsinput";
 import "react-tagsinput/react-tagsinput.css";
 import ReactQuill from "react-quill";
@@ -16,7 +12,8 @@ import { Dispatch, SetStateAction } from "react";
 import { useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
 import currencyData from "@/data/currency";
-import { Autocomplete, AutocompleteItem } from "@heroui/react";
+import { Autocomplete, AutocompleteItem } from "@heroui/autocomplete";
+import { Button } from "@heroui/button";
 
 interface JobDetailsProps {
   setAction: Dispatch<SetStateAction<number>>;
@@ -123,19 +120,19 @@ const JobDetails = ({
             onChange={(e) => setCategory(e.target.value)}
             className="w-[500px]"
           >
-            <SelectItem value="full_time" key="full_time">
+            <SelectItem key="full_time">
               Full Time
             </SelectItem>
-            <SelectItem value="part_time" key="part_time">
+            <SelectItem key="part_time">
               Part Time
             </SelectItem>
-            <SelectItem value="contract" key="contract">
+            <SelectItem key="contract">
               Contract
             </SelectItem>
-            <SelectItem value="internship" key="internship">
+            <SelectItem key="internship">
               Internship
             </SelectItem>
-            <SelectItem value="temporary" key="temporary">
+            <SelectItem key="temporary">
               Temporary
             </SelectItem>
           </Select>
@@ -147,7 +144,9 @@ const JobDetails = ({
             className="max-w-[300px] mt-3"
           >
             {(organization?.departments || [])?.map((department) => (
-              <AutocompleteItem value={department._id} key={department?._id || ""}>
+              <AutocompleteItem
+                key={department?._id || ""}
+              >
                 {department.name}
               </AutocompleteItem>
             ))}
@@ -179,7 +178,7 @@ const JobDetails = ({
             isVirtualized
           >
             {currencyData.map((c) => (
-              <AutocompleteItem value={c.currency_code} key={c.currency_code}>
+              <AutocompleteItem key={c.currency_code}>
                 {c.currency_code}
               </AutocompleteItem>
             ))}
@@ -209,7 +208,7 @@ const JobDetails = ({
         <div className="flex gap-3 max-w-[500px]">
           <DatePicker
             className="w-[500px]"
-            value={applicationRange?.start}
+            value={applicationRange?.start as DateValue | null | undefined}
             aria-label="Start"
             label="Entry Starts"
             onChange={(e) => {
@@ -219,7 +218,7 @@ const JobDetails = ({
           />
           <DatePicker
             className="w-[500px]"
-            value={applicationRange?.end}
+            value={applicationRange?.end as DateValue | null | undefined}
             aria-label="End"
             label="Entry Ends"
             onChange={(e) => {

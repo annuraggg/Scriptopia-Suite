@@ -6,13 +6,10 @@ import {
   DrawerHeader,
   DrawerBody,
   DrawerFooter,
-  Button,
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  Spinner,
-} from "@heroui/react";
+} from "@heroui/drawer";
+import { Button } from "@heroui/button";
+import { Card, CardHeader, CardBody, CardFooter } from "@heroui/card";
+import { Spinner } from "@heroui/spinner";
 import { CodeAssessment } from "@shared-types/CodeAssessment";
 import { MCQAssessment } from "@shared-types/MCQAssessment";
 import { Posting, StepType } from "@shared-types/Posting";

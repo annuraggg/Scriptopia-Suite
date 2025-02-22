@@ -12,7 +12,8 @@ import {
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
-import { Badge, Button } from "@heroui/react";
+import { Badge } from "@heroui/badge";
+import { Button } from "@heroui/button";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
 import { Notification } from "@shared-types/Organization";
 import { OrganizationWithPostings as OWP } from "@/types/RootContext";

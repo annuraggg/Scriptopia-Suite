@@ -1,17 +1,15 @@
 import { motion } from "framer-motion";
 import {
-  Card,
-  CardHeader,
-  CardBody,
   Table,
   TableHeader,
   TableColumn,
   TableBody,
   TableRow,
   TableCell,
-  Button,
-  Tooltip,
-} from "@heroui/react";
+} from "@heroui/table";
+import { Card, CardHeader, CardBody } from "@heroui/card";
+import { Button } from "@heroui/button";
+import { Tooltip } from "@heroui/tooltip";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
@@ -67,7 +65,9 @@ const ViewAssessment = () => {
 
     const stepId = window.location.pathname.split("/")[4];
     setCurrentStepId(
-      posting?.workflow?.steps?.findIndex((step) => step.status === "in-progress") ?? -1
+      posting?.workflow?.steps?.findIndex(
+        (step) => step.status === "in-progress"
+      ) ?? -1
     );
     if (!posting?.workflow?.steps) return;
     const step = posting?.workflow?.steps.findIndex(

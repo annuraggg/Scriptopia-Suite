@@ -1,4 +1,4 @@
-import { Input, Textarea } from "@heroui/react";
+import { Input, Textarea } from "@heroui/input";
 import { motion } from "framer-motion";
 
 const General = ({

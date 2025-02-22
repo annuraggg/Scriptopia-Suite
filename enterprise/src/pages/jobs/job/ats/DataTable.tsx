@@ -31,7 +31,9 @@ import {
   Users,
 } from "lucide-react";
 import { Tooltip } from "@heroui/tooltip";
-import { Button, Checkbox, Input } from "@heroui/react";
+import { Input } from "@heroui/input";
+import { Button } from "@heroui/button";
+import { Checkbox } from "@heroui/checkbox";
 import { useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";

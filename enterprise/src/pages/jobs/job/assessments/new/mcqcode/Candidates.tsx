@@ -1,4 +1,6 @@
-import { Button, Input, Select, SelectItem } from "@heroui/react";
+import { Select, SelectItem } from "@heroui/select";
+import { Input } from "@heroui/input";
+import { Button } from "@heroui/button";
 import {
   Table,
   TableHeader,
@@ -82,10 +84,8 @@ const Candidates = ({
           selectedKeys={[access]}
           onChange={(e) => setAccess(e.target.value)}
         >
-          <SelectItem key="all" value="testcase">
-            Allow Access to All Candidates
-          </SelectItem>
-          <SelectItem key="specific" value="specific">
+          <SelectItem key="all">Allow Access to All Candidates</SelectItem>
+          <SelectItem key="specific">
             Allow Access to Specific Candidates
           </SelectItem>
         </Select>

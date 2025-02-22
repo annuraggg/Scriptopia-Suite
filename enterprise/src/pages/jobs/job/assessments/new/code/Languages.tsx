@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import availableLanguages from "@/data/languages";
-import { Checkbox } from "@heroui/react";
+import { Checkbox } from "@heroui/checkbox";
 
 interface LanguagesProps {
   selectedLanguages: string[];

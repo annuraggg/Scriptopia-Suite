@@ -1,4 +1,4 @@
-import { Input } from "@heroui/react";
+import { Input } from "@heroui/input";
 
 interface ContactInfoProps {
   firstName: string;

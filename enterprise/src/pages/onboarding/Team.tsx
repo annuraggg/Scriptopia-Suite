@@ -1,4 +1,6 @@
-import { Button, Input, Select, SelectItem } from "@heroui/react";
+import { Select, SelectItem } from "@heroui/select";
+import { Button } from "@heroui/button";
+import { Input } from "@heroui/input";
 import { Trash } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -106,9 +108,7 @@ const Team = ({
           }
         >
           {roles.map((role) => (
-            <SelectItem key={role.slug} value={role.role}>
-              {role.role}
-            </SelectItem>
+            <SelectItem key={role.slug}>{role.role}</SelectItem>
           ))}
         </Select>
         <Button

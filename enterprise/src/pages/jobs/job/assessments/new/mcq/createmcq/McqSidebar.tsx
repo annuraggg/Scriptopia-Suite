@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { Card, Button, Input, CardHeader, CardFooter } from "@heroui/react";
+import { Card, CardHeader, CardFooter } from "@heroui/card";
+import { Button } from "@heroui/button";
+import { Input } from "@heroui/input";
 import { motion } from "framer-motion";
 import { Pencil, Trash2, Plus, Save } from "lucide-react";
 
@@ -15,17 +17,17 @@ export type QuestionType =
   | "visual"
   | "peer-review";
 
-  interface Question {
-    id: number;
-    type: QuestionType;
-    text: string;
-    options?: { id: number; text: string; isCorrect: boolean }[];
-    maxLimit?: number;
-    imageUrl?: string;
-    code?: string;
-    blankText?: string;
-    blanksAnswers?: string[];
-  }
+interface Question {
+  id: number;
+  type: QuestionType;
+  text: string;
+  options?: { id: number; text: string; isCorrect: boolean }[];
+  maxLimit?: number;
+  imageUrl?: string;
+  code?: string;
+  blankText?: string;
+  blanksAnswers?: string[];
+}
 
 interface Section {
   id: number;

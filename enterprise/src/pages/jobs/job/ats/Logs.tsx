@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardHeader, CardBody } from "@heroui/react";
+import { Card, CardHeader, CardBody } from "@heroui/card";
 import {
   ArrowUpIcon,
   CheckCircleIcon,

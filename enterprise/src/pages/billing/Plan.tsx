@@ -1,4 +1,5 @@
-import { Button, Card } from "@heroui/react";
+import { Button } from "@heroui/button";
+import { Card } from "@heroui/card";
 
 const prices = [
   { name: "Quaterly", price: 24.99, monthly: 8.33 },

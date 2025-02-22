@@ -5,10 +5,9 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Button,
-  Input,
-  Textarea,
-} from "@heroui/react";
+} from "@heroui/modal";
+import { Button } from "@heroui/button";
+import { Input, Textarea } from "@heroui/input";
 import { Select, SelectItem } from "@heroui/select";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
@@ -77,10 +76,12 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
 
     if (!jobTitle) newErrors.jobTitle = "Please enter a job title";
     if (!openings) newErrors.openings = "Please enter the number of openings";
-    if (department.size === 0) newErrors.department = "Please select a department";
+    if (department.size === 0)
+      newErrors.department = "Please select a department";
     if (!location) newErrors.location = "Please enter a job location";
     if (jobType.size === 0) newErrors.jobType = "Please select a job type";
-    if (!expectedSkills) newErrors.expectedSkills = "Please enter expected skills";
+    if (!expectedSkills)
+      newErrors.expectedSkills = "Please enter expected skills";
     if (!minSalary) newErrors.minSalary = "Please enter minimum salary";
     if (!maxSalary) newErrors.maxSalary = "Please enter maximum salary";
     if (currency.size === 0) newErrors.currency = "Please select a currency";
@@ -88,7 +89,8 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
     if (!startTime) newErrors.startTime = "Please enter a start time";
     if (!deadlineDate) newErrors.deadlineDate = "Please enter a deadline date";
     if (!deadlineTime) newErrors.deadlineTime = "Please enter a deadline time";
-    if (!qualifications) newErrors.qualifications = "Please enter qualifications";
+    if (!qualifications)
+      newErrors.qualifications = "Please enter qualifications";
     if (!about) newErrors.about = "Please enter a job description";
 
     setErrors(newErrors);
@@ -130,7 +132,6 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
       }
     }
   };
-
 
   const createJob = () => {
     if (!validateForm()) {
@@ -236,7 +237,9 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
               value={jobTitle}
               onChange={(e) => setjobTitle(e.target.value)}
             />
-            {errors.jobTitle && <p className="text-red-500 text-xs mt-1">{errors.jobTitle}</p>}
+            {errors.jobTitle && (
+              <p className="text-red-500 text-xs mt-1">{errors.jobTitle}</p>
+            )}
           </div>
           <div className="w-full flex gap-3">
             <Input
@@ -248,14 +251,18 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
               value={openings}
               onChange={(e) => setOpening(e.target.value)}
             />
-            {errors.openings && <p className="text-red-500 text-xs mt-1">{errors.openings}</p>}
+            {errors.openings && (
+              <p className="text-red-500 text-xs mt-1">{errors.openings}</p>
+            )}
           </div>
           <div className="w-full">
             <Select
               label="Department"
               placeholder="Select department"
               selectedKeys={department}
-              onSelectionChange={(keys) => setDepartment(new Set(keys as unknown as string[]))}
+              onSelectionChange={(keys) =>
+                setDepartment(new Set(keys as unknown as string[]))
+              }
               labelPlacement="outside"
               isRequired
             >
@@ -263,7 +270,9 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
                 <SelectItem key={department._id!}>{department.name}</SelectItem>
               ))}
             </Select>
-            {errors.department && <p className="text-red-500 text-xs mt-1">{errors.department}</p>}
+            {errors.department && (
+              <p className="text-red-500 text-xs mt-1">{errors.department}</p>
+            )}
           </div>
           <div className="w-full flex gap-3">
             <Input
@@ -275,7 +284,9 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
               label="Job Location"
               labelPlacement="outside"
             />
-            {errors.location && <p className="text-red-500 text-xs mt-1">{errors.location}</p>}
+            {errors.location && (
+              <p className="text-red-500 text-xs mt-1">{errors.location}</p>
+            )}
 
             <Select
               label="Job Type"
@@ -283,14 +294,18 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
               className="max-w-xs"
               labelPlacement="outside"
               selectedKeys={jobType}
-              onSelectionChange={(e) => setJobType(new Set(e as unknown as string[]))}
+              onSelectionChange={(e) =>
+                setJobType(new Set(e as unknown as string[]))
+              }
               isRequired
             >
               <SelectItem key={"part_time"}>Part Time</SelectItem>
               <SelectItem key={"full_time"}>Full Time</SelectItem>
               <SelectItem key={"internship"}>Internship</SelectItem>
             </Select>
-            {errors.jobType && <p className="text-red-500 text-xs mt-1">{errors.jobType}</p>}
+            {errors.jobType && (
+              <p className="text-red-500 text-xs mt-1">{errors.jobType}</p>
+            )}
           </div>
 
           <div className="w-full">
@@ -305,7 +320,11 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
               value={expectedSkills}
               onChange={(e) => setExpectedSkills(e.target.value)}
             />
-            {errors.expectedSkills && <p className="text-red-500 text-xs mt-1">{errors.expectedSkills}</p>}
+            {errors.expectedSkills && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.expectedSkills}
+              </p>
+            )}
           </div>
 
           <div className="w-full">
@@ -319,7 +338,9 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
                 value={minSalary}
                 onChange={handleMinSalaryChange}
               />
-              {errors.minSalary && <p className="text-red-500 text-xs mt-1">{errors.minSalary}</p>}
+              {errors.minSalary && (
+                <p className="text-red-500 text-xs mt-1">{errors.minSalary}</p>
+              )}
               <Textarea
                 placeholder="ends at"
                 maxRows={1}
@@ -340,7 +361,9 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
               label="Currency"
               placeholder="Select currency"
               selectedKeys={currency}
-              onSelectionChange={(keys) => setCurrency(new Set(keys as unknown as string[]))}
+              onSelectionChange={(keys) =>
+                setCurrency(new Set(keys as unknown as string[]))
+              }
               labelPlacement="outside"
               isRequired
             >
@@ -348,7 +371,9 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
                 <SelectItem key={currency.key}>{currency.label}</SelectItem>
               ))}
             </Select>
-            {errors.currency && <p className="text-red-500 text-xs mt-1">{errors.currency}</p>}
+            {errors.currency && (
+              <p className="text-red-500 text-xs mt-1">{errors.currency}</p>
+            )}
           </div>
 
           <div className="w-full">
@@ -362,7 +387,9 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
                 label="Job Applications Start Date"
                 labelPlacement="outside"
               />
-              {errors.startDate && <p className="text-red-500 text-xs mt-1">{errors.startDate}</p>}
+              {errors.startDate && (
+                <p className="text-red-500 text-xs mt-1">{errors.startDate}</p>
+              )}
               <Input
                 type="time"
                 isRequired
@@ -372,7 +399,9 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
                 label="Job Applications Start Time"
                 labelPlacement="outside"
               />
-              {errors.startTime && <p className="text-red-500 text-xs mt-1">{errors.startTime}</p>}
+              {errors.startTime && (
+                <p className="text-red-500 text-xs mt-1">{errors.startTime}</p>
+              )}
             </div>
           </div>
 
@@ -387,7 +416,11 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
                 label="Job Applications Deadline Date"
                 labelPlacement="outside"
               />
-              {errors.deadlineDate && <p className="text-red-500 text-xs mt-1">{errors.deadlineDate}</p>}
+              {errors.deadlineDate && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.deadlineDate}
+                </p>
+              )}
               <Input
                 type="time"
                 isRequired
@@ -397,7 +430,11 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
                 label="Job Applications Deadline Time"
                 labelPlacement="outside"
               />
-              {errors.deadlineTime && <p className="text-red-500 text-xs mt-1">{errors.deadlineTime}</p>}
+              {errors.deadlineTime && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.deadlineTime}
+                </p>
+              )}
             </div>
           </div>
 
@@ -413,7 +450,11 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
               value={qualifications}
               onChange={(e) => setQualifications(e.target.value)}
             />
-            {errors.qualifications && <p className="text-red-500 text-xs mt-1">{errors.qualifications}</p>}
+            {errors.qualifications && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.qualifications}
+              </p>
+            )}
           </div>
 
           <div className="w-full">
@@ -428,7 +469,9 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
               onChange={(e) => setAbout(e.target.value)}
               isRequired
             />
-            {errors.about && <p className="text-red-500 text-xs mt-1">{errors.about}</p>}
+            {errors.about && (
+              <p className="text-red-500 text-xs mt-1">{errors.about}</p>
+            )}
           </div>
 
           <div className="w-full text-xs text-gray-500">
@@ -459,6 +502,6 @@ const CreateJobModal: React.FC<createJobModalProps> = ({
       </ModalContent>
     </Modal>
   );
-}
+};
 
 export default CreateJobModal;

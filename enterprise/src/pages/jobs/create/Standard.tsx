@@ -8,9 +8,12 @@ import {
   Copy,
   MonitorPlay,
 } from "lucide-react";
-import { Button, Chip, DateValue, TimeInputValue } from "@heroui/react";
-import { motion, Reorder } from "framer-motion"; // Added framer-motion for animation
-import { Tooltip } from "@heroui/react";
+import { Button } from "@heroui/button";
+import { Chip } from "@heroui/chip";
+import { motion, Reorder } from "framer-motion";
+import { Tooltip } from "@heroui/tooltip";
+import type { DateValue } from "@react-types/calendar";
+
 interface Component {
   icon: React.ElementType;
   label: string;
@@ -36,8 +39,8 @@ const Create = ({
     {
       start: DateValue | null;
       end: DateValue | null;
-      startTime: TimeInputValue | null;
-      endTime: TimeInputValue | null;
+      startTime: null;
+      endTime: null;
     }[]
   >([]);
 

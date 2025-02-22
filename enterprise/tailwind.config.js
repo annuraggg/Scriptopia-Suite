@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 
 import tca from "tailwindcss-animate";
-import { heroui } from "@heroui/react";
+import { heroui } from "@heroui/theme";
 
 export default {
   darkMode: ["class"],
@@ -11,6 +11,7 @@ export default {
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
     "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/@heroui/theme/dist/components/*.js",
   ],
   prefix: "",
   theme: {

@@ -1,5 +1,6 @@
-import { Button, useDisclosure } from "@heroui/react";
-import { Card, CardBody } from "@heroui/react";
+import { Button } from "@heroui/button";
+import { useDisclosure } from "@heroui/modal";
+import { Card, CardBody } from "@heroui/card";
 import { useEffect, useState } from "react";
 import {
   StepType,

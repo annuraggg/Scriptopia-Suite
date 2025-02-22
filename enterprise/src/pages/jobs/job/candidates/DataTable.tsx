@@ -29,7 +29,8 @@ import {
   Download,
   User,
 } from "lucide-react";
-import { Button, Checkbox } from "@heroui/react";
+import { Button } from "@heroui/button";
+import { Checkbox } from "@heroui/checkbox";
 import { useOutletContext } from "react-router-dom";
 import { Posting as PostingType } from "@shared-types/Posting";
 import { Candidate } from "@shared-types/Candidate";

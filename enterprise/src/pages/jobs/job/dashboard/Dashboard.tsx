@@ -1,19 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import {
-  Card,
-  CardBody,
-  Switch,
-  Badge,
-  Button,
-  Progress,
-  Avatar,
-  Tooltip,
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-} from "@heroui/react";
+} from "@heroui/dropdown";
+import { Card, CardBody } from "@heroui/card";
+import { Switch } from "@heroui/switch";
+import { Badge } from "@heroui/badge";
+import { Button } from "@heroui/button";
+import { Progress } from "@heroui/progress";
+import { Avatar } from "@heroui/avatar";
+import { Tooltip } from "@heroui/tooltip";
 import {
   MapPin,
   Briefcase,
@@ -107,7 +106,11 @@ const ParticipantCard: React.FC<{ participant: Participant }> = ({
                 <DropdownMenu>
                   <DropdownItem key={"view"}>View Profile</DropdownItem>
                   <DropdownItem key={"download"}>Download Resume</DropdownItem>
-                  <DropdownItem key={"disqualify"} className="text-danger" color="danger">
+                  <DropdownItem
+                    key={"disqualify"}
+                    className="text-danger"
+                    color="danger"
+                  >
                     Disqualify
                   </DropdownItem>
                 </DropdownMenu>

@@ -1,7 +1,7 @@
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { HeroUIProvider } from "@heroui/react";
+import { HeroUIProvider } from "@heroui/system";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { Toaster } from "sonner";
 import { Provider } from "react-redux";

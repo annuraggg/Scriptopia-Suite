@@ -5,11 +5,10 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Button,
-  Input,
-  Select,
-  SelectItem,
-} from "@heroui/react";
+} from "@heroui/modal";
+import { Button } from "@heroui/button";
+import { Input } from "@heroui/input";
+import { Select, SelectItem } from "@heroui/select";
 import { Member } from "@shared-types/Organization";
 import { Role } from "@shared-types/Organization";
 
@@ -90,7 +89,7 @@ const InviteModal = ({
                 }}
               >
                 {roles.map((role) => (
-                  <SelectItem key={role?.slug} value={role?.slug}>
+                  <SelectItem key={role?.slug} >
                     {role.name}
                   </SelectItem>
                 ))}

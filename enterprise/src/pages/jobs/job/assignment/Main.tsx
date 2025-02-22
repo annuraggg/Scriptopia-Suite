@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader } from "@heroui/react";
+import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Posting } from "@shared-types/Posting";
 import { ChevronRight } from "lucide-react";
 import { useNavigate, useOutletContext } from "react-router-dom";

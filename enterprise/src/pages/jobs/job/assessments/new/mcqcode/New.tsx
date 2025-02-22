@@ -1,14 +1,8 @@
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  DateValue,
-  RangeValue,
-  Tab,
-  Tabs,
-  TimeInputValue,
-} from "@heroui/react";
+import { Card, CardBody, CardHeader } from "@heroui/card";
+import type { DateValue } from "@internationalized/date";
+import type { RangeValue } from "@react-types/shared";
+import { Tabs, Tab } from "@heroui/tabs";
+import { Button } from "@heroui/button";
 import { Key, useEffect, useState } from "react";
 import General from "./General";
 import Questions from "./Questions";
@@ -56,10 +50,10 @@ const New = ({ assessmentName }: { assessmentName: string }) => {
     start: today(getLocalTimeZone()),
     end: today(getLocalTimeZone()).add({ weeks: 1 }),
   });
-  const [startTime, setStartTime] = useState<TimeInputValue>(
+  const [startTime, setStartTime] = useState(
     parseAbsoluteToLocal(new Date().toISOString())
   );
-  const [endTime, setEndTime] = useState<TimeInputValue>(
+  const [endTime, setEndTime] = useState(
     parseAbsoluteToLocal(new Date().toISOString())
   );
 

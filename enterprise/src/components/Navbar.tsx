@@ -1,5 +1,6 @@
 import { UserButton } from "@clerk/clerk-react";
-import { Link, Button } from "@heroui/react";
+import { Link } from "@heroui/link";
+import { Button } from "@heroui/button";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 

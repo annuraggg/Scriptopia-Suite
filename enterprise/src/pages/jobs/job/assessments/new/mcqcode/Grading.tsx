@@ -1,4 +1,5 @@
-import { Input, Select, SelectItem } from "@heroui/react";
+import { Select, SelectItem } from "@heroui/select";
+import { Input } from "@heroui/input";
 import { motion } from "framer-motion";
 import { Problem } from "@shared-types/Problem";
 import {
@@ -43,12 +44,8 @@ const Grading = ({
         selectedKeys={[gradingMetric]}
         onChange={(e) => setGradingMetric(e.target.value)}
       >
-        <SelectItem key="testcase" value="testcase">
-          By Test Case Difficulty
-        </SelectItem>
-        <SelectItem key="questions" value="questions">
-          By Questions
-        </SelectItem>
+        <SelectItem key="testcase">By Test Case Difficulty</SelectItem>
+        <SelectItem key="questions">By Questions</SelectItem>
       </Select>
 
       <div className="mt-5">

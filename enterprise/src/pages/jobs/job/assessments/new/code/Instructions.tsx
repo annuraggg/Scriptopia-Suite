@@ -1,5 +1,5 @@
 import React from "react";
-import { Textarea } from "@heroui/react";
+import { Textarea } from "@heroui/input";
 import { motion } from "framer-motion";
 
 interface InstructionsProps {

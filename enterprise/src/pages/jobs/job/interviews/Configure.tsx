@@ -1,24 +1,23 @@
 import { useAuth } from "@clerk/clerk-react";
-import { Button, Checkbox, Divider, Input, TimeInput } from "@heroui/react";
+import { Divider } from "@heroui/divider";
+import { Button } from "@heroui/button";
+import { Checkbox } from "@heroui/checkbox";
+import { TimeInput, TimeInputValue } from "@heroui/date-input";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import ax from "@/config/axios";
 import { Member, Role } from "@shared-types/Organization";
-import { parseAbsoluteToLocal, ZonedDateTime } from "@internationalized/date";
 import { useOutletContext } from "react-router-dom";
 import { Posting } from "@shared-types/Posting";
+import { Input } from "@heroui/input";
 
 const Configure = () => {
   const [availableAssignees, setAvailableAssignees] = useState<Member[]>([]);
 
   const [assignees, setAssignees] = useState<Set<string>>(new Set([]));
   const [selectedDays, setSelectedDays] = useState<Set<string>>(new Set([]));
-  const [timeSlotStart, setTimeSlotStart] = useState<ZonedDateTime>(
-    parseAbsoluteToLocal(new Date().toISOString())
-  );
-  const [timeSlotEnd, setTimeSlotEnd] = useState<ZonedDateTime>(
-    parseAbsoluteToLocal(new Date().toISOString())
-  );
+  const [timeSlotStart, setTimeSlotStart] = useState<TimeInputValue>();
+  const [timeSlotEnd, setTimeSlotEnd] = useState<TimeInputValue>();
   const [duration, setDuration] = useState<number>(0);
 
   const [loading, setLoading] = useState(false);
@@ -83,8 +82,8 @@ const Configure = () => {
           duration: duration,
           slots: [],
           days: Array.from(selectedDays),
-          timeSlotStart: timeSlotStart.toString(),
-          timeSlotEnd: timeSlotEnd.toString(),
+          timeSlotStart: timeSlotStart?.toString(),
+          timeSlotEnd: timeSlotEnd?.toString(),
         },
       })
       .then(() => {

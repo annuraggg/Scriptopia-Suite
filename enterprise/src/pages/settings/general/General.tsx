@@ -1,5 +1,6 @@
 import { Image } from "@heroui/image";
-import { Button, Input } from "@heroui/react";
+import { Button } from "@heroui/button";
+import { Input } from "@heroui/input";
 import { useRef, useState } from "react";
 import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
 import { Upload } from "lucide-react";
@@ -12,9 +13,9 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Slider,
-  useDisclosure,
-} from "@heroui/react";
+} from "@heroui/modal";
+import { Slider } from "@heroui/slider";
+import { useDisclosure } from "@heroui/modal";
 import AvatarEditor from "react-avatar-editor";
 import { useOutletContext } from "react-router-dom";
 import { SettingsContext } from "@/types/SettingsContext";

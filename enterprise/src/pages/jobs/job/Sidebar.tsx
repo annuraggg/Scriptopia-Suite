@@ -3,7 +3,9 @@ import { ChevronRight } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { Badge } from "@heroui/badge";
-import { Button, Tooltip, Skeleton } from "@heroui/react";
+import { Skeleton } from "@heroui/skeleton";
+import { Button } from "@heroui/button";
+import { Tooltip } from "@heroui/tooltip";
 import type { Posting } from "@shared-types/Posting";
 import {
   IconLayoutDashboard,
@@ -22,7 +24,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
-} from "@heroui/react";
+} from "@heroui/modal";
 import ax from "@/config/axios";
 import { useAuth } from "@clerk/clerk-react";
 

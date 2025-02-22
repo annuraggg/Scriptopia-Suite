@@ -1,19 +1,16 @@
 import React, { useState } from "react";
 import {
-  Breadcrumbs,
-  BreadcrumbItem,
-  Button,
-  Card,
-  CardBody,
-  Input,
-  Textarea,
   Modal,
   ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
   useDisclosure,
-} from "@heroui/react";
+} from "@heroui/modal";
+import { BreadcrumbItem, Breadcrumbs } from "@heroui/breadcrumbs";
+import { Button } from "@heroui/button";
+import { Card, CardBody } from "@heroui/card";
+import { Input, Textarea } from "@heroui/input";
 import { Department } from "@shared-types/Organization";
 import { useOutletContext } from "react-router-dom";
 import { SettingsContext } from "@/types/SettingsContext";
@@ -71,7 +68,6 @@ const Departments: React.FC = () => {
   };
 
   const deleteDepartment = (id: string, name: string) => {
-
     const newOrg = { ...organization };
 
     if (id) {

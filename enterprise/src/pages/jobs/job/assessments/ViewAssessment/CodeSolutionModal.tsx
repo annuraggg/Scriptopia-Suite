@@ -1,18 +1,14 @@
 import React, { useState } from "react";
+import { Modal, ModalContent, ModalHeader, ModalBody } from "@heroui/modal";
+import { Card, CardBody } from "@heroui/card";
 import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  Card,
-  CardBody,
   Table,
   TableHeader,
   TableBody,
   TableColumn,
   TableRow,
   TableCell,
-} from "@heroui/react";
+} from "@heroui/table";
 import { ClipboardListIcon, CodeXml } from "lucide-react";
 import { ArrowLeftRight, Scissors } from "lucide-react";
 import { Tabs, Tab } from "@heroui/tabs";

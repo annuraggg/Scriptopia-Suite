@@ -1,18 +1,9 @@
 import ax from "@/config/axios";
-import {
-  SignOutButton,
-  useAuth,
-  useUser,
-} from "@clerk/clerk-react";
-import {
-  Avatar,
-  Button,
-  Card,
-  CardBody,
-  CardFooter,
-  CardHeader,
-  CircularProgress,
-} from "@heroui/react";
+import { SignOutButton, useAuth, useUser } from "@clerk/clerk-react";
+import { Avatar } from "@heroui/avatar";
+import { Button } from "@heroui/button";
+import { Card, CardBody, CardFooter, CardHeader } from "@heroui/card";
+import { CircularProgress } from "@heroui/progress";
 import { HeartCrack, Link } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
