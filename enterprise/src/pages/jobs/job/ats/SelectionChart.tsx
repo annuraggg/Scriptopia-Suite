@@ -34,7 +34,7 @@ const SelectionChart = ({
   ];
 
   return (
-    <Card className="w-fit bg-white shadow-lg h-full w-full">
+    <Card className="bg-white shadow-lg h-full w-full">
       <CardHeader className="text-center pb-0">
         <h3 className="text-xl font-semibold text-gray-800">Selection Rate</h3>
       </CardHeader>

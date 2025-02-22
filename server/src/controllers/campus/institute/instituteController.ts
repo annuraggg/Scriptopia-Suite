@@ -9,15 +9,7 @@ import logger from "../../../utils/logger";
 import r2Client from "../../../config/s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import {
-  AuditLog,
-  Member,
-  Role,
-  Department,
-  Subscription,
-  Company,
-  PlacementGroup,
-} from "@shared-types/Instititue";
+import { AuditLog, Member, Role } from "@shared-types/Instititue";
 import defaultInstituteRoles from "@/data/defaultInstituteRoles";
 import institutePermissions from "@/data/institutePermissions";
 import checkInstitutePermission from "@/middlewares/checkInstitutePermission";

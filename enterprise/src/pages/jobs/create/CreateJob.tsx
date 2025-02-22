@@ -12,6 +12,7 @@ import {
   AdditionalDetails as AdditionalDetailsType,
   StepType,
   StepStatus,
+  PostingType,
 } from "@shared-types/Posting";
 import { toast } from "sonner";
 import Loader from "@/components/Loader";
@@ -101,12 +102,7 @@ const CreateJob = () => {
       description,
       department,
       location,
-      type: category as
-        | "full_time"
-        | "part_time"
-        | "internship"
-        | "contract"
-        | "temporary",
+      type: category as PostingType,
       openings,
 
       applicationRange: {

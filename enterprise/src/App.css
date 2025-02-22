@@ -29,10 +29,3 @@
   align-items: center;
   height: 100vh;
 }
-
-.site-lander-bg {
-  background: url("./withoutsc.jpg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
