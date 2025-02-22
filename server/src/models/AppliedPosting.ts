@@ -10,6 +10,7 @@ const appliedPostingSchema = new Schema(
       {
         stageId: { type: Schema.Types.ObjectId, required: true },
         score: { type: Number },
+        reason: { type: String },
       },
     ],
 

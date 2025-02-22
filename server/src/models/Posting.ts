@@ -64,6 +64,7 @@ const workflowStepSchema = new Schema({
     default: StepStatus.PENDING,
   },
   schedule: { type: scheduleSchema },
+  startedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 });
 
 const workflowSchema = new Schema({

@@ -125,10 +125,9 @@ const updateResume = async (c: Context) => {
     });
 
     await upload.done(); // @ts-expect-error - Type 'Promise<UploadOutput>' is not assignable to type 'void'
-    const extractedText = await extractTextFromResume(resume, candidate._id);
+    await extractTextFromResume(resume, candidate._id);
 
     candidate.resumeUrl = `${process.env.R2_S3_RESUME_BUCKET}/${auth._id}.pdf`;
-    candidate.resumeExtract = extractedText
     await candidate.save();
 
     return sendSuccess(c, 200, "Resume uploaded successfully", {
@@ -193,7 +192,7 @@ const apply = async (c: Context) => {
       return sendError(c, 400, "Posting is closed for applications");
     }
 
-    await AppliedPosting.create({
+    const newApply = await AppliedPosting.create({
       posting: postingId,
       user: candId,
     });
@@ -219,7 +218,7 @@ const apply = async (c: Context) => {
 
     await Candidate.findByIdAndUpdate(candId, {
       $push: {
-        appliedPostings: postingId,
+        appliedPostings: newApply._id,
       },
     });
 
@@ -253,10 +252,10 @@ const extractTextFromResume = async (resume: File, candidateId: string) => {
       }
     }
 
-    await AppliedPosting.findByIdAndUpdate(candidateId, {
-      resumeExtract: extractedText,
-    });
-
+    const candidate = await Candidate.findById(candidateId);
+    if (!candidate) throw new Error("Candidate not found");
+    candidate.resumeExtract = extractedText;
+    await candidate.save();
     return extractedText;
   });
 

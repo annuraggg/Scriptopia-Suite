@@ -19,10 +19,9 @@ const Layout = () => {
       .get("/postings/" + window.location.pathname.split("/")[2])
       .then((res) => {
         setPosting(res.data.data);
-        console.log(res.data.data);
       })
       .catch((err) => {
-        toast.error(err.response.data);
+        toast.error(err.response.data.message || "Something went wrong");
         console.log(err);
       })
       .finally(() => {
@@ -43,7 +42,11 @@ const Layout = () => {
       <div className="flex w-full">
         <Sidebar posting={posting} loading={postingLoading} />
         <div className="h-full w-full overflow-x-auto">
-          {postingLoading ? <Loader /> : <Outlet context={{ posting, setPosting }} />}
+          {postingLoading ? (
+            <Loader />
+          ) : (
+            <Outlet context={{ posting, setPosting }} />
+          )}
         </div>
       </div>
     </div>

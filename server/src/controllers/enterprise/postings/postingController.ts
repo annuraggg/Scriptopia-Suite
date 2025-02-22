@@ -45,13 +45,20 @@ const getPosting = async (c: Context) => {
       .populate("mcqAssessments.assessmentId")
       .populate("codeAssessments.assessmentId")
       .populate("candidates")
-      .populate("candidates.appliedPostings")
+      .populate({
+        path: "candidates",
+        populate: {
+          path: "appliedPostings",
+          model: "AppliedPosting", // Ensure this is the correct model name
+        },
+      })
       .populate("organizationId")
       .populate("assignments.submissions");
 
     if (!posting) {
       return sendError(c, 404, "job not found");
     }
+    console.log(posting.candidates);
 
     return sendSuccess(c, 200, "job fetched successfully", posting);
   } catch (e: any) {
@@ -68,7 +75,6 @@ const getPostingBySlug = async (c: Context) => {
       .populate("candidates")
       .populate("organizationId")
       .populate("assignments.submissions");
-      
 
     if (!posting) {
       return sendError(c, 404, "job not found");
@@ -249,7 +255,8 @@ const updateAts = async (c: Context) => {
 
 const updateAssignment = async (c: Context) => {
   try {
-    const { name, description, postingId, step, submissionType } = await c.req.json();
+    const { name, description, postingId, step, submissionType } =
+      await c.req.json();
 
     const perms = await checkPermission.all(c, ["manage_job"]);
     if (!perms.allowed) {
@@ -268,7 +275,13 @@ const updateAssignment = async (c: Context) => {
     const _id = new mongoose.Types.ObjectId();
     const workflowId = posting.workflow.steps[step]._id;
 
-    posting.assignments.push({ _id, name, description, workflowId, submissionType });
+    posting.assignments.push({
+      _id,
+      name,
+      description,
+      workflowId,
+      submissionType,
+    });
     await posting.save();
 
     const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);

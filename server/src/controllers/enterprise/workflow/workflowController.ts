@@ -32,24 +32,37 @@ const advanceWorkflow = async (c: Context) => {
     }
 
     const currentStepIndex = workflow.steps.findIndex(
-      (step) => step.status === "in_progress"
+      (step) => step.status === "in-progress"
     );
 
-    if (currentStepIndex === -1) {
+    if (
+      currentStepIndex === -1 &&
+      workflow.steps.every((step) => step.status === "completed")
+    ) {
       return sendError(c, 400, "Workflow already completed");
     }
 
-    workflow.steps[currentStepIndex].status = "completed";
-    workflow.steps[currentStepIndex].schedule = {
-      ...workflow.steps[currentStepIndex].schedule,
-      actualCompletionTime: new Date(),
-    };
+    if (currentStepIndex === -1) {
+      workflow.steps[0].status = "in-progress";
+      workflow.steps[0].schedule = {
+        ...workflow.steps[0].schedule,
+      };
+      workflow.steps[0].startedBy = c.get("auth")._id;
+    } else {
+      workflow.steps[currentStepIndex].status = "completed";
+      workflow.steps[currentStepIndex].schedule = {
+        ...workflow.steps[currentStepIndex].schedule,
+        actualCompletionTime: new Date(),
+      };
+      workflow.steps[0].startedBy = c.get("auth")._id;
+    }
 
-    const currentStep = workflow.steps[currentStepIndex];
+    const currentStep =
+      workflow.steps[currentStepIndex === -1 ? 0 : currentStepIndex];
 
     switch (currentStep.type) {
       case "RESUME_SCREENING":
-        await handleResumeScreening(posting);
+        handleResumeScreening(posting);
         break;
       case "ASSIGNMENT":
         await handleAssignmentRound(posting, currentStep);
@@ -63,7 +76,15 @@ const advanceWorkflow = async (c: Context) => {
     await posting.save();
     await logWorkflowAdvance(c, posting, perms);
 
-    return sendSuccess(c, 200, "Workflow advanced successfully", posting);
+    const updatedPosting = await Posting.findById(_id)
+      .populate("candidates")
+      .populate("organizationId");
+    return sendSuccess(
+      c,
+      200,
+      "Workflow advanced successfully",
+      updatedPosting
+    );
   } catch (error) {
     console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
@@ -71,6 +92,10 @@ const advanceWorkflow = async (c: Context) => {
 };
 
 const handleResumeScreening = async (posting: any) => {
+  await Posting.findByIdAndUpdate(posting._id, {
+    "ats.status": "processing",
+  });
+
   const lambdaClient = new LambdaClient({
     region: REGION,
     credentials: {
@@ -82,6 +107,7 @@ const handleResumeScreening = async (posting: any) => {
   const resumes = await Promise.all(
     posting.candidates.map(async (candidateId: string) => {
       const candidate = await CandidateModel.findById(candidateId);
+      if (!candidate) return null;
       return candidate
         ? {
             candidateId: candidate._id.toString(),
@@ -99,6 +125,8 @@ const handleResumeScreening = async (posting: any) => {
     postingId: posting._id.toString(),
     resumes: resumes.filter(Boolean),
   };
+
+  console.log(resumes.map((r) => r?.candidateId));
 
   await lambdaClient.send(
     new InvokeCommand({

@@ -2,6 +2,7 @@ interface AppliedPostingScore {
   _id?: string;
   stageId: string;
   score?: number;
+  reason?: string;
 }
 
 interface AppliedPosting {

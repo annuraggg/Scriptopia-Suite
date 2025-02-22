@@ -11,12 +11,14 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
+  useDisclosure,
+  ModalContent,
 } from "@heroui/react";
 import { useAuth } from "@clerk/clerk-react";
 import { useOutletContext } from "react-router-dom";
 import { toast } from "sonner";
 import ax from "@/config/axios";
-import { Posting, WorkflowStep, StepType } from "@shared-types/Posting";
+import { WorkflowStep, StepType } from "@shared-types/Posting";
 import {
   IconBook,
   IconCode,
@@ -25,6 +27,7 @@ import {
   IconFrustum,
   IconQuestionMark,
 } from "@tabler/icons-react";
+import { PostingContext } from "@/types/PostingContext";
 interface ShowProps {
   workflowData: WorkflowStep[];
 }
@@ -77,14 +80,32 @@ const getStepColor = (type: StepType): string => {
 };
 
 const Show: React.FC<ShowProps> = ({ workflowData }) => {
-  const { posting } = useOutletContext<{ posting: Posting }>();
+  const { posting, setPosting } = useOutletContext() as PostingContext;
   const [loading, setLoading] = useState<boolean>(false);
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
-  // New state for modals
-  const [advanceModal, setAdvanceModal] = useState(false);
-  const [scheduleModal, setScheduleModal] = useState(false);
+  const {
+    isOpen: isAdvanceModalOpen,
+    onClose: onAdvanceModalClose,
+    onOpen: onAdvanceModalOpen,
+    onOpenChange: onAdvanceModalOpenChange,
+  } = useDisclosure();
+
+  const {
+    isOpen: isScheduleModalOpen,
+    onClose: onScheduleModalClose,
+    onOpen: onScheduleModalOpen,
+    onOpenChange: onScheduleModalOpenChange,
+  } = useDisclosure();
+
+  const {
+    isOpen: isEndModalOpen,
+    onClose: onEndModalClose,
+    onOpen: onEndModalOpen,
+    onOpenChange: onEndModalOpenChange,
+  } = useDisclosure();
+
   const [selectedStep, setSelectedStep] = useState<{
     step: WorkflowStep;
     index: number;
@@ -100,7 +121,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
   const progress = (completedSteps / totalSteps) * 100;
 
   const advance = async (step: number): Promise<void> => {
-    setAdvanceModal(true);
+    onAdvanceModalOpen();
     setSelectedStep({ step: workflowData[step], index: step });
   };
 
@@ -120,7 +141,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
       });
 
       toast.success("Step scheduled successfully");
-      setScheduleModal(false);
+      onScheduleModalClose();
       setScheduleData({ startTime: "", endTime: "" });
       setSelectedStep(null);
 
@@ -143,22 +164,26 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
       setLoading(false);
       return;
     }
-    try {
-      await axios.post("/postings/advance-workflow", {
+
+    await axios
+      .post("/postings/advance-workflow", {
         _id: posting._id,
         step: selectedStep.index,
-      });
-      toast.success("Workflow advanced successfully");
-      setAdvanceModal(false);
-      setTimeout(() => {
-        window.location.reload();
+      })
+      .then((res) => {
+        toast.success("Workflow advanced successfully");
+        onAdvanceModalClose();
+        setSelectedStep(null);
+        setPosting(res.data.data);
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to advance workflow");
         setLoading(false);
-      }, 500);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to advance workflow");
-      setLoading(false);
-    }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const getStepStatus = (step: WorkflowStep): string => {
@@ -223,7 +248,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
               className="mb-4"
             >
               <div className="flex items-start gap-6">
-                <div className="relative z-10 flex-shrink-0 mt-4">
+                <div className="relative  flex-shrink-0 mt-4">
                   {status === "completed" && (
                     <div className="w-7 h-7 rounded-full bg-success-50 border-2 border-success-500 flex items-center justify-center">
                       <svg
@@ -255,7 +280,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
 
                 <Card
                   className={`flex-1 flex-row relative overflow-hidden border 
-              ${status === "in-progress" ? "border-1 scale-105" : ""}`}
+              ${status === "in-progress" ? "border-1 scale-105 ml-5" : ""}`}
                 >
                   {/* Animated Background Layer */}
                   <div
@@ -264,7 +289,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
 
                   {/* Card Content (Above Animated Background) */}
                   <div
-                    className={`relative z-10 flex items-center justify-center min-w-20 rounded-xl 
+                    className={`relative  flex items-center justify-center min-w-20 rounded-xl 
               ${getStepColor(step.type)}`}
                   >
                     <div className="opacity-80 text-white">
@@ -272,7 +297,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
                     </div>
                   </div>
 
-                  <CardHeader className="p-4 w-[90%] relative z-10">
+                  <CardHeader className="p-4 w-[90%] relative ">
                     <div className="flex items-center justify-between w-full">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
@@ -321,7 +346,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
                                   size="sm"
                                   onPress={() => {
                                     setSelectedStep({ step, index });
-                                    setScheduleModal(true);
+                                    onScheduleModalOpen();
                                   }}
                                   isLoading={loading}
                                 >
@@ -338,110 +363,159 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
             </motion.div>
           );
         })}
-      </motion.div>
-
-      {/* Advance Confirmation Modal */}
-      <Modal isOpen={advanceModal} onClose={() => setAdvanceModal(false)}>
-        <ModalHeader>
-          <h3 className="text-lg font-semibold">Advance to Next Step?</h3>
-        </ModalHeader>
-        <ModalBody>
-          <p>
-            Are you sure you want to mark this step as complete and advance to
-            the next step?
-          </p>
-          {selectedStep?.step.schedule && (
-            <div className="mt-2 p-4 border rounded-lg">
-              <div className="flex items-center gap-2">
-                <span>
-                  Scheduled completion:{" "}
-                  {new Date(
-                    selectedStep.step.schedule.endTime!
-                  ).toLocaleString()}
-                </span>
-              </div>
-            </div>
-          )}
-        </ModalBody>
-        <ModalFooter>
+        {/* Show End Workflow Button only if all steps are completed */}
+        {completedSteps === totalSteps - 1 && (
           <Button
-            color="default"
-            variant="flat"
-            onPress={() => setAdvanceModal(false)}
-            disabled={loading}
-          >
-            Cancel
-          </Button>
-          <Button
-            color="primary"
-            onPress={handleAdvanceConfirm}
+            color="success"
+            className="float-right mt-3 "
+            onPress={onEndModalOpen}
             isLoading={loading}
           >
-            Advance Step
+            End Workflow
           </Button>
-        </ModalFooter>
+        )}
+      </motion.div>
+
+      {/* End Workflow Modal */}
+      <Modal
+        isOpen={isEndModalOpen}
+        onOpenChange={onEndModalOpenChange}
+        backdrop="blur"
+      >
+        <ModalContent>
+          <ModalHeader>
+            <h3 className="text-lg font-semibold">End Workflow?</h3>
+          </ModalHeader>
+          <ModalBody>
+            <p>
+              Are you sure you want to end the workflow? You will still be able
+              to access and manage the candidates in the posting. This action
+              will mark all rounds as completed.
+            </p>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="default"
+              variant="flat"
+              onPress={() => onEndModalClose()}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="danger"
+              onPress={() => onEndModalClose()}
+              isLoading={loading}
+            >
+              End Workflow
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Advance Confirmation Modal */}
+      <Modal
+        isOpen={isAdvanceModalOpen}
+        onOpenChange={onAdvanceModalOpenChange}
+        backdrop="blur"
+      >
+        <ModalContent>
+          {" "}
+          <ModalHeader>
+            <h3 className="text-lg font-semibold">Advance to Next Step?</h3>
+          </ModalHeader>
+          <ModalBody>
+            <p>
+              Are you sure you want to mark this step as complete and advance to
+              the next step?
+            </p>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="default"
+              variant="flat"
+              onPress={() => onAdvanceModalClose()}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="primary"
+              onPress={handleAdvanceConfirm}
+              isLoading={loading}
+            >
+              Advance Step
+            </Button>
+          </ModalFooter>
+        </ModalContent>
       </Modal>
 
       {/* Schedule Modal */}
-      <Modal isOpen={scheduleModal} onClose={() => setScheduleModal(false)}>
-        <ModalHeader>
-          <h3 className="text-lg font-semibold">Schedule Step</h3>
-        </ModalHeader>
-        <ModalBody>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium">Start Time</label>
-              <input
-                type="datetime-local"
-                className="mt-1 block w-full border rounded-md shadow-sm"
-                value={scheduleData.startTime}
-                onChange={(e) =>
-                  setScheduleData((prev) => ({
-                    ...prev,
-                    startTime: e.target.value,
-                  }))
-                }
-                min={new Date().toISOString().slice(0, 16)}
-              />
+      <Modal
+        isOpen={isScheduleModalOpen}
+        onOpenChange={onScheduleModalOpenChange}
+        backdrop="blur"
+      >
+        <ModalContent>
+          <ModalHeader>
+            <h3 className="text-lg font-semibold">Schedule Step</h3>
+          </ModalHeader>
+          <ModalBody>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium">Start Time</label>
+                <input
+                  type="datetime-local"
+                  className="mt-1 block w-full border rounded-md shadow-sm"
+                  value={scheduleData.startTime}
+                  onChange={(e) =>
+                    setScheduleData((prev) => ({
+                      ...prev,
+                      startTime: e.target.value,
+                    }))
+                  }
+                  min={new Date().toISOString().slice(0, 16)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium">End Time</label>
+                <input
+                  type="datetime-local"
+                  className="mt-1 block w-full border rounded-md shadow-sm"
+                  value={scheduleData.endTime}
+                  onChange={(e) =>
+                    setScheduleData((prev) => ({
+                      ...prev,
+                      endTime: e.target.value,
+                    }))
+                  }
+                  min={
+                    scheduleData.startTime ||
+                    new Date().toISOString().slice(0, 16)
+                  }
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium">End Time</label>
-              <input
-                type="datetime-local"
-                className="mt-1 block w-full border rounded-md shadow-sm"
-                value={scheduleData.endTime}
-                onChange={(e) =>
-                  setScheduleData((prev) => ({
-                    ...prev,
-                    endTime: e.target.value,
-                  }))
-                }
-                min={
-                  scheduleData.startTime ||
-                  new Date().toISOString().slice(0, 16)
-                }
-              />
-            </div>
-          </div>
-        </ModalBody>
-        <ModalFooter>
-          <Button
-            color="default"
-            variant="flat"
-            onPress={() => setScheduleModal(false)}
-            disabled={loading}
-          >
-            Cancel
-          </Button>
-          <Button
-            color="primary"
-            onPress={handleSchedule}
-            isLoading={loading}
-            disabled={!scheduleData.startTime || !scheduleData.endTime}
-          >
-            Schedule
-          </Button>
-        </ModalFooter>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="default"
+              variant="flat"
+              onPress={() => onScheduleModalClose()}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="primary"
+              onPress={handleSchedule}
+              isLoading={loading}
+              disabled={!scheduleData.startTime || !scheduleData.endTime}
+            >
+              Schedule
+            </Button>
+          </ModalFooter>
+        </ModalContent>
       </Modal>
     </div>
   );

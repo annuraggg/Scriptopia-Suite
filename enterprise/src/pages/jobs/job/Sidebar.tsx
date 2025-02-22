@@ -66,13 +66,13 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
         link: "/info",
         visible: true,
       },
-      {
-        icon: IconLayoutDashboard,
-        label: "Dashboard",
-        link: "/dashboard",
-        visible: true,
-        badge: 0,
-      },
+      // {
+      //   icon: IconLayoutDashboard,
+      //   label: "Dashboard",
+      //   link: "/dashboard",
+      //   visible: true,
+      //   badge: 0,
+      // },
       {
         icon: IconArrowsExchange,
         label: "Workflow",

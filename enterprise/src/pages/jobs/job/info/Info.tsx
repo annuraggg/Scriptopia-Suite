@@ -107,7 +107,7 @@ const Info = () => {
               </Chip>
             </div>
           </div>
-          <Button variant="ghost" startContent={<IconTemplate size={20} />}>
+          <Button variant="ghost" className="hidden" startContent={<IconTemplate size={20} />}>
             Save as Template
           </Button>
         </CardHeader>
