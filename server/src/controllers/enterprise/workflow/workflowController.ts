@@ -9,6 +9,7 @@ import CandidateModel from "../../../models/Candidate";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import checkPermission from "../../../middlewares/checkOrganizationPermission";
 import { Assessment, Assignment } from "@shared-types/Posting";
+import User from "@/models/User";
 
 const REGION = "ap-south-1";
 
@@ -43,7 +44,7 @@ const advanceWorkflow = async (c: Context) => {
     }
 
     if (currentStepIndex === -1) {
-      workflow.steps[0].status = "in-progress";
+      // workflow.steps[0].status = "in-progress"; // ! UNCOMMENT
       workflow.steps[0].schedule = {
         ...workflow.steps[0].schedule,
       };
@@ -62,7 +63,7 @@ const advanceWorkflow = async (c: Context) => {
 
     switch (currentStep.type) {
       case "RESUME_SCREENING":
-        handleResumeScreening(posting);
+        await handleResumeScreening(posting, perms.data!.organization?._id);
         break;
       case "ASSIGNMENT":
         await handleAssignmentRound(posting, currentStep);
@@ -91,7 +92,7 @@ const advanceWorkflow = async (c: Context) => {
   }
 };
 
-const handleResumeScreening = async (posting: any) => {
+const handleResumeScreening = async (posting: any, orgId?: string) => {
   await Posting.findByIdAndUpdate(posting._id, {
     "ats.status": "processing",
   });
@@ -117,6 +118,17 @@ const handleResumeScreening = async (posting: any) => {
     })
   );
 
+  const org = await Organization.findById(orgId).populate("members.user");
+  const step = posting.workflow.steps.find(
+    (step: any) => step.type === "RESUME_SCREENING"
+  );
+  const user = org?.members.find(
+    (member: any) => member.user._id.toString() === step?.startedBy.toString()
+  );
+  const dbUser = await User.findById(user?.user);
+  if (!dbUser) return;
+  const clerkUser = await clerkClient.users.getUser(dbUser?.clerkId);
+
   const event = {
     jobDescription: posting.description,
     skills: posting.skills?.join(","),
@@ -124,9 +136,13 @@ const handleResumeScreening = async (posting: any) => {
     positivePrompts: posting.ats?.positivePrompts?.join(","),
     postingId: posting._id.toString(),
     resumes: resumes.filter(Boolean),
+    mailData: {
+      name: clerkUser.firstName + " " + clerkUser.lastName,
+      email: user?.email,
+      posting: posting.title,
+      resumeScreenUrl: `${process.env.ENTERPRISE_FRONTEND_URL}/jobs/${posting.url}/ats`,
+    },
   };
-
-  console.log(resumes.map((r) => r?.candidateId));
 
   await lambdaClient.send(
     new InvokeCommand({

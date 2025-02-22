@@ -39,9 +39,9 @@ const Layout = () => {
 
   return (
     <div className="">
-      <div className="flex w-full">
+      <div className="flex w-full h-screen">
         <Sidebar posting={posting} loading={postingLoading} />
-        <div className="h-full w-full overflow-x-auto">
+        <div className="h-full w-full overflow-x-auto overflow-y-auto">
           {postingLoading ? (
             <Loader />
           ) : (

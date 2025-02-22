@@ -3,15 +3,15 @@ import Blank from "./Blank";
 import Main from "./Main";
 import { useOutletContext } from "react-router-dom";
 import Configure from "./Configure";
-import { Posting } from "@shared-types/Posting";
 import InProgressComp from "./InProgress";
+import { ExtendedPosting } from "@shared-types/ExtendedPosting";
 
 const Ats = () => {
   const [atsEnabled, setAtsEnabled] = useState(false);
   const [atsConfigured, setAtsConfigured] = useState(false);
   const [InProgress, setInProgress] = useState(false);
 
-  const { posting } = useOutletContext() as { posting: Posting };
+  const { posting } = useOutletContext() as { posting: ExtendedPosting };
   console.log(posting);
   useEffect(() => {
     const noOfAts = posting?.workflow?.steps?.filter(

@@ -38,20 +38,97 @@ const interviewSchema = new Schema({
   timeSlotEnd: { type: String, required: true },
 });
 
+const atsLogSchema = new Schema({
+  level: {
+    type: String,
+    enum: ["INFO", "ERROR", "WARNING"],
+    required: true,
+  },
+  stage: {
+    type: String,
+    enum: ["INIT", "PROCESSING", "EMAIL", "RESUME_PROCESSING", "DATABASE"],
+    required: true,
+  },
+  timestamp: {
+    type: Date,
+    required: true,
+    default: Date.now,
+  },
+  message: {
+    type: String,
+    required: true,
+  },
+  error: {
+    name: String,
+    message: String,
+    stack: String,
+  },
+  metadata: {
+    candidateId: String,
+    resumeId: String,
+    apiResponse: Schema.Types.Mixed,
+    processingTime: Number,
+    retryCount: Number,
+  },
+});
+
 const atsSchema = new Schema(
   {
-    _id: { type: mongoose.Schema.Types.ObjectId, default: mongoose.Types.ObjectId },
-    minimumScore: { type: Number, required: true },
-    negativePrompts: { type: [String], default: ["none"] },
-    positivePrompts: { type: [String], default: ["none"] },
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: mongoose.Types.ObjectId,
+    },
+    minimumScore: {
+      type: Number,
+      required: true,
+    },
+    negativePrompts: {
+      type: [String],
+      default: ["none"],
+    },
+    positivePrompts: {
+      type: [String],
+      default: ["none"],
+    },
     status: {
       type: String,
-      enum: ["pending", "processing", "finished"],
+      enum: ["pending", "processing", "finished", "failed"],
       default: "pending",
     },
-    lastUpdated: { type: Date, default: Date.now },
+    startTime: {
+      type: Date,
+      required: false,
+    },
+    endTime: {
+      type: Date,
+      required: false,
+    },
+    failedCount: {
+      type: Number,
+      default: 0,
+      required: false,
+    },
+    successCount: {
+      type: Number,
+      default: 0,
+      required: false,
+    },
+    error: {
+      type: String,
+      required: false,
+    },
+    logs: { type: [atsLogSchema], required: false },
+    summary: {
+      totalProcessed: Number,
+      successfulProcessing: Number,
+      failedProcessing: Number,
+      totalTime: Number, // in milliseconds
+      averageProcessingTime: Number, // in milliseconds
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 const workflowStepSchema = new Schema({

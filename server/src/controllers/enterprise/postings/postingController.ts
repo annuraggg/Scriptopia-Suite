@@ -209,7 +209,6 @@ const updateAts = async (c: Context) => {
         status: "pending",
         createdAt: new Date(),
         updatedAt: new Date(),
-        lastUpdated: new Date(),
       };
     } else {
       posting.ats.minimumScore = minimumScore;

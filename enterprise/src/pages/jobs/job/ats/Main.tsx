@@ -1,12 +1,13 @@
 import { motion } from "framer-motion";
 import { Card, CardBody, CardHeader, Input, Textarea } from "@heroui/react";
-import { SelectionChart } from "./SelectionChart";
+import SelectionChart from "./SelectionChart";
 import { Tabs, Tab } from "@heroui/react";
 import { DataTable } from "./DataTable";
 import { useEffect, useState } from "react";
 import { ExtendedCandidate as Candidate } from "@shared-types/ExtendedCandidate";
 import { AppliedPosting } from "@shared-types/AppliedPosting";
 import { ExtendedPosting } from "@shared-types/ExtendedPosting";
+import Logs from "./Logs";
 
 interface CandidateTable {
   _id: string;
@@ -34,7 +35,7 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
               appliedPosting.posting === posting._id
           );
 
-          console.log(candidate)
+          console.log(candidate);
 
           const resumeStageId = posting.workflow?.steps?.find(
             (step) => step.type === "RESUME_SCREENING"
@@ -97,7 +98,7 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <Tabs aria-label="Options" variant="light">
+        <Tabs aria-label="Options">
           <Tab key="dashboard" title="Dashboard">
             <div>
               <Card>
@@ -149,7 +150,7 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
             {posting?.candidates?.length &&
             posting?.candidates?.length &&
             posting?.ats?.status === "finished" ? (
-              <div className="mt-5 flex gap-5">
+              <div className="mt-5 flex gap-5 max-h-[40vh]">
                 <SelectionChart chartData={selectionData} />
               </div>
             ) : posting?.ats?.status === "processing" ? (
@@ -176,7 +177,10 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
                 setData={setTableData}
               />
             </Tab>
-          )}
+          )}{" "}
+          <Tab key="logs" title="Logs">
+            <Logs posting={posting} />
+          </Tab>
         </Tabs>
       </motion.div>
     </div>

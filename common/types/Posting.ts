@@ -45,13 +45,44 @@ interface Interview {
   timeSlotEnd: string;
 }
 
+interface ATSLog {
+  level: "INFO" | "ERROR" | "WARNING";
+  stage: "INIT" | "PROCESSING" | "EMAIL" | "RESUME_PROCESSING" | "DATABASE";
+  timestamp: Date;
+  message: string;
+  error?: {
+    name: string;
+    message: string;
+    stack: string;
+  };
+  metadata?: {
+    candidateId?: string;
+    resumeId?: string;
+    apiResponse?: unknown;
+    processingTime?: number;
+    retryCount?: number;
+  };
+}
+
 interface ATS {
   _id?: string;
   minimumScore: number;
   negativePrompts?: string[];
   positivePrompts?: string[];
-  status: "pending" | "processing" | "finished";
-  lastUpdated: Date;
+  status: "pending" | "processing" | "finished" | "failed";
+  startTime?: Date;
+  endTime?: Date;
+  failedCount?: number;
+  successCount?: number;
+  error?: string;
+  logs?: ATSLog[];
+  summary?: {
+    totalProcessed: number;
+    successfulProcessing: number;
+    failedProcessing: number;
+    totalTime: number;
+    averageProcessingTime: number;
+  };
 }
 
 interface WorkflowStep {
@@ -60,6 +91,7 @@ interface WorkflowStep {
   type: StepType;
   status: StepStatus;
   schedule?: Schedule;
+  startedBy?: string;
 }
 
 interface Workflow {
@@ -162,6 +194,7 @@ export type {
   Slot,
   Interview,
   ATS,
+  ATSLog,
   WorkflowStep,
   Workflow,
   Salary,
@@ -173,4 +206,4 @@ export type {
   Schedule,
 };
 
-export { StepType, StepStatus };
+export { StepType, StepStatus, PostingType };
