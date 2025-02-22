@@ -15,6 +15,8 @@ import { ChevronRight } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 import { useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
+import currencyData from "@/data/currency";
+import { Autocomplete, AutocompleteItem } from "@heroui/react";
 
 interface JobDetailsProps {
   setAction: Dispatch<SetStateAction<number>>;
@@ -138,18 +140,18 @@ const JobDetails = ({
             </SelectItem>
           </Select>
 
-          <Select
+          <Autocomplete
             label="Department"
-            selectedKeys={[department]}
-            onChange={(e) => setDepartment(e.target.value)}
+            selectedKey={department}
+            onSelectionChange={(e) => setDepartment(e?.toString() || "")}
             className="max-w-[300px] mt-3"
           >
             {(organization?.departments || [])?.map((department) => (
-              <SelectItem value={department._id} key={department?._id || ""}>
+              <AutocompleteItem value={department._id} key={department?._id || ""}>
                 {department.name}
-              </SelectItem>
+              </AutocompleteItem>
             ))}
-          </Select>
+          </Autocomplete>
 
           <Input
             label="Openings"
@@ -169,22 +171,19 @@ const JobDetails = ({
           </p>
         </div>
         <div className="flex w-[500px] gap-3">
-          <Select
+          <Autocomplete
             label="Currency"
             className="w-[400px]"
-            selectedKeys={[currency]}
-            onChange={(e) => setCurrency(e.target.value)}
+            selectedKey={currency}
+            onSelectionChange={(e) => setCurrency(e?.toString() || "")}
+            isVirtualized
           >
-            <SelectItem value="usd" key="usd">
-              USD
-            </SelectItem>
-            <SelectItem value="eur" key="eur">
-              EUR
-            </SelectItem>
-            <SelectItem value="gbp" key="gbp">
-              GBP
-            </SelectItem>
-          </Select>
+            {currencyData.map((c) => (
+              <AutocompleteItem value={c.currency_code} key={c.currency_code}>
+                {c.currency_code}
+              </AutocompleteItem>
+            ))}
+          </Autocomplete>
           <Input
             label="Min. Salary"
             type="number"

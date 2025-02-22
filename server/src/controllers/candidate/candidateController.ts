@@ -114,7 +114,7 @@ const updateResume = async (c: Context) => {
 
     const uploadParams = {
       Bucket: process.env.R2_S3_RESUME_BUCKET!,
-      Key: `${auth._id}.pdf`,
+      Key: `${candidate._id}.pdf`,
       Body: resume, // @ts-expect-error - Type 'File' is not assignable to type 'Body'
       ContentType: resume.type,
     };
@@ -158,7 +158,7 @@ const getResume = async (c: Context) => {
 
     const command = new GetObjectCommand({
       Bucket: process.env.R2_S3_RESUME_BUCKET!,
-      Key: `${auth._id}.pdf`,
+      Key: `${candidate._id}.pdf`,
     });
 
     // @ts-expect-error - Type 'Promise<GetObjectOutput>' is not assignable to type 'string'

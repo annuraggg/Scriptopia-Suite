@@ -49,7 +49,7 @@ const MCQAssess = ({
 
   const calculateStatus = (createdAssessment: MCQAssessment) => {
     const currentStep = posting.workflow?.steps?.findIndex(
-      (step) => !step.completed
+      (step) => step.status === "in-progress"
     );
     if (
       currentStep === undefined ||

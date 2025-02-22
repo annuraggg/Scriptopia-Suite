@@ -33,6 +33,7 @@ const Documentation = lazy(() => import("./pages/documentation/Documentation"));
 const Support = lazy(() => import("./pages/support/Support"));
 
 // Job specific routes
+const JobInfo = lazy(() => import("./pages/jobs/job/info/Info"));
 const JobDashboard = lazy(() => import("./pages/jobs/job/dashboard/Dashboard"));
 const Workflow = lazy(() => import("./pages/jobs/job/workflow/Workflow"));
 const Ats = lazy(() => import("./pages/jobs/job/ats/Ats"));
@@ -254,6 +255,14 @@ function App() {
             </Suspense>
           ),
           children: [
+            {
+              path: "info",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <JobInfo />
+                </Suspense>
+              ),
+            },
             {
               path: "dashboard",
               element: (

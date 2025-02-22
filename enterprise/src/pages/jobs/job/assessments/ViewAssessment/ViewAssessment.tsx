@@ -67,7 +67,7 @@ const ViewAssessment = () => {
 
     const stepId = window.location.pathname.split("/")[4];
     setCurrentStepId(
-      posting?.workflow?.steps?.findIndex((step) => !step.completed) ?? -1
+      posting?.workflow?.steps?.findIndex((step) => step.status === "in-progress") ?? -1
     );
     if (!posting?.workflow?.steps) return;
     const step = posting?.workflow?.steps.findIndex(

@@ -33,6 +33,7 @@ import { Button, Checkbox } from "@heroui/react";
 import { useOutletContext } from "react-router-dom";
 import { Posting as PostingType } from "@shared-types/Posting";
 import { Candidate } from "@shared-types/Candidate";
+import { useNavigate } from "react-router-dom";
 
 interface DataTableProps {
   data: Candidate[];
@@ -45,6 +46,8 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pageIndex, setPageIndex] = useState(0);
   const [currentPostingId, setCurrentPostingId] = useState<string | null>(null);
+
+  const navigate = useNavigate();
 
   const { posting } = useOutletContext() as { posting: PostingType };
   useEffect(() => {
@@ -128,7 +131,7 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
             </Button>
             <Button
               variant="flat"
-              onPress={() => downloadResume(row.original._id as string)}
+              onPress={() => navigate(`/candidates/${row.original._id}`)}
               className="ml-3"
             >
               <User size={16} />

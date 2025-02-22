@@ -13,6 +13,7 @@ import {
   IconDeviceLaptop,
   IconVideo,
   IconUsers,
+  IconInfoCircle,
 } from "@tabler/icons-react";
 import {
   Modal,
@@ -59,6 +60,12 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
 
   const topItems = useMemo(
     (): NavItem[] => [
+      {
+        icon: IconInfoCircle,
+        label: "Info",
+        link: "/info",
+        visible: true,
+      },
       {
         icon: IconLayoutDashboard,
         label: "Dashboard",

@@ -17,8 +17,8 @@ const Candidates = () => {
   }, []);
 
   const downloadResume = (candidateId: string) => {
-    axios.post("candidates/resume/download", { candidateId }).then((res) => {
-      window.open(res.data.data, "_blank");
+    axios.get(`/organizations/candidate/${candidateId}/resume`).then((res) => {
+      window.open(res.data.data.url);
     });
   };
 

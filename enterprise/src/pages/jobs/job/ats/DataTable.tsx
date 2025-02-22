@@ -73,7 +73,7 @@ export function DataTable<TData>({
   const { posting } = useOutletContext() as { posting: Posting };
 
   const currentStep = posting.workflow?.steps?.findIndex(
-    (step) => !step.completed
+    (step) => step.status === "in-progress"
   );
 
   const downloadResume = (_id: string) => {

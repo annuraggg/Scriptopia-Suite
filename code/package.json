@@ -7,6 +7,7 @@
     "dev": "doppler run -- npm run start",
     "start": "vite",
     "build": "tsc && vite build",
+    "forceStart": "npx kill-port 5171 && npm run dev",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },

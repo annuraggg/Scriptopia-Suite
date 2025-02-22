@@ -120,8 +120,8 @@ const Members: React.FC = () => {
                   <TableRow key={member.email}>
                     <TableCell>{member.email}</TableCell>
                     <TableCell>
-                      {member?.addedOn
-                        ? new Date(member.addedOn).toLocaleDateString()
+                      {member?.createdAt
+                        ? new Date(member.createdAt).toLocaleDateString()
                         : "pending"}
                     </TableCell>
 
@@ -176,8 +176,8 @@ const Members: React.FC = () => {
                   <TableRow key={index}>
                     <TableCell>{member.email}</TableCell>
                     <TableCell>
-                      {member?.addedOn
-                        ? new Date(member.addedOn).toLocaleDateString()
+                      {member?.createdAt
+                        ? new Date(member.createdAt).toLocaleDateString()
                         : "pending"}
                     </TableCell>
                     <TableCell>{member.role}</TableCell>

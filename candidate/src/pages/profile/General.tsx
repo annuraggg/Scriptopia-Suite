@@ -118,10 +118,12 @@ const General = () => {
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
+  const [resumeUploadLoading, setResumeUploadLoading] = useState(false);
 
   const uploadResume = (file?: File) => {
-    if (!file) toast.error("No file selected");
+    if (!file) return toast.error("No file selected");
 
+    setResumeUploadLoading(true);
     const formData = new FormData();
     formData.append("resume", file as Blob);
 
@@ -138,6 +140,9 @@ const General = () => {
       .catch((err) => {
         console.error(err);
         toast.error("Failed to upload resume");
+      })
+      .finally(() => {
+        setResumeUploadLoading(false);
       });
   };
 
@@ -236,8 +241,9 @@ const General = () => {
                   type="file"
                   variant="flat"
                   onChange={(e) => uploadResume(e.target.files?.[0])}
+                  isDisabled={resumeUploadLoading}
                 />
-                <Button isIconOnly variant="flat" onClick={getAndOpenResume}>
+                <Button isIconOnly variant="flat" onClick={getAndOpenResume} isLoading={resumeUploadLoading}>
                   <SquareArrowOutUpRight />
                 </Button>
               </div>

@@ -10,6 +10,8 @@ import ax from "@/config/axios";
 import {
   Posting,
   AdditionalDetails as AdditionalDetailsType,
+  StepType,
+  StepStatus,
 } from "@shared-types/Posting";
 import { toast } from "sonner";
 import Loader from "@/components/Loader";
@@ -75,13 +77,8 @@ const CreateJob = () => {
     const formattedData = {
       steps: addedComponents.map((component) => ({
         name: component.name, // @ts-ignore
-        type: componentMap[component.label] as
-          | "RESUME_SCREENING"
-          | "MCQ_ASSESSMENT"
-          | "CODING_ASSESSMENT"
-          | "ASSIGNMENT"
-          | "INTERVIEW",
-        completed: false,
+        type: componentMap[component.label] as StepType,
+        status: "pending" as StepStatus,
         timestamp: new Date(),
       })),
       currentStep: -1,

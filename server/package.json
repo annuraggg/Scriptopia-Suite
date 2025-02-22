@@ -3,9 +3,10 @@
   "type": "module",
   "scripts": {
     "start": "tsx watch src/index.ts",
+    "forceStart": "npx kill-port 4000 && npm run dev",
     "check": "node check-types.js",
-    "checksilent": "npx tsc --diagnostics --noEmit",
     "build": "node check-types.js",
+    "checksilent": "npx tsc --diagnostics --noEmit",
     "dev": "doppler run -- npm run start"
   },
   "dependencies": {

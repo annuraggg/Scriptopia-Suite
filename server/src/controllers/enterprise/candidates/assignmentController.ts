@@ -38,7 +38,7 @@ const submitAssignment = async (c: Context) => {
     }
 
     const assignment = posting.assignments.find(
-      (a) => a._id.toString() === assignmentId
+      (a) => a?._id?.toString() === assignmentId
     );
     if (!assignment) {
       return sendError(c, 404, "Assignment not found");
@@ -53,7 +53,7 @@ const submitAssignment = async (c: Context) => {
     }
 
     const currentstep = posting?.workflow?.steps.findIndex(
-      (step) => !step.completed
+      (step) => step.status === "in-progress"
     );
     const step = posting?.workflow?.steps[currentstep as number];
 
@@ -61,7 +61,7 @@ const submitAssignment = async (c: Context) => {
       return sendError(c, 400, "Invalid workflow");
     }
 
-    if (step?._id?.toString() !== assignment._id.toString()) {
+    if (step?._id?.toString() !== assignment?._id?.toString()) {
       return sendError(c, 400, "Invalid assignment");
     }
 
@@ -115,7 +115,7 @@ const getAssignment = async (c: Context) => {
     }
 
     const assignment = posting.assignments.find(
-      (a) => a._id.toString() === assignmentId
+      (a) => a?._id?.toString() === assignmentId
     );
 
     if (!assignment) {
@@ -155,7 +155,7 @@ const gradeAssignment = async (c: Context) => {
     }
 
     const assignment = posting.assignments.find(
-      (a) => a._id.toString() === assignmentId
+      (a) => a?._id?.toString() === assignmentId
     );
 
     if (!assignment) {
@@ -275,7 +275,7 @@ const disqualifyCandidate = async (c: Context) => {
       return sendError(c, 404, "Candidate not applied to this posting");
     }
 
-    const step = posting.workflow?.steps.findIndex((step) => !step.completed);
+    const step = posting.workflow?.steps.findIndex((step) => step.status === "in-progress");
 
     appliedPosting.status = "rejected";
     appliedPosting.disqualifiedStage = step;
@@ -344,7 +344,7 @@ const bulkDisqualifyCandidates = async (c: Context) => {
       return sendError(c, 404, "Posting not found");
     }
 
-    const step = posting.workflow?.steps.findIndex((step) => !step.completed);
+    const step = posting.workflow?.steps.findIndex((step) => step.status === "in-progress");
 
     const candidates = await Candidate.find({
       _id: { $in: candidateIds },

@@ -79,7 +79,9 @@ function DataTable<TData>({
     setGrades(initialGrades);
 
     setCurrentStepId(
-      posting?.workflow?.steps?.findIndex((step) => step.completed === false) ?? -1
+      posting?.workflow?.steps?.findIndex(
+        (step) => step.status === "in-progress"
+      ) ?? -1
     );
     const stepId = window.location.pathname.split("/")[4];
     if (!posting?.workflow?.steps) return;

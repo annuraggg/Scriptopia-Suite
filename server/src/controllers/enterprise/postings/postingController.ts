@@ -196,12 +196,14 @@ const updateAts = async (c: Context) => {
 
     if (!posting.ats) {
       posting.ats = {
+        _id: new mongoose.Types.ObjectId(),
         minimumScore: minimumScore,
         negativePrompts: negativePrompts,
         positivePrompts: positivePrompts,
         status: "pending",
         createdAt: new Date(),
         updatedAt: new Date(),
+        lastUpdated: new Date(),
       };
     } else {
       posting.ats.minimumScore = minimumScore;
@@ -220,7 +222,9 @@ const updateAts = async (c: Context) => {
     const atsStep = posting.workflow.steps.filter(
       (step) => step.type === "RESUME_SCREENING"
     );
-    atsStep[0]._id = new mongoose.Types.ObjectId(posting?.ats?._id?.toString());
+    if (posting.ats && posting.ats._id) {
+      atsStep[0]._id = new mongoose.Types.ObjectId(posting.ats._id.toString());
+    }
 
     await posting.save();
 

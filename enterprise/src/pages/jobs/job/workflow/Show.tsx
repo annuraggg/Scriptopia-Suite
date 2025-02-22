@@ -174,22 +174,35 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
 
   return (
     <div className="w-full max-w-5xl mx-auto p-6">
-      <div className="mb-5 bg-card p-4 rounded-xl">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-semibold">Workflow Progress</h2>
-          <span className="text-sm font-medium">
-            {completedSteps} of {totalSteps} steps completed
-          </span>
+      {posting.published && (
+        <div className="mb-5 bg-card p-4 rounded-xl">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-semibold">Workflow Progress</h2>
+            <span className="text-sm font-medium">
+              {completedSteps} of {totalSteps} steps completed
+            </span>
+          </div>
+          <Progress value={progress} className="h-2" color="primary" />
         </div>
-        <Progress value={progress} className="h-2" color="primary" />
-      </div>
+      )}
 
-      <Alert
-        color="secondary"
-        title="Workflow not started yet"
-        description="You can start the workflow by advancing the first step"
-        className="mb-5"
-      />
+      {posting.published && posting.workflow?.steps[0].status === "pending" && (
+        <Alert
+          color="secondary"
+          title="Workflow not started yet"
+          description="You can start the workflow by advancing the first step"
+          className="mb-5"
+        />
+      )}
+
+      {!posting.published && (
+        <Alert
+          color="secondary"
+          title="Posting Not Published Yet"
+          description="You need to publish this posting first before it is available for workflow operations"
+          className="mb-5"
+        />
+      )}
 
       <motion.div
         initial={{ y: 20, opacity: 0 }}
@@ -246,7 +259,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
                 >
                   {/* Animated Background Layer */}
                   <div
-                    className={`absolute inset-0 bg-white before:absolute before:inset-0 before:bg-green-600 before:animate-paintSpread`}
+                    className={`absolute inset-0 bg-white before:absolute before:inset-0 `}
                   ></div>
 
                   {/* Card Content (Above Animated Background) */}
@@ -285,6 +298,37 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
                             -{" "}
                             {new Date(step.schedule.endTime!).toLocaleString()}
                           </p>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {status === "upcoming" && posting.published && (
+                          <>
+                            <Button
+                              color="primary"
+                              size="sm"
+                              onPress={() => advance(index)}
+                              isLoading={loading}
+                              className="text-black"
+                            >
+                              Advance
+                            </Button>
+                            {step.type !== "CUSTOM" &&
+                              step.type !== "INTERVIEW" &&
+                              step.type !== "RESUME_SCREENING" && (
+                                <Button
+                                  variant="bordered"
+                                  size="sm"
+                                  onPress={() => {
+                                    setSelectedStep({ step, index });
+                                    setScheduleModal(true);
+                                  }}
+                                  isLoading={loading}
+                                >
+                                  Schedule
+                                </Button>
+                              )}
+                          </>
                         )}
                       </div>
                     </div>

@@ -49,7 +49,7 @@ const CodeAssess = ({ createdAssessments }: CodeAssessProps) => {
 
   const calculateStatus = (createdAssessment: CodeAssessment) => {
     const currentStep = posting?.workflow?.steps?.findIndex(
-      (step) => !step.completed
+      (step) => step.status === "in-progress"
     );
 
     if (

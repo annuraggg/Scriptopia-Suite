@@ -40,6 +40,7 @@ const interviewSchema = new Schema({
 
 const atsSchema = new Schema(
   {
+    _id: { type: mongoose.Schema.Types.ObjectId, default: mongoose.Types.ObjectId },
     minimumScore: { type: Number, required: true },
     negativePrompts: { type: [String], default: ["none"] },
     positivePrompts: { type: [String], default: ["none"] },

@@ -43,7 +43,7 @@ const InviteModal = ({
     onInvite({
       email,
       role: selectedRole,
-      addedOn: currentDate,
+      createdAt: currentDate,
       status: "pending",
     });
 

@@ -14,6 +14,14 @@ enum StepStatus {
   FAILED = "failed",
 }
 
+enum PostingType {
+  FULL_TIME = "full_time",
+  PART_TIME = "part_time",
+  INTERNSHIP = "internship",
+  CONTRACT = "contract",
+  TEMPORARY = "temporary",
+}
+
 interface Schedule {
   startTime: Date | null;
   endTime: Date | null;
@@ -47,7 +55,7 @@ interface ATS {
 }
 
 interface WorkflowStep {
-  _id: string;
+  _id?: string;
   name: string;
   type: StepType;
   status: StepStatus;
@@ -130,7 +138,7 @@ interface Posting {
   description: Record<string, unknown>;
   department?: string;
   location: string;
-  type: "full_time" | "part_time" | "internship" | "contract" | "temporary";
+  type: PostingType;
   url?: string;
   openings: number;
   salary: Salary;

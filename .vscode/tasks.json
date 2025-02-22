@@ -80,12 +80,14 @@
     {
       "label": "Code",
       "type": "shell",
-      "command": "cd code; npm run dev",
+      "command": "cd code; npm run forceStart",
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "isBackground": true,
-      "problemMatcher": [],
+      "isBackground": false,
+      "problemMatcher": ["$tsc-watch"],
+      "runOptions": { "instanceLimit": 1 },
+
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
@@ -120,12 +122,13 @@
     {
       "label": "Main",
       "type": "shell",
-      "command": "cd main; npm run dev",
+      "command": "cd main; npm run forceStart",
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "isBackground": true,
-      "problemMatcher": [],
+      "isBackground": false,
+      "problemMatcher": ["$tsc-watch"],
+      "runOptions": { "instanceLimit": 1 },
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
@@ -160,12 +163,13 @@
     {
       "label": "Enterprise",
       "type": "shell",
-      "command": "cd enterprise; npm run dev",
+      "command": "cd enterprise; npm run forceStart",
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "isBackground": true,
-      "problemMatcher": [],
+      "isBackground": false,
+      "problemMatcher": ["$tsc-watch"],
+      "runOptions": { "instanceLimit": 1 },
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
@@ -200,12 +204,13 @@
     {
       "label": "Candidate",
       "type": "shell",
-      "command": "cd candidate; npm run dev",
+      "command": "cd candidate; npm run forceStart",
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "isBackground": true,
-      "problemMatcher": [],
+      "isBackground": false,
+      "problemMatcher": ["$tsc-watch"],
+      "runOptions": { "instanceLimit": 1 },
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
@@ -240,12 +245,13 @@
     {
       "label": "Meet",
       "type": "shell",
-      "command": "cd meet; npm run dev",
+      "command": "cd meet; npm run forceStart",
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "isBackground": true,
-      "problemMatcher": [],
+      "isBackground": false,
+      "problemMatcher": ["$tsc-watch"],
+      "runOptions": { "instanceLimit": 1 },
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
@@ -280,12 +286,13 @@
     {
       "label": "Campus",
       "type": "shell",
-      "command": "cd campus; npm run dev",
+      "command": "cd campus; npm run forceStart",
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "isBackground": true,
-      "problemMatcher": [],
+      "isBackground": false,
+      "problemMatcher": ["$tsc-watch"],
+      "runOptions": { "instanceLimit": 1 },
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
@@ -312,6 +319,7 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
+      "runOptions": { "instanceLimit": 1 },
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
@@ -320,11 +328,12 @@
     {
       "label": "Server",
       "type": "shell",
-      "command": "cd server; npm run dev",
+      "command": "cd server; npm run forceStart",
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "isBackground": true,
+      "isBackground": false,
+      "runOptions": { "instanceLimit": 1 },
       "problemMatcher": [],
       "presentation": {
         "panel": "dedicated",
