@@ -307,9 +307,15 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
     );
   };
 
+  const subNavbarRoutes = ["assessments"];
+
   return (
     <aside
-      className={`h-[100vh] -ml-5 bg-foreground text-background rounded-r-2xl border-r flex flex-col overflow-hidden transition-all duration-300
+      className={`h-[100vh] -ml-5 bg-foreground text-background  ${
+        subNavbarRoutes.includes(window.location.pathname.split("/")[3])
+          ? "border-r-background/10"
+          : "rounded-r-2xl"
+      } flex flex-col overflow-hidden transition-all duration-300
         ${isMobile ? "w-64" : collapsed ? "w-16" : "w-64"}
         ${isMobile ? "fixed left-0 top-0" : "relative"}`}
     >
