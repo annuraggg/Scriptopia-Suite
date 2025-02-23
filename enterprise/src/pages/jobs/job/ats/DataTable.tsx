@@ -9,15 +9,21 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
+import {
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+} from "@heroui/dropdown";
 
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
+  TableColumn,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@heroui/table";
 
 import {
   ArrowUpDown,
@@ -29,6 +35,7 @@ import {
   UserCheck,
   UserX,
   Users,
+  ChevronDown,
 } from "lucide-react";
 import { Tooltip } from "@heroui/tooltip";
 import { Input } from "@heroui/input";
@@ -40,6 +47,7 @@ import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useOutletContext } from "react-router-dom";
 import { Posting } from "@shared-types/Posting";
+import { IconBadge4k, IconChevronDown, IconMenu2 } from "@tabler/icons-react";
 
 interface DataTableProps<TData> {
   data: TData[];
@@ -257,7 +265,7 @@ export function DataTable<TData>({
         return (
           <Button
             variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onPress={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Name
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -271,7 +279,7 @@ export function DataTable<TData>({
         return (
           <Button
             variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onPress={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Email
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -285,7 +293,7 @@ export function DataTable<TData>({
         return (
           <Button
             variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onPress={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Received On
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -299,7 +307,7 @@ export function DataTable<TData>({
         return (
           <Button
             variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onPress={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Match
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -308,12 +316,12 @@ export function DataTable<TData>({
       },
     },
     {
-      accessorKey: "currentStepStatus",
+      accessorKey: "status",
       header: ({ column }) => {
         return (
           <Button
             variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onPress={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Status
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -323,53 +331,55 @@ export function DataTable<TData>({
     },
     {
       id: "actions",
+      header: () => {
+        return "Actions";
+      },
       cell: ({ row }) => {
         const _id = row.original._id;
         return (
           <div>
-            <Tooltip content="Select">
-              <Button
-                isIconOnly
-                variant="flat"
-                color="success"
-                className="ml-3"
-                onClick={() => selectCand(_id)}
-                isDisabled={
-                  currentStep !== stepNo ||
-                  row.original.currentStepStatus === "qualified"
-                }
-              >
-                <Check />
-              </Button>
-            </Tooltip>
-
-            <Tooltip content="Disqualify">
-              <Button
-                isIconOnly
-                variant="flat"
-                color="danger"
-                className="ml-3"
-                onClick={() => disqualify(_id)}
-                isDisabled={
-                  currentStep !== stepNo ||
-                  row.original.currentStepStatus === "disqualified"
-                }
-              >
-                <X />
-              </Button>
-            </Tooltip>
-
-            <Tooltip content="Download Resume">
-              <Button
-                isIconOnly
-                variant="flat"
-                color="warning"
-                className="ml-3"
-                onClick={() => downloadResume(_id)}
-              >
-                <Download />
-              </Button>
-            </Tooltip>
+            <Dropdown>
+              <DropdownTrigger>
+                <Button variant="light" isIconOnly>
+                  <IconMenu2 />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Static Actions">
+                <DropdownItem
+                  key={"qualify"}
+                  onPress={() => selectCand(_id)}
+                  isDisabled={
+                    currentStep !== stepNo ||
+                    row.original.currentStepStatus === "qualified"
+                  }
+                  startContent={<UserCheck size={1} className="mr-2" />}
+                >
+                  Qualify Candidate
+                </DropdownItem>
+                <DropdownItem
+                  key={"disqualify"}
+                  onPress={() => selectCand(_id)}
+                  isDisabled={
+                    currentStep !== stepNo ||
+                    row.original.currentStepStatus === "qualified"
+                  }
+                  startContent={<UserX size={1} className="mr-2" />}
+                >
+                  Disqualify Candidate
+                </DropdownItem>
+                <DropdownItem
+                  key="download"
+                  onPress={() => disqualify(_id)}
+                  isDisabled={
+                    currentStep !== stepNo ||
+                    row.original.currentStepStatus === "disqualified"
+                  }
+                  startContent={<Download size={1} className="mr-2" />}
+                >
+                  Download Resume
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
           </div>
         );
       },
@@ -397,14 +407,14 @@ export function DataTable<TData>({
       <div className="flex items-center gap-5 flex-wrap">
         <div className="flex items-center justify-end space-x-2 py-4">
           <Button
-            onClick={() => setPageIndex(pageIndex - 1)}
+            onPress={() => setPageIndex(pageIndex - 1)}
             isDisabled={!table.getCanPreviousPage()}
             isIconOnly
           >
             <ChevronLeft />
           </Button>
           <Button
-            onClick={() => setPageIndex(pageIndex + 1)}
+            onPress={() => setPageIndex(pageIndex + 1)}
             isDisabled={!table.getCanNextPage()}
             isIconOnly
           >
@@ -420,48 +430,53 @@ export function DataTable<TData>({
           className="max-w-sm"
           isDisabled={currentStep !== stepNo}
         />
+
+        <Dropdown isDisabled={currentStep !== stepNo}>
+          <DropdownTrigger>
+            <Button endContent={<IconChevronDown size={20} />}>
+              Bulk Actions
+            </Button>
+          </DropdownTrigger>
+          <DropdownMenu aria-label="Static Actions">
+            <DropdownItem key="new" onPress={qualifyAllSelected}>
+              Qualify Selected
+            </DropdownItem>
+            <DropdownItem key="copy" onPress={disqualifyAllSelected}>
+              {" "}
+              Disqualify Selected
+            </DropdownItem>
+          </DropdownMenu>
+        </Dropdown>
         <Button
-          onClick={disqualifyAllSelected}
-          color="danger"
-          isDisabled={currentStep !== stepNo}
-        >
-          <UserX className="mr-2 h-4 w-4" />
-          Disqualify Selected
-        </Button>
-        <Button
-          onClick={qualifyAllSelected}
-          color="success"
-          isDisabled={currentStep !== stepNo}
-        >
-          <UserCheck className="mr-2 h-4 w-4" />
-          Qualify Selected
-        </Button>
-        <Button
-          onClick={selectAllAboveThreshold}
-          color="primary"
+          onPress={selectAllAboveThreshold}
           isDisabled={currentStep !== stepNo}
         >
           <Users className="mr-2 h-4 w-4" />
           Select All Above {matchThreshold}%
         </Button>
       </div>
-      <Table className="mt-5">
+      <Table
+        selectedKeys={table.getSelectedRowModel().rows.map((row) => row.id)}
+        selectionMode="multiple"
+        color="secondary"
+        checkboxesProps={{ className: "hidden" }}
+      >
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
+            <>
               {headerGroup.headers.map((header) => {
                 return (
-                  <TableHead key={header.id}>
+                  <TableColumn key={header.id}>
                     {header.isPlaceholder
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
                           header.getContext()
                         )}
-                  </TableHead>
+                  </TableColumn>
                 );
               })}
-            </TableRow>
+            </>
           ))}
         </TableHeader>
         <TableBody>

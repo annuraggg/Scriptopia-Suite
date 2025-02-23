@@ -736,6 +736,7 @@ const verifyAccess = async (c: Context) => {
     }
 
     if (assessment.isEnterprise) {
+      let currentAssessmentId = null;
       const posting = await Posting.findOne({
         _id: assessment.postingId,
       }).populate("candidates");
@@ -750,8 +751,20 @@ const verifyAccess = async (c: Context) => {
 
       const currentStepIndex =
         workflow.steps.findIndex((step) => step.status === "in-progress") ?? 0;
+
       const currentStep = workflow.steps[currentStepIndex];
-      if (currentStep?._id?.toString() !== assessment?._id?.toString()) {
+
+      if (currentStep.type === "CODE_ASSESSMENT") {
+        currentAssessmentId = posting?.codeAssessments.find(
+          (assessment) => assessment.workflowId.toString() === currentStep._id?.toString()
+        )?.assessmentId;
+      } else if (currentStep.type === "MCQ_ASSESSMENT") {
+        currentAssessmentId = posting?.mcqAssessments.find(
+          (assessment) => assessment.workflowId?.toString() === currentStep._id?.toString()
+        )?.assessmentId;
+      }
+      
+      if (currentAssessmentId?.toString() !== assessment?._id?.toString()) {
         return sendError(c, 403, "Assessment not active", {
           allowedForTest: false,
           testActive: false,
@@ -1208,7 +1221,9 @@ const getPostingMCQAssessments = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const assessments = posting.mcqAssessments.map((assessment: any) => assessment.assessmentId);
+    const assessments = posting.mcqAssessments.map(
+      (assessment: any) => assessment.assessmentId
+    );
 
     return sendSuccess(c, 200, "Success", assessments);
   } catch (error) {
@@ -1244,7 +1259,9 @@ const getPostingCodeAssessments = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const assessments = posting.codeAssessments.map((assessment: any) => assessment.assessmentId);
+    const assessments = posting.codeAssessments.map(
+      (assessment: any) => assessment.assessmentId
+    );
 
     return sendSuccess(c, 200, "Success", assessments);
   } catch (error) {

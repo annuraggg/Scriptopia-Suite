@@ -1,10 +1,11 @@
-import { AppliedPosting } from "./AppliedPosting";
 import { Candidate } from "./Candidate";
+import { ExtendedAppliedPosting } from "./ExtendedAppliedPosting";
 import { User } from "./User";
 
-interface ExtendedCandidate extends Omit<Candidate, "userId" | "appliedPostings"> {
+interface ExtendedCandidate
+  extends Omit<Candidate, "userId" | "appliedPostings"> {
   userId: User;
-  appliedPostings: AppliedPosting[];
+  appliedPostings: ExtendedAppliedPosting[];
 }
 
 export type { ExtendedCandidate };

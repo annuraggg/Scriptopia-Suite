@@ -125,7 +125,7 @@ const LogsTab: React.FC<LogsTabProps> = ({ posting }) => {
         <CardBody>
           <div className="overflow-y-auto pr-4 max-h-[55vh]">
             <div className="space-y-4">
-              {posting.ats?.logs?.map((log, index) => (
+              {posting.ats?.logs?.reverse().map((log, index) => (
                 <div key={index} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">

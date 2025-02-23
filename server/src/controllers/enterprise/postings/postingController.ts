@@ -58,7 +58,6 @@ const getPosting = async (c: Context) => {
     if (!posting) {
       return sendError(c, 404, "job not found");
     }
-    console.log(posting.candidates);
 
     return sendSuccess(c, 200, "job fetched successfully", posting);
   } catch (e: any) {
@@ -115,8 +114,6 @@ const createPosting = async (c: Context) => {
       );
     }
 
-    console.log(posting.workflow.steps);
-
     const newPosting = new Posting({
       ...posting,
       organizationId: perms.data?.organization?._id,
@@ -153,9 +150,6 @@ const createWorkflow = async (c: Context) => {
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
-
-    console.log(formattedData);
-
     const posting = await Posting.findById(_id);
     if (!posting) {
       return sendError(c, 404, "Posting not found");
@@ -197,9 +191,6 @@ const updateAts = async (c: Context) => {
     if (!posting) {
       return sendError(c, 404, "Posting not found");
     }
-
-    console.log(posting);
-
     if (!posting.ats) {
       posting.ats = {
         _id: new mongoose.Types.ObjectId(),

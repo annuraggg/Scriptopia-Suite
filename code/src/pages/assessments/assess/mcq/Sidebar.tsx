@@ -71,7 +71,7 @@ const Sidebar = ({
           {(onClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1">
-                Modal Title
+                Submit Assessment
               </ModalHeader>
               <ModalBody>
                 <p>

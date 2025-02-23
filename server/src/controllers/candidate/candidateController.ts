@@ -1,5 +1,4 @@
 import r2Client from "@/config/s3";
-import AppliedPosting from "@/models/AppliedPosting";
 import Candidate from "@/models/Candidate";
 import Organization from "@/models/Organization";
 import Posting from "@/models/Posting";
@@ -11,6 +10,7 @@ import { AuditLog } from "@shared-types/Organization";
 import { Context } from "hono";
 import { PDFExtract } from "pdf.js-extract";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import AppliedPosting from "@/models/AppliedPosting";
 
 const getCandidate = async (c: Context) => {
   try {
@@ -19,8 +19,16 @@ const getCandidate = async (c: Context) => {
     if (!auth) {
       return sendError(c, 401, "Unauthorized");
     }
-
-    const candidate = await Candidate.findOne({ userId: auth._id });
+    const candidate = await Candidate.findOne({ userId: auth._id })
+      .populate({
+        path: "appliedPostings", // Populate appliedPostings first
+        populate: {
+          path: "posting",
+          model: "Posting",
+          populate: { path: "organizationId", model: "Organization" },
+        },
+      })
+      .populate("userId"); // Populate userId separately
 
     if (!candidate) {
       return sendError(c, 404, "Candidate not found");
@@ -262,6 +270,31 @@ const extractTextFromResume = async (resume: File, candidateId: string) => {
   return extractedText;
 };
 
+const getAppliedPostings = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+
+    if (!auth) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const candidate = await Candidate.findOne({ userId: auth._id });
+
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const appliedPostings = await AppliedPosting.find({ user: candidate._id })
+      .populate("posting")
+      .lean();
+
+    return sendSuccess(c, 200, "Applied Postings", appliedPostings);
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Internal Server Error");
+  }
+};
+
 export default {
   getCandidate,
   createCandidate,
@@ -269,4 +302,5 @@ export default {
   updateCandidate,
   apply,
   getResume,
+  getAppliedPostings,
 };

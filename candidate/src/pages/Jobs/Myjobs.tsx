@@ -2,61 +2,17 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, Building2, Calendar } from "lucide-react";
 import { BreadcrumbItem, Breadcrumbs, Card, CardBody } from "@nextui-org/react";
 import { format } from "date-fns";
-
-const jobData = [
-  {
-    _id: "21",
-    position: "Senior Frontend Developer",
-    company: "TechCorp Inc.",
-    applicationDate: "2024-12-15",
-    status: "In Progress",
-    timeline: [
-      {
-        date: "2024-12-15",
-        stage: "Applied",
-        details: "Application submitted",
-      },
-      { date: "2024-12-17", stage: "In Progress", details: "Resume screening" },
-    ],
-  },
-  {
-    _id: "2",
-    position: "UI/UX Designer",
-    company: "DesignHub",
-    applicationDate: "2024-12-10",
-    status: "Selected",
-    timeline: [
-      {
-        date: "2024-12-10",
-        stage: "Applied",
-        details: "Application submitted",
-      },
-      {
-        date: "2024-12-12",
-        stage: "In Progress",
-        details: "Initial screening",
-      },
-      {
-        date: "2024-12-14",
-        stage: "Selected",
-        details: "Selected for interview",
-      },
-    ],
-  },
-];
+import { useOutletContext } from "react-router-dom";
+import RootContext from "@/types/RootContext";
+import { StepStatus } from "@shared-types/Posting";
+import { AppliedPostingStatus } from "@shared-types/AppliedPosting";
 
 const Myjobs = () => {
   const [expandedCards, setExpandedCards] = useState<string[]>([]);
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [activeFilter, setActiveFilter] = useState("all");
+  const { user } = useOutletContext() as RootContext;
 
-  const filters = [
-    "All",
-    "Applied",
-    "Selected",
-    "Hired",
-    "In Progress",
-    "Rejected",
-  ];
+  const filters = ["all", "applied", "hired", "inprogress", "rejected"];
 
   const toggleCard = (id: string) => {
     setExpandedCards((prev) =>
@@ -64,25 +20,36 @@ const Myjobs = () => {
     );
   };
 
-  const getStatusColor = (status: string) => {
+  const getDotClasses = (stage: StepStatus) => {
+    console.log(stage);
     const colors = {
-      Applied: "bg-blue-500",
-      Selected: "bg-green-500",
-      Hired: "bg-purple-500",
-      "In Progress": "bg-yellow-500",
-      Rejected: "bg-red-500",
-    }; // @ts-expect-error - TS doesn't recognize the keys
+      pending: "w-3 h-3 rounded-full bg-gray-500",
+      completed: "w-3 h-3 rounded-full bg-green-500",
+      "in-progress": "w-3 h-3 rounded-full bg-yellow-500",
+      failed: "w-3 h-3 rounded-full bg-red-500",
+    };
+    return colors[stage] || "w-3 h-3 rounded-full bg-gray-500";
+  };
+
+  const normalizeText = (text: string) => {
+    return text
+      .replace(/_/g, " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+  };
+
+  const getStatusColor = (status: AppliedPostingStatus) => {
+    const colors = {
+      applied: "bg-blue-500",
+      hired: "bg-purple-500",
+      inprogress: "bg-yellow-500",
+      rejected: "bg-red-500",
+    };
     return colors[status] || "bg-gray-500";
   };
 
-  const getDotClasses = (stage: string) => {
-    const baseClasses = "w-3 h-3 rounded-full";
-    const colorClass = getStatusColor(stage);
-    return `${baseClasses} ${colorClass}`;
-  };
-
-  const filteredJobs = jobData.filter(
-    (job) => activeFilter === "All" || job.status === activeFilter
+  const filteredJobs = user?.appliedPostings?.filter(
+    (job) => activeFilter === "all" || job.status === activeFilter
   );
 
   return (
@@ -107,7 +74,7 @@ const Myjobs = () => {
                       : "bg-gray-200 text-gray-800 hover:bg-gray-300"
                   }`}
               >
-                {filter}
+                {normalizeText(filter)}
               </button>
             ))}
           </div>
@@ -121,18 +88,17 @@ const Myjobs = () => {
                 <CardBody className="p-6">
                   <div className="flex justify-between items-start">
                     <div className="space-y-2">
-                      <h2 className="text-xl font-semibold">{job.position}</h2>
+                      <h2 className="text-xl font-semibold">
+                        {job.posting.title}
+                      </h2>
                       <div className="flex items-center gap-2 text-gray-600">
                         <Building2 size={16} />
-                        <span>{job.company}</span>
+                        <span>{job.posting.organizationId.name}</span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600">
                         <Calendar size={16} />
                         <span>
-                          {format(
-                            new Date(job.applicationDate),
-                            "MMM dd, yyyy"
-                          )}
+                          {format(new Date(job.createdAt!), "MMM dd, yyyy")}
                         </span>
                       </div>
                     </div>
@@ -146,10 +112,10 @@ const Myjobs = () => {
                   </div>
 
                   <button
-                    onClick={() => toggleCard(job._id)}
+                    onClick={() => toggleCard(job._id!)}
                     className="mt-4 flex items-center gap-2 text-blue-600 hover:text-blue-800"
                   >
-                    {expandedCards.includes(job._id) ? (
+                    {expandedCards.includes(job._id!) ? (
                       <>
                         Hide Timeline <ChevronUp size={16} />
                       </>
@@ -161,27 +127,42 @@ const Myjobs = () => {
                   </button>
                 </CardBody>
 
-                {expandedCards.includes(job._id) && (
+                {expandedCards.includes(job._id!) && (
                   <div>
                     <div className="px-6 pb-6">
                       <div className="relative">
-                        {job.timeline.map((event, index) => (
+                        {" "}
+                        <div className="flex gap-4 mb-4">
+                          <div className="relative">
+                            {" "}
+                            <div className={getDotClasses("completed" as StepStatus)} />
+                            <div className="absolute top-3 left-1.5 w-0.5 h-full bg-gray-300" />
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-gray-800">
+                              Registered
+                            </div>
+                            <div className="text-sm text-gray-500">{new Date(job.createdAt!).toLocaleString()}</div>
+                          </div>
+                        </div>
+                        {job.posting.workflow?.steps.map((step, index) => (
                           <div key={index} className="flex gap-4 mb-4">
                             <div className="relative">
-                              <div className={getDotClasses(event.stage)} />
-                              {index !== job.timeline.length - 1 && (
-                                <div className="absolute top-3 left-1.5 w-0.5 h-full bg-gray-300" />
-                              )}
+                              {" "}
+                              <div className={getDotClasses(step.status)} />
+                              <div className={step.type} />
+                              {job.posting.workflow?.steps &&
+                                index !==
+                                  job.posting.workflow.steps.length - 1 && (
+                                  <div className="absolute top-3 left-1.5 w-0.5 h-full bg-gray-300" />
+                                )}
                             </div>
                             <div>
                               <div className="text-sm font-medium text-gray-800">
-                                {event.stage}
-                              </div>
-                              <div className="text-sm text-gray-600">
-                                {format(new Date(event.date), "MMM dd, yyyy")}
+                                {step.name}
                               </div>
                               <div className="text-sm text-gray-500">
-                                {event.details}
+                                {normalizeText(step.type)}
                               </div>
                             </div>
                           </div>

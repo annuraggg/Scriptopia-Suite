@@ -3,12 +3,12 @@ import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Input, Textarea } from "@heroui/input";
 import SelectionChart from "./SelectionChart";
 import { Tabs, Tab } from "@heroui/tabs";
-import { DataTable } from "./DataTable";
 import { useEffect, useState } from "react";
 import { ExtendedCandidate as Candidate } from "@shared-types/ExtendedCandidate";
 import { AppliedPosting } from "@shared-types/AppliedPosting";
 import { ExtendedPosting } from "@shared-types/ExtendedPosting";
 import Logs from "./Logs";
+import DataTableNew from "./DataTableNew";
 
 interface CandidateTable {
   _id: string;
@@ -21,7 +21,6 @@ interface CandidateTable {
 
 const Main = ({ posting }: { posting: ExtendedPosting }) => {
   const [tableData, setTableData] = useState<CandidateTable[]>([]);
-  const [stepNo, setStepNo] = useState<number>(-1);
   const [selectionData, setSelectionData] = useState<{
     total: number;
     selected: number;
@@ -35,8 +34,6 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
             (appliedPosting: AppliedPosting) =>
               appliedPosting.posting === posting._id
           );
-
-          console.log(candidate);
 
           const resumeStageId = posting.workflow?.steps?.find(
             (step) => step.type === "RESUME_SCREENING"
@@ -58,6 +55,7 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
           };
         }
       );
+
       setTableData(tableDataTemp);
     }
 
@@ -83,12 +81,6 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
         total: posting.candidates.length,
         selected: selectedCandidates.length,
       });
-
-      const stepNumber = posting?.workflow?.steps?.findIndex(
-        (step) => step.type === "RESUME_SCREENING"
-      ) as number;
-
-      setStepNo(stepNumber);
     }
   }, [posting]);
 
@@ -170,13 +162,7 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
           </Tab>
           {posting?.ats?.status === "finished" && (
             <Tab key="results" title="Results">
-              <DataTable
-                data={tableData}
-                postingId={posting._id!}
-                matchThreshold={posting?.ats?.minimumScore ?? 0}
-                stepNo={stepNo}
-                setData={setTableData}
-              />
+              <DataTableNew data={tableData} setData={setTableData} />
             </Tab>
           )}{" "}
           <Tab key="logs" title="Logs">

@@ -36,7 +36,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     id: string,
     blankIndex?: number
   ) => {
-    const submissions = assessmentSub.mcqSubmissions || [];
+    const submissions = assessmentSub?.mcqSubmissions || [];
     const index = submissions.findIndex((sub) => sub.mcqId === id);
 
     // check if the question is fill-in-blanks

@@ -106,6 +106,13 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
     onOpenChange: onEndModalOpenChange,
   } = useDisclosure();
 
+  const {
+    isOpen: isLessThanTwoModalOpen,
+    onClose: onLessThanTwoModalClose,
+    onOpen: onLessThanTwoModalOpen,
+    onOpenChange: onLessThanTwoModalOpenChange,
+  } = useDisclosure();
+
   const [selectedStep, setSelectedStep] = useState<{
     step: WorkflowStep;
     index: number;
@@ -156,8 +163,33 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
     }
   };
 
+  const cancelAdvance = () => {
+    onLessThanTwoModalClose();
+    onAdvanceModalClose();
+  };
+
   const handleAdvanceConfirm = async () => {
     if (!selectedStep) return;
+
+    if (!isLessThanTwoModalOpen) {
+      const allAppliedPostings = posting?.candidates?.map((candidate) =>
+        candidate.appliedPostings.find(
+          (appliedPosting) => appliedPosting.posting === posting._id
+        )
+      );
+
+      const qualifiedCandidates = allAppliedPostings?.filter(
+        (appliedPosting) => appliedPosting?.status === "inprogress"
+      );
+
+      if (qualifiedCandidates?.length < 2) {
+        onLessThanTwoModalOpen();
+        return;
+      }
+    }
+
+    onLessThanTwoModalClose();
+
     setLoading(true);
     if (!posting.published) {
       toast.error("Posting is not published");
@@ -513,6 +545,41 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
               disabled={!scheduleData.startTime || !scheduleData.endTime}
             >
               Schedule
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Less than 2 Modal */}
+      <Modal
+        isOpen={isLessThanTwoModalOpen}
+        onOpenChange={onLessThanTwoModalOpenChange}
+        backdrop="blur"
+      >
+        <ModalContent>
+          <ModalHeader>
+            <h3 className="text-lg font-semibold">Less than 2 Candidates</h3>
+          </ModalHeader>
+          <ModalBody>
+            There are less than 2 candidates in this posting. You can continue
+            to hire the candidate without next workflow steps. Do you still want
+            to continue?
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="default"
+              variant="flat"
+              onPress={() => cancelAdvance()}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="primary"
+              onPress={handleAdvanceConfirm}
+              isLoading={loading}
+            >
+              Continue
             </Button>
           </ModalFooter>
         </ModalContent>
