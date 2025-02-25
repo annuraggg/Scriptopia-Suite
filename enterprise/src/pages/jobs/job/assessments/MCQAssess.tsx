@@ -160,7 +160,7 @@ const MCQAssess = ({
                       <Button
                         color="primary"
                         variant="flat"
-                        onPress={() => navigate(`${assessment._id}/view`)}
+                        onPress={() => navigate(`m/${assessment._id}/view`)}
                         startContent={<Eye className="w-4 h-4" />}
                       >
                         View

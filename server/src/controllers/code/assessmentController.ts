@@ -756,14 +756,16 @@ const verifyAccess = async (c: Context) => {
 
       if (currentStep.type === "CODE_ASSESSMENT") {
         currentAssessmentId = posting?.codeAssessments.find(
-          (assessment) => assessment.workflowId.toString() === currentStep._id?.toString()
+          (assessment) =>
+            assessment.workflowId.toString() === currentStep._id?.toString()
         )?.assessmentId;
       } else if (currentStep.type === "MCQ_ASSESSMENT") {
         currentAssessmentId = posting?.mcqAssessments.find(
-          (assessment) => assessment.workflowId?.toString() === currentStep._id?.toString()
+          (assessment) =>
+            assessment.workflowId?.toString() === currentStep._id?.toString()
         )?.assessmentId;
       }
-      
+
       if (currentAssessmentId?.toString() !== assessment?._id?.toString()) {
         return sendError(c, 403, "Assessment not active", {
           allowedForTest: false,
@@ -1270,6 +1272,130 @@ const getPostingCodeAssessments = async (c: Context) => {
   }
 };
 
+const getMcqAssessmentSubmissions = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const assessmentId = c.req.param("id");
+
+    const assessment = await MCQAssessment.findById(assessmentId);
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    if (assessment.author !== auth?._id) {
+      if (assessment.isEnterprise) {
+        const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+        if (!perms.allowed) {
+          return sendError(c, 401, "Unauthorized");
+        }
+      } else return sendError(c, 403, "Unauthorized");
+    }
+
+    const submissions = await MCQAssessmentSubmissions.find({
+      assessmentId,
+    });
+
+    return sendSuccess(c, 200, "Success", { submissions, assessment });
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const getCodeAssessmentSubmissions = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const assessmentId = c.req.param("id");
+
+    console.log(assessmentId);
+
+    const assessment = await CodeAssessment.findById(assessmentId);
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    if (assessment.author !== auth?._id) {
+      if (assessment.isEnterprise) {
+        const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+        if (!perms.allowed) {
+          return sendError(c, 401, "Unauthorized");
+        }
+      } else return sendError(c, 403, "Unauthorized");
+    }
+
+    const submissions = await CodeAssessmentSubmissions.find({
+      assessmentId,
+    });
+
+    return sendSuccess(c, 200, "Success", { submissions, assessment });
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const getMcqAssessmentSubmission = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const submissionId = c.req.param("submissionId");
+
+    const submission = await MCQAssessmentSubmissions.findById(submissionId);
+    if (!submission) {
+      return sendError(c, 404, "Submission not found");
+    }
+
+    const assessment = await MCQAssessment.findById(submission.assessmentId);
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    if (assessment.author !== auth?._id) {
+      if (assessment.isEnterprise) {
+        const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+        if (!perms.allowed) {
+          return sendError(c, 401, "Unauthorized");
+        }
+      } else return sendError(c, 403, "Unauthorized");
+    }
+
+    return sendSuccess(c, 200, "Success", { submission, assessment });
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const getCodeAssessmentSubmission = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const submissionId = c.req.param("submissionId");
+
+    const submission = await CodeAssessmentSubmissions.findById(submissionId);
+    if (!submission) {
+      return sendError(c, 404, "Submission not found");
+    }
+
+    const assessment = await CodeAssessment.findById(submission.assessmentId);
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    if (assessment.author !== auth?._id) {
+      if (assessment.isEnterprise) {
+        const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+        if (!perms.allowed) {
+          return sendError(c, 401, "Unauthorized");
+        }
+      } else return sendError(c, 403, "Unauthorized");
+    }
+
+    return sendSuccess(c, 200, "Success", { submission, assessment });
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
 export default {
   checkCodeProgress,
   codeSubmit,
@@ -1291,4 +1417,8 @@ export default {
   getAssessmentSubmission,
   getPostingMCQAssessments,
   getPostingCodeAssessments,
+  getMcqAssessmentSubmissions,
+  getCodeAssessmentSubmissions,
+  getMcqAssessmentSubmission,
+  getCodeAssessmentSubmission,
 };
