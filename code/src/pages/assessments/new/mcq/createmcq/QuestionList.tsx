@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, Button } from "@nextui-org/react";
+import { Card, Button } from "@heroui/react";
 import { ArrowUp, ArrowDown, Trash, Edit } from "lucide-react";
 import { Question } from "@shared-types/MCQAssessment";
 interface QuestionListProps {
@@ -21,14 +21,14 @@ const QuestionList: React.FC<QuestionListProps> = ({
     <div className="h-full overflow-y-auto pr-4 ">
       <div className="space-y-4">
         {questions.map((question, index) => (
-          <Card key={question._id} className="p-4">
+          <Card key={question._id} className="p-4 shadow-none border-1">
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-xs text-gray-500">
-                  {question.type
-                    .split("-")
-                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(" ")}{" "}
+                  {question?.type
+                    ?.split("-")
+                    ?.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                    ?.join(" ")}{" "}
                   (Grade: {question.grade})
                 </p>
                 <h3 className="font-semibold text-lg">{question.question}</h3>{" "}

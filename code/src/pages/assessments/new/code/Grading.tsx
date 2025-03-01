@@ -1,4 +1,4 @@
-import { Input, Select, SelectItem } from "@nextui-org/react";
+import { Input, Select, SelectItem } from "@heroui/react";
 import { motion } from "framer-motion";
 import { Problem } from "@shared-types/Problem";
 import {

@@ -19,7 +19,7 @@ import {
   TableRow,
   Textarea,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { TestCase } from "@shared-types/Problem";

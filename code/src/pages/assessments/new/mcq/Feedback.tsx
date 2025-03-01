@@ -1,4 +1,4 @@
-import { Button, Input } from "@nextui-org/react";
+import { Button, Input } from "@heroui/react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
@@ -6,10 +6,12 @@ const Feedback = ({
   feedbackEmail,
   setFeedbackEmail,
   buildAssessmentData,
+  loading,
 }: {
   feedbackEmail: string;
   setFeedbackEmail: (feedbackEmail: string) => void;
   buildAssessmentData: () => void;
+  loading: boolean;
 }) => {
   const [emailError, setEmailError] = useState("");
 
@@ -50,7 +52,7 @@ const Feedback = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="h-[100vh]"
+      className="h-[100vh] relative"
     >
       <p>Feedback</p>
       <p className="text-sm text-gray-400">
@@ -70,11 +72,12 @@ const Feedback = ({
         />
       </div>
       <Button
-        className="mt-5 absolute bottom-10 right-0"
+        className="mt-5 absolute bottom-0 right-0"
         color="success"
         variant="flat"
         onClick={handleClick}
         isDisabled={!!emailError || !feedbackEmail}
+        isLoading={loading}
       >
         Submit
       </Button>

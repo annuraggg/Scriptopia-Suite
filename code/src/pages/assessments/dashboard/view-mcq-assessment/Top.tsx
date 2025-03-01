@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardBody, Link, Divider } from "@nextui-org/react";
+import { Card, CardHeader, CardBody, Link, Divider } from "@heroui/react";
 import { Clock } from "lucide-react";
 import {
   AlignVerticalDistributeCenter,

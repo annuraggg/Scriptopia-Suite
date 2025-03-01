@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, Progress } from "@nextui-org/react";
+import { Button, Card, CardBody, Progress } from "@heroui/react";
 import { CodeAssessmentSubmission as CASS } from "@shared-types/CodeAssessmentSubmission";
 import { Problem } from "@shared-types/Problem";
 

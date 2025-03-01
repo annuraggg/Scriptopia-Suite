@@ -210,7 +210,7 @@ const Assess = () => {
 
   const submitAssessment = async () => {
     try {
-      setAssessmentCompleted(true);
+      // setAssessmentCompleted(true);
 
       const { email } = getCredentials();
       const assessmentId = window.location.pathname.split("/").pop();

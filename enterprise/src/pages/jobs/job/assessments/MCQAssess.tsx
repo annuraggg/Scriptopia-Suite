@@ -76,7 +76,7 @@ const MCQAssess = ({
 
     return (
       postingAssessment?.assessmentId?._id?.toString() ===
-      assessment._id?.toString()
+      assessment?._id?.toString()
     );
   };
 

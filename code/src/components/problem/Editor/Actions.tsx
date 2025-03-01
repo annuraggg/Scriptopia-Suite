@@ -1,4 +1,4 @@
-import { Button, Select, SelectItem, Tooltip } from "@nextui-org/react";
+import { Button, Select, SelectItem, Tooltip } from "@heroui/react";
 import { ArrowUpFromLine, Play, Sparkles } from "lucide-react";
 import { useState } from "react";
 

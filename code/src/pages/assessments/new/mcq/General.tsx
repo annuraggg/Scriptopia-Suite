@@ -6,9 +6,9 @@ import {
   RangeCalendar,
   RangeValue,
   Textarea,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { motion } from "framer-motion";
-import { TimeInput, TimeInputValue } from "@nextui-org/react";
+import { TimeInput, TimeInputValue } from "@heroui/react";
 import {
   startOfWeek,
   startOfMonth,
@@ -19,6 +19,9 @@ import {
   CalendarDate,
 } from "@internationalized/date";
 import { useLocale } from "@react-aria/i18n";
+import { useDisclosure } from "@heroui/react";
+import Drawer from "./ImportDrawer";
+import { MCQAssessment } from "@shared-types/MCQAssessment";
 
 const General = ({
   assessmentName,
@@ -37,6 +40,7 @@ const General = ({
   setEndTime,
   focusedValue,
   setFocusedValue,
+  addAssessment,
 }: {
   assessmentName: string;
   setAssessmentName: (name: string) => void;
@@ -54,8 +58,10 @@ const General = ({
   setEndTime: (endTime: TimeInputValue) => void;
   focusedValue: CalendarDate;
   setFocusedValue: (focusedValue: CalendarDate) => void;
+  addAssessment: (assessment: MCQAssessment) => void;
 }) => {
   let { locale } = useLocale();
+  const { isOpen, onOpenChange, onOpen, onClose } = useDisclosure();
 
   let now = today(getLocalTimeZone());
   let nextMonth = now.add({ months: 1 });
@@ -82,6 +88,12 @@ const General = ({
         transition={{ duration: 0.3 }}
         className="w-full flex flex-col justify-start h-full"
       >
+        <p
+          className="mb-2 underline cursor-pointer hover:text-primary transition-all"
+          onClick={onOpen}
+        >
+          Import Assessment from History
+        </p>
         <Input
           label="Assessment Name"
           value={assessmentName}
@@ -176,7 +188,7 @@ const General = ({
               className="mt-3 w-full"
               size="sm"
               value={startTime}
-              onChange={setStartTime}
+              onChange={(value) => setStartTime(value as TimeInputValue)}
               hideTimeZone
             />
             <TimeInput
@@ -184,7 +196,7 @@ const General = ({
               className="mt-3 w-full"
               size="sm"
               value={endTime}
-              onChange={setEndTime}
+              onChange={(value) => setEndTime(value as TimeInputValue)}
               hideTimeZone
             />
           </div>
@@ -202,6 +214,16 @@ const General = ({
           </p>
         </motion.div>
       )}
+
+      <Drawer
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        onOpen={onOpen}
+        onAdd={(assessment: MCQAssessment) => {
+          addAssessment(assessment);
+          onClose();
+        }}
+      />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { Button, Select, SelectItem } from "@nextui-org/react";
+import { Button, Select, SelectItem } from "@heroui/react";
 import Monaco from "@/components/problem/Editor/Monaco";
 import { useState } from "react";
 import languages from "@/data/languages";
@@ -9,7 +9,7 @@ import {
   ModalContent,
   ModalBody,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { CustomStub as CustomSDSL } from "@shared-types/Problem";
 
 type SupportedLanguages = "python" | "javascript" | "java";

@@ -5,7 +5,7 @@ import {
   NavbarContent,
   NavbarItem,
   Button,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
 

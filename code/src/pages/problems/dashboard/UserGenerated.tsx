@@ -10,7 +10,7 @@ import {
   Input,
   Select,
   SelectItem,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Problem as VanillaProblem } from "@shared-types/Problem";
 import { useNavigate } from "react-router-dom";
 

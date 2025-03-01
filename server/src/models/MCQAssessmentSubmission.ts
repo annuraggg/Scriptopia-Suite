@@ -28,7 +28,7 @@ const MCQAssessmentSubmissionsSchema = new Schema(
   {
     assessmentId: {
       type: Schema.Types.ObjectId,
-      ref: "Assessment",
+      ref: "MCQAssessment",
       required: true,
     },
     status: {
@@ -48,6 +48,7 @@ const MCQAssessmentSubmissionsSchema = new Schema(
       enum: ["No Copying", "Light Copying", "Heavy Copying"],
       required: false,
     },
+    isReviewed: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

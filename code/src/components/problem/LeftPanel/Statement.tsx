@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { Card, CardBody } from "@nextui-org/react";
-import { Tabs, Tab } from "@nextui-org/tabs";
+import { Card, CardBody } from "@heroui/react";
+import { Tabs, Tab } from "@heroui/tabs";
 import Submission from "./Submission";
 import Quill from "quill";
 import { Delta } from "quill/core";

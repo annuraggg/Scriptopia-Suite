@@ -1,4 +1,4 @@
-import { Checkbox, Divider } from "@nextui-org/react";
+import { Checkbox } from "@heroui/react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
@@ -17,21 +17,21 @@ const Security = ({
   copyPasteDetection: boolean;
   setCopyPasteDetection: (copyPasteDetection: boolean) => void;
 }) => {
-  const [allChecked, setAllChecked] = useState(false);
+  // const [allChecked, setAllChecked] = useState(false);
 
-  const toggleAll = () => {
-    if (allChecked) {
-      setAllChecked(false);
-      setCodePlayback(false);
-      setTabChangeDetection(false);
-      setCopyPasteDetection(false);
-    } else {
-      setAllChecked(true);
-      setCodePlayback(true);
-      setTabChangeDetection(true);
-      setCopyPasteDetection(true);
-    }
-  };
+  // const toggleAll = () => {
+  //   if (allChecked) {
+  //     setAllChecked(false);
+  //     setCodePlayback(false);
+  //     setTabChangeDetection(false);
+  //     setCopyPasteDetection(false);
+  //   } else {
+  //     setAllChecked(true);
+  //     setCodePlayback(true);
+  //     setTabChangeDetection(true);
+  //     setCopyPasteDetection(true);
+  //   }
+  // };
 
   return (
     <motion.div
@@ -39,12 +39,12 @@ const Security = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <p>Security Features</p>
+      <p className="mb-5">Security Features</p>
 
-      <Checkbox size="md" color="success" className="mt-5" onClick={toggleAll}>
+      {/* <Checkbox size="md" color="success" className="mt-5" onClick={toggleAll}>
         Select All
       </Checkbox>
-      <Divider className="my-5" />
+      <Divider className="my-5" /> */}
       <div className="flex flex-col gap-5">
         <Checkbox
           size="md"

@@ -32,15 +32,20 @@ const ViewAssignment = lazy(
 const ViewAssessment = lazy(
   () => import("../pages/jobs/job/assessments/ViewAssessment/ViewAssessment")
 );
-const ViewUserAssessment = lazy(
-  () =>
-    import("../pages/jobs/job/assessments/ViewAssessment/ViewUserAssessment")
-);
+
 const ViewCodeAssessmentResults = lazy(
   () => import("../pages/jobs/job/assessments/view/code/CodeAssessmentResults")
 );
 const ViewMcqAssessmentResults = lazy(
   () => import("../pages/jobs/job/assessments/view/mcq/McqAssessmentResults")
+);
+
+const ViewUserCodeAssessment = lazy(
+  () => import("../pages/jobs/job/assessments/view/code/individual/View")
+);
+
+const ViewUserMCQAssessment = lazy(
+  () => import("../pages/jobs/job/assessments/view/mcq/individual/View")
 );
 
 const jobRoutes = [
@@ -125,10 +130,18 @@ const jobRoutes = [
             ),
           },
           {
-            path: "assessments/:id/view/:candId",
+            path: "assessments/m/:id/view/:candId",
             element: (
               <Suspense fallback={<Loader />}>
-                <ViewUserAssessment />
+                <ViewUserMCQAssessment />
+              </Suspense>
+            ),
+          },
+          {
+            path: "assessments/c/:id/view/:candId",
+            element: (
+              <Suspense fallback={<Loader />}>
+                <ViewUserCodeAssessment />
               </Suspense>
             ),
           },
@@ -156,22 +169,22 @@ const jobRoutes = [
               </Suspense>
             ),
           },
-        //   {
-        //     path: "assessments/m/:id/view/:candId",
-        //     element: (
-        //       <Suspense fallback={<Loader />}>
-        //         <ViewMcqAssessmentResult />
-        //       </Suspense>
-        //     ),
-        //   },
-        //   {
-        //     path: "assignments",
-        //     element: (
-        //       <Suspense fallback={<Loader />}>
-        //         <Assignments />
-        //       </Suspense>
-        //     ),
-        //   },
+          //   {
+          //     path: "assessments/m/:id/view/:candId",
+          //     element: (
+          //       <Suspense fallback={<Loader />}>
+          //         <ViewMcqAssessmentResult />
+          //       </Suspense>
+          //     ),
+          //   },
+          //   {
+          //     path: "assignments",
+          //     element: (
+          //       <Suspense fallback={<Loader />}>
+          //         <Assignments />
+          //       </Suspense>
+          //     ),
+          //   },
           {
             path: "assignments/:id",
             element: (

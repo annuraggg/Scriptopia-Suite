@@ -6,7 +6,7 @@ import {
   CardHeader,
   Divider,
   Input,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { CircleAlert, CircleCheck, Loader2 } from "lucide-react";

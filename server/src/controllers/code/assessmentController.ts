@@ -314,12 +314,17 @@ const createMcqAssessment = async (c: Context) => {
     }
 
     // calculate total obtainable score
+    const manualTypes = ["long-answer", "output"];
     let totalScore = 0;
+    let totalAutoScore = 0;
     const assessment: IMCQAssessment = body;
 
     assessment.sections.forEach((section) => {
       section.questions.forEach((question) => {
         totalScore += question?.grade || 0;
+        if (!manualTypes.includes(question.type)) {
+          totalAutoScore += question?.grade || 0;
+        }
       });
     });
 
@@ -327,6 +332,8 @@ const createMcqAssessment = async (c: Context) => {
       ...body,
       author: userid,
       obtainableScore: totalScore,
+      autoObtainableScore: totalAutoScore,
+      requiresManualReview: totalAutoScore !== totalScore,
     };
 
     newAssessment.set(assessmentObj);
@@ -1339,7 +1346,9 @@ const getMcqAssessmentSubmission = async (c: Context) => {
     const auth = c.get("auth");
     const submissionId = c.req.param("submissionId");
 
-    const submission = await MCQAssessmentSubmissions.findById(submissionId);
+    const submission = await MCQAssessmentSubmissions.findById(
+      submissionId
+    ).populate("assessmentId");
     if (!submission) {
       return sendError(c, 404, "Submission not found");
     }
@@ -1358,7 +1367,7 @@ const getMcqAssessmentSubmission = async (c: Context) => {
       } else return sendError(c, 403, "Unauthorized");
     }
 
-    return sendSuccess(c, 200, "Success", { submission, assessment });
+    return sendSuccess(c, 200, "Success", submission);
   } catch (error) {
     console.error(error);
     return sendError(c, 500, "Internal Server Error", error);

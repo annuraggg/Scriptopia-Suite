@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Input, Select, SelectItem, Switch } from "@nextui-org/react";
+import { Input, Select, SelectItem, Switch } from "@heroui/react";
 import { useEffect } from "react";
 import TagsInput from "react-tagsinput";
 import Quill from "quill";

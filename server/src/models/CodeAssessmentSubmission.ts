@@ -54,7 +54,7 @@ const CodeAssessmentSubmissionsSchema = new Schema(
   {
     assessmentId: {
       type: Schema.Types.ObjectId,
-      ref: "Assessment",
+      ref: "CodeAssessment",
       required: true,
     },
     status: {

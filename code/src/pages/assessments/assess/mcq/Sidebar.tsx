@@ -1,4 +1,4 @@
-import { Button, Card, CardBody } from "@nextui-org/react";
+import { Button, Card, CardBody } from "@heroui/react";
 import { MCQAssessment as MA } from "@shared-types/MCQAssessment";
 import {
   Modal,
@@ -7,7 +7,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
-} from "@nextui-org/modal";
+} from "@heroui/modal";
 
 interface SidebarProps {
   timer: number;
@@ -54,8 +54,8 @@ const Sidebar = ({
               className={`mt-2 bg-card border-2 py-4 px-5 rounded-xl cursor-pointer transition-colors
                 ${
                   currentSection === index
-                    ? "bg-foreground-100"
-                    : "hover:bg-foreground-100 bg-opacity-50"
+                    ? "bg-foreground text-background"
+                    : "hover:bg-foreground/10"
                 }
                 `}
               onClick={() => setCurrentSection(index)}

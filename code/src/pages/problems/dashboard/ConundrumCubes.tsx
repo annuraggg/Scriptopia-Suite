@@ -8,7 +8,7 @@ import {
   Input,
   Select,
   SelectItem,
-} from "@nextui-org/react";
+} from "@heroui/react";
 
 const ConundrumCubes = () => {
   const cubes = [
