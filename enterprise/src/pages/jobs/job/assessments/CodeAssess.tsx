@@ -1,7 +1,14 @@
 import { motion } from "framer-motion";
 import { Card } from "@heroui/card";
 import { Button } from "@heroui/button";
-import { Eye, Link, BarChart2, PieChart, LineChart, Terminal } from "lucide-react";
+import {
+  Eye,
+  Link,
+  BarChart2,
+  PieChart,
+  LineChart,
+  Terminal,
+} from "lucide-react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { toast } from "sonner";
 import { CodeAssessment } from "@shared-types/CodeAssessment";
@@ -159,14 +166,22 @@ const CodeAssess = ({
                     </div>
 
                     <div className="flex gap-2 items-center flex-col">
-                      <Button
-                        color="primary"
-                        variant="flat"
-                        onPress={() => navigate(`c/${assessment._id}/view`)}
-                        startContent={<Eye className="w-4 h-4" />}
-                      >
-                        View
-                      </Button>
+                      {posting?.workflow?.steps?.find(
+                        (step) =>
+                          step._id ===
+                          posting?.codeAssessments?.find(
+                            (a) => a.assessmentId?._id === assessment._id
+                          )?.workflowId
+                      )?.status !== "pending" && (
+                        <Button
+                          color="primary"
+                          variant="flat"
+                          onPress={() => navigate(`c/${assessment._id}/view`)}
+                          startContent={<Eye className="w-4 h-4" />}
+                        >
+                          View
+                        </Button>
+                      )}
                       <Button
                         color="secondary"
                         variant="flat"

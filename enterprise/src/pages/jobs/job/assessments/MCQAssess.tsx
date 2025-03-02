@@ -157,14 +157,22 @@ const MCQAssess = ({
                     </div>
 
                     <div className="flex gap-2 items-center flex-col">
-                      <Button
-                        color="primary"
-                        variant="flat"
-                        onPress={() => navigate(`m/${assessment._id}/view`)}
-                        startContent={<Eye className="w-4 h-4" />}
-                      >
-                        View
-                      </Button>
+                      {posting?.workflow?.steps?.find(
+                        (step) =>
+                          step._id ===
+                          posting?.mcqAssessments?.find(
+                            (a) => a.assessmentId?._id === assessment._id
+                          )?.workflowId
+                      )?.status !== "pending" && (
+                        <Button
+                          color="primary"
+                          variant="flat"
+                          onPress={() => navigate(`m/${assessment._id}/view`)}
+                          startContent={<Eye className="w-4 h-4" />}
+                        >
+                          View
+                        </Button>
+                      )}
                       <Button
                         color="secondary"
                         variant="flat"
