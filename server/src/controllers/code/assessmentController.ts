@@ -771,7 +771,8 @@ const verifyAccess = async (c: Context) => {
 
       const currentStep = workflow.steps[currentStepIndex];
 
-      if (currentStep.type === "CODE_ASSESSMENT") {
+      console.log(currentStep);
+      if (currentStep.type === "CODING_ASSESSMENT") {
         currentAssessmentId = posting?.codeAssessments.find(
           (assessment) =>
             assessment.workflowId.toString() === currentStep._id?.toString()
@@ -782,6 +783,8 @@ const verifyAccess = async (c: Context) => {
             assessment.workflowId?.toString() === currentStep._id?.toString()
         )?.assessmentId;
       }
+
+      console.log(currentAssessmentId, assessment._id )
 
       if (currentAssessmentId?.toString() !== assessment?._id?.toString()) {
         return sendError(c, 403, "Assessment not active", {

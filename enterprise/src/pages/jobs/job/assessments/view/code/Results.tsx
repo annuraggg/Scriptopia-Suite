@@ -24,6 +24,12 @@ const Results = ({ assessment, submissions }: ResultsProp) => {
     navigate(`${window.location.pathname}/${candidateId}`);
   };
 
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
+  };
+
   // Colors for charts
   const CHART_COLORS = {
     primary: "#4f46e5",
@@ -113,7 +119,7 @@ const Results = ({ assessment, submissions }: ResultsProp) => {
                       <span className="text-gray-500">N/A</span>
                     )}
                   </TableCell>
-                  <TableCell>{submission.timer} min</TableCell>
+                  <TableCell>{formatTime(submission.timer)}</TableCell>
                   <TableCell>
                     {submission.cheatingStatus ? (
                       <span

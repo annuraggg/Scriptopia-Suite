@@ -5,7 +5,7 @@ import { ExtendedMCQAssessmentSubmission as EMAS } from "@shared-types/ExtendedM
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import Result from "../Result";
+import Result from "./Result";
 import Loader from "@/components/Loader";
 
 const View = () => {

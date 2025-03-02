@@ -168,6 +168,11 @@ const Sidebar = ({
             );
           })}
         </div>
+
+        <div className="border-2 p-2 absolute bottom-0 max-w-[300px]">
+          <video ref={videoRef} autoPlay playsInline />
+          <canvas ref={canvasRef} style={{ display: "none" }} />
+        </div>
       </CardBody>
     </Card>
   );

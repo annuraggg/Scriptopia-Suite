@@ -50,8 +50,10 @@ const Analytics = ({ assessment, submissions }: AnalyticsProp) => {
 
   const averageCompletionTime =
     completedSubmissions.length > 0
-      ? completedSubmissions.reduce((sum, sub) => sum + (sub.timer || 0), 0) /
-        completedSubmissions.length
+      ? completedSubmissions.reduce(
+          (sum, sub) => sum + (assessment.timeLimit * 60 - sub.timer || 0),
+          0
+        ) / completedSubmissions.length
       : 0;
 
   // Problem-specific metrics
@@ -74,6 +76,12 @@ const Analytics = ({ assessment, submissions }: AnalyticsProp) => {
       maxPossibleScore: assessment.obtainableScore / problemIds.length, // Assuming equal distribution
     };
   });
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
+  };
 
   // Language distribution data
   const languageDistribution = () => {
@@ -156,8 +164,12 @@ const Analytics = ({ assessment, submissions }: AnalyticsProp) => {
     ];
 
     completedSubmissions.forEach((sub) => {
-      const timeTaken = sub.timer || 0;
-      const percentage = timeTaken / totalTimeLimit;
+      const timeTaken = assessment.timeLimit * 60 - sub.timer || 0;
+      const finalLimit = assessment.timeLimit * 60;
+      const percentage = timeTaken / finalLimit;
+      console.log("Time Taken: ", timeTaken, "Percentage: ", percentage);
+      console.log("Final Limit: ", finalLimit);
+
 
       if (percentage <= 0.25) ranges[0].count++;
       else if (percentage <= 0.5) ranges[1].count++;
@@ -258,7 +270,7 @@ const Analytics = ({ assessment, submissions }: AnalyticsProp) => {
           </CardHeader>
           <CardBody>
             <div className="text-3xl font-bold">
-              {Math.round(averageCompletionTime)} min
+              {formatTime(averageCompletionTime)} min
             </div>
             <p className="text-sm text-gray-500 mt-1">
               of {assessment.timeLimit} min limit
