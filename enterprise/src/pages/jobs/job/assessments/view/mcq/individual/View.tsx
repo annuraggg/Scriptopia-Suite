@@ -8,12 +8,17 @@ import Loader from "@/components/Loader";
 import { Alert } from "@heroui/alert";
 import { Tooltip } from "@heroui/tooltip";
 import { IconInfoCircle } from "@tabler/icons-react";
+import { Button } from "@heroui/button";
+import { useDisclosure } from "@heroui/modal";
+import ViewCaptures from "./ViewCaptures";
+import Review from "./Review";
 
 const View = () => {
   const [submission, setSubmission] = useState<EMAS | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isPassed, setIsPassed] = useState<boolean>(false);
   const [totalQuestions, setTotalQuestions] = useState<number>(0);
+  const [refetch, setRefetch] = useState<boolean>(false);
 
   const { getToken } = useAuth();
 
@@ -53,7 +58,19 @@ const View = () => {
     };
 
     fetchSubmission();
-  }, [getToken]);
+  }, [getToken, refetch]);
+
+  const {
+    isOpen: isViewCapturesOpen,
+    onOpen: openViewCaptures,
+    onOpenChange: onViewCaptureOpenChange,
+  } = useDisclosure();
+
+  const {
+    isOpen: isReviewOpen,
+    onOpenChange: onReviewOpenChange,
+    onOpen: openReview,
+  } = useDisclosure();
 
   const titleCase = (str?: string): string => {
     if (!str) return "";
@@ -70,10 +87,18 @@ const View = () => {
     return `${minutes}m ${seconds}s`;
   };
 
+  const onReviewSave = () => {
+    setRefetch((prev) => !prev);
+  };
+
   if (loading) return <Loader />;
 
   if (!submission)
     return <div className="p-10">Assessment Submission not found</div>;
+
+  const post60days =
+    new Date(submission.createdAt!).getTime() + 60 * 24 * 60 * 60 * 1000 <
+    new Date().getTime();
 
   return (
     <div className="p-10">
@@ -82,6 +107,20 @@ const View = () => {
         hideIcon
         description={`Assessment Id: ${submission.assessmentId._id}`}
       />
+      {submission.assessmentId.requiresManualReview &&
+        !submission.isReviewed && (
+          <Alert
+            description=" This assessment requires manual review. Please review the submission and mark it as reviewed."
+            className="mt-2"
+            color="danger"
+            endContent={
+              <Button color="danger" onPress={openReview}>
+                Start Review
+              </Button>
+            }
+            title={"Pending Review"}
+          />
+        )}
       <div className="flex gap-5 mt-5">
         <Card className="w-full">
           <CardHeader>Candidate Information</CardHeader>
@@ -160,6 +199,47 @@ const View = () => {
           </CardBody>
         </Card>
       </div>
+
+      <div className="flex mt-5 gap-5">
+        {post60days ? (
+          <Tooltip
+            content="Camera captures are only available for 60 days. You cannot view captures now"
+            color="danger"
+          >
+            <Button
+              className="w-full hover:none opacity-50 hover:opacity-50 cursor-pointer focus:opacity-50"
+              variant="flat"
+              disabled={true}
+            >
+              View Camera Captures
+            </Button>
+          </Tooltip>
+        ) : (
+          <Button className="w-full" onPress={openViewCaptures} variant="flat">
+            View Camera Captures
+          </Button>
+        )}
+        <Button
+          className="w-full"
+          onPress={() => window.open(submission.sessionRewindUrl, "_blank")}
+          variant="flat"
+        >
+          View Session Rewind
+        </Button>
+      </div>
+
+      <ViewCaptures
+        isOpen={isViewCapturesOpen}
+        onOpenChange={onViewCaptureOpenChange}
+        email={submission.email}
+      />
+
+      <Review
+        isOpen={isReviewOpen}
+        onOpenChange={onReviewOpenChange}
+        submission={submission}
+        onReviewSave={onReviewSave}
+      />
     </div>
   );
 };

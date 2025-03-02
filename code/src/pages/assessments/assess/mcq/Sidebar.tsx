@@ -8,6 +8,9 @@ import {
   ModalFooter,
   useDisclosure,
 } from "@heroui/modal";
+import { useEffect, useRef, useState } from "react";
+import axios from "axios";
+import secureLocalStorage from "react-secure-storage";
 
 interface SidebarProps {
   timer: number;
@@ -29,6 +32,82 @@ const Sidebar = ({
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [capturing, _setCapturing] = useState<boolean>(true);
+
+  useEffect(() => {
+    // Start webcam stream
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    });
+
+    return () => {
+      if (videoRef.current && videoRef.current.srcObject) {
+        (videoRef.current.srcObject as MediaStream)
+          .getTracks()
+          .forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
+  const captureImage = () => {
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    if (canvas && video) {
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Convert to Blob and upload
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        const timestamp = new Date().toISOString();
+        const file = new File([blob], `snapshot-${timestamp}.png`, {
+          type: "image/png",
+        });
+
+        await uploadToServer(file, timestamp);
+      }, "image/png");
+    }
+  };
+
+  const uploadToServer = async (file: File, timestamp: string) => {
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("timestamp", timestamp);
+    const decrypt = secureLocalStorage.getItem("cred-track") as any;
+    const assessmentId = window.location.pathname.split("/")[3];
+    const assessmentType = window.location.pathname.split("/")[2];
+    formData.append("assessmentId", assessmentId);
+    formData.append("assessmentType", assessmentType);
+    formData.append("email", decrypt.email);
+    axios.post(
+      import.meta.env.VITE_API_URL + "/assessments/capture",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+  };
+
+  useEffect(() => {
+    if (capturing) {
+      const interval = setInterval(() => {
+        captureImage();
+      }, Math.random() * (30000 - 10000) + 10000); // Random interval between 10-30 sec
+
+      return () => clearInterval(interval);
+    }
+  }, [capturing]);
 
   const { isOpen, onOpenChange, onOpen } = useDisclosure();
 
@@ -97,6 +176,11 @@ const Sidebar = ({
           )}
         </ModalContent>
       </Modal>
+
+      <div className="border-2 p-2">
+        <video ref={videoRef} autoPlay playsInline />
+        <canvas ref={canvasRef} style={{ display: "none" }} />
+      </div>
     </Card>
   );
 };

@@ -22,6 +22,10 @@ import clerkClient from "@/config/clerk";
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
 import AppliedPosting from "@/models/AppliedPosting";
 import { AppliedPosting as IAppliedPosting } from "@shared-types/AppliedPosting";
+import { Upload } from "@aws-sdk/lib-storage";
+import r2Client from "@/config/s3";
+import { GetObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 async function getIoServer() {
   const { ioServer } = await import("@/config/init");
@@ -199,6 +203,8 @@ getIoServer().then((server) => {
     socket.on(
       "session-url-code",
       async ({ assessmentId, email, sessionUrl }) => {
+        console.log("Session URL Code");
+        console.log(assessmentId, email, sessionUrl);
         if (!assessmentId || !email || !sessionUrl) return;
 
         const submission = await CodeAssessmentSubmissions.findOne({
@@ -216,6 +222,8 @@ getIoServer().then((server) => {
     socket.on(
       "session-url-mcq",
       async ({ assessmentId, email, sessionUrl }) => {
+        console.log("Session URL MCQ");
+        console.log(assessmentId, email, sessionUrl);
         if (!assessmentId || !email || !sessionUrl) return;
 
         const submission = await MCQAssessmentSubmissions.findOne({
@@ -231,6 +239,8 @@ getIoServer().then((server) => {
     );
 
     socket.on("auto-save-mcq", async ({ assessmentId, email, submissions }) => {
+      console.log("Auto Save MCQ");
+      console.log(assessmentId, email, submissions);
       if (!assessmentId || !email || !submissions) return;
 
       const submission = await MCQAssessmentSubmissions.findOne({
@@ -1405,6 +1415,154 @@ const getCodeAssessmentSubmission = async (c: Context) => {
   }
 };
 
+const capture = async (c: Context) => {
+  try {
+    const formData = await c.req.formData();
+    const image = formData.get("image");
+    const timestamp = new Date().getTime();
+    const assessmentId = formData.get("assessmentId");
+    const assessmentType = formData.get("assessmentType");
+    const email = formData.get("email");
+
+    if (!image || !(image instanceof File)) {
+      return sendError(c, 400, "Invalid image file");
+    }
+
+    const uploadParams = {
+      Bucket: process.env.R2_S3_ASSESSMENT_CAMERA_CAPTURE_BUCKET!,
+      Key: `${assessmentType}/${assessmentId}/${email}/${timestamp}.png`,
+      Body: image,
+      ContentType: image.type,
+    };
+
+    const upload = new Upload({
+      client: r2Client,
+      params: uploadParams,
+    });
+
+    await upload.done();
+
+    return sendSuccess(c, 200, "Success");
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const getCaptures = async (c: Context) => {
+  const assessmentId = c.req.param("id");
+  const assessmentType = c.req.param("type");
+  const email = c.req.param("email");
+
+  const folderPrefix = `${assessmentType}/${assessmentId}/${email}/`;
+
+  console.log(folderPrefix);
+
+  try {
+    const command = new ListObjectsV2Command({
+      Bucket: process.env.R2_S3_ASSESSMENT_CAMERA_CAPTURE_BUCKET!,
+      Prefix: folderPrefix,
+    });
+
+    const response = await r2Client.send(command);
+
+    if (!response.Contents) {
+      return sendSuccess(c, 200, "Success", []);
+    }
+
+    const imageUrls: { url: string; timestamp: string }[] = [];
+
+    for (const content of response.Contents) {
+      const command = new GetObjectCommand({
+        Bucket: process.env.R2_S3_ASSESSMENT_CAMERA_CAPTURE_BUCKET!,
+        Key: content.Key,
+      });
+
+      // @ts-expect-error - TS doesn't know that the command is valid
+      const url = await getSignedUrl(r2Client, command, { expiresIn: 600 });
+      imageUrls.push({
+        url: url,
+        timestamp: content?.Key?.split("/")?.pop()?.split(".")[0] || "",
+      });
+    }
+
+    console.log(imageUrls);
+    return sendSuccess(c, 200, "Success", imageUrls);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const gradeMCQAnswer = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const body = await c.req.json();
+    const { submissionId, mcqId, grade } = body;
+    console.log(body);
+
+    const submission = await MCQAssessmentSubmissions.findById(submissionId);
+    if (!submission) {
+      return sendError(c, 404, "Submission not found");
+    }
+
+    if (!submission.obtainedGrades)
+      return sendError(c, 400, "Grades not found");
+
+    if (!submission.obtainedGrades?.mcq) {
+      // @ts-ignore
+      submission.obtainedGrades.mcq = [];
+    }
+
+    const mcq = submission?.obtainedGrades?.mcq?.find(
+      (mcq) => mcq.mcqId.toString() === mcqId.toString()
+    );
+
+    if (mcq) {
+      submission.obtainedGrades.total += grade - mcq.obtainedMarks;
+      mcq.obtainedMarks = grade;
+    } else {
+      const newMCQ = {
+        mcqId: mcqId,
+        obtainedMarks: grade,
+      };
+      submission.obtainedGrades.total += grade;
+      submission.obtainedGrades?.mcq?.push(newMCQ);
+    }
+
+    if (!submission.reviewedBy?.includes(auth?._id)) {
+      submission?.reviewedBy?.push(auth?._id);
+    }
+
+    await submission.save();
+
+    return sendSuccess(c, 200, "Success", submission);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const saveReview = async (c: Context) => {
+  try {
+    const body = await c.req.json();
+    const { submissionId } = body;
+
+    const submission = await MCQAssessmentSubmissions.findById(submissionId);
+    if (!submission) {
+      return sendError(c, 404, "Submission not found");
+    }
+
+    submission.isReviewed = true;
+    await submission.save();
+
+    return sendSuccess(c, 200, "Success", submission);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
 export default {
   checkCodeProgress,
   codeSubmit,
@@ -1430,4 +1588,8 @@ export default {
   getCodeAssessmentSubmissions,
   getMcqAssessmentSubmission,
   getCodeAssessmentSubmission,
+  capture,
+  getCaptures,
+  gradeMCQAnswer,
+  saveReview,
 };

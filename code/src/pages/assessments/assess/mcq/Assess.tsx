@@ -32,6 +32,10 @@ const Assess = () => {
   const [assessmentStarted, setAssessmentStarted] = useState(false);
   const [assessment, setAssessment] = useState<MA | null>(null);
   const [assessmentSub, setAssessmentSub] = useState<MASS | null>(null);
+  const [assessmentCompleted, setAssessmentCompleted] = useState(false);
+  const [assessmentSubmitted, setAssessmentSubmitted] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [sessionPlaybackStarted, setSessionPlaybackStarted] = useState(false);
 
   // Utility functions
   const getStorageCredentials = (): StorageCredentials | null => {
@@ -43,6 +47,8 @@ const Assess = () => {
   const getAssessmentIdFromUrl = (): string | null => {
     return window.location.pathname.split("/").pop() || null;
   };
+
+  const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
   // AutoSave Every 10 seconds
   useEffect(() => {
@@ -140,6 +146,39 @@ const Assess = () => {
     });
   }, [timer, assessment, currentScreen, assessmentStarted]);
 
+  // Security Features - Code Playback
+  useEffect(() => {
+    const startSession = async () => {
+      if (!assessment) return;
+      if (!assessment.security?.sessionPlayback) return;
+
+      if (assessmentCompleted) {
+        window?.sessionRewind?.stopSession();
+      }
+
+      if (!assessment) return;
+      if (sessionPlaybackStarted) return;
+
+      if (assessment.security.sessionPlayback) {
+        window?.sessionRewind?.identifyUser({
+          userId: getStorageCredentials()?.email || "anonymous",
+        });
+        window?.sessionRewind?.startSession();
+        await delay(10000);
+
+        socket.emit("session-url-mcq", {
+          assessmentId: assessment._id,
+          email: getStorageCredentials()?.email || "anonymous",
+          sessionUrl: window?.sessionRewind?.getSessionUrl(),
+        });
+
+        setSessionPlaybackStarted(true);
+      }
+    };
+
+    startSession();
+  }, [assessment, assessmentCompleted]);
+
   useEffect(() => {
     const checkExistingProgress = async () => {
       const credentials = getStorageCredentials();
@@ -154,7 +193,11 @@ const Assess = () => {
           assessmentId,
         });
 
-        if (response.data?.data?.exists === false) return;
+        if (response.data?.data?.exists === false) {
+          setLoading(false);
+          setAssessmentSub({} as MASS);
+          return
+        };
 
         const { submission, assessment: assessmentData } = response.data.data;
         setAssessmentSub(submission);
@@ -186,6 +229,7 @@ const Assess = () => {
       secureLocalStorage.setItem("cred-track", { email, name });
       socket.emit("start-mcq-assessment", assessmentSubmission);
 
+      setAssessmentSub(assessmentSubmission);
       setTimer(assessment.timeLimit * 60);
       setCurrentScreen("dashboard");
       setLoading(false);
@@ -204,13 +248,9 @@ const Assess = () => {
     return credTrack;
   };
 
-  const [assessmentCompleted, setAssessmentCompleted] = useState(false);
-  const [assessmentSubmitted, setAssessmentSubmitted] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-
   const submitAssessment = async () => {
     try {
-      // setAssessmentCompleted(true);
+      setAssessmentCompleted(true);
 
       const { email } = getCredentials();
       const assessmentId = window.location.pathname.split("/").pop();

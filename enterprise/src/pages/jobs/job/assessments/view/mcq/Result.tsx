@@ -8,7 +8,7 @@ import {
   TableColumn,
 } from "@heroui/table";
 import { Button } from "@heroui/button";
-import { Badge } from "@heroui/badge";
+import { Chip } from "@heroui/chip";
 import { Pagination } from "@heroui/pagination";
 
 import { ChevronRight } from "lucide-react";
@@ -34,42 +34,42 @@ const Result = ({ assessment, submissions }: ResultProps) => {
     return `${mins}m ${secs}s`;
   };
 
-  // Status Badge
-  const renderStatusBadge = (status: string | undefined) => {
+  // Status Chip
+  const renderStatusChip = (status: string | undefined) => {
     if (status === "completed") {
       return (
-        <Badge color="success" variant="flat">
+        <Chip color="success" variant="flat">
           Completed
-        </Badge>
+        </Chip>
       );
     } else {
       return (
-        <Badge color="warning" variant="flat">
+        <Chip color="warning" variant="flat">
           In Progress
-        </Badge>
+        </Chip>
       );
     }
   };
 
-  // Cheating Status Badge
-  const renderCheatingBadge = (status: string | undefined) => {
+  // Cheating Status Chip
+  const renderCheatingChip = (status: string | undefined) => {
     if (status === "No Copying") {
       return (
-        <Badge color="success" variant="flat">
+        <Chip color="success" variant="flat">
           No Copying
-        </Badge>
+        </Chip>
       );
     } else if (status === "Light Copying") {
       return (
-        <Badge color="warning" variant="flat">
+        <Chip color="warning" variant="flat">
           Light Copying
-        </Badge>
+        </Chip>
       );
     } else if (status === "Heavy Copying") {
       return (
-        <Badge color="danger" variant="flat">
+        <Chip color="danger" variant="flat">
           Heavy Copying
-        </Badge>
+        </Chip>
       );
     }
     return null;
@@ -113,7 +113,19 @@ const Result = ({ assessment, submissions }: ResultProps) => {
                     <p className="text-sm text-gray-500">{submission.email}</p>
                   </div>
                 </TableCell>
-                <TableCell>{renderStatusBadge(submission.status)}</TableCell>
+                <TableCell>
+                  {assessment?.requiresManualReview &&
+                  !submission.isReviewed ? (
+                    <Chip color="warning" variant="flat">
+                      Pending Review
+                    </Chip>
+                  ) : (
+                    <Chip color="success" variant="flat">
+                      Reviewed
+                    </Chip>
+                  )}
+                  <div className="mt-1">{renderStatusChip(submission.status)}</div>
+                </TableCell>
                 <TableCell>
                   {submission.obtainedGrades ? (
                     <div className="flex flex-col">
@@ -128,7 +140,7 @@ const Result = ({ assessment, submissions }: ResultProps) => {
                 </TableCell>
                 <TableCell>{formatTime(submission.timer)}</TableCell>
                 <TableCell>
-                  {renderCheatingBadge(submission.cheatingStatus)}
+                  {renderCheatingChip(submission.cheatingStatus)}
                 </TableCell>
                 <TableCell>
                   {submission.createdAt

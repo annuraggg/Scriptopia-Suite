@@ -44,4 +44,12 @@ app.get("/:id/get-code-submissions", assessmentController.getCodeAssessmentSubmi
 app.get("/:id/get-mcq-submissions/:submissionId", assessmentController.getMcqAssessmentSubmission);
 app.get("/:id/get-code-submissions/:submissionId", assessmentController.getCodeAssessmentSubmission);
 
+app.post("/capture", assessmentController.capture);
+app.get("/:type/:id/captures/:email", assessmentController.getCaptures);
+
+app.post("/mcq/grade", assessmentController.gradeMCQAnswer);
+// app.post("/code/grade", assessmentController.gradeCodeAnswer);
+
+app.post("/mcq/save-review", assessmentController.saveReview);
+
 export default app;

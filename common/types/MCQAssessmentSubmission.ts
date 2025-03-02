@@ -34,6 +34,8 @@
     sessionRewindUrl?: string;
     obtainedGrades?: ObtainedGrade;
     cheatingStatus?: "No Copying" | "Light Copying" | "Heavy Copying";
+    isReviewed?: boolean;
+    reviewedBy?: [string];
     createdAt?: Date;
     updatedAt?: Date;
   }

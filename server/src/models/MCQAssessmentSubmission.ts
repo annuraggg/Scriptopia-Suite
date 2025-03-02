@@ -49,6 +49,7 @@ const MCQAssessmentSubmissionsSchema = new Schema(
       required: false,
     },
     isReviewed: { type: Boolean, default: false },
+    reviewedBy: { type: [Schema.Types.ObjectId], ref: "User", required: false },
   },
   { timestamps: true }
 );
