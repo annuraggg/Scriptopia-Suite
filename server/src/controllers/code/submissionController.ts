@@ -5,6 +5,7 @@ import { runCode as runCompilerCode } from "../../utils/runCode";
 import User from "../../models/User";
 import { TestCase } from "@shared-types/Problem";
 import Submission from "@/models/Submission";
+import { shouldRewardUser, sendTokenReward } from "../../config/blockchainService";
 
 const runCode = async (c: Context) => {
   try {
@@ -94,12 +95,59 @@ const submitCode = async (c: Context) => {
       },
     });
 
+    let rewardResult = null;
+
     if (result.failedCaseNo === -1) {
       const date = new Date();
       const user = await User.findOne({ clerkId: u });
 
-      user?.streak.push(date);
-      await user?.save();
+      if (user) {
+        user.streak.push(date);
+
+        const shouldReward = shouldRewardUser(prob.difficulty);
+
+        if (shouldReward && user.wallet?.address) {
+          const rewardAmount = prob.difficulty === 'easy' ? '1' :
+            prob.difficulty === 'medium' ? '2' : '3';
+          // const amountInWei = web3.utils.toWei(rewardAmount.toString(), 'ether');
+
+          try {
+            const rewardSent = await sendTokenReward(user.wallet.address, rewardAmount);
+
+            if (rewardSent) {
+              user.wallet.balance += parseInt(rewardAmount);
+              rewardResult = {
+                earned: true,
+                amount: rewardAmount
+              };
+            } else {
+              rewardResult = {
+                earned: false,
+                reason: 'Token transfer failed'
+              };
+            }
+          } catch (error) {
+            console.error('Error sending token reward:', error);
+            rewardResult = {
+              earned: false,
+              reason: 'Token transfer error'
+            };
+          }
+        } else {
+          rewardResult = {
+            earned: false,
+            reason: shouldReward ? 'No wallet found' : 'Luck not in your favor'
+          };
+        }
+
+        await user.save();
+      } else {
+        console.error('User not found for reward:', u);
+        rewardResult = {
+          earned: false,
+          reason: 'User not found'
+        };
+      }
     }
 
     prob.totalSubmissions += 1;
@@ -112,13 +160,13 @@ const submitCode = async (c: Context) => {
     }
 
     await prob.save();
-    if (result.STATUS === "PASSED") {
+    if (result.status === "SUCCESS") {
       await submission.save();
     } else {
       return sendError(c, 400, "Submission Failed", result);
     }
 
-    return sendSuccess(c, 200, "Success", { submission, result });
+    return sendSuccess(c, 200, "Success", { submission, result, reward: rewardResult });
   } catch (error) {
     console.log(error);
     return sendError(c, 500, "Internal Server Error", error);
