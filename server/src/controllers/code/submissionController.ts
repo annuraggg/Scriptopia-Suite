@@ -5,7 +5,12 @@ import { runCode as runCompilerCode } from "../../utils/runCode";
 import User from "../../models/User";
 import { TestCase } from "@shared-types/Problem";
 import Submission from "@/models/Submission";
-import { shouldRewardUser, sendTokenReward } from "../../config/blockchainService";
+import {
+  shouldRewardUser,
+  sendTokenReward,
+} from "../../config/blockchainService";
+import Web3 from "web3";
+import { User as IUser } from "@shared-types/User";
 
 const runCode = async (c: Context) => {
   try {
@@ -99,53 +104,73 @@ const submitCode = async (c: Context) => {
 
     if (result.failedCaseNo === -1) {
       const date = new Date();
-      const user = await User.findOne({ clerkId: u });
+      const user = await User.findOne({ _id: u });
 
       if (user) {
         user.streak.push(date);
 
-        const shouldReward = shouldRewardUser(prob.difficulty);
+        const shouldReward = shouldRewardUser(prob.difficulty, prob._id?.toString(), user as unknown as IUser);
 
         if (shouldReward && user.wallet?.address) {
-          const rewardAmount = prob.difficulty === 'easy' ? '1' :
-            prob.difficulty === 'medium' ? '2' : '3';
-          // const amountInWei = web3.utils.toWei(rewardAmount.toString(), 'ether');
+          const rewardAmount =
+            prob.difficulty === "easy"
+              ? "1"
+              : prob.difficulty === "medium"
+              ? "2"
+              : "3";
+          const amountInWei = Web3.utils.toWei(rewardAmount.toString(), 'ether');
+          console.log(amountInWei)
 
           try {
-            const rewardSent = await sendTokenReward(user.wallet.address, rewardAmount);
+            const rewardSent = await sendTokenReward(
+              user.wallet.address,
+              rewardAmount
+            );
 
             if (rewardSent) {
               user.wallet.balance += parseInt(rewardAmount);
               rewardResult = {
                 earned: true,
-                amount: rewardAmount
+                amount: rewardAmount,
               };
+
+              const newDbTransaction = {
+                amount: rewardAmount,
+                problemId: prob._id,
+              };
+
+              if (!user.wallet.transactions) {
+                // @ts-expect-error
+                user.wallet.transactions = [];
+              }
+
+              user.wallet.transactions?.push(newDbTransaction);
             } else {
               rewardResult = {
                 earned: false,
-                reason: 'Token transfer failed'
+                reason: "Token transfer failed",
               };
             }
           } catch (error) {
-            console.error('Error sending token reward:', error);
+            console.error("Error sending token reward:", error);
             rewardResult = {
               earned: false,
-              reason: 'Token transfer error'
+              reason: "Token transfer error",
             };
           }
         } else {
           rewardResult = {
             earned: false,
-            reason: shouldReward ? 'No wallet found' : 'Luck not in your favor'
+            reason: shouldReward ? "No wallet found" : "Luck not in your favor",
           };
         }
 
         await user.save();
       } else {
-        console.error('User not found for reward:', u);
+        console.error("User not found for reward:", u);
         rewardResult = {
           earned: false,
-          reason: 'User not found'
+          reason: "User not found",
         };
       }
     }
@@ -160,13 +185,17 @@ const submitCode = async (c: Context) => {
     }
 
     await prob.save();
-    if (result.status === "SUCCESS") {
+    if (result.STATUS === "PASSED") {
       await submission.save();
     } else {
       return sendError(c, 400, "Submission Failed", result);
     }
 
-    return sendSuccess(c, 200, "Success", { submission, result, reward: rewardResult });
+    return sendSuccess(c, 200, "Success", {
+      submission,
+      result,
+      reward: rewardResult,
+    });
   } catch (error) {
     console.log(error);
     return sendError(c, 500, "Internal Server Error", error);

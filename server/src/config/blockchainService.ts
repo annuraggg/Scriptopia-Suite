@@ -1,10 +1,11 @@
+import { User } from "@shared-types/User";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
 
 const web3 = new Web3(
   new Web3.providers.HttpProvider(
     process.env.ETHEREUM_RPC_URL ||
-    "https://sepolia.infura.io/v3/5db8670c94514ff19dec306e8867bbc6"
+      "https://sepolia.infura.io/v3/5db8670c94514ff19dec306e8867bbc6"
   )
 );
 
@@ -13,7 +14,7 @@ const adminPrivateKey = process.env.ADMIN_WALLET_PRIVATE_KEY;
 if (!adminPrivateKey || !/^0x[0-9a-fA-F]{64}$/.test(adminPrivateKey)) {
   throw new Error(
     "Invalid or missing ADMIN_WALLET_PRIVATE_KEY in environment variables. " +
-    'It must be a 64-character hexadecimal string starting with "0x".'
+      'It must be a 64-character hexadecimal string starting with "0x".'
   );
 }
 
@@ -63,7 +64,20 @@ const getRewardChance = (difficulty: string): number => {
   }
 };
 
-const shouldRewardUser = (difficulty: string): boolean => {
+const shouldRewardUser = (
+  difficulty: string,
+  problemId: string,
+  userId: User
+): boolean => {
+  const isRewarded = userId.wallet?.transactions?.some(
+    (some) => some.problemId === problemId
+  );
+
+  if (isRewarded) {
+    console.log("user is already rewarded");
+    return false;
+  }
+
   const chance = getRewardChance(difficulty);
   return Math.random() < chance;
 };
@@ -94,7 +108,7 @@ const sendTokenReward = async (
       .transfer(toAddress, amountInWei)
       .estimateGas({ from: adminWallet.address })
       .catch((error) => {
-        console.error('Gas estimation failed:', error);
+        console.error("Gas estimation failed:", error);
         return 500000;
       });
 
