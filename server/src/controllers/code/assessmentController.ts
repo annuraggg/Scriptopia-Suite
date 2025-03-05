@@ -784,7 +784,7 @@ const verifyAccess = async (c: Context) => {
         )?.assessmentId;
       }
 
-      console.log(currentAssessmentId, assessment._id )
+      console.log(currentAssessmentId, assessment._id);
 
       if (currentAssessmentId?.toString() !== assessment?._id?.toString()) {
         return sendError(c, 403, "Assessment not active", {
@@ -1392,7 +1392,9 @@ const getCodeAssessmentSubmission = async (c: Context) => {
     const auth = c.get("auth");
     const submissionId = c.req.param("submissionId");
 
-    const submission = await CodeAssessmentSubmissions.findById(submissionId);
+    const submission = await CodeAssessmentSubmissions.findById(submissionId)
+      .populate("assessmentId")
+      .populate("submissions.problemId");
     if (!submission) {
       return sendError(c, 404, "Submission not found");
     }
@@ -1411,7 +1413,7 @@ const getCodeAssessmentSubmission = async (c: Context) => {
       } else return sendError(c, 403, "Unauthorized");
     }
 
-    return sendSuccess(c, 200, "Success", { submission, assessment });
+    return sendSuccess(c, 200, "Success", submission);
   } catch (error) {
     console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
@@ -1546,6 +1548,60 @@ const gradeMCQAnswer = async (c: Context) => {
   }
 };
 
+const gradeCodeAnswer = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const body = await c.req.json();
+    const { submissionId, problemId, grade } = body;
+
+    const submission = await CodeAssessmentSubmissions.findById(submissionId);
+    if (!submission) {
+      return sendError(c, 404, "Submission not found");
+    }
+
+    if (!submission.obtainedGrades)
+      return sendError(c, 400, "Grades not found");
+
+    if (!submission.obtainedGrades) {
+      // @ts-ignore
+      submission.obtainedGrades = [];
+    }
+
+    const code = submission?.obtainedGrades?.problem?.find(
+      (p) => p.problemId.toString() === problemId.toString()
+    );
+
+    console.log(code);
+    console.log(grade);
+
+    if (code) {
+      // @ts-ignore
+      submission.obtainedGrades.total += grade - code.obtainedMarks;
+      code.obtainedMarks = grade;
+    } else {
+      const newCode = {
+        problemId: problemId,
+        obtainedMarks: grade,
+      };
+
+      // @ts-ignore
+      submission.obtainedGrades.total += grade;
+      submission.obtainedGrades?.problem?.push(newCode);
+    }
+
+    if (!submission.reviewedBy?.includes(auth?._id)) {
+      submission?.reviewedBy?.push(auth?._id);
+    }
+
+    await submission.save();
+
+    return sendSuccess(c, 200, "Success", submission);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
 const saveReview = async (c: Context) => {
   try {
     const body = await c.req.json();
@@ -1594,5 +1650,6 @@ export default {
   capture,
   getCaptures,
   gradeMCQAnswer,
+  gradeCodeAnswer,
   saveReview,
 };

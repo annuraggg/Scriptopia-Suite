@@ -7,7 +7,6 @@ import Organization from "@/models/Organization";
 import mongoose from "mongoose";
 import clerkClient from "@/config/clerk";
 import { AuditLog } from "@shared-types/Organization";
-// import assessmentController from "../../coding/assessmentController";
 
 const getPostings = async (c: Context) => {
   try {
@@ -49,11 +48,13 @@ const getPosting = async (c: Context) => {
         path: "candidates",
         populate: {
           path: "appliedPostings",
-          model: "AppliedPosting", // Ensure this is the correct model name
+          model: "AppliedPosting",
         },
       })
       .populate("organizationId")
       .populate("assignments.submissions");
+
+      console.log(posting?.mcqAssessments);
 
     if (!posting) {
       return sendError(c, 404, "job not found");

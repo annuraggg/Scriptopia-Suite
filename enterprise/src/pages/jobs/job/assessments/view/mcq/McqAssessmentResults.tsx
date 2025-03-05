@@ -1,6 +1,6 @@
 import { Tabs, Tab } from "@heroui/tabs";
 import Analytics from "./Analytics";
-import Result from "./Result";
+import McqAssessmentResultsTable from "./MCQResultsTable";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { useEffect, useState } from "react";
@@ -17,7 +17,7 @@ const McqAssessmentResults = () => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
-  useEffect(() => {
+  const fetchAssessmentData = () => {
     const id = window.location.pathname.split("/")[5];
     axios
       .get(`/assessments/${id}/get-mcq-submissions`)
@@ -32,23 +32,37 @@ const McqAssessmentResults = () => {
       .finally(() => {
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchAssessmentData();
   }, []);
 
   if (loading) return <Loader />;
 
+  if (!assessment) return <div>No assessment found</div>;
+
   return (
     <div className="min-h-screen p-6">
-      {assessment && (
-        <Tabs aria-label="Assessment data tabs" className="mb-6">
-          <Tab key="analytics" title="Analytics">
-            <Analytics assessment={assessment} submissions={submissions} />
-          </Tab>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">{assessment.name}</h1>
+        <div className="text-sm text-gray-600 mt-2">
+          Assessment Details: {assessment.description}
+        </div>
+      </div>
 
-          <Tab key="results" title="Results">
-            <Result assessment={assessment} submissions={submissions} />
-          </Tab>
-        </Tabs>
-      )}
+      <Tabs aria-label="Assessment data tabs" className="mb-6">
+        <Tab key="results" title="Results">
+          <McqAssessmentResultsTable
+            assessment={assessment}
+            submissions={submissions}
+          />
+        </Tab>
+
+        <Tab key="analytics" title="Analytics">
+          <Analytics assessment={assessment} submissions={submissions} />
+        </Tab>
+      </Tabs>
     </div>
   );
 };

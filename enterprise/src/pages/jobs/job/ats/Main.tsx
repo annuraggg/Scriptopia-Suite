@@ -8,7 +8,7 @@ import { ExtendedCandidate as Candidate } from "@shared-types/ExtendedCandidate"
 import { AppliedPosting } from "@shared-types/AppliedPosting";
 import { ExtendedPosting } from "@shared-types/ExtendedPosting";
 import Logs from "./Logs";
-import DataTableNew from "./DataTableNew";
+import DataTableNew from "./DataTable";
 
 interface CandidateTable {
   _id: string;
@@ -31,6 +31,7 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
       const tableDataTemp: CandidateTable[] = posting.candidates.map(
         (candidate) => {
           const currentPosting = candidate.appliedPostings.find(
+            // @ts-expect-error
             (appliedPosting: AppliedPosting) =>
               appliedPosting.posting === posting._id
           );
@@ -66,6 +67,7 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
         posting.candidates as unknown as Candidate[]
       ).filter((candidate) => {
         return candidate.appliedPostings.some(
+          // @ts-expect-error
           (appliedPosting: AppliedPosting) => {
             const score = appliedPosting?.scores?.find(
               (s) => s.stageId === posting.workflow?.steps[0]._id

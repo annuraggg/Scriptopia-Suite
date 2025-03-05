@@ -48,7 +48,7 @@ app.post("/capture", assessmentController.capture);
 app.get("/:type/:id/captures/:email", assessmentController.getCaptures);
 
 app.post("/mcq/grade", assessmentController.gradeMCQAnswer);
-// app.post("/code/grade", assessmentController.gradeCodeAnswer);
+app.post("/code/grade", assessmentController.gradeCodeAnswer);
 
 app.post("/mcq/save-review", assessmentController.saveReview);
 

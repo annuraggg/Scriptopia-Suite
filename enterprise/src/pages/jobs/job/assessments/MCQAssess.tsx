@@ -101,6 +101,7 @@ const MCQAssess = ({
         <div className="grid gap-4">
           {initialCreatedAssessments.map((assessment, index) => {
             const isActive = getIsActive(assessment);
+            if (!assessment) return null;
 
             return (
               <motion.div

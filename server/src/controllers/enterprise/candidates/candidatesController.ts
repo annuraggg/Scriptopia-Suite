@@ -95,6 +95,8 @@ const disqualifyCandidate = async (c: Context) => {
     }
 
     const { _id, postingId, reason } = await c.req.json();
+    console.log(_id, postingId, reason);
+
     const appliedPosting = await AppliedPosting.findOne({
       user: _id,
       posting: postingId,
