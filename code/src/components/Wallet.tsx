@@ -30,17 +30,24 @@ const Wallet: React.FC<WalletProps> = ({ userId }) => {
     const initializeWallet = async () => {
       try {
         setIsLoading(true);
+        console.log("Fetching wallet for userId:", userId);
+        
         const { data } = await axios.get(`/wallet/${userId}`);
+        console.log("Wallet API Response:", data);
 
         if (data.success) {
-          setAddress(data.walletAddress);
-          setBalance(data.balance);
+          // Provide default values if undefined
+          setAddress(data.data.walletAddress || "");
+          setBalance(data.data.balance || "0");
         } else {
-          console.log("Wallet being created");
+          console.log("Wallet creation unsuccessful", data);
+          toast.error("Failed to retrieve wallet information");
         }
       } catch (error) {
         console.error("Error initializing wallet:", error);
         toast.error("Failed to load wallet information");
+        setBalance("0");
+        setAddress("");
       } finally {
         setIsLoading(false);
       }
@@ -52,8 +59,10 @@ const Wallet: React.FC<WalletProps> = ({ userId }) => {
   }, [userId]);
 
   const copyAddress = () => {
-    navigator.clipboard.writeText(address);
-    toast.success("Address copied to clipboard!");
+    if (address) {
+      navigator.clipboard.writeText(address);
+      toast.success("Address copied to clipboard!");
+    }
   };
 
   const shortenAddress = (addr: string) => {
@@ -97,27 +106,30 @@ const Wallet: React.FC<WalletProps> = ({ userId }) => {
                         size="sm"
                         variant="light"
                         onClick={copyAddress}
+                        disabled={!address}
                       >
                         <Copy size={12} />
                       </Button>
                     </div>
                   </div>
-                  <div className="border-t pt-2 mt-2">
-                    <Button
-                      size="sm"
-                      variant="flat"
-                      className="w-full"
-                      onClick={() =>
-                        window.open(
-                          `https://sepolia.etherscan.io/address/${address}`,
-                          "_blank"
-                        )
-                      }
-                    >
-                      <ExternalLinkIcon size={14} />
-                      View on Testnet Explorer
-                    </Button>
-                  </div>
+                  {address && (
+                    <div className="border-t pt-2 mt-2">
+                      <Button
+                        size="sm"
+                        variant="flat"
+                        className="w-full"
+                        onClick={() =>
+                          window.open(
+                            `https://sepolia.etherscan.io/address/${address}`,
+                            "_blank"
+                          )
+                        }
+                      >
+                        <ExternalLinkIcon size={14} />
+                        View on Testnet Explorer
+                      </Button>
+                    </div>
+                  )}
                 </>
               )}
             </div>

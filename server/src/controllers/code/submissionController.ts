@@ -128,7 +128,7 @@ const submitCode = async (c: Context) => {
             );
 
             if (rewardSent) {
-              user.wallet.balance += parseInt(rewardAmount);
+              user.wallet.balance += parseFloat(rewardAmount);
               rewardResult = {
                 earned: true,
                 amount: rewardAmount,
@@ -185,6 +185,7 @@ const submitCode = async (c: Context) => {
     }
 
     await prob.save();
+    console.log(result.STATUS);
     if (result.STATUS === "PASSED") {
       await submission.save();
     } else {
