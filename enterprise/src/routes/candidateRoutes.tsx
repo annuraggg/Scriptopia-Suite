@@ -4,8 +4,13 @@ import Loader from "../components/Loader";
 // Lazy load components
 const CandidateLayout = lazy(() => import("../pages/candidate/Layout"));
 const Apply = lazy(() => import("../pages/candidate/apply/Apply"));
-const CandidatePosting = lazy(() => import("../pages/candidate/postings/Posting"));
-const CandidateAssignment = lazy(() => import("../pages/candidate/assignment/Assignment"));
+const CandidatePosting = lazy(
+  () => import("../pages/candidate/postings/Posting")
+);
+const CandidateAssignment = lazy(
+  () => import("../pages/candidate/assignment/Assignment")
+);
+const Profile = lazy(() => import("../pages/candidate/profile/Profile"));
 
 const candidateRoutes = [
   {
@@ -37,6 +42,14 @@ const candidateRoutes = [
         element: (
           <Suspense fallback={<Loader />}>
             <CandidateAssignment />
+          </Suspense>
+        ),
+      },
+      {
+        path: "candidates/:id",
+        element: (
+          <Suspense fallback={<Loader />}>
+            <Profile />
           </Suspense>
         ),
       },

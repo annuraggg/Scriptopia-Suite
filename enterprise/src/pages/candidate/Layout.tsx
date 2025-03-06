@@ -14,20 +14,7 @@ const Layout = () => {
   );
 
   useEffect(() => {
-    axios
-      .get(
-        `${import.meta.env.VITE_API_URL}/candidates/postings/${
-          window.location.pathname.split("/")[2]
-        }`
-      )
-      .then((res) => {
-        setPosting(res.data.data.postings);
-        setOrganization(res.data.data.organization);
-      })
-      .catch((err) => {
-        toast.error(err.response.data);
-        console.log(err);
-      });
+
   }, []);
 
   return (

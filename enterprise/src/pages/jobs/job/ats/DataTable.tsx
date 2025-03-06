@@ -86,7 +86,6 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
         _id: _id,
         postingId: posting?._id,
       })
-
       .catch((err) => {
         toast.error(
           err.response.data.message || "Failed to disqualify candidate"
@@ -103,7 +102,7 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
   const selectCand = (_id: string) => {
     const newData = [...data] as CandidateTable[];
     const index = newData.findIndex((c) => c._id === _id);
-    newData[index].status = "inprogress ";
+    newData[index].status = "inprogress";
     setData(newData);
 
     axios
@@ -148,12 +147,11 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
         );
         console.error(err);
 
-        // Revert the optimistic update if the API call fails
         const revertedData = [...data] as CandidateTable[];
         selectedIds.forEach((id) => {
           const index = revertedData.findIndex((c) => c._id === id);
           if (index !== -1) {
-            revertedData[index].status = "pending"; // or any other original status
+            revertedData[index].status = "pending";
           }
         });
         setData(revertedData);
@@ -163,7 +161,6 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
   const qualifyAllSelected = () => {
     const selectedIds = Array.from(selectedRows);
 
-    // Optimistically update the state
     const newData = [...data] as CandidateTable[];
     selectedIds.forEach((id) => {
       const index = newData.findIndex((c) => c._id === id);
@@ -187,12 +184,11 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
         );
         console.error(err);
 
-        // Revert the optimistic update if the API call fails
         const revertedData = [...data] as CandidateTable[];
         selectedIds.forEach((id) => {
           const index = revertedData.findIndex((c) => c._id === id);
           if (index !== -1) {
-            revertedData[index].status = "pending"; // or any other original status
+            revertedData[index].status = "pending";
           }
         });
         setData(revertedData);
@@ -211,123 +207,173 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
     setSelectedRows(newSelect);
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "inprogress":
+        return "bg-blue-100 text-blue-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
   return (
-    <div>
-      {" "}
-      <div className="flex  items-center gap-5 flex-wrap">
+    <div className="rounded-lg space-y-4">
+      <div className="flex items-center justify-between gap-4 mb-5 flex-wrap">
         <Input
-          placeholder="Filter emails..."
-          className="max-w-sm"
+          placeholder="Filter by email..."
+          className="w-full max-w-xs"
           onChange={(e) => {
             const value = e.target.value;
             if (!value) {
               setData(vanillaData);
               return;
             }
-            const newData = vanillaData.filter((d) => d.email.includes(value));
+            const newData = vanillaData.filter((d) =>
+              d.email.toLowerCase().includes(value.toLowerCase())
+            );
             setData(newData);
           }}
         />
 
-        <Dropdown>
-          <DropdownTrigger>
-            <Button endContent={<IconChevronDown size={20} />}>
-              Bulk Actions
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu aria-label="Static Actions">
-            <DropdownItem key="new" onPress={qualifyAllSelected}>
-              Qualify Selected
-            </DropdownItem>
-            <DropdownItem key="copy" onPress={disqualifyAllSelected}>
-              {" "}
-              Disqualify Selected
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
-        <Button onPress={selectAllAboveThreshold}>
-          <Users className="mr-2 h-4 w-4" />
-          Select All Above {posting?.ats?.minimumScore} %
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Dropdown>
+            <DropdownTrigger>
+              <Button variant="bordered" className="flex items-center gap-2">
+                Bulk Actions <IconChevronDown size={16} />
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu>
+              <DropdownItem
+                key="qualify"
+                onPress={qualifyAllSelected}
+                className="text-green-600 hover:bg-green-50"
+              >
+                Qualify Selected
+              </DropdownItem>
+              <DropdownItem
+                key="disqualify"
+                onPress={disqualifyAllSelected}
+                className="text-red-600 hover:bg-red-50"
+              >
+                Disqualify Selected
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
 
-        <Table
-          selectionMode="multiple"
-          color="secondary"
-          onSelectionChange={setSelectedRows}
-          selectedKeys={selectedRows}
-          bottomContent={
-            <div className="flex w-full justify-center">
-              <Pagination
-                isCompact
-                showControls
-                showShadow
-                color="secondary"
-                page={page}
-                total={pages}
-                onChange={(page) => setPage(page)}
-              />
-            </div>
-          }
-        >
-          <TableHeader>
-            <TableColumn>Name</TableColumn>
-            <TableColumn>Email</TableColumn>
-            <TableColumn>Received On</TableColumn>
-            <TableColumn>JD Match %</TableColumn>
-            <TableColumn>Status</TableColumn>
-            <TableColumn>Actions</TableColumn>
-          </TableHeader>
-          <TableBody>
-            {items?.map((row) => (
-              <TableRow key={row._id}>
-                <TableCell>{row.name}</TableCell>
-                <TableCell>{row.email}</TableCell>
-                <TableCell>{row.received}</TableCell>
-                <TableCell>{row.match} % </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    {row.status.slice(0, 1).toUpperCase() + row.status.slice(1)}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Dropdown>
-                    <DropdownTrigger>
-                      <Button variant="light" isIconOnly>
-                        <IconMenu2 size={18} />
-                      </Button>
-                    </DropdownTrigger>
-                    <DropdownMenu aria-label="Static Actions">
+          <Button
+            variant="bordered"
+            onPress={selectAllAboveThreshold}
+            className="flex items-center gap-2"
+          >
+            <Users size={16} />
+            Select Above {posting?.ats?.minimumScore}%
+          </Button>
+        </div>
+      </div>
+
+      <Table
+        selectionMode="multiple"
+        removeWrapper
+        className="w-full"
+        onSelectionChange={setSelectedRows}
+        selectedKeys={selectedRows}
+        bottomContent={
+          <div className="flex justify-center mt-4">
+            <Pagination
+              isCompact
+              showControls
+              color="secondary"
+              page={page}
+              total={pages}
+              onChange={(page) => setPage(page)}
+            />
+          </div>
+        }
+      >
+        <TableHeader>
+          <TableColumn className="text-left">Name</TableColumn>
+          <TableColumn className="text-left">Email</TableColumn>
+          <TableColumn className="text-right">Received On</TableColumn>
+          <TableColumn className="text-right">JD Match %</TableColumn>
+          <TableColumn className="text-left">Status</TableColumn>
+          <TableColumn className="text-center">Actions</TableColumn>
+        </TableHeader>
+        <TableBody>
+          {items?.map((row) => (
+            <TableRow
+              key={row._id}
+              className="hover:bg-gray-50 transition-colors"
+            >
+              <TableCell className="font-medium text-gray-900">
+                {row.name}
+              </TableCell>
+              <TableCell className="text-gray-600">{row.email}</TableCell>
+              <TableCell className="text-right text-gray-600">
+                {row.received}
+              </TableCell>
+              <TableCell className="text-right font-semibold text-gray-800">
+                {row.match}%
+              </TableCell>
+              <TableCell>
+                <span
+                  className={`
+                  px-2 py-1 rounded-full text-xs font-medium capitalize
+                  ${getStatusColor(row.status)}
+                `}
+                >
+                  {row.status}
+                </span>
+              </TableCell>
+              <TableCell className="text-center">
+                <Dropdown>
+                  <DropdownTrigger>
+                    <Button
+                      variant="light"
+                      size="sm"
+                      isIconOnly
+                      className="hover:bg-gray-100"
+                    >
+                      <IconMenu2 size={16} />
+                    </Button>
+                  </DropdownTrigger>
+                  <DropdownMenu>
+                    {row.status !== "inprogress" ? (
                       <DropdownItem
-                        key={"qualify"}
+                        key="qualify"
                         onPress={() => selectCand(row._id)}
-                        startContent={<UserCheck size={16} className="mr-2" />}
-                        className={row.status === "inprogress" ? "hidden" : ""}
+                        startContent={<UserCheck size={16} />}
+                        className="text-green-600 hover:bg-green-50"
                       >
                         Qualify Candidate
                       </DropdownItem>
+                    ) : null}
+                    {row.status !== "rejected" ? (
                       <DropdownItem
-                        key={"disqualify"}
+                        key="disqualify"
                         onPress={() => disqualify(row._id)}
-                        startContent={<UserX size={16} className="mr-2" />}
-                        className={row.status === "rejected" ? "hidden" : ""}
+                        startContent={<UserX size={16} />}
+                        className="text-red-600 hover:bg-red-50"
                       >
                         Disqualify Candidate
                       </DropdownItem>
-                      <DropdownItem
-                        key="download"
-                        onPress={() => downloadResume(row._id)}
-                        startContent={<Download size={16} className="mr-2" />}
-                      >
-                        Download Resume
-                      </DropdownItem>
-                    </DropdownMenu>
-                  </Dropdown>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+                    ) : null}
+                    <DropdownItem
+                      key="download"
+                      onPress={() => downloadResume(row._id)}
+                      startContent={<Download size={16} />}
+                      className="text-blue-600 hover:bg-blue-50"
+                    >
+                      Download Resume
+                    </DropdownItem>
+                  </DropdownMenu>
+                </Dropdown>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 };

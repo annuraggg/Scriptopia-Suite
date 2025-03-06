@@ -29,9 +29,6 @@ const NewAssignment = lazy(() => import("../pages/jobs/job/assignment/New"));
 const ViewAssignment = lazy(
   () => import("../pages/jobs/job/assignment/ViewAssignment")
 );
-const ViewAssessment = lazy(
-  () => import("../pages/jobs/job/assessments/ViewAssessment/ViewAssessment")
-);
 
 const ViewCodeAssessmentResults = lazy(
   () => import("../pages/jobs/job/assessments/view/code/CodeAssessmentResults")
@@ -118,14 +115,6 @@ const jobRoutes = [
             element: (
               <Suspense fallback={<Loader />}>
                 <Assessments />
-              </Suspense>
-            ),
-          },
-          {
-            path: "assessments/:id/view",
-            element: (
-              <Suspense fallback={<Loader />}>
-                <ViewAssessment />
               </Suspense>
             ),
           },

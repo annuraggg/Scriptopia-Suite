@@ -4,6 +4,7 @@ import { Hono } from "hono";
 const app = new Hono();
 
 app.get("candidate", candidateController.getCandidate);
+app.get("candidate/:id", candidateController.getCandidateById);
 app.get("/", candidateController.getCandidate);
 app.post("candidate", candidateController.createCandidate);
 app.put("candidate", candidateController.updateCandidate);

@@ -93,10 +93,10 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <Tabs aria-label="Options">
+        <Tabs aria-label="Options" variant="light">
           <Tab key="dashboard" title="Dashboard">
             <div>
-              <Card>
+              <Card className="shadow-none">
                 <CardHeader>Config</CardHeader>
                 <CardBody>
                   <div className="flex items-center w-[100%]">
@@ -163,10 +163,10 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
             )}
           </Tab>
           {posting?.ats?.status === "finished" && (
-            <Tab key="results" title="Results">
+            <Tab key="results" title="Results" >
               <DataTableNew data={tableData} setData={setTableData} />
             </Tab>
-          )}{" "}
+          )}
           <Tab key="logs" title="Logs">
             <Logs posting={posting} />
           </Tab>

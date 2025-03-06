@@ -34,11 +34,11 @@ const SelectionChart = ({
   ];
 
   return (
-    <Card className="bg-white shadow-lg h-full w-full">
+    <Card className="h-full w-full shadow-none">
       <CardHeader className="text-center pb-0">
         <h3 className="text-xl font-semibold text-gray-800">Selection Rate</h3>
       </CardHeader>
-      <CardContent className="flex items-center justify-center p-4">
+      <CardContent className="flex items-center justify-center pb-0">
         <div className="relative w-full h-full">
           <RadialBarChart
             data={data}

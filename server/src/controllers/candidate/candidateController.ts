@@ -41,6 +41,37 @@ const getCandidate = async (c: Context) => {
   }
 };
 
+const getCandidateById = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const id = c.req.param("id");
+
+    if (!auth) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const candidate = await Candidate.findOne({ _id: id })
+      .populate({
+        path: "appliedPostings", // Populate appliedPostings first
+        populate: {
+          path: "posting",
+          model: "Posting",
+          populate: { path: "organizationId", model: "Organization" },
+        },
+      })
+      .populate("userId"); // Populate userId separately
+
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    return sendSuccess(c, 200, "Candidate Profile", candidate);
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Internal Server Error");
+  }
+};
+
 const createCandidate = async (c: Context) => {
   try {
     const auth = c.get("auth");
@@ -303,4 +334,5 @@ export default {
   apply,
   getResume,
   getAppliedPostings,
+  getCandidateById,
 };
