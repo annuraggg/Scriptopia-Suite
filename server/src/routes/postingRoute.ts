@@ -24,6 +24,10 @@ app.post("/publish", postingController.publishPosting);
 app.post("/advance-workflow", workflowController.advanceWorkflow);
 app.post("/", postingController.createPosting);
 app.delete("/:id", postingController.deletePosting);
+
+app.get("/:id/assignment/:aid", postingController.getAssignment);
+app.post("/:id/assignment/:aid", postingController.saveAssignmentSubmission);
+
 app.get("/candidate/:id", candidatesController.getCandidate);
 app.get("/candidate/:id/resume", candidatesController.getResume);
 app.put("/candidate/qualify", candidatesController.qualifyCandidate);

@@ -23,21 +23,6 @@ const scheduleSchema = new Schema({
   actualCompletionTime: { type: Date },
 });
 
-const slotSchema = new Schema({
-  candidate: { type: mongoose.Schema.Types.ObjectId, ref: "Candidate" },
-  start: { type: Date, required: true },
-  end: { type: Date, required: true },
-});
-
-const interviewSchema = new Schema({
-  assignees: { type: [mongoose.Schema.Types.ObjectId], ref: "User" },
-  duration: { type: Number, required: true },
-  slots: { type: [slotSchema], required: true },
-  days: { type: [String], required: true },
-  timeSlotStart: { type: String, required: true },
-  timeSlotEnd: { type: String, required: true },
-});
-
 const atsLogSchema = new Schema({
   level: {
     type: String,
@@ -163,7 +148,7 @@ const assignmentSchema = new Schema({
     enum: ["file", "text", "link"],
     required: true,
   },
-  submissions: { type: [mongoose.Schema.Types.ObjectId], ref: "Candidate" },
+  submissions: { type: [mongoose.Schema.Types.ObjectId], ref: "AssignmentSubmission" },
 });
 
 const CodeAssessmentSchema = new Schema({
@@ -200,6 +185,11 @@ const additionalFieldConfigSchema = new Schema(
   { _id: false }
 );
 
+const InterviewSchema = new Schema({
+  interview: { type: mongoose.Schema.Types.ObjectId, ref: "Meet" },
+  workflowId: { type: mongoose.Schema.Types.ObjectId, ref: "Workflow" },
+});
+
 const postingSchema = new Schema(
   {
     organizationId: {
@@ -225,7 +215,7 @@ const postingSchema = new Schema(
     ats: { type: atsSchema },
     mcqAssessments: { type: [McqAssessmentSchema] },
     codeAssessments: { type: [CodeAssessmentSchema] },
-    interview: { type: interviewSchema },
+    interviews: { type: [InterviewSchema], ref: "Meet" },
     candidates: { type: [mongoose.Schema.Types.ObjectId], ref: "Candidate" },
 
     additionalDetails: {

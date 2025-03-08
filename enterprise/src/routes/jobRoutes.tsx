@@ -166,14 +166,14 @@ const jobRoutes = [
           //       </Suspense>
           //     ),
           //   },
-          //   {
-          //     path: "assignments",
-          //     element: (
-          //       <Suspense fallback={<Loader />}>
-          //         <Assignments />
-          //       </Suspense>
-          //     ),
-          //   },
+            {
+              path: "assignments",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Assignments />
+                </Suspense>
+              ),
+            },
           {
             path: "assignments/:id",
             element: (

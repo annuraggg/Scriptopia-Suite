@@ -177,7 +177,7 @@ const handleAssignmentRound = async (posting: any, step: any) => {
           name: candidate.name,
           postingName: posting.title,
           company: organization.name,
-          assignmentLink: `${process.env.ENTERPRISE_FRONTEND_URL}/postings/${posting.url}/assignments/${assignment._id}`,
+          assignmentLink: `${process.env.ENTERPRISE_FRONTEND_URL}/postings/${posting._id}/assignments/${assignment._id}`,
         },
       })
     )

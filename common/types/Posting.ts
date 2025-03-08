@@ -37,12 +37,8 @@ interface Slot {
 
 interface Interview {
   _id?: string;
-  assignees?: string[];
-  duration: number;
-  slots: Slot[];
-  days: string[];
-  timeSlotStart: string;
-  timeSlotEnd: string;
+  interview: string;
+  workflowId: string;
 }
 
 interface ATSLog {
@@ -181,7 +177,7 @@ interface Posting {
   ats?: ATS;
   mcqAssessments?: Assessment[];
   codeAssessments?: Assessment[];
-  interview?: Interview;
+  interviews?: [Interview];
   candidates?: string[];
   additionalDetails?: AdditionalDetails;
   published: boolean;

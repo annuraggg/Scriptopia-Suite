@@ -7,6 +7,12 @@ import Organization from "@/models/Organization";
 import mongoose from "mongoose";
 import clerkClient from "@/config/clerk";
 import { AuditLog } from "@shared-types/Organization";
+import Meet from "@/models/Meet";
+import AssignmentSubmission from "@/models/AssignmentSubmission";
+import { Upload } from "@aws-sdk/lib-storage";
+import r2Client from "@/config/s3";
+import loops from "@/config/loops";
+import Candidate from "@/models/Candidate";
 
 const getPostings = async (c: Context) => {
   try {
@@ -52,9 +58,8 @@ const getPosting = async (c: Context) => {
         },
       })
       .populate("organizationId")
-      .populate("assignments.submissions");
-
-      console.log(posting?.mcqAssessments);
+      .populate("assignments.submissions")
+      .populate("interviews.interview");
 
     if (!posting) {
       return sendError(c, 404, "job not found");
@@ -122,6 +127,39 @@ const createPosting = async (c: Context) => {
 
     await newPosting.save();
 
+    const newPostingFetched = await Posting.findById(newPosting._id);
+    if (!newPostingFetched) {
+      return sendError(c, 500, "Error creating posting");
+    }
+
+    console.log(newPostingFetched);
+
+    const interviews = newPostingFetched?.workflow?.steps.filter(
+      (step) => step.type === "INTERVIEW"
+    );
+
+    interviews?.forEach(async (step) => {
+      const firstHalf = Math.random().toString(36).substring(7);
+      const secondHalf = Math.random().toString(36).substring(7);
+      const thirdHalf = Math.random().toString(36).substring(7);
+
+      console.log(step);
+
+      const meeting = new Meet({
+        candidates: [],
+        interviewers: [],
+        code: `${firstHalf}-${secondHalf}-${thirdHalf}`,
+      });
+
+      newPostingFetched.interviews.push({
+        interview: meeting._id,
+        workflowId: step._id,
+      });
+      await meeting.save();
+    });
+
+    await newPostingFetched.save();
+
     const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
     const auditLog: AuditLog = {
       user: clerkUser.firstName + " " + clerkUser.lastName,
@@ -137,7 +175,7 @@ const createPosting = async (c: Context) => {
       },
     });
 
-    return sendSuccess(c, 201, "job created successfully", newPosting);
+    return sendSuccess(c, 403, "job created successfully", newPosting);
   } catch (e: any) {
     logger.error(e);
     return sendError(c, 500, `Error creating posting: ${e.message}`);
@@ -296,7 +334,7 @@ const updateAssignment = async (c: Context) => {
 
 const updateInterview = async (c: Context) => {
   try {
-    const { postingId, step, interview } = await c.req.json();
+    const { postingId, step } = await c.req.json();
 
     const perms = await checkPermission.all(c, ["manage_job"]);
     if (!perms.allowed) {
@@ -316,7 +354,6 @@ const updateInterview = async (c: Context) => {
     // @ts-expect-error - Object has no properties common
     posting.workflow.steps[step].stepId = _id;
 
-    posting.interview = interview;
     await posting.save();
 
     const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
@@ -401,6 +438,161 @@ const deletePosting = async (c: Context) => {
   }
 };
 
+const getAssignment = async (c: Context) => {
+  try {
+    const { id, aid } = c.req.param();
+    const posting = await Posting.findById(id);
+    if (!posting) {
+      return sendError(c, 404, "job not found");
+    }
+
+    const assignment = posting.assignments.find(
+      (a) => a._id?.toString() === aid
+    );
+    if (!assignment) {
+      return sendError(c, 404, "assignment not found");
+    }
+
+    return sendSuccess(c, 200, "job fetched successfully", assignment);
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
+const saveAssignmentSubmission = async (c: Context) => {
+  try {
+    const { id, aid } = c.req.param();
+
+    // Parse request body only once
+    let textSubmission, linkSubmission;
+
+    if (c.req.header("content-type")?.includes("application/json")) {
+      const body = await c.req.json();
+      textSubmission = body.textSubmission;
+      linkSubmission = body.linkSubmission;
+    }
+
+    // Validate parameters
+    if (!id || !aid) {
+      return sendError(c, 400, "Missing required parameters");
+    }
+
+    // Get the posting
+    const posting = await Posting.findById(id);
+    if (!posting) {
+      return sendError(c, 404, "Job posting not found");
+    }
+
+    // Find the assignment
+    const assignment = posting.assignments.find(
+      (a) => a._id?.toString() === aid
+    );
+
+    if (!assignment) {
+      return sendError(c, 404, "Assignment not found");
+    }
+
+    // Check user
+    const userId = c.get("auth")._id;
+    if (!userId) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const user = await Candidate.findOne({ userId });
+    if (!user) {
+      return sendError(c, 404, "User not found");
+    }
+
+    // Check if submission deadline has passed
+    const postingStep = posting.workflow?.steps.find(
+      (step) => step._id?.toString() === assignment.workflowId?.toString()
+    );
+    if (!postingStep || postingStep.status !== "in-progress") {
+      return sendError(c, 400, "Submission deadline has passed");
+    }
+
+    // Check if submission already exists
+    const existingSubmission = await AssignmentSubmission.findOne({
+      assignmentId: assignment._id,
+      candidateId: userId,
+    });
+
+    if (existingSubmission) {
+      return sendError(c, 409, "You have already submitted this assignment");
+    }
+
+    // Handle file upload if needed
+    if (assignment.submissionType === "file") {
+      const formData = await c.req.formData();
+      const file = formData.get("file");
+
+      if (!file) {
+        return sendError(c, 400, "File is required for this assignment");
+      }
+
+      try {
+        const uploadParams = {
+          Bucket: process.env.R2_S3_ASSIGNMENT_BUCKET!,
+          Key: `${aid}/${c.get("auth").user}`,
+          Body: file, // @ts-expect-error - Type 'File' is not assignable to type 'Body'
+          ContentType: file.type,
+        };
+
+        const upload = new Upload({
+          client: r2Client,
+          params: uploadParams,
+        });
+
+        await upload.done();
+      } catch (uploadError) {
+        logger.error("File upload failed");
+        return sendError(c, 500, "Failed to upload file");
+      }
+    }
+
+    // Create submission
+    const submission = new AssignmentSubmission({
+      assignmentId: assignment._id,
+      postingId: posting._id,
+      candidateId: userId,
+      textSubmission,
+      linkSubmission,
+      submittedAt: new Date(),
+    });
+
+    // Add submission to assignment
+    assignment.submissions.push(submission._id);
+
+    // Send confirmation email
+    try {
+      await loops.sendTransactionalEmail({
+        transactionalId: "cm13tu50l02mc80gpi76joqvy",
+        email: user.email as string,
+        dataVariables: {
+          // @ts-expect-error - Type 'string' is not assignable to type 'DataVariables'
+          organization: posting?.organizationId?.name || "the company",
+        },
+      });
+    } catch (emailError) {
+      logger.warn("Failed to send confirmation email");
+      // Continue with submission process even if email fails
+    }
+
+    // Save changes
+    await Promise.all([posting.save(), submission.save()]);
+
+    return sendSuccess(c, 201, "Submission saved successfully", submission);
+  } catch (e: any) {
+    logger.error("Error saving assignment submission");
+    return sendError(
+      c,
+      500,
+      "Something went wrong while processing your submission"
+    );
+  }
+};
+
 export default {
   getPostings,
   getPosting,
@@ -412,4 +604,6 @@ export default {
   publishPosting,
   deletePosting,
   getPostingBySlug,
+  getAssignment,
+  saveAssignmentSubmission,
 };

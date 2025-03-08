@@ -115,9 +115,7 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
         label: "Interviews",
         link: "/interviews",
         visible: getFilteredStepsCount(["INTERVIEW"]) > 0,
-        badge:
-          getFilteredStepsCount(["INTERVIEW"]) - (posting?.interview ? 1 : 0),
-      },
+       },
       {
         icon: IconUsers,
         label: "Candidates",
@@ -175,7 +173,7 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
       ) {
         totalCompleted++;
       }
-      if (step.type === "INTERVIEW" && posting?.interview) totalCompleted++;
+      if (step.type === "INTERVIEW" && posting?.interviews) totalCompleted++;
     });
 
     console.log(totalCompleted, steps.length);

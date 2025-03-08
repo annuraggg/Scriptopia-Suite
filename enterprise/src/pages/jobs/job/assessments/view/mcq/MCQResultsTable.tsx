@@ -32,6 +32,7 @@ import { ExtendedPosting } from "@shared-types/ExtendedPosting";
 
 export interface CandidateSubmissionTable {
   _id: string;
+  submissionId: string;
   candidate: string;
   email: string;
   status: string;
@@ -78,6 +79,7 @@ const McqAssessmentResultsTable = ({
   useEffect(() => {
     const transformedData: CandidateSubmissionTable[] = vanillaData.map(
       (submission) => ({
+        submissionId: submission._id!,
         _id: posting?.candidates.find((c) => c.email === submission.email)
           ?._id!,
         candidate: submission.name,
@@ -328,7 +330,7 @@ const McqAssessmentResultsTable = ({
         </TableHeader>
         <TableBody>
           {items?.map((row) => (
-            <TableRow key={row._id} onClick={() => viewSubmission(row._id)}>
+            <TableRow key={row._id} onClick={() => viewSubmission(row.submissionId)}>
               <TableCell>{row.candidate}</TableCell>
               <TableCell>
                 {row.status.slice(0, 1).toUpperCase() + row.status.slice(1)}
@@ -348,7 +350,7 @@ const McqAssessmentResultsTable = ({
                   <DropdownMenu aria-label="Submission Actions">
                     <DropdownItem
                       key="view"
-                      onPress={() => viewSubmission(row._id)}
+                      onPress={() => viewSubmission(row.submissionId)}
                       startContent={<Eye size={16} className="mr-2" />}
                     >
                       View Submission
