@@ -67,6 +67,7 @@ const qualifyCandidate = async (c: Context) => {
     }
 
     const { postingId, _id } = await c.req.json();
+    console.log(postingId, _id);
     const appliedPosting = await AppliedPosting.findOne({
       user: _id,
       posting: postingId,

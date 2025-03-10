@@ -102,14 +102,14 @@ interface Salary {
   currency?: string;
 }
 
-interface Assignment {
-  _id?: string;
-  name: string;
-  workflowId: string;
-  description: string;
-  submissionType: "file" | "text" | "link";
-  submissions?: string[];
-}
+  interface Assignment {
+    _id?: string;
+    name: string;
+    workflowId: string;
+    description: string;
+    submissionType: "file" | "text" | "link";
+    submissions?: string[];
+  }
 
 interface Assessment {
   _id?: string;

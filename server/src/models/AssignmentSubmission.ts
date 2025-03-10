@@ -26,6 +26,10 @@ const AssignmentSubmissionSchema = new mongoose.Schema(
     linkSubmission: {
       type: String,
     },
+    grade: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

@@ -27,6 +27,7 @@ app.delete("/:id", postingController.deletePosting);
 
 app.get("/:id/assignment/:aid", postingController.getAssignment);
 app.post("/:id/assignment/:aid", postingController.saveAssignmentSubmission);
+app.post("/:id/assignment/:aid/grade", postingController.gradeAssignment);
 
 app.get("/candidate/:id", candidatesController.getCandidate);
 app.get("/candidate/:id/resume", candidatesController.getResume);

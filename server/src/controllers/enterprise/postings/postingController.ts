@@ -593,6 +593,55 @@ const saveAssignmentSubmission = async (c: Context) => {
   }
 };
 
+const gradeAssignment = async (c: Context) => {
+  try {
+    const { id, aid } = c.req.param();
+    const { grade, cid } = await c.req.json();
+
+    console.log(grade, cid);
+
+    // Get the posting
+    const posting = await Posting.findById(id);
+    if (!posting) {
+      return sendError(c, 404, "Job posting not found");
+    }
+
+    // Find the assignment
+    const assignment = posting.assignments.find(
+      (a) => a._id?.toString() === aid
+    );
+
+    if (!assignment) {
+      return sendError(c, 404, "Assignment not found");
+    }
+
+    // Get the submission
+    console.log(assignment._id, cid);
+    const submission = await AssignmentSubmission.findOne({
+      assignmentId: assignment._id,
+      candidateId: cid,
+    });
+
+    if (!submission) {
+      return sendError(c, 404, "Submission not found");
+    }
+
+    // Update the grade
+    submission.grade = grade;
+    console.log(submission)
+    await submission.save();
+
+    return sendSuccess(c, 200, "Grade saved successfully", submission);
+  } catch (e: any) {
+    logger.error("Error grading assignment submission");
+    return sendError(
+      c,
+      500,
+      "Something went wrong while processing your submission"
+    );
+  }
+};
+
 export default {
   getPostings,
   getPosting,
@@ -606,4 +655,5 @@ export default {
   getPostingBySlug,
   getAssignment,
   saveAssignmentSubmission,
+  gradeAssignment,
 };
