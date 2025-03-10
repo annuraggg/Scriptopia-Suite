@@ -55,7 +55,7 @@ const Actions = ({
         {languages
           .filter((lang) => lang.available)
           .map((lang) => (
-            <SelectItem key={lang.abbr} value={lang.abbr}>
+            <SelectItem key={lang.abbr}>
               {lang.name}
             </SelectItem>
           ))}

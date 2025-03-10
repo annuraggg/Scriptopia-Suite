@@ -197,7 +197,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
     if (!isLessThanTwoModalOpen) {
       const allAppliedPostings = posting?.candidates?.map((candidate) =>
         candidate.appliedPostings.find(
-          (appliedPosting) => appliedPosting.posting._id === posting._id
+          (appliedPosting) => appliedPosting.posting === posting._id
         )
       );
 

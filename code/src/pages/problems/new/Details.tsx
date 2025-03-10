@@ -87,13 +87,13 @@ const Details = ({
             selectedKeys={[difficulty]}
             onChange={(e) => setDifficulty(e.target.value)}
           >
-            <SelectItem key="easy" value="Easy">
+            <SelectItem key="easy" >
               Easy
             </SelectItem>
-            <SelectItem key="medium" value="Medium">
+            <SelectItem key="medium">
               Medium
             </SelectItem>
-            <SelectItem key="hard" value="Hard">
+            <SelectItem key="hard" >
               Hard
             </SelectItem>
           </Select>

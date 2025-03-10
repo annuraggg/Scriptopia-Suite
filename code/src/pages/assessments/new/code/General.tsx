@@ -176,7 +176,7 @@ const General = ({
               className="mt-3 w-full"
               size="sm"
               value={startTime}
-              onChange={setStartTime}
+              onChange={setStartTime as any}
               hideTimeZone
             />
             <TimeInput
@@ -184,7 +184,7 @@ const General = ({
               className="mt-3 w-full"
               size="sm"
               value={endTime}
-              onChange={setEndTime}
+              onChange={setEndTime as any}
               hideTimeZone
             />
           </div>

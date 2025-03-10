@@ -104,7 +104,7 @@ const Sdsl = ({
               {languages.map(
                 (language) =>
                   language.available && (
-                    <SelectItem key={language.abbr} value={language.abbr}>
+                    <SelectItem key={language.abbr}>
                       {language.name}
                     </SelectItem>
                   )

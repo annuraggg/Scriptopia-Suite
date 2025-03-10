@@ -270,7 +270,7 @@ const Info = () => {
                     Interviews Scheduled
                   </p>
                   <p className="font-medium">
-                    {posting.interview?.slots.length || 0}
+                    {posting.interviews?.length || 0}
                   </p>
                 </div>
               </div>

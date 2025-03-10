@@ -4,7 +4,7 @@ import { BreadcrumbItem, Breadcrumbs, Card, CardBody } from "@nextui-org/react";
 import { format } from "date-fns";
 import { useOutletContext } from "react-router-dom";
 import RootContext from "@/types/RootContext";
-import { StepStatus } from "@shared-types/Posting";
+import { StepStatus, WorkflowStep } from "@shared-types/Posting";
 import { AppliedPostingStatus } from "@shared-types/AppliedPosting";
 
 const Myjobs = () => {
@@ -80,7 +80,7 @@ const Myjobs = () => {
           </div>
 
           <div className="space-y-6">
-            {filteredJobs.map((job) => (
+            {filteredJobs.map((job: any) => (
               <Card
                 key={job._id}
                 className="w-full rounded-2xl shadow-md border border-gray-200 overflow-hidden"
@@ -135,38 +135,46 @@ const Myjobs = () => {
                         <div className="flex gap-4 mb-4">
                           <div className="relative">
                             {" "}
-                            <div className={getDotClasses("completed" as StepStatus)} />
+                            <div
+                              className={getDotClasses(
+                                "completed" as StepStatus
+                              )}
+                            />
                             <div className="absolute top-3 left-1.5 w-0.5 h-full bg-gray-300" />
                           </div>
                           <div>
                             <div className="text-sm font-medium text-gray-800">
                               Registered
                             </div>
-                            <div className="text-sm text-gray-500">{new Date(job.createdAt!).toLocaleString()}</div>
+                            <div className="text-sm text-gray-500">
+                              {new Date(job.createdAt!).toLocaleString()}
+                            </div>
                           </div>
                         </div>
-                        {job.posting.workflow?.steps.map((step, index) => (
-                          <div key={index} className="flex gap-4 mb-4">
-                            <div className="relative">
-                              {" "}
-                              <div className={getDotClasses(step.status)} />
-                              <div className={step.type} />
-                              {job.posting.workflow?.steps &&
-                                index !==
-                                  job.posting.workflow.steps.length - 1 && (
-                                  <div className="absolute top-3 left-1.5 w-0.5 h-full bg-gray-300" />
-                                )}
-                            </div>
-                            <div>
-                              <div className="text-sm font-medium text-gray-800">
-                                {step.name}
+                        {job.posting.workflow?.steps.map(
+                          (step: WorkflowStep, index: number) => (
+                            <div key={index} className="flex gap-4 mb-4">
+                              <div className="relative">
+                                {" "}
+                                <div className={getDotClasses(step.status)} />
+                                <div className={step.type} />
+                                {job.posting.workflow?.steps &&
+                                  index !==
+                                    job.posting.workflow.steps.length - 1 && (
+                                    <div className="absolute top-3 left-1.5 w-0.5 h-full bg-gray-300" />
+                                  )}
                               </div>
-                              <div className="text-sm text-gray-500">
-                                {normalizeText(step.type)}
+                              <div>
+                                <div className="text-sm font-medium text-gray-800">
+                                  {step.name}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {normalizeText(step.type)}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          )
+                        )}
                       </div>
                     </div>
                   </div>

@@ -82,10 +82,10 @@ const Candidates = ({
           selectedKeys={[access]}
           onChange={(e) => setAccess(e.target.value)}
         >
-          <SelectItem key="all" value="testcase">
+          <SelectItem key="all">
             Allow Access to All Candidates
           </SelectItem>
-          <SelectItem key="specific" value="specific">
+          <SelectItem key="specific">
             Allow Access to Specific Candidates
           </SelectItem>
         </Select>
