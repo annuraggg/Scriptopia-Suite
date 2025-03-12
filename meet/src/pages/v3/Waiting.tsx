@@ -30,7 +30,7 @@ const Waiting = () => {
 
   return (
     <div>
-      "Please wait here. You will receive a call when the interviewer joins"    
+      "Please wait here. You will receive a call when the interviewer calls"    
     </div>
   );
 };

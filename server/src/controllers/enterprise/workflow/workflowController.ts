@@ -10,6 +10,7 @@ import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import checkPermission from "../../../middlewares/checkOrganizationPermission";
 import { Assessment, Assignment } from "@shared-types/Posting";
 import User from "@/models/User";
+import Meet from "@/models/Meet";
 
 const REGION = "ap-south-1";
 
@@ -62,8 +63,6 @@ const advanceWorkflow = async (c: Context) => {
     const currentStep =
       workflow.steps[currentStepIndex === -1 ? 0 : currentStepIndex + 1];
 
-    console.log("Current step", currentStep);
-
     switch (currentStep.type) {
       case "RESUME_SCREENING":
         handleResumeScreening(posting, perms.data!.organization?._id);
@@ -74,6 +73,9 @@ const advanceWorkflow = async (c: Context) => {
       case "CODING_ASSESSMENT":
       case "MCQ_ASSESSMENT":
         handleAssessmentRound(posting, currentStep);
+        break;
+      case "INTERVIEW":
+        handleInterviewRound(posting, currentStep);
         break;
     }
 
@@ -177,7 +179,7 @@ const handleAssignmentRound = async (posting: any, step: any) => {
           name: candidate.name,
           postingName: posting.title,
           company: organization.name,
-          assignmentLink: `${process.env.ENTERPRISE_FRONTEND_URL}/postings/${posting._id}/assignments/${assignment._id}`,
+          assignmentLink: `${process.env.CANDIDATE_FRONTEND_URL}/postings/${posting._id}/assignments/${assignment._id}`,
         },
       })
     )
@@ -220,6 +222,62 @@ const handleAssessmentRound = async (posting: any, step: any) => {
       })
     )
   );
+};
+
+const handleInterviewRound = async (posting: any, step: any) => {
+  console.log("Detected interview round");
+  const organization = await Organization.findById(posting.organizationId);
+  if (!organization) return;
+
+  const candidates = await CandidateModel.find({
+    _id: { $in: posting.candidates },
+    "appliedPostings.status": { $ne: "rejected" },
+  });
+
+  const workflowStepId = posting.workflow.steps.find(
+    (s: any) => s._id.toString() === step._id.toString()
+  )._id;
+
+  const interviewId = posting.interviews.find(
+    (interview: any) =>
+      interview.workflowId.toString() === workflowStepId.toString()
+  ).interview;
+
+
+  console.log("Interview ID", interviewId);
+
+  if (!interviewId) return;
+
+  const interview = await Meet.findById(interviewId);
+  if (!interview) return;
+
+
+  await Promise.all(
+    candidates.map((candidate) => {
+      loops.sendTransactionalEmail({
+        transactionalId: "cm84on6wm06v3e9gl6a2hm0j8",
+        email: candidate.email,
+        dataVariables: {
+          name: candidate.name,
+          postingName: posting.title,
+          interviewLink: `${process.env.MEET_FRONTEND_URL}/v3/${interview.code}`,
+          company: organization.name,
+        },
+      });
+
+      interview.candidates.push(candidate._id);
+    })
+  );
+
+  const interviewer = organization.members.find(
+    (member: any) => member.role === "hiring_manager"
+  );
+
+  if (interviewer && interviewer.user) {
+    interview.interviewers.push(interviewer?.user);
+  }
+
+  await interview.save();
 };
 
 const logWorkflowAdvance = async (c: Context, posting: any, perms: any) => {

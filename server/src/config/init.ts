@@ -21,6 +21,7 @@ import instituteRoute from "../routes/instituteRoute";
 import driveRoutes from "../routes/driveRoute";
 import postingRoutes from "../routes/postingRoute";
 import candidateRoute from "../routes/candidateRoute";
+import meetRoutes from "../routes/meetRoutes";
 
 import userRoute from "../routes/userRoute";
 import { clerkMiddleware } from "@hono/clerk-auth";
@@ -72,6 +73,8 @@ app.route("/postings", postingRoutes);
 app.route("/candidates", candidateRoute);
 app.route("/institutes", instituteRoute);
 app.route("/drives", driveRoutes);
+
+app.route("/meet", meetRoutes)
 
 
 export default app;

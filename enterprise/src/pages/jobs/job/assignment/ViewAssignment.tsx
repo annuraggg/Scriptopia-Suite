@@ -173,7 +173,16 @@ const ViewAssignment = () => {
 
   const viewSubmission = (submission: AssignmentSubmission) => {
     if (assignment.submissionType === "file") {
-      window.open(submission.fileSubmission, "_blank");
+      axios
+        .get(
+          `postings/${posting._id}/assignment/${assignment._id}/submission/${submission.candidateId}`
+        )
+        .then((res) => {
+          window.open(res.data.data.url, "_blank");
+        })
+        .catch(() => {
+          toast.error("Failed to view submission");
+        });
     }
 
     if (assignment.submissionType === "link") {

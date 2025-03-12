@@ -13,6 +13,8 @@ import { Upload } from "@aws-sdk/lib-storage";
 import r2Client from "@/config/s3";
 import loops from "@/config/loops";
 import Candidate from "@/models/Candidate";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const getPostings = async (c: Context) => {
   try {
@@ -534,7 +536,7 @@ const saveAssignmentSubmission = async (c: Context) => {
       try {
         const uploadParams = {
           Bucket: process.env.R2_S3_ASSIGNMENT_BUCKET!,
-          Key: `${aid}/${c.get("auth").user}`,
+          Key: `${aid}/${c.get("auth")._id}.zip`,
           Body: file, // @ts-expect-error - Type 'File' is not assignable to type 'Body'
           ContentType: file.type,
         };
@@ -628,12 +630,52 @@ const gradeAssignment = async (c: Context) => {
 
     // Update the grade
     submission.grade = grade;
-    console.log(submission)
+    console.log(submission);
     await submission.save();
 
     return sendSuccess(c, 200, "Grade saved successfully", submission);
   } catch (e: any) {
     logger.error("Error grading assignment submission");
+    return sendError(
+      c,
+      500,
+      "Something went wrong while processing your submission"
+    );
+  }
+};
+
+const getAssignmentSubmission = async (c: Context) => {
+  try {
+    const { id, aid, sid } = c.req.param();
+
+    // Get the posting
+    const posting = await Posting.findById(id);
+    if (!posting) {
+      return sendError(c, 404, "Job posting not found");
+    }
+
+    // Find the assignment
+    const assignment = posting.assignments.find(
+      (a) => a._id?.toString() === aid
+    );
+
+    if (!assignment) {
+      return sendError(c, 404, "Assignment not found");
+    }
+
+    console.log(aid, sid);
+    // Get the submission file
+    const command = new GetObjectCommand({
+      Bucket: process.env.R2_S3_ASSIGNMENT_BUCKET!,
+      Key: `${aid}/${sid}.zip`,
+    });
+
+    // @ts-expect-error - Type 'Promise<GetObjectOutput>' is not assignable to type 'string'
+    const url = await getSignedUrl(r2Client, command, { expiresIn: 600 });
+
+    return sendSuccess(c, 200, "File URL", { url });
+  } catch (e: any) {
+    logger.error("Error getting assignment submission");
     return sendError(
       c,
       500,
@@ -656,4 +698,5 @@ export default {
   getAssignment,
   saveAssignmentSubmission,
   gradeAssignment,
+  getAssignmentSubmission,
 };
