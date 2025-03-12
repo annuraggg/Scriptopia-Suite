@@ -8,15 +8,22 @@ import {
 } from "@stream-io/video-react-sdk";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import { toast } from "sonner";
-import Waiting from "./waiting/Waiting";
 import ParticipantGrid from "./ParticipantGrid";
+import WaitingParticipants from "./WaitingParticipants";
+
+interface WaitingUser {
+  id: string;
+  name: string;
+}
 
 interface MeetProps {
   call: Call;
   client: any;
+  waitingList: WaitingUser[];
+  acceptParticipant: (userId: string) => void;
 }
 
-const Meet = ({ call }: MeetProps) => {
+const Meet = ({ call, waitingList, acceptParticipant }: MeetProps) => {
   const [_isChatOpen, setIsChatOpen] = useState(false);
   const [isParticipantsOpen, setIsParticipantsOpen] = useState(false);
   const { useParticipants } = useCallStateHooks();
@@ -40,17 +47,28 @@ const Meet = ({ call }: MeetProps) => {
   }, []);
 
   useEffect(() => {
-    console.log(participants)
+    console.log(participants);
   }, [participants]);
 
   return (
     <>
       <div className="h-[85vh] flex items-center justify-center overflow-hidden">
-        <div className="p-8 h-full w-full flex items-center justify-center">
-          <ParticipantGrid participants={participants} />
-          <Waiting isOpen={isParticipantsOpen} participants={participants} call={call} />
+        <div className="p-8 h-full flex items-center justify-center gap-10 transition-all duration-700">
+          <div
+            className={`transition-all duration-700 ${
+              isParticipantsOpen ? "w-[calc(100%-420px)]" : "w-full"
+            }`}
+          >
+            <ParticipantGrid participants={participants} />
+          </div>
+          <WaitingParticipants
+            open={isParticipantsOpen}
+            waitingList={waitingList}
+            acceptParticipant={acceptParticipant}
+          />
         </div>
       </div>
+
       <ActionButtons
         call={call}
         onChatToggle={setIsChatOpen}

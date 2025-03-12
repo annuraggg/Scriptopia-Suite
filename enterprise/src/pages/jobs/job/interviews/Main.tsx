@@ -46,7 +46,7 @@ const Main = () => {
                 variant="flat"
                 onPress={() =>
                   window.open(
-                    `${import.meta.env.VITE_MEET_URL}/v3/${interview.interview.code}`
+                    `${import.meta.env.VITE_MEET_URL}/v3/${interview.interview.code}?id=${posting._id}`
                   )
                 }
               >

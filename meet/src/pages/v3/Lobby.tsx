@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Camera,
   Mic,
@@ -28,7 +28,11 @@ interface DeviceState {
   selectedDevice: string | null;
 }
 
-const Lobby: React.FC = () => {
+interface LobbyProps {
+  onJoin: () => void;
+}
+
+const Lobby = ({ onJoin }: LobbyProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [audioDataArray, setAudioDataArray] = useState<number[]>(
     Array(20).fill(0)
@@ -433,14 +437,7 @@ const Lobby: React.FC = () => {
 
   // Join the call
   const joinCall = () => {
-    console.log("Joining call with settings:", {
-      camera: camera.enabled ? camera.selectedDevice : null,
-      microphone: microphone.enabled ? microphone.selectedDevice : null,
-    });
-
-    alert(
-      "Joining call! In a real app, this would connect you to the video call."
-    );
+    onJoin();
   };
 
   // Clean up resources when component unmounts
