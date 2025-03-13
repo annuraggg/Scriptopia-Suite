@@ -8,7 +8,7 @@ interface WaitingUser {
 
 interface WaitingParticipantsProps {
   open: boolean;
-  waitingList: WaitingUser[];
+  waitingList: Set<WaitingUser>;
   acceptParticipant: (userId: string) => void;
 }
 
@@ -43,10 +43,9 @@ const WaitingParticipants = ({
       `}
     >
       Waiting Room
-      {waitingList.map((user) => (
+      {Array.from(waitingList).map((user) => (
         <Card key={user.id} className="mt-3">
           <CardBody className="flex justify-between items-center flex-row ">
-            {" "}
             {user.name}
             <Button onPress={() => acceptParticipant(user.id)}>Accept</Button>
           </CardBody>

@@ -19,7 +19,7 @@ interface WaitingUser {
 interface MeetProps {
   call: Call;
   client: any;
-  waitingList: WaitingUser[];
+  waitingList: Set<WaitingUser>;
   acceptParticipant: (userId: string) => void;
 }
 

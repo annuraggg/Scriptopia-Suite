@@ -1,6 +1,7 @@
 import Squares from "@/components/ui/Squares";
 import { Spinner, Card, CardBody, Button } from "@nextui-org/react";
 import { Phone } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 interface WaitingProps {
   isRinging: boolean;
@@ -8,6 +9,39 @@ interface WaitingProps {
 }
 
 const Waiting = ({ isRinging, joinInterview }: WaitingProps) => {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    // Create audio element when component mounts
+    audioRef.current = new Audio("/sounds/ring.mp3");
+
+    // Configure audio to loop
+    if (audioRef.current) {
+      audioRef.current.loop = true;
+    }
+
+    return () => {
+      // Cleanup function to stop and remove audio when component unmounts
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // Play or pause the audio based on isRinging state
+    if (isRinging && audioRef.current) {
+      audioRef.current.play().catch((error) => {
+        // Handle autoplay restrictions
+        console.error("Audio play failed:", error);
+      });
+    } else if (!isRinging && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  }, [isRinging]);
+
   return (
     <div className="flex items-center justify-center h-screen bg-gradient-to-br">
       <div className="absolute inset-0 z-0">

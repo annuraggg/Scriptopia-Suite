@@ -4,12 +4,12 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "doppler run -- npm run forceStart",
+    "dev": "doppler run -- npm run start",
     "network": "doppler run -- npm run host",
     "build": "tsc -b && vite build",
     "host": "vite --port 5174 --host",
     "start": "vite --port 5174",
-    "forceStart": "npx kill-port 5174 && npm run start",
+    "forceStart": "npx kill-port 5174 && npm run dev",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },

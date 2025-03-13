@@ -19,6 +19,7 @@ import { io, Socket } from "socket.io-client";
 interface WaitingUser {
   id: string;
   name: string;
+  socketId: string;
 }
 
 const SOCKET_URL = import.meta.env.VITE_API_URL!;
@@ -38,23 +39,73 @@ const Main = () => {
   const [call, setCall] = useState<Call | null>(null);
 
   const [isReceivingCall, setIsReceivingCall] = useState(false);
-  const [waitingList, setWaitingList] = useState<WaitingUser[]>([]);
+  const [waitingList, setWaitingList] = useState(new Set<WaitingUser>());
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
-  socket.on("meet/user-joined/callback", (data) => {
-    if (role !== "interviewer") return;
-    setWaitingList((prev) => [...prev, { id: data.userId, name: data.name }]);
-    toast.success(`${data.name} is waiting to join the call`);
-  });
+  useEffect(() => {
+    const handleUserJoined = (data: any) => {
+      if (role !== "interviewer") return;
 
-  socket.on("meet/accept-user/callback", (data) => {
-    if (role !== "candidate") return;
-    if (data.userId !== userId) return;
+      console.log(waitingList);
+      console.log(data.decoded.userId);
+      if (Array.from(waitingList).some((obj) => obj.id === data.decoded.userId))
+        return;
 
-    setIsReceivingCall(true);
-  });
+      setWaitingList((prevWaitingList) => {
+        const newWaitingList = new Set(prevWaitingList);
+        newWaitingList.add({
+          id: data.decoded.userId,
+          name: data.decoded.name,
+          socketId: data.socketId,
+        });
+
+        toast.success(`${data.decoded.name} is waiting to join the call`);
+        return newWaitingList;
+      });
+    };
+
+    const handleAcceptUser = (data: any) => {
+      if (role !== "candidate") return;
+      if (data.userId !== userId) return;
+
+      setIsReceivingCall(true);
+    };
+
+    const handleUserLeft = (data: any) => {
+      console.log("User left", data);
+      console.log(waitingList);
+      setWaitingList((prevWaitingList) => {
+        const newWaitingList = new Set(prevWaitingList);
+        const user = Array.from(newWaitingList).find(
+          (obj) => obj.socketId === data.socketId
+        );
+
+        if (!user) return newWaitingList;
+
+        newWaitingList.delete(user);
+        return newWaitingList;
+      });
+    };
+
+    const interviewerJoined = () => {
+      if (role === "interviewer") return;
+      socket.emit("meet/user-joined", { token: serverToken });
+    };
+
+    socket.on("meet/user-joined/callback", handleUserJoined);
+    socket.on("meet/accept-user/callback", handleAcceptUser);
+    socket.on("meet/user-left/callback", handleUserLeft);
+    socket.on("meet/interviewer-joined", interviewerJoined);
+
+    return () => {
+      socket.off("meet/user-joined/callback", handleUserJoined);
+      socket.off("meet/accept-user/callback", handleAcceptUser);
+      socket.off("meet/user-left/callback", handleUserLeft);
+      socket.off("meet/interviewer-joined", interviewerJoined);
+    };
+  }, [role, userId]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -100,9 +151,6 @@ const Main = () => {
         setRole(res.data.data.role);
 
         const { userId, name, token, role } = res.data.data;
-
-        console.log("Joining as candidate");
-        console.log(userId, name, token, role);
 
         setupCall(userId, name, token, role as "interviewer" | "candidate");
       })
@@ -166,7 +214,7 @@ const Main = () => {
 
   const acceptParticipant = (userId: string) => {
     socket.emit("meet/accept-user", { userId, token: serverToken });
-    toast.success("Waiting for candidate to answer the call");
+    toast.loading("Waiting for candidate to answer the call", { duration: 60 });
   };
 
   if (loading) return <Loading />;

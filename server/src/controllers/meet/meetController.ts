@@ -33,8 +33,14 @@ getIoServer().then((server) => {
       const decoded = decodeJWT(token);
       if (!decoded) return;
       socket.join(decoded.code);
-      if (decoded.isInterviewer) return;
-      server.to(decoded.code).emit("meet/user-joined/callback", decoded);
+      
+      if (decoded.isInterviewer) {
+        server.to(decoded.code).emit("meet/interviewer-joined");
+        return;
+      }
+      server
+        .to(decoded.code)
+        .emit("meet/user-joined/callback", { decoded, socketId: socket.id });
     });
 
     socket.on("meet/accept-user", async (data) => {
@@ -47,6 +53,11 @@ getIoServer().then((server) => {
 
       if (!decoded.isInterviewer) return;
       server.to(decoded.code).emit("meet/accept-user/callback", { userId });
+    });
+
+    socket.on("disconnect", () => {
+      console.log("User left. Calling", socket.id);
+      server.emit("meet/user-left/callback", { socketId: socket.id });
     });
   });
 });
