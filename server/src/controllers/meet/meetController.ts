@@ -33,7 +33,7 @@ getIoServer().then((server) => {
       const decoded = decodeJWT(token);
       if (!decoded) return;
       socket.join(decoded.code);
-      
+
       if (decoded.isInterviewer) {
         server.to(decoded.code).emit("meet/interviewer-joined");
         return;
@@ -53,6 +53,21 @@ getIoServer().then((server) => {
 
       if (!decoded.isInterviewer) return;
       server.to(decoded.code).emit("meet/accept-user/callback", { userId });
+    });
+
+    socket.on("meet/user-answered-call", async (data) => {
+      if (!data) return;
+      console.log("User answered call", data);
+      const { token } = data;
+
+      const decoded = decodeJWT(token);
+      if (!decoded) return;
+
+      if (!decoded.isCandidate) return;
+      console.log("Emitting user-answered-call/callback", decoded.userId);
+      server.to(decoded.code).emit("meet/user-answered-call/callback", {
+        userId: decoded.userId,
+      });
     });
 
     socket.on("disconnect", () => {

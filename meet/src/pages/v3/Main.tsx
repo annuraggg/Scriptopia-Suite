@@ -6,7 +6,7 @@ import {
   StreamVideoClient,
   User,
 } from "@stream-io/video-react-sdk";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Lobby from "./Lobby";
 import Meet from "./call/Meet";
 import { toast } from "sonner";
@@ -40,6 +40,14 @@ const Main = () => {
 
   const [isReceivingCall, setIsReceivingCall] = useState(false);
   const [waitingList, setWaitingList] = useState(new Set<WaitingUser>());
+  ``;
+  // Store pending promises to resolve them when users answer calls
+  const pendingCallPromises = useRef<
+    Record<
+      string,
+      { resolve: (value?: unknown) => void; reject: (reason?: any) => void }
+    >
+  >({});
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -61,7 +69,7 @@ const Main = () => {
           socketId: data.socketId,
         });
 
-        toast.success(`${data.decoded.name} is waiting to join the call`);
+        toast.info(`${data.decoded.name} is waiting to join the call`);
         return newWaitingList;
       });
     };
@@ -86,6 +94,29 @@ const Main = () => {
 
         newWaitingList.delete(user);
         return newWaitingList;
+      }); 
+    };
+
+    const handleUserAnsweredCall = (data: any) => {
+      console.log("User answered call", data);
+      if (role !== "interviewer") return;
+
+      // Resolve the promise for this user if it exists
+      if (pendingCallPromises.current[data.userId]) {
+        pendingCallPromises.current[data.userId].resolve();
+        delete pendingCallPromises.current[data.userId];
+      }
+
+      setWaitingList((prevWaitingList) => {
+        const newWaitingList = new Set(prevWaitingList);
+        const user = Array.from(newWaitingList).find(
+          (obj) => obj.id === data.userId
+        );
+
+        if (!user) return newWaitingList;
+
+        newWaitingList.delete(user);
+        return newWaitingList;
       });
     };
 
@@ -97,15 +128,17 @@ const Main = () => {
     socket.on("meet/user-joined/callback", handleUserJoined);
     socket.on("meet/accept-user/callback", handleAcceptUser);
     socket.on("meet/user-left/callback", handleUserLeft);
+    socket.on("meet/user-answered-call/callback", handleUserAnsweredCall);
     socket.on("meet/interviewer-joined", interviewerJoined);
 
     return () => {
       socket.off("meet/user-joined/callback", handleUserJoined);
       socket.off("meet/accept-user/callback", handleAcceptUser);
       socket.off("meet/user-left/callback", handleUserLeft);
+      socket.off("meet/user-answered-call/callback", handleUserAnsweredCall);
       socket.off("meet/interviewer-joined", interviewerJoined);
     };
-  }, [role, userId]);
+  }, [role, userId, waitingList, serverToken]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -124,17 +157,22 @@ const Main = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const onJoin = () => {
+  const onJoin = async () => {
     setLoading(true);
     axios
       .post("meet/stream", { token: serverToken })
-      .then((res) => {
+      .then(async (res) => {
         setStreamToken(res.data.data.token);
         setRole(res.data.data.role);
 
         const { userId, name, token, role } = res.data.data;
 
-        setupCall(userId, name, token, role as "interviewer" | "candidate");
+        await setupCall(
+          userId,
+          name,
+          token,
+          role as "interviewer" | "candidate"
+        );
       })
       .catch((err) => {
         toast.error(err.message || "An error occurred");
@@ -142,17 +180,23 @@ const Main = () => {
       .finally(() => setLoading(false));
   };
 
-  const joinCandidate = () => {
+  const joinCandidate = async () => {
     setLoading(true);
     axios
       .post("meet/stream", { token: serverToken })
-      .then((res) => {
+      .then(async (res) => {
         setStreamToken(res.data.data.token);
         setRole(res.data.data.role);
 
         const { userId, name, token, role } = res.data.data;
 
-        setupCall(userId, name, token, role as "interviewer" | "candidate");
+        await setupCall(
+          userId,
+          name,
+          token,
+          role as "interviewer" | "candidate"
+        );
+        socket.emit("meet/user-answered-call", { token: serverToken });
       })
       .catch((err) => {
         toast.error(err.message || "An error occurred");
@@ -166,6 +210,7 @@ const Main = () => {
     userToken: string,
     role: "interviewer" | "candidate"
   ) => {
+    setLoading(true);
     try {
       const user: User = {
         id: userId,
@@ -192,6 +237,9 @@ const Main = () => {
 
         setCall(newCall);
         setPage("meet");
+
+        socket.emit("meet/user-joined", { token: serverToken });
+        setLoading(false);
       } else if (role === "candidate" && isReceivingCall) {
         const newCall = newClient.call(callType, callId);
         await newCall.getOrCreate();
@@ -200,11 +248,11 @@ const Main = () => {
         setCall(newCall);
         setPage("meet");
       } else {
+        socket.emit("meet/user-joined", { token: serverToken });
         setPage("waiting");
       }
 
       setUserId(userId);
-      socket.emit("meet/user-joined", { token: serverToken });
     } catch (err) {
       console.error(err);
       toast.error("Failed to setup the call");
@@ -214,7 +262,24 @@ const Main = () => {
 
   const acceptParticipant = (userId: string) => {
     socket.emit("meet/accept-user", { userId, token: serverToken });
-    toast.loading("Waiting for candidate to answer the call", { duration: 60 });
+
+    const callPromise = new Promise((resolve, reject) => {
+      pendingCallPromises.current[userId] = { resolve, reject };
+
+      // Set timeout to automatically reject if the user doesn't answer
+      setTimeout(() => {
+        if (pendingCallPromises.current[userId]) {
+          pendingCallPromises.current[userId].reject();
+          delete pendingCallPromises.current[userId];
+        }
+      }, 30000);
+    });
+
+    toast.promise(callPromise, {
+      loading: "Calling User",
+      success: "User received the call",
+      error: "User did not receive the call.",
+    });
   };
 
   if (loading) return <Loading />;
