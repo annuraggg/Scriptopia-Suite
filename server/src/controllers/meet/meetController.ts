@@ -2,6 +2,7 @@ import streamClient from "@/config/stream";
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
 import AppliedPosting from "@/models/AppliedPosting";
 import Candidate from "@/models/Candidate";
+import Meet from "@/models/Meet";
 import Organization from "@/models/Organization";
 import Posting from "@/models/Posting";
 import { sendError, sendSuccess } from "@/utils/sendResponse";
@@ -193,11 +194,119 @@ const getStreamJWT = async (c: Context) => {
       ? "candidate"
       : "guest";
 
+    const meet = await Meet.findOne({
+      code: decoded.code,
+    });
+
+    if (!meet) return sendError(c, 404, "Meet not found");
+
+    const current = meet.current;
+
+    let isDisconnected = false;
+    if (current?.toString() === _id) {
+      isDisconnected = true;
+    }``
+
+    console.log("Disconnected", isDisconnected);
+
     return sendSuccess(c, 200, "Stream JWT generated", {
       token: streamToken,
       role: role,
       userId: _id,
       name: decoded.name,
+      disconnected: isDisconnected,
+    });
+  } catch (e) {
+    return sendError(c, 500, "Internal server error");
+  }
+};
+
+const getMeet = async (c: Context) => {
+  try {
+    const code = c.req.param("code");
+    const { _id } = await c.get("auth");
+
+    if (!_id) return sendError(c, 401, "Unauthorized");
+
+    const meet = await Meet.findOne({
+      code,
+    })
+      .populate("interviewers")
+      .populate("current")
+      .populate("completed")
+      .populate("candidates");
+
+    if (!meet) return sendError(c, 404, "Meet not found");
+
+    const isInterviewer = meet.interviewers.some(
+      (i) => i._id.toString() === _id
+    );
+
+    if (!isInterviewer) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    return sendSuccess(c, 200, "Meet found", {
+      meet,
+    });
+  } catch (e) {
+    return sendError(c, 500, "Internal server error");
+    console.error(e);
+  }
+};
+
+const updateCurrentCandidate = async (c: Context) => {
+  try {
+    const _id = c.req.param("id");
+    const { current } = await c.req.json();
+
+    const meet = await Meet.findOne({
+      _id,
+    });
+
+    if (!meet) return sendError(c, 404, "Meet not found");
+
+    const candidate = await Candidate.findOne({
+      userId: current,
+    });
+
+    if (!candidate) return sendError(c, 404, "Candidate not found");
+    meet.current = candidate._id;
+
+    await meet.save();
+
+    return sendSuccess(c, 200, "Current candidate updated", {
+      meet,
+    });
+  } catch (e) {
+    console.error(e);
+    return sendError(c, 500, "Internal server error");
+  }
+};
+
+const updateCompletedCandidates = async (c: Context) => {
+  try {
+    const _id = c.req.param("id");
+    const { completed } = await c.req.json();
+
+    const meet = await Meet.findOne({
+      _id,
+    });
+
+    if (!meet) return sendError(c, 404, "Meet not found");
+
+    const candidate = await Candidate.findOne({
+      userId: completed,
+    });
+
+    if (!candidate) return sendError(c, 404, "Candidate not found");
+
+    meet.completed.push(candidate._id);
+
+    await meet.save();
+
+    return sendSuccess(c, 200, "Completed candidates updated", {
+      meet,
     });
   } catch (e) {
     return sendError(c, 500, "Internal server error");
@@ -207,4 +316,7 @@ const getStreamJWT = async (c: Context) => {
 export default {
   getMeetJWT,
   getStreamJWT,
+  getMeet,
+  updateCurrentCandidate,
+  updateCompletedCandidates,
 };

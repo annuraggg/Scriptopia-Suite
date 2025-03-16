@@ -5,9 +5,9 @@ const MeetSchema = new mongoose.Schema({
     type: [mongoose.Schema.Types.ObjectId],
     ref: "Candidate",
   },
-  completed: { type: [mongoose.Schema.Types.ObjectId] },
-  current: { type: mongoose.Schema.Types.ObjectId },
-  interviewers: { type: [mongoose.Schema.Types.ObjectId] },
+  completed: { type: [mongoose.Schema.Types.ObjectId], ref: "Candidate" },
+  current: { type: mongoose.Schema.Types.ObjectId, ref: "Candidate" },
+  interviewers: { type: [mongoose.Schema.Types.ObjectId], ref: "User" },
   code: { type: String },
 });
 

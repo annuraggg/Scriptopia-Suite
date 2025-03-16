@@ -15,15 +15,15 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import Loading from "./Loading";
 import { io, Socket } from "socket.io-client";
-
-interface WaitingUser {
-  id: string;
-  name: string;
-  socketId: string;
-}
+import { ExtendedMeet } from "@stypes/ExtendedMeet";
 
 const SOCKET_URL = import.meta.env.VITE_API_URL!;
 const socket: Socket = io(SOCKET_URL);
+
+interface WaitingUser {
+  id: string;
+  userId: string;
+}
 
 const Main = () => {
   const streamApiKey = import.meta.env.VITE_STREAM_API_KEY;
@@ -39,7 +39,12 @@ const Main = () => {
   const [call, setCall] = useState<Call | null>(null);
 
   const [isReceivingCall, setIsReceivingCall] = useState(false);
-  const [waitingList, setWaitingList] = useState(new Set<WaitingUser>());
+  const [waitingList, setWaitingList] = useState<string[]>([]);
+  const [waitingUser, setWaitingUser] = useState<WaitingUser[]>([]);
+
+  const [meeting, setMeeting] = useState<ExtendedMeet>({} as ExtendedMeet);
+  const [current, setCurrent] = useState<string>("");
+  const [isDisconnected, setIsDisconnected] = useState(false);
   ``;
   // Store pending promises to resolve them when users answer calls
   const pendingCallPromises = useRef<
@@ -53,25 +58,42 @@ const Main = () => {
   const axios = ax(getToken);
 
   useEffect(() => {
+    if (role !== "interviewer") return;
+    const fetchMeeting = async () => {
+      const urlParams = window.location.pathname.split("/");
+      const code = urlParams[urlParams.length - 1];
+      axios
+        .get(`/meet/${code}`)
+        .then((res) => {
+          console.log(res.data.data);
+          setMeeting(res.data.data.meet);
+        })
+        .catch((err) => {
+          toast.error(err.message || "An error occurred");
+        });
+    };
+
+    fetchMeeting();
+  }, [role]);
+
+  useEffect(() => {
     const handleUserJoined = (data: any) => {
       if (role !== "interviewer") return;
+      if (waitingList.some((obj) => obj === data.decoded.userId)) return;
 
-      console.log(waitingList);
-      console.log(data.decoded.userId);
-      if (Array.from(waitingList).some((obj) => obj.id === data.decoded.userId))
-        return;
+      setWaitingUser((prevWaitingUser) => [
+        ...prevWaitingUser,
+        { id: data.socketId, userId: data.decoded.userId },
+      ]);
 
-      setWaitingList((prevWaitingList) => {
-        const newWaitingList = new Set(prevWaitingList);
-        newWaitingList.add({
-          id: data.decoded.userId,
-          name: data.decoded.name,
-          socketId: data.socketId,
-        });
+      if (!waitingList.includes(data.decoded.userId)) {
+        setWaitingList((prevWaitingList) => [
+          ...prevWaitingList,
+          data.decoded.userId,
+        ]);
+      }
 
-        toast.info(`${data.decoded.name} is waiting to join the call`);
-        return newWaitingList;
-      });
+      toast.info(`${data.decoded.name} has joined the meeting`);
     };
 
     const handleAcceptUser = (data: any) => {
@@ -82,19 +104,28 @@ const Main = () => {
     };
 
     const handleUserLeft = (data: any) => {
-      console.log("User left", data);
-      console.log(waitingList);
+      if (role !== "interviewer") return;
+
+      const userId = waitingUser.find(
+        (obj) => obj.id === data.socketId
+      )?.userId;
+
+      if (!userId) return;
+
+      // remove all instances of the user from the waiting list
+      const newWaitingUsers = waitingUser.filter(
+        (obj) => obj.userId !== userId
+      );
+      setWaitingUser(newWaitingUsers);
+
+      const index = waitingList.findIndex((obj) => obj === userId);
+      if (index === -1) return;
+
       setWaitingList((prevWaitingList) => {
-        const newWaitingList = new Set(prevWaitingList);
-        const user = Array.from(newWaitingList).find(
-          (obj) => obj.socketId === data.socketId
-        );
-
-        if (!user) return newWaitingList;
-
-        newWaitingList.delete(user);
+        const newWaitingList = [...prevWaitingList];
+        newWaitingList.splice(index, 1);
         return newWaitingList;
-      }); 
+      });
     };
 
     const handleUserAnsweredCall = (data: any) => {
@@ -108,16 +139,17 @@ const Main = () => {
       }
 
       setWaitingList((prevWaitingList) => {
-        const newWaitingList = new Set(prevWaitingList);
-        const user = Array.from(newWaitingList).find(
-          (obj) => obj.id === data.userId
-        );
+        const newWaitingList = [...prevWaitingList];
+        const index = newWaitingList.findIndex((obj) => obj === data.userId);
+        if (index === -1) return newWaitingList;
 
-        if (!user) return newWaitingList;
-
-        newWaitingList.delete(user);
+        newWaitingList.splice(index, 1);
         return newWaitingList;
       });
+
+      setCurrent(data.userId);
+
+      axios.post(`/meet/${meeting._id}/current`, { current: data.userId });
     };
 
     const interviewerJoined = () => {
@@ -188,13 +220,14 @@ const Main = () => {
         setStreamToken(res.data.data.token);
         setRole(res.data.data.role);
 
-        const { userId, name, token, role } = res.data.data;
+        const { userId, name, token, role, disconnected } = res.data.data;
 
         await setupCall(
           userId,
           name,
           token,
-          role as "interviewer" | "candidate"
+          role as "interviewer" | "candidate",
+          disconnected
         );
         socket.emit("meet/user-answered-call", { token: serverToken });
       })
@@ -208,7 +241,8 @@ const Main = () => {
     userId: string,
     name: string,
     userToken: string,
-    role: "interviewer" | "candidate"
+    role: "interviewer" | "candidate",
+    disconnected?: boolean
   ) => {
     setLoading(true);
     try {
@@ -247,6 +281,10 @@ const Main = () => {
 
         setCall(newCall);
         setPage("meet");
+      } else if (role === "candidate" && disconnected) {
+        const newCall = newClient.call(callType, callId);
+        await newCall.getOrCreate();
+        await newCall.join();
       } else {
         socket.emit("meet/user-joined", { token: serverToken });
         setPage("waiting");
@@ -306,6 +344,9 @@ const Main = () => {
               client={client}
               waitingList={waitingList}
               acceptParticipant={acceptParticipant}
+              role={role}
+              meeting={meeting}
+              current={current}
             />
           </StreamCall>
         </StreamTheme>

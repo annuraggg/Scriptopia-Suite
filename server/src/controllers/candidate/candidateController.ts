@@ -234,7 +234,7 @@ const apply = async (c: Context) => {
     const newApply = await AppliedPosting.create({
       posting: postingId,
       user: candId,
-    });
+    })
 
     const postingUp = await Posting.findByIdAndUpdate(postingId, {
       $push: {
