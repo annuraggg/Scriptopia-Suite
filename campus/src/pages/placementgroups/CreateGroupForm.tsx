@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Card,
     Input,
@@ -12,13 +12,16 @@ import {
     Radio,
 } from "@nextui-org/react";
 import { Calendar, Clock, Copy } from "lucide-react";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
+import { toast } from "sonner";
 
 interface CreateGroupFormProps {
     onClose: () => void;
 }
 
 interface Department {
-    id: string;
+    _id: string;
     name: string;
 }
 
@@ -33,22 +36,18 @@ interface CreateGroupData {
     accessType: "public" | "private";
 }
 
-const departments: Department[] = [
-    { id: "1", name: "Computer Engineering" },
-    { id: "2", name: "Information Technology" },
-    { id: "3", name: "CSE-AIML" },
-    { id: "4", name: "CSE-Data Science" },
-    { id: "5", name: "Mechanical Engineering" },
-    { id: "6", name: "Civil Engineering" },
-];
-
 const years = Array.from({ length: 5 }, (_, i) => {
     const year = new Date().getFullYear() - 2 + i;
     return `${year}`;
 });
 
 const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
+    const { getToken } = useAuth();
+    const axios = ax(getToken);
+    const [loading, setLoading] = useState(false);
     const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+    const [departments, setDepartments] = useState<Department[]>([]);
+    const [isLoadingDepartments, setIsLoadingDepartments] = useState(true);
     const [formData, setFormData] = useState<CreateGroupData>({
         name: "",
         startYear: "",
@@ -60,13 +59,35 @@ const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
         accessType: "private",
     });
 
+    useEffect(() => {
+        const fetchDepartments = async () => {
+            try {
+                setIsLoadingDepartments(true);
+                const response = await axios.get("/placementgroups");
+                if (response.data?.data?.departments) {
+                    setTimeout(() => {
+                        setDepartments(response.data.data.departments);
+                        setIsLoadingDepartments(false);
+                    }, 100);
+                }
+            } catch (err) {
+                console.error("Failed to fetch departments:", err);
+                toast.error("Failed to load departments");
+                setIsLoadingDepartments(false);
+            }
+        };
+        fetchDepartments();
+    }, []);
+
     const handleDepartmentSelection = (deptId: string) => {
-        setFormData((prev) => ({
-            ...prev,
-            departments: prev.departments.includes(deptId)
-                ? prev.departments.filter((id) => id !== deptId)
-                : [...prev.departments, deptId],
-        }));
+        const newDepartments = formData.departments.includes(deptId)
+            ? formData.departments.filter((id) => id !== deptId)
+            : [...formData.departments, deptId];
+
+        setFormData({
+            ...formData,
+            departments: newDepartments
+        });
     };
 
     const generateInviteLink = () => {
@@ -76,7 +97,32 @@ const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
     };
 
     const handleSubmit = async () => {
-        onClose();
+        try {
+            setLoading(true);
+
+            if (
+                !formData.name ||
+                !formData.startYear ||
+                !formData.endYear ||
+                formData.departments.length === 0 ||
+                !formData.purpose ||
+                !formData.expiryDate ||
+                !formData.expiryTime
+            ) {
+                toast.error("Please fill all required fields");
+                setLoading(false);
+                return;
+            }
+
+            const response = await axios.post("/placementgroups/create", formData);
+            toast.success("Group created successfully!");
+            onClose();
+        } catch (err) {
+            console.error("Error creating group:", err);
+            toast.error("Failed to create group");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleAccessTypeChange = (value: string) => {
@@ -87,7 +133,7 @@ const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
     };
 
     return (
-        <div className="w-full max-w-4xl mx-auto h-screen flex flex-col ">
+        <div className="w-full max-w-4xl mx-auto h-screen flex flex-col">
             <div className="sticky top-0 bg-background z-10 p-6 shadow-sm">
                 <div className="mb-6">
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-500 bg-clip-text text-transparent">
@@ -99,28 +145,26 @@ const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 text-gray-400">
                             <span
-                                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                                    currentStep >= 1 
+                                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= 1
                                     ? "bg-green-600 text-white"
                                     : "bg-green-500 text-white"
-                                }`}
+                                    }`}
                             >
                                 1
                             </span>
                             <span className="font-medium">Define Group Details</span>
                             <span className="mx-4 h-px w-16 bg-gradient-to-r from-green-500 to-gray-700" />
                             <span
-                                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                                    currentStep >= 2 
-                                    ? "bg-green-500 text-white" 
-                                    : "bg-gray-700"
-                                }`}
+                                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= 2 ? "bg-green-500 text-white" : "bg-gray-700"
+                                    }`}
                             >
                                 2
                             </span>
                             <span className="font-medium">Configure Access Settings</span>
                         </div>
-                        <span className="text-xl font-bold text-green-500">{currentStep}/2</span>
+                        <span className="text-xl font-bold text-green-500">
+                            {currentStep}/2
+                        </span>
                     </div>
                 </div>
             </div>
@@ -130,7 +174,9 @@ const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
                     <Card className="bg-white dark:bg-gray-800 shadow-xl">
                         <CardBody className="p-8 space-y-8">
                             <div>
-                                <label className="block text-sm font-medium mb-2">Group Name</label>
+                                <label className="block text-sm font-medium mb-2">
+                                    Group Name
+                                </label>
                                 <Input
                                     value={formData.name}
                                     onChange={(e) =>
@@ -142,7 +188,9 @@ const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium mb-2">Academic Year</label>
+                                <label className="block text-sm font-medium mb-2">
+                                    Academic Year
+                                </label>
                                 <div className="flex gap-4">
                                     <Select
                                         placeholder="Start Year"
@@ -182,26 +230,35 @@ const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium mb-2">Department</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {departments.map((dept) => (
-                                        <Chip
-                                            key={dept.id}
-                                            className={`cursor-pointer transition-all duration-300 hover:scale-105 ${
-                                                formData.departments.includes(dept.id)
-                                                    ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300"
-                                                    : "bg-gray-100 dark:bg-gray-800"
-                                            }`}
-                                            onClick={() => handleDepartmentSelection(dept.id)}
-                                        >
-                                            {dept.name}
-                                        </Chip>
-                                    ))}
-                                </div>
+                                <label className="block text-sm font-medium mb-2">
+                                    Department
+                                </label>
+                                {isLoadingDepartments ? (
+                                    <div className="text-gray-500">Loading departments...</div>
+                                ) : departments.length > 0 ? (
+                                    <div className="flex flex-wrap gap-2">
+                                        {departments.map((dept) => (
+                                            <Chip
+                                                key={dept._id}
+                                                className={`cursor-pointer transition-all duration-300 hover:scale-105 ${formData.departments.includes(dept._id)
+                                                        ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300"
+                                                        : "bg-gray-100 dark:bg-gray-800"
+                                                    }`}
+                                                onClick={() => handleDepartmentSelection(dept._id)}
+                                            >
+                                                {dept.name}
+                                            </Chip>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-gray-500">No departments available</div>
+                                )}
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium mb-2">Group Purpose</label>
+                                <label className="block text-sm font-medium mb-2">
+                                    Group Purpose
+                                </label>
                                 <Textarea
                                     value={formData.purpose}
                                     onChange={(e) =>
@@ -231,7 +288,9 @@ const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
                                             }))
                                         }
                                         placeholder="Select Expiry Date"
-                                        startContent={<Calendar className="text-gray-400" size={18} />}
+                                        startContent={
+                                            <Calendar className="text-gray-400" size={18} />
+                                        }
                                         className="shadow-sm"
                                     />
                                     <Input
@@ -251,9 +310,9 @@ const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
                             </div>
 
                             <div className="flex justify-end gap-3 pt-4">
-                                <Button 
-                                    color="danger" 
-                                    variant="light" 
+                                <Button
+                                    color="danger"
+                                    variant="light"
                                     onClick={onClose}
                                     className="hover:bg-red-50"
                                 >
@@ -264,6 +323,15 @@ const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
                                     variant="solid"
                                     onClick={() => setCurrentStep(2)}
                                     className=""
+                                    isDisabled={
+                                        !formData.name ||
+                                        !formData.startYear ||
+                                        !formData.endYear ||
+                                        formData.departments.length === 0 ||
+                                        !formData.purpose ||
+                                        !formData.expiryDate ||
+                                        !formData.expiryTime
+                                    }
                                 >
                                     Next
                                 </Button>
@@ -274,11 +342,13 @@ const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
                     <Card className="bg-white dark:bg-gray-800 shadow-xl">
                         <CardBody className="p-8 space-y-8">
                             <div>
-                                <label className="block text-sm font-medium mb-2">Invite Link</label>
+                                <label className="block text-sm font-medium mb-2">
+                                    Invite Link
+                                </label>
                                 <div className="flex gap-2">
-                                    <Input 
-                                        value={generateInviteLink()} 
-                                        readOnly 
+                                    <Input
+                                        value={generateInviteLink()}
+                                        readOnly
                                         className="shadow-sm"
                                     />
                                     <Button
@@ -301,14 +371,14 @@ const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
                                     onValueChange={handleAccessTypeChange}
                                     className="space-y-3"
                                 >
-                                    <Radio 
+                                    <Radio
                                         value="public"
                                         className="data-[selected=true]:text-green-500"
                                         description="Open to all students in this department"
                                     >
                                         Public Access
                                     </Radio>
-                                    <Radio 
+                                    <Radio
                                         value="private"
                                         className="data-[selected=true]:text-green-500"
                                         description="Approval required to join the group"
@@ -327,11 +397,11 @@ const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
                                 >
                                     Back
                                 </Button>
-                                <Button 
+                                <Button
                                     color="primary"
-                                    variant="solid" 
+                                    variant="solid"
                                     onClick={handleSubmit}
-                                    className=""
+                                    isLoading={loading}
                                 >
                                     Create Group
                                 </Button>

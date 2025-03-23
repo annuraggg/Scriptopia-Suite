@@ -85,6 +85,9 @@ const companySchema = new Schema(
       email: String,
       website: String,
     },
+    archived: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );
@@ -99,6 +102,9 @@ const placementGroupSchema = new Schema(
     expiryDate: String,
     expiryTime: String,
     accessType: { type: String, enum: ["public", "private"], required: true },
+    archived: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );
