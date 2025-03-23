@@ -27,7 +27,8 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Filter from "./Filter";
-
+import { useAuth } from '@clerk/clerk-react';
+import ax from '@/config/axios';
 import { CompanyTable } from "./CompanyTable";
 
 const SORT_OPTIONS = {
@@ -35,12 +36,10 @@ const SORT_OPTIONS = {
   OLDEST: "oldest",
 } as const;
 
-// Utility Functions
 const formatCurrency = (amount: number) => `₹${(amount / 100000).toFixed(1)}L`;
 
-// Types
 interface CompanyDetail {
-  id: string;
+  _id: string;
   name: string;
   description?: string;
   generalInfo: {
@@ -64,6 +63,9 @@ interface CompanyDetail {
     email: string;
     website: string;
   };
+  archived: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface Student {
@@ -75,64 +77,63 @@ interface Student {
   year: string;
 }
 
-// Custom Hooks
 const useCompanyData = (id: string) => {
   const [company, setCompany] = useState<CompanyDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+
+
   useEffect(() => {
     const fetchCompany = async () => {
       try {
-        setCompany({
-          id: "1",
-          name: "OmniCloud Solutions",
-          description: "OmniCloud Solutions is a cloud computing company...",
-          generalInfo: {
-            industry: ["IT", "Analytics", "Consulting"],
-            yearVisit: ["2023", "2024", "2025"],
-            studentsHired: 75,
-            averagePackage: 11000000,
-            highestPackage: 20000000,
-            rolesOffered: ["Software Engineer", "Data Analyst", "Marketing"],
-          },
-          stats: [
-            {
-              title: "Students Hired",
-              value: "75",
-              change: "+12.5%",
-              icon: Users,
-              trend: "up",
-            },
-            {
-              title: "Average Package",
-              value: "₹11.0L",
-              change: "+8.2%",
-              icon: Briefcase,
-              trend: "up",
-            },
-            {
-              title: "Highest Package",
-              value: "₹20.0L",
-              change: "-2.4%",
-              icon: Target,
-              trend: "down",
-            },
-            {
-              title: "Placement Rate",
-              value: "92%",
-              change: "+5.1%",
-              icon: Activity,
-              trend: "up",
-            },
-          ],
-          hrContacts: {
-            name: "John Doe",
-            phone: "+91 9876543210",
-            email: "hr@omnicloud.com",
-            website: "www.omnicloud.com",
-          },
-        });
+        setLoading(true);
+        const response = await axios.get("/companies");
+        if (response.data.success) {
+          const foundCompany = response.data.data.companies.find(
+            (company: CompanyDetail) => company._id === id
+          );
+
+          if (foundCompany) {
+            foundCompany.stats = [
+              {
+                title: "Students Hired",
+                value: foundCompany.generalInfo.studentsHired.toString(),
+                change: "+12.5%",
+                icon: Users,
+                trend: "up",
+              },
+              {
+                title: "Average Package",
+                value: formatCurrency(foundCompany.generalInfo.averagePackage),
+                change: "+8.2%",
+                icon: Briefcase,
+                trend: "up",
+              },
+              {
+                title: "Highest Package",
+                value: formatCurrency(foundCompany.generalInfo.highestPackage),
+                change: "-2.4%",
+                icon: Target,
+                trend: "down",
+              },
+              {
+                title: "Placement Rate",
+                value: "92%",
+                icon: Activity,
+                trend: "up",
+              },
+            ];
+
+            setCompany(foundCompany);
+          } else {
+            setError("Company not found");
+          }
+        } else {
+          setError(response.data.message || "Failed to fetch company data");
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
@@ -225,7 +226,6 @@ const useFilteredStudents = (
   }, [students, searchTerm, filter, activeFilters, sort]);
 };
 
-// Main Component
 export default function CompanyDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -252,6 +252,10 @@ export default function CompanyDetails() {
     departments: [] as string[],
   });
 
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+
+
   const filteredStudents = useFilteredStudents(
     students,
     searchTerm,
@@ -271,13 +275,49 @@ export default function CompanyDetails() {
     setActiveFilters({ year: "", departments: [] });
   };
 
+  const handleDeleteCompany = async () => {
+    if (!company) return;
+    if (window.confirm(`Are you sure you want to delete ${company.name}?`)) {
+      try {
+        const response = await axios.delete(`/companies/${company._id}`);
+        if (response.data.success) {
+          alert('Company deleted successfully');
+          navigate('/companies');
+        } else {
+          alert(response.data.message || 'Failed to delete company');
+        }
+      } catch (error) {
+        console.error('Error deleting company:', error);
+        alert('An error occurred while deleting the company');
+      }
+    }
+  };
+
+  const handleArchiveCompany = async () => {
+    if (!company) return;
+    try {
+      const response = await axios.post('/companies/archive', {
+        id: company._id
+      });
+      if (response.data.success) {
+        alert(`Company ${company.archived ? 'unarchived' : 'archived'} successfully`);
+        window.location.reload();
+      } else {
+        alert(response.data.message || 'Failed to update archive status');
+      }
+    } catch (error) {
+      console.error('Error archiving/unarchiving company:', error);
+      alert('An error occurred');
+    }
+  };
+
   if (companyLoading || studentsLoading)
     return (
       <div className="flex items-center justify-center h-full">
         <Spinner />
       </div>
     );
-  if (companyError || studentsError) return <div>Error loading data</div>;
+  if (companyError || studentsError) return <div>Error loading data: {companyError || studentsError}</div>;
   if (!company) return <div>Company not found</div>;
 
   return (
@@ -286,10 +326,14 @@ export default function CompanyDetails() {
       animate={{ opacity: 1 }}
       className="p-6"
     >
-      {/* Company Header */}
       <div className="flex items-center justify-between p-2">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
           {company.name}
+          {company.archived && (
+            <Chip className="ml-2" color="warning" size="sm">
+              Archived
+            </Chip>
+          )}
         </h1>
         <Dropdown>
           <DropdownTrigger>
@@ -299,16 +343,25 @@ export default function CompanyDetails() {
           </DropdownTrigger>
           <DropdownMenu>
             <DropdownItem
-              onClick={() => navigate(`/company/${company.id}/edit`)}
+              onClick={() => navigate(`/company/${company._id}/edit`)}
             >
               Edit Details
             </DropdownItem>
-            <DropdownItem className="text-danger">Delete Company</DropdownItem>
+            <DropdownItem
+              onClick={handleArchiveCompany}
+            >
+              {company.archived ? "Unarchive Company" : "Archive Company"}
+            </DropdownItem>
+            <DropdownItem
+              className="text-danger"
+              onClick={handleDeleteCompany}
+            >
+              Delete Company
+            </DropdownItem>
           </DropdownMenu>
         </Dropdown>
       </div>
 
-      {/* Tabs */}
       <Tabs
         selectedKey={selected}
         onSelectionChange={setSelected as any}
@@ -316,10 +369,8 @@ export default function CompanyDetails() {
         color="primary"
         className="mt-6"
       >
-        {/* Company Details Tab */}
         <Tab key="details" title="Company Details">
           <div className="space-y-6 mt-5">
-            {/* About Section */}
             <Card className="bg-default-50 p-2">
               <CardBody>
                 <h3 className="text-xl font-semibold mb-4">About</h3>
@@ -329,7 +380,6 @@ export default function CompanyDetails() {
               </CardBody>
             </Card>
 
-            {/* General Information */}
             <Card className="bg-default-50 p-2">
               <CardBody>
                 <h3 className="text-xl font-semibold mb-4">
@@ -355,7 +405,6 @@ export default function CompanyDetails() {
                     </div>
                   </div>
 
-                  {/* Other Info Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="mx-2">
                       <p className="text-sm text-default-500 mb-1">
@@ -391,7 +440,6 @@ export default function CompanyDetails() {
                     </div>
                   </div>
 
-                  {/* Roles Offered */}
                   <div className="mx-2">
                     <p className="text-sm text-default-500 mb-3">
                       Roles Offered
@@ -415,7 +463,6 @@ export default function CompanyDetails() {
               </CardBody>
             </Card>
 
-            {/* HR Contacts */}
             <Card className="bg-default-50 p-2">
               <CardBody>
                 <h3 className="text-xl font-semibold mb-4">HR Contacts</h3>
@@ -455,7 +502,6 @@ export default function CompanyDetails() {
           </div>
         </Tab>
 
-        {/* Students Tab */}
         <Tab key="students" title="Candidate Details">
           <div className="flex gap-8 mt-5">
             <div className="w-1/4">

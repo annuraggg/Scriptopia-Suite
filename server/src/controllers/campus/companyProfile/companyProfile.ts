@@ -19,7 +19,7 @@ const getCompanies = async (c: Context) => {
             return sendError(c, 404, "Institute not found");
         }
 
-        const formattedCompanies = institute.companies.map(company => ({
+        const formattedCompanies = institute.companies.map((company) => ({
             _id: company._id.toString(),
             name: company.name,
             description: company.description,
@@ -47,12 +47,7 @@ const createCompany = async (c: Context) => {
         }
 
         const companyData = await c.req.json();
-        const {
-            name,
-            description,
-            generalInfo,
-            hrContacts
-        } = companyData;
+        const { name, description, generalInfo, hrContacts } = companyData;
 
         if (!name || !description || !generalInfo || !hrContacts) {
             return sendError(c, 400, "Missing required fields");
@@ -112,13 +107,7 @@ const updateCompany = async (c: Context) => {
         }
 
         const companyData = await c.req.json();
-        const {
-            _id,
-            name,
-            description,
-            generalInfo,
-            hrContacts
-        } = companyData;
+        const { _id, name, description, generalInfo, hrContacts } = companyData;
 
         if (!_id) {
             return sendError(c, 400, "Company ID is required");
@@ -139,7 +128,9 @@ const updateCompany = async (c: Context) => {
 
         if (name && name !== institute.companies[companyIndex].name) {
             const existingCompany = institute.companies.find(
-                (company) => company.name.toLowerCase() === name.toLowerCase() && company._id.toString() !== _id
+                (company) =>
+                    company.name.toLowerCase() === name.toLowerCase() &&
+                    company._id.toString() !== _id
             );
             if (existingCompany) {
                 return sendError(c, 400, "A company with this name already exists");
@@ -147,8 +138,10 @@ const updateCompany = async (c: Context) => {
         }
 
         if (name) institute.companies[companyIndex].name = name;
-        if (description) institute.companies[companyIndex].description = description;
-        if (generalInfo) institute.companies[companyIndex].generalInfo = generalInfo;
+        if (description)
+            institute.companies[companyIndex].description = description;
+        if (generalInfo)
+            institute.companies[companyIndex].generalInfo = generalInfo;
         if (hrContacts) institute.companies[companyIndex].hrContacts = hrContacts;
 
         institute.companies[companyIndex].updatedAt = new Date();
@@ -166,7 +159,12 @@ const updateCompany = async (c: Context) => {
             $push: { auditLogs: auditLog },
         });
 
-        return sendSuccess(c, 200, "Company updated successfully", institute.companies[companyIndex]);
+        return sendSuccess(
+            c,
+            200,
+            "Company updated successfully",
+            institute.companies[companyIndex]
+        );
     } catch (e: any) {
         logger.error(e);
         return sendError(c, 500, `Error updating company: ${e.message}`);
@@ -194,12 +192,15 @@ const archiveCompany = async (c: Context) => {
             return sendError(c, 404, "Company not found");
         }
 
-        institute.companies[companyIndex].archived = !institute.companies[companyIndex].archived;
+        institute.companies[companyIndex].archived =
+            !institute.companies[companyIndex].archived;
         institute.companies[companyIndex].updatedAt = new Date();
         await institute.save();
 
         const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
-        const status = institute.companies[companyIndex].archived ? "Archived" : "Unarchived";
+        const status = institute.companies[companyIndex].archived
+            ? "Archived"
+            : "Unarchived";
         const auditLog: AuditLog = {
             user: clerkUser.firstName + " " + clerkUser.lastName,
             userId: clerkUser.id,
@@ -211,7 +212,12 @@ const archiveCompany = async (c: Context) => {
             $push: { auditLogs: auditLog },
         });
 
-        return sendSuccess(c, 200, `Company ${status.toLowerCase()} successfully`, institute.companies[companyIndex]);
+        return sendSuccess(
+            c,
+            200,
+            `Company ${status.toLowerCase()} successfully`,
+            institute.companies[companyIndex]
+        );
     } catch (e: any) {
         logger.error(e);
         return sendError(c, 500, `Error archiving company: ${e.message}`);
