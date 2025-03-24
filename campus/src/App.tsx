@@ -43,7 +43,9 @@ const Documentation = lazy(() => import("./pages/documentation/Documentation"));
 const Support = lazy(() => import("./pages/support/Support"));
 
 // Job specific routes
-const DriveDashboard = lazy(() => import("./pages/jobs/job/dashboard/Dashboard"));
+const DriveDashboard = lazy(
+  () => import("./pages/jobs/job/dashboard/Dashboard")
+);
 const Workflow = lazy(() => import("./pages/jobs/job/workflow/Workflow"));
 const Ats = lazy(() => import("./pages/jobs/job/ats/Ats"));
 const JobCandidates = lazy(
@@ -101,10 +103,10 @@ function App() {
   useEffect(() => {
     if (isSignedIn) {
       const data = {
-        _id: user?.publicMetadata?.orgId,
-        role: user?.publicMetadata?.orgRole,
-        permissions: user?.publicMetadata?.orgPermissions,
-        name: user?.publicMetadata?.orgName,
+        _id: (user?.publicMetadata?.institute as any)?._id,
+        role: (user?.publicMetadata?.institute as any)?.role.slug,
+        permissions: (user?.publicMetadata?.institute as any)?.role.permissions,
+        name: (user?.publicMetadata?.institute as any)?.name,
       };
       dispatch(setInstitute(data));
     }

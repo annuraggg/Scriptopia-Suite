@@ -11,7 +11,7 @@ const notificationSchema = new Schema({
 const roleSchema = new Schema(
   {
     name: { type: String, required: true },
-    slug: { type: String, required: true, unique: true },
+    slug: { type: String, required: true },
     default: { type: Boolean, default: false },
     description: { type: String },
     permissions: [{ type: String, required: true }],

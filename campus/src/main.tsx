@@ -4,7 +4,6 @@ import "./index.css";
 import { NextUIProvider } from "@nextui-org/react";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { Toaster } from "sonner";
-import { dark } from "@clerk/themes";
 import { Provider } from "react-redux";
 import store from "@/store/store.ts";
 import { Toaster as ShadToaster } from "@/components/ui/toaster";
@@ -16,15 +15,10 @@ if (!publishableKey) {
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <ThemeProvider defaultTheme="dark" storageKey="ui-theme">
+  <ThemeProvider defaultTheme="light" storageKey="ui-theme">
     <NextUIProvider>
       <Provider store={store}>
-        <ClerkProvider
-          publishableKey={publishableKey}
-          appearance={{
-            baseTheme: dark,
-          }}
-        >
+        <ClerkProvider publishableKey={publishableKey}>
           <Toaster richColors theme="dark" />
           <ShadToaster />
           <App />

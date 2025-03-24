@@ -50,6 +50,10 @@ const Layout = () => {
         console.log(res.data.data.institute);
       })
       .catch((err) => {
+        if (err.response.status === 404) {
+          return (window.location.href = "/onboarding");
+        }
+        toast;
         toast.error(err.response.data.message || "An error occurred");
       })
       .finally(() => {
@@ -126,7 +130,9 @@ const Layout = () => {
             </AnimatePresence>
 
             <div
-              className={`flex-1 min-h-screen bg-background max-h-screen overflow-y-auto ${isMobile ? "pt-16" : "px-5"}`}
+              className={`flex-1 min-h-screen bg-background max-h-screen overflow-y-auto ${
+                isMobile ? "pt-16" : "px-5"
+              }`}
             >
               <Outlet
                 context={{
