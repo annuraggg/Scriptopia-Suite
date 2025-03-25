@@ -211,8 +211,8 @@ export default function CompanyProfiles() {
                       onChange={(e) => setSearchTerm(e.target.value)}
                       startContent={<Search className="text-neutral-400" size={20} />}
                       classNames={{
-                        input: "bg-neutral-900 text-white",
-                        inputWrapper: "bg-neutral-900"
+                        input: " text-white",
+                        inputWrapper: ""
                       }}
                     />
                   </div>
@@ -230,7 +230,7 @@ export default function CompanyProfiles() {
               <div className="flex gap-8">
                 {/* Filters Section */}
                 <div className="w-1/4">
-                  <Card className="bg-neutral-900 p-4">
+                  <Card className=" p-4">
                     <h2 className="text-xl font-semibold mb-4">Filters</h2>
 
                     <div className="space-y-4">
@@ -333,7 +333,7 @@ export default function CompanyProfiles() {
                       transition={{ duration: 0.2 }}
                     >
                       <Card
-                        className="bg-neutral-900 p-4 mb-4 cursor-pointer hover:bg-neutral-800 transition-colors w-full"
+                        className=" p-4 mb-4 cursor-pointer hover:bg-neutral-800 transition-colors w-full"
 
                         isPressable
                         onClick={() => handleCompanyClick(company.id)}

@@ -499,11 +499,7 @@ function App() {
     },
   ]);
 
-  return (
-    <main className={`text-foreground bg-background`}>
-      <RouterProvider router={router} />
-    </main>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;

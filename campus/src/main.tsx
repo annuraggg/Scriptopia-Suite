@@ -19,7 +19,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <NextUIProvider>
       <Provider store={store}>
         <ClerkProvider publishableKey={publishableKey}>
-          <Toaster richColors theme="dark" />
+          <Toaster richColors theme="light" />
           <ShadToaster />
           <App />
         </ClerkProvider>
