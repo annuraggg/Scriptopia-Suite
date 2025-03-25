@@ -14,7 +14,7 @@ import {
   ModalFooter,
   useDisclosure,
 } from "@nextui-org/react";
-import { Department } from "@shared-types/Instititue";
+import { Department } from "@shared-types/Institute";
 import { useOutletContext } from "react-router-dom";
 import { SettingsContext } from "@/types/SettingsContext";
 

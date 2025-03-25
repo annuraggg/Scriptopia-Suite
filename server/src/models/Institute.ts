@@ -33,9 +33,6 @@ const memberSchema = new Schema(
 const departmentSchema = new Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
-  headId: { type: Schema.Types.ObjectId, ref: "User" },
-  faculties: [{ type: Schema.Types.ObjectId, ref: "User" }],
-  courses: [{ type: Schema.Types.ObjectId, ref: "Course" }],
 });
 
 const auditLogSchema = new Schema(

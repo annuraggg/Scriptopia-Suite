@@ -7,7 +7,7 @@ import {
   PopoverTrigger,
   PopoverContent,
   Spinner,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { CoinsIcon, ExternalLinkIcon, Copy } from "lucide-react";
 import { toast } from "sonner";
 import ax from "@/config/axios";

@@ -12,7 +12,7 @@ const WalletSchema = new mongoose.Schema({
   address: { type: String, required: true },
   privateKey: { type: String, required: true, select: false },
   balance: { type: Number, default: 0 },
-  transactions: { type: [TransactionSchema] },
+  transactions: { type: [TransactionSchema], required: false },
 });
 
 const UserSchema = new mongoose.Schema(

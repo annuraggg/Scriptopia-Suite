@@ -5,7 +5,7 @@ import logger from "../../../utils/logger";
 import { Context } from "hono";
 import mongoose from "mongoose";
 import clerkClient from "@/config/clerk";
-import { AuditLog } from "@shared-types/Instititue";
+import { AuditLog } from "@shared-types/Institute";
 
 const getPlacementGroups = async (c: Context) => {
   try {
@@ -20,7 +20,7 @@ const getPlacementGroups = async (c: Context) => {
     }
 
     const formattedPlacementGroups = institute.placementGroups.map(group => ({
-      _id: group._id.toString(),
+      _id: group._id?.toString(),
       name: group.name,
       startYear: group.startYear,
       endYear: group.endYear,
@@ -35,7 +35,7 @@ const getPlacementGroups = async (c: Context) => {
     }));
 
     const formattedDepartments = institute.departments.map(dept => ({
-      id: dept._id.toString(),
+      id: dept._id?.toString(),
       name: dept.name
     }));
 
@@ -66,7 +66,7 @@ const getPlacementGroup = async (c: Context) => {
 
     const groupId = c.req.param("id");
     const placementGroup = institute.placementGroups.find(
-      (group) => group._id.toString() === groupId
+      (group) => group._id?.toString() === groupId
     );
 
     if (!placementGroup) {
@@ -74,7 +74,7 @@ const getPlacementGroup = async (c: Context) => {
     }
 
     const formattedGroup = {
-      _id: placementGroup._id.toString(),
+      _id: placementGroup._id?.toString(),
       name: placementGroup.name,
       startYear: placementGroup.startYear,
       endYear: placementGroup.endYear,
@@ -116,7 +116,7 @@ const getPlacementGroupBySlug = async (c: Context) => {
     }
 
     const formattedGroup = {
-      _id: placementGroup._id.toString(),
+      _id: placementGroup._id?.toString(),
       name: placementGroup.name,
       startYear: placementGroup.startYear,
       endYear: placementGroup.endYear,
@@ -221,7 +221,7 @@ const updatePlacementGroup = async (c: Context) => {
     }
 
     const groupIndex = institute.placementGroups.findIndex(
-      (group) => group._id.toString() === _id
+      (group) => group._id?.toString() === _id
     );
 
     if (groupIndex === -1) {
@@ -230,7 +230,7 @@ const updatePlacementGroup = async (c: Context) => {
 
     if (name && name !== institute.placementGroups[groupIndex].name) {
       const existingGroup = institute.placementGroups.find(
-        (group) => group.name.toLowerCase() === name.toLowerCase() && group._id.toString() !== _id
+        (group) => group.name.toLowerCase() === name.toLowerCase() && group._id?.toString() !== _id
       );
 
       if (existingGroup) {
@@ -285,7 +285,7 @@ const archivePlacementGroup = async (c: Context) => {
     }
 
     const groupIndex = institute.placementGroups.findIndex(
-      (group) => group._id.toString() === id
+      (group) => group._id?.toString() === id
     );
 
     if (groupIndex === -1) {
@@ -332,7 +332,7 @@ const deletePlacementGroup = async (c: Context) => {
     }
 
     const groupIndex = institute.placementGroups.findIndex(
-      (group) => group._id.toString() === groupId
+      (group) => group._id?.toString() === groupId
     );
 
     if (groupIndex === -1) {

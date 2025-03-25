@@ -11,9 +11,10 @@ interface Member {
   user?: string;
   email: string;
   role: string;
-  createdAt: Date;
   notifications?: Notification[];
   status: "pending" | "active";
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface Role {
@@ -31,6 +32,8 @@ interface Department {
   _id?: string;
   name: string;
   description: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface AuditLog {
@@ -49,21 +52,72 @@ interface Subscription {
   status: "active" | "inactive";
   startedOn: Date;
   endsOn: Date;
+  maxStudents: number;
+  maxFaculty: number;
+  features?: string[];
 }
 
-interface Organization {
+interface Address {
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+  zipCode: string;
+}
+
+interface Company {
+  _id?: string;
+  name: string;
+  description?: string;
+  generalInfo: {
+    industry?: string[];
+    yearVisit?: string[];
+    studentsHired: number;
+    averagePackage: number;
+    highestPackage: number;
+    rolesOffered?: string[];
+  };
+  hrContacts?: {
+    name?: string;
+    phone?: string;
+    email?: string;
+    website?: string;
+  };
+  archived: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+interface PlacementGroup {
+  _id?: string;
+  name: string;
+  startYear?: string;
+  endYear?: string;
+  departments?: string[];
+  purpose?: string;
+  expiryDate?: string;
+  expiryTime?: string;
+  accessType: "public" | "private";
+  archived: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+interface Institute {
   _id?: string;
   name: string;
   email: string;
   website: string;
   logo?: string;
+  address: Address;
   members: Member[];
   roles: Role[];
   departments: Department[];
   auditLogs: AuditLog[];
   subscription: Subscription;
-  candidates?: string[];
-  postings?: string[];
+  drives?: string[];
+  companies: Company[];
+  placementGroups: PlacementGroup[];
   isDeleted: boolean;
   createdAt?: Date;
   updatedAt?: Date;
@@ -76,5 +130,8 @@ export type {
   Department,
   AuditLog,
   Subscription,
-  Organization,
+  Address,
+  Company,
+  PlacementGroup,
+  Institute,
 };

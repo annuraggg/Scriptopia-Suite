@@ -10,8 +10,8 @@ import {
   Select,
   SelectItem,
 } from "@nextui-org/react";
-import { Member } from "@shared-types/Instititue";
-import { Role } from "@shared-types/Instititue";
+import { Member } from "@shared-types/Institute";
+import { Role } from "@shared-types/Institute";
 
 const InviteModal = ({
   isOpen,
@@ -43,7 +43,7 @@ const InviteModal = ({
     onInvite({
       email,
       role: selectedRole,
-      addedOn: currentDate,
+      createdAt: currentDate,
       status: "pending",
     });
 

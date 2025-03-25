@@ -9,7 +9,7 @@ import logger from "../../../utils/logger";
 import r2Client from "../../../config/s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { AuditLog, Member, Role } from "@shared-types/Instititue";
+import { AuditLog, Member, Role } from "@shared-types/Institute";
 import defaultInstituteRoles from "@/data/defaultInstituteRoles";
 import institutePermissions from "@/data/institutePermissions";
 import checkInstitutePermission from "@/middlewares/checkInstitutePermission";
@@ -478,18 +478,22 @@ const updateInstitute = async (c: Context) => {
         };
         const token = jwt.sign(reqObj, process.env.JWT_SECRET!);
         try {
-          await loops.sendTransactionalEmail({
-            transactionalId: process.env.LOOPS_INVITE_EMAIL!,
+          console.log(body.name, institute.name); 
+          const l = await loops.sendTransactionalEmail({
+            transactionalId: process.env.LOOPS_CAMPUS_INVITE_EMAIL!,
             email: member.email,
             dataVariables: {
               inviter: inviterName,
               joinlink: `${process.env
-                .ENTERPRISE_FRONTEND_URL!}/join?token=${token}`,
+                .CAMPUS_FRONTEND_URL!}/join?token=${token}`,
               institutename: body.name || institute.name,
             },
           });
+
+          console.log(l);
           logger.info(`Invite sent to: ${member.email}`);
         } catch (error) {
+          console.error(error)
           logger.error(`Failed to send invite to: ${member.email}`);
         }
       })
@@ -591,31 +595,41 @@ const updateGeneralSettings = async (c: Context) => {
 
 const updateLogo = async (c: Context) => {
   try {
-    const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
+    const perms = await checkInstitutePermission.all(c, [
+      "manage_institute",
+    ]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
+
+    // Parse the incoming request body
     const file = await c.req.json();
+
     if (!file.logo) {
       return sendError(c, 400, "Please provide a file");
     }
+
     const buffer = Buffer.from(
       file.logo.replace(/^data:image\/\w+;base64,/, ""),
       "base64"
     );
-    const instituteId = perms.data?.institute?._id;
+
+    const orgId = perms.data?.institute?._id;
     const uploadParams = {
       Bucket: process.env.R2_S3_BUCKET!,
-      Key: `institute-logos/${instituteId}.png`,
+      Key: `inst-logos/${orgId}.png`,
       Body: buffer,
       ContentEncoding: "base64",
       ContentType: "image/png",
     };
+
     const upload = new Upload({
       client: r2Client,
       params: uploadParams,
     });
+
     await upload.done();
+
     const user = await clerkClient.users.getUser(c.get("auth").userId);
     const auditLog: AuditLog = {
       user: user.firstName + " " + user.lastName,
@@ -623,13 +637,16 @@ const updateLogo = async (c: Context) => {
       action: "Institute Logo Updated",
       type: "info",
     };
-    const updatedInstitute = await Institute.findByIdAndUpdate(instituteId, {
-      $set: { logo: `institute-logos/${instituteId}.png` },
+
+    const updatedOrg = await Institute.findByIdAndUpdate(orgId, {
+      $set: { logo: `inst-logos/${orgId}.png` },
       $push: { auditLogs: auditLog },
     });
-    if (!updatedInstitute) {
+
+    if (!updatedOrg) {
       return sendError(c, 404, "Institute not found");
     }
+
     return c.json({ message: "Logo updated successfully" });
   } catch (error) {
     logger.error(error as string);

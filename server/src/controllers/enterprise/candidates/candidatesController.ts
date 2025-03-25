@@ -52,7 +52,6 @@ const getResume = async (c: Context) => {
     Key: `${id}.pdf`,
   });
 
-  // @ts-expect-error - Type 'Promise<GetObjectOutput>' is not assignable to type 'string'
   const url = await getSignedUrl(r2Client, command, { expiresIn: 600 });
 
   return sendSuccess(c, 200, "Resume URL", { url });

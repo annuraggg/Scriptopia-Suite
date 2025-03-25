@@ -1,6 +1,6 @@
-import { Institute } from "@shared-types/Instititue";
+import { Institute } from "@shared-types/Institute";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
-import { Notification } from "@shared-types/Instititue";
+import { Notification } from "@shared-types/Institute";
 import { Drive } from "@shared-types/Drive";
 
 interface InstituteWithDrives extends Omit<Institute, "drives"> {

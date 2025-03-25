@@ -31,7 +31,7 @@ const Main = () => {
   const [page, setPage] = useState("lobby");
 
   const [serverToken, setServerToken] = useState("");
-  const [streamToken, setStreamToken] = useState("");
+  const [_streamToken, setStreamToken] = useState("");
   const [userId, setUserId] = useState("");
   const [role, setRole] = useState("guest");
 
@@ -44,7 +44,7 @@ const Main = () => {
 
   const [meeting, setMeeting] = useState<ExtendedMeet>({} as ExtendedMeet);
   const [current, setCurrent] = useState<string>("");
-  const [isDisconnected, setIsDisconnected] = useState(false);
+  // const [isDisconnected, setIsDisconnected] = useState(false);
   ``;
   // Store pending promises to resolve them when users answer calls
   const pendingCallPromises = useRef<

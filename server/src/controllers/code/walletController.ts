@@ -36,11 +36,14 @@ const getWallet = async (c: Context) => {
     try {
       const blockchainBalance = await getTokenBalance(user.wallet.address);
       const blockchainBalanceFloat = parseFloat(blockchainBalance);
-      
+
       console.log("Blockchain balance:", blockchainBalance);
       console.log("Parsed blockchain balance:", blockchainBalanceFloat);
 
-      if (!isNaN(blockchainBalanceFloat) && blockchainBalanceFloat !== user.wallet.balance) {
+      if (
+        !isNaN(blockchainBalanceFloat) &&
+        blockchainBalanceFloat !== user.wallet.balance
+      ) {
         user.wallet.balance = blockchainBalanceFloat;
         await user.save();
         console.log("Updated wallet balance:", user.wallet.balance);
@@ -51,13 +54,13 @@ const getWallet = async (c: Context) => {
 
     console.log("Returning wallet data:", {
       walletAddress: user.wallet.address,
-      balance: user.wallet.balance.toString()
+      balance: user.wallet.balance.toString(),
     });
 
     return sendSuccess(c, 200, "Wallet retrieved successfully", {
       walletAddress: user.wallet.address,
       balance: user.wallet.balance.toString(),
-      success: true  // Explicitly add success flag
+      success: true, // Explicitly add success flag
     });
   } catch (error) {
     console.error("Error retrieving wallet:", error);

@@ -1483,7 +1483,6 @@ const getCaptures = async (c: Context) => {
         Key: content.Key,
       });
 
-      // @ts-expect-error - TS doesn't know that the command is valid
       const url = await getSignedUrl(r2Client, command, { expiresIn: 600 });
       imageUrls.push({
         url: url,

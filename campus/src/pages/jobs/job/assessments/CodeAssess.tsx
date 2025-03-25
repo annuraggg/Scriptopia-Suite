@@ -32,8 +32,8 @@ const CodeAssess = ({
     if (!posting?.workflow?.steps || !posting?.workflow?.steps[currentStep])
       return "Inactive";
 
-    const currentStepId = posting?.workflow?.steps[currentStep].stepId;
-    if (currentStepId?.toString() !== createdAssessment._id.toString()) {
+    const currentStepId = posting?.workflow?.steps[currentStep]?.stepId;
+    if (currentStepId?.toString() !== createdAssessment._id?.toString()) {
       return "Inactive";
     }
 
