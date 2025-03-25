@@ -13,6 +13,7 @@ interface Department {
 }
 
 export interface FilterProps {
+  departments: Department[];
   onFilterChange: (filters: {
     year: string;
     departments: string[];
@@ -20,25 +21,24 @@ export interface FilterProps {
   onClearFilters: () => void;
 }
 
-const departments: Department[] = [
-  { id: "1", name: "Computer Engineering" },
-  { id: "2", name: "Information Technology" },
-  { id: "3", name: "CSE-AIML" },
-  { id: "4", name: "CSE-Data Science" },
-  { id: "5", name: "Mechanical Engineering" },
-  { id: "6", name: "Civil Engineering" },
-];
-
 const years = ["2023-2024", "2022-2023", "2021-2022"];
 
-const Filter: React.FC<FilterProps> = ({ onFilterChange, onClearFilters }) => {
+const Filter: React.FC<FilterProps> = ({ departments, onFilterChange, onClearFilters }) => {
   const [selectedYear, setSelectedYear] = React.useState<string>("");
   const [selectedDepartments, setSelectedDepartments] = React.useState<string[]>([]);
 
   const handleDepartmentChange = (deptId: string) => {
-    const newSelectedDepts = selectedDepartments.includes(deptId)
-      ? selectedDepartments.filter((id) => id !== deptId)
-      : [...selectedDepartments, deptId];
+    let newSelectedDepts: string[] = [];
+    
+    if (deptId === "select-all") {
+      newSelectedDepts = departments.map(dept => dept.id);
+    } else if (deptId === "clear-all") {
+      newSelectedDepts = [];
+    } else {
+      newSelectedDepts = selectedDepartments.includes(deptId)
+        ? selectedDepartments.filter((id) => id !== deptId)
+        : [...selectedDepartments, deptId];
+    }
     
     setSelectedDepartments(newSelectedDepts);
     onFilterChange({ year: selectedYear, departments: newSelectedDepts });
@@ -95,16 +95,17 @@ const Filter: React.FC<FilterProps> = ({ onFilterChange, onClearFilters }) => {
               >
                 All
               </Checkbox>
-              <br></br>
+              
               {departments.map((dept) => (
-                <Checkbox
-                  key={dept.id}
-                  value={dept.id}
-                  isSelected={selectedDepartments.includes(dept.id)}
-                  onChange={() => handleDepartmentChange(dept.id)}
-                >
-                  {dept.name}
-                </Checkbox>
+                <div key={dept.id}>
+                  <Checkbox
+                    value={dept.id}
+                    isSelected={selectedDepartments.includes(dept.id)}
+                    onChange={() => handleDepartmentChange(dept.id)}
+                  >
+                    {dept.name}
+                  </Checkbox>
+                </div>
               ))}
             </div>
           </div>
