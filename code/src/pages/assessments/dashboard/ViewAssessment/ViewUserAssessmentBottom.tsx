@@ -9,7 +9,7 @@ import {
   Tabs,
   Tab,
   Button,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useEffect, useState } from "react";
 import CodeSolutionModal from "./CodeSolutionModal";
 import McqReportModal from "./McqReportModal";

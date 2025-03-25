@@ -8,8 +8,7 @@ import AppliedPosting from "./AppliedPosting.js";
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
 const MONGODB_TIMEOUT = 5000; // 5 seconds
-const CF_API_ENDPOINT =
-  "https://api.cloudflare.com/client/v4/accounts/2ff2ec5b4b7853ab47fda4fa989403f7/ai/run";
+const CF_API_ENDPOINT = "https://api.cloudflare.com/client/v4/accounts/2ff2ec5b4b7853ab47fda4fa989403f7/ai/run";
 const LOOPS_API_ENDPOINT = "https://app.loops.so/api/v1/transactional";
 
 // Logger utility
@@ -22,10 +21,10 @@ const createLog = (level, stage, message, error = null, metadata = {}) => ({
     error: {
       name: error.name,
       message: error.message,
-      stack: error.stack,
-    },
+      stack: error.stack
+    }
   }),
-  ...(Object.keys(metadata).length > 0 && { metadata }),
+  ...(Object.keys(metadata).length > 0 && { metadata })
 });
 
 // Enhanced MongoDB connection with timeout and retry
@@ -42,11 +41,9 @@ const connectToMongoDB = async (posting) => {
       retries++;
 
       if (retries === MAX_RETRIES) {
-        throw new Error(
-          `Failed to connect to MongoDB after ${MAX_RETRIES} attempts`
-        );
+        throw new Error(`Failed to connect to MongoDB after ${MAX_RETRIES} attempts`);
       }
-      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
     }
   }
 };
@@ -61,11 +58,11 @@ const runApiCall = async (model, input, posting) => {
     const response = await fetch(`${CF_API_ENDPOINT}/${model}`, {
       headers: {
         Authorization: `Bearer ${process.env.CF_API_TOKEN}`,
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json'
       },
       method: "POST",
       body: JSON.stringify(input),
-      signal: controller.signal,
+      signal: controller.signal
     });
 
     if (!response.ok) {
@@ -75,22 +72,18 @@ const runApiCall = async (model, input, posting) => {
     const result = await response.json();
     const processingTime = Date.now() - startTime;
 
-    posting.ats.logs.push(
-      createLog("INFO", "RESUME_PROCESSING", "API call successful", null, {
-        processingTime,
-        model,
-      })
-    );
+    posting.ats.logs.push(createLog('INFO', 'RESUME_PROCESSING', 'API call successful', null, {
+      processingTime,
+      model
+    }));
     await posting.save();
 
     return result;
   } catch (error) {
-    if (error.name === "AbortError") {
-      error.message = "API call timed out";
+    if (error.name === 'AbortError') {
+      error.message = 'API call timed out';
     }
-    posting.ats.logs.push(
-      createLog("ERROR", "RESUME_PROCESSING", "API call failed", error)
-    );
+    posting.ats.logs.push(createLog('ERROR', 'RESUME_PROCESSING', 'API call failed', error));
     await posting.save();
     throw error;
   } finally {
@@ -106,10 +99,10 @@ const sendMail = async (transactionalId, event, posting) => {
     try {
       const startTime = Date.now();
       const response = await fetch(LOOPS_API_ENDPOINT, {
-        method: "POST",
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${process.env.LOOPS_API_KEY}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           email: event.mailData.email,
@@ -117,9 +110,9 @@ const sendMail = async (transactionalId, event, posting) => {
           dataVariables: {
             name: event.mailData.name,
             posting: event.mailData.posting,
-            resumeScreenUrl: event.mailData.resumeScreenUrl,
-          },
-        }),
+            resumeScreenUrl: event.mailData.resumeScreenUrl
+          }
+        })
       });
 
       if (!response.ok) {
@@ -129,95 +122,70 @@ const sendMail = async (transactionalId, event, posting) => {
       const result = await response.json();
       const processingTime = Date.now() - startTime;
 
-      posting.ats.logs.push(
-        createLog("INFO", "EMAIL", "Email sent successfully", null, {
-          processingTime,
-          transactionalId,
-        })
-      );
+      posting.ats.logs.push(createLog('INFO', 'EMAIL', 'Email sent successfully', null, {
+        processingTime,
+        transactionalId
+      }));
       await posting.save();
 
       return result;
     } catch (error) {
       retries++;
-      posting.ats.logs.push(
-        createLog("ERROR", "EMAIL", "Email sending failed", error, {
-          retryCount: retries,
-        })
-      );
+      posting.ats.logs.push(createLog('ERROR', 'EMAIL', 'Email sending failed', error, { retryCount: retries }));
       await posting.save();
 
       if (retries === MAX_RETRIES) {
         throw error;
       }
-      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
     }
   }
 };
 
 // Enhanced candidate posting update function
-const updateCandidatePosting = async (
-  candidate,
-  postingId,
-  finalResp,
-  posting
-) => {
+const updateCandidatePosting = async (candidate, postingId, finalResp, posting) => {
   try {
     const startTime = Date.now();
     const [appliedPosting, postingDoc] = await Promise.all([
-      AppliedPosting.findOne({
-        user: candidate?._id,
-        posting: postingId,
-      }).exec(),
-      Posting.findById(postingId),
+      AppliedPosting.findOne({ user: candidate?._id, posting: postingId }).exec(),
+      Posting.findById(postingId)
     ]);
 
     if (!appliedPosting || !postingDoc) {
-      throw new Error("Applied posting or posting not found");
+      throw new Error('Applied posting or posting not found');
     }
 
-    const stageId = postingDoc.workflow.steps.find(
-      (step) => step.type === "RESUME_SCREENING"
-    )?._id;
+    const stageId = postingDoc.workflow.steps.find(step => step.type === "RESUME_SCREENING")?._id;
     if (!stageId) {
-      throw new Error("Resume screening stage not found");
+      throw new Error('Resume screening stage not found');
     }
 
     const score = {
       stageId,
       score: finalResp.match,
       reason: finalResp.reason,
-      timestamp: new Date(),
+      timestamp: new Date()
     };
 
     appliedPosting.scores = appliedPosting.scores || [];
     appliedPosting.scores.push(score);
+    appliedPosting.status = finalResp.match >= posting?.ats?.minimumScore ? "inprogress" : "rejected"
 
     await appliedPosting.save();
 
     const processingTime = Date.now() - startTime;
-    posting.ats.logs.push(
-      createLog("INFO", "DATABASE", "Updated candidate posting", null, {
-        candidateId: candidate._id,
-        processingTime,
-        score: finalResp.match,
-      })
-    );
+    posting.ats.logs.push(createLog('INFO', 'DATABASE', 'Updated candidate posting', null, {
+      candidateId: candidate._id,
+      processingTime,
+      score: finalResp.match
+    }));
     await posting.save();
 
     return true;
   } catch (error) {
-    posting.ats.logs.push(
-      createLog(
-        "ERROR",
-        "DATABASE",
-        "Failed to update candidate posting",
-        error,
-        {
-          candidateId: candidate?._id,
-        }
-      )
-    );
+    posting.ats.logs.push(createLog('ERROR', 'DATABASE', 'Failed to update candidate posting', error, {
+      candidateId: candidate?._id
+    }));
     await posting.save();
     return false;
   }
@@ -227,17 +195,9 @@ const updateCandidatePosting = async (
 const processResume = async (resume, event, posting) => {
   const startTime = Date.now();
   try {
-    posting.ats.logs.push(
-      createLog(
-        "INFO",
-        "RESUME_PROCESSING",
-        "Started processing resume",
-        null,
-        {
-          candidateId: resume.candidateId,
-        }
-      )
-    );
+    posting.ats.logs.push(createLog('INFO', 'RESUME_PROCESSING', 'Started processing resume', null, {
+      candidateId: resume.candidateId
+    }));
 
     const content = generatePrompt({
       jobDescription: event.jobDescription,
@@ -247,13 +207,9 @@ const processResume = async (resume, event, posting) => {
       resume: resume.resume,
     });
 
-    const response = await runApiCall(
-      "@cf/meta/llama-3-8b-instruct",
-      {
-        messages: [{ role: "user", content }],
-      },
-      posting
-    );
+    const response = await runApiCall("@cf/meta/llama-3-8b-instruct", {
+      messages: [{ role: "user", content }]
+    }, posting);
 
     const finalResp = JSON.parse(response.result.response);
     const candidate = await Candidate.findById(resume.candidateId);
@@ -262,44 +218,23 @@ const processResume = async (resume, event, posting) => {
       throw new Error(`Candidate not found: ${resume.candidateId}`);
     }
 
-    await updateCandidatePosting(
-      candidate,
-      event.postingId,
-      finalResp,
-      posting
-    );
+    await updateCandidatePosting(candidate, event.postingId, finalResp, posting);
 
     const processingTime = Date.now() - startTime;
-    posting.ats.logs.push(
-      createLog(
-        "INFO",
-        "RESUME_PROCESSING",
-        "Completed processing resume",
-        null,
-        {
-          candidateId: resume.candidateId,
-          processingTime,
-          score: finalResp.match,
-        }
-      )
-    );
+    posting.ats.logs.push(createLog('INFO', 'RESUME_PROCESSING', 'Completed processing resume', null, {
+      candidateId: resume.candidateId,
+      processingTime,
+      score: finalResp.match
+    }));
     await posting.save();
 
     return finalResp;
   } catch (error) {
     const processingTime = Date.now() - startTime;
-    posting.ats.logs.push(
-      createLog(
-        "ERROR",
-        "RESUME_PROCESSING",
-        "Failed to process resume",
-        error,
-        {
-          candidateId: resume.candidateId,
-          processingTime,
-        }
-      )
-    );
+    posting.ats.logs.push(createLog('ERROR', 'RESUME_PROCESSING', 'Failed to process resume', error, {
+      candidateId: resume.candidateId,
+      processingTime
+    }));
     await posting.save();
     throw error;
   }
@@ -343,6 +278,7 @@ export const handler = async (event) => {
     // Connect to MongoDB
     await connectToMongoDB(posting);
 
+
     // Get posting first to enable logging
     posting = await Posting.findById(event.postingId);
     if (!posting) {
@@ -354,29 +290,24 @@ export const handler = async (event) => {
     posting.ats.logs = posting.ats.logs || [];
     posting.ats.status = "processing";
     posting.ats.startTime = new Date();
-    posting.ats.logs.push(
-      createLog("INFO", "INIT", "Started processing job posting", null, {
-        totalResumes: event.resumes.length,
-      })
-    );
+    posting.ats.logs.push(createLog('INFO', 'INIT', 'Started processing job posting', null, {
+      totalResumes: event.resumes.length
+    }));
     await posting.save();
 
     // Process resumes
     const processingResults = await Promise.allSettled(
-      event.resumes.map((resume) => processResume(resume, event, posting))
+      event.resumes.map(resume => processResume(resume, event, posting))
     );
 
     // Calculate results
-    const failures = processingResults.filter(
-      (result) => result.status === "rejected"
-    );
+    const failures = processingResults.filter(result => result.status === 'rejected');
     const successCount = processingResults.length - failures.length;
     const failedCount = failures.length;
     const totalTime = Date.now() - startTime;
 
     // Update posting status and summary
-    posting.ats.status =
-      failures.length === processingResults.length ? "failed" : "finished";
+    posting.ats.status = failures.length === processingResults.length ? "failed" : "finished";
     posting.ats.endTime = new Date();
     posting.ats.failedCount = failedCount;
     posting.ats.successCount = successCount;
@@ -385,29 +316,19 @@ export const handler = async (event) => {
       successfulProcessing: successCount,
       failedProcessing: failedCount,
       totalTime,
-      averageProcessingTime: totalTime / processingResults.length,
+      averageProcessingTime: totalTime / processingResults.length
     };
 
-    posting.ats.logs.push(
-      createLog(
-        "INFO",
-        "PROCESSING",
-        "Completed processing all resumes",
-        null,
-        {
-          successCount,
-          failedCount,
-          totalTime,
-        }
-      )
-    );
+    posting.ats.logs.push(createLog('INFO', 'PROCESSING', 'Completed processing all resumes', null, {
+      successCount,
+      failedCount,
+      totalTime
+    }));
     await posting.save();
 
     // Send appropriate email
     const emailResult = await sendMail(
-      failures.length === 0
-        ? "cm7fx3zu1001w136umtdy939y"
-        : "cm7fxd2gz06e711u3zm16c6bv",
+      failures.length === 0 ? "cm7fx3zu1001w136umtdy939y" : "cm7fxd2gz06e711u3zm16c6bv",
       event,
       posting
     );
@@ -418,33 +339,24 @@ export const handler = async (event) => {
         message: "Processing completed",
         successCount,
         failureCount: failedCount,
-        emailResult,
-      }),
+        emailResult
+      })
     };
   } catch (error) {
     if (posting) {
       posting.ats.status = "failed";
       posting.ats.endTime = new Date();
       posting.ats.error = error.message;
-      posting.ats.logs.push(
-        createLog("ERROR", "PROCESSING", "Processing failed", error, {
-          totalTime: Date.now() - startTime,
-        })
-      );
+      posting.ats.logs.push(createLog('ERROR', 'PROCESSING', 'Processing failed', error, {
+        totalTime: Date.now() - startTime
+      }));
       await posting.save();
 
       // Try to send failure email
       try {
         await sendMail("cm7fxd2gz06e711u3zm16c6bv", event, posting);
       } catch (emailError) {
-        posting.ats.logs.push(
-          createLog(
-            "ERROR",
-            "EMAIL",
-            "Failed to send failure notification email",
-            emailError
-          )
-        );
+        posting.ats.logs.push(createLog('ERROR', 'EMAIL', 'Failed to send failure notification email', emailError));
         await posting.save();
       }
     }
@@ -453,8 +365,8 @@ export const handler = async (event) => {
       statusCode: 500,
       body: JSON.stringify({
         message: "Internal Server Error",
-        error: error.message,
-      }),
+        error: error.message
+      })
     };
   } finally {
     // Ensure MongoDB connection is closed
@@ -462,14 +374,7 @@ export const handler = async (event) => {
       await mongoose.connection.close();
     } catch (error) {
       if (posting) {
-        posting.ats.logs.push(
-          createLog(
-            "ERROR",
-            "DATABASE",
-            "Failed to close MongoDB connection",
-            error
-          )
-        );
+        posting.ats.logs.push(createLog('ERROR', 'DATABASE', 'Failed to close MongoDB connection', error));
         await posting.save();
       }
     }

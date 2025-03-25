@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 
-import { Card, CardHeader } from "@heroui/card";
+import { Card } from "@heroui/card";
 import { Button } from "@heroui/button";
 import { Chip } from "@heroui/chip";
 import { Progress } from "@heroui/progress";
@@ -28,6 +28,7 @@ import {
   IconQuestionMark,
 } from "@tabler/icons-react";
 import { PostingContext } from "@/types/PostingContext";
+
 interface ShowProps {
   workflowData: WorkflowStep[];
 }
@@ -42,41 +43,63 @@ const stepTypeMap: Record<StepType, string> = {
 };
 
 const getStepIcon = (type: StepType): JSX.Element => {
+  const iconProps = { size: 24, strokeWidth: 1.5 };
   switch (type) {
     case "RESUME_SCREENING":
-      return <IconFileCv size={30} />;
+      return <IconFileCv {...iconProps} />;
     case "MCQ_ASSESSMENT":
-      return <IconQuestionMark size={30} />;
+      return <IconQuestionMark {...iconProps} />;
     case "CODING_ASSESSMENT":
-      return <IconCode size={30} />;
+      return <IconCode {...iconProps} />;
     case "ASSIGNMENT":
-      return <IconBook size={30} />;
+      return <IconBook {...iconProps} />;
     case "INTERVIEW":
-      return <IconDeviceDesktopPause size={30} />;
+      return <IconDeviceDesktopPause {...iconProps} />;
     case "CUSTOM":
-      return <IconFrustum size={30} />;
+      return <IconFrustum {...iconProps} />;
     default:
-      return <IconFrustum size={30} />;
+      return <IconFrustum {...iconProps} />;
   }
 };
 
-const getStepColor = (type: StepType): string => {
-  switch (type) {
-    case "RESUME_SCREENING":
-      return "bg-blue-400";
-    case "MCQ_ASSESSMENT":
-      return "bg-green-400";
-    case "CODING_ASSESSMENT":
-      return "bg-yellow-400";
-    case "ASSIGNMENT":
-      return "bg-purple-400";
-    case "INTERVIEW":
-      return "bg-red-400";
-    case "CUSTOM":
-      return "bg-default-400";
-    default:
-      return "bg-default-400";
-  }
+const getStepStyles = (type: StepType, status: string) => {
+  const baseClasses =
+    "w-14 h-14 rounded-lg flex items-center justify-center border-2 transition-all";
+  const colorMap = {
+    RESUME_SCREENING: {
+      bg: status === "in-progress" ? "bg-blue-50" : "bg-blue-100/50",
+      border: "border-blue-500",
+      text: "text-blue-500",
+    },
+    MCQ_ASSESSMENT: {
+      bg: status === "in-progress" ? "bg-green-50" : "bg-green-100/50",
+      border: "border-green-500",
+      text: "text-green-500",
+    },
+    CODING_ASSESSMENT: {
+      bg: status === "in-progress" ? "bg-yellow-50" : "bg-yellow-100/50",
+      border: "border-yellow-500",
+      text: "text-yellow-500",
+    },
+    ASSIGNMENT: {
+      bg: status === "in-progress" ? "bg-purple-50" : "bg-purple-100/50",
+      border: "border-purple-500",
+      text: "text-purple-500",
+    },
+    INTERVIEW: {
+      bg: status === "in-progress" ? "bg-red-50" : "bg-red-100/50",
+      border: "border-red-500",
+      text: "text-red-500",
+    },
+    CUSTOM: {
+      bg: status === "in-progress" ? "bg-gray-50" : "bg-gray-100/50",
+      border: "border-gray-500",
+      text: "text-gray-500",
+    },
+  };
+
+  const stepColors = colorMap[type] || colorMap.CUSTOM;
+  return `${baseClasses} ${stepColors.bg} ${stepColors.border} ${stepColors.text}`;
 };
 
 const Show: React.FC<ShowProps> = ({ workflowData }) => {
@@ -104,6 +127,13 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
     onClose: onEndModalClose,
     onOpen: onEndModalOpen,
     onOpenChange: onEndModalOpenChange,
+  } = useDisclosure();
+
+  const {
+    isOpen: isLessThanTwoModalOpen,
+    onClose: onLessThanTwoModalClose,
+    onOpen: onLessThanTwoModalOpen,
+    onOpenChange: onLessThanTwoModalOpenChange,
   } = useDisclosure();
 
   const [selectedStep, setSelectedStep] = useState<{
@@ -156,8 +186,33 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
     }
   };
 
+  const cancelAdvance = () => {
+    onLessThanTwoModalClose();
+    onAdvanceModalClose();
+  };
+
   const handleAdvanceConfirm = async () => {
     if (!selectedStep) return;
+
+    if (!isLessThanTwoModalOpen) {
+      const allAppliedPostings = posting?.candidates?.map((candidate) =>
+        candidate.appliedPostings.find(
+          (appliedPosting) => appliedPosting.posting === posting._id
+        )
+      );
+
+      const qualifiedCandidates = allAppliedPostings?.filter(
+        (appliedPosting) => appliedPosting?.status === "inprogress"
+      );
+
+      if (qualifiedCandidates?.length < 2) {
+        onLessThanTwoModalOpen();
+        return;
+      }
+    }
+
+    onLessThanTwoModalClose();
+
     setLoading(true);
     if (!posting.published) {
       toast.error("Posting is not published");
@@ -198,61 +253,54 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-6">
+    <div className="mx-auto px-16 py-8 space-y-6">
       {posting.published && (
-        <div className="mb-5 bg-card p-4 rounded-xl">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-semibold">Workflow Progress</h2>
-            <span className="text-sm font-medium">
-              {completedSteps} of {totalSteps} steps completed
-            </span>
-          </div>
+        <div className="bg-white shadow-sm rounded-lg overflow-hidden">
           <Progress value={progress} className="h-2" color="primary" />
         </div>
       )}
 
-      {posting.published && posting.workflow?.steps[0].status === "pending" && (
+      {/* Alert for workflow status */}
+      {(!posting.published ||
+        posting.workflow?.steps[0].status === "pending") && (
         <Alert
           color="secondary"
-          title="Workflow not started yet"
-          description="You can start the workflow by advancing the first step"
-          className="mb-5"
-        />
-      )}
-
-      {!posting.published && (
-        <Alert
-          color="secondary"
-          title="Posting Not Published Yet"
-          description="You need to publish this posting first before it is available for workflow operations"
-          className="mb-5"
+          title={
+            !posting.published
+              ? "Posting Not Published"
+              : "Workflow Not Started"
+          }
+          description={
+            !posting.published
+              ? "Publish this posting to begin workflow operations"
+              : "Start the workflow by advancing the first step"
+          }
+          className="rounded-lg shadow-sm"
         />
       )}
 
       <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4 }}
-        className="relative"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="space-y-4"
       >
-        <div className="absolute left-[0.7rem] top-0 bottom-0 w-px bg-default-100" />
-
         {workflowData.map((step, index) => {
           const status = getStepStatus(step);
           return (
             <motion.div
               key={step._id}
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
-              className="mb-4"
             >
-              <div className="flex items-start gap-6">
-                <div className="relative  flex-shrink-0 mt-4">
+              <div className="flex items-center space-x-4">
+                {/* Status Indicator */}
+                <div className="flex-shrink-0">
                   {status === "completed" && (
-                    <div className="w-7 h-7 rounded-full bg-success-50 border-2 border-success-500 flex items-center justify-center">
+                    <div className="w-8 h-8 bg-green-100 border-2 border-green-500 rounded-full flex items-center justify-center">
                       <svg
-                        className="w-4 h-4 text-success-500"
+                        className="w-5 h-5 text-green-500"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -267,112 +315,108 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
                     </div>
                   )}
                   {status === "in-progress" && (
-                    <div className="w-7 h-7 rounded-full bg-primary-50 border-2 border-primary-500 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary-500" />
+                    <div className="w-8 h-8 bg-blue-100 border-2 border-blue-500 rounded-full flex items-center justify-center">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
                     </div>
                   )}
                   {(status === "pending" || status === "upcoming") && (
-                    <div className="w-7 h-7 rounded-full bg-default-50 border-2 border-default-200 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-default-300" />
-                    </div>
+                    <div className="w-8 h-8 bg-gray-100 border-2 border-gray-300 rounded-full" />
                   )}
                 </div>
 
+                {/* Step Card */}
                 <Card
-                  className={`flex-1 flex-row relative overflow-hidden border 
-              ${status === "in-progress" ? "border-1 scale-105 ml-5" : ""}`}
+                  className={`flex-1 p-4 rounded-lg shadow-sm transition-all 
+                    ${
+                      status === "in-progress"
+                        ? "border-2 border-blue-500/20 bg-blue-50/50"
+                        : "border border-gray-200"
+                    }`}
                 >
-                  {/* Animated Background Layer */}
-                  <div
-                    className={`absolute inset-0 bg-white before:absolute before:inset-0 `}
-                  ></div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      {/* Step Icon */}
+                      <div className={getStepStyles(step.type, status)}>
+                        {getStepIcon(step.type)}
+                      </div>
 
-                  {/* Card Content (Above Animated Background) */}
-                  <div
-                    className={`relative  flex items-center justify-center min-w-20 rounded-xl 
-              ${getStepColor(step.type)}`}
-                  >
-                    <div className="opacity-80 text-white">
-                      {getStepIcon(step.type)}
-                    </div>
-                  </div>
-
-                  <CardHeader className="p-4 w-[90%] relative ">
-                    <div className="flex items-center justify-between w-full">
+                      {/* Step Details */}
                       <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-medium text-default-400">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className="text-xs font-medium text-gray-500">
                             Step {index + 1}
                           </span>
                           {status === "in-progress" && (
-                            <Chip color="success" variant="flat" size="sm">
+                            <Chip
+                              color="success"
+                              variant="flat"
+                              size="sm"
+                              className="!text-xs"
+                            >
                               Current
                             </Chip>
                           )}
                         </div>
-                        <h3 className="text-base font-semibold">{step.name}</h3>
-                        <p className="text-sm text-default-500">
+                        <h3 className="text-base font-semibold text-gray-800">
+                          {step.name}
+                        </h3>
+                        <p className="text-sm text-gray-500">
                           {stepTypeMap[step.type]}
                         </p>
-                        {step.schedule && (
-                          <p className="text-xs text-default-400 mt-1">
-                            Scheduled:{" "}
-                            {new Date(
-                              step.schedule.startTime!
-                            ).toLocaleString()}{" "}
-                            -{" "}
-                            {new Date(step.schedule.endTime!).toLocaleString()}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {status === "upcoming" && posting.published && (
-                          <>
-                            <Button
-                              color="primary"
-                              size="sm"
-                              onPress={() => advance(index)}
-                              isLoading={loading}
-                              className="text-black"
-                            >
-                              Advance
-                            </Button>
-                            {step.type !== "CUSTOM" &&
-                              step.type !== "INTERVIEW" &&
-                              step.type !== "RESUME_SCREENING" && (
-                                <Button
-                                  variant="bordered"
-                                  size="sm"
-                                  onPress={() => {
-                                    setSelectedStep({ step, index });
-                                    onScheduleModalOpen();
-                                  }}
-                                  isLoading={loading}
-                                >
-                                  Schedule
-                                </Button>
-                              )}
-                          </>
-                        )}
                       </div>
                     </div>
-                  </CardHeader>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center space-x-2">
+                      {status === "upcoming" && posting.published && (
+                        <>
+                          <Button
+                            color="primary"
+                            size="sm"
+                            onPress={() => advance(index)}
+                            isLoading={loading}
+                            className="shadow-sm"
+                          >
+                            Advance
+                          </Button>
+                          {step.type !== "CUSTOM" &&
+                            step.type !== "INTERVIEW" &&
+                            step.type !== "RESUME_SCREENING" && (
+                              <Button
+                                variant="bordered"
+                                size="sm"
+                                onPress={() => {
+                                  setSelectedStep({ step, index });
+                                  onScheduleModalOpen();
+                                }}
+                                isLoading={loading}
+                                className="shadow-sm"
+                              >
+                                Schedule
+                              </Button>
+                            )}
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </Card>
               </div>
             </motion.div>
           );
         })}
-        {/* Show End Workflow Button only if all steps are completed */}
+
+        {/* End Workflow Button */}
         {completedSteps === totalSteps - 1 && (
-          <Button
-            color="success"
-            className="float-right mt-3 "
-            onPress={onEndModalOpen}
-            isLoading={loading}
-          >
-            End Workflow
-          </Button>
+          <div className="flex justify-end mt-4">
+            <Button
+              color="success"
+              variant="flat"
+              onPress={onEndModalOpen}
+              isLoading={loading}
+            >
+              End Workflow
+            </Button>
+          </div>
         )}
       </motion.div>
 
@@ -420,7 +464,6 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
         backdrop="blur"
       >
         <ModalContent>
-          {" "}
           <ModalHeader>
             <h3 className="text-lg font-semibold">Advance to Next Step?</h3>
           </ModalHeader>
@@ -463,10 +506,12 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
           <ModalBody>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium">Start Time</label>
+                <label className="block text-sm font-medium mb-1">
+                  Start Time
+                </label>
                 <input
                   type="datetime-local"
-                  className="mt-1 block w-full border rounded-md shadow-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={scheduleData.startTime}
                   onChange={(e) =>
                     setScheduleData((prev) => ({
@@ -478,10 +523,12 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium">End Time</label>
+                <label className="block text-sm font-medium mb-1">
+                  End Time
+                </label>
                 <input
                   type="datetime-local"
-                  className="mt-1 block w-full border rounded-md shadow-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={scheduleData.endTime}
                   onChange={(e) =>
                     setScheduleData((prev) => ({
@@ -513,6 +560,43 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
               disabled={!scheduleData.startTime || !scheduleData.endTime}
             >
               Schedule
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Less than 2 Modal */}
+      <Modal
+        isOpen={isLessThanTwoModalOpen}
+        onOpenChange={onLessThanTwoModalOpenChange}
+        backdrop="blur"
+      >
+        <ModalContent>
+          <ModalHeader>
+            <h3 className="text-lg font-semibold">Less than 2 Candidates</h3>
+          </ModalHeader>
+          <ModalBody>
+            <p>
+              There are less than 2 candidates in this posting. You can continue
+              to hire the candidate without next workflow steps. Do you still
+              want to continue?
+            </p>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="default"
+              variant="flat"
+              onPress={() => cancelAdvance()}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="primary"
+              onPress={handleAdvanceConfirm}
+              isLoading={loading}
+            >
+              Continue
             </Button>
           </ModalFooter>
         </ModalContent>

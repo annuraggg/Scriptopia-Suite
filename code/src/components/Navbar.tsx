@@ -1,6 +1,6 @@
 import { UserButton } from "@clerk/clerk-react";
 import { useTheme } from './theme-provider';
-import { Button } from '@nextui-org/react';
+import { Button } from "@heroui/react";
 import { Moon, Sun } from 'lucide-react';
 import Wallet from './Wallet';
 import { useAuth } from "@clerk/clerk-react";

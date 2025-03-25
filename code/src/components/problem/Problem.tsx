@@ -14,7 +14,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Button, Card, CardBody, Spinner } from "@nextui-org/react";
+import { Button, Card, CardBody, Spinner } from "@heroui/react";
 import { CpuIcon, TimerIcon, CoinsIcon } from "lucide-react";
 import { Submission } from "@shared-types/Submission";
 import { useAuth } from "@clerk/clerk-react";

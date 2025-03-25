@@ -12,6 +12,7 @@ import Posting from "./pages/posting/Posting";
 import Apply from "./pages/posting/apply/Apply";
 import Resume from "./pages/resume/Resume";
 import Myjobs from "./pages/jobs/Myjobs";
+import Assignment from "./pages/posting/assignment/Assignment";
 
 function App() {
   const router = createBrowserRouter([
@@ -34,6 +35,10 @@ function App() {
         {
           path: "postings/:id/apply",
           element: <Apply />,
+        },
+        {
+          path: "postings/:id/assignments/:assignmentId",
+          element: <Assignment />,
         },
       ],
     },

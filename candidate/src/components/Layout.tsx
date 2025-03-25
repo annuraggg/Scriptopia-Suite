@@ -10,11 +10,11 @@ import { useEffect, useState } from "react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import Loader from "./Loader";
-import { Candidate } from "@shared-types/Candidate";
+import { ExtendedCandidate } from "@shared-types/ExtendedCandidate";
 
 const Layout = () => {
   const { getToken } = useAuth();
-  const [user, setUser] = useState<Candidate>({} as Candidate);
+  const [user, setUser] = useState<ExtendedCandidate>({} as ExtendedCandidate);
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -25,6 +25,7 @@ const Layout = () => {
       .get("candidates/candidate")
       .then((res) => {
         setUser(res.data.data);
+        console.log(res.data.data);
       })
       .catch((err) => {
         if (err.response.status === 404) {

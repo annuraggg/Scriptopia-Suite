@@ -1,10 +1,17 @@
 import { ExtendedCandidate } from "./ExtendedCandidate";
+import { Meet } from "./Meet";
 import { Organization } from "./Organization";
-import { Posting } from "./Posting";
+import { Interview, Posting } from "./Posting";
 
-interface ExtendedPosting extends Omit<Posting, "organizationId" | "candidates"> {
+interface ExtendedPosting
+  extends Omit<Posting, "organizationId" | "candidates" | "interviews"> {
   organizationId: Omit<Organization, "members">;
   candidates: ExtendedCandidate[];
+  interviews: ExtendedInterviews[];
 }
 
-export type { ExtendedPosting };
+interface ExtendedInterviews extends Omit<Interview, "interview"> {
+  interview: Meet;
+}
+
+export type { ExtendedPosting, ExtendedInterviews };

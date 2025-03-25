@@ -1,5 +1,6 @@
 import r2Client from "@/config/s3";
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
+import AppliedPosting from "@/models/AppliedPosting";
 import Candidate from "@/models/Candidate";
 import logger from "@/utils/logger";
 import { sendError, sendSuccess } from "@/utils/sendResponse";
@@ -57,7 +58,124 @@ const getResume = async (c: Context) => {
   return sendSuccess(c, 200, "Resume URL", { url });
 };
 
+const qualifyCandidate = async (c: Context) => {
+  try {
+    const perms = await checkOrganizationPermission.some(c, ["manage_job"]);
+
+    if (!perms.allowed) {
+      return sendError(c, 403, "Unauthorized");
+    }
+
+    const { postingId, _id } = await c.req.json();
+    console.log(postingId, _id);
+    const appliedPosting = await AppliedPosting.findOne({
+      user: _id,
+      posting: postingId,
+    });
+
+    if (!appliedPosting) {
+      return sendError(c, 404, "Applied posting not found");
+    }
+
+    appliedPosting.status = "inprogress";
+    await appliedPosting.save();
+
+    return sendSuccess(c, 200, "Candidate qualified successfully");
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
+const disqualifyCandidate = async (c: Context) => {
+  try {
+    const perms = await checkOrganizationPermission.some(c, ["manage_job"]);
+
+    if (!perms.allowed) {
+      return sendError(c, 403, "Unauthorized");
+    }
+
+    const { _id, postingId, reason } = await c.req.json();
+    console.log(_id, postingId, reason);
+
+    const appliedPosting = await AppliedPosting.findOne({
+      user: _id,
+      posting: postingId,
+    });
+
+    if (!appliedPosting) {
+      return sendError(c, 404, "Applied posting not found");
+    }
+
+    appliedPosting.status = "rejected";
+    appliedPosting.disqualifiedReason = reason;
+    await appliedPosting.save();
+
+    return sendSuccess(c, 200, "Candidate disqualified successfully");
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
+const bulkQualify = async (c: Context) => {
+  try {
+    const perms = await checkOrganizationPermission.some(c, ["manage_job"]);
+
+    if (!perms.allowed) {
+      return sendError(c, 403, "Unauthorized");
+    }
+
+    const { postingId, candidateIds } = await c.req.json();
+    const appliedPostings = await AppliedPosting.find({
+      user: { $in: candidateIds },
+      posting: postingId,
+    });
+
+    for (const appliedPosting of appliedPostings) {
+      appliedPosting.status = "inprogress";
+      await appliedPosting.save();
+    }
+
+    return sendSuccess(c, 200, "Candidates qualified successfully");
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
+const bulkDisqualify = async (c: Context) => {
+  try {
+    const perms = await checkOrganizationPermission.some(c, ["manage_job"]);
+
+    if (!perms.allowed) {
+      return sendError(c, 403, "Unauthorized");
+    }
+
+    const { postingId, candidateIds, reason } = await c.req.json();
+    const appliedPostings = await AppliedPosting.find({
+      user: { $in: candidateIds },
+      posting: postingId,
+    });
+
+    for (const appliedPosting of appliedPostings) {
+      appliedPosting.status = "rejected";
+      appliedPosting.disqualifiedReason = reason;
+      await appliedPosting.save();
+    }
+
+    return sendSuccess(c, 200, "Candidates disqualified successfully");
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
 export default {
   getCandidate,
   getResume,
+  qualifyCandidate,
+  disqualifyCandidate,
+  bulkQualify,
+  bulkDisqualify,
 };

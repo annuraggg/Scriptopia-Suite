@@ -1,4 +1,4 @@
-import { Input, Select, SelectItem } from "@nextui-org/react";
+import { Input, Select, SelectItem } from "@heroui/react";
 import { motion } from "framer-motion";
 import { Problem } from "@shared-types/Problem";
 import {
@@ -54,10 +54,10 @@ const Grading: React.FC<GradingProps> = ({
         selectedKeys={[gradingMetric]}
         onChange={(e) => setGradingMetric(e.target.value)}
       >
-        <SelectItem key="testcase" value="testcase">
+        <SelectItem key="testcase">
           By Test Case Difficulty
         </SelectItem>
-        <SelectItem key="questions" value="questions">
+        <SelectItem key="questions">
           By Questions
         </SelectItem>
       </Select>

@@ -36,7 +36,7 @@ const Contact = ({
   setInstituteZipCode: React.Dispatch<React.SetStateAction<string>>;
 }) => {
   return (
-    <div className="pt-16">
+    <div className="pt-5">
       <p className="opacity-50 mt-1">
         Next, tell us about how we can contact your institute.
       </p>
@@ -69,34 +69,38 @@ const Contact = ({
           value={instituteStreetAddress}
           onChange={(e) => setInstituteStreetAddress(e.target.value)}
         />
-        <Input
-          label="City"
-          type="text"
-          className="mt-5"
-          value={instituteCity}
-          onChange={(e) => setInstituteCity(e.target.value)}
-        />
-        <Input
-          label="State"
-          type="text"
-          className="mt-5"
-          value={instituteState}
-          onChange={(e) => setInstituteState(e.target.value)}
-        />
-        <Input
-          label="Country"
-          type="text"
-          className="mt-5"
-          value={instituteCountry}
-          onChange={(e) => setInstituteCountry(e.target.value)}
-        />
-        <Input
-          label="Zip Code"
-          type="number"
-          className="mt-5"
-          value={instituteZipCode}
-          onChange={(e) => setInstituteZipCode(e.target.value)}
-        />
+        <div className="flex gap-3">
+          <Input
+            label="City"
+            type="text"
+            className="mt-5"
+            value={instituteCity}
+            onChange={(e) => setInstituteCity(e.target.value)}
+          />
+          <Input
+            label="State"
+            type="text"
+            className="mt-5"
+            value={instituteState}
+            onChange={(e) => setInstituteState(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-3">
+          <Input
+            label="Country"
+            type="text"
+            className="mt-5"
+            value={instituteCountry}
+            onChange={(e) => setInstituteCountry(e.target.value)}
+          />
+          <Input
+            label="Zip Code"
+            type="number"
+            className="mt-5"
+            value={instituteZipCode}
+            onChange={(e) => setInstituteZipCode(e.target.value)}
+          />
+        </div>
       </div>
     </div>
   );

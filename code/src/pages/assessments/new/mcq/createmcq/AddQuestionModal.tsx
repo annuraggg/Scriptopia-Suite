@@ -12,7 +12,7 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Plus } from "lucide-react";
 import MonacoEditor from "@monaco-editor/react";
 import { Option, Question, QuestionType } from "@shared-types/MCQAssessment";
@@ -50,8 +50,11 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
       setImageUrl(editingQuestion.imageSource || "");
       setMaxLimit(editingQuestion.maxCharactersAllowed || 70);
       setFillInBlanksAnswers([]);
+      console.log("FIB", editingQuestion.fillInBlankAnswers);
       setFillInBlanksAnswers(editingQuestion.fillInBlankAnswers || []);
       setSelectedCorrectOption(editingQuestion.correct || "");
+      setBlankAnswers(editingQuestion.fillInBlankAnswers || []);
+      setGrade(editingQuestion?.grade || 0);
 
       const correctOption = editingQuestion.options?.find(
         (opt) => opt.isCorrect
@@ -127,6 +130,7 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
       question: questionText,
       type: selectedType,
       grade: grade,
+      codeSnippet: code || undefined,
     };
 
     switch (selectedType) {
@@ -137,10 +141,7 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
         newQuestion.options = options;
         break;
       case "true-false":
-        newQuestion.options = [
-          { option: "True", isCorrect: false },
-          { option: "False", isCorrect: false },
-        ];
+        newQuestion.options = options;
         break;
       case "short-answer":
         newQuestion.correct = selectedCorrectOption;
@@ -222,7 +223,11 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
 
       case "true-false":
         return (
-          <RadioGroup>
+          <RadioGroup
+            value={selectedCorrectOption}
+            onValueChange={handleRadioChange}
+            label="Select correct answer"
+          >
             <Radio value="True">True</Radio>
             <Radio value="False">False</Radio>
           </RadioGroup>
@@ -397,7 +402,7 @@ const QuestionModal: React.FC<AddQuestionModalProps> = ({
                 "fill-in-blanks",
                 "matching",
               ].map((type) => (
-                <SelectItem key={type} value={type}>
+                <SelectItem key={type}>
                   {type
                     .split("-")
                     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))

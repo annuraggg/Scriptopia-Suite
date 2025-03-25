@@ -19,7 +19,7 @@ import {
   TableRow,
   Textarea,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { TestCase } from "@shared-types/Problem";
@@ -513,15 +513,9 @@ const TestCases = ({
                   onChange={(e) => setDifficulty(e.target.value)}
                   aria-label="Select difficulty"
                 >
-                  <SelectItem key="easy" value="Easy">
-                    Easy
-                  </SelectItem>
-                  <SelectItem key="medium" value="Medium">
-                    Medium
-                  </SelectItem>
-                  <SelectItem key="hard" value="Hard">
-                    Hard
-                  </SelectItem>
+                  <SelectItem key="easy">Easy</SelectItem>
+                  <SelectItem key="medium">Medium</SelectItem>
+                  <SelectItem key="hard">Hard</SelectItem>
                 </Select>
                 <Switch
                   className="w-full"

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Button, CircularProgress } from "@nextui-org/react";
+import { Button, CircularProgress } from "@heroui/react";
 import { CircleCheck, CircleX } from "lucide-react";
 import React, { useEffect } from "react";
 

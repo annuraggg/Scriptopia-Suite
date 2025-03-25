@@ -16,6 +16,7 @@ import {
   MicOff,
   MonitorUp,
   PhoneOff,
+  User,
   Users,
 } from "lucide-react";
 import {
@@ -30,6 +31,7 @@ interface ActionButtonsProps {
   onChatToggle: (isOpen: boolean) => void;
   participantsOpen: boolean;
   setParticipantsOpen: (isOpen: boolean) => void;
+  role: string;
 }
 
 const ActionButtons = ({
@@ -37,6 +39,7 @@ const ActionButtons = ({
   onChatToggle,
   participantsOpen,
   setParticipantsOpen,
+  role,
 }: ActionButtonsProps) => {
   const {
     useCameraState,
@@ -256,19 +259,22 @@ const ActionButtons = ({
       )}
 
       {/* Waiting Room */}
-      <Button
-        radius="full"
-        variant="flat"
-        size="lg"
-        isIconOnly
-        className={
-          participantsOpen ? "text-blue-500 bg-blue-800 bg-opacity-50" : ""
-        }
-        onClick={() => setParticipantsOpen(!participantsOpen)}
-      >
-        <Users />
-      </Button>
 
+      {role === "interviewer" && (
+        <Button
+          radius="full"
+          variant="flat"
+          size="lg"
+          isIconOnly
+          className={
+            participantsOpen ? "text-blue-500 bg-blue-800 bg-opacity-50" : ""
+          }
+          onClick={() => setParticipantsOpen(!participantsOpen)}
+        >
+          <Users />
+        </Button>
+      )}
+      
       {/* Chat Toggle */}
       <Button
         radius="full"
@@ -281,6 +287,7 @@ const ActionButtons = ({
       </Button>
 
       {/* End Call */}
+
       <Button
         size="lg"
         color="danger"
@@ -291,17 +298,11 @@ const ActionButtons = ({
         <PhoneOff />
       </Button>
 
-      {/* Settings */}
-      {/* <Button
-        radius="full"
-        variant="light"
-        size="lg"
-        isIconOnly
-        className="absolute right-5"
-        onClick={() => onSettingsToggle(true)}
-      >
-        <Settings />
-      </Button> */}
+      {role === "interviewer" && (
+        <Button radius="full" variant="light" size="lg" isIconOnly>
+          <User />
+        </Button>
+      )}
     </div>
   );
 };

@@ -8,7 +8,7 @@ import {
   Input,
   Select,
   SelectItem,
-} from "@nextui-org/react";
+} from "@heroui/react";
 
 const ConundrumCubes = () => {
   const cubes = [
@@ -73,13 +73,13 @@ const ConundrumCubes = () => {
         <div className="mt-5 mb-5 flex gap-5 w-[70%]">
           <Input type="Search" label="Search Problems" size="sm" />
           <Select label="Difficulty" className="max-w-xs" size="sm">
-            <SelectItem key="easy" value="easy">
+            <SelectItem key="easy">
               Easy
             </SelectItem>
-            <SelectItem key="medium" value="medium">
+            <SelectItem key="medium">
               Medium
             </SelectItem>
-            <SelectItem key="hard" value="hard">
+            <SelectItem key="hard">
               Hard
             </SelectItem>
           </Select>

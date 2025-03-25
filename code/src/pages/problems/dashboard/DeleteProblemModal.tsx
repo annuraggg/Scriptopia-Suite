@@ -8,7 +8,7 @@ import {
   Button,
   useDisclosure,
   Spinner,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";

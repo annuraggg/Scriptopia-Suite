@@ -6,10 +6,6 @@ import {
   IconBriefcaseFilled,
   IconUserFilled,
   IconFileTextFilled,
-  // IconBellFilled,
-  // IconSettingsFilled,
-  // IconHelpCircleFilled,
-  // IconAlertCircleFilled,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { UserButton } from "@clerk/clerk-react";
