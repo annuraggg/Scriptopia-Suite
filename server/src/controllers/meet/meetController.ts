@@ -81,43 +81,56 @@ getIoServer().then((server) => {
 const getMeetJWT = async (c: Context) => {
   const clerkId = await c.get("auth").userId;
   const userId = await c.get("auth")._id;
+
+  console.log("Meet JWT", userId, clerkId);
   if (!clerkId) return sendError(c, 401, "Unauthorized");
 
   let name = "";
   let isInterviewer = false;
   let isCandidate = false;
 
+  console.log("Here 1", userId, clerkId);
+
   const orgPerms = await checkOrganizationPermission.all(c, ["manage_job"]);
   if (orgPerms.allowed) {
     const organization = await Organization.findOne({
       _id: orgPerms.data?.organization?._id,
     });
+
+    console.log("Org perms", orgPerms, organization);
     if (!organization) return sendError(c, 401, "Unauthorized");
 
     const memberIdMap = organization.members.map((m) => m.user?.toString());
+    console.log("Member ID Map", memberIdMap, userId, clerkId);
     if (!memberIdMap.includes(userId)) return sendError(c, 401, "Unauthorized");
+    console.log("Here 2", userId, clerkId);
     isInterviewer = true;
     name = "Interviewer";
   }
 
   const { postingId } = await c.req.json();
 
+  console.log("Here 3", userId, postingId);
+
   const posting = await Posting.findOne({
     _id: postingId,
   }).populate("interviews.interview");
 
+  console.log("Posting", posting);
   if (!posting) return sendError(c, 401, "Unauthorized");
 
   const currentStep = posting?.workflow?.steps.find(
     (step) => step.status === "in-progress"
   );
 
+  console.log("Current step", currentStep);
   if (!currentStep) return sendError(c, 401, "Unauthorized");
 
   const interview = posting.interviews.find(
     (i) => i.workflowId?.toString() === currentStep._id?.toString()
   );
 
+  console.log("Interview", interview);
   if (!interview) return sendError(c, 401, "Unauthorized");
 
   // @ts-ignore
@@ -125,6 +138,7 @@ const getMeetJWT = async (c: Context) => {
 
   if (!isInterviewer) {
     const candidate = await Candidate.findOne({ userId: userId });
+    console.log("Candidate", candidate);
     if (!candidate) return sendError(c, 401, "Unauthorized");
 
     if (!posting.candidates.includes(candidate._id)) {
@@ -165,12 +179,16 @@ const getStreamJWT = async (c: Context) => {
     const { _id } = await c.get("auth");
     const { token } = await c.req.json();
 
+    console.log("Stream JWT", token, _id);
+
     if (!token || !_id) return sendError(c, 401, "Unauthorized");
 
     const decoded: JwtPayload = jwt.verify(
       token,
       process.env.JWT_SECRET!
     ) as JwtPayload;
+
+    console.log("Decoded JWT", decoded);
     if (!decoded) return sendError(c, 401, "Unauthorized");
 
     let streamToken = "";
@@ -205,9 +223,8 @@ const getStreamJWT = async (c: Context) => {
     let isDisconnected = false;
     if (current?.toString() === _id) {
       isDisconnected = true;
-    }``
-
-    console.log("Disconnected", isDisconnected);
+    }
+    ``;
 
     return sendSuccess(c, 200, "Stream JWT generated", {
       token: streamToken,
@@ -226,6 +243,7 @@ const getMeet = async (c: Context) => {
     const code = c.req.param("code");
     const { _id } = await c.get("auth");
 
+    console.log("Meet code", code, _id);
     if (!_id) return sendError(c, 401, "Unauthorized");
 
     const meet = await Meet.findOne({
@@ -243,6 +261,7 @@ const getMeet = async (c: Context) => {
     );
 
     if (!isInterviewer) {
+      console.log("Not an interviewer");
       return sendError(c, 401, "Unauthorized");
     }
 

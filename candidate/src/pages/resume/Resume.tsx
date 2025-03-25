@@ -20,9 +20,7 @@ import {
 } from "@nextui-org/react";
 import { Candidate } from "@shared-types/Candidate";
 import { useOutletContext } from "react-router-dom";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-import ResumePDF from "./ResumePDF"
+import ResumePDF from "./ResumePDF";
 import {
   DragDropContext,
   Droppable,
@@ -44,21 +42,11 @@ import {
   CheckCircle,
   AlertTriangle,
 } from "lucide-react";
-import html2pdf from "html2pdf.js";
 import axios from "axios";
 import { ThemeStyles } from "@/types/ResumeTheme";
 import Themes from "./Themes";
 import ThemeCustomizer from "./ThemeCustomizer";
-import {
-  PDFDownloadLink,
-  Document,
-  Page,
-  Text,
-  View,
-  Link,
-  StyleSheet,
-  pdf,
-} from "@react-pdf/renderer";
+import { pdf } from "@react-pdf/renderer";
 
 // ATS Check interface
 interface ATSCheckResult {

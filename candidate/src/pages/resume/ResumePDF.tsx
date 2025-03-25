@@ -1,6 +1,13 @@
-import { Document, Link, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import {
+  Document,
+  Link,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+} from "@react-pdf/renderer";
+import { Candidate } from "@shared-types/Candidate";
 
-// First, let's define PDF styles using StyleSheet
 const pdfStyles = StyleSheet.create({
   page: {
     padding: 30,
@@ -75,8 +82,12 @@ const pdfStyles = StyleSheet.create({
   },
 });
 
-// Create a PDF Document component for the resume
-const ResumePDF = ({ user, activeSections }) => {
+interface ResumePDFProps {
+  user: Candidate;
+  activeSections: string[];
+}
+
+const ResumePDF = ({ user, activeSections }: ResumePDFProps) => {
   const formatDate = (date?: Date | string): string => {
     if (!date) return "Present";
     const d = new Date(date);
@@ -312,4 +323,4 @@ const ResumePDF = ({ user, activeSections }) => {
   );
 };
 
-export default ResumePDF
+export default ResumePDF;

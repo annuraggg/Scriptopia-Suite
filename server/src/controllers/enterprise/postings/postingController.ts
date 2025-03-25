@@ -177,7 +177,7 @@ const createPosting = async (c: Context) => {
       },
     });
 
-    return sendSuccess(c, 403, "job created successfully", newPosting);
+    return sendSuccess(c, 200, "job created successfully", newPosting);
   } catch (e: any) {
     logger.error(e);
     return sendError(c, 500, `Error creating posting: ${e.message}`);
