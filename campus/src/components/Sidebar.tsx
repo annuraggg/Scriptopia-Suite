@@ -65,7 +65,7 @@ const Sidebar = ({
     {
       icon: IconUserFilled,
       label: "Candidates",
-      link: "/candidates",
+      link: "/candidates/active",
       visible:
         user?.permissions?.includes("view_drive") ||
         user?.permissions?.includes("manage_drive"),

@@ -106,6 +106,11 @@ const placementGroupSchema = new Schema(
   { timestamps: true }
 );
 
+const candidateSchema = new Schema({
+  candidate: { type: Schema.Types.ObjectId, ref: "Candidate" },
+  uid: { type: String, required: true },
+})
+
 const instituteSchema = new Schema(
   {
     name: { required: true, type: String },
@@ -134,6 +139,11 @@ const instituteSchema = new Schema(
 
     companies: [companySchema],
     placementGroups: [placementGroupSchema],
+
+    candidates: [candidateSchema],
+    pendingCandidates: [candidateSchema],
+
+    code: { type: String, required: true },
 
     isDeleted: { type: Boolean, default: false },
   },

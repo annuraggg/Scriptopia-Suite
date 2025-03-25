@@ -14,6 +14,7 @@ import GroupDetails from "./pages/placementgroups/GroupDetails";
 
 // Lazy load components
 import Loader from "./components/Loader";
+import PendingCandidates from "./pages/candidates/PendingCandidates";
 const Lander = lazy(() => import("./pages/lander/Lander"));
 const Layout = lazy(() => import("./components/Layout"));
 const DriveLayout = lazy(() => import("./pages/jobs/job/Layout"));
@@ -21,7 +22,7 @@ const SettingsLayout = lazy(() => import("./pages/settings/Layout"));
 const Start = lazy(() => import("./pages/start/Start"));
 const Join = lazy(() => import("./pages/join/Join"));
 const Onboarding = lazy(() => import("./pages/onboarding/Onboarding"));
-const CandidateLayout = lazy(() => import("./pages/candidate/Layout"));
+const CandidateLayout = lazy(() => import("./pages/candidates/Layout"));
 const CompanyDetails = lazy(
   () => import("./pages/companyprofiles/CompanyDetails")
 );
@@ -72,15 +73,6 @@ const ViewUserAssessment = lazy(
   () => import("./pages/jobs/job/assessments/ViewAssessment/ViewUserAssessment")
 );
 
-// Candidate specific routes
-const Apply = lazy(() => import("./pages/candidate/apply/Apply"));
-const CandidatePosting = lazy(
-  () => import("./pages/candidate/postings/Posting")
-);
-const CandidateAssignment = lazy(
-  () => import("./pages/candidate/assignment/Assignment")
-);
-
 // Settings routes
 const GeneralSettings = lazy(() => import("./pages/settings/general/General"));
 const Members = lazy(() => import("./pages/settings/members/Member"));
@@ -94,6 +86,7 @@ const AuditLogs = lazy(
 const OrgData = lazy(() => import("./pages/settings/security/data/Data"));
 
 const StartOnboarding = lazy(() => import("./pages/onboarding/start/Start"));
+const CandidateProfile = lazy(() => import("./pages/candidates/Profile"));
 
 function App() {
   const { user, isSignedIn } = useUser();
@@ -310,7 +303,33 @@ function App() {
           path: "candidates",
           element: (
             <Suspense fallback={<Loader />}>
-              <Candidates />
+              <CandidateLayout />
+            </Suspense>
+          ),
+          children: [
+            {
+              path: "active",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Candidates />
+                </Suspense>
+              ),
+            },
+            {
+              path: "pending",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <PendingCandidates />
+                </Suspense>
+              ),
+            },
+          ],
+        },
+        {
+          path: "c/:id",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <CandidateProfile />
             </Suspense>
           ),
         },
@@ -457,41 +476,6 @@ function App() {
           element: (
             <Suspense fallback={<Loader />}>
               <Interviews />
-            </Suspense>
-          ),
-        },
-      ],
-    },
-
-    {
-      path: "/",
-      element: (
-        <Suspense fallback={<Loader />}>
-          <CandidateLayout />
-        </Suspense>
-      ),
-      children: [
-        {
-          path: "postings/:id",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <CandidatePosting />
-            </Suspense>
-          ),
-        },
-        {
-          path: "postings/:id/apply",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Apply />
-            </Suspense>
-          ),
-        },
-        {
-          path: "postings/:id/assignments/:assignmentId",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <CandidateAssignment />
             </Suspense>
           ),
         },

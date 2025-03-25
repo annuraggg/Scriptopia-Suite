@@ -177,6 +177,14 @@ interface ExtraCurricular {
   createdAt?: Date;
 }
 
+interface Notification {
+  _id?: string;
+  type: "info" | "warning" | "error";
+  message: string;
+  read: boolean;
+  createdAt?: Date;
+}
+
 interface Candidate {
   _id?: string;
   userId?: string;
@@ -206,6 +214,8 @@ interface Candidate {
   resumeUrl?: string;
   resumeExtract?: string;
   appliedPostings?: string[];
+  institute?: string;
+  notifications?: Notification[];
   createdAt?: Date;
   updatedAt?: Date;
 }

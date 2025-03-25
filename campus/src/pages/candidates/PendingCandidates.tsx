@@ -1,16 +1,17 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { DataTable } from "./DataTable";
-import { RootState } from "@/types/Reducer";
 import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
-import { useSelector } from "react-redux";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { Spinner } from "@nextui-org/react";
+import { Button, Spinner } from "@nextui-org/react";
+import { useOutletContext } from "react-router-dom";
+import { RootContext } from "@/types/RootContext";
+import { toast } from "sonner";
 import { ExtendedInstituteCandidate } from "@shared-types/ExtendedInstituteCandidate";
 
 const Candidates = () => {
-  const org = useSelector((state: RootState) => state.institute);
+  const { institute } = useOutletContext<RootContext>();
   const [candidates, setCandidates] = useState<ExtendedInstituteCandidate[]>(
     []
   );
@@ -22,9 +23,10 @@ const Candidates = () => {
   useEffect(() => {
     const axios = ax(getToken);
     axios
-      .get("/institutes/candidates")
+      .get("/institutes/candidates/pending")
       .then((response) => {
-        setCandidates(response.data.data || []);
+        console.log(response.data.data);
+        setCandidates(response.data.data);
         setLoading(false);
       })
       .catch((error) => {
@@ -34,21 +36,32 @@ const Candidates = () => {
       });
   }, [rerender]);
 
+  const copyInvite = () => {
+    navigator.clipboard.writeText(
+      `${import.meta.env.VITE_CANDIDATE_URL}/campus?code=${institute?.code}`
+    );
+
+    console.log(institute);
+
+    toast.success("Invite link copied to clipboard");
+  };
+
   if (loading)
     return (
       <div className="flex items-center justify-center h-screen">
         <Spinner />
       </div>
     );
+
   if (error) return <div>Error: {error}</div>;
 
   return (
     <>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem>{org?.name}</BreadcrumbItem>
-          <BreadcrumbItem href={"/candidates/active"}>
-            Candidates
+          <BreadcrumbItem>{institute?.name}</BreadcrumbItem>
+          <BreadcrumbItem href={"/candidates/pending"}>
+            Pending Candidates
           </BreadcrumbItem>
         </Breadcrumbs>
       </div>
@@ -59,7 +72,12 @@ const Candidates = () => {
         className=""
       >
         <div className="p-5">
-          <DataTable data={candidates} type="active" onDataUpdate={() =>setRerender(!rerender)} />
+          <Button onPress={copyInvite}>Copy Invite Link</Button>
+          <DataTable
+            data={candidates}
+            type="pending"
+            onDataUpdate={() => setRerender(!rerender)}
+          />
         </div>
       </motion.div>
     </>

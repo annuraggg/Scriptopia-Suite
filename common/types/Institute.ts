@@ -103,6 +103,11 @@ interface PlacementGroup {
   updatedAt?: Date;
 }
 
+interface Candidate {
+  candidate: string;
+  uid: string;
+}
+
 interface Institute {
   _id?: string;
   name: string;
@@ -118,6 +123,9 @@ interface Institute {
   drives?: string[];
   companies: Company[];
   placementGroups: PlacementGroup[];
+  code: string;
+  candidates: Candidate[];
+  pendingCandidates: Candidate[];
   isDeleted: boolean;
   createdAt?: Date;
   updatedAt?: Date;
@@ -134,4 +142,5 @@ export type {
   Company,
   PlacementGroup,
   Institute,
+  Candidate,
 };

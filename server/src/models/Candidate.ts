@@ -196,6 +196,13 @@ const extraCurricularSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+const notificationSchema = new Schema({
+  message: { type: String, required: true },
+  type: { type: String, required: true },
+  read: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+});
+
 const candidateSchema = new Schema(
   {
     userId: { type: mongoose.Types.ObjectId, ref: "User" },
@@ -238,6 +245,10 @@ const candidateSchema = new Schema(
     appliedDrives: [
       { type: mongoose.Schema.Types.ObjectId, ref: "AppliedDrives" },
     ],
+
+    notifications: [notificationSchema],
+
+    institute: { type: mongoose.Schema.Types.ObjectId, ref: "Institute" },
   },
   { timestamps: true }
 );
