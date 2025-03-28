@@ -895,9 +895,9 @@ const getCandidates = async (c: Context) => {
 
     const instituteId = perms.data?.institute?._id;
     const institute = await Institute.findOne({ _id: instituteId })
-      .populate("candidates.candidate")
+      .populate("candidates")
       .lean();
-
+ 1  
     if (!institute) {
       return sendError(c, 404, "Institute not found");
     }
@@ -922,7 +922,7 @@ const getPendingCandidates = async (c: Context) => {
     }
     const instituteId = perms.data?.institute?._id;
     const institute = await Institute.findOne({ _id: instituteId })
-      .populate("pendingCandidates.candidate")
+      .populate("pendingCandidates")
       .lean();
 
     if (!institute) {
@@ -1013,13 +1013,13 @@ const requestToJoin = async (c: Context) => {
 
     if (
       institute.pendingCandidates.some(
-        (c) => c.candidate?.toString() === candidate?._id?.toString()
+        (c) => c?.toString() === candidate?._id?.toString()
       )
     ) {
       return sendError(c, 400, "Already requested to join");
     }
 
-    if (institute.candidates.some((m) => m.candidate?.toString() === user)) {
+    if (institute.candidates.some((m) => m?.toString() === user)) {
       return sendError(c, 400, "Already a candidate of the institute");
     }
 
@@ -1027,18 +1027,16 @@ const requestToJoin = async (c: Context) => {
       return sendError(c, 400, "Already a faculty of the institute");
     }
 
-    const newCandidate = {
-      candidate: candidate._id,
-      uid: uid,
-    };
-
     const updatedInstitute = await Institute.findByIdAndUpdate(
       institute._id,
       {
-        $push: { pendingCandidates: newCandidate },
+        $push: { pendingCandidates: candidate._id },
       },
       { new: true }
     );
+
+    candidate.instituteUid = uid;
+    await candidate.save();
 
     return sendSuccess(c, 200, "Request to join institute sent successfully", {
       name: updatedInstitute?.name,
@@ -1107,8 +1105,8 @@ const getInstitute = async (c: Context): Promise<any> => {
       "members.user": userId,
     })
       .populate<{ user: IUser }>("members.user")
-      .populate("candidates.candidate")
-      .populate("pendingCandidates.candidate")
+      .populate("candidates")
+      .populate("pendingCandidates")
       .lean();
 
     if (!institute) {
@@ -1144,8 +1142,8 @@ const getInstitute = async (c: Context): Promise<any> => {
       Institute.findById(institute._id)
         .select(fieldsToSelect.join(" "))
         .populate("members.user")
-        .populate("candidates.candidate")
-        .populate("pendingCandidates.candidate"),
+        .populate("candidates")
+        .populate("pendingCandidates"),
 
       User.findOne({ _id: userId }).lean(),
     ]);
@@ -1268,27 +1266,23 @@ const getCandidate = async (c: Context) => {
     }
 
     const institute = await Institute.findById(perms.data?.institute?._id)
-      .populate("candidates.candidate")
-      .populate("pendingCandidates.candidate");
+      .populate("candidates")
+      .populate("pendingCandidates");
 
     if (!institute) {
       return sendError(c, 404, "Institute not found");
     }
 
-    if (institute.candidates.some((c) => c.candidate?._id.toString() === cid)) {
+    if (institute.candidates.some((c) => c?._id.toString() === cid)) {
       const candidate = institute.candidates.find(
-        (c) => c.candidate?._id.toString() === cid
+        (c) => c?._id.toString() === cid
       );
       return sendSuccess(c, 200, "Candidate found", candidate);
     }
 
-    if (
-      institute.pendingCandidates.some(
-        (c) => c.candidate?._id.toString() === cid
-      )
-    ) {
+    if (institute.pendingCandidates.some((c) => c?._id.toString() === cid)) {
       const candidate = institute.pendingCandidates.find(
-        (c) => c.candidate?._id.toString() === cid
+        (c) => c?._id.toString() === cid
       );
       return sendSuccess(c, 200, "Candidate found", candidate);
     }
@@ -1319,21 +1313,21 @@ const acceptCandidate = async (c: Context) => {
     }
 
     const pendingCandidate = institute.pendingCandidates.find(
-      (c) => c.candidate?.toString() === candidate._id.toString()
+      (c) => c?.toString() === candidate._id.toString()
     );
 
     if (!pendingCandidate) {
       return sendError(c, 404, "Pending candidate not found");
     }
 
-    institute.pendingCandidates?.pull({ candidate: candidate._id });
+    institute.pendingCandidates.filter(
+      (c) => c?.toString() !== candidate._id.toString()
+    );
 
-    institute.candidates.push({
-      candidate: candidate._id,
-      uid: pendingCandidate.uid,
-    });
+    institute.candidates.push(candidate._id);
 
     candidate.institute = institute._id;
+
     candidate.notifications.push({
       message: `You have been accepted to ${institute.name}`,
       type: "institute",
@@ -1368,14 +1362,16 @@ const rejectCandidate = async (c: Context) => {
     }
 
     const pendingCandidate = institute.pendingCandidates.find(
-      (c) => c.candidate?.toString() === candidate._id.toString()
+      (c) => c?.toString() === candidate._id.toString()
     );
 
     if (!pendingCandidate) {
       return sendError(c, 404, "Pending candidate not found");
     }
 
-    institute.pendingCandidates?.pull({ candidate: candidate._id });
+    institute.candidates?.filter(
+      (c) => c?.toString() !== candidate._id.toString()
+    );
 
     candidate.notifications.push({
       message: `Your request to join ${institute.name} has been rejected`,
@@ -1411,14 +1407,16 @@ const removeCandidate = async (c: Context) => {
     }
 
     const existingCandidate = institute.candidates.find(
-      (c) => c.candidate?.toString() === candidate._id.toString()
+      (c) => c?.toString() === candidate._id.toString()
     );
 
     if (!existingCandidate) {
       return sendError(c, 404, "Candidate not found in the institute");
     }
 
-    institute.candidates?.pull({ candidate: candidate._id });
+    institute.candidates.filter(
+      (c) => c?.toString() !== candidate._id.toString()
+    );
 
     candidate.institute = null;
 

@@ -1,10 +1,10 @@
-import { ExtendedInstituteCandidate } from "./ExtendedInstituteCandidate";
+import { Candidate } from "./Candidate";
 import { Institute } from "./Institute";
 
 interface ExtendedInstitute
   extends Omit<Institute, "candidates" | "pendingCandidates"> {
-  candidates: ExtendedInstituteCandidate[];
-  pendingCandidates: ExtendedInstituteCandidate[];
+  candidates: Candidate[];
+  pendingCandidates: Candidate[];
 }
 
 export type { ExtendedInstitute };

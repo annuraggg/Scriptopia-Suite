@@ -16,7 +16,6 @@ import { Search, Plus, MoreVertical, Copy, Archive } from "lucide-react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import Filter from "./Filter";
-import CreateGroupForm from "./create/CreateGroupForm";
 import { PlacementGroup } from "@shared-types/PlacementGroup";
 import { Department } from "@shared-types/Institute";
 
@@ -137,13 +136,13 @@ const PlacementGroups = () => {
         try {
           if (sort === "newest") {
             return (
-              new Date(b.createdAt || Date.now()).getTime() -
-              new Date(a.createdAt || Date.now()).getTime()
+              new Date(b?.createdAt || Date.now()).getTime() -
+              new Date(a?.createdAt || Date.now()).getTime()
             );
           }
           return (
-            new Date(a.createdAt || Date.now()).getTime() -
-            new Date(b.createdAt || Date.now()).getTime()
+            new Date(a?.createdAt || Date.now()).getTime() -
+            new Date(b?.createdAt || Date.now()).getTime()
           );
         } catch (error) {
           console.error("Error sorting groups:", error);
@@ -244,7 +243,7 @@ const PlacementGroups = () => {
             key={group._id}
             className="p-4 cursor-pointer w-full hover:shadow-md transition-shadow"
             isPressable
-            onClick={() => navigate(`/group/${group._id}`)}
+            onClick={() => navigate(`/placement-groups/${group._id}`)}
           >
             <div className="flex justify-between items-start">
               <div>
@@ -266,7 +265,7 @@ const PlacementGroups = () => {
                     {group.academicYear.start} - {group.academicYear.end}
                   </span>
                   <span>
-                    Created: {new Date(group.createdAt!).toLocaleDateString()}
+                    Created: {new Date(group?.createdAt!).toLocaleDateString()}
                   </span>
                 </div>
 
@@ -313,7 +312,7 @@ const PlacementGroups = () => {
                           stopPropagation: () => {},
                         } as React.MouseEvent);
                       } else if (key === "edit") {
-                        navigate(`/group/${group._id}/edit`);
+                        navigate(`//placement-groups/${group._id}/edit`);
                         const event = window.event;
                         if (event) {
                           event.stopPropagation();
@@ -343,104 +342,91 @@ const PlacementGroups = () => {
   return (
     <div className="p-6 h-full">
       <AnimatePresence mode="wait">
-        {!showCreateGroup ? (
-          <motion.div
-            key="groups-list"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.3 }}
-            className="w-full"
-          >
-            <div className="flex justify-between items-center mb-8">
-              <h1 className="text-2xl font-bold">Student Placement Groups</h1>
-              <Button
-                color="primary"
-                startContent={<Plus size={20} />}
-                onClick={() => setShowCreateGroup(true)}
-              >
-                Create New Group
-              </Button>
+        <motion.div
+          key="groups-list"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 20 }}
+          transition={{ duration: 0.3 }}
+          className="w-full"
+        >
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-2xl font-bold">Student Placement Groups</h1>
+            <Button
+              color="primary"
+              startContent={<Plus size={20} />}
+              onClick={() => navigate("create")}
+            >
+              Create New Group
+            </Button>
+          </div>
+
+          <div className="flex gap-8">
+            <div className="w-1/4">
+              <Filter
+                departments={instituteDepartments}
+                onFilterChange={handleFilterChange}
+                onClearFilters={handleClearFilters}
+              />
             </div>
+            <div className="w-3/4">
+              <div className="flex justify-between items-center mb-6">
+                <div className="flex gap-4 items-center">
+                  <Select
+                    className="w-[200px]"
+                    selectedKeys={[sort]}
+                    onChange={(e) => setSort(e.target.value)}
+                  >
+                    <SelectItem key="newest">Newest</SelectItem>
+                    <SelectItem key="oldest">Oldest</SelectItem>
+                  </Select>
 
-            <div className="flex gap-8">
-              <div className="w-1/4">
-                <Filter
-                  departments={instituteDepartments}
-                  onFilterChange={handleFilterChange}
-                  onClearFilters={handleClearFilters}
-                />
-              </div>
-              <div className="w-3/4">
-                <div className="flex justify-between items-center mb-6">
-                  <div className="flex gap-4 items-center">
-                    <Select
-                      className="w-[200px]"
-                      selectedKeys={[sort]}
-                      onChange={(e) => setSort(e.target.value)}
-                    >
-                      <SelectItem key="newest">Newest</SelectItem>
-                      <SelectItem key="oldest">Oldest</SelectItem>
-                    </Select>
-
-                    <Input
-                      className="w-[300px]"
-                      placeholder="Search Group"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      startContent={
-                        <Search className="text-default-400" size={20} />
-                      }
-                    />
-                  </div>
+                  <Input
+                    className="w-[300px]"
+                    placeholder="Search Group"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    startContent={
+                      <Search className="text-default-400" size={20} />
+                    }
+                  />
                 </div>
-
-                <div className="flex gap-4 mb-6">
-                  <Button
-                    className={`w-1/3 ${
-                      filter === "all" ? "bg-default-100" : ""
-                    }`}
-                    variant={filter === "all" ? "flat" : "ghost"}
-                    onClick={() => setFilter("all")}
-                  >
-                    All
-                  </Button>
-                  <Button
-                    className={`w-1/3 ${
-                      filter === "active" ? "bg-success-100" : ""
-                    }`}
-                    variant={filter === "active" ? "flat" : "ghost"}
-                    onClick={() => setFilter("active")}
-                  >
-                    Active
-                  </Button>
-                  <Button
-                    className={`w-1/3 ${
-                      filter === "archived" ? "bg-default-100" : ""
-                    }`}
-                    variant={filter === "archived" ? "flat" : "ghost"}
-                    onClick={() => setFilter("archived")}
-                  >
-                    Archived
-                  </Button>
-                </div>
-
-                {renderPlacementGroups()}
               </div>
+
+              <div className="flex gap-4 mb-6">
+                <Button
+                  className={`w-1/3 ${
+                    filter === "all" ? "bg-default-100" : ""
+                  }`}
+                  variant={filter === "all" ? "flat" : "ghost"}
+                  onClick={() => setFilter("all")}
+                >
+                  All
+                </Button>
+                <Button
+                  className={`w-1/3 ${
+                    filter === "active" ? "bg-success-100" : ""
+                  }`}
+                  variant={filter === "active" ? "flat" : "ghost"}
+                  onClick={() => setFilter("active")}
+                >
+                  Active
+                </Button>
+                <Button
+                  className={`w-1/3 ${
+                    filter === "archived" ? "bg-default-100" : ""
+                  }`}
+                  variant={filter === "archived" ? "flat" : "ghost"}
+                  onClick={() => setFilter("archived")}
+                >
+                  Archived
+                </Button>
+              </div>
+
+              {renderPlacementGroups()}
             </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="create-form"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-            className="h-full"
-          >
-            <CreateGroupForm />
-          </motion.div>
-        )}
+          </div>
+        </motion.div>
       </AnimatePresence>
     </div>
   );

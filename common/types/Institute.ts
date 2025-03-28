@@ -6,6 +6,7 @@ export interface Notification {
 }
 
 export interface Role {
+  _id?: string;
   name: string;
   slug: string;
   default?: boolean;
@@ -16,6 +17,7 @@ export interface Role {
 }
 
 export interface Member {
+  _id?: string;
   user?: string;
   email: string;
   role: string;
@@ -50,11 +52,6 @@ export interface Subscription {
   features?: string[];
 }
 
-export interface Candidate {
-  candidate?: string;
-  uid: string;
-}
-
 export interface Address {
   street: string;
   city: string;
@@ -77,8 +74,8 @@ export interface Institute {
   drives?: string[];
   companies?: string[];
   placementGroups?: string[];
-  candidates: Candidate[];
-  pendingCandidates: Candidate[];
+  candidates: string[];
+  pendingCandidates: string[];
   code: string;
   isDeleted?: boolean;
   createdAt?: Date;

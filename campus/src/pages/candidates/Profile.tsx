@@ -31,20 +31,18 @@ import {
 } from "lucide-react";
 import ax from "@/config/axios";
 import { useAuth } from "@clerk/clerk-react";
-import { ExtendedInstituteCandidate } from "@shared-types/ExtendedInstituteCandidate";
 import { toast } from "sonner";
+import { Candidate } from "@shared-types/Candidate";
 
 type SidebarNavItem = {
   key: string;
   icon: React.ElementType;
   label: string;
-  renderContent: (candData: any) => React.ReactNode;
+  renderContent: (candidate: any) => React.ReactNode;
 };
 
 const ProfilePage: React.FC = () => {
-  const [candidate, setCandidate] = useState<ExtendedInstituteCandidate | null>(
-    null
-  );
+  const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>("workExperience");
 
@@ -68,8 +66,6 @@ const ProfilePage: React.FC = () => {
 
   if (loading) return null;
   if (!candidate) return <div>No candidate data found</div>;
-
-  const { candidate: candData } = candidate;
 
   const InfoCard = ({
     title,
@@ -105,10 +101,10 @@ const ProfilePage: React.FC = () => {
         <UserIcon className="text-primary shrink-0" size={48} />
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold text-gray-800 truncate">
-            {candData.name}
+            {candidate.name}
           </h1>
           <p className="text-gray-600 text-sm truncate">
-            {candData.summary || "No summary provided"}
+            {candidate.summary || "No summary provided"}
           </p>
         </div>
       </div>
@@ -119,25 +115,25 @@ const ProfilePage: React.FC = () => {
         <div className="flex items-center space-x-2 truncate">
           <MailIcon className="text-gray-500 shrink-0" size={14} />
           <Link
-            href={`mailto:${candData.email}`}
+            href={`mailto:${candidate.email}`}
             color="foreground"
             className="truncate"
           >
-            {candData.email}
+            {candidate.email}
           </Link>
         </div>
         <div className="flex items-center space-x-2 truncate">
           <PhoneIcon className="text-gray-500 shrink-0" size={14} />
-          <span className="truncate">{candData.phone}</span>
+          <span className="truncate">{candidate.phone}</span>
         </div>
         <div className="flex items-center space-x-2 truncate">
           <MapPinIcon className="text-gray-500 shrink-0" size={14} />
-          <span className="truncate">{candData.address}</span>
+          <span className="truncate">{candidate.address}</span>
         </div>
         <div className="flex items-center space-x-2 truncate">
           <CalendarIcon className="text-gray-500 shrink-0" size={14} />
           <span className="truncate">
-            {new Date(candData.dob).toLocaleDateString()} | {candData.gender}
+            {new Date(candidate.dob).toLocaleDateString()} | {candidate.gender}
           </span>
         </div>
       </div>
@@ -152,7 +148,7 @@ const ProfilePage: React.FC = () => {
       renderContent: () => (
         <InfoCard
           title="Professional Journey"
-          data={candData.workExperience || []}
+          data={candidate.workExperience || []}
           renderItem={(work, index) => (
             <div key={index} className="mb-4 pb-4 border-b last:border-b-0">
               <h3 className="text-lg font-semibold">{work.title}</h3>
@@ -183,7 +179,7 @@ const ProfilePage: React.FC = () => {
       renderContent: () => (
         <InfoCard
           title="Educational Background"
-          data={candData.education || []}
+          data={candidate.education || []}
           renderItem={(edu, index) => (
             <div key={index} className="mb-4 pb-4 border-b last:border-b-0">
               <h3 className="text-lg font-semibold">{edu.degree}</h3>
@@ -209,7 +205,7 @@ const ProfilePage: React.FC = () => {
       renderContent: () => (
         <InfoCard
           title="Skill Proficiency"
-          data={candData.technicalSkills || []}
+          data={candidate.technicalSkills || []}
           renderItem={(skill, index) => (
             <div
               key={index}
@@ -231,7 +227,7 @@ const ProfilePage: React.FC = () => {
       renderContent: () => (
         <InfoCard
           title="Social Connections"
-          data={candData.socialLinks || []}
+          data={candidate.socialLinks || []}
           renderItem={(link, index) => (
             <div
               key={index}
@@ -255,7 +251,7 @@ const ProfilePage: React.FC = () => {
       renderContent: () => (
         <InfoCard
           title="Language Proficiency"
-          data={candData.languages || []}
+          data={candidate.languages || []}
           renderItem={(lang, index) => (
             <div
               key={index}
@@ -277,7 +273,7 @@ const ProfilePage: React.FC = () => {
       renderContent: () => (
         <InfoCard
           title="Subject Expertise"
-          data={candData.subjects || []}
+          data={candidate.subjects || []}
           renderItem={(subject, index) => (
             <div
               key={index}
@@ -299,7 +295,7 @@ const ProfilePage: React.FC = () => {
       renderContent: () => (
         <InfoCard
           title="Project Portfolio"
-          data={candData.projects || []}
+          data={candidate.projects || []}
           renderItem={(project, index) => (
             <div key={index} className="mb-4 pb-4 border-b last:border-b-0">
               <h3 className="text-lg font-semibold">{project.title}</h3>
@@ -335,7 +331,7 @@ const ProfilePage: React.FC = () => {
       renderContent: () => (
         <InfoCard
           title="Professional Responsibilities"
-          data={candData.responsibilities || []}
+          data={candidate.responsibilities || []}
           renderItem={(resp, index) => (
             <div key={index} className="mb-4 pb-4 border-b last:border-b-0">
               <h3 className="text-lg font-semibold">{resp.title}</h3>
@@ -359,7 +355,7 @@ const ProfilePage: React.FC = () => {
       renderContent: () => (
         <InfoCard
           title="Achievements & Honors"
-          data={candData.awards || []}
+          data={candidate.awards || []}
           renderItem={(award, index) => (
             <div key={index} className="mb-4 pb-4 border-b last:border-b-0">
               <h3 className="text-lg font-semibold">{award.title}</h3>
@@ -383,7 +379,7 @@ const ProfilePage: React.FC = () => {
       renderContent: () => (
         <InfoCard
           title="Professional Certificates"
-          data={candData.certificates || []}
+          data={candidate.certificates || []}
           renderItem={(cert, index) => (
             <div key={index} className="mb-4 pb-4 border-b last:border-b-0">
               <h3 className="text-lg font-semibold">{cert.title}</h3>
@@ -406,7 +402,7 @@ const ProfilePage: React.FC = () => {
       renderContent: () => (
         <InfoCard
           title="Competitive Achievements"
-          data={candData.competitions || []}
+          data={candidate.competitions || []}
           renderItem={(comp, index) => (
             <div key={index} className="mb-4 pb-4 border-b last:border-b-0">
               <h3 className="text-lg font-semibold">{comp.title}</h3>
@@ -430,7 +426,7 @@ const ProfilePage: React.FC = () => {
       renderContent: () => (
         <InfoCard
           title="Intellectual Property"
-          data={candData.patents || []}
+          data={candidate.patents || []}
           renderItem={(patent, index) => (
             <div key={index} className="mb-4 pb-4 border-b last:border-b-0">
               <h3 className="text-lg font-semibold">{patent.title}</h3>
@@ -459,7 +455,7 @@ const ProfilePage: React.FC = () => {
       renderContent: () => (
         <InfoCard
           title="Community Involvement"
-          data={candData.volunteerings || []}
+          data={candidate.volunteerings || []}
           renderItem={(volunteer, index) => (
             <div key={index} className="mb-4 pb-4 border-b last:border-b-0">
               <h3 className="text-lg font-semibold">{volunteer.role}</h3>
@@ -484,7 +480,7 @@ const ProfilePage: React.FC = () => {
       renderContent: () => (
         <InfoCard
           title="Beyond Academics"
-          data={candData.extraCurriculars || []}
+          data={candidate.extraCurriculars || []}
           renderItem={(activity, index) => (
             <div key={index} className="mb-4 pb-4 border-b last:border-b-0">
               <h3 className="text-lg font-semibold">{activity.title}</h3>
@@ -534,7 +530,7 @@ const ProfilePage: React.FC = () => {
             <div className="space-y-6 pr-4">
               {sidebarNavItems
                 .find((item) => item.key === activeTab)
-                ?.renderContent(candData)}
+                ?.renderContent(candidate)}
             </div>
           </div>
         </div>

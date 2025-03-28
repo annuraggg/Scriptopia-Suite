@@ -19,16 +19,12 @@ import { useOutletContext } from "react-router-dom";
 import { SettingsContext } from "@/types/SettingsContext";
 
 const Departments: React.FC = () => {
-  const { institute, setInstitute } =
-    useOutletContext() as SettingsContext;
-    console.log(institute);
+  const { institute, setInstitute } = useOutletContext() as SettingsContext;
+  console.log(institute);
 
   const [newDepartment, setNewDepartment] = useState<Omit<Department, "_id">>({
     name: "",
     description: "",
-    head: "",
-    faculty: [],
-    courses: [],
   });
 
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(
@@ -58,9 +54,6 @@ const Departments: React.FC = () => {
     setNewDepartment({
       name: "",
       description: "",
-      head: "",
-      faculty: [],
-      courses: [],
     });
   };
 
@@ -80,14 +73,10 @@ const Departments: React.FC = () => {
     setNewDepartment({
       name: "",
       description: "",
-      head: "",
-      faculty: [],
-      courses: [],
     });
   };
 
   const deleteDepartment = (id: string, name: string) => {
-
     const newOrg = { ...institute };
 
     if (id) {

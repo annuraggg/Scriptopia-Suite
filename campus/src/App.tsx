@@ -88,6 +88,11 @@ const OrgData = lazy(() => import("./pages/settings/security/data/Data"));
 const StartOnboarding = lazy(() => import("./pages/onboarding/start/Start"));
 const CandidateProfile = lazy(() => import("./pages/candidates/Profile"));
 
+const CreatePlacementGroup = lazy(
+  () => import("./pages/placementgroups/create/CreateGroupForm")
+);
+
+
 function App() {
   const { user, isSignedIn } = useUser();
   const dispatch = useDispatch();
@@ -260,7 +265,7 @@ function App() {
           ),
         },
         {
-          path: "placementgroups",
+          path: "placement-groups",
           element: (
             <Suspense fallback={<Loader />}>
               <PlacementGroups />
@@ -284,7 +289,7 @@ function App() {
           ),
         },
         {
-          path: "placementgroups",
+          path: "placement-groups",
           element: (
             <Suspense fallback={<Loader />}>
               <PlacementGroups />
@@ -292,7 +297,15 @@ function App() {
           ),
         },
         {
-          path: "group/:id",
+          path: "placement-groups/create",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <CreatePlacementGroup />
+            </Suspense>
+          ),
+        },
+        {
+          path: "placement-groups/:id",
           element: (
             <Suspense fallback={<Loader />}>
               <GroupDetails />

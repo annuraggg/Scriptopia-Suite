@@ -8,13 +8,11 @@ import { Button, Spinner } from "@nextui-org/react";
 import { useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
 import { toast } from "sonner";
-import { ExtendedInstituteCandidate } from "@shared-types/ExtendedInstituteCandidate";
+import { Candidate } from "@shared-types/Candidate";
 
 const Candidates = () => {
   const { institute } = useOutletContext<RootContext>();
-  const [candidates, setCandidates] = useState<ExtendedInstituteCandidate[]>(
-    []
-  );
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rerender, setRerender] = useState(false);

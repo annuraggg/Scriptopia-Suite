@@ -6,12 +6,12 @@ import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useSelector } from "react-redux";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { Spinner } from "@nextui-org/react";
-import { ExtendedInstituteCandidate } from "@shared-types/ExtendedInstituteCandidate";
+import { Spinner } from "@nextui-org/react";  
+import { Candidate } from "@shared-types/Candidate";
 
 const Candidates = () => {
   const org = useSelector((state: RootState) => state.institute);
-  const [candidates, setCandidates] = useState<ExtendedInstituteCandidate[]>(
+  const [candidates, setCandidates] = useState<Candidate[]>(
     []
   );
   const [loading, setLoading] = useState(true);

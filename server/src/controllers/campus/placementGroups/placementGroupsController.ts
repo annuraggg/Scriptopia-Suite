@@ -1,15 +1,9 @@
 import Institute from "../../../models/Institute";
-import checkPermission from "../../../middlewares/checkInstitutePermission";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
-import logger from "../../../utils/logger";
 import { Context } from "hono";
-import mongoose from "mongoose";
 import clerkClient from "@/config/clerk";
-import { AuditLog } from "@shared-types/Institute";
 import checkInstitutePermission from "../../../middlewares/checkInstitutePermission";
 import PlacementGroup from "@/models/PlacementGroup";
-import User from "@/models/User";
-
 const createPlacementGroup = async (c: Context) => {
   try {
     const { userId, _id } = c.get("auth");
@@ -93,6 +87,7 @@ const getPlacementGroups = async (c: Context) => {
       .populate("departments")
       .populate("candidates")
       .populate("createdBy")
+      .populate("pendingCandidates")
       .sort({ createdAt: -1 });
 
     return sendSuccess(c, 200, "Placement groups fetched", groups);

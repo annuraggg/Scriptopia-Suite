@@ -6,8 +6,10 @@ import CandidatesTab from "./Candidates";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const CreateGroupForm: React.FC = () => {
+  const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
 
   // Group Details States
@@ -42,7 +44,7 @@ const CreateGroupForm: React.FC = () => {
       })
       .then(() => {
         toast.success("Group created successfully!");
-        window.location.reload();
+        navigate("/placement-groups", { replace: true });
       })
       .catch((err) => {
         toast.error("Error creating group: " + err.message);
@@ -51,7 +53,7 @@ const CreateGroupForm: React.FC = () => {
   };
 
   return (
-    <div className="flex gap-5 h-full py-5">
+    <div className="flex gap-5 h-full p-5 py-10">
       <div className="flex flex-col space-y-4 px-4 w-[30%]">
         {[
           { id: 1, title: "Group Details" },

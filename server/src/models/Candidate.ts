@@ -249,6 +249,7 @@ const candidateSchema = new Schema(
     notifications: [notificationSchema],
 
     institute: { type: mongoose.Schema.Types.ObjectId, ref: "Institute" },
+    instituteUid: { type: String, required: false },
   },
   { timestamps: true }
 );

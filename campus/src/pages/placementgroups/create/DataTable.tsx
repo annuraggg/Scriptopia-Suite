@@ -23,15 +23,15 @@ import {
 import { ArrowUpDown } from "lucide-react";
 import { Button, Checkbox } from "@nextui-org/react";
 import { useState } from "react";
-import { ExtendedInstituteCandidate } from "@shared-types/ExtendedInstituteCandidate";
+import { Candidate } from "@shared-types/Candidate";
 
-interface DataTableProps<TData extends ExtendedInstituteCandidate> {
+interface DataTableProps<TData extends Candidate> {
   data: TData[];
   selectedCandidates?: string[];
   setSelectedCandidates?: (candidateIds: string[]) => void;
 }
 
-export function DataTable<TData extends ExtendedInstituteCandidate>({
+export function DataTable<TData extends Candidate>({
   data = [],
   selectedCandidates,
   setSelectedCandidates,
@@ -49,7 +49,7 @@ export function DataTable<TData extends ExtendedInstituteCandidate>({
             if (value) {
               const allCandidateIds = table
                 .getRowModel()
-                .rows.map((row) => row.original.candidate._id);
+                .rows.map((row) => row.original._id);
               setSelectedCandidates?.(allCandidateIds as string[]);
             } else {
               setSelectedCandidates?.([]);
@@ -61,9 +61,9 @@ export function DataTable<TData extends ExtendedInstituteCandidate>({
       ),
       cell: ({ row }) => (
         <Checkbox
-          isSelected={selectedCandidates?.includes(row.original.candidate._id!)}
+          isSelected={selectedCandidates?.includes(row.original._id!)}
           onValueChange={(value) => {
-            const candidateId = row.original.candidate._id;
+            const candidateId = row.original._id;
             console.log(value);
             console.log(selectedCandidates);
             console.log(candidateId);
@@ -130,7 +130,7 @@ export function DataTable<TData extends ExtendedInstituteCandidate>({
         </Button>
       ),
       cell: ({ row }) => {
-        const createdAt = row.original.candidate.createdAt;
+        const createdAt = row.original.createdAt;
         return createdAt ? new Date(createdAt).toDateString() : "N/A";
       },
     },
