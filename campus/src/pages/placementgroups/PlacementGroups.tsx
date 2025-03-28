@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo, useEffect } from "react";
 import {
@@ -12,34 +12,19 @@ import {
   DropdownMenu,
   DropdownItem,
 } from "@nextui-org/react";
-import { Search, Plus, MoreVertical, Copy, Archive, ArrowLeft } from "lucide-react";
+import { Search, Plus, MoreVertical, Copy, Archive } from "lucide-react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import Filter from "./Filter";
-import CreateGroupForm from "./CreateGroupForm";
-
-interface Department {
-  id: string;
-  name: string;
-}
-
-interface PlacementGroup {
-  _id: string;
-  name: string;
-  startYear: string;
-  endYear: string;
-  departments: string[];
-  archived?: boolean;
-  purpose: string;
-  expiryDate: string;
-  expiryTime: string;
-  accessType: "public" | "private";
-  createdAt: string;
-}
+import CreateGroupForm from "./create/CreateGroupForm";
+import { PlacementGroup } from "@shared-types/PlacementGroup";
+import { Department } from "@shared-types/Institute";
 
 const PlacementGroups = () => {
   const [groups, setGroups] = useState<PlacementGroup[]>([]);
-  const [instituteDepartments, setInstituteDepartments] = useState<Department[]>([]);
+  const [instituteDepartments, setInstituteDepartments] = useState<
+    Department[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -63,23 +48,32 @@ const PlacementGroups = () => {
       setIsLoading(true);
       setError(null);
 
-      const response = await axios.get("/placementgroups");
+      const response = await axios.get("/placement-groups");
       console.log("API Response:", response.data);
 
       if (response.data && response.data.success) {
-        if (response.data.data && Array.isArray(response.data.data.placementGroups)) {
-          console.log("Placement Groups:", response.data.data.placementGroups);
-          setGroups(response.data.data.placementGroups);
+        if (response.data.data && Array.isArray(response.data.data)) {
+          console.log("Placement Groups:", response.data.data);
+          setGroups(response.data.data);
         } else {
-          console.error("Unexpected response structure for placementGroups:", response.data);
+          console.error(
+            "Unexpected response structure for placementGroups:",
+            response.data
+          );
           setError("Unexpected data format from API");
         }
 
-        if (response.data.data && Array.isArray(response.data.data.departments)) {
+        if (
+          response.data.data &&
+          Array.isArray(response.data.data.departments)
+        ) {
           console.log("Departments:", response.data.data.departments);
           setInstituteDepartments(response.data.data.departments);
         } else {
-          console.error("Unexpected response structure for departments:", response.data);
+          console.error(
+            "Unexpected response structure for departments:",
+            response.data
+          );
         }
       } else {
         console.error("API returned error:", response.data);
@@ -104,48 +98,64 @@ const PlacementGroups = () => {
   }, [showCreateGroup]);
 
   const filteredGroups = useMemo(() => {
-    return (groups || []).filter((group) => {
-      const groupName = group.name || "";
-      if (searchTerm && !groupName.toLowerCase().includes(searchTerm.toLowerCase())) {
-        return false;
-      }
-
-      const isArchived = !!group.archived;
-      if (filter === "active" && isArchived) return false;
-      if (filter === "archived" && !isArchived) return false;
-
-      if (activeFilters.year) {
-        const yearString = `${group.startYear || ""}-${group.endYear || ""}`;
-        if (!yearString.includes(activeFilters.year)) {
+    return (groups || [])
+      .filter((group) => {
+        const groupName = group.name || "";
+        if (
+          searchTerm &&
+          !groupName.toLowerCase().includes(searchTerm.toLowerCase())
+        ) {
           return false;
         }
-      }
 
-      if (activeFilters.departments.length > 0) {
-        const groupDepts = Array.isArray(group.departments) ? group.departments : [];
-        const hasMatchingDepartment = activeFilters.departments.some((deptId) =>
-          groupDepts.includes(deptId)
-        );
-        if (!hasMatchingDepartment) return false;
-      }
+        const isArchived = !!group.archived;
+        if (filter === "active" && isArchived) return false;
+        if (filter === "archived" && !isArchived) return false;
 
-      return true;
-    }).sort((a, b) => {
-      try {
-        if (sort === "newest") {
-          return new Date(b.createdAt || Date.now()).getTime() -
-            new Date(a.createdAt || Date.now()).getTime();
+        if (activeFilters.year) {
+          const yearString = `${group.academicYear.start || ""}-${
+            group.academicYear.end || ""
+          }`;
+          if (!yearString.includes(activeFilters.year)) {
+            return false;
+          }
         }
-        return new Date(a.createdAt || Date.now()).getTime() -
-          new Date(b.createdAt || Date.now()).getTime();
-      } catch (error) {
-        console.error("Error sorting groups:", error);
-        return 0;
-      }
-    });
+
+        if (activeFilters.departments.length > 0) {
+          const groupDepts = Array.isArray(group.departments)
+            ? group.departments
+            : [];
+          const hasMatchingDepartment = activeFilters.departments.some(
+            (deptId) => groupDepts.includes(deptId)
+          );
+          if (!hasMatchingDepartment) return false;
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        try {
+          if (sort === "newest") {
+            return (
+              new Date(b.createdAt || Date.now()).getTime() -
+              new Date(a.createdAt || Date.now()).getTime()
+            );
+          }
+          return (
+            new Date(a.createdAt || Date.now()).getTime() -
+            new Date(b.createdAt || Date.now()).getTime()
+          );
+        } catch (error) {
+          console.error("Error sorting groups:", error);
+          return 0;
+        }
+      });
   }, [groups, searchTerm, filter, activeFilters, sort]);
 
-  const handleFilterChange = (newFilters: { year: string; departments: string[] }) => {
+  const handleFilterChange = (newFilters: {
+    year: string;
+    departments: string[];
+  }) => {
     setActiveFilters(newFilters);
   };
 
@@ -165,10 +175,15 @@ const PlacementGroups = () => {
 
       console.log("Archive response:", response.data);
 
-      if (response.data && (response.data.status === 200 || response.data.status === 201)) {
-        setGroups(prevGroups => prevGroups.map(group =>
-          group._id === id ? { ...group, archived: !group.archived } : group
-        ));
+      if (
+        response.data &&
+        (response.data.status === 200 || response.data.status === 201)
+      ) {
+        setGroups((prevGroups) =>
+          prevGroups.map((group) =>
+            group._id === id ? { ...group, archived: !group.archived } : group
+          )
+        );
       }
     } catch (error) {
       console.error("Error archiving group:", error);
@@ -187,7 +202,9 @@ const PlacementGroups = () => {
     if (error) {
       return (
         <div className="bg-danger-50 dark:bg-danger-900 rounded-lg p-8 text-center">
-          <h3 className="text-lg font-medium text-danger-700 dark:text-danger-300 mb-2">Error loading placement groups</h3>
+          <h3 className="text-lg font-medium text-danger-700 dark:text-danger-300 mb-2">
+            Error loading placement groups
+          </h3>
           <p className="text-danger-500 dark:text-danger-400 mb-6">{error}</p>
           <Button color="primary" onClick={fetchGroups}>
             Retry
@@ -199,9 +216,13 @@ const PlacementGroups = () => {
     if (filteredGroups.length === 0) {
       return (
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-8 text-center">
-          <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">No placement groups found</h3>
+          <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+            No placement groups found
+          </h3>
           <p className="text-gray-500 dark:text-gray-400 mb-6">
-            {searchTerm || activeFilters.year || activeFilters.departments.length > 0
+            {searchTerm ||
+            activeFilters.year ||
+            activeFilters.departments.length > 0
               ? "Try adjusting your search or filters"
               : "Create your first placement group to get started"}
           </p>
@@ -230,32 +251,40 @@ const PlacementGroups = () => {
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="text-lg font-semibold">{group.name}</h3>
                   <span
-                    className={`px-2 py-1 rounded-full text-xs ${group.archived
-                      ? "bg-default-100 text-default-600"
-                      : "bg-success-100 text-success-600"
-                      }`}
+                    className={`px-2 py-1 rounded-full text-xs ${
+                      group.archived
+                        ? "bg-default-100 text-default-600"
+                        : "bg-success-100 text-success-600"
+                    }`}
                   >
                     {group.archived ? "Archived" : "Active"}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-4 text-sm text-default-500 mb-4">
-                  <span>{group.startYear} - {group.endYear}</span>
-                  <span>Created: {new Date(group.createdAt).toLocaleDateString()}</span>
+                  <span>
+                    {group.academicYear.start} - {group.academicYear.end}
+                  </span>
+                  <span>
+                    Created: {new Date(group.createdAt!).toLocaleDateString()}
+                  </span>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {Array.isArray(group.departments) && group.departments.map((deptId) => {
-                    const dept = instituteDepartments.find(d => d.id === deptId);
-                    return (
-                      <span
-                        key={deptId}
-                        className="px-2 py-1 bg-default-100 rounded-full text-xs"
-                      >
-                        {dept?.name || deptId}
-                      </span>
-                    );
-                  })}
+                  {Array.isArray(group.departments) &&
+                    group.departments.map((deptId) => {
+                      const dept = instituteDepartments.find(
+                        (d) => d._id === deptId
+                      );
+                      return (
+                        <span
+                          key={deptId}
+                          className="px-2 py-1 bg-default-100 rounded-full text-xs"
+                        >
+                          {dept?.name || deptId}
+                        </span>
+                      );
+                    })}
                 </div>
               </div>
 
@@ -263,7 +292,7 @@ const PlacementGroups = () => {
                 <Button
                   isIconOnly
                   variant="flat"
-                  onClick={(e) => handleCopyLink(group._id, e)}
+                  onClick={(e) => handleCopyLink(group._id!, e)}
                 >
                   <Copy size={18} />
                 </Button>
@@ -277,19 +306,21 @@ const PlacementGroups = () => {
                       <MoreVertical size={18} />
                     </Button>
                   </DropdownTrigger>
-                  <DropdownMenu onAction={(key) => {
-                    if (key === "archive") {
-                      handleArchive(group._id, {
-                        stopPropagation: () => { }
-                      } as React.MouseEvent);
-                    } else if (key === "edit") {
-                      navigate(`/group/${group._id}/edit`);
-                      const event = window.event;
-                      if (event) {
-                        event.stopPropagation();
+                  <DropdownMenu
+                    onAction={(key) => {
+                      if (key === "archive") {
+                        handleArchive(group._id!, {
+                          stopPropagation: () => {},
+                        } as React.MouseEvent);
+                      } else if (key === "edit") {
+                        navigate(`/group/${group._id}/edit`);
+                        const event = window.event;
+                        if (event) {
+                          event.stopPropagation();
+                        }
                       }
-                    }
-                  }}>
+                    }}
+                  >
                     <DropdownItem key="edit">Edit</DropdownItem>
                     <DropdownItem
                       key="archive"
@@ -310,110 +341,107 @@ const PlacementGroups = () => {
   };
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-7xl mx-auto">
-        <AnimatePresence mode="wait">
-          {!showCreateGroup ? (
-            <motion.div
-              key="groups-list"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-              className="w-full"
-            >
-              <div className="flex justify-between items-center mb-8">
-                <h1 className="text-2xl font-bold">Student Placement Groups</h1>
-                <Button
-                  color="primary"
-                  startContent={<Plus size={20} />}
-                  onClick={() => setShowCreateGroup(true)}
-                >
-                  Create New Group
-                </Button>
+    <div className="p-6 h-full">
+      <AnimatePresence mode="wait">
+        {!showCreateGroup ? (
+          <motion.div
+            key="groups-list"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.3 }}
+            className="w-full"
+          >
+            <div className="flex justify-between items-center mb-8">
+              <h1 className="text-2xl font-bold">Student Placement Groups</h1>
+              <Button
+                color="primary"
+                startContent={<Plus size={20} />}
+                onClick={() => setShowCreateGroup(true)}
+              >
+                Create New Group
+              </Button>
+            </div>
+
+            <div className="flex gap-8">
+              <div className="w-1/4">
+                <Filter
+                  departments={instituteDepartments}
+                  onFilterChange={handleFilterChange}
+                  onClearFilters={handleClearFilters}
+                />
               </div>
+              <div className="w-3/4">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex gap-4 items-center">
+                    <Select
+                      className="w-[200px]"
+                      selectedKeys={[sort]}
+                      onChange={(e) => setSort(e.target.value)}
+                    >
+                      <SelectItem key="newest">Newest</SelectItem>
+                      <SelectItem key="oldest">Oldest</SelectItem>
+                    </Select>
 
-              <div className="flex gap-8">
-                <div className="w-1/4">
-                  <Filter
-                    departments={instituteDepartments}
-                    onFilterChange={handleFilterChange}
-                    onClearFilters={handleClearFilters}
-                  />
-                </div>
-                <div className="w-3/4">
-                  <div className="flex justify-between items-center mb-6">
-                    <div className="flex gap-4 items-center">
-                      <Select
-                        className="w-[200px]"
-                        selectedKeys={[sort]}
-                        onChange={(e) => setSort(e.target.value)}
-                      >
-                        <SelectItem key="newest">Newest</SelectItem>
-                        <SelectItem key="oldest">Oldest</SelectItem>
-                      </Select>
-
-                      <Input
-                        className="w-[300px]"
-                        placeholder="Search Group"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        startContent={<Search className="text-default-400" size={20} />}
-                      />
-                    </div>
+                    <Input
+                      className="w-[300px]"
+                      placeholder="Search Group"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      startContent={
+                        <Search className="text-default-400" size={20} />
+                      }
+                    />
                   </div>
-
-                  <div className="flex gap-4 mb-6">
-                    <Button
-                      className={`w-1/3 ${filter === "all" ? "bg-default-100" : ""}`}
-                      variant={filter === "all" ? "flat" : "ghost"}
-                      onClick={() => setFilter("all")}
-                    >
-                      All
-                    </Button>
-                    <Button
-                      className={`w-1/3 ${filter === "active" ? "bg-success-100" : ""}`}
-                      variant={filter === "active" ? "flat" : "ghost"}
-                      onClick={() => setFilter("active")}
-                    >
-                      Active
-                    </Button>
-                    <Button
-                      className={`w-1/3 ${filter === "archived" ? "bg-default-100" : ""}`}
-                      variant={filter === "archived" ? "flat" : "ghost"}
-                      onClick={() => setFilter("archived")}
-                    >
-                      Archived
-                    </Button>
-                  </div>
-
-                  {renderPlacementGroups()}
                 </div>
+
+                <div className="flex gap-4 mb-6">
+                  <Button
+                    className={`w-1/3 ${
+                      filter === "all" ? "bg-default-100" : ""
+                    }`}
+                    variant={filter === "all" ? "flat" : "ghost"}
+                    onClick={() => setFilter("all")}
+                  >
+                    All
+                  </Button>
+                  <Button
+                    className={`w-1/3 ${
+                      filter === "active" ? "bg-success-100" : ""
+                    }`}
+                    variant={filter === "active" ? "flat" : "ghost"}
+                    onClick={() => setFilter("active")}
+                  >
+                    Active
+                  </Button>
+                  <Button
+                    className={`w-1/3 ${
+                      filter === "archived" ? "bg-default-100" : ""
+                    }`}
+                    variant={filter === "archived" ? "flat" : "ghost"}
+                    onClick={() => setFilter("archived")}
+                  >
+                    Archived
+                  </Button>
+                </div>
+
+                {renderPlacementGroups()}
               </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="create-form"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="w-full"
-            >
-              <div className="mb-8">
-                <Button
-                  variant="light"
-                  startContent={<ArrowLeft size={20} />}
-                  onClick={() => setShowCreateGroup(false)}
-                >
-                  Back to Groups
-                </Button>
-              </div>
-              <CreateGroupForm onClose={() => setShowCreateGroup(false)} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="create-form"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+            className="h-full"
+          >
+            <CreateGroupForm />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

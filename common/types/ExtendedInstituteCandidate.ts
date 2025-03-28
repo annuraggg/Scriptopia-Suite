@@ -1,8 +1,8 @@
-import { Candidate } from "./Institute";
-import { Candidate as ICandidate } from "./Candidate";
+  import { Candidate } from "./Institute";
+  import { Candidate as ICandidate } from "./Candidate";
 
-interface ExtendedInstituteCandidate extends Omit<Candidate, "candidate"> {
-  candidate: ICandidate;
-}
+  interface ExtendedInstituteCandidate extends Omit<Candidate, "candidate"> {
+    candidate: ICandidate;
+  }
 
-export type { ExtendedInstituteCandidate };
+  export type { ExtendedInstituteCandidate };

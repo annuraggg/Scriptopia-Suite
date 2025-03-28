@@ -10,14 +10,14 @@ import { useEffect, useState } from "react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { MemberWithPermission as MWP } from "@shared-types/MemberWithPermission";
-import { InstituteWithDrives as IWD } from "@/types/RootContext";
 import { Menu } from "lucide-react";
 import { Button } from "@nextui-org/react";
 import { AnimatePresence, motion } from "framer-motion";
+import { ExtendedInstitute } from "@shared-types/ExtendedInstitute";
 
 const Layout = () => {
   const [notifications, setNotifications] = useState([]);
-  const [institute, setInstitute] = useState<IWD>({} as IWD);
+  const [institute, setInstitute] = useState<ExtendedInstitute>({} as ExtendedInstitute);
   const [user, setUser] = useState<MWP>({} as MWP);
   const [rerender, setRerender] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -61,7 +61,7 @@ const Layout = () => {
       });
   }, []);
 
-  const updateOrganization = (newOrganization: IWD) => {
+  const updateOrganization = (newOrganization: ExtendedInstitute) => {
     setInstitute(newOrganization);
     setRerender(!rerender);
   };

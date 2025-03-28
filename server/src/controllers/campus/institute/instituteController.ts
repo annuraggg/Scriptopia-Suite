@@ -1107,7 +1107,10 @@ const getInstitute = async (c: Context): Promise<any> => {
       "members.user": userId,
     })
       .populate<{ user: IUser }>("members.user")
+      .populate("candidates.candidate")
+      .populate("pendingCandidates.candidate")
       .lean();
+
     if (!institute) {
       return sendError(c, 404, "Institute not found");
     }
@@ -1138,7 +1141,12 @@ const getInstitute = async (c: Context): Promise<any> => {
     ];
 
     const [selectedInstitute, userDoc] = await Promise.all([
-      Institute.findById(institute._id).select(fieldsToSelect.join(" ")),
+      Institute.findById(institute._id)
+        .select(fieldsToSelect.join(" "))
+        .populate("members.user")
+        .populate("candidates.candidate")
+        .populate("pendingCandidates.candidate"),
+
       User.findOne({ _id: userId }).lean(),
     ]);
 
@@ -1175,6 +1183,7 @@ const getInstitute = async (c: Context): Promise<any> => {
       }
     }
 
+    console.log(selectedInstitute?.candidates);
     return sendSuccess(c, 200, "Institute fetched successfully", {
       institute: selectedInstitute,
       user,

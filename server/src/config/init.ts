@@ -77,7 +77,7 @@ app.route("/candidates", candidateRoute);
 app.route("/institutes", instituteRoute);
 app.route("/drives", driveRoutes);
 app.route("/wallet", walletRoute);
-app.route("/placementgroups", placementGroupRoutes);
+app.route("/placement-groups", placementGroupRoutes);
 app.route("/companies", companyProfileRoute);
 
 app.route("/meet", meetRoutes)
