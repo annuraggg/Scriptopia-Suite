@@ -172,6 +172,17 @@ const New = () => {
       postingId,
       step,
     };
+    
+    const safeUrls = [
+      "https://enterprise.scriptopia.tech/",
+      "https://scriptopia.tech/",
+      "https://campus.scriptopia.tech/",
+      "https://candidate.scriptopia.tech/",
+      "localhost:5172",
+      "localhost:5173",
+      "localhost:5174",
+      "localhost:5175",
+    ];
 
     const axios = ax(getToken);
     axios
@@ -179,7 +190,11 @@ const New = () => {
       .then(() => {
         toast.success("Assessment created successfully");
         if (redirectParam) {
-          window.location.href = redirectParam;
+          const path = new URL(redirectParam).pathname;
+          const isSafeUrl = safeUrls.some((url) => path.includes(url));
+          if (isSafeUrl) {
+            window.location.href = redirectParam;
+          }
         } else {
           window.location.href = window.location.pathname
             .split("/")
@@ -243,7 +258,7 @@ const New = () => {
         feedbackEmail,
         setFeedbackEmail,
         buildAssessmentData,
-        loading
+        loading,
       }}
     />,
   ].filter(Boolean);

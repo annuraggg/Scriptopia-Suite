@@ -178,13 +178,27 @@ const New = () => {
     };
 
     const axios = ax(getToken);
+    const safeUrls = [
+      "https://enterprise.scriptopia.tech/",
+      "https://scriptopia.tech/",
+      "https://campus.scriptopia.tech/",
+      "https://candidate.scriptopia.tech/",
+      "localhost:5172",
+      "localhost:5173",
+      "localhost:5174",
+      "localhost:5175",
+    ];
 
     axios
       .post("/assessments/code", reqBody)
       .then(() => {
         toast.success("Assessment created successfully");
         if (redirectParam) {
-          window.location.href = redirectParam;
+          const path = new URL(redirectParam).pathname;
+          const isSafeUrl = safeUrls.some((url) => path.includes(url));
+          if (isSafeUrl) {
+            window.location.href = redirectParam;
+          }
         } else {
           window.location.href = window.location.pathname
             .split("/")
