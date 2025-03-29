@@ -194,10 +194,20 @@ const New = () => {
       .then(() => {
         toast.success("Assessment created successfully");
         if (redirectParam) {
-          const path = new URL(redirectParam).pathname;
-          const isSafeUrl = safeUrls.some((url) => path.includes(url));
-          if (isSafeUrl) {
-            window.location.href = redirectParam;
+          try {
+            const redirectUrl = new URL(redirectParam);
+            const isSafeUrl = safeUrls.some(
+              (url) => redirectUrl.origin === url
+            );
+            if (isSafeUrl) {
+              window.location.href = redirectParam; 
+            } else {
+              console.warn("Unsafe redirect URL detected:", redirectParam);
+              window.location.href = "/"; 
+            }
+          } catch (error) {
+            console.error("Invalid redirect URL:", redirectParam);
+            window.location.href = "/"; 
           }
         } else {
           window.location.href = window.location.pathname
