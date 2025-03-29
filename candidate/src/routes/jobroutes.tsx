@@ -1,6 +1,6 @@
-import ControlPanel from "@/pages/jobs_temp/ControlPanel";
-import Myjobs from "@/pages/jobs_temp/Myjobs";
-import Interviews from "@/pages/jobs_temp/Interviews";
+import ControlPanel from "@/pages/jobs/ControlPanel";
+import Myjobs from "@/pages/jobs/Myjobs";
+import Interviews from "@/pages/jobs/Interviews";
 
 const jobRoutes = [
     { path: "", element: <ControlPanel /> },
