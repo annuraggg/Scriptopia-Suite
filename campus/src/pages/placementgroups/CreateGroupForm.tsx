@@ -80,18 +80,21 @@ const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
   }, []);
 
   const handleDepartmentSelection = (deptId: string) => {
-    const newDepartments = formData.departments.includes(deptId)
-      ? formData.departments.filter((id) => id !== deptId)
-      : [...formData.departments, deptId];
+    setFormData((prevFormData) => {
+      const isAlreadySelected = prevFormData.departments.includes(deptId);
+      const newDepartments = isAlreadySelected
+        ? prevFormData.departments.filter((id) => id !== deptId)
+        : [...prevFormData.departments, deptId];
 
-    setFormData({
-      ...formData,
-      departments: newDepartments,
+      return {
+        ...prevFormData,
+        departments: newDepartments,
+      };
     });
   };
 
   const generateInviteLink = () => {
-    return `https://scriptopiacampus.com/groups/${formData.name
+    return `https://campus.scriptopia.tech/groups/${formData.name
       .toLowerCase()
       .replace(/\s+/g, "-")}`;
   };
@@ -145,20 +148,18 @@ const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 text-gray-400">
               <span
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                  currentStep >= 1
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= 1
                     ? "bg-green-600 text-white"
                     : "bg-green-500 text-white"
-                }`}
+                  }`}
               >
                 1
               </span>
               <span className="font-medium">Define Group Details</span>
               <span className="mx-4 h-px w-16 bg-gradient-to-r from-green-500 to-gray-700" />
               <span
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                  currentStep >= 2 ? "bg-green-500 text-white" : "bg-gray-700"
-                }`}
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= 2 ? "bg-green-500 text-white" : "bg-gray-700"
+                  }`}
               >
                 2
               </span>
@@ -242,11 +243,10 @@ const CreateGroupForm = ({ onClose }: CreateGroupFormProps) => {
                     {departments.map((dept) => (
                       <Chip
                         key={dept._id}
-                        className={`cursor-pointer transition-all duration-300 hover:scale-105 ${
-                          formData.departments.includes(dept._id)
+                        className={`cursor-pointer transition-all duration-300 hover:scale-105 ${formData.departments.includes(dept._id)
                             ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300"
                             : "bg-gray-100 dark:bg-gray-800"
-                        }`}
+                          }`}
                         onClick={() => handleDepartmentSelection(dept._id)}
                       >
                         {dept.name}

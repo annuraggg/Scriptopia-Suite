@@ -3,8 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   Card,
   CardBody,
-  CardHeader,
-  Chip,
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
@@ -17,51 +15,29 @@ import {
   Tab,
   Spinner,
 } from "@nextui-org/react";
-import {
-  Users,
-  Briefcase,
-  Target,
-  Activity,
-  MoreVertical,
-  Search,
-  Calendar,
-  Building,
-  UserCheck,
-  Link,
-  Clock,
-} from "lucide-react";
+import { Users, Briefcase, Activity, Building, MoreVertical, Search, Link, Clock } from "lucide-react";
 import { motion } from "framer-motion";
-import { GroupTable } from "./GroupTable"; // Import the GroupTable component
+import { GroupTable } from "./GroupTable";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
 
-// Types
 interface GroupDetail {
-  id: string;
+  _id: string;
   name: string;
-  description?: string;
-  generalInfo: {
-    coordinator: string;
-    department: string;
-    startDate: string;
-    endDate: string;
-    totalStudents: number;
-    totalCompanies: number;
-    placementRate: number;
-    averagePackage: number;
-  };
-  stats: {
-    title: string;
-    value: string;
-    change: string;
-    icon: any;
-    trend: "up" | "down";
-  }[];
-  companies: {
-    id: string;
-    name: string;
-    industry: string;
-    openings: number;
-    package: string;
-  }[];
+  startYear: string;
+  endYear: string;
+  departments: string[];
+  purpose: string;
+  expiryDate: string;
+  expiryTime: string;
+  accessType: "public" | "private";
+  archived?: boolean;
+  createdAt: string;
+}
+
+interface Department {
+  _id: string;
+  name: string;
 }
 
 interface Student {
@@ -74,11 +50,11 @@ interface Student {
   year: string;
 }
 
-// Utility Functions
 const formatCurrency = (amount: number) => `₹${(amount / 100000).toFixed(1)}L`;
 
-// Custom Hooks
 const useGroupData = (id: string) => {
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
   const [group, setGroup] = useState<GroupDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -86,75 +62,10 @@ const useGroupData = (id: string) => {
   useEffect(() => {
     const fetchGroup = async () => {
       try {
-        // Mock data - replace with actual API call
-        setGroup({
-          id: "1",
-          name: "Engineering Placements 2025",
-          description: "Placement group for B.Tech students graduating in 2025",
-          generalInfo: {
-            coordinator: "Dr. Rajesh Kumar",
-            department: "Training and Placement Cell",
-            startDate: "2024-08-15",
-            endDate: "2025-04-30",
-            totalStudents: 120,
-            totalCompanies: 18,
-            placementRate: 78,
-            averagePackage: 950000,
-          },
-          stats: [
-            {
-              title: "Students Placed",
-              value: "94/120",
-              change: "+8.5%",
-              icon: Users,
-              trend: "up",
-            },
-            {
-              title: "Companies",
-              value: "18",
-              change: "+28.6%",
-              icon: Building,
-              trend: "up",
-            },
-            {
-              title: "Average Package",
-              value: "₹9.5L",
-              change: "+12.4%",
-              icon: Briefcase,
-              trend: "up",
-            },
-            {
-              title: "Placement Rate",
-              value: "78%",
-              change: "+5.1%",
-              icon: Activity,
-              trend: "up",
-            },
-          ],
-          companies: [
-            {
-              id: "c1",
-              name: "TechSolutions Inc",
-              industry: "IT Services",
-              openings: 12,
-              package: "₹12.5L",
-            },
-            {
-              id: "c2",
-              name: "DataVision Analytics",
-              industry: "Data Science",
-              openings: 5,
-              package: "₹14.0L",
-            },
-            {
-              id: "c3",
-              name: "CloudNine Systems",
-              industry: "Cloud Computing",
-              openings: 8,
-              package: "₹10.8L",
-            },
-          ],
-        });
+        const response = await axios.get(`/placementgroups/${id}`);
+        if (response.data?.success) {
+          setGroup(response.data.data);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
@@ -162,73 +73,103 @@ const useGroupData = (id: string) => {
       }
     };
 
-    fetchGroup();
+    if (id) fetchGroup();
   }, [id]);
 
   return { group, loading, error };
 };
 
-const useStudentData = (groupId: string) => {
-  const [students, setStudents] = useState<Student[]>([]);
+const useInstituteData = () => {
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchData = async () => {
       try {
-        // Mock data - replace with actual API call
-        setStudents([
-          {
-            id: "22204003",
-            name: "Priya Sharma",
-            department: "Computer Engineering",
-            placed: "yes",
-            company: "TechSolutions Inc",
-            package: "₹12.5L",
-            year: "2025",
-          },
-          {
-            id: "22204007",
-            name: "Rahul Patel",
-            department: "Information Technology",
-            placed: "in-process",
-            company: "DataVision Analytics",
-            year: "2025",
-          },
-          {
-            id: "22204016",
-            name: "Ananya Singh",
-            department: "CSE-AIML",
-            placed: "yes",
-            company: "CloudNine Systems",
-            package: "₹10.8L",
-            year: "2025",
-          },
-          {
-            id: "22204023",
-            name: "Arjun Mehta",
-            department: "Electronics",
-            placed: "no",
-            year: "2025",
-          },
-          {
-            id: "22204031",
-            name: "Divya Reddy",
-            department: "Mechanical Engineering",
-            placed: "yes",
-            company: "BuildTech Solutions",
-            package: "₹9.2L",
-            year: "2025",
-          },
-        ]);
+        const response = await axios.get("/placementgroups");
+        if (response.data?.success) {
+          setDepartments(response.data.data.departments);
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        console.error("Failed to fetch institute data:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchStudents();
+    fetchData();
+  }, []);
+
+  return { departments, loading };
+};
+
+const useStudentData = (groupId: string) => {
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const syntheticStudents: Student[] = [
+    {
+      id: "S001",
+      name: "Aarav Sharma",
+      department: "CS",
+      placed: "yes",
+      company: "Google",
+      package: "3000000",
+      year: "2023"
+    },
+    {
+      id: "S002",
+      name: "Neha Gupta",
+      department: "IT",
+      placed: "in-process",
+      company: "Microsoft",
+      package: "2800000",
+      year: "2024"
+    },
+    {
+      id: "S003",
+      name: "Rohan Patel",
+      department: "ECE",
+      placed: "no",
+      year: "2023"
+    },
+    {
+      id: "S004",
+      name: "Priya Singh",
+      department: "ME",
+      placed: "yes",
+      company: "Amazon",
+      package: "3200000",
+      year: "2024"
+    },
+    {
+      id: "S005",
+      name: "Vikram Joshi",
+      department: "CS",
+      placed: "in-process",
+      company: "Infosys",
+      package: "2500000",
+      year: "2023"
+    },
+  ];
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setStudents(syntheticStudents);
+      } catch (err) {
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (groupId) fetchStudents();
   }, [groupId]);
 
   return { students, loading, error };
@@ -244,103 +185,58 @@ const useFilteredStudents = (
   return useMemo(() => {
     return students
       .filter((student) => {
-        const matchesSearch =
-          !searchTerm ||
+        const matchesSearch = !searchTerm ||
           student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           student.id.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        const matchesFilter = 
-          filter === "all" || 
+
+        const matchesFilter = filter === "all" ||
           (filter === "placed" && student.placed === "yes") ||
           (filter === "unplaced" && student.placed === "no") ||
           (filter === "in-process" && student.placed === "in-process");
-        
-        const matchesYear =
-          !activeFilters.year || student.year === activeFilters.year;
-        
-        const matchesDepartment =
-          !activeFilters.departments.length ||
+
+        const matchesYear = !activeFilters.year || student.year === activeFilters.year;
+        const matchesDepartment = !activeFilters.departments.length ||
           activeFilters.departments.includes(student.department);
 
         return matchesSearch && matchesFilter && matchesYear && matchesDepartment;
       })
-      .sort((a, b) =>
-        sort === "newest"
-          ? b.id.localeCompare(a.id)
-          : a.id.localeCompare(b.id)
-      );
+      .sort((a, b) => sort === "newest" ? b.id.localeCompare(a.id) : a.id.localeCompare(b.id));
   }, [students, searchTerm, filter, activeFilters, sort]);
 };
 
-// Main Component
 const GroupDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
-  const {
-    group,
-    loading: groupLoading,
-    error: groupError,
-  } = useGroupData(id || "1");
-  
-  const {
-    students,
-    loading: studentsLoading,
-    error: studentsError,
-  } = useStudentData(id || "1");
-
+  const { group, loading: groupLoading, error: groupError } = useGroupData(id || "");
+  const { departments, loading: instituteLoading } = useInstituteData();
+  const { students, loading: studentsLoading, error: studentsError } = useStudentData(id || "");
   const [selected, setSelected] = useState("details");
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "placed" | "unplaced" | "in-process">("all");
   const [sort, setSort] = useState<"newest" | "oldest">("newest");
-  const [activeFilters, setActiveFilters] = useState({
-    year: "",
-    departments: [] as string[],
-  });
+  const [activeFilters, setActiveFilters] = useState({ year: "", departments: [] as string[] });
 
-  const filteredStudents = useFilteredStudents(
-    students,
-    searchTerm,
-    filter,
-    activeFilters,
-    sort
-  );
+  const filteredStudents = useFilteredStudents(students, searchTerm, filter, activeFilters, sort);
 
-  const handleFilterChange = (newFilters: {
-    year: string;
-    departments: string[];
-  }) => {
-    setActiveFilters(newFilters);
+  const getDepartmentNames = (deptIds: string[]) => {
+    return deptIds.map(id =>
+      departments.find(d => d._id === id)?.name || id
+    ).join(", ");
   };
 
-  const handleClearFilters = () => {
-    setActiveFilters({ year: "", departments: [] });
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  if (groupLoading || studentsLoading)
+  if (groupLoading || studentsLoading || instituteLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <Spinner />
       </div>
     );
+  }
+
   if (groupError || studentsError) return <div>Error loading data</div>;
   if (!group) return <div>Group not found</div>;
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="p-6"
-    >
-      {/* Group Header */}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6">
       <div className="flex items-center justify-between p-2">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
           {group.name}
@@ -352,7 +248,7 @@ const GroupDetails: React.FC = () => {
             </Button>
           </DropdownTrigger>
           <DropdownMenu>
-            <DropdownItem onClick={() => navigate(`/groups/${group.id}/edit`)}>
+            <DropdownItem onClick={() => navigate(`/groups/${group._id}/edit`)}>
               Edit Group
             </DropdownItem>
             <DropdownItem className="text-danger">Delete Group</DropdownItem>
@@ -360,45 +256,23 @@ const GroupDetails: React.FC = () => {
         </Dropdown>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-        {group.stats.map((stat, index) => (
-          <Card key={index} className="bg-default-50">
-            <CardBody className="flex flex-row items-center gap-4">
-              <div className="p-3 rounded-lg bg-primary/10">
-                <stat.icon size={24} className="text-primary" />
-              </div>
-              <div>
-                <p className="text-small text-default-500">{stat.title}</p>
-                <div className="flex items-baseline gap-1">
-                  <p className="text-xl font-semibold">{stat.value}</p>
-                  <Chip
-                    size="sm"
-                    color={stat.trend === "up" ? "success" : "danger"}
-                    variant="flat"
-                    className="text-xs"
-                  >
-                    {stat.change}
-                  </Chip>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-        ))}
+        <Card className="bg-default-50">
+          <CardBody className="flex flex-row items-center gap-4">
+            <div className="p-3 rounded-lg bg-primary/10">
+              <Users size={24} className="text-primary" />
+            </div>
+            <div>
+              <p className="text-small text-default-500">Total Students</p>
+              <p className="text-xl font-semibold">{students.length}</p>
+            </div>
+          </CardBody>
+        </Card>
       </div>
 
-      {/* Tabs */}
-      <Tabs
-        selectedKey={selected}
-        onSelectionChange={setSelected as any}
-        variant="underlined"
-        color="primary"
-        className="mt-6"
-      >
-        {/* Group Details Tab */}
+      <Tabs selectedKey={selected} onSelectionChange={setSelected as any} variant="underlined" color="primary" className="mt-6">
         <Tab key="details" title="Group Details">
           <div className="space-y-6 mt-5">
-            {/* Group Information Display */}
             <Card className="bg-default-50 p-2">
               <CardBody>
                 <h3 className="text-xl font-semibold mb-4">Group Information</h3>
@@ -407,112 +281,40 @@ const GroupDetails: React.FC = () => {
                     <p className="text-sm text-default-500 mb-1">Group Name</p>
                     <p className="text-base font-medium">{group.name}</p>
                   </div>
-                  
-                  <div className="mx-2">
-                    <p className="text-sm text-default-500 mb-1">College Batch</p>
-                    <p className="text-base font-medium">2023-24</p>
-                  </div>
-                  
                   <div className="mx-2">
                     <p className="text-sm text-default-500 mb-1">Academic Year</p>
-                    <p className="text-base font-medium">2024</p>
+                    <p className="text-base font-medium">{group.startYear} - {group.endYear}</p>
                   </div>
-                  
                   <div className="mx-2">
-                    <p className="text-sm text-default-500 mb-1">Start Year</p>
-                    <p className="text-base font-medium">2023</p>
+                    <p className="text-sm text-default-500 mb-1">Departments</p>
+                    <p className="text-base font-medium">{getDepartmentNames(group.departments)}</p>
                   </div>
-                  
-                  <div className="mx-2">
-                    <p className="text-sm text-default-500 mb-1">End Year</p>
-                    <p className="text-base font-medium">2024</p>
-                  </div>
-                  
-                  <div className="mx-2">
-                    <p className="text-sm text-default-500 mb-1">Department</p>
-                    <p className="text-base font-medium">CE</p>
-                  </div>
-                  
                   <div className="mx-2 md:col-span-2">
                     <p className="text-sm text-default-500 mb-1">Group Purpose</p>
-                    <p className="text-base font-medium">Organizing placement activities for final-year students</p>
+                    <p className="text-base font-medium">{group.purpose}</p>
                   </div>
                 </div>
               </CardBody>
             </Card>
 
-            {/* Group Access Display */}
             <Card className="bg-default-50 p-2">
               <CardBody>
                 <h3 className="text-xl font-semibold mb-4">Group Access</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="mx-2">
-                    <p className="text-sm text-default-500 mb-1">Group Expiry Date & Time</p>
-                    <p className="text-base font-medium">30-04-2025 23:59</p>
+                    <p className="text-sm text-default-500 mb-1">Group Expiry</p>
+                    <p className="text-base font-medium">{group.expiryDate} {group.expiryTime}</p>
                   </div>
-                  
                   <div className="mx-2">
                     <p className="text-sm text-default-500 mb-1">Access Type</p>
-                    <p className="text-base font-medium">Private</p>
+                    <p className="text-base font-medium capitalize">{group.accessType}</p>
                   </div>
-                  
-                  <div className="mx-2 md:col-span-2">
-                    <p className="text-sm text-default-500 mb-1">Invite Link</p>
-                    <div className="flex gap-2 items-center">
-                      <div className="flex items-center gap-2 border rounded-md p-2 bg-default-100 max-w-lg">
-                        <Link size={16} className="text-default-500" />
-                        <p className="text-sm truncate">https://scriptopiacampus.com/groups/{group.name.toLowerCase().replace(/\s+/g, '-')}</p>
-                      </div>
-                      <Button size="sm" color="primary">Copy</Button>
-                    </div>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-            
-            {/* Additional sections can continue below if needed */}
-            <Card className="bg-default-50 p-2">
-              <CardBody>
-                <h3 className="text-xl font-semibold mb-4">Participating Companies</h3>
-                <div className="space-y-3">
-                  {group.companies.map((company) => (
-                    <Card key={company.id} className="border border-default-200">
-                      <CardBody className="p-3">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="font-semibold">{company.name}</p>
-                            <p className="text-small text-default-500">{company.industry}</p>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <div className="text-right">
-                              <p className="text-small text-default-500">Openings</p>
-                              <p className="font-semibold">{company.openings}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-small text-default-500">Package</p>
-                              <p className="font-semibold">{company.package}</p>
-                            </div>
-                            <Button size="sm" variant="flat" color="primary">
-                              View
-                            </Button>
-                          </div>
-                        </div>
-                      </CardBody>
-                    </Card>
-                  ))}
-                </div>
-                
-                <div className="mt-4 text-center">
-                  <Button variant="light" color="primary">
-                    View All Companies
-                  </Button>
                 </div>
               </CardBody>
             </Card>
           </div>
         </Tab>
 
-        {/* Students Tab */}
         <Tab key="students" title="Student Details">
           <div className="mt-5">
             <div className="flex justify-between items-center mb-4">
@@ -524,7 +326,7 @@ const GroupDetails: React.FC = () => {
                   startContent={<Search size={18} />}
                   className="w-64"
                 />
-                <Select 
+                <Select
                   label="Filter"
                   className="w-40"
                   selectedKeys={[filter]}
@@ -535,7 +337,7 @@ const GroupDetails: React.FC = () => {
                   <SelectItem key="unplaced" value="unplaced">Unplaced</SelectItem>
                   <SelectItem key="in-process" value="in-process">In Process</SelectItem>
                 </Select>
-                <Select 
+                <Select
                   label="Sort"
                   className="w-40"
                   selectedKeys={[sort]}
@@ -545,14 +347,11 @@ const GroupDetails: React.FC = () => {
                   <SelectItem key="oldest" value="oldest">Oldest</SelectItem>
                 </Select>
               </div>
-              <Button color="primary">
-                Add Student
-              </Button>
+              <Button color="primary">Add Student</Button>
             </div>
-            
-            {/* Replace the existing table with GroupTable component */}
-            <GroupTable 
-              students={filteredStudents} 
+
+            <GroupTable
+              data={filteredStudents}
               emptyContent="No students found matching your filters"
             />
           </div>
