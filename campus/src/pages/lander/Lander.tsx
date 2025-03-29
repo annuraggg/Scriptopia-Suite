@@ -71,7 +71,7 @@ const Lander = () => {
         <div>
           <p className="text-neutral-800 dark:text-neutral-200 text-xs md:text-sm font-normal mb-8">
             Effortlessly create and distribute drives to multiple
-            platforms. Track and manage job requisitions with ease.
+            platforms. Track and manage drive requisitions with ease.
           </p>{" "}
           <img
             src="/t11.png"
@@ -89,7 +89,7 @@ const Lander = () => {
       content: (
         <div>
           <p className="text-neutral-800 dark:text-neutral-200 text-xs md:text-sm font-normal mb-8">
-            Collect applications from job boards, company websites, and direct
+            Collect applications from drive boards, company websites, and direct
             submissions. Parse and store applicant information, resumes, and
             cover letters securely.
           </p>

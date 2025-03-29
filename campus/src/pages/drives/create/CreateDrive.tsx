@@ -2,18 +2,24 @@ import { useState } from "react";
 import Sidebar from "./Sidebar";
 import DriveDetails from "./DriveDetails";
 import Workflow from "./Workflow";
-import { DateValue, RangeValue } from "@nextui-org/react";
-import { today, getLocalTimeZone } from "@internationalized/date";
+import { today, getLocalTimeZone, DateValue } from "@internationalized/date";
 import Summary from "./Summary";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { Drive, AdditionalDetails as AdditionalDetailsType, StepType } from "@shared-types/Drive";
+import {
+  Drive,
+  AdditionalDetails as AdditionalDetailsType,
+  StepType,
+  StepStatus,
+  DriveType,
+} from "@shared-types/Drive";
 import { toast } from "sonner";
 import Loader from "@/components/Loader";
 import AdditionalDetails, { FIELD_CATEGORIES } from "./AdditionalDetails";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
-
+// import WorkflowSchedule from "./WorkflowSchedule";
+import type { RangeValue } from "@react-types/shared";
 interface Component {
   icon: React.ElementType;
   label: string;
@@ -21,26 +27,27 @@ interface Component {
   id: string;
 }
 
-const componentMap: Record<string, StepType> = {
-  "ATS": "rs",
-  "MCQ Assessment": "mcqa",
-  "Code Assessment": "ca",
-  "MCQ + Code Assessment": "mcqca",
-  "Assignment": "as",
-  "Interview": "pi",
-  "OfferLetter": "ol",
-  "Custom": "cu",
+const componentMap: Record<string, string> = {
+  "Resume Screening": "RESUME_SCREENING",
+  "MCQ Assessment": "MCQ_ASSESSMENT",
+  "Code Assessment": "CODING_ASSESSMENT",
+  Assignment: "ASSIGNMENT",
+  Interview: "INTERVIEW",
+  "Custom Step": "CUSTOM",
 };
 
 const CreateDrive = () => {
   const [active, setActive] = useState(0);
 
+  // Drive Details States
   const [title, setTitle] = useState<string>("");
   const [category, setCategory] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [department, setDepartment] = useState<string>("");
   const [openings, setOpenings] = useState<number>(0);
-  const [applicationRange, setApplicationRange] = useState<RangeValue<DateValue>>({
+  const [applicationRange, setApplicationRange] = useState<
+    RangeValue<DateValue>
+  >({
     start: today(getLocalTimeZone()),
     end: today(getLocalTimeZone()).add({ weeks: 1 }),
   });
@@ -48,12 +55,13 @@ const CreateDrive = () => {
   const [minSalary, setMinSalary] = useState<number>(0);
   const [maxSalary, setMaxSalary] = useState<number>(0);
   const [skills, setSkills] = useState<string[]>([]);
-  const [description, setDescription] = useState<string>("");
+  const [description, setDescription] = useState<Record<string, unknown>>({});
 
   // Additional Details States
   const [requiredFields, setRequiredFields] = useState<string[]>([]);
   const [allowNoEntries, setAllowNoEntries] = useState<string[]>([]);
-  const [additionalDetails, setAdditionalDetails] = useState<AdditionalDetailsType>({});
+  const [additionalDetails, setAdditionalDetails] =
+    useState<AdditionalDetailsType>({});
 
   // Workflow States
   const [addedComponents, setAddedComponents] = useState<Component[]>([]);
@@ -69,24 +77,16 @@ const CreateDrive = () => {
 
     const formattedData = {
       steps: addedComponents.map((component) => ({
-        name: component.label, // @ts-ignore
-        type: componentMap[component.label] as
-          | "rs"
-          | "mcqa"
-          | "ca"
-          | "mcqca"
-          | "as"
-          | "pi"
-          | "ol"
-          | "cu",
-        completed: false,
+        name: component.name, // @ts-ignore
+        type: componentMap[component.label] as StepType,
+        status: "pending" as StepStatus,
         timestamp: new Date(),
       })),
       currentStep: -1,
     };
 
     // Format additional details
-    const formattedAdditionalDetails: { [key: string]: { [key: string]: { required: boolean; allowEmpty: boolean } } } = {};
+    const formattedAdditionalDetails: { [key: string]: any } = {};
     Object.entries(FIELD_CATEGORIES).forEach(([category, fields]) => {
       formattedAdditionalDetails[category] = {};
       fields.forEach((field) => {
@@ -102,12 +102,7 @@ const CreateDrive = () => {
       description,
       department,
       location,
-      type: category as
-        | "full_time"
-        | "part_time"
-        | "internship"
-        | "contract"
-        | "temporary",
+      type: category as DriveType,
       openings,
 
       applicationRange: {
@@ -195,6 +190,7 @@ const CreateDrive = () => {
             setAddedComponents={setAddedComponents}
           />
         )}
+        {/* {active === 3 && <WorkflowSchedule addedComponents={addedComponents} />} */}
         {active === 3 && (
           <Summary
             setAction={setActive}

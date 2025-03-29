@@ -1,31 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, useOutletContext } from "react-router-dom";
+import { useParams, useOutletContext } from "react-router-dom";
 import { Card, CardBody, Button, Tabs, Tab } from "@nextui-org/react";
 import { Link } from "lucide-react";
 import { motion } from "framer-motion";
 import Loader from "@/components/Loader";
-import { PlacementGroup } from "@shared-types/PlacementGroup";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { RootContext } from "@/types/RootContext";
 import { DataTable } from "./DataTable";
-
-type FilterTypes = "all" | "placed" | "unplaced" | "in-process";
+import { ExtendedPlacementGroup } from "@shared-types/ExtendedPlacementGroup";
 
 const GroupDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { getToken } = useAuth();
   const axios = ax(getToken);
-  const navigate = useNavigate();
   const { institute } = useOutletContext<RootContext>();
 
-  const [group, setGroup] = useState<PlacementGroup | null>(null);
+  const [group, setGroup] = useState<ExtendedPlacementGroup | null>(null);
   const [selected, setSelected] = useState("details");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filter, setFilter] = useState<FilterTypes>("all");
   const [loading, setLoading] = useState(false);
-  const [sort, setSort] = useState("newest");
 
   useEffect(() => {
     axios

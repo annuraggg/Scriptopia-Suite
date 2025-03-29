@@ -20,8 +20,12 @@ const Sidebar = ({
       id: 3,
       title: "Workflow",
     },
+    // {
+    //   id: 4,
+    //   title: "Workflow Schedule",
+    // },
     {
-      id: 4,
+      id: 5,
       title: "Preview",
     },
   ];
@@ -37,7 +41,11 @@ const Sidebar = ({
               px-4 py-3 
               rounded-lg 
               transition-all duration-300 ease-in-out 
-              ${active === index ? "bg-foreground text-background" : "bg-background text-foreground"}
+              ${
+                active === index
+                  ? "bg-foreground text-background"
+                  : "bg-background text-foreground"
+              }
               cursor-pointer group
             `}
             onClick={() => setActive(index)}
@@ -51,9 +59,7 @@ const Sidebar = ({
                   ${active === index ? "bg-background" : "bg-foreground"}
                 `}
               ></div>
-              <span className={`font-medium text-sm w-full`}>
-                {step.title}
-              </span>
+              <span className={`font-medium text-sm w-full`}>{step.title}</span>
             </div>
             <ChevronRight
               className={`

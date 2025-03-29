@@ -1,15 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Card,
   Input,
   Button,
-  Select,
-  SelectItem,
   CardBody,
   Textarea,
   Chip,
-  RadioGroup,
-  Radio,
 } from "@nextui-org/react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";

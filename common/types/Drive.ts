@@ -161,7 +161,7 @@ interface AdditionalDetails {
 
 interface Drive {
   _id?: string;
-  institution?: string;
+  institute?: string;
   title: string;
   description: Record<string, unknown>;
   department?: string;

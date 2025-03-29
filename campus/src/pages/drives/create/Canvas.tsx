@@ -1,6 +1,9 @@
 import React, { useCallback, useRef, useState, useEffect } from "react";
 import { FileText, Code, Edit2, Trash, Book, Copy } from "lucide-react";
-import { Button, Chip, Switch, Tooltip } from "@nextui-org/react";
+import { Button } from "@heroui/button";
+import { Chip } from "@heroui/chip";
+import { Switch } from "@heroui/switch";
+import { Tooltip } from "@heroui/tooltip";
 import { toast } from "sonner";
 import {
   ReactFlow,

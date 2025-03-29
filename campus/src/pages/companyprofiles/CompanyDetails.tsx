@@ -3,16 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   Card,
   CardBody,
-  CardHeader,
   Chip,
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
   Button,
-  Select,
-  SelectItem,
-  Input,
   Tabs,
   Tab,
   Spinner,
@@ -23,12 +19,11 @@ import {
   Target,
   Activity,
   MoreVertical,
-  Search,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Filter from "./Filter";
-import { useAuth } from '@clerk/clerk-react';
-import ax from '@/config/axios';
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
 import { CompanyTable } from "./CompanyTable";
 
 const SORT_OPTIONS = {
@@ -84,7 +79,6 @@ const useCompanyData = (id: string) => {
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
-
 
   useEffect(() => {
     const fetchCompany = async () => {
@@ -242,9 +236,9 @@ export default function CompanyDetails() {
   } = useStudentData();
 
   const [selected, setSelected] = useState("details");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, _setSearchTerm] = useState("");
   const [filter] = useState<"all" | "placed" | "pending">("all");
-  const [sort, setSort] = useState<
+  const [sort, _setSort] = useState<
     typeof SORT_OPTIONS.NEWEST | typeof SORT_OPTIONS.OLDEST
   >(SORT_OPTIONS.NEWEST);
   const [activeFilters, setActiveFilters] = useState({
@@ -254,7 +248,6 @@ export default function CompanyDetails() {
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
-
 
   const filteredStudents = useFilteredStudents(
     students,
@@ -281,14 +274,14 @@ export default function CompanyDetails() {
       try {
         const response = await axios.delete(`/companies/${company._id}`);
         if (response.data.success) {
-          alert('Company deleted successfully');
-          navigate('/companies');
+          alert("Company deleted successfully");
+          navigate("/companies");
         } else {
-          alert(response.data.message || 'Failed to delete company');
+          alert(response.data.message || "Failed to delete company");
         }
       } catch (error) {
-        console.error('Error deleting company:', error);
-        alert('An error occurred while deleting the company');
+        console.error("Error deleting company:", error);
+        alert("An error occurred while deleting the company");
       }
     }
   };
@@ -296,18 +289,20 @@ export default function CompanyDetails() {
   const handleArchiveCompany = async () => {
     if (!company) return;
     try {
-      const response = await axios.post('/companies/archive', {
-        id: company._id
+      const response = await axios.post("/companies/archive", {
+        id: company._id,
       });
       if (response.data.success) {
-        alert(`Company ${company.archived ? 'unarchived' : 'archived'} successfully`);
+        alert(
+          `Company ${company.archived ? "unarchived" : "archived"} successfully`
+        );
         window.location.reload();
       } else {
-        alert(response.data.message || 'Failed to update archive status');
+        alert(response.data.message || "Failed to update archive status");
       }
     } catch (error) {
-      console.error('Error archiving/unarchiving company:', error);
-      alert('An error occurred');
+      console.error("Error archiving/unarchiving company:", error);
+      alert("An error occurred");
     }
   };
 
@@ -317,7 +312,8 @@ export default function CompanyDetails() {
         <Spinner />
       </div>
     );
-  if (companyError || studentsError) return <div>Error loading data: {companyError || studentsError}</div>;
+  if (companyError || studentsError)
+    return <div>Error loading data: {companyError || studentsError}</div>;
   if (!company) return <div>Company not found</div>;
 
   return (
@@ -343,16 +339,16 @@ export default function CompanyDetails() {
           </DropdownTrigger>
           <DropdownMenu>
             <DropdownItem
+              key={"edit"}
               onClick={() => navigate(`/company/${company._id}/edit`)}
             >
               Edit Details
             </DropdownItem>
-            <DropdownItem
-              onClick={handleArchiveCompany}
-            >
+            <DropdownItem key={"archive"} onClick={handleArchiveCompany}>
               {company.archived ? "Unarchive Company" : "Archive Company"}
             </DropdownItem>
             <DropdownItem
+              key={"delete"}
               className="text-danger"
               onClick={handleDeleteCompany}
             >

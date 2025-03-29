@@ -6,9 +6,9 @@ import {
   TableColumn,
   TableRow,
   TableCell,
-  Checkbox,
-  Button,
-} from "@nextui-org/react";
+} from "@heroui/table";
+import { Checkbox } from "@heroui/checkbox";
+import { Button } from "@heroui/button";
 import { motion } from "framer-motion";
 import { ChevronRight, Info } from "lucide-react";
 import { AdditionalDetails as AdditionalDetailsType } from "@shared-types/Drive";
@@ -90,6 +90,7 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
 
     onRequiredChange(newRequired);
 
+    // If field is being unchecked from required, also remove it from allowedEmpty
     if (required.includes(field)) {
       onAllowedEmptyChange(allowedEmpty.filter((f) => f !== field));
     }
@@ -99,20 +100,17 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
     )?.[0];
 
     if (category) {
-      setAdditionalDetails((prev: AdditionalDetailsType) => {
-        const newState = { ...prev };
-        
-        if (!newState[category as keyof AdditionalDetailsType]) {
-          (newState as any)[category] = {};
-        }
-        
-        (newState as any)[category][field] = {
-          required: !required.includes(field),
-          allowEmpty: false,
-        };
-        
-        return newState;
-      });
+      setAdditionalDetails((prev: AdditionalDetailsType) => ({
+        ...prev,
+        [category]: {
+          // @ts-expect-error - TS doesn't know that category is a valid key
+          ...prev[category],
+          [field]: {
+            required: !required.includes(field),
+            allowEmpty: false,
+          },
+        },
+      }));
     }
   };
 
@@ -128,20 +126,17 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
     )?.[0];
 
     if (category) {
-      setAdditionalDetails((prev: AdditionalDetailsType) => {
-        const newState = { ...prev };
-        
-        if (!newState[category as keyof AdditionalDetailsType]) {
-          (newState as any)[category] = {};
-        }
-        
-        (newState as any)[category][field] = {
-          required: required.includes(field),
-          allowEmpty: !allowedEmpty.includes(field),
-        };
-        
-        return newState;
-      });
+      setAdditionalDetails((prev: AdditionalDetailsType) => ({
+        ...prev,
+        [category]: {
+          // @ts-expect-error - TS doesn't know that category is a valid key
+          ...prev[category],
+          [field]: {
+            required: required.includes(field),
+            allowEmpty: !allowedEmpty.includes(field),
+          },
+        },
+      }));
     }
   };
 
@@ -156,7 +151,6 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
         <h3 className="text-xl font-semibold capitalize">{title}</h3>
       </div>
       <Table
-       
         aria-label={`${title} configuration`}
         classNames={{
           wrapper: "p-0",
@@ -175,7 +169,15 @@ const AdditionalDetails: React.FC<AdditionalDetailsProps> = ({
           {fields.map((field) => (
             <TableRow key={field}>
               <TableCell className="font-medium">
-                {field.replace(/([A-Z])/g, " $1").trim()}
+                {field
+                  .replace(/([A-Z])/g, " $1")
+                  .trim()
+                  .slice(0, 1)
+                  .toUpperCase() +
+                  field
+                    .replace(/([A-Z])/g, " $1")
+                    .trim()
+                    .slice(1)}
               </TableCell>
               <TableCell className="text-center">
                 <Checkbox

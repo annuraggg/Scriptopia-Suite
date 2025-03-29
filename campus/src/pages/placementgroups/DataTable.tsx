@@ -50,8 +50,8 @@ import { Candidate } from "@shared-types/Candidate";
 
 interface DataTableProps<TData extends Candidate> {
   data: TData[];
-  type: "pending" | "active";
-  onDataUpdate: () => void;
+  type?: "pending" | "active";
+  onDataUpdate?: () => void;
 }
 
 export function DataTable<TData extends Candidate>({

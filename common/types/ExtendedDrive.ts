@@ -4,8 +4,8 @@ import { Organization } from "./Organization";
 import { Interview, Drive } from "./Drive";
 
 interface ExtendedDrive
-  extends Omit<Drive, "organizationId" | "candidates" | "interviews"> {
-  organizationId: Omit<Organization, "members">;
+  extends Omit<Drive, "institute" | "candidates" | "interviews"> {
+  institute: Omit<Organization, "members">;
   candidates: ExtendedCandidate[];
   interviews: ExtendedInterviews[];
 }

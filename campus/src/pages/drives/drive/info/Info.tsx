@@ -119,7 +119,7 @@ const Info = () => {
               <div>
                 <p className="text-sm text-default-500">Department</p>
                 <p>
-                  {drive?.instituteId?.departments?.find(
+                  {drive?.institute?.departments?.find(
                     (d) => d._id === drive?.department
                   )?.name || "Not specified"}
                 </p>
