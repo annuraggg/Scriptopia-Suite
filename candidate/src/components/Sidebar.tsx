@@ -6,10 +6,7 @@ import {
   IconBriefcaseFilled,
   IconUserFilled,
   IconFileTextFilled,
-  // IconBellFilled,
-  // IconSettingsFilled,
-  // IconHelpCircleFilled,
-  // IconAlertCircleFilled,
+  IconBookFilled,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { UserButton } from "@clerk/clerk-react";
@@ -53,6 +50,12 @@ const Sidebar = ({
       icon: IconBriefcaseFilled,
       label: "Jobs",
       link: "/jobs",
+      visible: true,
+    },
+    {
+      icon: IconBookFilled,
+      label: "Campus",
+      link: "/campus",
       visible: true,
     },
     // {

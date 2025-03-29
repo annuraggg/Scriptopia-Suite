@@ -190,7 +190,6 @@ const verifyInvite = async (c: Context) => {
       organization: string;
     };
 
-    console.log(decoded);
     const org = await Organization.findById(decoded.organization);
     if (!org) {
       return sendError(c, 404, "Organization not found");
@@ -697,8 +696,6 @@ const updateMembers = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    console.log("Perms: ", perms);
-
     const { members } = await c.req.json();
     const orgId = perms.data?.organization?._id;
 
@@ -720,8 +717,6 @@ const updateMembers = async (c: Context) => {
     const removedMemberEmails = oldMemberEmails.filter(
       (email) => !newMemberEmails.includes(email)
     );
-
-    console.log(oldMemberEmails, newMemberEmails, removedMemberEmails);
 
     // Process metadata updates for both removed members and role changes
     const metadataUpdates = [];
@@ -770,15 +765,12 @@ const updateMembers = async (c: Context) => {
         oldMemberEmails.includes(member.email) && member.status === "active"
     );
 
-    console.log("Existing members: ", existingMembers);
 
     existingMembers.forEach((newMember: Member) => {
       const oldMember = organization.members.find(
         (m) => m.email === newMember.email
       );
 
-      console.log("Old role: ", oldMember);
-      console.log("New role: ", newMember);
       if (!oldMember || !oldMember.user) return;
 
       // Check if role has changed
@@ -801,7 +793,6 @@ const updateMembers = async (c: Context) => {
                 (r: any) => r.slug === newMember.role
               );
 
-              console.log("New role: ", role);
               await clerkClient.users.updateUser(user.clerkId, {
                 publicMetadata: {
                   ...currentMetadata,

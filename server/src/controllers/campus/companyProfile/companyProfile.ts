@@ -5,7 +5,7 @@ import logger from "../../../utils/logger";
 import { Context } from "hono";
 import mongoose from "mongoose";
 import clerkClient from "@/config/clerk";
-import { AuditLog } from "@shared-types/Instititue";
+import { AuditLog } from "@shared-types/Institute";
 
 const getCompanies = async (c: Context) => {
     try {
@@ -20,7 +20,7 @@ const getCompanies = async (c: Context) => {
         }
 
         const formattedCompanies = institute.companies.map((company) => ({
-            _id: company._id.toString(),
+            _id: company._id?.toString(),
             name: company.name,
             description: company.description,
             generalInfo: company.generalInfo,
@@ -119,7 +119,7 @@ const updateCompany = async (c: Context) => {
         }
 
         const companyIndex = institute.companies.findIndex(
-            (company) => company._id.toString() === _id
+            (company) => company._id?.toString() === _id
         );
 
         if (companyIndex === -1) {
@@ -130,7 +130,7 @@ const updateCompany = async (c: Context) => {
             const existingCompany = institute.companies.find(
                 (company) =>
                     company.name.toLowerCase() === name.toLowerCase() &&
-                    company._id.toString() !== _id
+                    company._id?.toString() !== _id
             );
             if (existingCompany) {
                 return sendError(c, 400, "A company with this name already exists");
@@ -185,7 +185,7 @@ const archiveCompany = async (c: Context) => {
         }
 
         const companyIndex = institute.companies.findIndex(
-            (company) => company._id.toString() === id
+            (company) => company._id?.toString() === id
         );
 
         if (companyIndex === -1) {
@@ -238,7 +238,7 @@ const deleteCompany = async (c: Context) => {
         }
 
         const companyIndex = institute.companies.findIndex(
-            (company) => company._id.toString() === companyId
+            (company) => company._id?.toString() === companyId
         );
 
         if (companyIndex === -1) {

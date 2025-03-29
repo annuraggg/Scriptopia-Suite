@@ -6,32 +6,31 @@ import {
   SelectItem,
   Checkbox,
 } from "@nextui-org/react";
-
-interface Department {
-  id: string;
-  name: string;
-}
+import { Department } from "@shared-types/Institute";
 
 export interface FilterProps {
   departments: Department[];
-  onFilterChange: (filters: {
-    year: string;
-    departments: string[];
-  }) => void;
+  onFilterChange: (filters: { year: string; departments: string[] }) => void;
   onClearFilters: () => void;
 }
 
 const years = ["2023-2024", "2022-2023", "2021-2022"];
 
-const Filter: React.FC<FilterProps> = ({ departments, onFilterChange, onClearFilters }) => {
+const Filter: React.FC<FilterProps> = ({
+  departments,
+  onFilterChange,
+  onClearFilters,
+}) => {
   const [selectedYear, setSelectedYear] = React.useState<string>("");
-  const [selectedDepartments, setSelectedDepartments] = React.useState<string[]>([]);
+  const [selectedDepartments, setSelectedDepartments] = React.useState<
+    string[]
+  >([]);
 
   const handleDepartmentChange = (deptId: string) => {
     let newSelectedDepts: string[] = [];
-    
+
     if (deptId === "select-all") {
-      newSelectedDepts = departments.map(dept => dept.id);
+      newSelectedDepts = departments.map((dept) => dept._id) as string[];
     } else if (deptId === "clear-all") {
       newSelectedDepts = [];
     } else {
@@ -39,7 +38,7 @@ const Filter: React.FC<FilterProps> = ({ departments, onFilterChange, onClearFil
         ? selectedDepartments.filter((id) => id !== deptId)
         : [...selectedDepartments, deptId];
     }
-    
+
     setSelectedDepartments(newSelectedDepts);
     onFilterChange({ year: selectedYear, departments: newSelectedDepts });
   };
@@ -95,13 +94,13 @@ const Filter: React.FC<FilterProps> = ({ departments, onFilterChange, onClearFil
               >
                 All
               </Checkbox>
-              
+
               {departments.map((dept) => (
-                <div key={dept.id}>
+                <div key={dept._id!}>
                   <Checkbox
-                    value={dept.id}
-                    isSelected={selectedDepartments.includes(dept.id)}
-                    onChange={() => handleDepartmentChange(dept.id)}
+                    value={dept._id!}
+                    isSelected={selectedDepartments.includes(dept._id!)}
+                    onChange={() => handleDepartmentChange(dept._id!)}
                   >
                     {dept.name}
                   </Checkbox>
@@ -111,10 +110,7 @@ const Filter: React.FC<FilterProps> = ({ departments, onFilterChange, onClearFil
           </div>
 
           <div className="flex justify-between mt-6">
-            <button
-              className="text-sm text-default-500"
-              onClick={handleClear}
-            >
+            <button className="text-sm text-default-500" onClick={handleClear}>
               Clear All
             </button>
           </div>

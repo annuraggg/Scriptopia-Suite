@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const optionSchema = new mongoose.Schema({
-  option: { type: String, required: true },
+  option: { type: String, required: false },
   isCorrect: { type: Boolean, required: false },
   matchingPairText: { type: String, required: false },
 });
@@ -74,7 +74,9 @@ const mcqAssessmentSchema = new mongoose.Schema(
     security: { type: securitySchema, required: true },
     feedbackEmail: { type: String, required: true },
     obtainableScore: { type: Number, required: true },
+    autoObtainableScore: { type: Number, required: true },
     isEnterprise: { type: Boolean, default: false },
+    requiresManualReview: { type: Boolean, default: false },
     postingId: { type: mongoose.Schema.Types.ObjectId, ref: "Posting" },
   },
   { timestamps: true }

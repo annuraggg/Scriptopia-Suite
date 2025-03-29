@@ -8,7 +8,7 @@ import Institute from "../../../models/Institute";
 import CandidateModel from "../../../models/Candidate";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import checkPermission from "../../../middlewares/checkInstitutePermission";
-import { Role } from "@shared-types/Instititue";
+import { Role } from "@shared-types/Institute";
 import { Assessment, Assignment } from "@shared-types/Drive";
 
 const REGION = "ap-south-1";

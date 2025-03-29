@@ -8,7 +8,7 @@ import {
   Tab,
   Tabs,
   TimeInputValue,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState, Key } from "react";
 import General from "./General";
 import Instructions from "./Instructions";
@@ -24,7 +24,12 @@ import {
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { Section, Question, Candidate } from "@shared-types/MCQAssessment";
+import {
+  Section,
+  Question,
+  Candidate,
+  MCQAssessment,
+} from "@shared-types/MCQAssessment";
 import Candidates from "./Candidates";
 
 export interface AddQuestionModalProps {
@@ -96,9 +101,31 @@ const New = () => {
   const [copyPasteDetection, setCopyPasteDetection] = useState(false);
 
   const [feedbackEmail, setFeedbackEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleTabChange = (key: Key) => {
     setActiveTab(key.toString());
+  };
+
+  const addAssessment = (assessment: MCQAssessment) => {
+    // import assessment form user
+    setAssessmentName(assessment.name);
+    setAssessmentDescription(assessment.description);
+    setTimeLimit(assessment.timeLimit);
+    setPassingPercentage(assessment.passingPercentage);
+    setTestOpenRange({
+      start: today(getLocalTimeZone()),
+      end: today(getLocalTimeZone()).add({ weeks: 1 }),
+    });
+    setFocusedValue(today(getLocalTimeZone()));
+    setStartTime(parseAbsoluteToLocal(new Date().toISOString()));
+    setEndTime(parseAbsoluteToLocal(new Date().toISOString()));
+    setSections(assessment.sections);
+    setInstructions(assessment.instructions);
+    setCodePlayback(assessment.security?.sessionPlayback || false);
+    setTabChangeDetection(assessment?.security?.tabChangeDetection || false);
+    setCopyPasteDetection(assessment?.security?.copyPasteDetection || false);
+    setFeedbackEmail(assessment.feedbackEmail);
   };
 
   const { getToken } = useAuth();
@@ -109,6 +136,7 @@ const New = () => {
   };
 
   const buildAssessmentData = () => {
+    setLoading(true);
     const rangeStart = testOpenRange.start.toDate("UTC");
     const rangeEnd = testOpenRange.end.toDate("UTC");
     rangeStart.setHours(startTime.hour);
@@ -145,8 +173,6 @@ const New = () => {
       step,
     };
 
-    console.log(reqBody);
-
     const axios = ax(getToken);
     axios
       .post("/assessments/mcq", reqBody)
@@ -164,6 +190,9 @@ const New = () => {
       .catch((err) => {
         console.error(err);
         toast.error("Error creating assessment");
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
@@ -186,6 +215,7 @@ const New = () => {
         setEndTime,
         focusedValue,
         setFocusedValue,
+        addAssessment,
       }}
     />,
     <Mcqs
@@ -213,6 +243,7 @@ const New = () => {
         feedbackEmail,
         setFeedbackEmail,
         buildAssessmentData,
+        loading
       }}
     />,
   ].filter(Boolean);

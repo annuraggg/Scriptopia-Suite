@@ -18,6 +18,7 @@ const Layout = () => {
     axios
       .get("/postings/" + window.location.pathname.split("/")[2])
       .then((res) => {
+        console.log(res.data.data);
         setPosting(res.data.data);
       })
       .catch((err) => {

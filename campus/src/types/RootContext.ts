@@ -1,18 +1,12 @@
-import { Institute } from "@shared-types/Instititue";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
-import { Notification } from "@shared-types/Instititue";
-import { Drive } from "@shared-types/Drive";
-
-interface InstituteWithDrives extends Omit<Institute, "drives"> {
-  drives: Drive[]
-}
-
+import { Notification } from "@shared-types/Institute";
+import { ExtendedInstitute } from "@shared-types/ExtendedInstitute";
 interface RootContext {
   user: MemberWithPermission;
-  institute: InstituteWithDrives;
-  setInstitute: (institute: InstituteWithDrives) => void;
+  institute: ExtendedInstitute;
+  setInstitute: (institute: ExtendedInstitute) => void;
   notifications: Notification[];
   rerender: boolean;
 }
 
-export type { RootContext, InstituteWithDrives};
+export type { RootContext };

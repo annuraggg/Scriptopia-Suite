@@ -20,7 +20,7 @@ const LargeHeading = ({ children }: any) => {
 
 const Lander = () => {
   const navigate = useNavigate();
-  const organization = useSelector((state: RootState) => state.organization);
+  const organization = useSelector((state: RootState) => state.institute);
 
   const redirectUser = () => {
     if (organization._id) {

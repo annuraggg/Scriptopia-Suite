@@ -6,23 +6,21 @@ import {
   TableColumn,
   TableRow,
   TableCell,
-  Tab,
-  Tabs,
-  Select,
-  SelectItem,
-} from "@nextui-org/react";
+} from "@heroui/table";
+import { Tabs, Tab } from "@heroui/tabs";
+import { Select, SelectItem } from "@heroui/select";
 import InviteModal from "./InviteModal";
-import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
-import { Member } from "@shared-types/Instititue";
+import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
+import { Member } from "@shared-types/Institute";
 import {
   Modal,
   ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Button,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@heroui/modal";
+import { Button } from "@heroui/button";
 import { useOutletContext } from "react-router-dom";
 import { SettingsContext } from "@/types/SettingsContext";
 
@@ -76,8 +74,6 @@ const Members: React.FC = () => {
     const updatedMembers = [...(newOrganization.members || [])];
     updatedMembers[index].role = newRole;
     setInstitute({ ...newOrganization, members: updatedMembers });
-
-    onRemoveConfirmOpenChange();
   };
 
   const removeMember = (email: string) => {
@@ -122,8 +118,8 @@ const Members: React.FC = () => {
                   <TableRow key={member.email}>
                     <TableCell>{member.email}</TableCell>
                     <TableCell>
-                      {member?.addedOn
-                        ? new Date(member.addedOn).toLocaleDateString()
+                      {member?.createdAt
+                        ? new Date(member.createdAt).toLocaleDateString()
                         : "pending"}
                     </TableCell>
 
@@ -138,9 +134,7 @@ const Members: React.FC = () => {
                         isDisabled={member._id === user._id}
                       >
                         {(institute?.roles || []).map((role) => (
-                          <SelectItem key={role?.slug!} value={role?.slug}>
-                            {role.name}
-                          </SelectItem>
+                          <SelectItem key={role?.slug!}>{role.name}</SelectItem>
                         ))}
                       </Select>
                     </TableCell>
@@ -178,8 +172,8 @@ const Members: React.FC = () => {
                   <TableRow key={index}>
                     <TableCell>{member.email}</TableCell>
                     <TableCell>
-                      {member?.addedOn
-                        ? new Date(member.addedOn).toLocaleDateString()
+                      {member?.createdAt
+                        ? new Date(member.createdAt).toLocaleDateString()
                         : "pending"}
                     </TableCell>
                     <TableCell>{member.role}</TableCell>

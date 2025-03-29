@@ -8,9 +8,11 @@ import CodeAssess from "./CodeAssess";
 import { toast } from "sonner";
 import { CodeAssessment } from "@shared-types/CodeAssessment";
 import { MCQAssessment } from "@shared-types/MCQAssessment";
+import Loader from "@/components/Loader";
 
 const Assessments = () => {
   const [active, setActive] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -25,6 +27,7 @@ const Assessments = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       const postingId = window.location.pathname.split("/")[2];
       try {
         const mcqCreatedAssessments = await axios.get(
@@ -41,6 +44,8 @@ const Assessments = () => {
       } catch (error) {
         toast.error("Failed to fetch assessments");
         console.error("Error fetching assessments:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -69,12 +74,17 @@ const Assessments = () => {
       initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="p-10"
     >
-      <div className="h-full flex gap-5">
+      <div className="h-full flex gap-5 w-full">
         <Sidebar active={active} setActive={setActive} />
-        {active === 0 && (
-          <MCQAssess createdAssessments={data.mcqCreatedAssessments || []} />
+        {loading ? (
+          <div className="w-full">
+            <Loader />
+          </div>
+        ) : (
+          active === 0 && (
+            <MCQAssess createdAssessments={data.mcqCreatedAssessments || []} />
+          )
         )}
         {active === 1 && (
           <CodeAssess createdAssessments={data.codeCreatedAssessments || []} />

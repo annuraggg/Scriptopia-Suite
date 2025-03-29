@@ -12,10 +12,10 @@ import {
   TableColumn,
   TableRow,
   TableCell,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { ClipboardListIcon, CodeXml } from "lucide-react";
 import { ArrowLeftRight, Scissors } from "lucide-react";
-import { Tabs, Tab } from "@nextui-org/tabs";
+import { Tabs, Tab } from "@heroui/tabs";
 import * as monaco from "monaco-editor";
 
 interface CodeSolutionModalProps {

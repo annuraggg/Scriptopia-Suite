@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
   SortingState,
   useReactTable,
@@ -20,190 +23,330 @@ import {
 } from "@/components/ui/table";
 
 import {
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+} from "@heroui/dropdown";
+import {
   ArrowUpDown,
-  Check,
   ChevronLeft,
   ChevronRight,
-  Download,
-  X,
+  Eye,
+  UserCheck,
+  UserX,
   Users,
 } from "lucide-react";
-import { Tooltip } from "@heroui/tooltip";
-import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
 import { Checkbox } from "@heroui/checkbox";
+import { Input } from "@heroui/input";
+import { Badge } from "@heroui/badge";
+import { NumberInput } from "@heroui/number-input";
+import AssignmentSubmissionVanilla from "@shared-types/AssignmentSubmission";
+import { IconChevronDown, IconMenu2 } from "@tabler/icons-react";
+import { toast } from "sonner";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { toast } from "sonner";
-import { useOutletContext } from "react-router-dom";
-import { Posting } from "@shared-types/Posting";
 
-interface DataTableProps<TData> {
-  data: TData[];
-  postingId: string;
-  assignmentId: string;
+interface AssignmentSubmission extends AssignmentSubmissionVanilla {
+  grade?: number;
+  candidate: {
+    _id: string;
+    userId: string;
+    name: string;
+    email: string;
+    status: string;
+  };
 }
 
-function DataTable<TData>({
+interface DataTableProps {
+  data: AssignmentSubmission[];
+  postingId: string;
+  assignmentId: string;
+  onGradeSubmission: (submission: AssignmentSubmission, grade: number) => void;
+  onViewSubmission?: (submission: AssignmentSubmission) => void;
+}
+
+export default function DataTable({
   data,
   postingId,
-  assignmentId,
-}: DataTableProps<TData>) {
+  onGradeSubmission,
+  onViewSubmission,
+}: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [threshold, setThreshold] = useState(0);
-  const [grades, setGrades] = useState<Record<string, number>>({});
-
-  const [currentStepId, setCurrentStepId] = useState<number>(-1);
-  const [assessmentStepId, setAssessmentStepId] = useState<number>(-1);
-
-  const { posting } = useOutletContext() as { posting: Posting };
-
-  interface Submission {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    submittedOn: string;
-    grade: number;
-  }
-
+  const [pageIndex, setPageIndex] = useState(0);
+  const [processedData, setProcessedData] = useState<any[]>([]);
+  const [gradeInputs, setGradeInputs] = useState<Record<string, string>>({});
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
   useEffect(() => {
-    const initialGrades: Record<string, number> = {};
-    (data as Submission[]).forEach((submission) => {
-      if (submission.grade) {
-        initialGrades[submission._id] = submission.grade;
+    // Process the data to match the table structure
+    const processed = data.map((submission) => {
+      return {
+        id: submission._id,
+        userId: submission.candidate?.userId,
+        candidateId: submission.candidate?._id,
+        name: submission.candidate?.name,
+        email: submission.candidate?.email,
+        received: submission.createdAt
+          ? new Date(submission.createdAt).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "Unknown",
+        submissionType: getSubmissionType(submission),
+        grade: submission.grade !== undefined ? submission.grade : null,
+        status: submission.candidate?.status,
+        rawSubmission: submission, // Keep the original data for reference
+      };
+    });
+    setProcessedData(processed);
+
+    // Initialize grade inputs with current values
+    const initialGradeInputs: Record<string, string> = {};
+    processed.forEach((item) => {
+      if (item.id) {
+        initialGradeInputs[item.id] =
+          item.grade !== null ? item.grade.toString() : "";
       }
     });
-    setGrades(initialGrades);
-
-    setCurrentStepId(
-      posting?.workflow?.steps?.findIndex(
-        (step) => step.status === "in-progress"
-      ) ?? -1
-    );
-    const stepId = window.location.pathname.split("/")[4];
-    if (!posting?.workflow?.steps) return;
-    const step = posting?.workflow?.steps.findIndex(
-      (step) => step._id === stepId
-    );
-    setAssessmentStepId(step);
+    setGradeInputs(initialGradeInputs);
   }, [data]);
 
-  const downloadAssignment = (_id: string) => {
-    axios
-      .post("candidates/assignment/download", {
-        candidateId: _id,
-        postingId,
-        assignmentId,
-      })
-      .then((res) => window.open(res.data.data, "_blank"))
-      .catch((err) => {
-        toast.error(
-          err.response.data.message || "Failed to download assignment"
-        );
-        console.error(err);
-      });
+  // Helper function to determine submission type
+  const getSubmissionType = (submission: AssignmentSubmission) => {
+    if (submission.fileSubmission) return "file";
+    if (submission.textSubmission) return "text";
+    if (submission.linkSubmission) return "link";
+    return "unknown";
   };
 
-  const qualifyCandidate = (_id: string) => {
+  // Handler for grading a submission
+  const handleGradeSubmission = (
+    submission: AssignmentSubmission,
+    id: string
+  ) => {
+    const gradeValue = parseInt(gradeInputs[id] || "0", 10);
+    if (isNaN(gradeValue) || gradeValue < 0 || gradeValue > 100) {
+      return;
+    }
+
+    if (onGradeSubmission) {
+      onGradeSubmission(submission, gradeValue);
+    } else {
+      console.log("Grade submission:", submission, gradeValue);
+      // Update the local state for immediate feedback
+      setProcessedData((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, grade: gradeValue } : item
+        )
+      );
+    }
+  };
+
+  // Handler for viewing a submission
+  const handleViewSubmission = (submission: AssignmentSubmission) => {
+    if (onViewSubmission) {
+      onViewSubmission(submission);
+    } else {
+      console.log("View submission:", submission);
+    }
+  };
+
+  // Handle grade input change
+  const handleGradeInputChange = (id: string, value: string) => {
+    setGradeInputs((prev) => ({ ...prev, [id]: value }));
+  };
+
+  // Single candidate qualification
+  const selectCand = (candidateId: string) => {
+    const newData = [...processedData];
+    const index = newData.findIndex((c) => c.userId === candidateId);
+    if (index !== -1) {
+      newData[index].status = "inprogress";
+      setProcessedData(newData);
+    }
+
     axios
-      .post("candidates/assignment/qualify", {
-        candidateId: _id,
-        postingId,
-        assignmentId,
+      .put("postings/candidate/qualify", {
+        _id: candidateId,
+        postingId: postingId,
       })
       .then(() => {
         toast.success("Candidate qualified successfully");
       })
       .catch((err) => {
-        toast.error(err.response.data.message || "Failed to qualify candidate");
+        toast.error(
+          err.response?.data?.message || "Failed to qualify candidate"
+        );
         console.error(err);
+
+        const revertData = [...processedData];
+        const revertIndex = revertData.findIndex(
+          (c) => c.userId === candidateId
+        );
+        if (revertIndex !== -1) {
+          revertData[revertIndex].status = "pending";
+          setProcessedData(revertData);
+        }
       });
   };
 
-  const disqualifyCandidate = (_id: string) => {
+  // Single candidate disqualification
+  const disqualify = (candidateId: string) => {
+    const newData = [...processedData];
+    const index = newData.findIndex((c) => c.userId === candidateId);
+    if (index !== -1) {
+      newData[index].status = "rejected";
+      setProcessedData(newData);
+    }
+
     axios
-      .post("candidates/assignment/disqualify", {
-        candidateId: _id,
-        postingId,
-        assignmentId,
+      .put("postings/candidate/disqualify", {
+        _id: candidateId,
+        postingId: postingId,
       })
       .then(() => {
         toast.success("Candidate disqualified successfully");
       })
       .catch((err) => {
         toast.error(
-          err.response.data.message || "Failed to disqualify candidate"
+          err.response?.data?.message || "Failed to disqualify candidate"
         );
         console.error(err);
+
+        const revertData = [...processedData];
+        const revertIndex = revertData.findIndex(
+          (c) => c.userId === candidateId
+        );
+        if (revertIndex !== -1) {
+          revertData[revertIndex].status = "pending";
+          setProcessedData(revertData);
+        }
       });
   };
 
-  const gradeCandidate = (_id: string, grade: number) => {
+  // Bulk qualification
+  const qualifyAllSelected = () => {
+    const selectedRows = table.getFilteredSelectedRowModel().rows;
+    const selectedIds = selectedRows.map((row) => row.original.candidateId);
+
+    if (selectedIds.length === 0) {
+      toast.warning("No candidates selected");
+      return;
+    }
+
+    const newData = [...processedData];
+    selectedIds.forEach((id) => {
+      const index = newData.findIndex((c) => c.userId === id);
+      if (index !== -1) {
+        newData[index].status = "inprogress";
+      }
+    });
+    setProcessedData(newData);
+
     axios
-      .post("candidates/assignment/grade", {
-        candidateId: _id,
-        postingId,
-        assignmentId,
-        grade,
+      .put("postings/candidate/qualify/bulk", {
+        candidateIds: selectedIds,
+        postingId: postingId,
       })
       .then(() => {
-        toast.success("Candidate graded successfully");
-        setGrades((prevGrades) => ({ ...prevGrades, [_id]: grade }));
-      })
-      .catch((err) => {
-        toast.error(err.response.data.message || "Failed to grade candidate");
-        console.error(err);
-      });
-  };
-
-  const bulkQualifyCandidates = () => {
-    const selectedRows = table.getFilteredSelectedRowModel().rows;
-    const selectedIds = selectedRows.map(
-      (row) => (row.original as Submission)._id
-    );
-
-    axios
-      .post("candidates/resume/qualify/bulk", {
-        candidateIds: selectedIds,
-        postingId,
+        toast.success("Selected candidates qualified successfully");
       })
       .catch((err) => {
         toast.error(
-          err.response.data.message ||
-            "Failed to disqualify selected candidates"
+          err.response?.data?.message || "Failed to qualify selected candidates"
         );
         console.error(err);
+
+        const revertedData = [...processedData];
+        selectedIds.forEach((id) => {
+          const index = revertedData.findIndex((c) => c.userId === id);
+          if (index !== -1) {
+            revertedData[index].status = "pending";
+          }
+        });
+        setProcessedData(revertedData);
       });
-    toast.success(`Qualified ${selectedRows.length} candidates`);
   };
 
-  const bulkDisqualifyCandidates = () => {
+  // Bulk disqualification
+  const disqualifyAllSelected = () => {
     const selectedRows = table.getFilteredSelectedRowModel().rows;
-    const selectedIds = selectedRows.map(
-      (row) => (row.original as Submission)._id
-    );
+    const selectedIds = selectedRows.map((row) => row.original.candidateId);
+
+    if (selectedIds.length === 0) {
+      toast.warning("No candidates selected");
+      return;
+    }
+
+    const newData = [...processedData];
+    selectedIds.forEach((id) => {
+      const index = newData.findIndex((c) => c.userId === id);
+      if (index !== -1) {
+        newData[index].status = "rejected";
+      }
+    });
+    setProcessedData(newData);
+
     axios
-      .post("candidates/resume/disqualify/bulk", {
+      .put("postings/candidate/disqualify/bulk", {
         candidateIds: selectedIds,
-        postingId,
+        postingId: postingId,
+      })
+      .then(() => {
+        toast.success("Selected candidates disqualified successfully");
       })
       .catch((err) => {
         toast.error(
-          err.response.data.message ||
+          err.response?.data?.message ||
             "Failed to disqualify selected candidates"
         );
         console.error(err);
-      });
 
-    toast.success(`Disqualified ${selectedRows.length} candidates`);
+        const revertedData = [...processedData];
+        selectedIds.forEach((id) => {
+          const index = revertedData.findIndex((c) => c.userId === id);
+          if (index !== -1) {
+            revertedData[index].status = "pending";
+          }
+        });
+        setProcessedData(revertedData);
+      });
   };
 
-  const columns: ColumnDef<Submission>[] = [
+  // Select candidates with grade above threshold
+  const selectAllAboveThreshold = (threshold: number = 70) => {
+    const eligibleRows = processedData.filter(
+      (row) => row.grade !== null && row.grade >= threshold
+    );
+
+    if (eligibleRows.length === 0) {
+      toast.info("No candidates with grades above threshold");
+      return;
+    }
+
+    const eligibleIds = new Set(eligibleRows.map((row) => row.id));
+    table.toggleAllRowsSelected(false); // Clear current selection
+
+    // Select rows with grades above threshold
+    table.getRowModel().rows.forEach((row) => {
+      if (eligibleIds.has(row.original.id)) {
+        row.toggleSelected(true);
+      }
+    });
+
+    toast.success(
+      `Selected ${eligibleIds.size} candidates with grades above ${threshold}%`
+    );
+  };
+
+  const columns: ColumnDef<any>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -228,75 +371,32 @@ function DataTable<TData>({
     },
     {
       accessorKey: "name",
-      header: ({ column }) => (
-        <Button
-          variant="light"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="light"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Candidate
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("name")}</div>
       ),
-      cell: ({ row }) => `${row.original.firstName} ${row.original.lastName}`,
     },
     {
       accessorKey: "email",
-      header: ({ column }) => (
-        <Button
-          variant="light"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Email
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-    },
-    {
-      accessorKey: "submittedOn",
-      header: ({ column }) => (
-        <Button
-          variant="light"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Submitted On
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-    },
-    {
-      accessorKey: "grade",
-      header: "Grade",
-      cell: ({ row }) => {
-        const _id = row.original._id;
+      header: ({ column }) => {
         return (
-          <div className="flex gap-3">
-            <Input
-              placeholder="Grade"
-              type="number"
-              min="1"
-              max="100"
-              isDisabled={currentStepId !== assessmentStepId}
-              value={grades[_id]?.toString() || ""}
-              onChange={(e) => {
-                const newGrade = parseInt(e.target.value);
-                if (newGrade >= 1 && newGrade <= 100) {
-                  setGrades((prevGrades) => ({
-                    ...prevGrades,
-                    [_id]: newGrade,
-                  }));
-                }
-              }}
-              className="w-[100px]"
-            />
-            <Button
-              variant="flat"
-              color="success"
-              isDisabled={currentStepId !== assessmentStepId}
-              onClick={() => gradeCandidate(_id, grades[_id] || 0)}
-            >
-              Save
-            </Button>
-          </div>
+          <Button
+            variant="light"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Email
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
         );
       },
     },
@@ -313,188 +413,322 @@ function DataTable<TData>({
           </Button>
         );
       },
+      cell: ({ row }) => {
+        const status = row.getValue("status") as string;
+        const getStatusColor = (status: string) => {
+          switch (status) {
+            case "inprogress":
+              return "bg-blue-100 text-blue-800";
+            case "rejected":
+              return "bg-red-100 text-red-800";
+            default:
+              return "bg-gray-100 text-gray-800";
+          }
+        };
+
+        return (
+          <span
+            className={`
+              px-2 py-1 rounded-full text-xs font-medium capitalize
+              ${getStatusColor(status)}
+            `}
+          >
+            {status}
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: "received",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="light"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Submitted On
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+    },
+    {
+      id: "view",
+      header: "View",
+      cell: ({ row }) => {
+        const submission = row.original.rawSubmission;
+
+        return (
+          <Button
+            isIconOnly
+            variant="light"
+            className="h-8 w-8 p-0 text-blue-500"
+            onClick={() => handleViewSubmission(submission)}
+            aria-label="View submission"
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+        );
+      },
+    },
+    {
+      id: "direct-grading",
+      header: "Grade Input",
+      cell: ({ row }) => {
+        const submission = row.original.rawSubmission;
+        const id = row.original.id;
+
+        return (
+          <div className="flex items-center space-x-1">
+            <NumberInput
+              minValue={0}
+              size="sm"
+              maxValue={100}
+              placeholder="0-100"
+              className="w-24"
+              value={Number(gradeInputs[id] || 0)}
+              onValueChange={(e) => handleGradeInputChange(id, e.toString())}
+              aria-label="Enter grade"
+              onBlur={() => handleGradeSubmission(submission, id)}
+            />
+          </div>
+        );
+      },
     },
     {
       id: "actions",
+      header: "More",
       cell: ({ row }) => {
-        const _id = row.original._id;
+        const candidateId = row.original.userId;
+        const status = row.original.status;
+
         return (
-          <div className="flex gap-2">
-            <Tooltip content="Qualify">
+          <Dropdown>
+            <DropdownTrigger>
               <Button
+                variant="light"
+                size="sm"
                 isIconOnly
-                variant="flat"
-                color="success"
-                onClick={() => qualifyCandidate(_id)}
-                isDisabled={currentStepId !== assessmentStepId}
+                className="hover:bg-gray-100"
               >
-                <Check />
+                <IconMenu2 size={16} />
               </Button>
-            </Tooltip>
-            <Tooltip content="Disqualify">
-              <Button
-                isIconOnly
-                variant="flat"
-                color="danger"
-                onClick={() => disqualifyCandidate(_id)}
-                isDisabled={currentStepId !== assessmentStepId}
-              >
-                <X />
-              </Button>
-            </Tooltip>
-            <Tooltip content="Download Assignment">
-              <Button
-                isIconOnly
-                variant="flat"
-                color="warning"
-                onClick={() => downloadAssignment(_id)}
-              >
-                <Download />
-              </Button>
-            </Tooltip>
-          </div>
+            </DropdownTrigger>
+            <DropdownMenu>
+              {status !== "inprogress" ? (
+                <DropdownItem
+                  key="qualify"
+                  onPress={() => selectCand(candidateId)}
+                  startContent={<UserCheck size={16} />}
+                  className="text-green-600 hover:bg-green-50"
+                >
+                  Qualify Candidate
+                </DropdownItem>
+              ) : null}
+              {status !== "rejected" ? (
+                <DropdownItem
+                  key="disqualify"
+                  onPress={() => disqualify(candidateId)}
+                  startContent={<UserX size={16} />}
+                  className="text-red-600 hover:bg-red-50"
+                >
+                  Disqualify Candidate
+                </DropdownItem>
+              ) : null}
+            </DropdownMenu>
+          </Dropdown>
         );
       },
     },
   ];
 
   const table = useReactTable({
-    data, // @ts-expect-error - data is not assignable to never
+    data: processedData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     state: {
       sorting,
       columnFilters,
+      pagination: { pageSize: 10, pageIndex: pageIndex },
     },
   });
 
-  const selectAboveThreshold = () => {
-    table.toggleAllRowsSelected(false);
-    table.getFilteredRowModel().rows.forEach((row) => {
-      if ((row.original as Submission).grade > threshold) {
-        row.toggleSelected(true);
-      }
-    });
-  };
-
   return (
     <div className="rounded-md">
-      <div className="flex items-center gap-5 flex-wrap mb-4">
-        <div className="flex items-center space-x-2">
-          <Input
-            placeholder="Threshold"
-            type="number"
-            min="1"
-            max="100"
-            value={threshold.toString()}
-            onChange={(e) => setThreshold(parseInt(e.target.value))}
-            className="w-[100px]"
-            isDisabled={currentStepId !== assessmentStepId}
-          />
-          <Button
-            onClick={selectAboveThreshold}
-            color="primary"
-            isDisabled={currentStepId !== assessmentStepId}
-          >
-            <Users className="mr-2 h-4 w-4" />
-            Select Above Threshold
-          </Button>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-500">
+            {table.getFilteredRowModel().rows.length} submissions
+          </span>
+          <Badge color="default">
+            {table.getFilteredSelectedRowModel().rows.length} selected
+          </Badge>
         </div>
-        <Input
-          placeholder="Filter emails..."
-          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("email")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
-        <Button
-          onClick={bulkQualifyCandidates}
-          color="success"
-          isDisabled={
-            table.getFilteredSelectedRowModel().rows.length === 0 ||
-            currentStepId !== assessmentStepId
-          }
-        >
-          <Check className="mr-2 h-4 w-4" />
-          Bulk Qualify
-        </Button>
-        <Button
-          onClick={bulkDisqualifyCandidates}
-          color="danger"
-          isDisabled={
-            table.getFilteredSelectedRowModel().rows.length === 0 ||
-            currentStepId !== assessmentStepId
-          }
-        >
-          <X className="mr-2 h-4 w-4" />
-          Bulk Disqualify
-        </Button>
-      </div>
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
+
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Input
+            placeholder="Filter by email..."
+            value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("email")?.setFilterValue(event.target.value)
+            }
+            className="w-full sm:max-w-xs"
+            startContent={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            }
+          />
+
+          <div className="flex items-center gap-2">
+            <Dropdown>
+              <DropdownTrigger>
+                <Button variant="bordered" className="flex items-center gap-2">
+                  Bulk Actions <IconChevronDown size={16} />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu>
+                <DropdownItem
+                  key="qualify"
+                  onPress={qualifyAllSelected}
+                  className="text-green-600 hover:bg-green-50"
+                >
+                  Qualify Selected
+                </DropdownItem>
+                <DropdownItem
+                  key="disqualify"
+                  onPress={disqualifyAllSelected}
+                  className="text-red-600 hover:bg-red-50"
+                >
+                  Disqualify Selected
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+
+            <Button
+              variant="bordered"
+              onPress={() => selectAllAboveThreshold(70)}
+              className="flex items-center gap-2"
+            >
+              <Users size={16} />
+              Select Above 70%
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="border rounded-lg overflow-hidden bg-white h-full">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id} className="bg-gray-50">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  );
+                })}
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="flat"
-          onClick={() => table.previousPage()}
-          isDisabled={!table.getCanPreviousPage()}
-        >
-          <ChevronLeft className="mr-2 h-4 w-4" />
-          Previous
-        </Button>
-        <Button
-          variant="flat"
-          onClick={() => table.nextPage()}
-          isDisabled={!table.getCanNextPage()}
-        >
-          Next
-          <ChevronRight className="ml-2 h-4 w-4" />
-        </Button>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  className="hover:bg-gray-50"
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No submissions found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="mt-4 text-sm text-gray-500 flex justify-between items-center">
+        <div>
+          Showing {table.getRowModel().rows.length} of {processedData.length}{" "}
+          submissions
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            onClick={() => setPageIndex(pageIndex - 1)}
+            isDisabled={!table.getCanPreviousPage()}
+            isIconOnly
+            aria-label="Previous page"
+            variant="light"
+          >
+            <ChevronLeft size={16} />
+          </Button>
+          <span className="text-sm text-gray-600 min-w-20">
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {table.getPageCount()}
+          </span>
+          <Button
+            onClick={() => setPageIndex(pageIndex + 1)}
+            isDisabled={!table.getCanNextPage()}
+            isIconOnly
+            aria-label="Next page"
+            variant="light"
+          >
+            <ChevronRight size={16} />
+          </Button>
+          <span>Rows per page:</span>
+          <select
+            value={table.getState().pagination.pageSize}
+            onChange={(e) => {
+              table.setPageSize(Number(e.target.value));
+            }}
+            className="px-2 py-1 rounded border border-gray-300"
+          >
+            {[10, 20, 30, 40, 50].map((pageSize) => (
+              <option key={pageSize} value={pageSize}>
+                {pageSize}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
     </div>
   );
 }
-
-export default DataTable;

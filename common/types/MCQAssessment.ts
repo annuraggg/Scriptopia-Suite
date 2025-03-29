@@ -70,8 +70,10 @@ interface MCQAssessment {
   security: Security;
   feedbackEmail: string;
   obtainableScore: number;
+  autoObtainableScore?: boolean;
   isEnterprise?: boolean;
   postingId?: string;
+  requiresManualReview?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }

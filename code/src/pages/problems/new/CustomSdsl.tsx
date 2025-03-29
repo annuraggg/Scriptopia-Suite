@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import Monaco from "@/components/problem/Editor/Monaco";
 import { Save, HelpCircle, X } from "lucide-react";
 import { CustomStub as CustomSDSL } from "@shared-types/Problem";

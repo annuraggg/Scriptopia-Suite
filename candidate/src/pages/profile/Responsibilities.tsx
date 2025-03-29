@@ -364,7 +364,7 @@ const Responsibilities = () => {
                       label="Start Date (mm/dd/yyyy)"
                       granularity="day"
                       maxValue={today(getLocalTimeZone())}
-                      value={parseAbsoluteToLocal(startDate.toISOString())}
+                      value={parseAbsoluteToLocal(new Date(startDate).toISOString())}
                       onChange={(date) => handleDateChange(date, "startDate")}
                     />
                     <DatePicker

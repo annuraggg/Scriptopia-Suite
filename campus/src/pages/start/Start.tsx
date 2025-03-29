@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { useDispatch } from "react-redux";
-import { setOrganization } from "@/reducers/organizationReducer";
+import { setInstitute } from "@/reducers/instituteReducer";
 
 interface InvitedMember {
   email: string;
@@ -113,7 +113,7 @@ const Start = () => {
           role: user?.publicMetadata?.roleName,
           permissions: user?.publicMetadata?.permissions,
         };
-        dispatch(setOrganization(data));
+        dispatch(setInstitute(data));
       })
       .catch((err) => {
         console.error(err);

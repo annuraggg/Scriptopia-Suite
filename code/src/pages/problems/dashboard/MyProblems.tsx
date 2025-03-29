@@ -11,7 +11,7 @@ import {
   Select,
   SelectItem,
   Button,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useNavigate } from "react-router-dom";
 import { Problem } from "@shared-types/Problem";
 import DeleteProblemModal from "./DeleteProblemModal";
@@ -90,13 +90,13 @@ const MyProblems = ({ myproblems }: { myproblems: Problem[] }) => {
             selectedKeys={[selectedDifficulty]}
             onChange={(event) => handleDifficultyChange(event.target.value)}
           >
-            <SelectItem key="easy" value="easy">
+            <SelectItem key="easy">
               Easy
             </SelectItem>
-            <SelectItem key="medium" value="medium">
+            <SelectItem key="medium">
               Medium
             </SelectItem>
-            <SelectItem key="hard" value="hard">
+            <SelectItem key="hard">
               Hard
             </SelectItem>
           </Select>

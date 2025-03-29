@@ -14,6 +14,7 @@ import GroupDetails from "./pages/placementgroups/GroupDetails";
 
 // Lazy load components
 import Loader from "./components/Loader";
+import PendingCandidates from "./pages/candidates/PendingCandidates";
 const Lander = lazy(() => import("./pages/lander/Lander"));
 const Layout = lazy(() => import("./components/Layout"));
 const DriveLayout = lazy(() => import("./pages/jobs/job/Layout"));
@@ -21,7 +22,7 @@ const SettingsLayout = lazy(() => import("./pages/settings/Layout"));
 const Start = lazy(() => import("./pages/start/Start"));
 const Join = lazy(() => import("./pages/join/Join"));
 const Onboarding = lazy(() => import("./pages/onboarding/Onboarding"));
-const CandidateLayout = lazy(() => import("./pages/candidate/Layout"));
+const CandidateLayout = lazy(() => import("./pages/candidates/Layout"));
 const CompanyDetails = lazy(
   () => import("./pages/companyprofiles/CompanyDetails")
 );
@@ -43,7 +44,9 @@ const Documentation = lazy(() => import("./pages/documentation/Documentation"));
 const Support = lazy(() => import("./pages/support/Support"));
 
 // Job specific routes
-const DriveDashboard = lazy(() => import("./pages/jobs/job/dashboard/Dashboard"));
+const DriveDashboard = lazy(
+  () => import("./pages/jobs/job/dashboard/Dashboard")
+);
 const Workflow = lazy(() => import("./pages/jobs/job/workflow/Workflow"));
 const Ats = lazy(() => import("./pages/jobs/job/ats/Ats"));
 const JobCandidates = lazy(
@@ -70,15 +73,6 @@ const ViewUserAssessment = lazy(
   () => import("./pages/jobs/job/assessments/ViewAssessment/ViewUserAssessment")
 );
 
-// Candidate specific routes
-const Apply = lazy(() => import("./pages/candidate/apply/Apply"));
-const CandidatePosting = lazy(
-  () => import("./pages/candidate/postings/Posting")
-);
-const CandidateAssignment = lazy(
-  () => import("./pages/candidate/assignment/Assignment")
-);
-
 // Settings routes
 const GeneralSettings = lazy(() => import("./pages/settings/general/General"));
 const Members = lazy(() => import("./pages/settings/members/Member"));
@@ -92,6 +86,12 @@ const AuditLogs = lazy(
 const OrgData = lazy(() => import("./pages/settings/security/data/Data"));
 
 const StartOnboarding = lazy(() => import("./pages/onboarding/start/Start"));
+const CandidateProfile = lazy(() => import("./pages/candidates/Profile"));
+
+const CreatePlacementGroup = lazy(
+  () => import("./pages/placementgroups/create/CreateGroupForm")
+);
+
 
 function App() {
   const { user, isSignedIn } = useUser();
@@ -101,10 +101,10 @@ function App() {
   useEffect(() => {
     if (isSignedIn) {
       const data = {
-        _id: user?.publicMetadata?.orgId,
-        role: user?.publicMetadata?.orgRole,
-        permissions: user?.publicMetadata?.orgPermissions,
-        name: user?.publicMetadata?.orgName,
+        _id: (user?.publicMetadata?.institute as any)?._id,
+        role: (user?.publicMetadata?.institute as any)?.role.slug,
+        permissions: (user?.publicMetadata?.institute as any)?.role.permissions,
+        name: (user?.publicMetadata?.institute as any)?.name,
       };
       dispatch(setInstitute(data));
     }
@@ -265,7 +265,7 @@ function App() {
           ),
         },
         {
-          path: "placementgroups",
+          path: "placement-groups",
           element: (
             <Suspense fallback={<Loader />}>
               <PlacementGroups />
@@ -289,7 +289,7 @@ function App() {
           ),
         },
         {
-          path: "placementgroups",
+          path: "placement-groups",
           element: (
             <Suspense fallback={<Loader />}>
               <PlacementGroups />
@@ -297,7 +297,15 @@ function App() {
           ),
         },
         {
-          path: "group/:id",
+          path: "placement-groups/create",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <CreatePlacementGroup />
+            </Suspense>
+          ),
+        },
+        {
+          path: "placement-groups/:id",
           element: (
             <Suspense fallback={<Loader />}>
               <GroupDetails />
@@ -308,7 +316,33 @@ function App() {
           path: "candidates",
           element: (
             <Suspense fallback={<Loader />}>
-              <Candidates />
+              <CandidateLayout />
+            </Suspense>
+          ),
+          children: [
+            {
+              path: "active",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Candidates />
+                </Suspense>
+              ),
+            },
+            {
+              path: "pending",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <PendingCandidates />
+                </Suspense>
+              ),
+            },
+          ],
+        },
+        {
+          path: "c/:id",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <CandidateProfile />
             </Suspense>
           ),
         },
@@ -460,48 +494,9 @@ function App() {
         },
       ],
     },
-
-    {
-      path: "/",
-      element: (
-        <Suspense fallback={<Loader />}>
-          <CandidateLayout />
-        </Suspense>
-      ),
-      children: [
-        {
-          path: "postings/:id",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <CandidatePosting />
-            </Suspense>
-          ),
-        },
-        {
-          path: "postings/:id/apply",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Apply />
-            </Suspense>
-          ),
-        },
-        {
-          path: "postings/:id/assignments/:assignmentId",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <CandidateAssignment />
-            </Suspense>
-          ),
-        },
-      ],
-    },
   ]);
 
-  return (
-    <main className={`text-foreground bg-background`}>
-      <RouterProvider router={router} />
-    </main>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;

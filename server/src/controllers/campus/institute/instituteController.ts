@@ -9,16 +9,15 @@ import logger from "../../../utils/logger";
 import r2Client from "../../../config/s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { AuditLog, Member, Role } from "@shared-types/Instititue";
+import { AuditLog, Member, Role } from "@shared-types/Institute";
 import defaultInstituteRoles from "@/data/defaultInstituteRoles";
 import institutePermissions from "@/data/institutePermissions";
 import checkInstitutePermission from "@/middlewares/checkInstitutePermission";
-import Posting from "@/models/Posting";
-import { Candidate } from "@shared-types/Candidate";
 import { UserJSON } from "@clerk/backend";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
 import { UserMeta } from "@shared-types/UserMeta";
 import { User as IUser } from "@shared-types/User";
+import CandidateModel from "@/models/Candidate";
 
 const createInstitute = async (c: Context) => {
   try {
@@ -114,6 +113,8 @@ const createInstitute = async (c: Context) => {
     //   zipCode: addressParts[4] || ''
     // };
 
+    const code = crypto.randomUUID();
+
     const institute = await Institute.create({
       name,
       email,
@@ -131,6 +132,7 @@ const createInstitute = async (c: Context) => {
         features: [],
       },
       auditLogs: [auditLog],
+      code,
     });
 
     await clerkClient.users.updateUser(clerkUserId, {
@@ -478,18 +480,22 @@ const updateInstitute = async (c: Context) => {
         };
         const token = jwt.sign(reqObj, process.env.JWT_SECRET!);
         try {
-          await loops.sendTransactionalEmail({
-            transactionalId: process.env.LOOPS_INVITE_EMAIL!,
+          console.log(body.name, institute.name);
+          const l = await loops.sendTransactionalEmail({
+            transactionalId: process.env.LOOPS_CAMPUS_INVITE_EMAIL!,
             email: member.email,
             dataVariables: {
               inviter: inviterName,
               joinlink: `${process.env
-                .ENTERPRISE_FRONTEND_URL!}/join?token=${token}`,
+                .CAMPUS_FRONTEND_URL!}/join?token=${token}`,
               institutename: body.name || institute.name,
             },
           });
+
+          console.log(l);
           logger.info(`Invite sent to: ${member.email}`);
         } catch (error) {
+          console.error(error);
           logger.error(`Failed to send invite to: ${member.email}`);
         }
       })
@@ -595,27 +601,35 @@ const updateLogo = async (c: Context) => {
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
+
+    // Parse the incoming request body
     const file = await c.req.json();
+
     if (!file.logo) {
       return sendError(c, 400, "Please provide a file");
     }
+
     const buffer = Buffer.from(
       file.logo.replace(/^data:image\/\w+;base64,/, ""),
       "base64"
     );
-    const instituteId = perms.data?.institute?._id;
+
+    const orgId = perms.data?.institute?._id;
     const uploadParams = {
       Bucket: process.env.R2_S3_BUCKET!,
-      Key: `institute-logos/${instituteId}.png`,
+      Key: `inst-logos/${orgId}.png`,
       Body: buffer,
       ContentEncoding: "base64",
       ContentType: "image/png",
     };
+
     const upload = new Upload({
       client: r2Client,
       params: uploadParams,
     });
+
     await upload.done();
+
     const user = await clerkClient.users.getUser(c.get("auth").userId);
     const auditLog: AuditLog = {
       user: user.firstName + " " + user.lastName,
@@ -623,13 +637,16 @@ const updateLogo = async (c: Context) => {
       action: "Institute Logo Updated",
       type: "info",
     };
-    const updatedInstitute = await Institute.findByIdAndUpdate(instituteId, {
-      $set: { logo: `institute-logos/${instituteId}.png` },
+
+    const updatedOrg = await Institute.findByIdAndUpdate(orgId, {
+      $set: { logo: `inst-logos/${orgId}.png` },
       $push: { auditLogs: auditLog },
     });
-    if (!updatedInstitute) {
+
+    if (!updatedOrg) {
       return sendError(c, 404, "Institute not found");
     }
+
     return c.json({ message: "Logo updated successfully" });
   } catch (error) {
     logger.error(error as string);
@@ -871,35 +888,56 @@ const updateRoles = async (c: Context) => {
 
 const getCandidates = async (c: Context) => {
   try {
-    const perms = await checkInstitutePermission.all(c, ["view_job"]);
+    const perms = await checkInstitutePermission.all(c, ["view_institute"]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
+
     const instituteId = perms.data?.institute?._id;
-    const posting = await Posting.find({ instituteId: instituteId })
+    const institute = await Institute.findOne({ _id: instituteId })
       .populate("candidates")
       .lean();
-    const candidates = new Set();
-    const emails = new Set();
-    for (const post of posting) {
-      const postCandidates = post.candidates;
-      for (const candidate of postCandidates) {
-        const cand: Candidate = candidate as unknown as Candidate;
-        if (!emails.has(cand.email)) {
-          emails.add(cand.email);
-          candidates.add(cand);
-        }
-      }
+ 1  
+    if (!institute) {
+      return sendError(c, 404, "Institute not found");
     }
+
     return sendSuccess(
       c,
       200,
       "Candidates fetched successfully",
-      Array.from(candidates)
+      institute?.candidates
+    );
+  } catch (error) {
+    console.error(error as string);
+    return sendError(c, 500, "Failed to fetch candidates", error);
+  }
+};
+
+const getPendingCandidates = async (c: Context) => {
+  try {
+    const perms = await checkInstitutePermission.all(c, ["view_institute"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+    const instituteId = perms.data?.institute?._id;
+    const institute = await Institute.findOne({ _id: instituteId })
+      .populate("pendingCandidates")
+      .lean();
+
+    if (!institute) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    return sendSuccess(
+      c,
+      200,
+      "Pending Candidates fetched successfully",
+      institute?.pendingCandidates
     );
   } catch (error) {
     logger.error(error as string);
-    return sendError(c, 500, "Failed to fetch candidates", error);
+    return sendError(c, 500, "Failed to fetch pending candidates", error);
   }
 };
 
@@ -958,25 +996,58 @@ const updateDepartments = async (c: Context) => {
   }
 };
 
+const requestToJoin = async (c: Context) => {
+  try {
+    const { code, uid } = await c.req.json();
+    const user = await c.get("auth")._id;
+
+    const candidate = await CandidateModel.findOne({ userId: user });
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const institute = await Institute.findOne({ code });
+    if (!institute) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    if (
+      institute.pendingCandidates.some(
+        (c) => c?.toString() === candidate?._id?.toString()
+      )
+    ) {
+      return sendError(c, 400, "Already requested to join");
+    }
+
+    if (institute.candidates.some((m) => m?.toString() === user)) {
+      return sendError(c, 400, "Already a candidate of the institute");
+    }
+
+    if (institute.members.some((m) => m.user?.toString() === user)) {
+      return sendError(c, 400, "Already a faculty of the institute");
+    }
+
+    const updatedInstitute = await Institute.findByIdAndUpdate(
+      institute._id,
+      {
+        $push: { pendingCandidates: candidate._id },
+      },
+      { new: true }
+    );
+
+    candidate.instituteUid = uid;
+    await candidate.save();
+
+    return sendSuccess(c, 200, "Request to join institute sent successfully", {
+      name: updatedInstitute?.name,
+    });
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Failed to request to join institute", error);
+  }
+};
+
 const permissionFieldMap = {
-  manage_job: [
-    "name",
-    "email",
-    "website",
-    "logo",
-    "departments",
-    "candidates",
-    "postings",
-  ],
-  view_job: [
-    "name",
-    "email",
-    "website",
-    "logo",
-    "departments",
-    "candidates",
-    "postings",
-  ],
   view_institute: [
     "name",
     "email",
@@ -989,6 +1060,7 @@ const permissionFieldMap = {
     "subscriptions",
     "candidates",
     "postings",
+    "code",
   ],
   manage_institute: [
     "name",
@@ -1002,6 +1074,7 @@ const permissionFieldMap = {
     "subscriptions",
     "candidates",
     "postings",
+    "code",
   ],
   view_billing: ["name", "email", "website", "subscriptions"],
   manage_billing: ["name", "email", "website", "subscriptions"],
@@ -1032,6 +1105,8 @@ const getInstitute = async (c: Context): Promise<any> => {
       "members.user": userId,
     })
       .populate<{ user: IUser }>("members.user")
+      .populate("candidates")
+      .populate("pendingCandidates")
       .lean();
 
     if (!institute) {
@@ -1064,7 +1139,12 @@ const getInstitute = async (c: Context): Promise<any> => {
     ];
 
     const [selectedInstitute, userDoc] = await Promise.all([
-      Institute.findById(institute._id).select(fieldsToSelect.join(" ")),
+      Institute.findById(institute._id)
+        .select(fieldsToSelect.join(" "))
+        .populate("members.user")
+        .populate("candidates")
+        .populate("pendingCandidates"),
+
       User.findOne({ _id: userId }).lean(),
     ]);
 
@@ -1091,9 +1171,9 @@ const getInstitute = async (c: Context): Promise<any> => {
         const data = await r2Client.send(command);
         if (data?.Body) {
           const buffer = await data.Body.transformToByteArray();
-          const base64 = Buffer.from(buffer as unknown as ArrayBuffer).toString(
-            "base64"
-          );
+          const base64 = await Buffer.from(
+            buffer as unknown as ArrayBuffer
+          ).toString("base64");
           selectedInstitute.logo = `data:image/png;base64,${base64.toString()}`;
         }
       } catch (e) {
@@ -1101,6 +1181,7 @@ const getInstitute = async (c: Context): Promise<any> => {
       }
     }
 
+    console.log(selectedInstitute?.candidates);
     return sendSuccess(c, 200, "Institute fetched successfully", {
       institute: selectedInstitute,
       user,
@@ -1108,6 +1189,244 @@ const getInstitute = async (c: Context): Promise<any> => {
   } catch (error) {
     logger.error("Failed to fetch institute: " + error);
     return sendError(c, 500, "Failed to fetch institute", error);
+  }
+};
+
+const verifyRequest = async (c: Context) => {
+  try {
+    const auth = c.get("auth")._id;
+    const candidate = await CandidateModel.findOne({ userId: auth });
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const isCandidatePending = await Institute.findOne({
+      pendingCandidates: {
+        $elemMatch: {
+          candidate: candidate._id,
+        },
+      },
+    });
+
+    if (!isCandidatePending) {
+      return sendSuccess(c, 200, "Candidate not found", { exist: false });
+    }
+
+    return sendSuccess(c, 200, "Candidate found", {
+      exist: true,
+      name: isCandidatePending.name,
+    });
+  } catch (error) {
+    logger.error("Failed to verify request: " + error);
+    return sendError(c, 500, "Failed to verify request", error);
+  }
+};
+
+const cancelRequest = async (c: Context) => {
+  try {
+    const auth = c.get("auth")._id;
+    const candidate = await CandidateModel.findOne({ userId: auth });
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const isCandidatePending = await Institute.findOne({
+      pendingCandidates: {
+        $elemMatch: {
+          candidate: candidate._id,
+        },
+      },
+    });
+
+    if (!isCandidatePending) {
+      return sendSuccess(c, 200, "Candidate not found", { exist: true });
+    }
+
+    await Institute.updateOne(
+      { _id: isCandidatePending._id },
+      { $pull: { pendingCandidates: { candidate: candidate._id } } }
+    );
+
+    return sendSuccess(c, 200, "Request cancelled successfully", {
+      exist: true,
+      name: isCandidatePending.name,
+    });
+  } catch (error) {
+    logger.error("Failed to cancel request: " + error);
+    return sendError(c, 500, "Failed to cancel request", error);
+  }
+};
+
+const getCandidate = async (c: Context) => {
+  try {
+    const cid = c.req.param("cid");
+    const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const institute = await Institute.findById(perms.data?.institute?._id)
+      .populate("candidates")
+      .populate("pendingCandidates");
+
+    if (!institute) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    if (institute.candidates.some((c) => c?._id.toString() === cid)) {
+      const candidate = institute.candidates.find(
+        (c) => c?._id.toString() === cid
+      );
+      return sendSuccess(c, 200, "Candidate found", candidate);
+    }
+
+    if (institute.pendingCandidates.some((c) => c?._id.toString() === cid)) {
+      const candidate = institute.pendingCandidates.find(
+        (c) => c?._id.toString() === cid
+      );
+      return sendSuccess(c, 200, "Candidate found", candidate);
+    }
+
+    return sendError(c, 404, "Candidate not found");
+  } catch (error) {
+    logger.error("Failed to verify request: " + error);
+    return sendError(c, 500, "Failed to verify request", error);
+  }
+};
+
+const acceptCandidate = async (c: Context) => {
+  try {
+    const candidateId = c.req.param("cid");
+    const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const institute = await Institute.findById(perms.data?.institute?._id);
+    if (!institute) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    const candidate = await CandidateModel.findById(candidateId);
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const pendingCandidate = institute.pendingCandidates.find(
+      (c) => c?.toString() === candidate._id.toString()
+    );
+
+    if (!pendingCandidate) {
+      return sendError(c, 404, "Pending candidate not found");
+    }
+
+    institute.pendingCandidates.filter(
+      (c) => c?.toString() !== candidate._id.toString()
+    );
+
+    institute.candidates.push(candidate._id);
+
+    candidate.institute = institute._id;
+
+    candidate.notifications.push({
+      message: `You have been accepted to ${institute.name}`,
+      type: "institute",
+    });
+
+    await candidate.save();
+    await institute.save();
+
+    return sendSuccess(c, 200, "Candidate accepted successfully");
+  } catch (error) {
+    logger.error("Failed to accept candidate: " + error);
+    return sendError(c, 500, "Failed to accept candidate", error);
+  }
+};
+
+const rejectCandidate = async (c: Context) => {
+  try {
+    const candidateId = c.req.param("cid");
+    const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const institute = await Institute.findById(perms.data?.institute?._id);
+    if (!institute) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    const candidate = await CandidateModel.findById(candidateId);
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const pendingCandidate = institute.pendingCandidates.find(
+      (c) => c?.toString() === candidate._id.toString()
+    );
+
+    if (!pendingCandidate) {
+      return sendError(c, 404, "Pending candidate not found");
+    }
+
+    institute.candidates?.filter(
+      (c) => c?.toString() !== candidate._id.toString()
+    );
+
+    candidate.notifications.push({
+      message: `Your request to join ${institute.name} has been rejected`,
+      type: "institute",
+    });
+
+    await candidate.save();
+    await institute.save();
+
+    return sendSuccess(c, 200, "Candidate rejected successfully");
+  } catch (error) {
+    logger.error("Failed to reject candidate: " + error);
+    return sendError(c, 500, "Failed to reject candidate", error);
+  }
+};
+
+const removeCandidate = async (c: Context) => {
+  try {
+    const candidateId = c.req.param("cid");
+    const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const institute = await Institute.findById(perms.data?.institute?._id);
+    if (!institute) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    const candidate = await CandidateModel.findById(candidateId);
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const existingCandidate = institute.candidates.find(
+      (c) => c?.toString() === candidate._id.toString()
+    );
+
+    if (!existingCandidate) {
+      return sendError(c, 404, "Candidate not found in the institute");
+    }
+
+    institute.candidates.filter(
+      (c) => c?.toString() !== candidate._id.toString()
+    );
+
+    candidate.institute = null;
+
+    await candidate.save();
+    await institute.save();
+
+    return sendSuccess(c, 200, "Candidate removed successfully");
+  } catch (error) {
+    logger.error("Failed to remove candidate: " + error);
+    return sendError(c, 500, "Failed to remove candidate", error);
   }
 };
 
@@ -1125,4 +1444,12 @@ export default {
   updateDepartments,
   getInstitute,
   updateInstitute,
+  getPendingCandidates,
+  requestToJoin,
+  verifyRequest,
+  cancelRequest,
+  getCandidate,
+  acceptCandidate,
+  rejectCandidate,
+  removeCandidate,
 };

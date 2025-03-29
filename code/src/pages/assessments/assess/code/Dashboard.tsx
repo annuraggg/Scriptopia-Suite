@@ -10,7 +10,7 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { ChevronRight } from "lucide-react";
 import { CodeAssessment as Assessment } from "@shared-types/CodeAssessment";
 import ProblemComponent from "@/components/problem/Problem";

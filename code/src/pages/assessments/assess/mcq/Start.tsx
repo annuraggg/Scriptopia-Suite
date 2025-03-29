@@ -6,10 +6,10 @@ import {
   CardHeader,
   Divider,
   Input,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { CircleAlert, CircleCheck, Loader2 } from "lucide-react";
+import { CircleAlert, CircleCheck, Loader2, Camera, Mic } from "lucide-react";
 import { toast } from "sonner";
 import ax from "@/config/axios";
 import { MCQAssessment } from "@shared-types/MCQAssessment";
@@ -30,6 +30,7 @@ interface StartProps {
 interface VerificationStepProps {
   status: VerificationStatus;
   label: string;
+  icon?: React.ReactNode;
 }
 
 // Constants
@@ -85,10 +86,53 @@ const checkBrowserCompatibility = (): boolean => {
   return isFullscreenSupported && isTabChangeSupported && !isDevToolsOpen();
 };
 
+// Check camera permissions
+const checkCameraPermission = async (): Promise<boolean> => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    stream.getTracks().forEach((track) => track.stop());
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
+
+// Check microphone permissions
+const checkMicPermission = async (): Promise<boolean> => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach((track) => track.stop());
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
+
+// Request both camera and mic permissions at once
+const requestMediaPermissions = async (): Promise<{
+  camera: boolean;
+  mic: boolean;
+}> => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
+    });
+    stream.getTracks().forEach((track) => track.stop());
+    return { camera: true, mic: true };
+  } catch (err) {
+    // If combined request fails, try individual requests to determine which one failed
+    const camera = await checkCameraPermission();
+    const mic = await checkMicPermission();
+    return { camera, mic };
+  }
+};
+
 // VerificationStep Component
 const VerificationStep: React.FC<VerificationStepProps> = ({
   status,
   label,
+  icon,
 }) => {
   const statusIcons = {
     "-1": <CircleAlert className="text-red-500" />,
@@ -108,7 +152,7 @@ const VerificationStep: React.FC<VerificationStepProps> = ({
   return (
     <div className="flex items-center space-x-4 mt-3">
       <span className="flex-shrink-0">
-        {statusIcons[String(status) as keyof typeof statusIcons]}
+        {icon || statusIcons[String(status) as keyof typeof statusIcons]}
       </span>
       <span className={getStatusClass(status)}>
         {label.slice(0, 1).toUpperCase() + label.slice(1)}
@@ -124,12 +168,37 @@ const Start: React.FC<StartProps> = ({ setAssessment, startAssessment }) => {
     allowedForTest: 0 as VerificationStatus,
     compatibleBrowser: 0 as VerificationStatus,
     testActive: 0 as VerificationStatus,
+    cameraPermission: 0 as VerificationStatus,
+    microphonePermission: 0 as VerificationStatus,
   });
   const [userInput, setUserInput] = useState({
     name: "",
     email: "",
     instructions: "",
   });
+
+  // Request permissions when button is clicked
+  const requestPermissions = async () => {
+    toast.info("Requesting camera and microphone permissions...");
+
+    const permissions = await requestMediaPermissions();
+
+    setVerificationStatus((prev) => ({
+      ...prev,
+      cameraPermission: permissions.camera ? 1 : -1,
+      microphonePermission: permissions.mic ? 1 : -1,
+    }));
+
+    if (!permissions.camera) {
+      toast.error("Camera permission is required for this assessment");
+    }
+
+    if (!permissions.mic) {
+      toast.error("Microphone permission is required for this assessment");
+    }
+
+    return permissions.camera && permissions.mic;
+  };
 
   const handleSubmit = useCallback(async () => {
     const { name, email } = userInput;
@@ -141,6 +210,13 @@ const Start: React.FC<StartProps> = ({ setAssessment, startAssessment }) => {
 
     if (!validateEmail(email)) {
       toast.error("Please enter a valid email address");
+      return;
+    }
+
+    // Request permissions first
+    const permissionsGranted = await requestPermissions();
+    if (!permissionsGranted) {
+      toast.error("Camera and microphone permissions are required to proceed");
       return;
     }
 
@@ -158,11 +234,12 @@ const Start: React.FC<StartProps> = ({ setAssessment, startAssessment }) => {
       setUserInput((prev) => ({ ...prev, instructions }));
       setAssessment(assessment);
 
-      setVerificationStatus({
+      setVerificationStatus((prev) => ({
+        ...prev,
         allowedForTest: 1,
         testActive: 1,
         compatibleBrowser: isCompatible ? 1 : -1,
-      });
+      }));
 
       if (!isCompatible) {
         toast.error("Please use a compatible browser");
@@ -173,11 +250,12 @@ const Start: React.FC<StartProps> = ({ setAssessment, startAssessment }) => {
     } catch (error: any) {
       const errData = error?.response?.data?.data;
 
-      setVerificationStatus({
+      setVerificationStatus((prev) => ({
+        ...prev,
         allowedForTest: errData?.allowedForTest ? 1 : -1,
         testActive: errData?.testActive ? 1 : -1,
         compatibleBrowser: checkBrowserCompatibility() ? 1 : -1,
-      });
+      }));
 
       if (!errData?.allowedForTest || !errData?.testActive) {
         toast.error(error.response.data.message);
@@ -273,7 +351,19 @@ const Start: React.FC<StartProps> = ({ setAssessment, startAssessment }) => {
         </CardBody>
         <CardFooter className="items-center justify-center">
           <Button
-            onClick={() => startAssessment(userInput.email, userInput.name)}
+            onClick={() => {
+              // Double-check permissions before starting
+              const allPermissionsGranted =
+                verificationStatus.cameraPermission === 1 &&
+                verificationStatus.microphonePermission === 1;
+
+              if (allPermissionsGranted) {
+                startAssessment(userInput.email, userInput.name);
+              } else {
+                toast.error("Camera and microphone permissions are required");
+                requestPermissions();
+              }
+            }}
           >
             Start Test
           </Button>
@@ -299,14 +389,58 @@ const Start: React.FC<StartProps> = ({ setAssessment, startAssessment }) => {
         <CardBody className="flex flex-col items-center justify-center">
           <h4 className="text-lg font-semibold">Verifying Details</h4>
           <div className="mt-10">
-            {Object.entries(verificationStatus).map(([key, status]) => (
-              <VerificationStep
-                key={key}
-                status={status}
-                label={key.split(/(?=[A-Z])/).join(" ")}
-              />
-            ))}
+            {Object.entries(verificationStatus).map(([key, status]) => {
+              // Custom icons for camera and mic
+              let icon = null;
+              if (key === "cameraPermission") {
+                icon = (
+                  <Camera
+                    className={
+                      status === 1
+                        ? "text-green-500"
+                        : status === -1
+                        ? "text-red-500"
+                        : "text-gray-500"
+                    }
+                  />
+                );
+              } else if (key === "microphonePermission") {
+                icon = (
+                  <Mic
+                    className={
+                      status === 1
+                        ? "text-green-500"
+                        : status === -1
+                        ? "text-red-500"
+                        : "text-gray-500"
+                    }
+                  />
+                );
+              }
+
+              return (
+                <VerificationStep
+                  key={key}
+                  status={status}
+                  label={key.split(/(?=[A-Z])/).join(" ")}
+                  icon={icon}
+                />
+              );
+            })}
           </div>
+
+          {/* Option to retry permissions if they failed */}
+          {(verificationStatus.cameraPermission === -1 ||
+            verificationStatus.microphonePermission === -1) && (
+            <Button
+              variant="flat"
+              color="primary"
+              className="mt-5"
+              onClick={requestPermissions}
+            >
+              Request Permissions Again
+            </Button>
+          )}
         </CardBody>
       </Card>
     </motion.div>

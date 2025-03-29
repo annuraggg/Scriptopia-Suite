@@ -6,7 +6,7 @@ import { Context } from "hono";
 import Institute from "@/models/Institute";
 import mongoose from "mongoose";
 import clerkClient from "@/config/clerk";
-import { AuditLog } from "@shared-types/Instititue";
+import { AuditLog } from "@shared-types/Institute";
 // import assessmentController from "../../coding/assessmentController";
 
 const getDrives = async (c: Context) => {

@@ -28,7 +28,7 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { Drive } from "@shared-types/Drive";
-import { Department } from "@shared-types/Instititue";
+import { Department } from "@shared-types/Institute";
 import {
   Modal,
   ModalContent,

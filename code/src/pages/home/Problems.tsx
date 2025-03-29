@@ -1,5 +1,5 @@
 import { Problem } from "@shared-types/Problem";
-import { Input, Select, SelectItem } from "@nextui-org/react";
+import { Input, Select, SelectItem } from "@heroui/react";
 import {
   Table,
   TableHeader,
@@ -7,7 +7,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect } from "react";
 
@@ -89,13 +89,13 @@ const Problems = ({
             selectedKeys={[difficulty]}
             onChange={(e) => setDifficulty(e.target.value)}
           >
-            <SelectItem key="easy" value="easy">
+            <SelectItem key="easy">
               Easy
             </SelectItem>
-            <SelectItem key="medium" value="medium">
+            <SelectItem key="medium">
               Medium
             </SelectItem>
-            <SelectItem key="hard" value="hard">
+            <SelectItem key="hard">
               Hard
             </SelectItem>
           </Select>

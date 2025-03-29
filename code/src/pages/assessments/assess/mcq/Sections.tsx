@@ -8,7 +8,7 @@ import {
   Textarea,
   Select,
   SelectItem,
-} from "@nextui-org/react";
+} from "@heroui/react";
 
 import {
   MCQAssessment as MA,
@@ -16,13 +16,26 @@ import {
   QuestionType,
 } from "@shared-types/MCQAssessment";
 import { MCQAssessmentSubmission } from "@shared-types/MCQAssessmentSubmission";
-import { CheckboxGroup, Checkbox } from "@nextui-org/checkbox";
+import { CheckboxGroup, Checkbox } from "@heroui/checkbox";
+import { useMemo } from "react";
+import { Check } from "lucide-react";
+
+// Fisher-Yates shuffle algorithm
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
 
 interface QuestionCardProps {
   question: Question;
   currentAnswer: string | string[];
   assessmentSub: MCQAssessmentSubmission;
   setAssessmentSub: (assessmentSub: MCQAssessmentSubmission) => void;
+  shuffleOptions?: boolean;
 }
 
 const QuestionCard: React.FC<QuestionCardProps> = ({
@@ -30,13 +43,51 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   currentAnswer,
   assessmentSub,
   setAssessmentSub,
+  shuffleOptions = true,
 }) => {
+  // Create shuffled options for question types that have options
+  const shuffledOptions = useMemo(() => {
+    if (
+      !shuffleOptions ||
+      !question.options ||
+      question.type === "matching" || // Don't shuffle matching type
+      question.options.length === 0
+    ) {
+      return question.options || [];
+    }
+
+    return shuffleArray(question.options);
+  }, [question.options, question.type, shuffleOptions]);
+
+  // For matching questions, shuffle only the right column options (matchingPairText)
+  const shuffledMatchingOptions = useMemo(() => {
+    if (
+      !shuffleOptions ||
+      !question.options ||
+      question.type !== "matching" ||
+      question.options.length === 0
+    ) {
+      return question.options || [];
+    }
+
+    // Create a shuffled array of just the matchingPairText values
+    const matchingPairs = question.options.map((opt) => opt.matchingPairText);
+    const shuffledPairs = shuffleArray(matchingPairs);
+
+    // Create new options with original left column and shuffled right column
+    return question.options.map((opt, idx) => ({
+      ...opt,
+      matchingPairText: shuffledPairs[idx],
+    }));
+  }, [question.options, question.type, shuffleOptions]);
+
   const handleAnswerChange = (
     value: string | string[],
     id: string,
     blankIndex?: number
   ) => {
-    const submissions = assessmentSub.mcqSubmissions || [];
+    console.log(value, id, blankIndex);
+    const submissions = assessmentSub?.mcqSubmissions || [];
     const index = submissions.findIndex((sub) => sub.mcqId === id);
 
     // check if the question is fill-in-blanks
@@ -108,7 +159,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             value={currentAnswer as string[]}
             onValueChange={(e) => handleAnswerChange(e, question._id!)}
           >
-            {question.options?.map((option, index) => (
+            {shuffledOptions.map((option, index) => (
               <Checkbox key={index} value={option.option}>
                 {option.option}
               </Checkbox>
@@ -224,11 +275,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                 handleAnswerChange(e.target.value, question._id!, index)
               }
             >
-              {question?.options!.map((opt) => (
-                <SelectItem
-                  key={opt.matchingPairText!}
-                  value={opt.matchingPairText}
-                >
+              {shuffledMatchingOptions.map((opt) => (
+                <SelectItem key={opt.matchingPairText!}>
                   {opt.matchingPairText}
                 </SelectItem>
               ))}
@@ -243,7 +291,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             onChange={(e) => handleAnswerChange(e.target.value, question._id!)}
             label="Answer"
           >
-            {question.options?.map((option, index) => (
+            {shuffledOptions.map((option, index) => (
               <Radio key={index} value={option.option}>
                 {option.option}
               </Radio>
@@ -349,13 +397,26 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   };
 
   return (
-    <Card className="w-full mb-4 p-5">
+    <Card
+      className={`w-full mb-4 p-5 shadow-none ${
+        (typeof currentAnswer === "string" && currentAnswer) ||
+        (Array.isArray(currentAnswer) && currentAnswer.length > 0)
+          ? "bg-success/10"
+          : ""
+      }`}
+    >
       <CardHeader className="flex-col justify-start items-start">
         <div className="text-xs text-default-500 flex justify-between w-full pr-5 mb-3">
           <p>{normalizeType(question.type)}</p>
           <p>{question.grade} points</p>
         </div>
-        <div>{question.question}</div>
+        <div className="flex items-center gap-2">
+          {(typeof currentAnswer === "string" && currentAnswer) ||
+          (Array.isArray(currentAnswer) && currentAnswer.length > 0)
+            ? <Check size={24} className="text-success bg-success/20 rounded-full p-1" />
+            : ""}
+          <div>{question.question}</div>
+        </div>
       </CardHeader>
       <CardBody>{renderQuestion()}</CardBody>
     </Card>
@@ -367,6 +428,7 @@ interface SectionsProps {
   currentSection: number;
   assessmentSub: MCQAssessmentSubmission;
   setAssessmentSub: (assessmentSub: MCQAssessmentSubmission) => void;
+  shuffleOptions?: boolean;
 }
 
 const Sections = ({
@@ -374,6 +436,7 @@ const Sections = ({
   currentSection,
   assessmentSub,
   setAssessmentSub,
+  shuffleOptions = true,
 }: SectionsProps) => {
   const getCurrentAnswer = (question: Question) => {
     const sub = assessmentSub?.mcqSubmissions?.find(
@@ -383,7 +446,7 @@ const Sections = ({
     if (question.type === "fill-in-blanks") return sub?.selectedOptions || "";
     if (question.type === "matching") return sub?.selectedOptions || "";
     if (question.type === "multi-select") return sub?.selectedOptions || [];
-    else return sub?.selectedOptions[0] || [];
+    else return sub?.selectedOptions?.[0] || "";
   };
 
   return (
@@ -397,6 +460,7 @@ const Sections = ({
               assessmentSub={assessmentSub}
               setAssessmentSub={setAssessmentSub}
               currentAnswer={getCurrentAnswer(question)}
+              shuffleOptions={shuffleOptions}
             />
           ))}
         </div>

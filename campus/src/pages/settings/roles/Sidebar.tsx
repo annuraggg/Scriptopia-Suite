@@ -1,4 +1,4 @@
-import { Role } from "@shared-types/Organization";
+import { Role } from "@shared-types/Institute";
 import { Button } from "@nextui-org/react";
 
 const Sidebar = ({

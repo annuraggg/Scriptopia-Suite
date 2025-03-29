@@ -6,16 +6,17 @@ import UnsavedToast from "@/components/UnsavedToast";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast as sonner } from "sonner";
-import { InstituteWithDrives as IWD } from "@/types/RootContext";
+import { ExtendedInstitute } from "@shared-types/ExtendedInstitute";
 
 const Layout = () => {
-  const { institute, setInstitute, user } =
-    useOutletContext() as RootContext;
+  const { institute, setInstitute, user } = useOutletContext() as RootContext;
 
   const [toast, setToast] = useState<boolean>(false);
   const [shakeToast, setShakeToast] = useState<boolean>(false);
   const [rerender, setRerender] = useState<boolean>(false);
-  const [newOrganization, setNewOrganization] = useState<IWD>({} as IWD);
+  const [newOrganization, setNewOrganization] = useState<ExtendedInstitute>(
+    {} as ExtendedInstitute
+  );
 
   useEffect(() => {
     setNewOrganization(institute);
@@ -46,12 +47,12 @@ const Layout = () => {
     setRerender(!rerender);
   };
 
-  const handleToast = (toast: boolean, newOrganization?: IWD) => {
+  const handleToast = (toast: boolean, newOrganization?: ExtendedInstitute) => {
     setToast(toast);
     if (newOrganization) setNewOrganization(newOrganization);
   };
 
-  const updateLocalOrganization = (newOrganization: IWD) => {
+  const updateLocalOrganization = (newOrganization: ExtendedInstitute) => {
     setNewOrganization(newOrganization);
     setToast(true);
   };

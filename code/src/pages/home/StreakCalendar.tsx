@@ -1,4 +1,4 @@
-import { Calendar, DateValue } from "@nextui-org/react";
+import { Calendar, DateValue } from "@heroui/react";
 import { getLocalTimeZone } from "@internationalized/date";
 import { parseISO, format } from "date-fns";
 

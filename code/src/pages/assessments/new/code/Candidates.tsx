@@ -1,4 +1,4 @@
-import { Button, Input, Select, SelectItem } from "@nextui-org/react";
+import { Button, Input, Select, SelectItem } from "@heroui/react";
 import {
   Table,
   TableHeader,
@@ -6,7 +6,7 @@ import {
   TableColumn,
   TableRow,
   TableCell,
-} from "@nextui-org/table";
+} from "@heroui/table";
 import { useState } from "react";
 import { motion } from "framer-motion";
 
@@ -82,10 +82,10 @@ const Candidates = ({
           selectedKeys={[access]}
           onChange={(e) => setAccess(e.target.value)}
         >
-          <SelectItem key="all" value="testcase">
+          <SelectItem key="all">
             Allow Access to All Candidates
           </SelectItem>
-          <SelectItem key="specific" value="specific">
+          <SelectItem key="specific">
             Allow Access to Specific Candidates
           </SelectItem>
         </Select>

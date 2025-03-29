@@ -1,17 +1,19 @@
 import Sidebar from "./Sidebar";
-import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
+import { Breadcrumbs, BreadcrumbItem } from "@heroui/react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import { Role } from "@shared-types/Organization";
-import { Card, CardBody, Checkbox, Input } from "@nextui-org/react";
+import { Role } from "@shared-types/Institute";
+import { Card, CardBody} from "@heroui/react";
+import { Input } from "@heroui/react";
+import { Checkbox } from "@heroui/react";
 import { useOutletContext } from "react-router-dom";
 import { SettingsContext } from "@/types/SettingsContext";
 
 const permissions = [
   "manage_job",
   "view_job",
-  "view_organization",
-  "manage_organization",
+  "view_institute",
+  "manage_institute",
   "view_billing",
   "manage_billing",
   "view_analytics",
@@ -24,14 +26,14 @@ const Roles = () => {
 
   const [selectedRole, setSelectedRole] = useState<Role>({} as Role);
 
-  const { organization, setOrganization, rerender } =
+  const { institute, setInstitute, rerender } =
     useOutletContext() as SettingsContext;
 
   useEffect(() => {
-    if (!organization?.roles) return;
-    setBuiltInRoles(organization?.roles?.filter((role) => role.default));
-    setCustomRoles(organization?.roles?.filter((role) => !role.default));
-    setSelectedRole(organization?.roles?.filter((role) => role.default)[0]);
+    if (!institute?.roles) return;
+    setBuiltInRoles(institute?.roles?.filter((role) => role.default));
+    setCustomRoles(institute?.roles?.filter((role) => !role.default));
+    setSelectedRole(institute?.roles?.filter((role) => role.default)[0]);
   }, [rerender]);
 
   const newRole = () => {
@@ -45,16 +47,16 @@ const Roles = () => {
     setCustomRoles([...customRoles, newRole]);
     setSelectedRole(newRole);
 
-    const newOrganization = { ...organization };
-    newOrganization.roles = [...(newOrganization.roles || []), newRole];
-    setOrganization(newOrganization);
+    const newInstitute = { ...institute };
+    newInstitute.roles = [...(newInstitute.roles || []), newRole];
+    setInstitute(newInstitute);
   };
 
   const changePerm = (val: boolean, perm: string) => {
     if (selectedRole?.default) return toast.error("Cannot edit built-in roles");
 
-    const newOrganization = { ...organization };
-    newOrganization.roles = newOrganization.roles?.map((role) =>
+    const newInstitute = { ...institute };
+    newInstitute.roles = newInstitute.roles?.map((role) =>
       role.slug === selectedRole.slug
         ? {
             ...selectedRole,
@@ -65,7 +67,7 @@ const Roles = () => {
         : role
     );
 
-    setOrganization(newOrganization);
+    setInstitute(newInstitute);
     setSelectedRole({
       ...selectedRole,
       permissions: val
@@ -85,7 +87,7 @@ const Roles = () => {
     <div>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem>{organization?.name}</BreadcrumbItem>
+          <BreadcrumbItem>{institute?.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/roles"}>Roles</BreadcrumbItem>
         </Breadcrumbs>
@@ -114,13 +116,13 @@ const Roles = () => {
                   isDisabled={selectedRole?.default}
                   value={selectedRole?.name}
                   onChange={(e) => {
-                    const newOrganization = { ...organization };
-                    newOrganization.roles = newOrganization.roles?.map((role) =>
+                    const newInstitute = { ...institute };
+                    newInstitute.roles = newInstitute.roles?.map((role) =>
                       role.slug === selectedRole.slug
                         ? { ...selectedRole, name: e.target.value }
                         : role
                     );
-                    setOrganization(newOrganization);
+                    setInstitute(newInstitute);
                     setSelectedRole({
                       ...selectedRole,
                       name: e.target.value,
@@ -135,13 +137,13 @@ const Roles = () => {
                   type="text"
                   value={selectedRole?.description}
                   onChange={(e) => {
-                    const newOrganization = { ...organization };
-                    newOrganization.roles = newOrganization.roles?.map((role) =>
+                    const newInstitute = { ...institute };
+                    newInstitute.roles = newInstitute.roles?.map((role) =>
                       role.slug === selectedRole.slug
                         ? { ...selectedRole, description: e.target.value }
                         : role
                     );
-                    setOrganization(newOrganization);
+                    setInstitute(newInstitute);
                     setSelectedRole({
                       ...selectedRole,
                       description: e.target.value,

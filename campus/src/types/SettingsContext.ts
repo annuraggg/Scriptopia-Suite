@@ -1,5 +1,5 @@
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
-import { Institute } from "@shared-types/Instititue";
+import { Institute } from "@shared-types/Institute";
 
 interface SettingsContext {
   institute: Institute;

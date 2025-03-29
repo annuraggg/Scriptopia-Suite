@@ -68,7 +68,7 @@ const MOCK_NOTIFICATIONS = [
 ];
 
 const Notifications= () => {
-  const org = useSelector((state: RootState) => state.organization);
+  const org = useSelector((state: RootState) => state.institute);
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const [selectedTab, setSelectedTab] = useState("all");
 

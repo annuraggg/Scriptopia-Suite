@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { visualizer } from "rollup-plugin-visualizer";
 import { loadEnv } from "vite";
 import tsconfigPaths from "vite-plugin-tsconfig-paths";
 
@@ -12,19 +11,12 @@ export default defineConfig(({ mode }) => {
       port: parseInt(process.env.VITE_PORT!),
     },
 
-    plugins: [
-      react(),
-      visualizer({
-        emitFile: true,
-        filename: "stats.html",
-        template: "sunburst",
-      }),
-      tsconfigPaths(),
-    ],
+    plugins: [react(), tsconfigPaths()],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
       },
+      preserveSymlinks: true,
     },
     build: {
       rollupOptions: {

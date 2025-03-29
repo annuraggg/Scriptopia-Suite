@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 const bgStyle = {
-  backgroundImage: "url(./join-bg1.svg)",
+  backgroundImage: "url(./join-bg.svg)",
   backgroundSize: "cover",
   height: "100vh",
   display: "flex",

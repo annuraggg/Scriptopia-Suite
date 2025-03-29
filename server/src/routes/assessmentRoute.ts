@@ -3,40 +3,6 @@ import assessmentController from "../controllers/code/assessmentController";
 
 const app = new Hono();
 
-// // app.get("/taken/:page", assessmentController.getMyMcqCodeAssessments); // !CHANGE
-
-// app.get("/:id", assessmentController.getAssessment);
-// app.post("/", assessmentController.createAssessment);
-
-// // END OF NEW ROUTES
-
-// app.post("/verify", assessmentController.verifyAccess);
-// app.post("/submit", assessmentController.submitAssessment);
-
-// app.get("/view/:id", assessmentController.getAssessmentSubmissions);
-// app.get("/view/:id/:postingId", assessmentController.getAssessmentSubmissions);
-
-// app.get(
-//   "/view/:id/:submissionId",
-//   assessmentController.getAssessmentSubmission
-// );
-// app.get(
-//   "/view/:id/:submissionId/:postingId",
-//   assessmentController.getAssessmentSubmission
-// );
-
-// app.delete("/mcq/created/:id", assessmentController.deleteAssessment);
-// app.delete("/code/created/:id", assessmentController.deleteAssessment);
-// app.delete("/mcqcode/created/:id", assessmentController.deleteAssessment);
-
-// app.post("/candidates/qualify", assessmentController.qualifyCandidate);
-// app.post("/candidates/disqualify", assessmentController.disqualifyCandidate);
-
-
-// app.post("/submit/code", assessmentController.codeSubmit);
-// app.post("/submit/code/individual", assessmentController.submitIndividualProblem);
-// app.post("/submit", assessmentController.submitAssessment);
-
 // Create Routes
 app.post("/mcq", assessmentController.createMcqAssessment);
 app.post("/code", assessmentController.createCodeAssessment);
@@ -72,7 +38,18 @@ app.post("/submit/mcq", assessmentController.submitMcqAssessment);
 app.get("/:id/get-submissions", assessmentController.getAssessmentSubmissions);
 app.get("/:id/get-submissions/:submissionId", assessmentController.getAssessmentSubmission);
 
+app.get("/:id/get-mcq-submissions", assessmentController.getMcqAssessmentSubmissions);
+app.get("/:id/get-code-submissions", assessmentController.getCodeAssessmentSubmissions);
 
+app.get("/:id/get-mcq-submissions/:submissionId", assessmentController.getMcqAssessmentSubmission);
+app.get("/:id/get-code-submissions/:submissionId", assessmentController.getCodeAssessmentSubmission);
 
+app.post("/capture", assessmentController.capture);
+app.get("/:type/:id/captures/:email", assessmentController.getCaptures);
+
+app.post("/mcq/grade", assessmentController.gradeMCQAnswer);
+app.post("/code/grade", assessmentController.gradeCodeAnswer);
+
+app.post("/mcq/save-review", assessmentController.saveReview);
 
 export default app;

@@ -1,4 +1,4 @@
-import { Input, Textarea } from "@nextui-org/react";
+import { Input, Textarea } from "@heroui/react";
 import { motion } from "framer-motion";
 import type { DateValue } from "@react-types/calendar";
 import type { RangeValue } from "@react-types/shared";
@@ -8,7 +8,7 @@ import {
   RangeCalendar,
   Button,
   ButtonGroup,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   startOfWeek,
   startOfMonth,
@@ -176,7 +176,7 @@ const General = ({
               className="mt-3 w-full"
               size="sm"
               value={startTime}
-              onChange={setStartTime}
+              onChange={setStartTime as any}
               hideTimeZone
             />
             <TimeInput
@@ -184,7 +184,7 @@ const General = ({
               className="mt-3 w-full"
               size="sm"
               value={endTime}
-              onChange={setEndTime}
+              onChange={setEndTime as any}
               hideTimeZone
             />
           </div>

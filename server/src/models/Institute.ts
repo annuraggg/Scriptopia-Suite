@@ -11,7 +11,7 @@ const notificationSchema = new Schema({
 const roleSchema = new Schema(
   {
     name: { type: String, required: true },
-    slug: { type: String, required: true, unique: true },
+    slug: { type: String, required: true },
     default: { type: Boolean, default: false },
     description: { type: String },
     permissions: [{ type: String, required: true }],
@@ -33,9 +33,6 @@ const memberSchema = new Schema(
 const departmentSchema = new Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
-  headId: { type: Schema.Types.ObjectId, ref: "User" },
-  faculties: [{ type: Schema.Types.ObjectId, ref: "User" }],
-  courses: [{ type: Schema.Types.ObjectId, ref: "Course" }],
 });
 
 const auditLogSchema = new Schema(
@@ -67,48 +64,6 @@ const subscriptionSchema = new Schema({
   features: [{ type: String }],
 });
 
-const companySchema = new Schema(
-  {
-    name: { type: String, required: true },
-    description: String,
-    generalInfo: {
-      industry: [{ type: String }],
-      yearVisit: [{ type: String }],
-      studentsHired: { type: Number, required: true },
-      averagePackage: { type: Number, required: true },
-      highestPackage: { type: Number, required: true },
-      rolesOffered: [{ type: String }],
-    },
-    hrContacts: {
-      name: String,
-      phone: String,
-      email: String,
-      website: String,
-    },
-    archived: { type: Boolean, default: false },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now },
-  },
-  { timestamps: true }
-);
-
-const placementGroupSchema = new Schema(
-  {
-    name: { type: String, required: true },
-    startYear: String,
-    endYear: String,
-    departments: [{ type: String }],
-    purpose: String,
-    expiryDate: String,
-    expiryTime: String,
-    accessType: { type: String, enum: ["public", "private"], required: true },
-    archived: { type: Boolean, default: false },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now },
-  },
-  { timestamps: true }
-);
-
 const instituteSchema = new Schema(
   {
     name: { required: true, type: String },
@@ -135,8 +90,13 @@ const instituteSchema = new Schema(
 
     drives: [{ type: Schema.Types.ObjectId, ref: "Drive" }],
 
-    companies: [companySchema],
-    placementGroups: [placementGroupSchema],
+    companies: [{ type: Schema.Types.ObjectId, ref: "Company" }],
+    placementGroups: [{ type: Schema.Types.ObjectId, ref: "PlacementGroup" }],
+
+    candidates: { type: [Schema.Types.ObjectId], ref: "Candidate" },
+    pendingCandidates: { type: [Schema.Types.ObjectId], ref: "Candidate" },
+
+    code: { type: String, required: true },
 
     isDeleted: { type: Boolean, default: false },
   },

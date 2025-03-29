@@ -8,14 +8,17 @@ const notificationSchema = new Schema({
   read: { type: Boolean, default: false },
 });
 
-const membersSchema = new Schema({
-  user: { type: Schema.Types.ObjectId, ref: "User" },
-  email: { type: String, required: true },
-  role: { type: String, required: true },
-  addedOn: { type: Date, default: Date.now },
-  notifications: { type: [notificationSchema] },
-  status: { type: String, enum: ["pending", "active"], default: "pending" },
-});
+const membersSchema = new Schema(
+  {
+    user: { type: Schema.Types.ObjectId, ref: "User" },
+    email: { type: String, required: true },
+    role: { type: String, required: true },
+    addedOn: { type: Date, default: Date.now },
+    notifications: { type: [notificationSchema] },
+    status: { type: String, enum: ["pending", "active"], default: "pending" },
+  },
+  { timestamps: true }
+);
 
 const rolesSchema = new mongoose.Schema(
   {
@@ -76,9 +79,7 @@ const organizationSchema = new Schema(
       required: true,
     },
     candidates: { type: [Schema.Types.ObjectId], ref: "Candidate" },
-
     postings: [{ type: Schema.Types.ObjectId, ref: "Posting" }],
-
     isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }

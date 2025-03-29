@@ -1,14 +1,9 @@
 import ax from "@/config/axios";
-import { useAuth, useUser } from "@clerk/clerk-react";
-import {
-  Avatar,
-  Button,
-  Card,
-  CardBody,
-  CardFooter,
-  CardHeader,
-  CircularProgress,
-} from "@nextui-org/react";
+import { SignOutButton, useAuth, useUser } from "@clerk/clerk-react";
+import { Avatar } from "@heroui/avatar";
+import { Button } from "@heroui/button";
+import { Card, CardBody, CardFooter, CardHeader } from "@heroui/card";
+import { CircularProgress } from "@heroui/progress";
 import { HeartCrack, Link } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -20,15 +15,14 @@ const bgStyle = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  backdropFilter: "blur(100px)",
 };
 
 interface Token {
   inviter: string;
-  organization: string;
+  institute: string;
   role: string;
   email: string;
-  organizationname: string;
+  institutename: string;
 }
 
 const Join = () => {
@@ -45,7 +39,7 @@ const Join = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
     axios
-      .post("/organizations/verify", { token })
+      .post("/institutes/verify", { token })
       .then((data) => {
         setToken(data.data.data);
         setLoading(false);
@@ -62,16 +56,16 @@ const Join = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
     axios
-      .post("/organizations/join", { status, token })
+      .post("/institutes/join", { status, token })
       .then(() => {
-        toast.success("Joined Organization");
+        toast.success("Joined institute");
         setTimeout(() => {
-          window.location.href = "/dashboard"
+          window.location.href = "/dashboard";
         }, 1000);
       })
       .catch((err) => {
         console.error(err);
-        toast.error("Failed to join organization");
+        toast.error("Failed to join institute");
       })
       .finally(() => setSubmitLoading(false));
   };
@@ -79,14 +73,16 @@ const Join = () => {
   return (
     <div
       style={bgStyle}
-      className={`${loading ? "opacity-50" : ""} transition-all`}
+      className={`${
+        loading ? "opacity-50" : ""
+      } transition-all flex flex-col gap-5`}
     >
       <div>
         {!isSignedIn || !isLoaded || loading ? (
           <CircularProgress />
         ) : error ? (
           <Card>
-            <CardHeader className="justify-center">
+            <CardHeader className="justify-center ">
               You received an invite but...
             </CardHeader>
             <CardBody className="items-center px-10 w-[30vw]">
@@ -94,14 +90,14 @@ const Join = () => {
               <h3 className="mt-3">Invite Invalid</h3>
               <p className="mt-5 opacity-50 text-center">
                 The Invite may have expired or you may not have permission to
-                join this organization
+                join this institute
               </p>
             </CardBody>
           </Card>
         ) : (
           <Card>
             <CardHeader className="justify-center">
-              Organization Invite
+              institute Invite
             </CardHeader>
             <CardBody className="items-center px-10 w-[30vw]">
               <div className="flex gap-5 items-center">
@@ -115,9 +111,9 @@ const Join = () => {
                   : "You have been invited to join"}
               </p>
               <h3 className="mt-3">
-                {token?.organizationname
-                  ? token.organizationname
-                  : "Organization"}
+                {token?.institutename
+                  ? token.institutename
+                  : "institute"}
               </h3>
             </CardBody>
             <CardFooter>
@@ -145,6 +141,23 @@ const Join = () => {
           </Card>
         )}
       </div>
+
+      <Card>
+        <CardBody className="flex flex-col items-center justify-center p-5 w-full">
+          <p>
+            Signed In as{" "}
+            <span className="underline">
+              {user?.emailAddresses[0].emailAddress}
+            </span>
+          </p>
+
+          <SignOutButton signOutOptions={{ redirectUrl: "/join" }}>
+            <a className="underline cursor-pointer">
+              Sign In to a different account
+            </a>
+          </SignOutButton>
+        </CardBody>
+      </Card>
     </div>
   );
 };
