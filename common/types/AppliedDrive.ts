@@ -15,8 +15,6 @@ interface AppliedDriveScore {
     disqualifiedReason?: string;
     scores?: AppliedDriveScore[];
     status: AppliedDriveStatus;
-    resumeUrl?: string;
-    resumeExtract?: string;
     createdAt?: Date;
     updatedAt?: Date;
   }

@@ -73,12 +73,15 @@ app.route("/users", userRoute);
 
 app.route("/organizations", organizationRoute);
 app.route("/postings", postingRoutes);
+
 app.route("/candidates", candidateRoute);
+
 app.route("/institutes", instituteRoute);
 app.route("/drives", driveRoutes);
-app.route("/wallet", walletRoute);
 app.route("/placement-groups", placementGroupRoutes);
 app.route("/companies", companyProfileRoute);
+
+app.route("/wallet", walletRoute);
 
 app.route("/meet", meetRoutes)
 

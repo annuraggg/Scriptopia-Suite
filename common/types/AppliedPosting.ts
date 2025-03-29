@@ -16,7 +16,6 @@ interface AppliedPosting {
   scores?: AppliedPostingScore[];
   status: AppliedPostingStatus;
   resumeUrl?: string;
-  resumeExtract?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
