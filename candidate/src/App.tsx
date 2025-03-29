@@ -11,7 +11,7 @@ import Posting from "./pages/posting/Posting";
 // import JobsLayout from "./pages/jobs/JobsLayout";
 import Apply from "./pages/posting/apply/Apply";
 import Resume from "./pages/resume/Resume";
-import Myjobs from "./pages/jobs/Myjobs";
+import Myjobs from "./pages/jobs_temp/Myjobs";
 import Assignment from "./pages/posting/assignment/Assignment";
 import CampusLayout from "./pages/campus/Layout";
 import Drives from "./pages/campus/drives/Drives";
