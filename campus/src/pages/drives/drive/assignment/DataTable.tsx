@@ -61,7 +61,7 @@ interface AssignmentSubmission extends AssignmentSubmissionVanilla {
 
 interface DataTableProps {
   data: AssignmentSubmission[];
-  postingId: string;
+  driveId: string;
   assignmentId: string;
   onGradeSubmission: (submission: AssignmentSubmission, grade: number) => void;
   onViewSubmission?: (submission: AssignmentSubmission) => void;
@@ -69,7 +69,7 @@ interface DataTableProps {
 
 export default function DataTable({
   data,
-  postingId,
+  driveId,
   onGradeSubmission,
   onViewSubmission,
 }: DataTableProps) {
@@ -173,9 +173,9 @@ export default function DataTable({
     }
 
     axios
-      .put("postings/candidate/qualify", {
+      .put("drives/candidate/qualify", {
         _id: candidateId,
-        postingId: postingId,
+        driveId: driveId,
       })
       .then(() => {
         toast.success("Candidate qualified successfully");
@@ -207,9 +207,9 @@ export default function DataTable({
     }
 
     axios
-      .put("postings/candidate/disqualify", {
+      .put("drives/candidate/disqualify", {
         _id: candidateId,
-        postingId: postingId,
+        driveId: driveId,
       })
       .then(() => {
         toast.success("Candidate disqualified successfully");
@@ -251,9 +251,9 @@ export default function DataTable({
     setProcessedData(newData);
 
     axios
-      .put("postings/candidate/qualify/bulk", {
+      .put("drives/candidate/qualify/bulk", {
         candidateIds: selectedIds,
-        postingId: postingId,
+        driveId: driveId,
       })
       .then(() => {
         toast.success("Selected candidates qualified successfully");
@@ -295,9 +295,9 @@ export default function DataTable({
     setProcessedData(newData);
 
     axios
-      .put("postings/candidate/disqualify/bulk", {
+      .put("drives/candidate/disqualify/bulk", {
         candidateIds: selectedIds,
-        postingId: postingId,
+        driveId: driveId,
       })
       .then(() => {
         toast.success("Selected candidates disqualified successfully");

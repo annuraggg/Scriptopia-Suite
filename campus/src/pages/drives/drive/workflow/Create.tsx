@@ -156,7 +156,7 @@ const Create = () => {
     };
 
     axios
-      .post("/postings/workflow/create", {
+      .post("/drives/workflow/create", {
         formattedData,
         _id: window.location.pathname.split("/")[2],
       })
@@ -326,8 +326,8 @@ const Create = () => {
                       <div className="flex gap-2 mt-2">
                         <DatePicker
                           className="max-w-[284px]"
-                          label="End Date"
-                          value={autoSchedule[index]?.end}
+                          label="End Date"  // @ts-expect-error - TS doesn't know the keys of componentMap
+                          value={autoSchedule[index]?.end!}
                         />
                         <TimeInput
                           label="End Time"

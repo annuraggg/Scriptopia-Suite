@@ -28,13 +28,13 @@ const Assessments = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const postingId = window.location.pathname.split("/")[2];
+      const driveId = window.location.pathname.split("/")[2];
       try {
         const mcqCreatedAssessments = await axios.get(
-          "/assessments/mcq/created/enterprise/" + postingId
+          "/assessments/mcq/created/enterprise/" + driveId
         );
         const codeCreatedAssessments = await axios.get(
-          "/assessments/code/created/enterprise/" + postingId
+          "/assessments/code/created/enterprise/" + driveId
         );
 
         setData({

@@ -2,7 +2,7 @@ import { Select, SelectItem } from "@heroui/select";
 import { Input, Textarea } from "@heroui/input";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { Posting } from "@shared-types/Posting";
+import { Drive } from "@shared-types/Drive";
 import { useOutletContext } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
@@ -16,31 +16,31 @@ const typeOpts = [
 ];
 
 const New = () => {
-  const { posting } = useOutletContext() as { posting: Posting };
+  const { drive } = useOutletContext() as { drive: Drive };
 
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [type, setType] = useState<string>("file");
 
   useEffect(() => {
-    console.log(posting);
-    if (posting) {
+    console.log(drive);
+    if (drive) {
       const step = new URLSearchParams(window.location.search).get("step");
-      const assignment = posting?.workflow?.steps?.[Number(step)];
+      const assignment = drive?.workflow?.steps?.[Number(step)];
       setName(assignment?.name || "");
     }
-  }, [posting]);
+  }, [drive]);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
   const step = window.history.state.usr.step;
   const handleCreateAssignment = () => {
     axios
-      .post("/postings/assignment", {
+      .post("/drives/assignment", {
         name,
         description,
         submissionType: type,
-        postingId: posting._id,
+        driveId: drive._id,
         step,
       })
       .then(() => {

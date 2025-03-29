@@ -6,13 +6,13 @@ import {
   AlertCircleIcon,
 } from "lucide-react";
 import { Card, CardHeader, CardBody } from "@heroui/card";
-import { ExtendedPosting } from "@shared-types/ExtendedPosting";
+import { ExtendedDrive } from "@shared-types/ExtendedDrive";
 
 interface LogsTabProps {
-  posting: ExtendedPosting;
+  drive: ExtendedDrive;
 }
 
-const LogsTab: React.FC<LogsTabProps> = ({ posting }) => {
+const LogsTab: React.FC<LogsTabProps> = ({ drive }) => {
   const getStatusColor = (status?: string) => {
     switch (status?.toLowerCase()) {
       case "finished":
@@ -52,10 +52,10 @@ const LogsTab: React.FC<LogsTabProps> = ({ posting }) => {
                 </p>
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                    posting.ats?.status
+                    drive.ats?.status
                   )}`}
                 >
-                  {posting.ats?.status || "Unknown"}
+                  {drive.ats?.status || "Unknown"}
                 </span>
               </div>
               <ArrowUpIcon className="h-5 w-5 text-gray-400" />
@@ -72,11 +72,11 @@ const LogsTab: React.FC<LogsTabProps> = ({ posting }) => {
                   Success Rate
                 </p>
                 <p className="text-xl font-semibold text-green-600">
-                  {posting.ats?.successCount || 0}
+                  {drive.ats?.successCount || 0}
                   <span className="text-sm text-gray-500 ml-1">
                     /{" "}
-                    {(posting.ats?.successCount || 0) +
-                      (posting.ats?.failedCount || 0)}
+                    {(drive.ats?.successCount || 0) +
+                      (drive.ats?.failedCount || 0)}
                   </span>
                 </p>
               </div>
@@ -94,9 +94,9 @@ const LogsTab: React.FC<LogsTabProps> = ({ posting }) => {
                   Avg. Processing Time
                 </p>
                 <p className="text-xl font-semibold text-blue-600">
-                  {posting.ats?.summary?.averageProcessingTime
+                  {drive.ats?.summary?.averageProcessingTime
                     ? `${(
-                        posting.ats.summary.averageProcessingTime / 1000
+                        drive.ats.summary.averageProcessingTime / 1000
                       ).toFixed(1)}s`
                     : "—"}
                 </p>
@@ -115,7 +115,7 @@ const LogsTab: React.FC<LogsTabProps> = ({ posting }) => {
                   Errors
                 </p>
                 <p className="text-xl font-semibold text-red-600">
-                  {posting.ats?.failedCount || 0}
+                  {drive.ats?.failedCount || 0}
                 </p>
               </div>
               <AlertCircleIcon className="h-5 w-5 text-red-500" />
@@ -133,7 +133,7 @@ const LogsTab: React.FC<LogsTabProps> = ({ posting }) => {
         </CardHeader>
         <CardBody className="p-0">
           <div className="divide-y divide-gray-200">
-            {posting.ats?.logs
+            {drive.ats?.logs
               ?.slice()
               .reverse()
               .map((log, index) => (

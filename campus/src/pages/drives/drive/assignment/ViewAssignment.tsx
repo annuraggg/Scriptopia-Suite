@@ -1,5 +1,5 @@
-import { Assignment } from "@shared-types/Posting";
-import { AppliedPosting } from "@shared-types/AppliedPosting";
+import { Assignment } from "@shared-types/Drive";
+import { AppliedDrive } from "@shared-types/AppliedDrive";
 import { useEffect, useState, useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
 import DataTable from "./DataTable";
@@ -13,7 +13,7 @@ import {
   XSquare,
   BarChart2,
 } from "lucide-react";
-import { ExtendedPosting } from "@shared-types/ExtendedPosting";
+import { ExtendedDrive } from "@shared-types/ExtendedDrive";
 import AssignmentSubmissionVanilla from "@shared-types/AssignmentSubmission";
 import { toast } from "sonner";
 import { useAuth } from "@clerk/clerk-react";
@@ -31,7 +31,7 @@ type AssignmentSubmission = AssignmentSubmissionVanilla & {
 };
 
 const ViewAssignment = () => {
-  const { posting } = useOutletContext() as { posting: ExtendedPosting };
+  const { drive } = useOutletContext() as { drive: ExtendedDrive };
   const [assignment, setAssignment] = useState<Assignment>({} as Assignment);
   const [submissions, setSubmissions] = useState<AssignmentSubmission[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
@@ -40,9 +40,9 @@ const ViewAssignment = () => {
   const axios = ax(getToken);
 
   useEffect(() => {
-    if (posting) {
+    if (drive) {
       const assignmentId = window.location.pathname.split("/").pop();
-      const assignment = posting?.assignments?.find(
+      const assignment = drive?.assignments?.find(
         (a) => a._id === assignmentId
       );
 
@@ -52,13 +52,13 @@ const ViewAssignment = () => {
         assignment?.submissions?.forEach((submissionId) => {
           const submission = submissionId as unknown as AssignmentSubmission;
 
-          const appliedPosting = posting.candidates?.find(
-            (ap) => (ap as unknown as AppliedPosting).posting === posting._id
+          const appliedDrive = drive.candidates?.find(
+            (ap) => (ap as unknown as AppliedDrive).drive === drive._id
           );
 
-          if (appliedPosting) {
+          if (appliedDrive) {
             const currentAssignmentScore = (
-              appliedPosting as unknown as AppliedPosting
+              appliedDrive as unknown as AppliedDrive
             ).scores?.find((score) => score.stageId === assignment._id);
 
             if (currentAssignmentScore) {
@@ -66,15 +66,15 @@ const ViewAssignment = () => {
             }
           }
 
-          const candidate = posting.candidates?.find(
+          const candidate = drive.candidates?.find(
             (c) => c.userId.toString() === submission.candidateId
           );
 
-          const status = candidate?.appliedPostings?.find(
-            (ap) => ap.posting === posting._id
+          const status = candidate?.appliedDrives?.find(
+            (ap) => ap.drive === drive._id
           )?.status;
-          console.log(candidate?.appliedPostings);
-          console.log(posting._id);
+          console.log(candidate?.appliedDrives);
+          console.log(drive._id);
           console.log(status);
 
           submission.candidate = {
@@ -92,7 +92,7 @@ const ViewAssignment = () => {
         setSubmissions(submissionsWithGrades);
       }
     }
-  }, [posting]);
+  }, [drive]);
 
   // Analytics calculations
   const analytics = useMemo(() => {
@@ -115,7 +115,7 @@ const ViewAssignment = () => {
       };
     }
 
-    const totalCandidates = posting.candidates?.length || 0;
+    const totalCandidates = drive.candidates?.length || 0;
     const totalSubmissions = submissions.length;
 
     console.log(totalCandidates, totalSubmissions);
@@ -155,11 +155,11 @@ const ViewAssignment = () => {
       lowestGrade: grades.length ? Math.min(...grades) : 0,
       gradedDistribution,
     };
-  }, [submissions, posting.candidates]);
+  }, [submissions, drive.candidates]);
 
   const submitGrade = (submission: AssignmentSubmission, grade: number) => {
     axios
-      .post(`postings/${posting._id}/assignment/${assignment._id}/grade`, {
+      .post(`drives/${drive._id}/assignment/${assignment._id}/grade`, {
         cid: submission.candidateId,
         grade,
       })
@@ -175,7 +175,7 @@ const ViewAssignment = () => {
     if (assignment.submissionType === "file") {
       axios
         .get(
-          `postings/${posting._id}/assignment/${assignment._id}/submission/${submission.candidateId}`
+          `drives/${drive._id}/assignment/${assignment._id}/submission/${submission.candidateId}`
         )
         .then((res) => {
           window.open(res.data.data.url, "_blank");
@@ -218,7 +218,7 @@ const ViewAssignment = () => {
           </div>
           <div className="flex items-center">
             <Users size={16} className="mr-1" />
-            <span>Candidates: {posting.candidates?.length || 0}</span>
+            <span>Candidates: {drive.candidates?.length || 0}</span>
           </div>
         </div>
       </div>
@@ -277,7 +277,7 @@ const ViewAssignment = () => {
                     </p>
                     <p className="text-xs text-indigo-700 mt-1">
                       {analytics.totalSubmissions} of{" "}
-                      {posting.candidates?.length || 0} candidates
+                      {drive.candidates?.length || 0} candidates
                     </p>
                   </div>
 
@@ -491,7 +491,7 @@ const ViewAssignment = () => {
                               Not Submitted
                             </p>
                             <p className="text-lg font-semibold">
-                              {(posting.candidates?.length || 0) -
+                              {(drive.candidates?.length || 0) -
                                 analytics.totalSubmissions}
                             </p>
                           </div>
@@ -528,7 +528,7 @@ const ViewAssignment = () => {
           ) : (
             <DataTable
               data={submissions}
-              postingId={posting._id!}
+              driveId={drive._id!}
               assignmentId={assignment._id!}
               onGradeSubmission={submitGrade}
               onViewSubmission={viewSubmission}

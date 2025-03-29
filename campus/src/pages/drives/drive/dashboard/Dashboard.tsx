@@ -38,7 +38,7 @@ interface ApplicationRange {
   end: string;
 }
 
-interface Posting {
+interface Drive {
   title: string;
   department: string;
   type: string;
@@ -199,7 +199,7 @@ const StageColumn: React.FC<{
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { posting } = useOutletContext() as { posting: Posting };
+  const { drive } = useOutletContext() as { drive: Drive };
   const [showDisqualified, setShowDisqualified] = useState(false);
 
   // Enhanced mock data with more details
@@ -218,13 +218,13 @@ const Dashboard: React.FC = () => {
     // ... other participants
   ];
 
-  const getPostingStatus = (posting: Posting) => {
+  const getDriveStatus = (drive: Drive) => {
     const currentDate = new Date();
-    const endDate = new Date(posting.applicationRange.end);
+    const endDate = new Date(drive.applicationRange.end);
     return currentDate < endDate ? "active" : "closed";
   };
 
-  if (!posting?.candidates || posting?.candidates?.length === 0) {
+  if (!drive?.candidates || drive?.candidates?.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-[100vh] text-gray-500">
         <img src="/api/placeholder/200/200" alt="No data" className="mb-4" />
@@ -254,20 +254,20 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div>
-                  <h1 className="text-lg font-semibold">{posting.title}</h1>
+                  <h1 className="text-lg font-semibold">{drive.title}</h1>
                   <Badge variant="flat" size="sm">
-                    {posting.department}
+                    {drive.department}
                   </Badge>
                 </div>
 
                 <Badge
                   color={
-                    getPostingStatus(posting) === "active"
+                    getDriveStatus(drive) === "active"
                       ? "success"
                       : "danger"
                   }
                 >
-                  {getPostingStatus(posting) === "active" ? "Active" : "Closed"}
+                  {getDriveStatus(drive) === "active" ? "Active" : "Closed"}
                 </Badge>
               </div>
 
@@ -275,14 +275,14 @@ const Dashboard: React.FC = () => {
                 <Tooltip content="Drive Type">
                   <div className="flex items-center gap-2">
                     <Briefcase size={16} />
-                    <span>{posting.type}</span>
+                    <span>{drive.type}</span>
                   </div>
                 </Tooltip>
 
                 <Tooltip content="Location">
                   <div className="flex items-center gap-2">
                     <MapPin size={16} />
-                    <span>{posting.location}</span>
+                    <span>{drive.location}</span>
                   </div>
                 </Tooltip>
 
@@ -290,9 +290,9 @@ const Dashboard: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <Banknote size={16} />
                     <span>
-                      {posting.salary.min.toLocaleString()} -{" "}
-                      {posting.salary.max.toLocaleString()}
-                      {posting.salary.currency?.toUpperCase() || "USD"}
+                      {drive.salary.min.toLocaleString()} -{" "}
+                      {drive.salary.max.toLocaleString()}
+                      {drive.salary.currency?.toUpperCase() || "USD"}
                     </span>
                   </div>
                 </Tooltip>

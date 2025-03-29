@@ -1,25 +1,25 @@
-import { ExtendedPosting } from "@shared-types/ExtendedPosting";
-import { WorkflowStep } from "@shared-types/Posting";
+import { ExtendedDrive } from "@shared-types/ExtendedDrive";
+import { WorkflowStep } from "@shared-types/Drive";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import DataTable from "./DataTable";
 
 interface OutletContext {
-  posting: ExtendedPosting;
+  drive: ExtendedDrive;
   active: string;
   refetch: () => void;
 }
 
 const Custom = () => {
-  const { posting, active } = useOutletContext<OutletContext>();
+  const { drive, active } = useOutletContext<OutletContext>();
   const [step, setStep] = useState<WorkflowStep | null>(null);
   const [isCurrent, setIsCurrent] = useState(false);
 
   useEffect(() => {
     const stepId = window.location.pathname.split("/").pop();
-    const step = posting.workflow?.steps?.find((s) => s._id === stepId);
+    const step = drive.workflow?.steps?.find((s) => s._id === stepId);
     const isCurrent =
-      posting?.workflow?.steps?.find((s) => s._id === stepId)?.status ===
+      drive?.workflow?.steps?.find((s) => s._id === stepId)?.status ===
       "in-progress";
 
     if (step) {
@@ -40,7 +40,7 @@ const Custom = () => {
   return (
     <div className="p-10">
       <h4>{step?.name}</h4>
-      <DataTable data={posting?.candidates} />
+      <DataTable data={drive?.candidates} />
     </div>
   );
 };

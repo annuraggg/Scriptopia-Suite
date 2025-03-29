@@ -29,6 +29,7 @@
     "axios": "^1.7.7",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "currency-symbol-map": "^5.1.0",
     "date-fns": "^4.1.0",
     "framer-motion": "^11.15.0",
     "html2canvas": "^1.4.1",

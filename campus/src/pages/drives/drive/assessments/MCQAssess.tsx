@@ -5,9 +5,9 @@ import { Eye, Link, BarChart2, PieChart, LineChart } from "lucide-react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { toast } from "sonner";
 import { MCQAssessment } from "@shared-types/MCQAssessment";
-import { ExtendedPosting as Posting } from "@shared-types/ExtendedPosting";
+import { ExtendedDrive as Drive } from "@shared-types/ExtendedDrive";
 
-interface ExtendedPosting extends Omit<Posting, "mcqAssessments"> {
+interface ExtendedDrive extends Omit<Drive, "mcqAssessments"> {
   mcqAssessments: {
     _id: string;
     assessmentId: MCQAssessment;
@@ -48,7 +48,7 @@ const MCQAssess = ({
   createdAssessments: MCQAssessment[];
 }) => {
   const navigate = useNavigate();
-  const { posting } = useOutletContext() as { posting: ExtendedPosting };
+  const { drive } = useOutletContext() as { drive: ExtendedDrive };
 
   const totalQuestions = (assessment: MCQAssessment) => {
     return assessment.sections.reduce(
@@ -65,17 +65,17 @@ const MCQAssess = ({
 
   const getIsActive = (assessment: MCQAssessment) => {
     const currentStep =
-      posting.workflow?.steps?.findIndex(
+      drive.workflow?.steps?.findIndex(
         (step) => step.status === "in-progress"
       ) ?? 0;
 
-    const currentStepId = posting?.workflow?.steps[currentStep]?._id;
-    const postingAssessment = posting?.mcqAssessments?.find(
+    const currentStepId = drive?.workflow?.steps[currentStep]?._id;
+    const driveAssessment = drive?.mcqAssessments?.find(
       (a) => a.workflowId.toString() === currentStepId?.toString()
     );
 
     return (
-      postingAssessment?.assessmentId?._id?.toString() ===
+      driveAssessment?.assessmentId?._id?.toString() ===
       assessment?._id?.toString()
     );
   };
@@ -158,10 +158,10 @@ const MCQAssess = ({
                     </div>
 
                     <div className="flex gap-2 items-center flex-col">
-                      {posting?.workflow?.steps?.find(
+                      {drive?.workflow?.steps?.find(
                         (step) =>
                           step._id ===
-                          posting?.mcqAssessments?.find(
+                          drive?.mcqAssessments?.find(
                             (a) => a.assessmentId?._id === assessment._id
                           )?.workflowId
                       )?.status !== "pending" && (

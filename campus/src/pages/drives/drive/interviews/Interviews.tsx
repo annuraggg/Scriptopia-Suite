@@ -2,22 +2,22 @@ import { useEffect, useState } from "react";
 import Blank from "./Blank";
 import Main from "./Main";
 import { useOutletContext } from "react-router-dom";
-import { Posting } from "@shared-types/Posting";
+import { Drive } from "@shared-types/Drive";
 
 const Interviews = () => {
   const [interviewEnabled, setInterviewEnabled] = useState(false);
 
-  const { posting } = useOutletContext() as { posting: Posting };
+  const { drive } = useOutletContext() as { drive: Drive };
 
   useEffect(() => {
-    const noOfInterviews = posting?.workflow?.steps?.filter(
+    const noOfInterviews = drive?.workflow?.steps?.filter(
       (step) => step.type === "INTERVIEW"
     ).length;
 
     if (noOfInterviews) {
       setInterviewEnabled(true);
     }
-  }, [posting]);
+  }, [drive]);
 
   if (!interviewEnabled) {
     return <Blank />;

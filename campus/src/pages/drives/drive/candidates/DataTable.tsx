@@ -32,7 +32,7 @@ import {
 import { Button } from "@heroui/button";
 import { Checkbox } from "@heroui/checkbox";
 import { useOutletContext } from "react-router-dom";
-import { Posting as PostingType } from "@shared-types/Posting";
+import { Drive as DriveType } from "@shared-types/Drive";
 import { Candidate } from "@shared-types/Candidate";
 import { useNavigate } from "react-router-dom";
 
@@ -46,18 +46,18 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pageIndex, setPageIndex] = useState(0);
-  const [currentPostingId, setCurrentPostingId] = useState<string | null>(null);
+  const [currentDriveId, setCurrentDriveId] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
-  const { posting } = useOutletContext() as { posting: PostingType };
+  const { drive } = useOutletContext() as { drive: DriveType };
   useEffect(() => {
-    if (posting) {
-      setCurrentPostingId(posting?._id as string);
+    if (drive) {
+      setCurrentDriveId(drive?._id as string);
       console.log(candidates);
-      console.log(posting?._id);
+      console.log(drive?._id);
     }
-  }, [currentPostingId, posting]);
+  }, [currentDriveId, drive]);
 
   const columns: ColumnDef<Candidate>[] = [
     {

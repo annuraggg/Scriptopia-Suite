@@ -22,7 +22,7 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useOutletContext } from "react-router-dom";
-import { Posting } from "@shared-types/Posting";
+import { Drive } from "@shared-types/Drive";
 import { IconChevronDown, IconMenu2 } from "@tabler/icons-react";
 import { Pagination } from "@heroui/pagination";
 import { ExtendedCandidate } from "@shared-types/ExtendedCandidate";
@@ -47,7 +47,7 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
   const pages = Math.ceil(data.length / rowsPerPage);
   const { getToken } = useAuth();
   const axios = ax(getToken);
-  const { posting } = useOutletContext() as { posting: Posting };
+  const { drive } = useOutletContext() as { drive: Drive };
 
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
@@ -58,7 +58,7 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
 
   const downloadResume = (_id: string) => {
     axios
-      .get(`postings/candidate/${_id}/resume`)
+      .get(`drives/candidate/${_id}/resume`)
       .then((res) => window.open(res.data.data.url, "_blank"))
       .catch((err) => {
         toast.error(err.response.data.message || "Failed to download resume");
@@ -69,18 +69,18 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
   const disqualify = (_id: string) => {
     const newData = [...data] as ExtendedCandidate[];
     const candidate = newData.find((c) => c._id === _id);
-    const appliedPosting = candidate?.appliedPostings.find(
-      (p) => p.posting === posting?._id
+    const appliedDrive = candidate?.appliedDrives.find(
+      (p) => p.drive === drive?._id
     );
-    if (!appliedPosting) return;
+    if (!appliedDrive) return;
 
-    appliedPosting.status = "rejected";
+    appliedDrive.status = "rejected";
     setData(newData);
 
     axios
-      .put("postings/candidate/disqualify", {
+      .put("drives/candidate/disqualify", {
         _id: _id,
-        postingId: posting?._id,
+        driveId: drive?._id,
       })
       .catch((err) => {
         toast.error(
@@ -91,11 +91,11 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
         const newData = [...data] as ExtendedCandidate[];
 
         const candidate = newData.find((c) => c._id === _id);
-        const appliedPosting = candidate?.appliedPostings.find(
-          (p) => p.posting === posting?._id
+        const appliedDrive = candidate?.appliedDrives.find(
+          (p) => p.drive === drive?._id
         );
-        if (!appliedPosting) return;
-        appliedPosting.status = "inprogress";
+        if (!appliedDrive) return;
+        appliedDrive.status = "inprogress";
         setData(newData);
       });
   };
@@ -103,17 +103,17 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
   const selectCand = (_id: string) => {
     const newData = [...data] as ExtendedCandidate[];
     const candidate = newData.find((c) => c._id === _id);
-    const appliedPosting = candidate?.appliedPostings.find(
-      (p) => p.posting === posting?._id
+    const appliedDrive = candidate?.appliedDrives.find(
+      (p) => p.drive === drive?._id
     );
-    if (!appliedPosting) return;
-    appliedPosting.status = "inprogress";
+    if (!appliedDrive) return;
+    appliedDrive.status = "inprogress";
     setData(newData);
 
     axios
-      .put("postings/candidate/qualify", {
+      .put("drives/candidate/qualify", {
         _id: _id,
-        postingId: posting?._id,
+        driveId: drive?._id,
       })
       .catch((err) => {
         toast.error(err.response.data.message || "Failed to select candidate");
@@ -121,11 +121,11 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
 
         const newData = [...data] as ExtendedCandidate[];
         const candidate = newData.find((c) => c._id === _id);
-        const appliedPosting = candidate?.appliedPostings.find(
-          (p) => p.posting === posting?._id
+        const appliedDrive = candidate?.appliedDrives.find(
+          (p) => p.drive === drive?._id
         );
-        if (!appliedPosting) return;
-        appliedPosting.status = "inprogress";
+        if (!appliedDrive) return;
+        appliedDrive.status = "inprogress";
         setData(newData);
       });
   };
@@ -135,18 +135,18 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
     const newData = [...data] as ExtendedCandidate[];
     selectedIds.forEach((id) => {
       const candidate = newData.find((c) => c._id === id);
-      const appliedPosting = candidate?.appliedPostings.find(
-        (p) => p.posting === posting?._id
+      const appliedDrive = candidate?.appliedDrives.find(
+        (p) => p.drive === drive?._id
       );
-      if (!appliedPosting) return;
-      appliedPosting.status = "rejected";
+      if (!appliedDrive) return;
+      appliedDrive.status = "rejected";
     });
     setData(newData);
 
     axios
-      .put("postings/candidate/disqualify/bulk", {
+      .put("drives/candidate/disqualify/bulk", {
         candidateIds: selectedIds,
-        postingId: posting?._id,
+        driveId: drive?._id,
       })
       .then(() => {
         toast.success("Selected candidates disqualified successfully");
@@ -163,11 +163,11 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
           const index = revertedData.findIndex((c) => c._id === id);
           if (index !== -1) {
             const candidate = newData.find((c) => c._id === id);
-            const appliedPosting = candidate?.appliedPostings.find(
-              (p) => p.posting === posting?._id
+            const appliedDrive = candidate?.appliedDrives.find(
+              (p) => p.drive === drive?._id
             );
-            if (!appliedPosting) return;
-            appliedPosting.status = "inprogress";
+            if (!appliedDrive) return;
+            appliedDrive.status = "inprogress";
           }
         });
         setData(revertedData);
@@ -182,19 +182,19 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
       const index = newData.findIndex((c) => c._id === id);
       if (index !== -1) {
         const candidate = newData.find((c) => c._id === id);
-        const appliedPosting = candidate?.appliedPostings.find(
-          (p) => p.posting === posting?._id
+        const appliedDrive = candidate?.appliedDrives.find(
+          (p) => p.drive === drive?._id
         );
-        if (!appliedPosting) return;
-        appliedPosting.status = "inprogress";
+        if (!appliedDrive) return;
+        appliedDrive.status = "inprogress";
       }
     });
     setData(newData);
 
     axios
-      .put("postings/candidate/qualify/bulk", {
+      .put("drives/candidate/qualify/bulk", {
         candidateIds: selectedIds,
-        postingId: posting?._id,
+        driveId: drive?._id,
       })
       .then(() => {
         toast.success("Selected candidates qualified successfully");
@@ -210,11 +210,11 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
           const index = revertedData.findIndex((c) => c._id === id);
           if (index !== -1) {
             const candidate = newData.find((c) => c._id === id);
-            const appliedPosting = candidate?.appliedPostings.find(
-              (p) => p.posting === posting?._id
+            const appliedDrive = candidate?.appliedDrives.find(
+              (p) => p.drive === drive?._id
             );
-            if (!appliedPosting) return;
-            appliedPosting.status = "rejected";
+            if (!appliedDrive) return;
+            appliedDrive.status = "rejected";
           }
         });
         setData(revertedData);
@@ -307,7 +307,7 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
         <TableBody>
           {items?.map((row) => {
             const status =
-              row.appliedPostings.find((ap) => ap.posting === posting?._id)
+              row.appliedDrives.find((ap) => ap.drive === drive?._id)
                 ?.status || "rejected";
             return (
               <TableRow

@@ -1,18 +1,18 @@
 import Loader from "@/components/Loader";
 import ax from "@/config/axios";
-import { PostingContext } from "@/types/PostingContext";
+import { DriveContext } from "@/types/DriveContext";
 import { useAuth } from "@clerk/clerk-react";
 import { Card, CardBody, CardHeader } from "@heroui/card";
-import { ExtendedAppliedPosting } from "@shared-types/ExtendedAppliedPosting";
+import { ExtendedAppliedDrive } from "@shared-types/ExtendedAppliedDrive";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { toast } from "sonner";
 
 const Pipeline = () => {
-  const [appliedPostings, setAppliedPostings] = useState<
-    ExtendedAppliedPosting[]
+  const [appliedDrives, setAppliedDrives] = useState<
+    ExtendedAppliedDrive[]
   >([]);
-  const { posting } = useOutletContext<PostingContext>();
+  const { drive } = useOutletContext<DriveContext>();
 
   const [loading, setLoading] = useState(true);
 
@@ -20,17 +20,17 @@ const Pipeline = () => {
   const axios = ax(getToken);
 
   useEffect(() => {
-    const postingId = window.location.pathname.split("/")[2];
+    const driveId = window.location.pathname.split("/")[2];
 
     axios
-      .get(`/postings/${postingId}/applied`)
+      .get(`/drives/${driveId}/applied`)
       .then((res) => {
-        setAppliedPostings(res.data.data);
+        setAppliedDrives(res.data.data);
         console.log(res.data.data);
       })
       .catch((err) => {
         toast.error(
-          err.response?.data?.message || "Error fetching applied postings"
+          err.response?.data?.message || "Error fetching applied drives"
         );
         console.error(err);
       })
@@ -41,14 +41,14 @@ const Pipeline = () => {
 
   return (
     <div className="p-10">
-      <p>View Candidates flow in your posting</p>
+      <p>View Candidates flow in your drive</p>
       <div className="flex gap-5 mt-5 h-full">
-        {posting?.workflow?.steps?.map((step, index) => {
+        {drive?.workflow?.steps?.map((step, index) => {
           return (
             <Card className="max-w-72 min-w-72 h-[calc(100vh-10rem)] overflow-y-auto">
               <CardHeader>{step.name}</CardHeader>
               <CardBody>
-                {appliedPostings
+                {appliedDrives
                   .filter((applied) => {
                     return step.status === "in-progress"
                       ? applied.status === "inprogress"

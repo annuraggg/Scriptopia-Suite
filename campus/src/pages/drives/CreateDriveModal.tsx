@@ -141,7 +141,7 @@ const CreateDriveModal: React.FC<createDriveModalProps> = ({
     setLoading(true);
 
     axios
-      .post("/postings/create", {
+      .post("/drives/create", {
         title: driveTitle,
         description: about,
         department: Array.from(department)[0],

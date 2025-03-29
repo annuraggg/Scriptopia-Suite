@@ -1,6 +1,6 @@
 import { Outlet, useOutletContext } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import { PostingContext } from "@/types/PostingContext";
+import { PostingContext } from "@/types/DriveContext";
 import { useState } from "react";
 
 const Layout = () => {

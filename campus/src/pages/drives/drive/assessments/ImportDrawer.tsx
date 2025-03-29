@@ -12,7 +12,7 @@ import { Card, CardHeader, CardBody, CardFooter } from "@heroui/card";
 import { Spinner } from "@heroui/spinner";
 import { CodeAssessment } from "@shared-types/CodeAssessment";
 import { MCQAssessment } from "@shared-types/MCQAssessment";
-import { Posting, StepType } from "@shared-types/Posting";
+import { Drive, StepType } from "@shared-types/Drive";
 import {
   IconCalendarFilled,
   IconClockFilled,
@@ -36,7 +36,7 @@ interface DrawerProps {
   onOpenChange: (isOpen: boolean) => void;
   onOpen: () => void;
   type: StepType | null;
-  posting: Posting;
+  drive: Drive;
   step: number | null;
   addToConfiguredAssessments: () => void;
 }
@@ -50,7 +50,7 @@ const Drawer = ({
   isOpen,
   onOpenChange,
   type,
-  posting,
+  drive,
   step,
   addToConfiguredAssessments,
 }: DrawerProps) => {
@@ -115,7 +115,7 @@ const Drawer = ({
         openRange: undefined,
         candidates: [],
         public: true,
-        postingId: posting?._id || "",
+        driveId: drive?._id || "",
         step: step,
       };
     }
@@ -134,7 +134,7 @@ const Drawer = ({
         openRange: undefined,
         candidates: [],
         public: true,
-        postingId: posting?._id || "",
+        driveId: drive?._id || "",
         step: step,
       };
     }

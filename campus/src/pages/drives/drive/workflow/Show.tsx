@@ -18,7 +18,7 @@ import { useAuth } from "@clerk/clerk-react";
 import { useOutletContext } from "react-router-dom";
 import { toast } from "sonner";
 import ax from "@/config/axios";
-import { WorkflowStep, StepType } from "@shared-types/Posting";
+import { WorkflowStep, StepType } from "@shared-types/Drive";
 import {
   IconBook,
   IconCode,
@@ -27,7 +27,7 @@ import {
   IconFrustum,
   IconQuestionMark,
 } from "@tabler/icons-react";
-import { PostingContext } from "@/types/PostingContext";
+import { DriveContext } from "@/types/DriveContext";
 
 interface ShowProps {
   workflowData: WorkflowStep[];
@@ -103,7 +103,7 @@ const getStepStyles = (type: StepType, status: string) => {
 };
 
 const Show: React.FC<ShowProps> = ({ workflowData }) => {
-  const { posting, setPosting, refetch } = useOutletContext() as PostingContext;
+  const { drive, setDrive, refetch } = useOutletContext() as DriveContext;
   const [loading, setLoading] = useState<boolean>(false);
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -146,7 +146,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
   });
 
   const completedSteps =
-    posting.workflow?.steps.filter((s) => s.status === "completed").length || 0;
+    drive.workflow?.steps.filter((s) => s.status === "completed").length || 0;
   const totalSteps = workflowData.length;
   const progress = (completedSteps / totalSteps) * 100;
 
@@ -161,8 +161,8 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
     setLoading(true);
 
     try {
-      await axios.post("/postings/schedule-step", {
-        postingId: posting._id,
+      await axios.post("/drives/schedule-step", {
+        driveId: drive._id,
         stepId: selectedStep.step._id,
         schedule: {
           startTime: new Date(scheduleData.startTime),
@@ -195,14 +195,14 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
     if (!selectedStep) return;
 
     if (!isLessThanTwoModalOpen) {
-      const allAppliedPostings = posting?.candidates?.map((candidate) =>
-        candidate.appliedPostings.find(
-          (appliedPosting) => appliedPosting.posting === posting._id
+      const allAppliedDrives = drive?.candidates?.map((candidate) =>
+        candidate.appliedDrives.find(
+          (appliedDrive) => appliedDrive.drive === drive._id
         )
       );
 
-      const qualifiedCandidates = allAppliedPostings?.filter(
-        (appliedPosting) => appliedPosting?.status === "inprogress"
+      const qualifiedCandidates = allAppliedDrives?.filter(
+        (appliedDrive) => appliedDrive?.status === "inprogress"
       );
 
       if (qualifiedCandidates?.length < 2) {
@@ -214,22 +214,22 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
     onLessThanTwoModalClose();
 
     setLoading(true);
-    if (!posting.published) {
-      toast.error("Posting is not published");
+    if (!drive.published) {
+      toast.error("Drive is not published");
       setLoading(false);
       return;
     }
 
     await axios
-      .post("/postings/advance-workflow", {
-        _id: posting._id,
+      .post("/drives/advance-workflow", {
+        _id: drive._id,
         step: selectedStep.index,
       })
       .then((res) => {
         toast.success("Workflow advanced successfully");
         onAdvanceModalClose();
         setSelectedStep(null);
-        setPosting(res.data.data);
+        setDrive(res.data.data);
         refetch()
       })
       .catch((err) => {
@@ -255,25 +255,25 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
 
   return (
     <div className="mx-auto px-16 py-8 space-y-6">
-      {posting.published && (
+      {drive.published && (
         <div className="bg-white shadow-sm rounded-lg overflow-hidden">
           <Progress value={progress} className="h-2" color="primary" />
         </div>
       )}
 
       {/* Alert for workflow status */}
-      {(!posting.published ||
-        posting.workflow?.steps[0].status === "pending") && (
+      {(!drive.published ||
+        drive.workflow?.steps[0].status === "pending") && (
         <Alert
           color="secondary"
           title={
-            !posting.published
-              ? "Posting Not Published"
+            !drive.published
+              ? "Drive Not Published"
               : "Workflow Not Started"
           }
           description={
-            !posting.published
-              ? "Publish this posting to begin workflow operations"
+            !drive.published
+              ? "Publish this drive to begin workflow operations"
               : "Start the workflow by advancing the first step"
           }
           className="rounded-lg shadow-sm"
@@ -369,7 +369,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
 
                     {/* Action Buttons */}
                     <div className="flex items-center space-x-2">
-                      {status === "upcoming" && posting.published && (
+                      {status === "upcoming" && drive.published && (
                         <>
                           <Button
                             color="primary"
@@ -434,7 +434,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
           <ModalBody>
             <p>
               Are you sure you want to end the workflow? You will still be able
-              to access and manage the candidates in the posting. This action
+              to access and manage the candidates in the drive. This action
               will mark all rounds as completed.
             </p>
           </ModalBody>
@@ -578,7 +578,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
           </ModalHeader>
           <ModalBody>
             <p>
-              There are less than 2 candidates in this posting. You can continue
+              There are less than 2 candidates in this drive. You can continue
               to hire the candidate without next workflow steps. Do you still
               want to continue?
             </p>

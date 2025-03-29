@@ -1,4 +1,32 @@
-type StepType = "rs" | "mcqa" | "ca" | "mcqca" | "as" | "pi" | "ol" | "cu";
+enum StepType {
+  RESUME_SCREENING = "RESUME_SCREENING",
+  MCQ_ASSESSMENT = "MCQ_ASSESSMENT",
+  CODING_ASSESSMENT = "CODING_ASSESSMENT",
+  ASSIGNMENT = "ASSIGNMENT",
+  INTERVIEW = "INTERVIEW",
+  CUSTOM = "CUSTOM",
+}
+
+enum StepStatus {
+  PENDING = "pending",
+  IN_PROGRESS = "in-progress",
+  COMPLETED = "completed",
+  FAILED = "failed",
+}
+
+enum DriveType {
+  FULL_TIME = "full_time",
+  PART_TIME = "part_time",
+  INTERNSHIP = "internship",
+  CONTRACT = "contract",
+  TEMPORARY = "temporary",
+}
+
+interface Schedule {
+  startTime: Date | null;
+  endTime: Date | null;
+  actualCompletionTime?: Date;
+}
 
 interface Slot {
   _id?: string;
@@ -9,12 +37,27 @@ interface Slot {
 
 interface Interview {
   _id?: string;
-  assignees?: string[];
-  duration: number;
-  slots: Slot[];
-  days: string[];
-  timeSlotStart: string;
-  timeSlotEnd: string;
+  interview: string;
+  workflowId: string;
+}
+
+interface ATSLog {
+  level: "INFO" | "ERROR" | "WARNING";
+  stage: "INIT" | "PROCESSING" | "EMAIL" | "RESUME_PROCESSING" | "DATABASE";
+  timestamp: Date;
+  message: string;
+  error?: {
+    name: string;
+    message: string;
+    stack: string;
+  };
+  metadata?: {
+    candidateId?: string;
+    resumeId?: string;
+    apiResponse?: unknown;
+    processingTime?: number;
+    retryCount?: number;
+  };
 }
 
 interface ATS {
@@ -22,22 +65,34 @@ interface ATS {
   minimumScore: number;
   negativePrompts?: string[];
   positivePrompts?: string[];
-  status: "pending" | "processing" | "finished";
-  lastUpdated: Date;
+  status: "pending" | "processing" | "finished" | "failed";
+  startTime?: Date;
+  endTime?: Date;
+  failedCount?: number;
+  successCount?: number;
+  error?: string;
+  logs?: ATSLog[];
+  summary?: {
+    totalProcessed: number;
+    successfulProcessing: number;
+    failedProcessing: number;
+    totalTime: number;
+    averageProcessingTime: number;
+  };
 }
 
 interface WorkflowStep {
   _id?: string;
   name: string;
   type: StepType;
-  completed: boolean;
-  timestamp: Date;
+  status: StepStatus;
+  schedule?: Schedule;
+  startedBy?: string;
 }
 
 interface Workflow {
   _id?: string;
   steps: WorkflowStep[];
-  currentStep?: number;
 }
 
 interface Salary {
@@ -47,14 +102,14 @@ interface Salary {
   currency?: string;
 }
 
-interface Assignment {
-  _id?: string;
-  name: string;
-  workflowId: string;
-  description: string;
-  submissionType: "file" | "text" | "link";
-  submissions?: string[];
-}
+  interface Assignment {
+    _id?: string;
+    name: string;
+    workflowId: string;
+    description: string;
+    submissionType: "file" | "text" | "link";
+    submissions?: string[];
+  }
 
 interface Assessment {
   _id?: string;
@@ -106,12 +161,12 @@ interface AdditionalDetails {
 
 interface Drive {
   _id?: string;
-  instituteId?: string;
+  institution?: string;
   title: string;
-  description: string;
+  description: Record<string, unknown>;
   department?: string;
   location: string;
-  type: "full_time" | "part_time" | "internship" | "contract" | "temporary";
+  type: DriveType;
   url?: string;
   openings: number;
   salary: Salary;
@@ -122,7 +177,7 @@ interface Drive {
   ats?: ATS;
   mcqAssessments?: Assessment[];
   codeAssessments?: Assessment[];
-  interview?: Interview;
+  interviews?: [Interview];
   candidates?: string[];
   additionalDetails?: AdditionalDetails;
   published: boolean;
@@ -132,10 +187,10 @@ interface Drive {
 }
 
 export type {
-  StepType,
   Slot,
   Interview,
   ATS,
+  ATSLog,
   WorkflowStep,
   Workflow,
   Salary,
@@ -144,4 +199,7 @@ export type {
   AdditionalFieldConfig,
   AdditionalDetails,
   Drive,
+  Schedule,
 };
+
+export { StepType, StepStatus, DriveType };

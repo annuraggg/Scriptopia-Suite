@@ -28,7 +28,7 @@ import {
   Offense,
 } from "@shared-types/MCQAssessmentSubmission";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import { ExtendedPosting } from "@shared-types/ExtendedPosting";
+import { ExtendedDrive } from "@shared-types/ExtendedDrive";
 
 export interface CandidateSubmissionTable {
   _id: string;
@@ -36,7 +36,7 @@ export interface CandidateSubmissionTable {
   candidate: string;
   email: string;
   status: string;
-  postingStatus: string;
+  driveStatus: string;
   score: number;
   time: string;
   cheating: boolean;
@@ -62,7 +62,7 @@ const McqAssessmentResultsTable = ({
   const [data, setData] = useState<CandidateSubmissionTable[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { posting } = useOutletContext() as { posting: ExtendedPosting };
+  const { drive } = useOutletContext() as { drive: ExtendedDrive };
 
   const isCheating = (offenses: Offense | null): boolean => {
     if (!offenses) {
@@ -80,15 +80,15 @@ const McqAssessmentResultsTable = ({
     const transformedData: CandidateSubmissionTable[] = vanillaData.map(
       (submission) => ({
         submissionId: submission._id!,
-        _id: posting?.candidates.find((c) => c.email === submission.email)
+        _id: drive?.candidates.find((c) => c.email === submission.email)
           ?._id!,
         candidate: submission.name,
         email: submission.email,
         status: submission.status!,
-        postingStatus: posting?.candidates
+        driveStatus: drive?.candidates
           .find((c) => c.email === submission.email)
-          ?.appliedPostings.find(
-            (ap) => (ap.posting as unknown as string) === posting._id
+          ?.appliedDrives.find(
+            (ap) => (ap.drive as unknown as string) === drive._id
           )?.status!,
         score:
           ((submission.obtainedGrades?.total || 0) /
@@ -131,13 +131,13 @@ const McqAssessmentResultsTable = ({
   const qualifySubmission = (_id: string) => {
     const newData = [...data] as CandidateSubmissionTable[];
     const index = newData.findIndex((c) => c._id === _id);
-    newData[index].postingStatus = "qualified";
+    newData[index].driveStatus = "qualified";
     setData(newData);
 
     axios
-      .put("postings/candidate/qualify", {
+      .put("drives/candidate/qualify", {
         _id: _id,
-        postingId: posting?._id,
+        driveId: drive?._id,
       })
       .catch((err) => {
         toast.error(
@@ -155,13 +155,13 @@ const McqAssessmentResultsTable = ({
   const disqualifySubmission = (_id: string) => {
     const newData = [...data] as CandidateSubmissionTable[];
     const index = newData.findIndex((c) => c._id === _id);
-    newData[index].postingStatus = "rejected";
+    newData[index].driveStatus = "rejected";
     setData(newData);
 
     axios
-      .put("postings/candidate/disqualify", {
+      .put("drives/candidate/disqualify", {
         _id: _id,
-        postingId: posting?._id,
+        driveId: drive?._id,
       })
       .catch((err) => {
         toast.error(
@@ -184,15 +184,15 @@ const McqAssessmentResultsTable = ({
     selectedIds.forEach((id) => {
       const index = newData.findIndex((c) => c._id === id);
       if (index !== -1) {
-        newData[index].postingStatus = "inprogress";
+        newData[index].driveStatus = "inprogress";
       }
     });
     setData(newData);
 
     axios
-      .put("postings/candidate/qualify/bulk", {
+      .put("drives/candidate/qualify/bulk", {
         candidateIds: selectedIds,
-        postingId: posting?._id,
+        driveId: drive?._id,
       })
       .then(() => {
         toast.success("Selected submissions qualified successfully");
@@ -223,15 +223,15 @@ const McqAssessmentResultsTable = ({
     selectedIds.forEach((id) => {
       const index = newData.findIndex((c) => c._id === id);
       if (index !== -1) {
-        newData[index].postingStatus = "disqualified";
+        newData[index].driveStatus = "disqualified";
       }
     });
     setData(newData);
 
     axios
-      .put("postings/candidate/disqualify/bulk", {
+      .put("drives/candidate/disqualify/bulk", {
         candidateIds: selectedIds,
-        postingId: posting?._id,
+        driveId: drive?._id,
       })
       .then(() => {
         toast.success("Selected submissions disqualified successfully");
@@ -321,7 +321,7 @@ const McqAssessmentResultsTable = ({
         <TableHeader>
           <TableColumn>Candidate</TableColumn>
           <TableColumn>Status</TableColumn>
-          <TableColumn>Posting Status</TableColumn>
+          <TableColumn>Drive Status</TableColumn>
           <TableColumn>Score</TableColumn>
           <TableColumn>Time</TableColumn>
           <TableColumn>Cheating</TableColumn>
@@ -335,7 +335,7 @@ const McqAssessmentResultsTable = ({
               <TableCell>
                 {row.status.slice(0, 1).toUpperCase() + row.status.slice(1)}
               </TableCell>
-              <TableCell>{row.postingStatus}</TableCell>
+              <TableCell>{row.driveStatus}</TableCell>
               <TableCell>{row.score}%</TableCell>
               <TableCell>{row.time}</TableCell>
               <TableCell>{row.cheating ? "Yes" : "No"}</TableCell>
@@ -355,7 +355,7 @@ const McqAssessmentResultsTable = ({
                     >
                       View Submission
                     </DropdownItem>
-                    {row.postingStatus === "rejected" ? (
+                    {row.driveStatus === "rejected" ? (
                       <DropdownItem
                         key="qualify"
                         onPress={() => qualifySubmission(row._id)}
@@ -366,7 +366,7 @@ const McqAssessmentResultsTable = ({
                       </DropdownItem>
                     ) : null}
 
-                    {row.postingStatus === "inprogress" ? (
+                    {row.driveStatus === "inprogress" ? (
                       <DropdownItem
                         key="disqualify"
                         onPress={() => disqualifySubmission(row._id)}

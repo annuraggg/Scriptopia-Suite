@@ -214,6 +214,7 @@ interface Candidate {
   resumeUrl?: string;
   resumeExtract?: string;
   appliedPostings?: string[];
+  appliedDrives?: string[];
   institute?: string;
   notifications?: Notification[];
   createdAt?: Date;

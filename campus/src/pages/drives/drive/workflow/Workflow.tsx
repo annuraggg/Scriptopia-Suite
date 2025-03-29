@@ -3,21 +3,21 @@ import Blank from "./Blank";
 import Create from "./Create";
 import { useOutletContext } from "react-router-dom";
 import Show from "./Show";
-import { Posting } from "@shared-types/Posting";
+import { Drive } from "@shared-types/Drive";
 
 const Workflow = () => {
-  const { posting } = useOutletContext() as { posting: Posting };
+  const { drive } = useOutletContext() as { drive: Drive };
   const [create, setCreate] = React.useState(false);
 
   return (
     <div>
-      {!posting?.workflow?.steps?.length && !create && (
+      {!drive?.workflow?.steps?.length && !create && (
         <Blank setCreate={setCreate} />
       )}
-      {!posting.workflow?.steps?.length && create && <Create />}
+      {!drive.workflow?.steps?.length && create && <Create />}
 
-      {posting?.workflow?.steps?.length && (
-        <Show workflowData={posting?.workflow?.steps} />
+      {drive?.workflow?.steps?.length && (
+        <Show workflowData={drive?.workflow?.steps} />
       )}
     </div>
   );

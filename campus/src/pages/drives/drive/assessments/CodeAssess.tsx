@@ -12,10 +12,10 @@ import {
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { toast } from "sonner";
 import { CodeAssessment } from "@shared-types/CodeAssessment";
-import { Posting } from "@shared-types/Posting";
+import { Drive } from "@shared-types/Drive";
 import { Chip } from "@heroui/chip";
 
-interface ExtendedPosting extends Omit<Posting, "codeAssessments"> {
+interface ExtendedDrive extends Omit<Drive, "codeAssessments"> {
   codeAssessments: {
     _id: string;
     assessmentId: CodeAssessment;
@@ -56,7 +56,7 @@ const CodeAssess = ({
   createdAssessments: CodeAssessment[];
 }) => {
   const navigate = useNavigate();
-  const { posting } = useOutletContext() as { posting: ExtendedPosting };
+  const { drive } = useOutletContext() as { drive: ExtendedDrive };
 
   const getChartIcon = (index: number) => {
     const icons = [Terminal, BarChart2, PieChart, LineChart];
@@ -66,17 +66,17 @@ const CodeAssess = ({
 
   const getIsActive = (assessment: CodeAssessment) => {
     const currentStep =
-      posting.workflow?.steps?.findIndex(
+      drive.workflow?.steps?.findIndex(
         (step) => step.status === "in-progress"
       ) ?? 0;
 
-    const currentStepId = posting?.workflow?.steps[currentStep]?._id;
-    const postingAssessment = posting?.codeAssessments?.find(
+    const currentStepId = drive?.workflow?.steps[currentStep]?._id;
+    const driveAssessment = drive?.codeAssessments?.find(
       (a) => a.workflowId.toString() === currentStepId?.toString()
     );
 
     return (
-      postingAssessment?.assessmentId?._id?.toString() ===
+      driveAssessment?.assessmentId?._id?.toString() ===
       assessment._id?.toString()
     );
   };
@@ -166,10 +166,10 @@ const CodeAssess = ({
                     </div>
 
                     <div className="flex gap-2 items-center flex-col">
-                      {posting?.workflow?.steps?.find(
+                      {drive?.workflow?.steps?.find(
                         (step) =>
                           step._id ===
-                          posting?.codeAssessments?.find(
+                          drive?.codeAssessments?.find(
                             (a) => a.assessmentId?._id === assessment._id
                           )?.workflowId
                       )?.status !== "pending" && (

@@ -4,30 +4,30 @@ import Main from "./Main";
 import { useOutletContext } from "react-router-dom";
 import Configure from "./Configure";
 import InProgressComp from "./InProgress";
-import { ExtendedPosting } from "@shared-types/ExtendedPosting";
+import { ExtendedDrive } from "@shared-types/ExtendedDrive";
 
 const Ats = () => {
   const [atsEnabled, setAtsEnabled] = useState(false);
   const [atsConfigured, setAtsConfigured] = useState(false);
   const [InProgress, setInProgress] = useState(false);
 
-  const { posting } = useOutletContext() as { posting: ExtendedPosting };
-  console.log(posting);
+  const { drive } = useOutletContext() as { drive: ExtendedDrive };
+  console.log(drive);
   useEffect(() => {
-    const noOfAts = posting?.workflow?.steps?.filter(
+    const noOfAts = drive?.workflow?.steps?.filter(
       (step) => step.type === "RESUME_SCREENING"
     ).length;
 
     if (noOfAts) {
       setAtsEnabled(true);
 
-      const ats = posting?.ats;
+      const ats = drive?.ats;
       if (ats) {
         setInProgress(ats.status === "processing");
         setAtsConfigured(true);
       }
     }
-  }, [posting]);
+  }, [drive]);
 
   if (!atsEnabled) {
     return <Blank />;
@@ -41,7 +41,7 @@ const Ats = () => {
     return <InProgressComp />;
   }
 
-  return <Main posting={posting} />;
+  return <Main drive={drive} />;
 };
 
 export default Ats;

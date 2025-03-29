@@ -1,4 +1,4 @@
-import { PostingContext } from "@/types/PostingContext";
+import { PostingContext } from "@/types/DriveContext";
 import { useNavigate, useOutletContext } from "react-router-dom";
 
 interface NavItem {

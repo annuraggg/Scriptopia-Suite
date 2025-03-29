@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import ax from "@/config/axios";
 import { Member, Role } from "@shared-types/Organization";
 import { useOutletContext } from "react-router-dom";
-import { Posting } from "@shared-types/Posting";
+import { Drive } from "@shared-types/Drive";
 import { Input } from "@heroui/input";
 
 const Configure = () => {
@@ -63,10 +63,10 @@ const Configure = () => {
     setFunction(newSet);
   };
 
-  const { posting } = useOutletContext() as { posting: Posting };
+  const { drive } = useOutletContext() as { drive: Drive };
   const save = async () => {
     setLoading(true);
-    const step = posting?.workflow?.steps?.findIndex(
+    const step = drive?.workflow?.steps?.findIndex(
       (step) => step.type === "INTERVIEW"
     );
     if (step === undefined) {
@@ -74,8 +74,8 @@ const Configure = () => {
     }
 
     axios
-      .post("postings/interview", {
-        postingId: posting._id,
+      .post("drives/interview", {
+        driveId: drive._id,
         step: step,
         interview: {
           assignees: Array.from(assignees),
@@ -102,10 +102,10 @@ const Configure = () => {
       <div className="w-full max-w-4xl">
         <div className="p-8">
           <p className="text-xl">
-            Interview is enabled but not configured for this posting
+            Interview is enabled but not configured for this drive
           </p>
           <p className="opacity-50 mt-2">
-            Please configure Interview for this posting
+            Please configure Interview for this drive
           </p>
 
           <div className="flex gap-10 max-h-[60vh] overflow-y-auto mt-5">

@@ -6,7 +6,7 @@ import { Badge } from "@heroui/badge";
 import { Skeleton } from "@heroui/skeleton";
 import { Button } from "@heroui/button";
 import { Tooltip } from "@heroui/tooltip";
-import type { Posting } from "@shared-types/Posting";
+import type { Drive } from "@shared-types/Drive";
 import {
   IconLayoutDashboard,
   IconArrowsExchange,
@@ -31,7 +31,7 @@ import ax from "@/config/axios";
 import { useAuth } from "@clerk/clerk-react";
 
 interface SidebarProps {
-  posting: Posting;
+  drive: Drive;
   loading: boolean;
   isMobile?: boolean;
   onClose?: () => void;
@@ -45,15 +45,15 @@ interface NavItem {
   badge?: number;
 }
 
-const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
+const Sidebar = ({ drive, loading, isMobile, onClose }: SidebarProps) => {
   const navigate = useNavigate();
   const [active, setActive] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const workflowSteps = useMemo(
-    () => posting?.workflow?.steps || [],
-    [posting]
+    () => drive?.workflow?.steps || [],
+    [drive]
   );
 
   const { getToken } = useAuth();
@@ -96,7 +96,7 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
         link: "/ats",
         visible: getFilteredStepsCount(["RESUME_SCREENING"]) > 0,
         badge:
-          getFilteredStepsCount(["RESUME_SCREENING"]) && posting?.ats ? 0 : 1,
+          getFilteredStepsCount(["RESUME_SCREENING"]) && drive?.ats ? 0 : 1,
       },
       {
         icon: IconChartBar,
@@ -106,8 +106,8 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
           getFilteredStepsCount(["CODING_ASSESSMENT", "MCQ_ASSESSMENT"]) > 0,
         badge:
           getFilteredStepsCount(["CODING_ASSESSMENT", "MCQ_ASSESSMENT"]) -
-          ((posting?.codeAssessments?.length ?? 0) +
-            (posting?.mcqAssessments?.length ?? 0)),
+          ((drive?.codeAssessments?.length ?? 0) +
+            (drive?.mcqAssessments?.length ?? 0)),
       },
       {
         icon: IconDeviceLaptop,
@@ -116,7 +116,7 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
         visible: getFilteredStepsCount(["ASSIGNMENT"]) > 0,
         badge:
           getFilteredStepsCount(["ASSIGNMENT"]) -
-          (posting?.assignments?.length || 0),
+          (drive?.assignments?.length || 0),
       },
       {
         icon: IconVideo,
@@ -137,7 +137,7 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
         visible: true,
       },
     ],
-    [posting, workflowSteps]
+    [drive, workflowSteps]
   );
 
   useEffect(() => {
@@ -147,7 +147,7 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
 
   const handleNavigation = (item: NavItem) => {
     if (!item.visible) {
-      toast.warning(`${item.label} not configured for this posting`);
+      toast.warning(`${item.label} not configured for this drive`);
       return;
     }
 
@@ -158,20 +158,20 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
   };
 
   const hasCompletedAllSteps = useMemo(() => {
-    const steps = posting?.workflow?.steps || [];
+    const steps = drive?.workflow?.steps || [];
     if (steps.length === 0) return -1;
 
     let totalCompleted = 0;
     steps.forEach((step) => {
-      if (step.type === "RESUME_SCREENING" && posting?.ats) totalCompleted++;
+      if (step.type === "RESUME_SCREENING" && drive?.ats) totalCompleted++;
       if (
         ["CODING_ASSESSMENT", "MCQ_ASSESSMENT"].includes(step.type) &&
-        (posting?.codeAssessments?.some(
+        (drive?.codeAssessments?.some(
           (a) => a.workflowId.toString() === step?._id?.toString()
         )
           ? 1
           : 0) +
-          (posting?.mcqAssessments?.some(
+          (drive?.mcqAssessments?.some(
             (a) => a.workflowId.toString() === step?._id?.toString()
           )
             ? 1
@@ -181,38 +181,38 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
       }
       if (
         step.type === "ASSIGNMENT" &&
-        posting?.assignments?.some(
+        drive?.assignments?.some(
           (a) => a.workflowId.toString() === step?._id?.toString()
         )
       ) {
         totalCompleted++;
       }
-      if (step.type === "INTERVIEW" && posting?.interviews) totalCompleted++;
+      if (step.type === "INTERVIEW" && drive?.interviews) totalCompleted++;
       if (step.type === "CUSTOM") totalCompleted++;
     });
 
     console.log(totalCompleted, steps.length);
     return totalCompleted === steps.length ? 1 : 0;
-  }, [posting]);
+  }, [drive]);
 
   const copyLink = () => {
     navigator.clipboard.writeText(
-      `${import.meta.env.VITE_CANDIDATE_URL}/postings/${posting?.url}`
+      `${import.meta.env.VITE_CANDIDATE_URL}/drives/${drive?.url}`
     );
     toast.success("Link copied to clipboard");
   };
 
-  const publishPosting = () => {
+  const publishDrive = () => {
     axios
-      .post("/postings/publish", { id: posting._id })
+      .post("/drives/publish", { id: drive._id })
       .then(() => {
-        toast.success("Posting published successfully");
+        toast.success("Drive published successfully");
         setTimeout(() => {
           window.location.reload();
         }, 2000);
       })
       .catch(() => {
-        toast.error("Error publishing posting");
+        toast.error("Error publishing drive");
       });
   };
 
@@ -278,10 +278,10 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
 
     return (
       <>
-        {hasCompletedAllSteps === 1 && posting.published && (
+        {hasCompletedAllSteps === 1 && drive.published && (
           <div className="mb-4">
             <div className="text-success-500 text-sm mb-2  items-center justify-center flex flex-col text-center">
-              Posting is currently live 😊
+              Drive is currently live 😊
             </div>
             <Button
               className="w-full"
@@ -294,7 +294,7 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
           </div>
         )}
 
-        {hasCompletedAllSteps === 1 && !posting.published && (
+        {hasCompletedAllSteps === 1 && !drive.published && (
           <div className="mb-4 items-center justify-center flex flex-col text-center">
             <div className="text-warning-500 text-sm mb-2">
               Ready to publish
@@ -361,16 +361,16 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader>Publish Posting</ModalHeader>
+              <ModalHeader>Publish Drive</ModalHeader>
               <ModalBody>
-                Are you sure you want to publish this posting? This action
+                Are you sure you want to publish this drive? This action
                 cannot be undone.
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
                   Close
                 </Button>
-                <Button color="success" onPress={publishPosting}>
+                <Button color="success" onPress={publishDrive}>
                   Publish
                 </Button>
               </ModalFooter>

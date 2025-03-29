@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import { Posting } from "@shared-types/Posting";
+import { Drive } from "@shared-types/Drive";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { useEffect, useState } from "react";
@@ -8,26 +8,26 @@ import { toast } from "sonner";
 import { Spinner } from "@heroui/spinner";
 
 const Layout = () => {
-  const [posting, setPosting] = useState<Posting>({} as Posting);
-  const [postingLoading, setPostingLoading] = useState(true);
+  const [drive, setDrive] = useState<Drive>({} as Drive);
+  const [driveLoading, setDriveLoading] = useState(true);
   const [refetch, setRefetch] = useState(false);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
   useEffect(() => {
-    setPostingLoading(true);
+    setDriveLoading(true);
     axios
-      .get("/postings/" + window.location.pathname.split("/")[2])
+      .get("/drives/" + window.location.pathname.split("/")[2])
       .then((res) => {
         console.log(res.data.data);
-        setPosting(res.data.data);
+        setDrive(res.data.data);
       })
       .catch((err) => {
         toast.error(err.response.data.message || "Something went wrong");
         console.log(err);
       })
       .finally(() => {
-        setPostingLoading(false);
+        setDriveLoading(false);
       });
   }, [refetch]);
 
@@ -46,12 +46,12 @@ const Layout = () => {
   return (
     <div className="">
       <div className="flex w-full h-screen">
-        <Sidebar posting={posting} loading={postingLoading} />
+        <Sidebar drive={drive} loading={driveLoading} />
         <div className="h-full w-full overflow-x-auto overflow-y-auto">
-          {postingLoading ? (
+          {driveLoading ? (
             <Loader />
           ) : (
-            <Outlet context={{ posting, setPosting, refetch: refetchData }} />
+            <Outlet context={{ drive, setDrive, refetch: refetchData }} />
           )}
         </div>
       </div>

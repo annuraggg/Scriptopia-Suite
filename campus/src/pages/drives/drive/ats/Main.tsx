@@ -5,8 +5,8 @@ import SelectionChart from "./SelectionChart";
 import { Tabs, Tab } from "@heroui/tabs";
 import { useEffect, useState } from "react";
 import { ExtendedCandidate as Candidate } from "@shared-types/ExtendedCandidate";
-import { AppliedPosting } from "@shared-types/AppliedPosting";
-import { ExtendedPosting } from "@shared-types/ExtendedPosting";
+import { AppliedDrive } from "@shared-types/AppliedDrive";
+import { ExtendedDrive } from "@shared-types/ExtendedDrive";
 import Logs from "./Logs";
 import DataTableNew from "./DataTable";
 
@@ -19,7 +19,7 @@ interface CandidateTable {
   status: string;
 }
 
-const Main = ({ posting }: { posting: ExtendedPosting }) => {
+const Main = ({ drive }: { drive: ExtendedDrive }) => {
   const [tableData, setTableData] = useState<CandidateTable[]>([]);
   const [selectionData, setSelectionData] = useState<{
     total: number;
@@ -27,18 +27,18 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
   }>({ total: 0, selected: 0 });
 
   useEffect(() => {
-    if (posting && posting.candidates) {
-      const tableDataTemp: CandidateTable[] = posting.candidates.map(
+    if (drive && drive.candidates) {
+      const tableDataTemp: CandidateTable[] = drive.candidates.map(
         (candidate) => {
-          const currentPosting = candidate.appliedPostings.find(
-            (appliedPosting: AppliedPosting) =>
-              appliedPosting.posting === posting._id
+          const currentDrive = candidate.appliedDrives.find(
+            (appliedDrive: AppliedDrive) =>
+              appliedDrive.drive === drive._id
           );
 
-          const resumeStageId = posting.workflow?.steps?.find(
+          const resumeStageId = drive.workflow?.steps?.find(
             (step) => step.type === "RESUME_SCREENING"
           )?._id;
-          const currentScore = currentPosting?.scores?.find(
+          const currentScore = currentDrive?.scores?.find(
             (s) => s.stageId === resumeStageId
           );
 
@@ -47,11 +47,11 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
             name: candidate.name,
             email: candidate.email,
             received: new Date(
-              currentPosting?.createdAt || Date.now()
+              currentDrive?.createdAt || Date.now()
             ).toLocaleDateString(),
             match: currentScore?.score?.toString() || "0",
             reason: currentScore?.reason || "No reason",
-            status: currentPosting?.status || "Applied",
+            status: currentDrive?.status || "Applied",
           };
         }
       );
@@ -59,30 +59,30 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
       setTableData(tableDataTemp);
     }
 
-    if (posting && posting.candidates) {
-      const minimumScore = posting.ats?.minimumScore ?? 0;
+    if (drive && drive.candidates) {
+      const minimumScore = drive.ats?.minimumScore ?? 0;
 
       const selectedCandidates = (
-        posting.candidates as unknown as Candidate[]
+        drive.candidates as unknown as Candidate[]
       ).filter((candidate) => {
-        return candidate.appliedPostings.some(
-          (appliedPosting: AppliedPosting) => {
-            const score = appliedPosting?.scores?.find(
-              (s) => s.stageId === posting.workflow?.steps[0]._id
+        return candidate.appliedDrives.some(
+          (appliedDrive: AppliedDrive) => {
+            const score = appliedDrive?.scores?.find(
+              (s) => s.stageId === drive.workflow?.steps[0]._id
             )?.score as number;
             return (
-              appliedPosting.posting === posting._id && score >= minimumScore
+              appliedDrive.drive === drive._id && score >= minimumScore
             );
           }
         );
       });
 
       setSelectionData({
-        total: posting.candidates.length,
+        total: drive.candidates.length,
         selected: selectedCandidates.length,
       });
     }
-  }, [posting]);
+  }, [drive]);
 
   return (
     <div className="p-10 py-5">
@@ -108,7 +108,7 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
                       placeholder="In %"
                       className="w-[50%]"
                       isReadOnly
-                      value={posting?.ats?.minimumScore?.toString()}
+                      value={drive?.ats?.minimumScore?.toString()}
                     />
                   </div>
                   <div className="flex items-center w-[100%] mt-3">
@@ -121,7 +121,7 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
                     <Textarea
                       placeholder="No negative prompts"
                       isReadOnly
-                      value={posting.ats?.negativePrompts?.join(", ")}
+                      value={drive.ats?.negativePrompts?.join(", ")}
                     />
                   </div>
                   <div className="flex items-center w-[100%] mt-3">
@@ -134,19 +134,19 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
                     <Textarea
                       placeholder="No positive prompts"
                       isReadOnly
-                      value={posting.ats?.positivePrompts?.join(", ")}
+                      value={drive.ats?.positivePrompts?.join(", ")}
                     />
                   </div>
                 </CardBody>
               </Card>
             </div>
-            {posting?.candidates?.length &&
-            posting?.candidates?.length &&
-            posting?.ats?.status === "finished" ? (
+            {drive?.candidates?.length &&
+            drive?.candidates?.length &&
+            drive?.ats?.status === "finished" ? (
               <div className="mt-5 flex gap-5 max-h-[40vh]">
                 <SelectionChart chartData={selectionData} />
               </div>
-            ) : posting?.ats?.status === "processing" ? (
+            ) : drive?.ats?.status === "processing" ? (
               <div className="mt-5 flex justify-center items-center">
                 <p className="text-center text-lg">
                   No analytics available yet.
@@ -160,13 +160,13 @@ const Main = ({ posting }: { posting: ExtendedPosting }) => {
               </div>
             )}
           </Tab>
-          {posting?.ats?.status === "finished" && (
+          {drive?.ats?.status === "finished" && (
             <Tab key="results" title="Results" >
               <DataTableNew data={tableData} setData={setTableData} />
             </Tab>
           )}
           <Tab key="logs" title="Logs">
-            <Logs posting={posting} />
+            <Logs drive={drive} />
           </Tab>
         </Tabs>
       </motion.div>

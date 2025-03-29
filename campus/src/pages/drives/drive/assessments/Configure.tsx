@@ -4,9 +4,9 @@ import { Card, CardBody } from "@heroui/card";
 import { useEffect, useState } from "react";
 import {
   StepType,
-  type Posting,
+  type Drive,
   type WorkflowStep,
-} from "@shared-types/Posting";
+} from "@shared-types/Drive";
 import Drawer from "./ImportDrawer";
 
 const ASSESSMENT_TYPES = {
@@ -20,10 +20,10 @@ const STEP_TYPE_MAP = {
 } as const;
 
 interface ConfigureProps {
-  posting: Posting;
+  drive: Drive;
 }
 
-const Configure = ({ posting }: ConfigureProps) => {
+const Configure = ({ drive }: ConfigureProps) => {
   const [configuredAssessments, setConfiguredAssessments] = useState<
     Set<string>
   >(new Set());
@@ -35,17 +35,17 @@ const Configure = ({ posting }: ConfigureProps) => {
 
   useEffect(() => {
     const configuredIds = new Set([
-      ...(posting?.codeAssessments?.map((a) => a.workflowId) || []),
-      ...(posting?.mcqAssessments?.map((a) => a.workflowId) || []),
+      ...(drive?.codeAssessments?.map((a) => a.workflowId) || []),
+      ...(drive?.mcqAssessments?.map((a) => a.workflowId) || []),
     ]);
 
     setConfiguredAssessments(configuredIds);
-  }, [posting]);
+  }, [drive]);
 
   const addToConfiguredAssessments = (): void => {
-    if (step === null || !posting) return;
+    if (step === null || !drive) return;
     const workflowId =
-      posting?.workflow?.steps?.filter(isAssessmentStep)?.[step]?._id;
+      drive?.workflow?.steps?.filter(isAssessmentStep)?.[step]?._id;
     console.log(workflowId);
 
     if (!workflowId) return;
@@ -56,8 +56,8 @@ const Configure = ({ posting }: ConfigureProps) => {
   const handleConfigure = (step: WorkflowStep, index: number): void => {
     const baseUrl = import.meta.env.VITE_CODE_URL;
     const params = new URLSearchParams({
-      isPosting: "true",
-      postingId: posting._id || "",
+      isDrive: "true",
+      driveId: drive._id || "",
       step: index.toString(),
       returnUrl: window.location.href,
     });
@@ -79,15 +79,15 @@ const Configure = ({ posting }: ConfigureProps) => {
   return (
     <div className="flex items-center justify-center h-screen flex-col p-10">
       <p className="text-xl">
-        Assessments are enabled but not configured for this posting
+        Assessments are enabled but not configured for this drive
       </p>
       <p className="text-muted-foreground mt-2 mb-10">
-        Please configure assessments for this posting by clicking on the
+        Please configure assessments for this drive by clicking on the
         configure button
       </p>
 
       <div className="w-full max-w-2xl space-y-3">
-        {posting?.workflow?.steps
+        {drive?.workflow?.steps
           ?.filter(isAssessmentStep)
           ?.map((step, index) => {
             return (
@@ -134,7 +134,7 @@ const Configure = ({ posting }: ConfigureProps) => {
         onOpenChange={onOpenChange}
         onOpen={onOpen}
         type={importType}
-        posting={posting}
+        drive={drive}
         step={step}
         addToConfiguredAssessments={addToConfiguredAssessments}
       />
