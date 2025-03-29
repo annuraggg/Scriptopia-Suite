@@ -402,7 +402,7 @@ function App() {
       ],
     },
     {
-      path: "jobs/:id",
+      path: "drives/:id",
       element: (
         <Suspense fallback={<Loader />}>
           <DriveLayout />

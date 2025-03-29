@@ -6,7 +6,7 @@ import { TimeInput, TimeInputValue } from "@heroui/date-input";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import ax from "@/config/axios";
-import { Member, Role } from "@shared-types/Organization";
+import { Member, Role } from "@shared-types/Institute";
 import { useOutletContext } from "react-router-dom";
 import { Drive } from "@shared-types/Drive";
 import { Input } from "@heroui/input";
@@ -27,7 +27,7 @@ const Configure = () => {
 
   useEffect(() => {
     axios
-      .get("/organizations/settings")
+      .get("/institutes/settings")
       .then((res) => {
         const members = res.data.data.members;
 

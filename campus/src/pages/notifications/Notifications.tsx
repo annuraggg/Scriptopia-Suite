@@ -37,7 +37,7 @@ const MOCK_NOTIFICATIONS = [
     id: '2',
     type: 'message',
     title: 'New Message from HR',
-    description: 'Review updated job description for Frontend Developer position',
+    description: 'Review updated drive description for Frontend Developer position',
     date: '2024-12-21T15:30:00',
     read: false,
     priority: 'medium',
@@ -58,7 +58,7 @@ const MOCK_NOTIFICATIONS = [
   {
     id: '4',
     type: 'deadline',
-    title: 'Job Posting Expiry',
+    title: 'Drive Expiry',
     description: 'Full Stack Developer position expires in 2 days',
     date: '2024-12-20T14:20:00',
     dueDate: '2024-12-23T23:59:59',

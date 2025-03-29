@@ -1,4 +1,4 @@
-import { Department } from "@shared-types/Organization";
+import { Department } from "@shared-types/Institute";
 import { Button } from "@nextui-org/react";
 
 const Sidebar = ({ departments }: { departments: Department[] }) => {

@@ -13,7 +13,7 @@ import { Select, SelectItem } from "@nextui-org/select";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { Department } from "@shared-types/Organization";
+import { Department } from "@shared-types/Institute";
 
 const currencies = [
   { key: "usd", label: "USD $" },

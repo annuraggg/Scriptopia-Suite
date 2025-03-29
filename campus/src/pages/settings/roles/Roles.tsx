@@ -10,8 +10,8 @@ import { useOutletContext } from "react-router-dom";
 import { SettingsContext } from "@/types/SettingsContext";
 
 const permissions = [
-  "manage_job",
-  "view_job",
+  "manage_drive",
+  "view_drive",
   "view_institute",
   "manage_institute",
   "view_billing",

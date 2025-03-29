@@ -1,4 +1,4 @@
-import { PostingContext } from "@/types/DriveContext";
+import { DriveContext } from "@/types/DriveContext";
 import { useNavigate, useOutletContext } from "react-router-dom";
 
 interface NavItem {
@@ -14,11 +14,11 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ active, setActive, isMobile, onClose }: SidebarProps) => {
-  const { posting } = useOutletContext<PostingContext>();
+  const { drive } = useOutletContext<DriveContext>();
   const navigate = useNavigate();
 
   const navItems: NavItem[] =
-    posting?.workflow?.steps
+    drive?.workflow?.steps
       .filter((step) => step.type === "CUSTOM")
       .map((step) => ({
         label: step.name,

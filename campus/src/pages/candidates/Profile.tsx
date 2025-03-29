@@ -335,7 +335,7 @@ const ProfilePage: React.FC = () => {
           renderItem={(resp, index) => (
             <div key={index} className="mb-4 pb-4 border-b last:border-b-0">
               <h3 className="text-lg font-semibold">{resp.title}</h3>
-              <p className="text-gray-600">{resp.organization}</p>
+              <p className="text-gray-600">{resp.institute}</p>
               <p>
                 {new Date(resp.startDate).toLocaleDateString()} -{" "}
                 {resp.current
@@ -460,7 +460,7 @@ const ProfilePage: React.FC = () => {
             <div key={index} className="mb-4 pb-4 border-b last:border-b-0">
               <h3 className="text-lg font-semibold">{volunteer.role}</h3>
               <p className="text-gray-600">
-                {volunteer.organization} | {volunteer.cause}
+                {volunteer.institute} | {volunteer.cause}
               </p>
               <p>
                 {new Date(volunteer.startDate).toLocaleDateString()} -{" "}

@@ -62,34 +62,34 @@ const Members: React.FC = () => {
   }, [rerender]);
 
   const handleInvite = (newMember: Member) => {
-    const newOrganization = { ...institute };
-    newOrganization.members = [...(newOrganization.members || []), newMember];
-    setInstitute(newOrganization);
+    const newInstitute = { ...institute };
+    newInstitute.members = [...(newInstitute.members || []), newMember];
+    setInstitute(newInstitute);
     setInvitedMembers([...invitedMembers, newMember]);
   };
 
   const handleRoleChange = (index: number, newRole: string) => {
     if (!newRole) return;
-    const newOrganization = { ...institute };
-    const updatedMembers = [...(newOrganization.members || [])];
+    const newInstitute = { ...institute };
+    const updatedMembers = [...(newInstitute.members || [])];
     updatedMembers[index].role = newRole;
-    setInstitute({ ...newOrganization, members: updatedMembers });
+    setInstitute({ ...newInstitute, members: updatedMembers });
   };
 
   const removeMember = (email: string) => {
-    const newOrganization = { ...institute };
-    const updatedMembers = newOrganization.members?.filter(
+    const newInstitute = { ...institute };
+    const updatedMembers = newInstitute.members?.filter(
       (member) => member.email !== email
     );
-    setInstitute({ ...newOrganization, members: updatedMembers });
+    setInstitute({ ...newInstitute, members: updatedMembers });
   };
 
   const revokeMember = (email: string) => {
-    const newOrganization = { ...institute };
-    const updatedMembers = newOrganization.members?.filter(
+    const newInstitute = { ...institute };
+    const updatedMembers = newInstitute.members?.filter(
       (member) => member.email !== email
     );
-    setInstitute({ ...newOrganization, members: updatedMembers });
+    setInstitute({ ...newInstitute, members: updatedMembers });
 
     onRevokeConfirmOpenChange();
   };

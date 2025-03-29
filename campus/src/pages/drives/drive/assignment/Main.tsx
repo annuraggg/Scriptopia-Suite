@@ -1,9 +1,9 @@
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { ChevronRight, ClipboardList, UserCheck } from "lucide-react";
-import { Assignment, Posting } from "@shared-types/Posting";
+import { Assignment, Drive } from "@shared-types/Drive";
 
 const Main = () => {
-  const { posting } = useOutletContext() as { posting: Posting };
+  const { drive } = useOutletContext() as { drive: Drive };
   const navigate = useNavigate();
 
   return (
@@ -13,13 +13,13 @@ const Main = () => {
         <h1 className="text-2xl font-bold text-gray-800">Assignments</h1>
       </div>
 
-      {posting?.assignments?.length === 0 ? (
+      {drive?.assignments?.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <p className="text-gray-600">No assignments available yet.</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {posting?.assignments?.map((assignment: Assignment) => (
+          {drive?.assignments?.map((assignment: Assignment) => (
             <div
               key={assignment._id}
               onClick={() => navigate(`${assignment._id}`)}
@@ -31,11 +31,11 @@ const Main = () => {
                     {assignment.name}
                   </h2>
                   <span className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-1 rounded-full">
-                    {posting?.workflow?.steps?.find(
+                    {drive?.workflow?.steps?.find(
                       (step) => step._id === assignment.workflowId
                     )?.status === "in-progress"
                       ? "In Progress"
-                      : posting?.workflow?.steps?.find(
+                      : drive?.workflow?.steps?.find(
                           (step) => step._id === assignment.workflowId
                         )?.status === "pending"
                       ? "Pending"

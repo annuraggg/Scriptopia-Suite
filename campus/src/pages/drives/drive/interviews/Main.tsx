@@ -1,34 +1,34 @@
 import { Button } from "@heroui/button";
 import { Card, CardBody, CardHeader } from "@heroui/card";
-import { ExtendedPosting } from "@shared-types/ExtendedPosting";
+import { ExtendedDrive } from "@shared-types/ExtendedDrive";
 import { useOutletContext } from "react-router-dom";
 
 const Main = () => {
-  const { posting } = useOutletContext() as { posting: ExtendedPosting };
+  const { drive } = useOutletContext() as { drive: ExtendedDrive };
 
   return (
     <div className="p-10">
       <h3>Interviews</h3>
-      {posting?.interviews?.map((interview) => (
+      {drive?.interviews?.map((interview) => (
         <Card key={interview._id} className="mt-5">
           <CardHeader>
             {
-              posting?.workflow?.steps?.find(
+              drive?.workflow?.steps?.find(
                 (step) => step._id === interview.workflowId
               )?.name
             }
             <div className="ml-5">
-              {posting?.workflow?.steps?.find(
+              {drive?.workflow?.steps?.find(
                 (step) => step._id === interview.workflowId
               )?.status === "completed" && (
                 <span className="text-green-500">Completed</span>
               )}{" "}
-              {posting?.workflow?.steps?.find(
+              {drive?.workflow?.steps?.find(
                 (step) => step._id === interview.workflowId
               )?.status === "in-progress" && (
                 <span className="text-yellow-500">Ongoing</span>
               )}{" "}
-              {posting?.workflow?.steps?.find(
+              {drive?.workflow?.steps?.find(
                 (step) => step._id === interview.workflowId
               )?.status === "pending" && (
                 <span className="text-blue-500">Pending</span>
@@ -37,7 +37,7 @@ const Main = () => {
           </CardHeader>
           <CardBody>
             {" "}
-            {posting?.workflow?.steps?.find(
+            {drive?.workflow?.steps?.find(
               (step) => step._id === interview.workflowId
             )?.status === "in-progress" && (
               <Button
@@ -46,7 +46,7 @@ const Main = () => {
                 variant="flat"
                 onPress={() =>
                   window.open(
-                    `${import.meta.env.VITE_MEET_URL}/v3/${interview.interview.code}?id=${posting._id}`
+                    `${import.meta.env.VITE_MEET_URL}/v3/${interview.interview.code}?id=${drive._id}`
                   )
                 }
               >

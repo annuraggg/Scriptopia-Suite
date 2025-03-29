@@ -179,12 +179,12 @@ const Drives: React.FC = () => {
   const axios = ax(getToken);
 
   const handleDelete = () => {
-    const newOrganization = { ...institute };
-    const newDrives = newOrganization.drives?.filter(
+    const newInstitute = { ...institute };
+    const newDrives = newInstitute.drives?.filter(
       (drive) => drive._id !== deleteId
     );
 
-    setInstitute({ ...newOrganization, drives: newDrives });
+    setInstitute({ ...newInstitute, drives: newDrives });
     onOpenChange();
 
     axios.delete(`/drives/${deleteId}`).catch((err) => {

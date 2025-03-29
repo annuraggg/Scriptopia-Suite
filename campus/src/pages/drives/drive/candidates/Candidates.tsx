@@ -11,13 +11,13 @@ const Candidates = () => {
   const axios = ax(getToken);
 
   useEffect(() => {
-    axios.get("/organizations/candidates").then((res) => {
+    axios.get("/institutes/candidates").then((res) => {
       setCandidatesData(res.data.data);
     });
   }, []);
 
   const downloadResume = (candidateId: string) => {
-    axios.get(`/organizations/candidate/${candidateId}/resume`).then((res) => {
+    axios.get(`/institutes/candidate/${candidateId}/resume`).then((res) => {
       window.open(res.data.data.url);
     });
   };

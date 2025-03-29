@@ -6,7 +6,7 @@ import {
   SelectItem,
   Checkbox,
 } from "@nextui-org/react";
-import { Department } from "@shared-types/Organization";
+import { Department } from "@shared-types/Institute";
 
 interface FilterProps {
   workScheduleFilter: string[];

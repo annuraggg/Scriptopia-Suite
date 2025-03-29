@@ -14,12 +14,12 @@ const Layout = () => {
   const [toast, setToast] = useState<boolean>(false);
   const [shakeToast, setShakeToast] = useState<boolean>(false);
   const [rerender, setRerender] = useState<boolean>(false);
-  const [newOrganization, setNewOrganization] = useState<ExtendedInstitute>(
+  const [newInstitute, setNewInstitute] = useState<ExtendedInstitute>(
     {} as ExtendedInstitute
   );
 
   useEffect(() => {
-    setNewOrganization(institute);
+    setNewInstitute(institute);
     setRerender(!rerender);
   }, [institute]);
 
@@ -28,11 +28,11 @@ const Layout = () => {
 
   const action = () => {
     setToast(false);
-    console.log(newOrganization);
+    console.log(newInstitute);
     axios
-      .put("institutes", newOrganization)
+      .put("institutes", newInstitute)
       .then(() => {
-        setInstitute(newOrganization);
+        setInstitute(newInstitute);
         sonner.success("Saved", { position: "top-right" });
       })
       .catch((err) => {
@@ -43,17 +43,17 @@ const Layout = () => {
 
   const reset = () => {
     setToast(false);
-    setNewOrganization(institute);
+    setNewInstitute(institute);
     setRerender(!rerender);
   };
 
-  const handleToast = (toast: boolean, newOrganization?: ExtendedInstitute) => {
+  const handleToast = (toast: boolean, newInstitute?: ExtendedInstitute) => {
     setToast(toast);
-    if (newOrganization) setNewOrganization(newOrganization);
+    if (newInstitute) setNewInstitute(newInstitute);
   };
 
-  const updateLocalOrganization = (newOrganization: ExtendedInstitute) => {
-    setNewOrganization(newOrganization);
+  const updateLocalInstitute = (newInstitute: ExtendedInstitute) => {
+    setNewInstitute(newInstitute);
     setToast(true);
   };
 
@@ -64,8 +64,8 @@ const Layout = () => {
         <div className="h-full w-full overflow-x-auto">
           <Outlet
             context={{
-              institute: newOrganization,
-              setInstitute: updateLocalOrganization,
+              institute: newInstitute,
+              setInstitute: updateLocalInstitute,
               setToast: handleToast,
               toast,
               rerender,

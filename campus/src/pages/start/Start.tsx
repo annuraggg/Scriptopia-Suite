@@ -98,7 +98,7 @@ const Start = () => {
     const axios = ax(getToken);
     setSecondLoading(true);
     axios
-      .post("/organizations/create", {
+      .post("/institutes/create", {
         name: companyName,
         email: companyEmail,
         website: companyWebsite,
@@ -106,7 +106,7 @@ const Start = () => {
       })
       .then(() => {
         setSecondLoading(false);
-        toast.success("Organization created successfully");
+        toast.success("Institute created successfully");
         window.location.href = "/dashboard";
         const data = {
           _id: user?.publicMetadata?.orgId,
@@ -118,7 +118,7 @@ const Start = () => {
       .catch((err) => {
         console.error(err);
         setSecondLoading(false);
-        toast.error("Failed to create organization");
+        toast.error("Failed to create institute");
       });
   };
 
@@ -127,7 +127,7 @@ const Start = () => {
       {page === 1 && (
         <Card className="w-[500px] drop-shadow-glow-dark">
           <CardBody className="p-10 py-10">
-            <h4 className="text-center">Create a new organization</h4>
+            <h4 className="text-center">Create a new institute</h4>
             <p className="text-center text-xs opacity-50">
               Start your free 14-day trial. No credit card required.
             </p>
@@ -177,7 +177,7 @@ const Start = () => {
               isDisabled={firstLoading}
               isLoading={firstLoading}
             >
-              Create Organization
+              Create Institute
             </Button>
             <p className="mt-5 text-center opacity-50 text-sm">
               By signing up for our service, you agree to our Terms & Conditions

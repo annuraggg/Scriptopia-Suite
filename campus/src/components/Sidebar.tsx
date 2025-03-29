@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
 import { Badge, Button } from "@nextui-org/react";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
-import { Notification } from "@shared-types/Organization";
+import { Notification } from "@shared-types/Institute";
 import { ExtendedInstitute } from "@shared-types/ExtendedInstitute";
 
 const Sidebar = ({

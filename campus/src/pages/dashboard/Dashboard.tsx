@@ -38,7 +38,7 @@ const Dashboard = () => {
 
   const metrics = [
     {
-      title: "Active Jobs",
+      title: "Active Drives",
       value: 24,
       change: 12,
       icon: <Briefcase className="w-6 h-6 text-blue-500" />,
@@ -99,7 +99,7 @@ const Dashboard = () => {
           </button>
           <Button color="primary">
             <Plus className="w-5 h-5" />
-            Create Job
+            Create Drives
           </Button>
         </div>
       </div>

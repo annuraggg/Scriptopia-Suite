@@ -73,9 +73,9 @@ const DriveDetails = ({
     <div className="w-full">
       <div className="flex justify-between">
         <div className="text-sm w-[30%]">
-          <p>Job Title</p>
+          <p>Drive Title</p>
           <p className="opacity-50">
-            A Job Title that must describe one position only
+            A Drive Title that must describe one position only
           </p>
         </div>
         <div>

@@ -22,7 +22,7 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useOutletContext } from "react-router-dom";
-import { Posting } from "@shared-types/Posting";
+import { Drive } from "@shared-types/Drive";
 import { IconChevronDown, IconMenu2 } from "@tabler/icons-react";
 import { Pagination } from "@heroui/pagination";
 
@@ -56,7 +56,7 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
   const pages = Math.ceil(data.length / rowsPerPage);
   const { getToken } = useAuth();
   const axios = ax(getToken);
-  const { posting } = useOutletContext() as { posting: Posting };
+  const { drive } = useOutletContext() as { drive: Drive };
 
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
@@ -67,7 +67,7 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
 
   const downloadResume = (_id: string) => {
     axios
-      .get(`postings/candidate/${_id}/resume`)
+      .get(`drives/candidate/${_id}/resume`)
       .then((res) => window.open(res.data.data.url, "_blank"))
       .catch((err) => {
         toast.error(err.response.data.message || "Failed to download resume");
@@ -82,9 +82,9 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
     setData(newData);
 
     axios
-      .put("postings/candidate/disqualify", {
+      .put("drives/candidate/disqualify", {
         _id: _id,
-        postingId: posting?._id,
+        driveId: drive?._id,
       })
       .catch((err) => {
         toast.error(
@@ -106,9 +106,9 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
     setData(newData);
 
     axios
-      .put("postings/candidate/qualify", {
+      .put("drives/candidate/qualify", {
         _id: _id,
-        postingId: posting?._id,
+        driveId: drive?._id,
       })
       .catch((err) => {
         toast.error(err.response.data.message || "Failed to select candidate");
@@ -133,9 +133,9 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
     setData(newData);
 
     axios
-      .put("postings/candidate/disqualify/bulk", {
+      .put("drives/candidate/disqualify/bulk", {
         candidateIds: selectedIds,
-        postingId: posting?._id,
+        driveId: drive?._id,
       })
       .then(() => {
         toast.success("Selected candidates disqualified successfully");
@@ -171,9 +171,9 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
     setData(newData);
 
     axios
-      .put("postings/candidate/qualify/bulk", {
+      .put("drives/candidate/qualify/bulk", {
         candidateIds: selectedIds,
-        postingId: posting?._id,
+        driveId: drive?._id,
       })
       .then(() => {
         toast.success("Selected candidates qualified successfully");
@@ -196,7 +196,7 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
   };
 
   const selectAllAboveThreshold = () => {
-    const threshold = posting?.ats?.minimumScore || 0;
+    const threshold = drive?.ats?.minimumScore || 0;
     const newData = [...data] as CandidateTable[];
     const newSelect = new Set(selectedRows);
     newData.forEach((c) => {
@@ -268,7 +268,7 @@ const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
             className="flex items-center gap-2"
           >
             <Users size={16} />
-            Select Above {posting?.ats?.minimumScore}%
+            Select Above {drive?.ats?.minimumScore}%
           </Button>
         </div>
       </div>

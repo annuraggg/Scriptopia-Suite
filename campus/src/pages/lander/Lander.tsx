@@ -20,10 +20,10 @@ const LargeHeading = ({ children }: any) => {
 
 const Lander = () => {
   const navigate = useNavigate();
-  const organization = useSelector((state: RootState) => state.institute);
+  const institute = useSelector((state: RootState) => state.institute);
 
   const redirectUser = () => {
-    if (organization._id) {
+    if (institute._id) {
       navigate("/dashboard");
     } else {
       navigate("/onboarding");
@@ -32,14 +32,14 @@ const Lander = () => {
 
   const projects = [
     {
-      title: "Smart Job Postings",
+      title: "Smart Drives",
       description:
-        "Create and manage job postings with AI assistance that helps you write better descriptions and reach the right candidates.",
+        "Create and manage drives with AI assistance that helps you write better descriptions and reach the right candidates.",
     },
     {
       title: "AI-Powered Matching",
       description:
-        "Our advanced algorithms match candidates to jobs based on skills, experience, and cultural fit with unprecedented accuracy.",
+        "Our advanced algorithms match candidates to drives based on skills, experience, and cultural fit with unprecedented accuracy.",
     },
     {
       title: "Custom Assessments",
@@ -66,11 +66,11 @@ const Lander = () => {
 
   const data = [
     {
-      title: "Job Posting and Requisition Management",
+      title: "Drive and Requisition Management",
       content: (
         <div>
           <p className="text-neutral-800 dark:text-neutral-200 text-xs md:text-sm font-normal mb-8">
-            Effortlessly create and distribute job postings to multiple
+            Effortlessly create and distribute drives to multiple
             platforms. Track and manage job requisitions with ease.
           </p>{" "}
           <img

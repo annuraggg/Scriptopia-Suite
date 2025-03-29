@@ -61,8 +61,8 @@ const Layout = () => {
       });
   }, []);
 
-  const updateOrganization = (newOrganization: ExtendedInstitute) => {
-    setInstitute(newOrganization);
+  const updateInstitute = (newInstitute: ExtendedInstitute) => {
+    setInstitute(newInstitute);
     setRerender(!rerender);
   };
 
@@ -139,7 +139,7 @@ const Layout = () => {
                   notifications,
                   user,
                   institute,
-                  setInstitute: updateOrganization,
+                  setInstitute: updateInstitute,
                   rerender,
                 }}
               />
