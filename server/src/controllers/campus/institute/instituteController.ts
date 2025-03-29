@@ -16,8 +16,8 @@ import checkInstitutePermission from "@/middlewares/checkInstitutePermission";
 import { UserJSON } from "@clerk/backend";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
 import { UserMeta } from "@shared-types/UserMeta";
-import { User as IUser } from "@shared-types/User";
 import CandidateModel from "@/models/Candidate";
+import { Types } from "mongoose";
 
 const createInstitute = async (c: Context) => {
   try {
@@ -897,7 +897,7 @@ const getCandidates = async (c: Context) => {
     const institute = await Institute.findOne({ _id: instituteId })
       .populate("candidates")
       .lean();
- 1  
+    1;
     if (!institute) {
       return sendError(c, 404, "Institute not found");
     }
@@ -1104,7 +1104,7 @@ const getInstitute = async (c: Context): Promise<any> => {
     const institute = await Institute.findOne({
       "members.user": userId,
     })
-      .populate<{ user: IUser }>("members.user")
+      .populate("members.user")
       .populate("candidates")
       .populate("pendingCandidates")
       .lean();
@@ -1114,7 +1114,10 @@ const getInstitute = async (c: Context): Promise<any> => {
     }
 
     const member = institute.members.find(
-      (m) => m?.user?._id?.toString() === userId.toString()
+      (m) =>
+        (
+          m?.user as Types.ObjectId | { _id: Types.ObjectId }
+        )?._id?.toString() === userId.toString()
     );
 
     console.log(institute.members);

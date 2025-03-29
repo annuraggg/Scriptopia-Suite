@@ -28,7 +28,7 @@
     "chalk": "^5.3.0",
     "dotenv": "^16.4.5",
     "ethers": "^6.13.5",
-    "hono": "^4.7.4",
+    "hono": "^4.7.5",
     "ioredis": "^5.4.1",
     "jsonwebtoken": "^9.0.2",
     "loops": "^3.0.0",
@@ -44,9 +44,8 @@
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.6",
     "@types/multer": "^1.4.11",
-    "@types/node": "^20.16.1",
+    "@types/node": "^20.11.17",
     "pino-pretty": "^11.2.1",
-    "tsx": "^4.7.1",
-    "typescript": "^5.5.4"
+    "tsx": "^4.7.1"
   }
 }

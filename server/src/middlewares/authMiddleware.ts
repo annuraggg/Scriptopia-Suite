@@ -1,6 +1,6 @@
 import { getAuth } from "@hono/clerk-auth";
 import { createMiddleware } from "hono/factory";
-import { Context } from "hono";
+import type { Context } from "hono";
 import { sendError } from "../utils/sendResponse";
 
 const authMiddleware = createMiddleware(async (c: Context, next) => {

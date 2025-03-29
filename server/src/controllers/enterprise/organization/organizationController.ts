@@ -19,6 +19,7 @@ import { Candidate } from "@shared-types/Candidate";
 import { UserJSON } from "@clerk/backend";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
 import { UserMeta } from "@shared-types/UserMeta";
+import { Types } from "mongoose";
 
 const createOrganization = async (c: Context) => {
   try {
@@ -765,7 +766,6 @@ const updateMembers = async (c: Context) => {
         oldMemberEmails.includes(member.email) && member.status === "active"
     );
 
-
     existingMembers.forEach((newMember: Member) => {
       const oldMember = organization.members.find(
         (m) => m.email === newMember.email
@@ -1158,7 +1158,12 @@ const getOrganization = async (c: Context): Promise<Response> => {
     }
 
     // Find member and validate role in one pass
-    const member = org.members.find((m) => m?.user?._id?.toString() === userId);
+    const member = org.members.find(
+      (m) =>
+        (
+          m?.user as Types.ObjectId | { _id: Types.ObjectId }
+        )?._id?.toString() === userId.toString()
+    );
     if (!member?.role) {
       return sendError(c, 403, "Invalid member access");
     }
