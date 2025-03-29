@@ -15,6 +15,7 @@ import loops from "@/config/loops";
 import Candidate from "@/models/Candidate";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import AppliedPosting from "@/models/AppliedPosting";
 
 const getPostings = async (c: Context) => {
   try {
@@ -683,6 +684,31 @@ const getAssignmentSubmission = async (c: Context) => {
   }
 };
 
+const getAppliedPostings = async (c: Context) => {
+  try {
+    const perms = await checkPermission.all(c, ["view_job"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const postings = await AppliedPosting.find({
+      posting: c.req.param("id"),
+    })
+      .populate("posting")
+      .populate("user");
+
+    return sendSuccess(
+      c,
+      200,
+      "Applied postings fetched successfully",
+      postings
+    );
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
 export default {
   getPostings,
   getPosting,
@@ -698,4 +724,5 @@ export default {
   saveAssignmentSubmission,
   gradeAssignment,
   getAssignmentSubmission,
+  getAppliedPostings,
 };

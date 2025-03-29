@@ -45,6 +45,11 @@ const ViewUserMCQAssessment = lazy(
   () => import("../pages/jobs/job/assessments/view/mcq/individual/View")
 );
 
+const Pipeline = lazy(() => import("../pages/jobs/job/pipeline/Pipeline"));
+const CustomLayout = lazy(() => import("../pages/jobs/job/custom/Layout"));
+
+const Custom = lazy(() => import("../pages/jobs/job/custom/Custom"));
+
 const jobRoutes = [
   {
     path: "/",
@@ -94,6 +99,34 @@ const jobRoutes = [
               </Suspense>
             ),
           },
+          {
+            path: "pipeline",
+            element: (
+              <Suspense fallback={<Loader />}>
+                <Pipeline />
+              </Suspense>
+            ),
+          },
+          {
+            path: "custom",
+            element: (
+              <Suspense fallback={<Loader />}>
+                <CustomLayout />
+              </Suspense>
+            ),
+
+            children: [
+              {
+                path: ":id",
+                element: (
+                  <Suspense fallback={<Loader />}>
+                    <Custom />
+                  </Suspense>
+                ),
+              },
+            ],
+          },
+
           {
             path: "ats",
             element: (
@@ -166,14 +199,14 @@ const jobRoutes = [
           //       </Suspense>
           //     ),
           //   },
-            {
-              path: "assignments",
-              element: (
-                <Suspense fallback={<Loader />}>
-                  <Assignments />
-                </Suspense>
-              ),
-            },
+          {
+            path: "assignments",
+            element: (
+              <Suspense fallback={<Loader />}>
+                <Assignments />
+              </Suspense>
+            ),
+          },
           {
             path: "assignments/:id",
             element: (

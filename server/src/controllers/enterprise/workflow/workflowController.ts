@@ -79,6 +79,8 @@ const advanceWorkflow = async (c: Context) => {
         break;
     }
 
+    console.log("Workflow advanced to next step", currentStep.type);
+
     await posting.save();
     await logWorkflowAdvance(c, posting, perms);
 

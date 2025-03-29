@@ -10,6 +10,7 @@ import { Spinner } from "@heroui/spinner";
 const Layout = () => {
   const [posting, setPosting] = useState<Posting>({} as Posting);
   const [postingLoading, setPostingLoading] = useState(true);
+  const [refetch, setRefetch] = useState(false);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -28,7 +29,11 @@ const Layout = () => {
       .finally(() => {
         setPostingLoading(false);
       });
-  }, []);
+  }, [refetch]);
+
+  const refetchData = () => {
+    setRefetch((prev) => !prev);
+  };
 
   const Loader = () => {
     return (
@@ -46,7 +51,7 @@ const Layout = () => {
           {postingLoading ? (
             <Loader />
           ) : (
-            <Outlet context={{ posting, setPosting }} />
+            <Outlet context={{ posting, setPosting, refetch: refetchData }} />
           )}
         </div>
       </div>

@@ -103,7 +103,7 @@ const getStepStyles = (type: StepType, status: string) => {
 };
 
 const Show: React.FC<ShowProps> = ({ workflowData }) => {
-  const { posting, setPosting } = useOutletContext() as PostingContext;
+  const { posting, setPosting, refetch } = useOutletContext() as PostingContext;
   const [loading, setLoading] = useState<boolean>(false);
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -230,6 +230,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
         onAdvanceModalClose();
         setSelectedStep(null);
         setPosting(res.data.data);
+        refetch()
       })
       .catch((err) => {
         console.error(err);

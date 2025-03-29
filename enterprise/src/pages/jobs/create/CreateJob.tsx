@@ -33,6 +33,7 @@ const componentMap: Record<string, string> = {
   "Code Assessment": "CODING_ASSESSMENT",
   Assignment: "ASSIGNMENT",
   Interview: "INTERVIEW",
+  "Custom Step": "CUSTOM",
 };
 
 const CreateJob = () => {

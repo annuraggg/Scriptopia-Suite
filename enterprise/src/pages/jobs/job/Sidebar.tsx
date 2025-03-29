@@ -16,6 +16,8 @@ import {
   IconVideo,
   IconUsers,
   IconInfoCircle,
+  IconJoinStraight,
+  IconAdjustments,
 } from "@tabler/icons-react";
 import {
   Modal,
@@ -83,6 +85,12 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
         badge: workflowSteps.length ? 0 : 1,
       },
       {
+        icon: IconJoinStraight,
+        label: "Pipeline",
+        link: "/pipeline",
+        visible: true,
+      },
+      {
         icon: IconFileText,
         label: "ATS",
         link: "/ats",
@@ -115,7 +123,13 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
         label: "Interviews",
         link: "/interviews",
         visible: getFilteredStepsCount(["INTERVIEW"]) > 0,
-       },
+      },
+      {
+        icon: IconAdjustments,
+        label: "Custom Steps",
+        link: "/custom",
+        visible: getFilteredStepsCount(["CUSTOM"]) > 0,
+      },
       {
         icon: IconUsers,
         label: "Candidates",
@@ -174,6 +188,7 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
         totalCompleted++;
       }
       if (step.type === "INTERVIEW" && posting?.interviews) totalCompleted++;
+      if (step.type === "CUSTOM") totalCompleted++;
     });
 
     console.log(totalCompleted, steps.length);
@@ -305,7 +320,7 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
     );
   };
 
-  const subNavbarRoutes = ["assessments"];
+  const subNavbarRoutes = ["assessments", "custom"];
 
   return (
     <aside

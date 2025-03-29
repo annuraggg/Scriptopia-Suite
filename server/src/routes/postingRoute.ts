@@ -28,7 +28,10 @@ app.delete("/:id", postingController.deletePosting);
 app.get("/:id/assignment/:aid", postingController.getAssignment);
 app.post("/:id/assignment/:aid", postingController.saveAssignmentSubmission);
 app.post("/:id/assignment/:aid/grade", postingController.gradeAssignment);
-app.get("/:id/assignment/:aid/submission/:sid", postingController.getAssignmentSubmission);
+app.get(
+  "/:id/assignment/:aid/submission/:sid",
+  postingController.getAssignmentSubmission
+);
 
 app.get("/candidate/:id", candidatesController.getCandidate);
 app.get("/candidate/:id/resume", candidatesController.getResume);
@@ -36,5 +39,5 @@ app.put("/candidate/qualify", candidatesController.qualifyCandidate);
 app.put("/candidate/disqualify", candidatesController.disqualifyCandidate);
 app.put("/candidate/qualify/bulk", candidatesController.bulkQualify);
 app.put("/candidate/disqualify/bulk", candidatesController.bulkDisqualify);
-
+app.get("/:id/applied", postingController.getAppliedPostings);
 export default app;

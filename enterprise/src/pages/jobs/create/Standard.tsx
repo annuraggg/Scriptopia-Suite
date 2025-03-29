@@ -7,6 +7,7 @@ import {
   Book,
   Copy,
   MonitorPlay,
+  Workflow,
 } from "lucide-react";
 import { Button } from "@heroui/button";
 import { Chip } from "@heroui/chip";
@@ -48,9 +49,9 @@ const Create = ({
     { icon: FileText, label: "Resume Screening", isUnidirectional: true },
     { icon: Copy, label: "MCQ Assessment" },
     { icon: Code, label: "Code Assessment" },
-    // { icon: Combine, label: "MCQ + Code Assessment" },
     { icon: Book, label: "Assignment" },
     { icon: MonitorPlay, label: "Interview" },
+    { icon: Workflow, label: "Custom Step", isUnidirectional: true },
   ];
 
   const dragStart = (e: React.DragEvent<HTMLDivElement>, label: string) => {
