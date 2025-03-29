@@ -9,7 +9,7 @@ import {
   SignedOut,
   useUser,
 } from "@clerk/clerk-react";
-import CreateDrive from "./pages/jobs/create/CreateDrive";
+import CreateDrive from "./pages/drives/create/CreateDrive";
 import GroupDetails from "./pages/placementgroups/GroupDetails";
 
 // Lazy load components
@@ -17,7 +17,7 @@ import Loader from "./components/Loader";
 import PendingCandidates from "./pages/candidates/PendingCandidates";
 const Lander = lazy(() => import("./pages/lander/Lander"));
 const Layout = lazy(() => import("./components/Layout"));
-const DriveLayout = lazy(() => import("./pages/jobs/job/Layout"));
+const DriveLayout = lazy(() => import("./pages/drives/drive/Layout"));
 const SettingsLayout = lazy(() => import("./pages/settings/Layout"));
 const Start = lazy(() => import("./pages/start/Start"));
 const Join = lazy(() => import("./pages/join/Join"));
@@ -29,7 +29,7 @@ const CompanyDetails = lazy(
 
 // Dashboard and other main views
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
-const Drives = lazy(() => import("./pages/jobs/Drives"));
+const Drives = lazy(() => import("./pages/drives/Drives"));
 const PlacementGroups = lazy(
   () => import("./pages/placementgroups/PlacementGroups")
 );
@@ -42,36 +42,6 @@ const Notifications = lazy(() => import("./pages/notifications/Notifications"));
 const Billing = lazy(() => import("./pages/billing/Billing"));
 const Documentation = lazy(() => import("./pages/documentation/Documentation"));
 const Support = lazy(() => import("./pages/support/Support"));
-
-// Job specific routes
-const DriveDashboard = lazy(
-  () => import("./pages/jobs/job/dashboard/Dashboard")
-);
-const Workflow = lazy(() => import("./pages/jobs/job/workflow/Workflow"));
-const Ats = lazy(() => import("./pages/jobs/job/ats/Ats"));
-const JobCandidates = lazy(
-  () => import("./pages/jobs/job/candidates/Candidates")
-);
-const Assessments = lazy(
-  () => import("./pages/jobs/job/assessments/Assessments")
-);
-const Interviews = lazy(() => import("./pages/jobs/job/interviews/Interviews"));
-const Selector = lazy(
-  () => import("./pages/jobs/job/assessments/new/Selector")
-);
-const Assignments = lazy(
-  () => import("./pages/jobs/job/assignment/Assignments")
-);
-const NewAssignment = lazy(() => import("./pages/jobs/job/assignment/New"));
-const ViewAssignment = lazy(
-  () => import("./pages/jobs/job/assignment/ViewAssignment")
-);
-const ViewAssessment = lazy(
-  () => import("./pages/jobs/job/assessments/ViewAssessment/ViewAssessment")
-);
-const ViewUserAssessment = lazy(
-  () => import("./pages/jobs/job/assessments/ViewAssessment/ViewUserAssessment")
-);
 
 // Settings routes
 const GeneralSettings = lazy(() => import("./pages/settings/general/General"));
@@ -92,6 +62,49 @@ const CreatePlacementGroup = lazy(
   () => import("./pages/placementgroups/create/CreateGroupForm")
 );
 
+// drive specific routes
+const DriveInfo = lazy(() => import("./pages/drives/drive/info/Info"));
+const DriveDashboard = lazy(
+  () => import("./pages/drives/drive/dashboard/Dashboard")
+);
+const Workflow = lazy(() => import("./pages/drives/drive/workflow/Workflow"));
+const Ats = lazy(() => import("./pages/drives/drive/ats/Ats"));
+const DriveCandidates = lazy(
+  () => import("./pages/drives/drive/candidates/Candidates")
+);
+const Assessments = lazy(
+  () => import("./pages/drives/drive/assessments/Assessments")
+);
+const Interviews = lazy(
+  () => import("./pages/drives/drive/interviews/Interviews")
+);
+const Assignments = lazy(
+  () => import("./pages/drives/drive/assignment/Assignments")
+);
+const NewAssignment = lazy(() => import("./pages/drives/drive/assignment/New"));
+const ViewAssignment = lazy(
+  () => import("./pages/drives/drive/assignment/ViewAssignment")
+);
+
+const ViewCodeAssessmentResults = lazy(
+  () =>
+    import("./pages/drives/drive/assessments/view/code/CodeAssessmentResults")
+);
+const ViewMcqAssessmentResults = lazy(
+  () => import("./pages/drives/drive/assessments/view/mcq/McqAssessmentResults")
+);
+
+const ViewUserCodeAssessment = lazy(
+  () => import("./pages/drives/drive/assessments/view/code/individual/View")
+);
+
+const ViewUserMCQAssessment = lazy(
+  () => import("./pages/drives/drive/assessments/view/mcq/individual/View")
+);
+
+const Pipeline = lazy(() => import("./pages/drives/drive/pipeline/Pipeline"));
+const CustomLayout = lazy(() => import("./pages/drives/drive/custom/Layout"));
+const Custom = lazy(() => import("./pages/drives/drive/custom/Custom"));
 
 function App() {
   const { user, isSignedIn } = useUser();
@@ -397,6 +410,14 @@ function App() {
       ),
       children: [
         {
+          path: "info",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <DriveInfo />
+            </Suspense>
+          ),
+        },
+        {
           path: "dashboard",
           element: (
             <Suspense fallback={<Loader />}>
@@ -413,6 +434,34 @@ function App() {
           ),
         },
         {
+          path: "pipeline",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <Pipeline />
+            </Suspense>
+          ),
+        },
+        {
+          path: "custom",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <CustomLayout />
+            </Suspense>
+          ),
+
+          children: [
+            {
+              path: ":id",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Custom />
+                </Suspense>
+              ),
+            },
+          ],
+        },
+
+        {
           path: "ats",
           element: (
             <Suspense fallback={<Loader />}>
@@ -424,7 +473,7 @@ function App() {
           path: "candidates",
           element: (
             <Suspense fallback={<Loader />}>
-              <JobCandidates />
+              <DriveCandidates />
             </Suspense>
           ),
         },
@@ -437,29 +486,53 @@ function App() {
           ),
         },
         {
-          path: "assessments/:id/view",
+          path: "assessments/m/:id/view/:candId",
           element: (
             <Suspense fallback={<Loader />}>
-              <ViewAssessment />
+              <ViewUserMCQAssessment />
             </Suspense>
           ),
         },
         {
-          path: "assessments/:id/view/:candId",
+          path: "assessments/c/:id/view/:candId",
           element: (
             <Suspense fallback={<Loader />}>
-              <ViewUserAssessment />
+              <ViewUserCodeAssessment />
             </Suspense>
           ),
         },
         {
-          path: "assessments/new/:type",
+          path: "assessments/c/:id/view",
           element: (
             <Suspense fallback={<Loader />}>
-              <Selector />
+              <ViewCodeAssessmentResults />
             </Suspense>
           ),
         },
+        {
+          path: "assessments/c/:id/view",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <ViewCodeAssessmentResults />
+            </Suspense>
+          ),
+        },
+        {
+          path: "assessments/m/:id/view",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <ViewMcqAssessmentResults />
+            </Suspense>
+          ),
+        },
+        //   {
+        //     path: "assessments/m/:id/view/:candId",
+        //     element: (
+        //       <Suspense fallback={<Loader />}>
+        //         <ViewMcqAssessmentResult />
+        //       </Suspense>
+        //     ),
+        //   },
         {
           path: "assignments",
           element: (
