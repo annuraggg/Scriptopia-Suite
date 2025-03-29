@@ -22,6 +22,10 @@ import clerkClient from "@/config/clerk";
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
 import AppliedPosting from "@/models/AppliedPosting";
 import { AppliedPosting as IAppliedPosting } from "@shared-types/AppliedPosting";
+import { Upload } from "@aws-sdk/lib-storage";
+import r2Client from "@/config/s3";
+import { GetObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 async function getIoServer() {
   const { ioServer } = await import("@/config/init");
@@ -199,6 +203,8 @@ getIoServer().then((server) => {
     socket.on(
       "session-url-code",
       async ({ assessmentId, email, sessionUrl }) => {
+        console.log("Session URL Code");
+        console.log(assessmentId, email, sessionUrl);
         if (!assessmentId || !email || !sessionUrl) return;
 
         const submission = await CodeAssessmentSubmissions.findOne({
@@ -216,6 +222,8 @@ getIoServer().then((server) => {
     socket.on(
       "session-url-mcq",
       async ({ assessmentId, email, sessionUrl }) => {
+        console.log("Session URL MCQ");
+        console.log(assessmentId, email, sessionUrl);
         if (!assessmentId || !email || !sessionUrl) return;
 
         const submission = await MCQAssessmentSubmissions.findOne({
@@ -231,6 +239,8 @@ getIoServer().then((server) => {
     );
 
     socket.on("auto-save-mcq", async ({ assessmentId, email, submissions }) => {
+      console.log("Auto Save MCQ");
+      console.log(assessmentId, email, submissions);
       if (!assessmentId || !email || !submissions) return;
 
       const submission = await MCQAssessmentSubmissions.findOne({
@@ -314,12 +324,17 @@ const createMcqAssessment = async (c: Context) => {
     }
 
     // calculate total obtainable score
+    const manualTypes = ["long-answer", "output"];
     let totalScore = 0;
+    let totalAutoScore = 0;
     const assessment: IMCQAssessment = body;
 
     assessment.sections.forEach((section) => {
       section.questions.forEach((question) => {
         totalScore += question?.grade || 0;
+        if (!manualTypes.includes(question.type)) {
+          totalAutoScore += question?.grade || 0;
+        }
       });
     });
 
@@ -327,6 +342,8 @@ const createMcqAssessment = async (c: Context) => {
       ...body,
       author: userid,
       obtainableScore: totalScore,
+      autoObtainableScore: totalAutoScore,
+      requiresManualReview: totalAutoScore !== totalScore,
     };
 
     newAssessment.set(assessmentObj);
@@ -736,6 +753,7 @@ const verifyAccess = async (c: Context) => {
     }
 
     if (assessment.isEnterprise) {
+      let currentAssessmentId = null;
       const posting = await Posting.findOne({
         _id: assessment.postingId,
       }).populate("candidates");
@@ -749,9 +767,26 @@ const verifyAccess = async (c: Context) => {
       }
 
       const currentStepIndex =
-        workflow.steps.findIndex((step) => !step.completed) ?? 0;
+        workflow.steps.findIndex((step) => step.status === "in-progress") ?? 0;
+
       const currentStep = workflow.steps[currentStepIndex];
-      if (currentStep?._id?.toString() !== assessment?._id?.toString()) {
+
+      console.log(currentStep);
+      if (currentStep.type === "CODING_ASSESSMENT") {
+        currentAssessmentId = posting?.codeAssessments.find(
+          (assessment) =>
+            assessment.workflowId.toString() === currentStep._id?.toString()
+        )?.assessmentId;
+      } else if (currentStep.type === "MCQ_ASSESSMENT") {
+        currentAssessmentId = posting?.mcqAssessments.find(
+          (assessment) =>
+            assessment.workflowId?.toString() === currentStep._id?.toString()
+        )?.assessmentId;
+      }
+
+      console.log(currentAssessmentId, assessment._id);
+
+      if (currentAssessmentId?.toString() !== assessment?._id?.toString()) {
         return sendError(c, 403, "Assessment not active", {
           allowedForTest: false,
           testActive: false,
@@ -1208,7 +1243,9 @@ const getPostingMCQAssessments = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const assessments = posting.mcqAssessments.map((assessment: any) => assessment.assessmentId);
+    const assessments = posting.mcqAssessments.map(
+      (assessment: any) => assessment.assessmentId
+    );
 
     return sendSuccess(c, 200, "Success", assessments);
   } catch (error) {
@@ -1244,9 +1281,340 @@ const getPostingCodeAssessments = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const assessments = posting.codeAssessments.map((assessment: any) => assessment.assessmentId);
+    const assessments = posting.codeAssessments.map(
+      (assessment: any) => assessment.assessmentId
+    );
 
     return sendSuccess(c, 200, "Success", assessments);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const getMcqAssessmentSubmissions = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const assessmentId = c.req.param("id");
+
+    const assessment = await MCQAssessment.findById(assessmentId);
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    if (assessment.author !== auth?._id) {
+      if (assessment.isEnterprise) {
+        const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+        if (!perms.allowed) {
+          return sendError(c, 401, "Unauthorized");
+        }
+      } else return sendError(c, 403, "Unauthorized");
+    }
+
+    const submissions = await MCQAssessmentSubmissions.find({
+      assessmentId,
+    });
+
+    return sendSuccess(c, 200, "Success", { submissions, assessment });
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const getCodeAssessmentSubmissions = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const assessmentId = c.req.param("id");
+
+    console.log(assessmentId);
+
+    const assessment = await CodeAssessment.findById(assessmentId);
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    if (assessment.author !== auth?._id) {
+      if (assessment.isEnterprise) {
+        const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+        if (!perms.allowed) {
+          return sendError(c, 401, "Unauthorized");
+        }
+      } else return sendError(c, 403, "Unauthorized");
+    }
+
+    const submissions = await CodeAssessmentSubmissions.find({
+      assessmentId,
+    });
+
+    return sendSuccess(c, 200, "Success", { submissions, assessment });
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const getMcqAssessmentSubmission = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const submissionId = c.req.param("submissionId");
+
+    const submission = await MCQAssessmentSubmissions.findById(
+      submissionId
+    ).populate("assessmentId");
+    if (!submission) {
+      return sendError(c, 404, "Submission not found");
+    }
+
+    const assessment = await MCQAssessment.findById(submission.assessmentId);
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    if (assessment.author !== auth?._id) {
+      if (assessment.isEnterprise) {
+        const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+        if (!perms.allowed) {
+          return sendError(c, 401, "Unauthorized");
+        }
+      } else return sendError(c, 403, "Unauthorized");
+    }
+
+    return sendSuccess(c, 200, "Success", submission);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const getCodeAssessmentSubmission = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const submissionId = c.req.param("submissionId");
+
+    const submission = await CodeAssessmentSubmissions.findById(submissionId)
+      .populate("assessmentId")
+      .populate("submissions.problemId");
+    if (!submission) {
+      return sendError(c, 404, "Submission not found");
+    }
+
+    const assessment = await CodeAssessment.findById(submission.assessmentId);
+    if (!assessment) {
+      return sendError(c, 404, "Assessment not found");
+    }
+
+    if (assessment.author !== auth?._id) {
+      if (assessment.isEnterprise) {
+        const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+        if (!perms.allowed) {
+          return sendError(c, 401, "Unauthorized");
+        }
+      } else return sendError(c, 403, "Unauthorized");
+    }
+
+    return sendSuccess(c, 200, "Success", submission);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const capture = async (c: Context) => {
+  try {
+    const formData = await c.req.formData();
+    const image = formData.get("image");
+    const timestamp = new Date().getTime();
+    const assessmentId = formData.get("assessmentId");
+    const assessmentType = formData.get("assessmentType");
+    const email = formData.get("email");
+
+    if (!image || !(image instanceof File)) {
+      return sendError(c, 400, "Invalid image file");
+    }
+
+    const uploadParams = {
+      Bucket: process.env.R2_S3_ASSESSMENT_CAMERA_CAPTURE_BUCKET!,
+      Key: `${assessmentType}/${assessmentId}/${email}/${timestamp}.png`,
+      Body: image,
+      ContentType: image.type,
+    };
+
+    const upload = new Upload({
+      client: r2Client,
+      params: uploadParams,
+    });
+
+    await upload.done();
+
+    return sendSuccess(c, 200, "Success");
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const getCaptures = async (c: Context) => {
+  const assessmentId = c.req.param("id");
+  const assessmentType = c.req.param("type");
+  const email = c.req.param("email");
+
+  const folderPrefix = `${assessmentType}/${assessmentId}/${email}/`;
+
+  console.log(folderPrefix);
+
+  try {
+    const command = new ListObjectsV2Command({
+      Bucket: process.env.R2_S3_ASSESSMENT_CAMERA_CAPTURE_BUCKET!,
+      Prefix: folderPrefix,
+    });
+
+    const response = await r2Client.send(command);
+
+    if (!response.Contents) {
+      return sendSuccess(c, 200, "Success", []);
+    }
+
+    const imageUrls: { url: string; timestamp: string }[] = [];
+
+    for (const content of response.Contents) {
+      const command = new GetObjectCommand({
+        Bucket: process.env.R2_S3_ASSESSMENT_CAMERA_CAPTURE_BUCKET!,
+        Key: content.Key,
+      });
+
+      const url = await getSignedUrl(r2Client, command, { expiresIn: 600 });
+      imageUrls.push({
+        url: url,
+        timestamp: content?.Key?.split("/")?.pop()?.split(".")[0] || "",
+      });
+    }
+
+    console.log(imageUrls);
+    return sendSuccess(c, 200, "Success", imageUrls);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const gradeMCQAnswer = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const body = await c.req.json();
+    const { submissionId, mcqId, grade } = body;
+    console.log(body);
+
+    const submission = await MCQAssessmentSubmissions.findById(submissionId);
+    if (!submission) {
+      return sendError(c, 404, "Submission not found");
+    }
+
+    if (!submission.obtainedGrades)
+      return sendError(c, 400, "Grades not found");
+
+    if (!submission.obtainedGrades?.mcq) {
+      // @ts-ignore
+      submission.obtainedGrades.mcq = [];
+    }
+
+    const mcq = submission?.obtainedGrades?.mcq?.find(
+      (mcq) => mcq.mcqId.toString() === mcqId.toString()
+    );
+
+    if (mcq) {
+      submission.obtainedGrades.total += grade - mcq.obtainedMarks;
+      mcq.obtainedMarks = grade;
+    } else {
+      const newMCQ = {
+        mcqId: mcqId,
+        obtainedMarks: grade,
+      };
+      submission.obtainedGrades.total += grade;
+      submission.obtainedGrades?.mcq?.push(newMCQ);
+    }
+
+    if (!submission.reviewedBy?.includes(auth?._id)) {
+      submission?.reviewedBy?.push(auth?._id);
+    }
+
+    await submission.save();
+
+    return sendSuccess(c, 200, "Success", submission);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const gradeCodeAnswer = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const body = await c.req.json();
+    const { submissionId, problemId, grade } = body;
+
+    const submission = await CodeAssessmentSubmissions.findById(submissionId);
+    if (!submission) {
+      return sendError(c, 404, "Submission not found");
+    }
+
+    if (!submission.obtainedGrades)
+      return sendError(c, 400, "Grades not found");
+
+    if (!submission.obtainedGrades) {
+      // @ts-ignore
+      submission.obtainedGrades = [];
+    }
+
+    const code = submission?.obtainedGrades?.problem?.find(
+      (p) => p.problemId.toString() === problemId.toString()
+    );
+
+    console.log(code);
+    console.log(grade);
+
+    if (code) {
+      // @ts-ignore
+      submission.obtainedGrades.total += grade - code.obtainedMarks;
+      code.obtainedMarks = grade;
+    } else {
+      const newCode = {
+        problemId: problemId,
+        obtainedMarks: grade,
+      };
+
+      // @ts-ignore
+      submission.obtainedGrades.total += grade;
+      submission.obtainedGrades?.problem?.push(newCode);
+    }
+
+    if (!submission.reviewedBy?.includes(auth?._id)) {
+      submission?.reviewedBy?.push(auth?._id);
+    }
+
+    await submission.save();
+
+    return sendSuccess(c, 200, "Success", submission);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const saveReview = async (c: Context) => {
+  try {
+    const body = await c.req.json();
+    const { submissionId } = body;
+
+    const submission = await MCQAssessmentSubmissions.findById(submissionId);
+    if (!submission) {
+      return sendError(c, 404, "Submission not found");
+    }
+
+    submission.isReviewed = true;
+    await submission.save();
+
+    return sendSuccess(c, 200, "Success", submission);
   } catch (error) {
     console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
@@ -1274,4 +1642,13 @@ export default {
   getAssessmentSubmission,
   getPostingMCQAssessments,
   getPostingCodeAssessments,
+  getMcqAssessmentSubmissions,
+  getCodeAssessmentSubmissions,
+  getMcqAssessmentSubmission,
+  getCodeAssessmentSubmission,
+  capture,
+  getCaptures,
+  gradeMCQAnswer,
+  gradeCodeAnswer,
+  saveReview,
 };

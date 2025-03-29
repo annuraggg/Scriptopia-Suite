@@ -1,11 +1,7 @@
 import React from "react";
-import {
-  Card,
-  CardBody,
-  Select,
-  SelectItem,
-  Checkbox,
-} from "@heroui/react";
+import { Card, CardBody } from "@heroui/card";
+import { Select, SelectItem } from "@heroui/select";
+import { Checkbox } from "@heroui/checkbox";
 import { Department } from "@shared-types/Organization";
 
 interface FilterProps {
@@ -31,7 +27,9 @@ const Filter: React.FC<FilterProps> = ({
 }) => {
   const handleWorkScheduleChange = (value: string) => {
     if (workScheduleFilter.includes(value)) {
-      setWorkScheduleFilter(workScheduleFilter.filter((item) => item !== value));
+      setWorkScheduleFilter(
+        workScheduleFilter.filter((item) => item !== value)
+      );
     } else {
       setWorkScheduleFilter([...workScheduleFilter, value]);
     }
@@ -43,7 +41,7 @@ const Filter: React.FC<FilterProps> = ({
         <CardBody className="flex flex-col items-start justify-start gap-3 w-full p-4">
           <p className="text-lg font-semibold">Filters</p>
           <hr className="w-full h-[1px] rounded-lg" />
-          
+
           <div className="w-full space-y-4">
             <div className="space-y-2">
               <p className="text-base font-medium">Work Schedule</p>
@@ -82,7 +80,9 @@ const Filter: React.FC<FilterProps> = ({
                 onChange={(e) => setDepartmentFilter(e.target.value)}
               >
                 {departments?.map((department) => (
-                  <SelectItem key={department.name}>{department.name}</SelectItem>
+                  <SelectItem key={department.name}>
+                    {department.name}
+                  </SelectItem>
                 ))}
               </Select>
             </div>

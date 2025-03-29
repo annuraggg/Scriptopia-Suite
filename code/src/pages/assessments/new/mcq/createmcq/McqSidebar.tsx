@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, Button, Input, CardHeader } from "@nextui-org/react";
+import { Card, Button, Input, CardHeader } from "@heroui/react";
 import { motion } from "framer-motion";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { Section } from "@shared-types/MCQAssessment";
@@ -101,7 +101,7 @@ const McqSidebar = ({
               key={index}
               isHoverable
               isPressable
-              className={`w-full flex items-center justify-center p-3 cursor-pointer ${
+              className={`w-full flex items-center justify-center p-3 cursor-pointer shadow-none border-1 ${
                 selectedSectionIndex === index ? "bg-primary/10" : ""
               }`}
               onClick={() => handleSectionClick(section)}

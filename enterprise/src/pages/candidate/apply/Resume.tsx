@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
-import { Card, Button } from "@heroui/react";
+import { Button } from "@heroui/button";
+import { Card } from "@heroui/card";
 import { LinkIcon, FileIcon, XIcon } from "lucide-react";
 
 interface ResumeProps {

@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { StatusCode } from "hono/utils/http-status";
+import { ContentfulStatusCode, StatusCode } from "hono/utils/http-status";
 import logger from "./logger";
 
 const sendSuccess = (
@@ -15,7 +15,7 @@ const sendSuccess = (
       data: data || null,
       error: null,
     },
-    status
+    status as ContentfulStatusCode
   );
 };
 
@@ -34,7 +34,7 @@ const sendError = (
       data: data,
       error: data || null,
     },
-    status
+    status as ContentfulStatusCode
   );
 };
 

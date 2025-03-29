@@ -10,6 +10,7 @@ const appliedPostingSchema = new Schema(
       {
         stageId: { type: Schema.Types.ObjectId, required: true },
         score: { type: Number },
+        reason: { type: String },
       },
     ],
 
@@ -18,9 +19,6 @@ const appliedPostingSchema = new Schema(
       enum: ["applied", "inprogress", "rejected", "hired"],
       default: "applied",
     },
-
-    resumeUrl: { type: String },
-    resumeExtract: { type: String },
   },
   { timestamps: true }
 );

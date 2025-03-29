@@ -12,10 +12,15 @@ import {
   Checkbox,
   Card,
   Textarea,
+  DatePicker,
 } from "@nextui-org/react";
-import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
-import { CalendarDate, parseDate, today } from "@internationalized/date";
+import {
+  getLocalTimeZone,
+  parseAbsoluteToLocal,
+  today,
+  ZonedDateTime,
+} from "@internationalized/date";
 import { Edit2, Trash2, Plus, BriefcaseBusiness } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,8 +41,10 @@ const Responsibilities = () => {
   // Form states
   const [position, setPosition] = useState("");
   const [organization, setOrganization] = useState("");
-  const [startDate, setStartDate] = useState<CalendarDate | null>(null);
-  const [endDate, setEndDate] = useState<CalendarDate | null>(null);
+  const [startDate, setStartDate] = useState<Date>(
+    today(getLocalTimeZone()).toDate(getLocalTimeZone())
+  );
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [isCurrentPosition, setIsCurrentPosition] = useState(false);
   const [description, setDescription] = useState("");
 
@@ -62,12 +69,15 @@ const Responsibilities = () => {
 
     // Date validation
     if (startDate && endDate && !isCurrentPosition) {
-      if (startDate.compare(endDate) > 0) {
-        newErrors.endDate = "End date must be after start date";
+      if (startDate > endDate) {
+        newErrors.endDate = "End date cannot be before start date";
       }
     }
 
-    if (startDate && startDate.compare(today("IST")) > 0) {
+    if (
+      startDate &&
+      startDate > today(getLocalTimeZone()).toDate(getLocalTimeZone())
+    ) {
       newErrors.startDate = "Start date cannot be in the future";
     }
 
@@ -78,7 +88,7 @@ const Responsibilities = () => {
   const resetForm = () => {
     setPosition("");
     setOrganization("");
-    setStartDate(null);
+    setStartDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
     setEndDate(null);
     setIsCurrentPosition(false);
     setDescription("");
@@ -94,8 +104,8 @@ const Responsibilities = () => {
   const handleEdit = (responsibility: Responsibility) => {
     setEditingResponsibility(responsibility);
     setOrganization(responsibility.organization);
-    setStartDate(parseDate(responsibility.startDate.toISOString().split("T")[0]));
-    setEndDate(parseDate(responsibility.endDate ? responsibility.endDate.toString() : ""));
+    setStartDate(responsibility.startDate);
+    setEndDate(responsibility.endDate || null);
     setIsCurrentPosition(responsibility.current);
     setDescription(responsibility.description);
     onOpen();
@@ -126,7 +136,11 @@ const Responsibilities = () => {
       title: sanitizeInput(position),
       organization: sanitizeInput(organization),
       startDate: startDate ? new Date(startDate.toString()) : new Date(),
-      endDate: isCurrentPosition ? undefined : endDate ? new Date(endDate.toString()) : undefined,
+      endDate: isCurrentPosition
+        ? undefined
+        : endDate
+        ? new Date(endDate.toString())
+        : undefined,
       current: isCurrentPosition,
       description: sanitizeInput(description),
     };
@@ -162,6 +176,21 @@ const Responsibilities = () => {
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+  };
+
+  const handleDateChange = (
+    date: ZonedDateTime | null,
+    field: "startDate" | "endDate"
+  ) => {
+    if (!date) return;
+
+    const dateObj = new Date(date.year, date.month - 1, date.day);
+
+    if (field === "startDate") {
+      setStartDate(dateObj);
+    } else {
+      setEndDate(dateObj);
+    }
   };
 
   return (
@@ -330,22 +359,29 @@ const Responsibilities = () => {
                     errorMessage={errors.organization}
                   />
                   <div className="flex gap-4">
-                    <DateInput
-                      label="Start Date"
-                      value={startDate}
-                      onChange={setStartDate}
-                      isRequired
-                      isInvalid={!!errors.startDate}
-                      errorMessage={errors.startDate}
+                    <DatePicker
+                      className="max-w-xs"
+                      label="Start Date (mm/dd/yyyy)"
+                      granularity="day"
+                      maxValue={today(getLocalTimeZone())}
+                      value={parseAbsoluteToLocal(new Date(startDate).toISOString())}
+                      onChange={(date) => handleDateChange(date, "startDate")}
                     />
-                    <DateInput
-                      label="End Date"
-                      value={endDate}
-                      onChange={setEndDate}
+                    <DatePicker
+                      className="max-w-xs"
+                      defaultValue={parseAbsoluteToLocal(
+                        "2021-11-07T07:45:00Z"
+                      )}
+                      label="End Date (mm/dd/yyyy)"
+                      granularity="day"
+                      value={
+                        endDate
+                          ? parseAbsoluteToLocal(endDate.toISOString())
+                          : undefined
+                      }
+                      maxValue={today(getLocalTimeZone())}
                       isDisabled={isCurrentPosition}
-                      isRequired={!isCurrentPosition}
-                      isInvalid={!!errors.endDate}
-                      errorMessage={errors.endDate}
+                      onChange={(date) => handleDateChange(date, "endDate")}
                     />
                   </div>
                   <Checkbox

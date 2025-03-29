@@ -5,11 +5,12 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Spinner } from "@heroui/react";
+import { Spinner } from "@heroui/spinner";
 
 const Layout = () => {
   const [posting, setPosting] = useState<Posting>({} as Posting);
   const [postingLoading, setPostingLoading] = useState(true);
+  const [refetch, setRefetch] = useState(false);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -18,17 +19,21 @@ const Layout = () => {
     axios
       .get("/postings/" + window.location.pathname.split("/")[2])
       .then((res) => {
-        setPosting(res.data.data);
         console.log(res.data.data);
+        setPosting(res.data.data);
       })
       .catch((err) => {
-        toast.error(err.response.data);
+        toast.error(err.response.data.message || "Something went wrong");
         console.log(err);
       })
       .finally(() => {
         setPostingLoading(false);
       });
-  }, []);
+  }, [refetch]);
+
+  const refetchData = () => {
+    setRefetch((prev) => !prev);
+  };
 
   const Loader = () => {
     return (
@@ -40,10 +45,14 @@ const Layout = () => {
 
   return (
     <div className="">
-      <div className="flex w-full">
+      <div className="flex w-full h-screen">
         <Sidebar posting={posting} loading={postingLoading} />
-        <div className="h-full w-full overflow-x-auto">
-          {postingLoading ? <Loader /> : <Outlet context={{ posting }} />}
+        <div className="h-full w-full overflow-x-auto overflow-y-auto">
+          {postingLoading ? (
+            <Loader />
+          ) : (
+            <Outlet context={{ posting, setPosting, refetch: refetchData }} />
+          )}
         </div>
       </div>
     </div>

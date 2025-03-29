@@ -13,7 +13,7 @@ import {
 
 const features = [
   {
-    name: "Job Posting and Requisition Management",
+    name: "Drive and Requisition Management",
     icon: <Briefcase size={30} className="" />,
   },
   {

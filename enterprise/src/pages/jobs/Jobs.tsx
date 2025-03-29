@@ -1,24 +1,24 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { Card } from "@heroui/card";
+import { Input } from "@heroui/input";
 import {
-  Card,
-  Input,
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-  SelectItem,
-  Select,
-  Breadcrumbs,
-  BreadcrumbItem,
-  Button,
+} from "@heroui/dropdown";
+import { Select, SelectItem } from "@heroui/select";
+import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
+import { Button } from "@heroui/button";
+import {
   Modal,
   ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
   useDisclosure,
-} from "@heroui/react";
+} from "@heroui/modal";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import {
   ListIcon,
@@ -263,9 +263,7 @@ const Postings: React.FC = () => {
                   selectedKeys={[selectedFilter]}
                 >
                   {Cards.map((card) => (
-                    <SelectItem key={card.filter} value={card.filter}>
-                      {card.title}
-                    </SelectItem>
+                    <SelectItem key={card.filter}>{card.title}</SelectItem>
                   ))}
                 </Select>
               </div>

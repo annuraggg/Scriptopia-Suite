@@ -1,5 +1,6 @@
 import { UserButton } from "@clerk/clerk-react";
-import { Link, Button } from "@heroui/react";
+import { Link } from "@heroui/link";
+import { Button } from "@heroui/button";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
@@ -30,7 +31,7 @@ const Navbar = () => {
         <div className="flex items-center gap-2 sm:gap-5">
           <div className="border-r p-[9.5px]">
             <img
-              src="/logo.png"
+              src="/logo.svg"
               alt="logo"
               className="h-9 w-9 cursor-pointer"
               onClick={() => {

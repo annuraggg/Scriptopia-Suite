@@ -51,7 +51,7 @@ const qualifyCandidate = async (c: Context) => {
       return sendError(c, 400, "Posting workflow not configured");
     }
 
-    const currentStep = posting.workflow.steps.find((step) => !step.completed);
+    const currentStep = posting.workflow.steps.find((step) => step.status === "in-progress");
     if (!currentStep || currentStep.type !== "RESUME_SCREENING") {
       return sendError(c, 400, "Current step is not resume screening");
     }
@@ -103,7 +103,7 @@ const disqualifyCandidate = async (c: Context) => {
       return sendError(c, 400, "Posting workflow not configured");
     }
 
-    const currentStep = posting.workflow.steps.find((step) => !step.completed);
+    const currentStep = posting.workflow.steps.find((step) => step.status === "in-progress");
     if (!currentStep) {
       return sendError(c, 400, "No active workflow step found");
     }
@@ -147,7 +147,7 @@ const bulkQualifyCandidates = async (c: Context) => {
       return sendError(c, 400, "Posting workflow not configured");
     }
 
-    const currentStep = posting.workflow.steps.find((step) => !step.completed);
+    const currentStep = posting.workflow.steps.find((step) => step.status === "in-progress");
     if (!currentStep || currentStep.type !== "RESUME_SCREENING") {
       return sendError(c, 400, "Current step is not resume screening");
     }
@@ -191,7 +191,7 @@ const bulkDisqualifyCandidates = async (c: Context) => {
       return sendError(c, 400, "Posting workflow not configured");
     }
 
-    const currentStep = posting.workflow.steps.find((step) => !step.completed);
+    const currentStep = posting.workflow.steps.find((step) => step.status === "in-progress");
     if (!currentStep) {
       return sendError(c, 400, "No active workflow step found");
     }

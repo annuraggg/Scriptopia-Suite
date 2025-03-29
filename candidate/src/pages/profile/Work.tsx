@@ -15,12 +15,17 @@ import {
   Textarea,
   Card,
   CardBody,
+  DatePicker,
 } from "@nextui-org/react";
-import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
 import { Edit2, Trash2, Download, Plus, BriefcaseBusiness } from "lucide-react";
 import { motion } from "framer-motion";
-import { parseDate, today, CalendarDate } from "@internationalized/date";
+import {
+  today,
+  ZonedDateTime,
+  parseAbsoluteToLocal,
+  getLocalTimeZone,
+} from "@internationalized/date";
 import { useOutletContext } from "react-router-dom";
 import { Candidate, WorkExperience as Work } from "@shared-types/Candidate";
 
@@ -48,12 +53,27 @@ const sectors = [
 ] as const;
 
 export default function WorkExperience() {
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const [editingExperience, setEditingExperience] = useState<Work | null>(null);
-  const [formData, setFormData] = useState<Work>({} as Work);
+  const [editingExperience, setEditingExperience] = useState<string | null>(
+    null
+  );
   const [validationErrors, setValidationErrors] = useState<
     Partial<Record<keyof Work, boolean>>
   >({});
+
+  // Modal States
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [company, setCompany] = useState("");
+  const [sector, setSector] = useState("");
+  const [title, setTitle] = useState("");
+  const [location, setLocation] = useState("");
+  const [type, setType] = useState<Work["type"]>("fulltime");
+  const [jobFunction, setJobFunction] = useState("");
+  const [startDate, setStartDate] = useState<Date>(
+    today(getLocalTimeZone()).toDate(getLocalTimeZone())
+  );
+  const [current, setCurrent] = useState(false);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [description, setDescription] = useState("");
 
   const { user, setUser } = useOutletContext<{
     user: Candidate;
@@ -67,8 +87,17 @@ export default function WorkExperience() {
   };
 
   const handleEdit = (experience: Work) => {
-    setEditingExperience(experience);
-    setFormData(experience);
+    setEditingExperience(experience?._id || null);
+    setCompany(experience.company);
+    setSector(experience.sector);
+    setTitle(experience.title);
+    setLocation(experience.location);
+    setType(experience.type);
+    setJobFunction(experience.jobFunction);
+    setStartDate(new Date(experience.startDate));
+    setCurrent(experience.current);
+    setEndDate(experience.endDate ? new Date(experience.endDate) : undefined);
+    setDescription(experience.description || "");
     setValidationErrors({});
     onOpen();
   };
@@ -81,79 +110,74 @@ export default function WorkExperience() {
   };
 
   const validateForm = (): boolean => {
-    const errors: Partial<Record<keyof Work, boolean>> = {};
-    const requiredFields: (keyof Work)[] = [
-      "company",
-      "sector",
-      "title",
-      "location",
-      "type",
-      "jobFunction",
-      "startDate",
-    ];
+    const errors = {
+      company: false,
+      sector: false,
+      title: false,
+      location: false,
+      type: false,
+      jobFunction: false,
+    };
 
-    requiredFields.forEach((field) => {
-      if (!formData[field]) {
-        errors[field] = true;
-      }
-    });
-
-    if (!formData.current && !formData.endDate) {
-      errors.endDate = true;
-    }
+    if (!company) errors.company = true;
+    if (!sector) errors.sector = true;
+    if (!title) errors.title = true;
+    if (!location) errors.location = true;
+    if (!type) errors.type = true;
+    if (!jobFunction) errors.jobFunction = true;
 
     setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
+    return !Object.values(errors).some((error) => error);
   };
 
   const handleDateChange = (
-    date: CalendarDate | null,
+    date: ZonedDateTime | null,
     field: "startDate" | "endDate"
   ) => {
     if (!date) return;
 
     const dateObj = new Date(date.year, date.month - 1, date.day);
 
-    setFormData({
-      ...formData,
-      [field]: dateObj.toISOString().split("T")[0],
-    });
+    if (field === "startDate") {
+      setStartDate(dateObj);
+    } else {
+      setEndDate(dateObj);
+    }
   };
 
   const handleSave = () => {
-    if (!validateForm()) {
-      console.error("Form validation failed");
-      return;
-    }
+    if (!validateForm()) return;
 
     let newWorkExperience: Work[] = [];
 
-    const preparedData = {
-      ...formData,
-      startDate: new Date(formData.startDate).toISOString(),
-      endDate: formData.current
-        ? undefined
-        : formData.endDate
-        ? new Date(formData.endDate).toISOString()
-        : undefined,
+    const preparedData: Work = {
+      company,
+      sector,
+      title,
+      location,
+      type,
+      jobFunction,
+      startDate,
+      current,
+      endDate,
+      description,
     };
 
-    if (editingExperience?._id) {
-      //@ts-expect-error
+    if (editingExperience) {
       newWorkExperience = (user?.workExperience || []).map((exp) =>
-        exp._id === editingExperience._id
+        exp._id === editingExperience
           ? { ...preparedData, _id: exp._id }
           : {
               ...exp,
-              startDate: exp.startDate.toISOString(),
-              endDate: exp.endDate ? exp.endDate.toISOString() : undefined,
             }
       );
     } else {
       const newExp: Work = {
         ...preparedData,
         startDate: new Date(preparedData.startDate),
-        endDate: preparedData.endDate ? new Date(preparedData.endDate) : undefined,
+        endDate: preparedData.endDate
+          ? new Date(preparedData.endDate)
+          : undefined,
         createdAt: new Date(),
       };
       newWorkExperience = [...(user?.workExperience || []), newExp];
@@ -170,6 +194,22 @@ export default function WorkExperience() {
 
     setEditingExperience(null);
     setValidationErrors({});
+    onClose();
+  };
+
+  const closeAndReset = () => {
+    setEditingExperience(null);
+    setValidationErrors({});
+    setCompany("");
+    setSector("");
+    setTitle("");
+    setLocation("");
+    setType("fulltime");
+    setJobFunction("");
+    setStartDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
+    setCurrent(false);
+    setEndDate(undefined);
+    setDescription("");
     onClose();
   };
 
@@ -228,12 +268,12 @@ export default function WorkExperience() {
             {user.workExperience.map((experience) => (
               <Card key={experience._id} className="w-full">
                 <CardBody>
-                  <div className="flex items-start justify-between">
-                    <div className="flex gap-5">
-                      <div className="w-12 h-12 bg-default-100 rounded-full flex items-center justify-center">
-                        {experience.company.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
+                  <div className="flex items-center w-full gap-5">
+                    <div className="w-16 h-16 bg-default-100 rounded-full flex items-center justify-center">
+                      {experience.company.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex items-start justify-between w-full">
+                      <div className="w-full">
                         <h3 className="text-lg font-semibold">
                           {experience.title}
                         </h3>
@@ -248,32 +288,33 @@ export default function WorkExperience() {
                             : ""}{" "}
                           | {experience.location}
                         </p>
+                        <div className="mt-4 whitespace-pre-line">
+                          {experience.description}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button
+                          isIconOnly
+                          variant="light"
+                          onClick={() => handleEdit(experience)}
+                        >
+                          <Edit2 size={18} />
+                        </Button>
+                        <Button
+                          isIconOnly
+                          variant="light"
+                          onClick={() =>
+                            experience._id && handleDelete(experience._id)
+                          }
+                        >
+                          <Trash2 size={18} />
+                        </Button>
+                        <Button isIconOnly variant="light">
+                          <Download size={18} />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        isIconOnly
-                        variant="light"
-                        onClick={() => handleEdit(experience)}
-                      >
-                        <Edit2 size={18} />
-                      </Button>
-                      <Button
-                        isIconOnly
-                        variant="light"
-                        onClick={() =>
-                          experience._id && handleDelete(experience._id)
-                        }
-                      >
-                        <Trash2 size={18} />
-                      </Button>
-                      <Button isIconOnly variant="light">
-                        <Download size={18} />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="mt-4 whitespace-pre-line">
-                    {experience.description}
                   </div>
                 </CardBody>
               </Card>
@@ -282,7 +323,7 @@ export default function WorkExperience() {
         )}
       </div>
 
-      <Modal isOpen={isOpen} onClose={onClose} size="2xl">
+      <Modal isOpen={isOpen} onClose={closeAndReset} size="2xl">
         <ModalContent>
           {(onClose) => (
             <>
@@ -294,28 +335,24 @@ export default function WorkExperience() {
                   <Input
                     label="Company Name"
                     placeholder="Enter Company Name"
-                    value={formData.company}
                     isRequired
                     isInvalid={validationErrors.company}
                     errorMessage={
                       validationErrors.company ? "Company name is required" : ""
                     }
-                    onChange={(e) =>
-                      setFormData({ ...formData, company: e.target.value })
-                    }
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
                   />
                   <Select
                     label="Company Sector"
                     placeholder="Select Company Sector"
-                    selectedKeys={formData.sector ? [formData.sector] : []}
+                    selectedKeys={[sector]}
                     isRequired
                     isInvalid={validationErrors.sector}
                     errorMessage={
                       validationErrors.sector ? "Sector is required" : ""
                     }
-                    onChange={(e) =>
-                      setFormData({ ...formData, sector: e.target.value })
-                    }
+                    onSelectionChange={(e) => setSector(e.currentKey as string)}
                   >
                     {sectors.map((sector) => (
                       <SelectItem key={sector} value={sector}>
@@ -326,43 +363,36 @@ export default function WorkExperience() {
                   <Input
                     label="Job Title"
                     placeholder="Enter Job Title"
-                    value={formData.title}
+                    value={title}
                     isRequired
                     isInvalid={validationErrors.title}
                     errorMessage={
                       validationErrors.title ? "Job title is required" : ""
                     }
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
+                    onChange={(e) => setTitle(e.target.value)}
                   />
                   <Input
                     label="Location"
                     placeholder="Enter Job Location"
-                    value={formData.location}
                     isRequired
                     isInvalid={validationErrors.location}
                     errorMessage={
                       validationErrors.location ? "Location is required" : ""
                     }
-                    onChange={(e) =>
-                      setFormData({ ...formData, location: e.target.value })
-                    }
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
                   />
                   <Select
                     label="Position Type"
                     placeholder="Select Position Type"
-                    selectedKeys={[formData.type]}
                     isRequired
                     isInvalid={validationErrors.type}
                     errorMessage={
                       validationErrors.type ? "Position type is required" : ""
                     }
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        type: e.target.value as (typeof positionTypes)[number],
-                      })
+                    selectedKeys={[type]}
+                    onSelectionChange={(e) =>
+                      setType(e.currentKey as Work["type"])
                     }
                   >
                     {positionTypes.map((type) => (
@@ -374,9 +404,6 @@ export default function WorkExperience() {
                   <Select
                     label="Job Function"
                     placeholder="Select Job Function"
-                    selectedKeys={
-                      formData.jobFunction ? [formData.jobFunction] : []
-                    }
                     isRequired
                     isInvalid={validationErrors.jobFunction}
                     errorMessage={
@@ -384,8 +411,9 @@ export default function WorkExperience() {
                         ? "Job function is required"
                         : ""
                     }
-                    onChange={(e) =>
-                      setFormData({ ...formData, jobFunction: e.target.value })
+                    selectedKeys={[jobFunction]}
+                    onSelectionChange={(e) =>
+                      setJobFunction(e.currentKey as string)
                     }
                   >
                     {jobFunctions.map((func) => (
@@ -394,39 +422,33 @@ export default function WorkExperience() {
                       </SelectItem>
                     ))}
                   </Select>
-                  <DateInput
-                    label="Start Date"
-                    value={parseDate(formData.startDate.toISOString().split("T")[0])}
-                    isRequired
-                    isInvalid={validationErrors.startDate}
-                    errorMessage={
-                      validationErrors.startDate ? "Start date is required" : ""
-                    }
+                  <DatePicker
+                    className="max-w-xs"
+                    label="Start Date (mm/dd/yyyy)"
+                    granularity="day"
+                    maxValue={today(getLocalTimeZone())}
+                    value={parseAbsoluteToLocal(startDate.toISOString())}
                     onChange={(date) => handleDateChange(date, "startDate")}
                   />
-                  <DateInput
-                    label="End Date"
+                  <DatePicker
+                    className="max-w-xs"
+                    defaultValue={parseAbsoluteToLocal("2021-11-07T07:45:00Z")}
+                    label="End Date (mm/dd/yyyy)"
+                    granularity="day"
                     value={
-                      formData.endDate
-                        ? parseDate(formData.endDate.toISOString().split("T")[0])
-                        : today("IST")
-                    }
-                    isDisabled={formData.current}
-                    isRequired={!formData.current}
-                    isInvalid={validationErrors.endDate}
-                    errorMessage={
-                      validationErrors.endDate
-                        ? "End date is required when not current"
-                        : ""
+                      endDate
+                        ? parseAbsoluteToLocal(endDate.toISOString())
+                        : undefined
                     }
                     onChange={(date) => handleDateChange(date, "endDate")}
+                    maxValue={today(getLocalTimeZone())}
+                    isDisabled={current}
                   />
+                  <p className="text-xs">Time Zone: {getLocalTimeZone()}</p>
                   <div className="col-span-2">
                     <Checkbox
-                      isSelected={formData.current}
-                      onValueChange={(isSelected) =>
-                        setFormData({ ...formData, current: isSelected })
-                      }
+                      checked={current}
+                      onChange={(e) => setCurrent(e.target.checked)}
                     >
                       I currently work here
                     </Checkbox>
@@ -435,11 +457,9 @@ export default function WorkExperience() {
                 <Textarea
                   label="Description"
                   placeholder="Enter job description"
-                  value={formData.description}
                   className="mt-4"
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                 />
               </ModalBody>
               <ModalFooter>

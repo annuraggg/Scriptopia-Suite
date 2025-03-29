@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader } from "@nextui-org/react";
+import { Card, CardBody, CardHeader } from "@heroui/react";
 import { Code } from "lucide-react";
 import { useState } from "react";
 import "@/config/monaco";

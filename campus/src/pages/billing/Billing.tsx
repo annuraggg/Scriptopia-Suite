@@ -8,7 +8,7 @@ import Trial from "./Trial";
 import Plan from "./Plan";
 
 const Billing = () => {
-  const org = useSelector((state: RootState) => state.organization);
+  const org = useSelector((state: RootState) => state.institute);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [trialDays, setTrialDays] = useState<number | null>(10);
   const [renews, setRenews] = useState<string | null>(null);

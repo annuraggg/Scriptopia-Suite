@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import organizationController from "../controllers/enterprise/organization/organizationController";
 import notificationController from "../controllers/enterprise/notification/notifcationController";
+import candidatesController from "@/controllers/enterprise/candidates/candidatesController";
 
 const app = new Hono();
 
@@ -25,5 +26,8 @@ app.post('/settings/departments', organizationController.updateDepartments);
 
 app.get("/", organizationController.getOrganization);
 app.put("/", organizationController.updateOrganization);
+
+app.get("/candidate/:id", candidatesController.getCandidate);
+app.get("/candidate/:id/resume", candidatesController.getResume);
 
 export default app;

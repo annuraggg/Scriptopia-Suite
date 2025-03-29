@@ -6,17 +6,13 @@ import ax from "@/config/axios";
 import { AppliedPosting } from "@shared-types/AppliedPosting";
 import { Organization } from "@shared-types/Organization";
 import { Posting as PostingType } from "@shared-types/Posting";
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Chip,
-  Divider,
-  Link,
-  Tooltip,
-  ScrollShadow,
-} from "@heroui/react";
+import { Button } from "@heroui/button";
+import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Chip } from "@heroui/chip";
+import { Link } from "@heroui/link";
+import { ScrollShadow } from "@heroui/scroll-shadow";
+import { Tooltip } from "@heroui/tooltip";
+
 import {
   Briefcase,
   DollarSign,
@@ -29,6 +25,7 @@ import {
   FileText,
   Tags,
 } from "lucide-react";
+import { Divider } from "@heroui/divider";
 
 const routineMap = {
   full_time: "Full Time",
@@ -170,7 +167,9 @@ const Posting = () => {
             <Divider />
             <CardBody>
               <pre className="whitespace-pre-wrap text-foreground-700">
-                {typeof posting?.description === 'string' ? posting.description : 'No description available'}
+                {typeof posting?.description === "string"
+                  ? posting.description
+                  : "No description available"}
               </pre>
             </CardBody>
           </Card>

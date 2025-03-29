@@ -14,7 +14,7 @@ import {
   TableBody, 
   TableRow, 
   TableCell 
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { FileQuestion } from "lucide-react";
 
 interface CSVImportGuideModalProps {

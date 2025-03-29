@@ -1,11 +1,9 @@
-import {
-  Divider,
-  Chip,
-  Button,
-  ScrollShadow,
-  RangeValue,
-  DateValue,
-} from "@heroui/react";
+import { Chip } from "@heroui/chip";
+import { Button } from "@heroui/button";
+import { ScrollShadow } from "@heroui/scroll-shadow";
+import type { DateValue } from "@internationalized/date";
+import type { RangeValue } from "@react-types/shared";
+
 import {
   Calendar,
   Users,
@@ -16,6 +14,7 @@ import {
 } from "lucide-react";
 import { QuillDeltaToHtmlConverter } from "quill-delta-to-html";
 import { useEffect, useState } from "react";
+import { Divider } from "@heroui/divider";
 
 interface SummaryProps {
   setAction: (page: number) => void;

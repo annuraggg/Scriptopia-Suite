@@ -10,14 +10,14 @@ import { useEffect, useState } from "react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { MemberWithPermission as MWP } from "@shared-types/MemberWithPermission";
-import { InstituteWithDrives as IWD } from "@/types/RootContext";
 import { Menu } from "lucide-react";
 import { Button } from "@nextui-org/react";
 import { AnimatePresence, motion } from "framer-motion";
+import { ExtendedInstitute } from "@shared-types/ExtendedInstitute";
 
 const Layout = () => {
   const [notifications, setNotifications] = useState([]);
-  const [institute, setInstitute] = useState<IWD>({} as IWD);
+  const [institute, setInstitute] = useState<ExtendedInstitute>({} as ExtendedInstitute);
   const [user, setUser] = useState<MWP>({} as MWP);
   const [rerender, setRerender] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -50,6 +50,10 @@ const Layout = () => {
         console.log(res.data.data.institute);
       })
       .catch((err) => {
+        if (err.response.status === 404) {
+          return (window.location.href = "/onboarding");
+        }
+        toast;
         toast.error(err.response.data.message || "An error occurred");
       })
       .finally(() => {
@@ -57,8 +61,8 @@ const Layout = () => {
       });
   }, []);
 
-  const updateOrganization = (newOrganization: IWD) => {
-    setInstitute(newOrganization);
+  const updateInstitute = (newInstitute: ExtendedInstitute) => {
+    setInstitute(newInstitute);
     setRerender(!rerender);
   };
 
@@ -126,14 +130,16 @@ const Layout = () => {
             </AnimatePresence>
 
             <div
-              className={`flex-1 min-h-screen bg-background max-h-screen overflow-y-auto ${isMobile ? "pt-16" : "px-5"}`}
+              className={`flex-1 min-h-screen bg-background max-h-screen overflow-y-auto ${
+                isMobile ? "pt-16" : "px-5"
+              }`}
             >
               <Outlet
                 context={{
                   notifications,
                   user,
                   institute,
-                  setInstitute: updateOrganization,
+                  setInstitute: updateInstitute,
                   rerender,
                 }}
               />

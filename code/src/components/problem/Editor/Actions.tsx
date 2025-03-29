@@ -1,4 +1,4 @@
-import { Button, Select, SelectItem, Tooltip } from "@nextui-org/react";
+import { Button, Select, SelectItem, Tooltip } from "@heroui/react";
 import { ArrowUpFromLine, Play, Sparkles } from "lucide-react";
 import { useState } from "react";
 
@@ -55,7 +55,7 @@ const Actions = ({
         {languages
           .filter((lang) => lang.available)
           .map((lang) => (
-            <SelectItem key={lang.abbr} value={lang.abbr}>
+            <SelectItem key={lang.abbr}>
               {lang.name}
             </SelectItem>
           ))}

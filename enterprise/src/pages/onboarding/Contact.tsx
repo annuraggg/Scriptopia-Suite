@@ -1,4 +1,4 @@
-import { Input } from "@heroui/react";
+import { Input } from "@heroui/input";
 
 const Contact = ({
   companyEmail,

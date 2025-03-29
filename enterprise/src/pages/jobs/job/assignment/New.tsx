@@ -1,4 +1,5 @@
-import { Input, Textarea, Button, Select, SelectItem } from "@heroui/react";
+import { Select, SelectItem } from "@heroui/select";
+import { Input, Textarea } from "@heroui/input";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Posting } from "@shared-types/Posting";
@@ -6,6 +7,7 @@ import { useOutletContext } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
+import { Button } from "@heroui/button";
 
 const typeOpts = [
   { key: "file", label: "File Upload" },

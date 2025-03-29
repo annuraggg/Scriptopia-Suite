@@ -6,31 +6,23 @@ import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useSelector } from "react-redux";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { Spinner } from "@nextui-org/react";
-
-interface Candidate {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  resumeUrl: string;
-  queries?: string[];
-  status?: string;
-  receivedDate?: string;
-}
+import { Spinner } from "@nextui-org/react";  
+import { Candidate } from "@shared-types/Candidate";
 
 const Candidates = () => {
-  const org = useSelector((state: RootState) => state.organization);
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const org = useSelector((state: RootState) => state.institute);
+  const [candidates, setCandidates] = useState<Candidate[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [rerender, setRerender] = useState(false);
 
   const { getToken } = useAuth();
   useEffect(() => {
     const axios = ax(getToken);
     axios
-      .get("/organizations/candidates")
+      .get("/institutes/candidates")
       .then((response) => {
         setCandidates(response.data.data || []);
         setLoading(false);
@@ -40,18 +32,11 @@ const Candidates = () => {
         setError("Failed to fetch candidates");
         setLoading(false);
       });
-  }, []);
-
-  const tableData = candidates.map((candidate) => ({
-    name: `${candidate.firstName} ${candidate.lastName}`,
-    email: candidate.email,
-    received: candidate.receivedDate || "N/A",
-    status: candidate.status || "N/A",
-  }));
+  }, [rerender]);
 
   if (loading)
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-screen">
         <Spinner />
       </div>
     );
@@ -61,8 +46,10 @@ const Candidates = () => {
     <>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem>{org.name}</BreadcrumbItem>
-          <BreadcrumbItem href={"/candidates"}>Candidates</BreadcrumbItem>
+          <BreadcrumbItem>{org?.name}</BreadcrumbItem>
+          <BreadcrumbItem href={"/candidates/active"}>
+            Candidates
+          </BreadcrumbItem>
         </Breadcrumbs>
       </div>
       <motion.div
@@ -72,7 +59,7 @@ const Candidates = () => {
         className=""
       >
         <div className="p-5">
-          <DataTable data={tableData} />
+          <DataTable data={candidates} type="active" onDataUpdate={() =>setRerender(!rerender)} />
         </div>
       </motion.div>
     </>

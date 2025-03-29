@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   Table,
   TableHeader,
@@ -8,7 +9,7 @@ import {
   Tabs,
   Tab,
   Button,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useEffect, useState } from "react";
 import McqReportModal from "./McqReportModal";
 import { AssessmentSubmissionsSchema as IAssessSub } from "@shared-types/AssessmentSubmission";

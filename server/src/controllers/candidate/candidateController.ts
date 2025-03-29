@@ -1,5 +1,4 @@
 import r2Client from "@/config/s3";
-import AppliedPosting from "@/models/AppliedPosting";
 import Candidate from "@/models/Candidate";
 import Organization from "@/models/Organization";
 import Posting from "@/models/Posting";
@@ -11,6 +10,7 @@ import { AuditLog } from "@shared-types/Organization";
 import { Context } from "hono";
 import { PDFExtract } from "pdf.js-extract";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import AppliedPosting from "@/models/AppliedPosting";
 
 const getCandidate = async (c: Context) => {
   try {
@@ -19,8 +19,47 @@ const getCandidate = async (c: Context) => {
     if (!auth) {
       return sendError(c, 401, "Unauthorized");
     }
+    const candidate = await Candidate.findOne({ userId: auth._id })
+      .populate({
+        path: "appliedPostings", // Populate appliedPostings first
+        populate: {
+          path: "posting",
+          model: "Posting",
+          populate: { path: "organizationId", model: "Organization" },
+        },
+      })
+      .populate("userId"); // Populate userId separately
 
-    const candidate = await Candidate.findOne({ userId: auth._id });
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    return sendSuccess(c, 200, "Candidate Profile", candidate);
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Internal Server Error");
+  }
+};
+
+const getCandidateById = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const id = c.req.param("id");
+
+    if (!auth) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const candidate = await Candidate.findOne({ _id: id })
+      .populate({
+        path: "appliedPostings", // Populate appliedPostings first
+        populate: {
+          path: "posting",
+          model: "Posting",
+          populate: { path: "organizationId", model: "Organization" },
+        },
+      })
+      .populate("userId"); // Populate userId separately
 
     if (!candidate) {
       return sendError(c, 404, "Candidate not found");
@@ -114,7 +153,7 @@ const updateResume = async (c: Context) => {
 
     const uploadParams = {
       Bucket: process.env.R2_S3_RESUME_BUCKET!,
-      Key: `${auth._id}.pdf`,
+      Key: `${candidate._id}.pdf`,
       Body: resume, // @ts-expect-error - Type 'File' is not assignable to type 'Body'
       ContentType: resume.type,
     };
@@ -124,7 +163,8 @@ const updateResume = async (c: Context) => {
       params: uploadParams,
     });
 
-    await upload.done();
+    await upload.done(); // @ts-expect-error - Type 'Promise<UploadOutput>' is not assignable to type 'void'
+    await extractTextFromResume(resume, candidate._id);
 
     candidate.resumeUrl = `${process.env.R2_S3_RESUME_BUCKET}/${auth._id}.pdf`;
     await candidate.save();
@@ -156,10 +196,9 @@ const getResume = async (c: Context) => {
 
     const command = new GetObjectCommand({
       Bucket: process.env.R2_S3_RESUME_BUCKET!,
-      Key: `${auth._id}.pdf`,
+      Key: `${candidate._id}.pdf`,
     });
 
-    // @ts-expect-error - Type 'Promise<GetObjectOutput>' is not assignable to type 'string'
     const url = await getSignedUrl(r2Client, command, { expiresIn: 600 });
 
     return sendSuccess(c, 200, "Resume URL", { url });
@@ -171,16 +210,14 @@ const getResume = async (c: Context) => {
 
 const apply = async (c: Context) => {
   try {
-    const formData = await c.req.formData();
-    const resume = formData.get("resume");
-    const postingId = formData.get("postingId");
-
+    const { postingId } = await c.req.json();
     const userId = c.get("auth")?._id;
 
     const candidate = await Candidate.findOne({ userId });
     const candId = candidate?._id;
-
+    console.log("Candidate ID: ", candId);
     const posting = await Posting.findById(postingId);
+
     if (!posting) {
       return sendError(c, 404, "Posting not found");
     }
@@ -193,41 +230,11 @@ const apply = async (c: Context) => {
       return sendError(c, 400, "Posting is closed for applications");
     }
 
-    const appliedPosting = await AppliedPosting.create({
+    const newApply = await AppliedPosting.create({
       posting: postingId,
       user: candId,
     });
 
-    if (resume) {
-      const uploadParams = {
-        Bucket: process.env.R2_S3_RESUME_BUCKET!,
-        Key: `${candId?.toString()}.pdf`,
-        Body: resume, // @ts-expect-error - Type 'File' is not assignable to type 'Body'
-        ContentType: resume.type,
-      };
-
-      const upload = new Upload({
-        client: r2Client,
-        params: uploadParams,
-      });
-
-      await upload.done();
-
-      appliedPosting.resumeUrl = `${
-        process.env.R2_S3_RESUME_BUCKET
-      }/${candId?.toString()}.pdf`;
-      await extractTextFromResume(
-        resume as File,
-        appliedPosting._id?.toString()
-      );
-      await appliedPosting.save();
-
-      await Candidate.findByIdAndUpdate(candId, {
-        $push: {
-          appliedPostings: appliedPosting._id,
-        },
-      });
-    }
     const postingUp = await Posting.findByIdAndUpdate(postingId, {
       $push: {
         candidates: candId,
@@ -245,6 +252,12 @@ const apply = async (c: Context) => {
 
     await Organization.findByIdAndUpdate(posting.organizationId, {
       $push: { auditLogs: auditLog },
+    });
+
+    await Candidate.findByIdAndUpdate(candId, {
+      $push: {
+        appliedPostings: newApply._id,
+      },
     });
 
     return sendSuccess(c, 200, "Application submitted successfully");
@@ -277,14 +290,39 @@ const extractTextFromResume = async (resume: File, candidateId: string) => {
       }
     }
 
-    await AppliedPosting.findByIdAndUpdate(candidateId, {
-      resumeExtract: extractedText,
-    });
-
+    const candidate = await Candidate.findById(candidateId);
+    if (!candidate) throw new Error("Candidate not found");
+    candidate.resumeExtract = extractedText;
+    await candidate.save();
     return extractedText;
   });
 
   return extractedText;
+};
+
+const getAppliedPostings = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+
+    if (!auth) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const candidate = await Candidate.findOne({ userId: auth._id });
+
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const appliedPostings = await AppliedPosting.find({ user: candidate._id })
+      .populate("posting")
+      .lean();
+
+    return sendSuccess(c, 200, "Applied Postings", appliedPostings);
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Internal Server Error");
+  }
 };
 
 export default {
@@ -294,4 +332,6 @@ export default {
   updateCandidate,
   apply,
   getResume,
+  getAppliedPostings,
+  getCandidateById,
 };

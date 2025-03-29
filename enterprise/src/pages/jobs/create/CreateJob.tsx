@@ -2,14 +2,16 @@ import { useState } from "react";
 import Sidebar from "./Sidebar";
 import JobDetails from "./JobDetails";
 import Workflow from "./Workflow";
-import { DateValue, RangeValue } from "@heroui/react";
-import { today, getLocalTimeZone } from "@internationalized/date";
+import { today, getLocalTimeZone, DateValue } from "@internationalized/date";
 import Summary from "./Summary";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import {
   Posting,
   AdditionalDetails as AdditionalDetailsType,
+  StepType,
+  StepStatus,
+  PostingType,
 } from "@shared-types/Posting";
 import { toast } from "sonner";
 import Loader from "@/components/Loader";
@@ -17,7 +19,7 @@ import AdditionalDetails, { FIELD_CATEGORIES } from "./AdditionalDetails";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
 // import WorkflowSchedule from "./WorkflowSchedule";
-
+import type { RangeValue } from "@react-types/shared";
 interface Component {
   icon: React.ElementType;
   label: string;
@@ -31,6 +33,7 @@ const componentMap: Record<string, string> = {
   "Code Assessment": "CODING_ASSESSMENT",
   Assignment: "ASSIGNMENT",
   Interview: "INTERVIEW",
+  "Custom Step": "CUSTOM",
 };
 
 const CreateJob = () => {
@@ -75,13 +78,8 @@ const CreateJob = () => {
     const formattedData = {
       steps: addedComponents.map((component) => ({
         name: component.name, // @ts-ignore
-        type: componentMap[component.label] as
-          | "RESUME_SCREENING"
-          | "MCQ_ASSESSMENT"
-          | "CODING_ASSESSMENT"
-          | "ASSIGNMENT"
-          | "INTERVIEW",
-        completed: false,
+        type: componentMap[component.label] as StepType,
+        status: "pending" as StepStatus,
         timestamp: new Date(),
       })),
       currentStep: -1,
@@ -104,12 +102,7 @@ const CreateJob = () => {
       description,
       department,
       location,
-      type: category as
-        | "full_time"
-        | "part_time"
-        | "internship"
-        | "contract"
-        | "temporary",
+      type: category as PostingType,
       openings,
 
       applicationRange: {

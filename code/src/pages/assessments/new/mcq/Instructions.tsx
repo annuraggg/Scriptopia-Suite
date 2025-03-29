@@ -1,4 +1,4 @@
-import { Textarea } from "@nextui-org/react";
+import { Textarea } from "@heroui/react";
 import { motion } from "framer-motion";
 
 const Instructions = ({

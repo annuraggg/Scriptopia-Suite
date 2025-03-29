@@ -18,8 +18,13 @@ import assessmentRoute from "../routes/assessmentRoute";
 import submissionRoute from "../routes/submissionRoute";
 import organizationRoute from "../routes/organizationRoute";
 import instituteRoute from "../routes/instituteRoute";
+import driveRoutes from "../routes/driveRoute";
 import postingRoutes from "../routes/postingRoute";
 import candidateRoute from "../routes/candidateRoute";
+import walletRoute from "@/routes/walletRoute";
+import placementGroupRoutes from "../routes/placementGroupsroute";
+import companyProfileRoute from "../routes/companyProfileRoute";
+import meetRoutes from "../routes/meetRoutes";
 
 import userRoute from "../routes/userRoute";
 import { clerkMiddleware } from "@hono/clerk-auth";
@@ -68,8 +73,18 @@ app.route("/users", userRoute);
 
 app.route("/organizations", organizationRoute);
 app.route("/postings", postingRoutes);
+
 app.route("/candidates", candidateRoute);
+
 app.route("/institutes", instituteRoute);
+app.route("/drives", driveRoutes);
+app.route("/placement-groups", placementGroupRoutes);
+app.route("/companies", companyProfileRoute);
+
+app.route("/wallet", walletRoute);
+
+app.route("/meet", meetRoutes)
+
 
 export default app;
 export { ioServer };

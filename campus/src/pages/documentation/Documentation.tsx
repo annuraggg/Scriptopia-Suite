@@ -4,7 +4,7 @@ import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
 import { useSelector } from "react-redux";
 
 const Documentation = () => {
-  const org = useSelector((state: RootState) => state.organization);
+  const org = useSelector((state: RootState) => state.institute);
   return (
     <>
       <div className="mt-5 ml-5">

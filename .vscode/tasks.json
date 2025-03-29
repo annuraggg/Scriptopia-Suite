@@ -44,6 +44,24 @@
       "runOptions": { "runOn": "default" }
     },
     {
+      "label": "4. Update All Dependencies",
+      "dependsOn": [
+        "Update Code",
+        "Update Main",
+        "Update Enterprise",
+        "Update Candidate",
+        "Update Meet",
+        "Update Campus",
+        "Update Server"
+      ],
+      "dependsOrder": "parallel",
+      "group": "build",
+      "icon": {
+        "id": "refresh",
+        "color": "terminal.ansiYellow"
+      }
+    },
+    {
       "label": "Build Batch 1",
       "dependsOn": [
         "Build Code",
@@ -80,12 +98,14 @@
     {
       "label": "Code",
       "type": "shell",
-      "command": "cd code; npm run dev",
+      "command": "cd code; npm run forceStart",
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "isBackground": true,
-      "problemMatcher": [],
+      "isBackground": false,
+      "problemMatcher": ["$tsc-watch"],
+      "runOptions": { "instanceLimit": 1 },
+
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
@@ -118,14 +138,28 @@
       }
     },
     {
-      "label": "Main",
+      "label": "Update Code",
       "type": "shell",
-      "command": "cd main; npm run dev",
+      "command": "cd code; npm update",
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "isBackground": true,
       "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Main",
+      "type": "shell",
+      "command": "cd main; npm run forceStart",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": false,
+      "problemMatcher": ["$tsc-watch"],
+      "runOptions": { "instanceLimit": 1 },
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
@@ -158,14 +192,28 @@
       }
     },
     {
-      "label": "Enterprise",
+      "label": "Update Main",
       "type": "shell",
-      "command": "cd enterprise; npm run dev",
+      "command": "cd main; npm update",
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "isBackground": true,
       "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Enterprise",
+      "type": "shell",
+      "command": "cd enterprise; npm run forceStart",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": false,
+      "problemMatcher": ["$tsc-watch"],
+      "runOptions": { "instanceLimit": 1 },
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
@@ -198,14 +246,28 @@
       }
     },
     {
-      "label": "Candidate",
+      "label": "Update Enterprise",
       "type": "shell",
-      "command": "cd candidate; npm run dev",
+      "command": "cd enterprise; npm update",
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "isBackground": true,
       "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Candidate",
+      "type": "shell",
+      "command": "cd candidate; npm run forceStart",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": false,
+      "problemMatcher": ["$tsc-watch"],
+      "runOptions": { "instanceLimit": 1 },
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
@@ -238,14 +300,28 @@
       }
     },
     {
-      "label": "Meet",
+      "label": "Update Candidate",
       "type": "shell",
-      "command": "cd meet; npm run dev",
+      "command": "cd candidate; npm update",
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "isBackground": true,
       "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Meet",
+      "type": "shell",
+      "command": "cd meet; npm run forceStart",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": false,
+      "problemMatcher": ["$tsc-watch"],
+      "runOptions": { "instanceLimit": 1 },
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
@@ -278,14 +354,28 @@
       }
     },
     {
-      "label": "Campus",
+      "label": "Update Meet",
       "type": "shell",
-      "command": "cd campus; npm run dev",
+      "command": "cd meet; npm update",
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "isBackground": true,
       "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Campus",
+      "type": "shell",
+      "command": "cd campus; npm run forceStart",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": false,
+      "problemMatcher": ["$tsc-watch"],
+      "runOptions": { "instanceLimit": 1 },
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
@@ -312,6 +402,20 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
+      "runOptions": { "instanceLimit": 1 },
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Update Campus",
+      "type": "shell",
+      "command": "cd campus; npm update",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
@@ -320,11 +424,12 @@
     {
       "label": "Server",
       "type": "shell",
-      "command": "cd server; npm run dev",
+      "command": "cd server; npm run forceStart",
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "isBackground": true,
+      "isBackground": false,
+      "runOptions": { "instanceLimit": 1 },
       "problemMatcher": [],
       "presentation": {
         "panel": "dedicated",
@@ -348,6 +453,19 @@
       "label": "Build Server (supress)",
       "type": "shell",
       "command": "cd server; npm run build; if ($?) { Write-Host \"Build succeeded\" } else { Write-Host \"Error During Build\" }",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Update Server",
+      "type": "shell",
+      "command": "cd server; npm update",
       "options": {
         "cwd": "${workspaceFolder}"
       },

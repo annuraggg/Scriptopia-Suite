@@ -22,11 +22,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { ArrowUpDown, ChevronLeft, ChevronRight, Download } from "lucide-react";
-import { Button, Checkbox } from "@heroui/react";
+import {
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  User,
+} from "lucide-react";
+import { Button } from "@heroui/button";
+import { Checkbox } from "@heroui/checkbox";
 import { useOutletContext } from "react-router-dom";
 import { Posting as PostingType } from "@shared-types/Posting";
 import { Candidate } from "@shared-types/Candidate";
+import { useNavigate } from "react-router-dom";
 
 interface DataTableProps {
   data: Candidate[];
@@ -39,6 +47,8 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pageIndex, setPageIndex] = useState(0);
   const [currentPostingId, setCurrentPostingId] = useState<string | null>(null);
+
+  const navigate = useNavigate();
 
   const { posting } = useOutletContext() as { posting: PostingType };
   useEffect(() => {
@@ -70,25 +80,13 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
       enableHiding: false,
     },
     {
-      accessorKey: "firstName",
+      accessorKey: "name",
       header: ({ column }) => (
         <Button
           variant="light"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          First Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-    },
-    {
-      accessorKey: "lastName",
-      header: ({ column }) => (
-        <Button
-          variant="light"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Last Name
+          Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
@@ -122,13 +120,25 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
       header: () => <span>Resume</span>,
       cell: ({ row }) => {
         return (
-          <Button
-            variant="flat"
-            onClick={() => downloadResume(row.original._id as string)}
-          >
-            <Download size={16} />
-            Resume
-          </Button>
+          <>
+            {" "}
+            <Button
+              variant="flat"
+              onPress={() => downloadResume(row.original._id as string)}
+              color="success"
+            >
+              <Download size={16} />
+              Resume
+            </Button>
+            <Button
+              variant="flat"
+              onPress={() => navigate(`/candidates/${row.original._id}`)}
+              className="ml-3"
+            >
+              <User size={16} />
+              View
+            </Button>
+          </>
         );
       },
     },

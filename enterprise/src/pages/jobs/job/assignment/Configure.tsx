@@ -1,4 +1,5 @@
-import { Button, Card, CardBody } from "@heroui/react";
+import { Button } from "@heroui/button";
+import { Card, CardBody } from "@heroui/card";
 import { Assignment } from "@shared-types/Posting";
 import { Posting } from "@shared-types/Posting";
 import { useEffect, useState } from "react";

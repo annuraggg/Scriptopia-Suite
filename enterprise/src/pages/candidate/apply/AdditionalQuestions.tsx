@@ -1,4 +1,4 @@
-import { Textarea } from "@heroui/react";
+import { Textarea } from "@heroui/input";
 interface AdditionalQuestionsProps {
   query: string;
   setQuery: React.Dispatch<React.SetStateAction<string>>;

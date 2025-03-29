@@ -6,19 +6,20 @@ import UnsavedToast from "@/components/UnsavedToast";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast as sonner } from "sonner";
-import { InstituteWithDrives as IWD } from "@/types/RootContext";
+import { ExtendedInstitute } from "@shared-types/ExtendedInstitute";
 
 const Layout = () => {
-  const { institute, setInstitute, user } =
-    useOutletContext() as RootContext;
+  const { institute, setInstitute, user } = useOutletContext() as RootContext;
 
   const [toast, setToast] = useState<boolean>(false);
   const [shakeToast, setShakeToast] = useState<boolean>(false);
   const [rerender, setRerender] = useState<boolean>(false);
-  const [newOrganization, setNewOrganization] = useState<IWD>({} as IWD);
+  const [newInstitute, setNewInstitute] = useState<ExtendedInstitute>(
+    {} as ExtendedInstitute
+  );
 
   useEffect(() => {
-    setNewOrganization(institute);
+    setNewInstitute(institute);
     setRerender(!rerender);
   }, [institute]);
 
@@ -27,11 +28,11 @@ const Layout = () => {
 
   const action = () => {
     setToast(false);
-    console.log(newOrganization);
+    console.log(newInstitute);
     axios
-      .put("institutes", newOrganization)
+      .put("institutes", newInstitute)
       .then(() => {
-        setInstitute(newOrganization);
+        setInstitute(newInstitute);
         sonner.success("Saved", { position: "top-right" });
       })
       .catch((err) => {
@@ -42,17 +43,17 @@ const Layout = () => {
 
   const reset = () => {
     setToast(false);
-    setNewOrganization(institute);
+    setNewInstitute(institute);
     setRerender(!rerender);
   };
 
-  const handleToast = (toast: boolean, newOrganization?: IWD) => {
+  const handleToast = (toast: boolean, newInstitute?: ExtendedInstitute) => {
     setToast(toast);
-    if (newOrganization) setNewOrganization(newOrganization);
+    if (newInstitute) setNewInstitute(newInstitute);
   };
 
-  const updateLocalOrganization = (newOrganization: IWD) => {
-    setNewOrganization(newOrganization);
+  const updateLocalInstitute = (newInstitute: ExtendedInstitute) => {
+    setNewInstitute(newInstitute);
     setToast(true);
   };
 
@@ -63,8 +64,8 @@ const Layout = () => {
         <div className="h-full w-full overflow-x-auto">
           <Outlet
             context={{
-              institute: newOrganization,
-              setInstitute: updateLocalOrganization,
+              institute: newInstitute,
+              setInstitute: updateLocalInstitute,
               setToast: handleToast,
               toast,
               rerender,

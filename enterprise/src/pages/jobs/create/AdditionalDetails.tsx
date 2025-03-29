@@ -6,9 +6,9 @@ import {
   TableColumn,
   TableRow,
   TableCell,
-  Checkbox,
-  Button,
-} from "@heroui/react";
+} from "@heroui/table";
+import { Checkbox } from "@heroui/checkbox";
+import { Button } from "@heroui/button";
 import { motion } from "framer-motion";
 import { ChevronRight, Info } from "lucide-react";
 import { AdditionalDetails as AdditionalDetailsType } from "@shared-types/Posting";

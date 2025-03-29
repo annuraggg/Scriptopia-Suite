@@ -33,7 +33,7 @@ import {
   ChevronRight,
   MoreHorizontal,
 } from "lucide-react";
-import { Button, Checkbox, Input, Select, SelectItem } from "@nextui-org/react";
+import { Button, Checkbox, Input} from "@nextui-org/react";
 import { useState } from "react";
 
 interface DataTableProps<TData> {
@@ -168,7 +168,7 @@ export function CompanyTable<TData>({ data = [] }: DataTableProps<TData>) {
               </Button>
             </DropdownTrigger>
             <DropdownMenu>
-              <DropdownItem>View candidate</DropdownItem>
+              <DropdownItem key={"view"}>View candidate</DropdownItem>
             </DropdownMenu>
           </Dropdown>
         );

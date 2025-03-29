@@ -2,7 +2,10 @@ interface AppliedPostingScore {
   _id?: string;
   stageId: string;
   score?: number;
+  reason?: string;
 }
+
+type AppliedPostingStatus = "applied" | "inprogress" | "rejected" | "hired";
 
 interface AppliedPosting {
   _id?: string;
@@ -11,11 +14,10 @@ interface AppliedPosting {
   disqualifiedStage?: number;
   disqualifiedReason?: string;
   scores?: AppliedPostingScore[];
-  status: "applied" | "inprogress" | "rejected" | "hired";
+  status: AppliedPostingStatus;
   resumeUrl?: string;
-  resumeExtract?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-export type { AppliedPosting, AppliedPostingScore };
+export type { AppliedPosting, AppliedPostingScore, AppliedPostingStatus };

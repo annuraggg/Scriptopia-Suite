@@ -3,7 +3,9 @@ import { ChevronRight } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { Badge } from "@heroui/badge";
-import { Button, Tooltip, Skeleton } from "@heroui/react";
+import { Skeleton } from "@heroui/skeleton";
+import { Button } from "@heroui/button";
+import { Tooltip } from "@heroui/tooltip";
 import type { Posting } from "@shared-types/Posting";
 import {
   IconLayoutDashboard,
@@ -13,6 +15,9 @@ import {
   IconDeviceLaptop,
   IconVideo,
   IconUsers,
+  IconInfoCircle,
+  IconJoinStraight,
+  IconAdjustments,
 } from "@tabler/icons-react";
 import {
   Modal,
@@ -21,7 +26,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
-} from "@heroui/react";
+} from "@heroui/modal";
 import ax from "@/config/axios";
 import { useAuth } from "@clerk/clerk-react";
 
@@ -60,18 +65,30 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
   const topItems = useMemo(
     (): NavItem[] => [
       {
-        icon: IconLayoutDashboard,
-        label: "Dashboard",
-        link: "/dashboard",
+        icon: IconInfoCircle,
+        label: "Info",
+        link: "/info",
         visible: true,
-        badge: 0,
       },
+      // {
+      //   icon: IconLayoutDashboard,
+      //   label: "Dashboard",
+      //   link: "/dashboard",
+      //   visible: true,
+      //   badge: 0,
+      // },
       {
         icon: IconArrowsExchange,
         label: "Workflow",
         link: "/workflow",
         visible: true,
         badge: workflowSteps.length ? 0 : 1,
+      },
+      {
+        icon: IconJoinStraight,
+        label: "Pipeline",
+        link: "/pipeline",
+        visible: true,
       },
       {
         icon: IconFileText,
@@ -106,8 +123,12 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
         label: "Interviews",
         link: "/interviews",
         visible: getFilteredStepsCount(["INTERVIEW"]) > 0,
-        badge:
-          getFilteredStepsCount(["INTERVIEW"]) - (posting?.interview ? 1 : 0),
+      },
+      {
+        icon: IconAdjustments,
+        label: "Custom Steps",
+        link: "/custom",
+        visible: getFilteredStepsCount(["CUSTOM"]) > 0,
       },
       {
         icon: IconUsers,
@@ -166,7 +187,8 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
       ) {
         totalCompleted++;
       }
-      if (step.type === "INTERVIEW" && posting?.interview) totalCompleted++;
+      if (step.type === "INTERVIEW" && posting?.interviews) totalCompleted++;
+      if (step.type === "CUSTOM") totalCompleted++;
     });
 
     console.log(totalCompleted, steps.length);
@@ -298,9 +320,15 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
     );
   };
 
+  const subNavbarRoutes = ["assessments", "custom"];
+
   return (
     <aside
-      className={`h-[100vh] -ml-5 bg-foreground text-background rounded-r-2xl border-r flex flex-col overflow-hidden transition-all duration-300
+      className={`h-[100vh] -ml-5 bg-foreground text-background  ${
+        subNavbarRoutes.includes(window.location.pathname.split("/")[3])
+          ? "border-r-background/10"
+          : "rounded-r-2xl"
+      } flex flex-col overflow-hidden transition-all duration-300
         ${isMobile ? "w-64" : collapsed ? "w-16" : "w-64"}
         ${isMobile ? "fixed left-0 top-0" : "relative"}`}
     >

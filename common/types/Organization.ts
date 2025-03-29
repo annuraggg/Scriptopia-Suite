@@ -23,6 +23,8 @@ interface Role {
   default: boolean;
   description?: string;
   permissions: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface Department {

@@ -8,10 +8,10 @@ import secureLocalStorage from "react-secure-storage";
 import { CodeAssessmentSubmission as CASS } from "@shared-types/CodeAssessmentSubmission";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { useDisclosure } from "@nextui-org/react";
+import { useDisclosure } from "@heroui/react";
 
 // Constants
-const SOCKET_URL = "http://localhost:4000";
+const SOCKET_URL = import.meta.env.VITE_API_URL!;
 const SYNC_INTERVAL = 8;
 const TIMER_INTERVAL = 1000;
 

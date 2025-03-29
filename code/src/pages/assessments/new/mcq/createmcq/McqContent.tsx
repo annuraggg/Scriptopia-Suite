@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Card, CardHeader, Button } from "@nextui-org/react";
+import { Card, CardHeader, Button } from "@heroui/react";
 import { Plus, Upload, HelpCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import QuestionModal from "./AddQuestionModal";
@@ -56,8 +56,10 @@ const McqContent: React.FC<McqContentProps> = ({
 
     const questions = selectedSection.questions;
     const index = questions.findIndex(
-      (q: Question) => q.question === questionText
+      (q: Question) => q._id === questionText
     );
+
+    if (index === -1) return;
     if (index > 0) {
       const newQuestions = [...questions];
       [newQuestions[index - 1], newQuestions[index]] = [
@@ -79,9 +81,9 @@ const McqContent: React.FC<McqContentProps> = ({
     if (!selectedSection) return;
 
     const questions = selectedSection.questions;
-    const index = questions.findIndex(
-      (q: Question) => q.question === questionText
-    );
+    const index = questions.findIndex((q: Question) => q._id === questionText);
+
+    if (index === -1) return;
     if (index < questions.length - 1) {
       const newQuestions = [...questions];
       [newQuestions[index], newQuestions[index + 1]] = [
@@ -102,9 +104,7 @@ const McqContent: React.FC<McqContentProps> = ({
   const handleEdit = (index: number) => {
     if (!selectedSection) return;
 
-    const question = selectedSection.questions.find(
-      (_, i) => i === index
-    );
+    const question = selectedSection.questions.find((_, i) => i === index);
     if (question) {
       setEditingQuestion(question);
       setModalOpen(true);

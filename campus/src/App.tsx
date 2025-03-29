@@ -2,33 +2,34 @@ import "./App.css";
 import { Suspense, lazy, useEffect } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { setOrganization } from "./reducers/organizationReducer";
+import { setInstitute } from "./reducers/instituteReducer";
 import {
   RedirectToSignIn,
   SignedIn,
   SignedOut,
   useUser,
 } from "@clerk/clerk-react";
-import CreateJob from "./pages/jobs/create/CreateJob";
+import CreateDrive from "./pages/drives/create/CreateDrive";
 import GroupDetails from "./pages/placementgroups/GroupDetails";
 
 // Lazy load components
 import Loader from "./components/Loader";
+import PendingCandidates from "./pages/candidates/PendingCandidates";
 const Lander = lazy(() => import("./pages/lander/Lander"));
 const Layout = lazy(() => import("./components/Layout"));
-const JobLayout = lazy(() => import("./pages/jobs/job/Layout"));
+const DriveLayout = lazy(() => import("./pages/drives/drive/Layout"));
 const SettingsLayout = lazy(() => import("./pages/settings/Layout"));
 const Start = lazy(() => import("./pages/start/Start"));
 const Join = lazy(() => import("./pages/join/Join"));
 const Onboarding = lazy(() => import("./pages/onboarding/Onboarding"));
-const CandidateLayout = lazy(() => import("./pages/candidate/Layout"));
+const CandidateLayout = lazy(() => import("./pages/candidates/Layout"));
 const CompanyDetails = lazy(
   () => import("./pages/companyprofiles/CompanyDetails")
 );
 
 // Dashboard and other main views
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
-const Jobs = lazy(() => import("./pages/jobs/Jobs"));
+const Drives = lazy(() => import("./pages/drives/Drives"));
 const PlacementGroups = lazy(
   () => import("./pages/placementgroups/PlacementGroups")
 );
@@ -41,43 +42,6 @@ const Notifications = lazy(() => import("./pages/notifications/Notifications"));
 const Billing = lazy(() => import("./pages/billing/Billing"));
 const Documentation = lazy(() => import("./pages/documentation/Documentation"));
 const Support = lazy(() => import("./pages/support/Support"));
-
-// Job specific routes
-const JobDashboard = lazy(() => import("./pages/jobs/job/dashboard/Dashboard"));
-const Workflow = lazy(() => import("./pages/jobs/job/workflow/Workflow"));
-const Ats = lazy(() => import("./pages/jobs/job/ats/Ats"));
-const JobCandidates = lazy(
-  () => import("./pages/jobs/job/candidates/Candidates")
-);
-const Assessments = lazy(
-  () => import("./pages/jobs/job/assessments/Assessments")
-);
-const Interviews = lazy(() => import("./pages/jobs/job/interviews/Interviews"));
-const Selector = lazy(
-  () => import("./pages/jobs/job/assessments/new/Selector")
-);
-const Assignments = lazy(
-  () => import("./pages/jobs/job/assignment/Assignments")
-);
-const NewAssignment = lazy(() => import("./pages/jobs/job/assignment/New"));
-const ViewAssignment = lazy(
-  () => import("./pages/jobs/job/assignment/ViewAssignment")
-);
-const ViewAssessment = lazy(
-  () => import("./pages/jobs/job/assessments/ViewAssessment/ViewAssessment")
-);
-const ViewUserAssessment = lazy(
-  () => import("./pages/jobs/job/assessments/ViewAssessment/ViewUserAssessment")
-);
-
-// Candidate specific routes
-const Apply = lazy(() => import("./pages/candidate/apply/Apply"));
-const CandidatePosting = lazy(
-  () => import("./pages/candidate/postings/Posting")
-);
-const CandidateAssignment = lazy(
-  () => import("./pages/candidate/assignment/Assignment")
-);
 
 // Settings routes
 const GeneralSettings = lazy(() => import("./pages/settings/general/General"));
@@ -92,6 +56,55 @@ const AuditLogs = lazy(
 const OrgData = lazy(() => import("./pages/settings/security/data/Data"));
 
 const StartOnboarding = lazy(() => import("./pages/onboarding/start/Start"));
+const CandidateProfile = lazy(() => import("./pages/candidates/Profile"));
+
+const CreatePlacementGroup = lazy(
+  () => import("./pages/placementgroups/create/CreateGroupForm")
+);
+
+// drive specific routes
+const DriveInfo = lazy(() => import("./pages/drives/drive/info/Info"));
+const DriveDashboard = lazy(
+  () => import("./pages/drives/drive/dashboard/Dashboard")
+);
+const Workflow = lazy(() => import("./pages/drives/drive/workflow/Workflow"));
+const Ats = lazy(() => import("./pages/drives/drive/ats/Ats"));
+const DriveCandidates = lazy(
+  () => import("./pages/drives/drive/candidates/Candidates")
+);
+const Assessments = lazy(
+  () => import("./pages/drives/drive/assessments/Assessments")
+);
+const Interviews = lazy(
+  () => import("./pages/drives/drive/interviews/Interviews")
+);
+const Assignments = lazy(
+  () => import("./pages/drives/drive/assignment/Assignments")
+);
+const NewAssignment = lazy(() => import("./pages/drives/drive/assignment/New"));
+const ViewAssignment = lazy(
+  () => import("./pages/drives/drive/assignment/ViewAssignment")
+);
+
+const ViewCodeAssessmentResults = lazy(
+  () =>
+    import("./pages/drives/drive/assessments/view/code/CodeAssessmentResults")
+);
+const ViewMcqAssessmentResults = lazy(
+  () => import("./pages/drives/drive/assessments/view/mcq/McqAssessmentResults")
+);
+
+const ViewUserCodeAssessment = lazy(
+  () => import("./pages/drives/drive/assessments/view/code/individual/View")
+);
+
+const ViewUserMCQAssessment = lazy(
+  () => import("./pages/drives/drive/assessments/view/mcq/individual/View")
+);
+
+const Pipeline = lazy(() => import("./pages/drives/drive/pipeline/Pipeline"));
+const CustomLayout = lazy(() => import("./pages/drives/drive/custom/Layout"));
+const Custom = lazy(() => import("./pages/drives/drive/custom/Custom"));
 
 function App() {
   const { user, isSignedIn } = useUser();
@@ -101,12 +114,12 @@ function App() {
   useEffect(() => {
     if (isSignedIn) {
       const data = {
-        _id: user?.publicMetadata?.orgId,
-        role: user?.publicMetadata?.orgRole,
-        permissions: user?.publicMetadata?.orgPermissions,
-        name: user?.publicMetadata?.orgName,
+        _id: (user?.publicMetadata?.institute as any)?._id,
+        role: (user?.publicMetadata?.institute as any)?.role.slug,
+        permissions: (user?.publicMetadata?.institute as any)?.role.permissions,
+        name: (user?.publicMetadata?.institute as any)?.name,
       };
-      dispatch(setOrganization(data));
+      dispatch(setInstitute(data));
     }
   }, [isSignedIn]);
 
@@ -249,23 +262,23 @@ function App() {
           ),
         },
         {
-          path: "jobs",
+          path: "drives",
           element: (
             <Suspense fallback={<Loader />}>
-              <Jobs />
+              <Drives />
             </Suspense>
           ),
         },
         {
-          path: "jobs/create",
+          path: "drives/create",
           element: (
             <Suspense fallback={<Loader />}>
-              <CreateJob />
+              <CreateDrive />
             </Suspense>
           ),
         },
         {
-          path: "placementgroups",
+          path: "placement-groups",
           element: (
             <Suspense fallback={<Loader />}>
               <PlacementGroups />
@@ -289,7 +302,7 @@ function App() {
           ),
         },
         {
-          path: "placementgroups",
+          path: "placement-groups",
           element: (
             <Suspense fallback={<Loader />}>
               <PlacementGroups />
@@ -297,7 +310,15 @@ function App() {
           ),
         },
         {
-          path: "group/:id",
+          path: "placement-groups/create",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <CreatePlacementGroup />
+            </Suspense>
+          ),
+        },
+        {
+          path: "placement-groups/:id",
           element: (
             <Suspense fallback={<Loader />}>
               <GroupDetails />
@@ -308,7 +329,33 @@ function App() {
           path: "candidates",
           element: (
             <Suspense fallback={<Loader />}>
-              <Candidates />
+              <CandidateLayout />
+            </Suspense>
+          ),
+          children: [
+            {
+              path: "active",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Candidates />
+                </Suspense>
+              ),
+            },
+            {
+              path: "pending",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <PendingCandidates />
+                </Suspense>
+              ),
+            },
+          ],
+        },
+        {
+          path: "c/:id",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <CandidateProfile />
             </Suspense>
           ),
         },
@@ -355,18 +402,26 @@ function App() {
       ],
     },
     {
-      path: "jobs/:id",
+      path: "drives/:id",
       element: (
         <Suspense fallback={<Loader />}>
-          <JobLayout />
+          <DriveLayout />
         </Suspense>
       ),
       children: [
         {
+          path: "info",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <DriveInfo />
+            </Suspense>
+          ),
+        },
+        {
           path: "dashboard",
           element: (
             <Suspense fallback={<Loader />}>
-              <JobDashboard />
+              <DriveDashboard />
             </Suspense>
           ),
         },
@@ -379,6 +434,34 @@ function App() {
           ),
         },
         {
+          path: "pipeline",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <Pipeline />
+            </Suspense>
+          ),
+        },
+        {
+          path: "custom",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <CustomLayout />
+            </Suspense>
+          ),
+
+          children: [
+            {
+              path: ":id",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Custom />
+                </Suspense>
+              ),
+            },
+          ],
+        },
+
+        {
           path: "ats",
           element: (
             <Suspense fallback={<Loader />}>
@@ -390,7 +473,7 @@ function App() {
           path: "candidates",
           element: (
             <Suspense fallback={<Loader />}>
-              <JobCandidates />
+              <DriveCandidates />
             </Suspense>
           ),
         },
@@ -403,29 +486,53 @@ function App() {
           ),
         },
         {
-          path: "assessments/:id/view",
+          path: "assessments/m/:id/view/:candId",
           element: (
             <Suspense fallback={<Loader />}>
-              <ViewAssessment />
+              <ViewUserMCQAssessment />
             </Suspense>
           ),
         },
         {
-          path: "assessments/:id/view/:candId",
+          path: "assessments/c/:id/view/:candId",
           element: (
             <Suspense fallback={<Loader />}>
-              <ViewUserAssessment />
+              <ViewUserCodeAssessment />
             </Suspense>
           ),
         },
         {
-          path: "assessments/new/:type",
+          path: "assessments/c/:id/view",
           element: (
             <Suspense fallback={<Loader />}>
-              <Selector />
+              <ViewCodeAssessmentResults />
             </Suspense>
           ),
         },
+        {
+          path: "assessments/c/:id/view",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <ViewCodeAssessmentResults />
+            </Suspense>
+          ),
+        },
+        {
+          path: "assessments/m/:id/view",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <ViewMcqAssessmentResults />
+            </Suspense>
+          ),
+        },
+        //   {
+        //     path: "assessments/m/:id/view/:candId",
+        //     element: (
+        //       <Suspense fallback={<Loader />}>
+        //         <ViewMcqAssessmentResult />
+        //       </Suspense>
+        //     ),
+        //   },
         {
           path: "assignments",
           element: (
@@ -460,48 +567,9 @@ function App() {
         },
       ],
     },
-
-    {
-      path: "/",
-      element: (
-        <Suspense fallback={<Loader />}>
-          <CandidateLayout />
-        </Suspense>
-      ),
-      children: [
-        {
-          path: "postings/:id",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <CandidatePosting />
-            </Suspense>
-          ),
-        },
-        {
-          path: "postings/:id/apply",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Apply />
-            </Suspense>
-          ),
-        },
-        {
-          path: "postings/:id/assignments/:assignmentId",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <CandidateAssignment />
-            </Suspense>
-          ),
-        },
-      ],
-    },
   ]);
 
-  return (
-    <main className={`text-foreground bg-background`}>
-      <RouterProvider router={router} />
-    </main>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;

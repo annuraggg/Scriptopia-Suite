@@ -6,7 +6,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Submission as SubmissionType } from "@shared-types/Submission";
 
 const Submission = ({

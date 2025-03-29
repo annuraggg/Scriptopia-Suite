@@ -2968,3 +2968,4 @@ node_modules/yaml/dist/stringify/stringifyString.d.ts
 node_modules/yaml/dist/stringify/stringifyString.js
 .vscode/settings.json
 candidate/tsconfig.app.tsbuildinfo
+.code2pdf.yaml

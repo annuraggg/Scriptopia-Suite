@@ -14,8 +14,8 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Button, Card, CardBody, Spinner } from "@nextui-org/react";
-import { CpuIcon, TimerIcon } from "lucide-react";
+import { Button, Card, CardBody, Spinner } from "@heroui/react";
+import { CpuIcon, TimerIcon, CoinsIcon } from "lucide-react";
 import { Submission } from "@shared-types/Submission";
 import { useAuth } from "@clerk/clerk-react";
 import defaultLanguages from "@/data/languages";
@@ -23,6 +23,57 @@ import { Problem as ProblemType } from "@shared-types/Problem";
 import { Delta } from "quill/core";
 import starterGenerator from "@/functions/starterGenerator";
 import { toast } from "sonner";
+
+const RewardDrawer = ({
+  isOpen,
+  onClose,
+  reward,
+  difficulty,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  reward: { earned: boolean; amount: number } | null;
+  difficulty: string;
+}) => {
+  return (
+    <Drawer open={isOpen} onClose={onClose}>
+      <DrawerContent className="outline-none">
+        <DrawerHeader>
+          <DrawerTitle>
+            {reward?.earned
+              ? "Congratulations! You earned Scrypto tokens!"
+              : "Solution Successful!"}
+          </DrawerTitle>
+          <DrawerDescription>
+            {reward?.earned
+              ? `You earned ${reward.amount} SCRYPTO tokens for solving this ${difficulty} problem!`
+              : `You solved the problem correctly, but no tokens were earned this time.`}
+          </DrawerDescription>
+        </DrawerHeader>
+
+        {reward?.earned && (
+          <div className="flex justify-center py-6">
+            <div className="flex flex-col items-center">
+              <CoinsIcon size={50} className="text-yellow-400 mb-4" />
+              <p className="text-2xl font-bold">{reward.amount} SCRYPTO</p>
+              <p className="text-sm text-gray-500 mt-2">
+                has been added to your wallet!
+              </p>
+            </div>
+          </div>
+        )}
+
+        <DrawerFooter>
+          <DrawerClose asChild>
+            <Button className="w-fit mx-auto" onClick={onClose}>
+              Close
+            </Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  );
+};
 
 const Problem = ({
   loading,
@@ -69,11 +120,13 @@ const Problem = ({
   const [, /*codeError*/ setCodeError] = useState<string>("");
   const [runningCode, setRunningCode] = useState<boolean>(false);
   const [currentSub, setCurrentSub] = useState<Submission | null>(null);
+  const [reward, setReward] = useState<{
+    earned: boolean;
+    amount: number;
+  } | null>(null);
 
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
-
   const [leftPaneActTab, setLeftPaneActTab] = useState<string>("statement");
-
   const [componentLoading, setComponentLoading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -93,7 +146,7 @@ const Problem = ({
         );
 
         const firstError = res.data.data.results.find(
-          (r: { error: any; }) => r.error && r.error
+          (r: { error: any }) => r.error && r.error
         );
 
         let firstErrorFull = "";
@@ -138,7 +191,7 @@ const Problem = ({
         );
 
         const firstError = res.data.data.submission.results.find(
-          (r: { error: any; }) => r.error && r.error
+          (r: { error: any }) => r.error && r.error
         );
 
         let firstErrorFull = "";
@@ -158,6 +211,11 @@ const Problem = ({
             setSubmissions(newSubmissions || []);
           }
           setCurrentSub(res.data.data.submission);
+
+          if (res.data.data.reward) {
+            setReward(res.data.data.reward);
+          }
+
           setDrawerOpen(true);
         } else {
           toast.warning("Some test cases failed. Please try again.", {
@@ -248,51 +306,64 @@ const Problem = ({
         </Split>
       </Split>
 
-      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
-        <DrawerContent className="outline-none">
-          <DrawerHeader>
-            <DrawerTitle>Solution Submitted</DrawerTitle>
-            <DrawerDescription>
-              Submitted at {new Date().toLocaleString()}
-            </DrawerDescription>
-          </DrawerHeader>
-          <div className="flex gap-5 items-center justify-center">
-            <Card className="px-10 py-5">
-              <CardBody>
-                <div className="flex gap-5 items-center">
-                  <TimerIcon size={30} />
-                  <div>
-                    <h5>Time Taken</h5>
-                    <p>{currentSub?.avgTime.toFixed(2)} ms</p>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
+      {drawerOpen &&
+        (reward ? (
+          <RewardDrawer
+            isOpen={drawerOpen}
+            onClose={() => {
+              setDrawerOpen(false);
+              setReward(null);
+            }}
+            reward={reward}
+            difficulty={problem.difficulty}
+          />
+        ) : (
+          <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+            <DrawerContent className="outline-none">
+              <DrawerHeader>
+                <DrawerTitle>Solution Submitted</DrawerTitle>
+                <DrawerDescription>
+                  Submitted at {new Date().toLocaleString()}
+                </DrawerDescription>
+              </DrawerHeader>
+              <div className="flex gap-5 items-center justify-center">
+                <Card className="px-10 py-5">
+                  <CardBody>
+                    <div className="flex gap-5 items-center">
+                      <TimerIcon size={30} />
+                      <div>
+                        <h5>Time Taken</h5>
+                        <p>{currentSub?.avgTime.toFixed(2)} ms</p>
+                      </div>
+                    </div>
+                  </CardBody>
+                </Card>
 
-            <Card className="px-10 py-5">
-              <CardBody>
-                <div className="flex gap-5 items-center">
-                  <CpuIcon size={30} />
-                  <div>
-                    <h5>Memory Used</h5>
-                    <p>{(currentSub?.avgMemory || 0).toFixed(2)} MB</p>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-          </div>
-          <DrawerFooter>
-            <DrawerClose asChild>
-              <Button
-                className="w-fit mx-auto"
-                onClick={() => setDrawerOpen(false)}
-              >
-                Close
-              </Button>
-            </DrawerClose>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+                <Card className="px-10 py-5">
+                  <CardBody>
+                    <div className="flex gap-5 items-center">
+                      <CpuIcon size={30} />
+                      <div>
+                        <h5>Memory Used</h5>
+                        <p>{(currentSub?.avgMemory || 0).toFixed(2)} MB</p>
+                      </div>
+                    </div>
+                  </CardBody>
+                </Card>
+              </div>
+              <DrawerFooter>
+                <DrawerClose asChild>
+                  <Button
+                    className="w-fit mx-auto"
+                    onClick={() => setDrawerOpen(false)}
+                  >
+                    Close
+                  </Button>
+                </DrawerClose>
+              </DrawerFooter>
+            </DrawerContent>
+          </Drawer>
+        ))}
     </>
   );
 };

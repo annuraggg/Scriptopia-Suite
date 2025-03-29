@@ -3,7 +3,9 @@ import ContactInfo from "./ContactInfo";
 import Resume from "./Resume";
 import AdditionalQuestions from "./AdditionalQuestions";
 import Review from "./Review";
-import { Card, Progress, Button } from "@heroui/react";
+import { Card } from "@heroui/card";
+import { Progress } from "@heroui/progress";
+import { Button } from "@heroui/button";
 
 import {
   CircleUserIcon,

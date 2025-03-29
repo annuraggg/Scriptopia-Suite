@@ -8,8 +8,9 @@ import Organization from "../../../models/Organization";
 import CandidateModel from "../../../models/Candidate";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import checkPermission from "../../../middlewares/checkOrganizationPermission";
-import { Role } from "@shared-types/Organization";
 import { Assessment, Assignment } from "@shared-types/Posting";
+import User from "@/models/User";
+import Meet from "@/models/Meet";
 
 const REGION = "ap-south-1";
 
@@ -28,122 +29,81 @@ const advanceWorkflow = async (c: Context) => {
     }
 
     const workflow = posting?.workflow;
-    if (!workflow) {
-      return sendError(c, 400, "No workflow found");
+    if (!workflow || workflow.steps.length === 0) {
+      return sendError(c, 400, "Invalid workflow");
     }
 
-    if (workflow.steps.length === 0) {
-      return sendError(c, 400, "No workflow steps found");
-    }
-
-    // Find current incomplete step
     const currentStepIndex = workflow.steps.findIndex(
-      (step) => !step.completed
+      (step) => step.status === "in-progress"
     );
-    if (currentStepIndex === -1) {
+
+    if (
+      currentStepIndex === -1 &&
+      workflow.steps.every((step) => step.status === "completed")
+    ) {
       return sendError(c, 400, "Workflow already completed");
     }
 
-    // Mark current step as completed
-    workflow.steps[currentStepIndex].completed = true;
-    workflow.steps[currentStepIndex].timestamp = new Date();
-
-    // Process based on step type
-    const currentStep = workflow.steps[currentStepIndex];
-
-    if (currentStep.type === "RESUME_SCREENING") {
-      await handleResumeScreening(posting);
+    if (currentStepIndex === -1) {
+      workflow.steps[0].status = "in-progress";
+      workflow.steps[0].schedule = {
+        ...workflow.steps[0].schedule,
+      };
+      workflow.steps[0].startedBy = c.get("auth")._id;
+    } else {
+      workflow.steps[currentStepIndex].status = "completed";
+      workflow.steps[currentStepIndex + 1].status = "in-progress";
+      workflow.steps[currentStepIndex].schedule = {
+        ...workflow.steps[currentStepIndex].schedule,
+        actualCompletionTime: new Date(),
+      };
+      workflow.steps[0].startedBy = c.get("auth")._id;
     }
 
-    if (currentStep.type === "ASSIGNMENT") {
-      await handleAssignmentRound(posting, currentStep);
+    const currentStep =
+      workflow.steps[currentStepIndex === -1 ? 0 : currentStepIndex + 1];
+
+    switch (currentStep.type) {
+      case "RESUME_SCREENING":
+        handleResumeScreening(posting, perms.data!.organization?._id);
+        break;
+      case "ASSIGNMENT":
+        handleAssignmentRound(posting, currentStep);
+        break;
+      case "CODING_ASSESSMENT":
+      case "MCQ_ASSESSMENT":
+        handleAssessmentRound(posting, currentStep);
+        break;
+      case "INTERVIEW":
+        handleInterviewRound(posting, currentStep);
+        break;
     }
 
-    if (
-      currentStep.type === "CODING_ASSESSMENT" ||
-      currentStep.type === "MCQ_ASSESSMENT"
-    ) {
-      await handleAssessmentRound(posting, currentStep);
-    }
-
-    // Update candidate statuses
-    for (const candidateId of posting.candidates) {
-      const candidate = await CandidateModel.findById(candidateId);
-      if (!candidate) continue;
-
-      const appliedPosting = candidate.appliedPostings.find(
-        (ap) => ap.toString() === posting._id.toString()
-      );
-
-      if (!appliedPosting) continue;
-
-      // Update the applied posting status based on current workflow step
-      await CandidateModel.findByIdAndUpdate(
-        candidateId,
-        {
-          $set: {
-            "appliedPostings.$[posting].status": "inprogress",
-            "appliedPostings.$[posting].currentStepStatus": "pending",
-          },
-        },
-        {
-          arrayFilters: [{ "posting._id": appliedPosting._id }],
-        }
-      );
-    }
+    console.log("Workflow advanced to next step", currentStep.type);
 
     await posting.save();
+    await logWorkflowAdvance(c, posting, perms);
 
-    // Create audit log and notifications
-    const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
-    const organization = await Organization.findById(
-      perms.data!.organization?._id
+    const updatedPosting = await Posting.findById(_id)
+      .populate("candidates")
+      .populate("organizationId");
+    return sendSuccess(
+      c,
+      200,
+      "Workflow advanced successfully",
+      updatedPosting
     );
-
-    if (!organization) {
-      return sendError(c, 404, "Organization not found");
-    }
-
-    // Add audit log
-    organization.auditLogs.push({
-      action: `Advanced workflow for ${posting.title} to next step`,
-      user: `${clerkUser.firstName} ${clerkUser.lastName}`,
-      userId: clerkUser.id,
-      type: "info",
-    });
-
-    // Create notification for members with manage_job permission
-    const notification = {
-      title: "Workflow Advanced",
-      description: `Workflow for ${posting.title} has been advanced to the next step`,
-      date: new Date(),
-      read: false,
-    };
-
-    organization.members.forEach((member) => {
-      const memberRole = organization.roles.find(
-        (role: any) => role.slug === member.role
-      ) as Role | undefined;
-
-      if (memberRole && memberRole.permissions.includes("manage_job")) {
-        member.notifications.push(notification);
-      }
-
-      if (memberRole?.permissions.includes("manage_job")) {
-        member.notifications.push(notification);
-      }
-    });
-
-    await organization.save();
-
-    return sendSuccess(c, 200, "Workflow advanced successfully", posting);
   } catch (error) {
     console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
   }
 };
 
-const handleResumeScreening = async (posting: any) => {
+const handleResumeScreening = async (posting: any, orgId?: string) => {
+  await Posting.findByIdAndUpdate(posting._id, {
+    "ats.status": "processing",
+  });
+
   const lambdaClient = new LambdaClient({
     region: REGION,
     credentials: {
@@ -152,23 +112,29 @@ const handleResumeScreening = async (posting: any) => {
     },
   });
 
-  const resumes = [];
+  const resumes = await Promise.all(
+    posting.candidates.map(async (candidateId: string) => {
+      const candidate = await CandidateModel.findById(candidateId);
+      if (!candidate) return null;
+      return candidate
+        ? {
+            candidateId: candidate._id.toString(),
+            resume: candidate.resumeExtract,
+          }
+        : null;
+    })
+  );
 
-  for (const candidateId of posting.candidates) {
-    const candidate = await CandidateModel.findById(candidateId);
-    if (!candidate) continue;
-
-    const appliedPosting = candidate.appliedPostings.find(
-      (ap) => ap.toString() === posting._id.toString()
-    );
-
-    if (!appliedPosting) continue;
-
-    resumes.push({
-      candidateId: candidate._id.toString(),
-      resume: candidate.resumeExtract,
-    });
-  }
+  const org = await Organization.findById(orgId).populate("members.user");
+  const step = posting.workflow.steps.find(
+    (step: any) => step.type === "RESUME_SCREENING"
+  );
+  const user = org?.members.find(
+    (member: any) => member.user._id.toString() === step?.startedBy.toString()
+  );
+  const dbUser = await User.findById(user?.user);
+  if (!dbUser) return;
+  const clerkUser = await clerkClient.users.getUser(dbUser?.clerkId);
 
   const event = {
     jobDescription: posting.description,
@@ -176,7 +142,13 @@ const handleResumeScreening = async (posting: any) => {
     negativePrompts: posting.ats?.negativePrompts?.join(","),
     positivePrompts: posting.ats?.positivePrompts?.join(","),
     postingId: posting._id.toString(),
-    resumes,
+    resumes: resumes.filter(Boolean),
+    mailData: {
+      name: clerkUser.firstName + " " + clerkUser.lastName,
+      email: user?.email,
+      posting: posting.title,
+      resumeScreenUrl: `${process.env.ENTERPRISE_FRONTEND_URL}/jobs/${posting.url}/ats`,
+    },
   };
 
   await lambdaClient.send(
@@ -197,28 +169,27 @@ const handleAssignmentRound = async (posting: any, step: any) => {
 
   const candidates = await CandidateModel.find({
     _id: { $in: posting.candidates },
-    appliedPostings: {
-      $elemMatch: {
-        status: { $ne: "rejected" },
-      },
-    },
+    "appliedPostings.status": { $ne: "rejected" },
   });
 
-  for (const candidate of candidates) {
-    await loops.sendTransactionalEmail({
-      transactionalId: "cm0zk1vd900966e8e6czepc4d",
-      email: candidate.email as string,
-      dataVariables: {
-        name: candidate.name as string,
-        postingName: posting.title,
-        company: organization.name,
-        assignmentLink: `${process.env.ENTERPRISE_FRONTEND_URL}/postings/${posting.url}/assignments/${assignment._id}`,
-      },
-    });
-  }
+  await Promise.all(
+    candidates.map((candidate) =>
+      loops.sendTransactionalEmail({
+        transactionalId: "cm0zk1vd900966e8e6czepc4d",
+        email: candidate.email,
+        dataVariables: {
+          name: candidate.name,
+          postingName: posting.title,
+          company: organization.name,
+          assignmentLink: `${process.env.CANDIDATE_FRONTEND_URL}/postings/${posting._id}/assignments/${assignment._id}`,
+        },
+      })
+    )
+  );
 };
 
 const handleAssessmentRound = async (posting: any, step: any) => {
+  console.log("Detected assessment round");
   const assessment =
     posting.mcqAssessments?.find(
       (a: Assessment) => a.workflowId.toString() === step._id.toString()
@@ -226,36 +197,125 @@ const handleAssessmentRound = async (posting: any, step: any) => {
     posting.codeAssessments?.find(
       (a: Assessment) => a.workflowId.toString() === step._id.toString()
     );
-
   const organization = await Organization.findById(posting.organizationId);
   if (!assessment || !organization) return;
 
   const candidates = await CandidateModel.find({
     _id: { $in: posting.candidates },
-    appliedPostings: {
-      $elemMatch: {
-        status: { $ne: "rejected" },
-      },
-    },
+    "appliedPostings.status": { $ne: "rejected" },
   });
 
   const assessmentType = step.type === "CODING_ASSESSMENT" ? "Coding" : "MCQ";
+  const type = step.type === "CODING_ASSESSMENT" ? "c" : "m";
 
-  for (const candidate of candidates) {
-    await loops.sendTransactionalEmail({
-      transactionalId: "cm16lbamn012iyfq0agp9wl54",
-      email: candidate.email as string,
-      dataVariables: {
-        name: candidate.name as string,
-        postingName: posting.title,
-        type: assessmentType,
-        assessmentLink: `${process.env.SCRIPTOPIA_FRONTEND_URL}/assessments/${assessment.assessmentId}`,
-        company: organization.name,
-      },
-    });
+  console.log("Sending assessment emails");
+  await Promise.all(
+    candidates.map((candidate) =>
+      loops.sendTransactionalEmail({
+        transactionalId: "cm16lbamn012iyfq0agp9wl54",
+        email: candidate.email,
+        dataVariables: {
+          name: candidate.name,
+          postingName: posting.title,
+          type: assessmentType,
+          assessmentLink: `${process.env.SCRIPTOPIA_FRONTEND_URL}/assessments/${type}/${assessment.assessmentId}`,
+          company: organization.name,
+        },
+      })
+    )
+  );
+};
+
+const handleInterviewRound = async (posting: any, step: any) => {
+  console.log("Detected interview round");
+  const organization = await Organization.findById(posting.organizationId);
+  if (!organization) return;
+
+  const candidates = await CandidateModel.find({
+    _id: { $in: posting.candidates },
+    "appliedPostings.status": { $ne: "rejected" },
+  });
+
+  const workflowStepId = posting.workflow.steps.find(
+    (s: any) => s._id.toString() === step._id.toString()
+  )._id;
+
+  const interviewId = posting.interviews.find(
+    (interview: any) =>
+      interview.workflowId.toString() === workflowStepId.toString()
+  ).interview;
+
+
+  console.log("Interview ID", interviewId);
+
+  if (!interviewId) return;
+
+  const interview = await Meet.findById(interviewId);
+  if (!interview) return;
+
+
+  await Promise.all(
+    candidates.map((candidate) => {
+      loops.sendTransactionalEmail({
+        transactionalId: "cm84on6wm06v3e9gl6a2hm0j8",
+        email: candidate.email,
+        dataVariables: {
+          name: candidate.name,
+          postingName: posting.title,
+          interviewLink: `${process.env.MEET_FRONTEND_URL}/v3/${interview.code}`,
+          company: organization.name,
+        },
+      });
+
+      interview.candidates.push(candidate._id);
+    })
+  );
+
+  const interviewer = organization.members.find(
+    (member: any) => member.role === "hiring_manager"
+  );
+
+  if (interviewer && interviewer.user) {
+    interview.interviewers.push(interviewer?.user);
   }
+
+  await interview.save();
 };
 
-export default {
-  advanceWorkflow,
+const logWorkflowAdvance = async (c: Context, posting: any, perms: any) => {
+  const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
+  const organization = await Organization.findById(
+    perms.data!.organization?._id
+  );
+  if (!organization) return;
+
+  organization.auditLogs.push({
+    action: `Advanced workflow for ${posting.title} to next step`,
+    user: `${clerkUser.firstName} ${clerkUser.lastName}`,
+    userId: clerkUser.id,
+    type: "info",
+  });
+
+  const notification = {
+    title: "Workflow Advanced",
+    description: `Workflow for ${posting.title} has been advanced to the next step`,
+    date: new Date(),
+    read: false,
+  };
+
+  organization.members.forEach((member) => {
+    if (
+      member.role &&
+      organization.roles.some(
+        (r: any) =>
+          r.slug === member.role && r.permissions.includes("manage_job")
+      )
+    ) {
+      member.notifications.push(notification);
+    }
+  });
+
+  await organization.save();
 };
+
+export default { advanceWorkflow };

@@ -15,13 +15,18 @@ import {
   SelectItem,
   Card,
   CardBody,
+  DatePicker,
 } from "@nextui-org/react";
-import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
 import { Plus, Edit2, Trash2, PanelsTopLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { parseDate, CalendarDate, today } from "@internationalized/date";
+import {
+  today,
+  ZonedDateTime,
+  getLocalTimeZone,
+  parseAbsoluteToLocal,
+} from "@internationalized/date";
 import { z } from "zod";
 import { useOutletContext } from "react-router-dom";
 import { Candidate, Project } from "@shared-types/Candidate";
@@ -30,8 +35,8 @@ import { Candidate, Project } from "@shared-types/Candidate";
 const ProjectSchema = z.object({
   title: z.string().min(1, "Title is required").max(100),
   domain: z.string().min(1, "Domain is required").max(100),
-  startDate: z.string(),
-  endDate: z.string().optional(),
+  startDate: z.date(),
+  endDate: z.date().optional(),
   current: z.boolean(),
   associatedWith: z.string().min(1, "Association is required"),
   description: z.string().min(10, "Description must be at least 10 characters"),
@@ -43,15 +48,17 @@ const Projects = () => {
     setUser: (user: Candidate) => void;
   };
 
-  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [editingProject, setEditingProject] = useState<string | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // Form states
   const [title, setTitle] = useState("");
   const [domain, setDomain] = useState("");
-  const [startDate, setStartDate] = useState<CalendarDate>(today("IST"));
-  const [endDate, setEndDate] = useState<CalendarDate | null>(null);
+  const [startDate, setStartDate] = useState<Date>(
+    today(getLocalTimeZone()).toDate(getLocalTimeZone())
+  );
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [isCurrentlyWorking, setIsCurrentlyWorking] = useState(false);
   const [associatedWith, setAssociatedWith] = useState("");
   const [description, setDescription] = useState("");
@@ -59,7 +66,7 @@ const Projects = () => {
   const resetForm = () => {
     setTitle("");
     setDomain("");
-    setStartDate(today("IST"));
+    setStartDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
     setEndDate(null);
     setIsCurrentlyWorking(false);
     setAssociatedWith("");
@@ -83,6 +90,8 @@ const Projects = () => {
         description,
       };
 
+      console.log(projectData);
+
       ProjectSchema.parse(projectData);
 
       // Additional date validation
@@ -90,7 +99,7 @@ const Projects = () => {
         throw new Error("End date is required when not currently working");
       }
 
-      if (endDate && startDate.compare(endDate) > 0) {
+      if (endDate && startDate > endDate) {
         throw new Error("End date must be after start date");
       }
 
@@ -113,11 +122,11 @@ const Projects = () => {
 
   const handleOpenModal = (project?: Project) => {
     if (project) {
-      setEditingProject(project);
+      setEditingProject(project._id || null);
       setTitle(project.title);
       setDomain(project.domain);
-      setStartDate(parseDate(project.startDate?.toISOString().split("T")[0]));
-      setEndDate(project.endDate ? parseDate(project.endDate.toISOString().split("T")[0]) : null);
+      setStartDate(new Date(project.startDate));
+      setEndDate(project.endDate || null);
       setIsCurrentlyWorking(project.current);
       setAssociatedWith(project.associatedWith);
       setDescription(project.description);
@@ -133,6 +142,7 @@ const Projects = () => {
   const handleSave = () => {
     const validation = validateForm();
     if (!validation.isValid || !validation.data) {
+      console.log(validation);
       toast.error("Please fill all required fields");
       return;
     }
@@ -140,7 +150,7 @@ const Projects = () => {
     try {
       if (editingProject) {
         const newProjects = user?.projects?.map((p) =>
-          p._id === editingProject._id ? validation.data : p
+          p._id === editingProject ? validation.data : p
         );
         setUser({ ...user, projects: newProjects });
       } else {
@@ -161,6 +171,21 @@ const Projects = () => {
       setUser({ ...user, projects: newProjects });
     } catch (error) {
       toast.error("Failed to delete project");
+    }
+  };
+
+  const handleDateChange = (
+    date: ZonedDateTime | null,
+    field: "startDate" | "endDate"
+  ) => {
+    if (!date) return;
+
+    const dateObj = new Date(date.year, date.month - 1, date.day);
+
+    if (field === "startDate") {
+      setStartDate(dateObj);
+    } else {
+      setEndDate(dateObj);
     }
   };
 
@@ -320,16 +345,26 @@ const Projects = () => {
                     errorMessage={errors.domain}
                   />
                   <div className="flex gap-4">
-                    <DateInput
-                      label="Start Date"
-                      value={startDate}
-                      onChange={setStartDate}
+                    <DatePicker
+                      className="max-w-xs"
+                      label="Start Date (mm/dd/yyyy)"
+                      granularity="day"
+                      maxValue={today(getLocalTimeZone())}
+                      value={parseAbsoluteToLocal(startDate.toISOString())}
+                      onChange={(date) => handleDateChange(date, "startDate")}
                     />
-                    <DateInput
-                      label="End Date"
-                      value={endDate}
-                      onChange={setEndDate}
+                    <DatePicker
+                      className="max-w-xs"
+                      label="End Date (mm/dd/yyyy)"
+                      granularity="day"
+                      value={
+                        endDate
+                          ? parseAbsoluteToLocal(endDate?.toISOString())
+                          : undefined
+                      }
+                      maxValue={today(getLocalTimeZone())}
                       isDisabled={isCurrentlyWorking}
+                      onChange={(date) => handleDateChange(date, "endDate")}
                     />
                   </div>
                   <Checkbox

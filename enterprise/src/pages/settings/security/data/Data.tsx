@@ -1,7 +1,8 @@
 import Sidebar from "../Sidebar";
 import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
 import { TrashIcon } from "lucide-react";
-import { Button, Divider } from "@heroui/react";
+import { Button } from "@heroui/button";
+import { Divider } from "@heroui/divider";
 import { useOutletContext } from "react-router-dom";
 import { SettingsContext } from "@/types/SettingsContext";
 

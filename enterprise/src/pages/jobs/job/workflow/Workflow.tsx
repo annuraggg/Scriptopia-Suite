@@ -17,10 +17,7 @@ const Workflow = () => {
       {!posting.workflow?.steps?.length && create && <Create />}
 
       {posting?.workflow?.steps?.length && (
-        <Show
-          workflowData={posting?.workflow?.steps}
-          postingTitle={posting?.title}
-        />
+        <Show workflowData={posting?.workflow?.steps} />
       )}
     </div>
   );

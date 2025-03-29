@@ -45,7 +45,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-interface JobPostingData {
+interface DriveData {
   status: string;
   count: number;
   growth: number;
@@ -75,19 +75,19 @@ const userGrowthData = [
   { month: "Jun", activeUsers: 3200, totalUsers: 3600, projectedUsers: 3800 },
 ];
 
-const jobPostingsData: JobPostingData[] = [
+const drivesData: DriveData[] = [
   {
     status: "Open",
     count: 150,
     growth: 15,
-    description: "Active job listings currently accepting applications",
+    description: "Active drive listings currently accepting applications",
     color: "#7C3AED", // Purple
   },
   {
     status: "In Progress",
     count: 85,
     growth: 10,
-    description: "Jobs with ongoing interview processes",
+    description: "Drives with ongoing interview processes",
     color: "#3B82F6", // Blue
   },
   {
@@ -106,7 +106,7 @@ const jobPostingsData: JobPostingData[] = [
   },
 ];
 
-const jobPerformanceData = [
+const drivePerformanceData = [
   {
     position: "Software Engineer",
     views: 1200,
@@ -170,7 +170,7 @@ const monthlyGrowthData: YearData = {
 };
 
 const Analytics = () => {
-  const org = useSelector((state: RootState) => state.organization);
+  const org = useSelector((state: RootState) => state.institute);
   const [timeRange, setTimeRange] = useState("30days");
   const [selectedYear, setSelectedYear] = useState<string>("2024");
   const [selectedMonth, setSelectedMonth] = useState<string>("Jan");
@@ -194,7 +194,7 @@ const Analytics = () => {
       trend: "up",
     },
     {
-      title: "Active Job Postings",
+      title: "Active Drives",
       value: "150",
       change: "+8.2%",
       icon: Briefcase,
@@ -259,14 +259,14 @@ const Analytics = () => {
     <div className=" max-h-full mt-5 ml-5">
       <div className="mb-6">
         <Breadcrumbs>
-          <BreadcrumbItem>{org.name}</BreadcrumbItem>
+          <BreadcrumbItem>{org.name || "APSIT"}</BreadcrumbItem>
           <BreadcrumbItem>Analytics</BreadcrumbItem>
         </Breadcrumbs>
 
         <div className="flex justify-between items-center mt-5">
           <div>
             <h1 className="text-base">Analytics Dashboard</h1>
-            <p className="text-base">Track your organization's performance</p>
+            <p className="text-base">Track your institute's performance</p>
           </div>
 
           <div className="flex gap-4">
@@ -477,9 +477,7 @@ const Analytics = () => {
           <Card className="">
             <CardHeader className="flex justify-between items-center px-6 py-4">
               <div>
-                <h3 className="text-lg font-semibold">
-                  Job Postings Performance
-                </h3>
+                <h3 className="text-lg font-semibold">Drives Performance</h3>
                 <p className="text-sm  opacity-80">
                   Detailed metrics by position
                 </p>
@@ -511,34 +509,31 @@ const Analytics = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {jobPerformanceData.map((job, index) => (
-                      <tr
-                        key={job.position}
-                        className="border-b"
-                      >
+                    {drivePerformanceData.map((drive, index) => (
+                      <tr key={drive.position} className="border-b">
                         <td className="py-4 px-4 text-sm font-medium">
-                          {job.position}
+                          {drive.position}
                         </td>
                         <td className="py-4 px-4 text-sm">
-                          {job.views.toLocaleString()}
+                          {drive.views.toLocaleString()}
                         </td>
                         <td className="py-4 px-4 text-sm">
-                          {job.clicks.toLocaleString()}
+                          {drive.clicks.toLocaleString()}
                         </td>
                         <td className="py-4 px-4 text-sm">
-                          {job.applications.toLocaleString()}
+                          {drive.applications.toLocaleString()}
                         </td>
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-2">
                             <Progress
-                              value={job.conversionRate}
+                              value={drive.conversionRate}
                               className="max-w-md"
                               color={
-                                job.conversionRate > 25 ? "success" : "warning"
+                                drive.conversionRate > 25 ? "success" : "warning"
                               }
                             />
                             <span className="text-sm">
-                              {job.conversionRate}%
+                              {drive.conversionRate}%
                             </span>
                           </div>
                         </td>
@@ -578,10 +573,10 @@ const Analytics = () => {
             <CardHeader className="flex justify-between items-center px-6 py-4">
               <div>
                 <h3 className="text-lg font-semibold">
-                  Job Status Distribution
+                  Drive Status Distribution
                 </h3>
                 <p className="text-sm  opacity-80">
-                  Current status of all postings
+                  Current status of all drives
                 </p>
               </div>
             </CardHeader>
@@ -589,7 +584,7 @@ const Analytics = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={jobPostingsData}
+                    data={drivesData}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -597,7 +592,7 @@ const Analytics = () => {
                     paddingAngle={5}
                     dataKey="count"
                   >
-                    {jobPostingsData.map((entry, index) => (
+                    {drivesData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={entry.color}
@@ -637,7 +632,7 @@ const Analytics = () => {
                                   {entry.value}
                                 </span>
                                 <p className="text-xs">
-                                  {jobPostingsData[index].description}
+                                  {drivesData[index].description}
                                 </p>
                               </div>
                             </div>
@@ -661,10 +656,8 @@ const Analytics = () => {
           <Card className="">
             <CardHeader className="flex justify-between items-center px-6 py-4">
               <div>
-                <h3 className="text-lg font-semibold">Posting Growth Trends</h3>
-                <p className="text-sm  opacity-80">
-                  Month-over-month changes
-                </p>
+                <h3 className="text-lg font-semibold">Drive Growth Trends</h3>
+                <p className="text-sm  opacity-80">Month-over-month changes</p>
               </div>
               <div className="flex gap-2 w-[40%]">
                 <Select

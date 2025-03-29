@@ -38,7 +38,7 @@ const Assignment = () => {
         });
 
         const currentStep = posting?.workflow?.steps?.findIndex(
-          (step) => step.completed === false
+          (step) => step.status === "in-progress"
         );
         const currentStepObj = posting?.workflow?.steps?.[currentStep || 0];
         const stepName = currentStepObj?.name;

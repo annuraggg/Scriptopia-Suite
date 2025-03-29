@@ -6,10 +6,7 @@ import {
   IconBriefcaseFilled,
   IconUserFilled,
   IconFileTextFilled,
-  // IconBellFilled,
-  // IconSettingsFilled,
-  // IconHelpCircleFilled,
-  // IconAlertCircleFilled,
+  IconBookFilled,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { UserButton } from "@clerk/clerk-react";
@@ -55,6 +52,12 @@ const Sidebar = ({
       link: "/jobs",
       visible: true,
     },
+    {
+      icon: IconBookFilled,
+      label: "Campus",
+      link: "/campus",
+      visible: true,
+    },
     // {
     //   icon: IconAlertCircleFilled,
     //   label: "Alerts",
@@ -83,7 +86,7 @@ const Sidebar = ({
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
 
-  const subNavbarRoutes = ["profile"];
+  const subNavbarRoutes = ["profile", "campus"];
 
   useEffect(() => {
     setActive(window.location.pathname.split("/")[1]);

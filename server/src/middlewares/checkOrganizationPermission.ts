@@ -25,7 +25,6 @@ class checkOrganizationPermission {
     c: Context<any, any, {}>,
     permissions: string[]
   ): Promise<ReturnType> => {
-    // @ts-expect-error - TS doesn't know that auth is a valid key
     const auth = getAuth(c);
     if (!auth?.userId) {
       sendError(c, 401, "Unauthorized in checkPermission");
@@ -52,7 +51,6 @@ class checkOrganizationPermission {
     c: Context<any, any, {}>,
     permissions: string[]
   ): Promise<ReturnType> => {
-    // @ts-expect-error - TS doesn't know that auth is a valid key
     const auth = getAuth(c);
     if (!auth?.userId) {
       sendError(c, 401, "Unauthorized in checkPermission");

@@ -1,4 +1,5 @@
-import { Card, CardHeader, CardBody, Link, Divider } from "@nextui-org/react";
+// @ts-nocheck
+import { Card, CardHeader, CardBody, Link, Divider } from "@heroui/react";
 import { Clock, CodeXml, SquareStack } from "lucide-react";
 import {
   AlignVerticalDistributeCenter,

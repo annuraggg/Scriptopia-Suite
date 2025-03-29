@@ -15,9 +15,8 @@ import { useEffect, useState } from "react";
 import { UserButton /*useAuth*/ } from "@clerk/clerk-react";
 import { Badge, Button } from "@nextui-org/react";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
-import { Notification } from "@shared-types/Organization";
-import { InstituteWithDrives as IWD } from "@/types/RootContext";
-// import { useTheme } from "./theme-provider";
+import { Notification } from "@shared-types/Institute";
+import { ExtendedInstitute } from "@shared-types/ExtendedInstitute";
 
 const Sidebar = ({
   notifications,
@@ -26,7 +25,7 @@ const Sidebar = ({
   onClose,
 }: {
   notifications: Notification[];
-  institute: IWD;
+  institute: ExtendedInstitute;
   user: MemberWithPermission;
   isMobile: boolean;
   onClose?: () => void;
@@ -40,8 +39,8 @@ const Sidebar = ({
     },
     {
       icon: IconBriefcaseFilled,
-      label: "Jobs",
-      link: "/jobs",
+      label: "Drives",
+      link: "/drives",
       visible:
         user?.permissions?.includes("view_drive") ||
         user?.permissions?.includes("manage_drive"),
@@ -49,7 +48,7 @@ const Sidebar = ({
     {
       icon: IconUsersGroup,
       label: "Placement Groups",
-      link: "/placementgroups",
+      link: "/placement-groups",
       visible:
         user?.permissions?.includes("view_drive") ||
         user?.permissions?.includes("manage_drive"),
@@ -65,7 +64,7 @@ const Sidebar = ({
     {
       icon: IconUserFilled,
       label: "Candidates",
-      link: "/candidates",
+      link: "/candidates/active",
       visible:
         user?.permissions?.includes("view_drive") ||
         user?.permissions?.includes("manage_drive"),

@@ -11,9 +11,14 @@ import {
   useDisclosure,
   BreadcrumbItem,
   Breadcrumbs,
+  DatePicker,
 } from "@nextui-org/react";
-import { DateInput } from "@nextui-org/date-input";
-import { parseDate, CalendarDate, today } from "@internationalized/date";
+import {
+  today,
+  getLocalTimeZone,
+  parseAbsoluteToLocal,
+  ZonedDateTime,
+} from "@internationalized/date";
 import { motion } from "framer-motion";
 import { Plus, Edit2, Trash2, Trophy } from "lucide-react";
 import { toast } from "sonner";
@@ -26,46 +31,35 @@ const Awards = () => {
     setUser: (user: Candidate) => void;
   };
   // States
-  const [currentAward, setCurrentAward] = useState<Award | null>(null);
-  const [formData, setFormData] = useState<Omit<Award, "date"> & { date: string }>({
-    title: "",
-    issuer: "",
-    associatedWith: "academic",
-    date: today("IST").toString(),
-    description: "",
-  });
+  const [currentAward, setCurrentAward] = useState<string | null>(null);
 
+  // Modal States
   const { isOpen, onOpen, onClose } = useDisclosure();
-
-  // Handlers
-  const handleInputChange = (
-    name: keyof Award,
-    value: string | CalendarDate
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [issuer, setIssuer] = useState("");
+  const [associatedWith, setAssociatedWith] = useState("academic");
+  const [date, setDate] = useState<Date>(
+    today(getLocalTimeZone()).toDate(getLocalTimeZone())
+  );
 
   const resetForm = () => {
-    setFormData({
-      title: "",
-      issuer: "",
-      associatedWith: "academic",
-      date: parseDate(today("IST").toString()).toString(),
-      description: "",
-    });
+    setTitle("");
+    setDescription("");
+    setIssuer("");
+    setAssociatedWith("academic");
+    setDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
     setCurrentAward(null);
   };
 
   const handleOpenModal = (award?: Award) => {
     if (award) {
-      setCurrentAward(award);
-      setFormData({
-        ...award,
-        date: award.date.toString(),
-      });
+      setCurrentAward(award._id || null);
+      setTitle(award.title);
+      setDescription(award.description || "");
+      setIssuer(award.issuer);
+      setAssociatedWith(award.associatedWith);
+      setDate(new Date(award.date));
     } else {
       resetForm();
     }
@@ -78,32 +72,55 @@ const Awards = () => {
   };
 
   const handleSave = () => {
-    if (!formData.title || !formData.issuer || !formData.associatedWith) {
+    if (!title || !issuer || !associatedWith) {
       toast.error("Please fill in all required fields");
       return;
     }
 
     if (currentAward) {
       // Edit existing award
-      const newAwards = user?.awards?.map((award) =>
-        award._id === currentAward._id
-          ? { ...formData, id: currentAward._id }
-          : award
-      ) || [];
+      const newAwards =
+        user?.awards?.map((award) =>
+          award._id === currentAward
+            ? {
+                id: currentAward,
+                title,
+                description,
+                issuer,
+                associatedWith: associatedWith as
+                  | "academic"
+                  | "personal"
+                  | "professional",
+                date: date,
+              }
+            : award
+        ) || [];
 
-      setUser({ 
-        ...user, 
-        awards: newAwards?.map(award => ({
+      setUser({
+        ...user,
+        awards: newAwards?.map((award) => ({
           ...award,
-          date: new Date(award.date)
-        })) 
+          date: parseAbsoluteToLocal(award.date.toString()).toDate(),
+        })),
       });
     } else {
       // Add new award
       const newAwards = user?.awards || [];
       setUser({
         ...user,
-        awards: [...newAwards, { ...formData, date: new Date(formData.date) }],
+        awards: [
+          ...newAwards,
+          {
+            title,
+            description,
+            issuer,
+            associatedWith: associatedWith as
+              | "academic"
+              | "professional"
+              | "personal",
+            date: date,
+          },
+        ],
       });
     }
 
@@ -116,6 +133,12 @@ const Awards = () => {
       ...user,
       awards: awards.filter((award) => award._id !== id),
     });
+  };
+
+  const handleDateChange = (date: ZonedDateTime | null) => {
+    if (!date) return;
+    const dateObj = new Date(date.year, date.month - 1, date.day);
+    setDate(dateObj);
   };
 
   return (
@@ -180,46 +203,47 @@ const Awards = () => {
             </motion.div>
           ) : (
             <div className="grid gap-4">
-              {user?.awards && user?.awards.map((award) => (
-                <motion.div
-                  key={award._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-4 border rounded-lg"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium">{award.title}</h3>
-                      <p className="text-sm text-gray-500">
-                        {award.issuer} • {award.associatedWith}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {award.date.toString()}
-                      </p>
-                      {award.description && (
-                        <p className="mt-2">{award.description}</p>
-                      )}
+              {user?.awards &&
+                user?.awards.map((award) => (
+                  <motion.div
+                    key={award._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-4 border rounded-lg"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-medium">{award.title}</h3>
+                        <p className="text-sm text-gray-500">
+                          {award.issuer} • {award.associatedWith}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {award.date.toString()}
+                        </p>
+                        {award.description && (
+                          <p className="mt-2">{award.description}</p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          isIconOnly
+                          variant="light"
+                          onPress={() => handleOpenModal(award)}
+                        >
+                          <Edit2 size={18} />
+                        </Button>
+                        <Button
+                          isIconOnly
+                          variant="light"
+                          color="danger"
+                          onPress={() => handleDelete(award._id as string)}
+                        >
+                          <Trash2 size={18} />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        isIconOnly
-                        variant="light"
-                        onPress={() => handleOpenModal(award)}
-                      >
-                        <Edit2 size={18} />
-                      </Button>
-                      <Button
-                        isIconOnly
-                        variant="light"
-                        color="danger"
-                        onPress={() => handleDelete(award._id as string)}
-                      >
-                        <Trash2 size={18} />
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                ))}
             </div>
           )}
         </motion.div>
@@ -237,43 +261,40 @@ const Awards = () => {
                   <Input
                     label="Position Title"
                     placeholder="Enter Position Title"
-                    value={formData.title}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                     isRequired
                   />
                   <Input
                     label="Issuer/Organizer"
                     placeholder="Enter Issuer/Organizer"
-                    value={formData.issuer}
-                    onChange={(e) =>
-                      handleInputChange("issuer", e.target.value)
-                    }
+                    value={issuer}
+                    onChange={(e) => setIssuer(e.target.value)}
                     isRequired
                   />
                   <Input
                     label="Associated With"
                     placeholder="Enter Associated With"
-                    value={formData.associatedWith}
-                    onChange={(e) =>
-                      handleInputChange("associatedWith", e.target.value)
-                    }
+                    value={associatedWith}
+                    onChange={(e) => setAssociatedWith(e.target.value)}
                     isRequired
                   />
                   <div>
                     <label className="block text-sm mb-1">Issue Date</label>
-                    <DateInput
-                      value={parseDate(formData.date.toString())}
-                      onChange={(date) => handleInputChange("date", date)}
-                      maxValue={today("IST")}
+                    <DatePicker
+                      className="max-w-xs"
+                      label="Issue Date (mm/dd/yyyy)"
+                      granularity="day"
+                      maxValue={today(getLocalTimeZone())}
+                      value={parseAbsoluteToLocal(date.toISOString())}
+                      onChange={handleDateChange}
                     />
                   </div>
                   <Textarea
                     label="Description"
                     placeholder="Enter award description"
-                    value={formData.description}
-                    onChange={(e) =>
-                      handleInputChange("description", e.target.value)
-                    }
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                     minRows={3}
                   />
                 </div>

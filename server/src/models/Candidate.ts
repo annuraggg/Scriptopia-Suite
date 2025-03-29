@@ -196,6 +196,13 @@ const extraCurricularSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+const notificationSchema = new Schema({
+  message: { type: String, required: true },
+  type: { type: String, required: true },
+  read: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+});
+
 const candidateSchema = new Schema(
   {
     userId: { type: mongoose.Types.ObjectId, ref: "User" },
@@ -232,7 +239,17 @@ const candidateSchema = new Schema(
     resumeUrl: { type: String, required: false },
     resumeExtract: { type: String },
 
-    appliedPostings: [{ type: mongoose.Schema.Types.ObjectId, ref: "AppliedPosting" }],
+    appliedPostings: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "AppliedPosting" },
+    ],
+    appliedDrives: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "AppliedDrives" },
+    ],
+
+    notifications: [notificationSchema],
+
+    institute: { type: mongoose.Schema.Types.ObjectId, ref: "Institute" },
+    instituteUid: { type: String, required: false },
   },
   { timestamps: true }
 );
@@ -240,6 +257,7 @@ const candidateSchema = new Schema(
 candidateSchema.index({ email: 1 });
 candidateSchema.index({ userId: 1 });
 candidateSchema.index({ "appliedPostings.postingId": 1 });
+candidateSchema.index({ "appliedDrives.driveId": 1 });
 
 const Candidate = mongoose.model("Candidate", candidateSchema);
 export default Candidate;

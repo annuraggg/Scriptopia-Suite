@@ -6,23 +6,21 @@ import {
   TableColumn,
   TableRow,
   TableCell,
-  Tab,
-  Tabs,
-  Select,
-  SelectItem,
-} from "@nextui-org/react";
+} from "@heroui/table";
+import { Tabs, Tab } from "@heroui/tabs";
+import { Select, SelectItem } from "@heroui/select";
 import InviteModal from "./InviteModal";
-import { Breadcrumbs, BreadcrumbItem } from "@nextui-org/breadcrumbs";
-import { Member } from "@shared-types/Organization";
+import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
+import { Member } from "@shared-types/Institute";
 import {
   Modal,
   ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Button,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@heroui/modal";
+import { Button } from "@heroui/button";
 import { useOutletContext } from "react-router-dom";
 import { SettingsContext } from "@/types/SettingsContext";
 
@@ -44,18 +42,18 @@ const Members: React.FC = () => {
     onOpenChange: onRevokeConfirmOpenChange,
   } = useDisclosure();
 
-  const { organization, setOrganization, user, rerender } =
+  const { institute, setInstitute, user, rerender } =
     useOutletContext() as SettingsContext;
 
   useEffect(() => {
-    if (!organization.members) return;
-    console.log(organization.members);
+    if (!institute.members) return;
+    console.log(institute.members);
 
-    const finalMembers = organization.members.filter(
+    const finalMembers = institute.members.filter(
       (member: Member) => member.status === "active"
     );
 
-    const finalInvitedMembers = organization.members.filter(
+    const finalInvitedMembers = institute.members.filter(
       (member: Member) => member.status === "pending"
     );
 
@@ -64,36 +62,34 @@ const Members: React.FC = () => {
   }, [rerender]);
 
   const handleInvite = (newMember: Member) => {
-    const newOrganization = { ...organization };
-    newOrganization.members = [...(newOrganization.members || []), newMember];
-    setOrganization(newOrganization);
+    const newInstitute = { ...institute };
+    newInstitute.members = [...(newInstitute.members || []), newMember];
+    setInstitute(newInstitute);
     setInvitedMembers([...invitedMembers, newMember]);
   };
 
   const handleRoleChange = (index: number, newRole: string) => {
     if (!newRole) return;
-    const newOrganization = { ...organization };
-    const updatedMembers = [...(newOrganization.members || [])];
+    const newInstitute = { ...institute };
+    const updatedMembers = [...(newInstitute.members || [])];
     updatedMembers[index].role = newRole;
-    setOrganization({ ...newOrganization, members: updatedMembers });
-
-    onRemoveConfirmOpenChange();
+    setInstitute({ ...newInstitute, members: updatedMembers });
   };
 
   const removeMember = (email: string) => {
-    const newOrganization = { ...organization };
-    const updatedMembers = newOrganization.members?.filter(
+    const newInstitute = { ...institute };
+    const updatedMembers = newInstitute.members?.filter(
       (member) => member.email !== email
     );
-    setOrganization({ ...newOrganization, members: updatedMembers });
+    setInstitute({ ...newInstitute, members: updatedMembers });
   };
 
   const revokeMember = (email: string) => {
-    const newOrganization = { ...organization };
-    const updatedMembers = newOrganization.members?.filter(
+    const newInstitute = { ...institute };
+    const updatedMembers = newInstitute.members?.filter(
       (member) => member.email !== email
     );
-    setOrganization({ ...newOrganization, members: updatedMembers });
+    setInstitute({ ...newInstitute, members: updatedMembers });
 
     onRevokeConfirmOpenChange();
   };
@@ -102,7 +98,7 @@ const Members: React.FC = () => {
     <>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem>{organization?.name}</BreadcrumbItem>
+          <BreadcrumbItem>{institute?.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/members"}>Members</BreadcrumbItem>
         </Breadcrumbs>
@@ -122,8 +118,8 @@ const Members: React.FC = () => {
                   <TableRow key={member.email}>
                     <TableCell>{member.email}</TableCell>
                     <TableCell>
-                      {member?.addedOn
-                        ? new Date(member.addedOn).toLocaleDateString()
+                      {member?.createdAt
+                        ? new Date(member.createdAt).toLocaleDateString()
                         : "pending"}
                     </TableCell>
 
@@ -137,10 +133,8 @@ const Members: React.FC = () => {
                         }}
                         isDisabled={member._id === user._id}
                       >
-                        {(organization?.roles || []).map((role) => (
-                          <SelectItem key={role?.slug!} value={role?.slug}>
-                            {role.name}
-                          </SelectItem>
+                        {(institute?.roles || []).map((role) => (
+                          <SelectItem key={role?.slug!}>{role.name}</SelectItem>
                         ))}
                       </Select>
                     </TableCell>
@@ -178,8 +172,8 @@ const Members: React.FC = () => {
                   <TableRow key={index}>
                     <TableCell>{member.email}</TableCell>
                     <TableCell>
-                      {member?.addedOn
-                        ? new Date(member.addedOn).toLocaleDateString()
+                      {member?.createdAt
+                        ? new Date(member.createdAt).toLocaleDateString()
                         : "pending"}
                     </TableCell>
                     <TableCell>{member.role}</TableCell>
@@ -204,7 +198,7 @@ const Members: React.FC = () => {
           isOpen={isOpen}
           onOpenChange={onOpenChange}
           onInvite={handleInvite}
-          roles={organization?.roles || []}
+          roles={institute?.roles || []}
         />
       </div>
 

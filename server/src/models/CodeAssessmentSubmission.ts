@@ -54,7 +54,7 @@ const CodeAssessmentSubmissionsSchema = new Schema(
   {
     assessmentId: {
       type: Schema.Types.ObjectId,
-      ref: "Assessment",
+      ref: "CodeAssessment",
       required: true,
     },
     status: {
@@ -69,6 +69,7 @@ const CodeAssessmentSubmissionsSchema = new Schema(
     timer: { type: Number, required: true },
     sessionRewindUrl: { type: String, required: false },
     obtainedGrades: { type: obtainedGradeSchema, required: false },
+    reviewedBy: { type: [Schema.Types.ObjectId], ref: "User", required: false },
     cheatingStatus: {
       type: String,
       enum: ["No Copying", "Light Copying", "Heavy Copying"],

@@ -20,7 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import Sidebar from "../Sidebar";
-import { AuditLog } from "@shared-types/Organization";
+import { AuditLog } from "@shared-types/Institute";
 import { useOutletContext } from "react-router-dom";
 import { SettingsContext } from "@/types/SettingsContext";
 
@@ -33,7 +33,7 @@ const AuditLogsTable: React.FC<{ data: AuditLog[] }> = ({ data }) => {
   ]);
 
   const columns = [
-    columnHelper.accessor("date", {
+    columnHelper.accessor("createdAt", {
       header: ({ column }) => (
         <Button
           variant="ghost"
@@ -169,12 +169,12 @@ const AuditLogsTable: React.FC<{ data: AuditLog[] }> = ({ data }) => {
 const AuditLogs: React.FC = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<AuditLog[]>([]);
-  const { organization, rerender } = useOutletContext() as SettingsContext;
+  const { institute, rerender } = useOutletContext() as SettingsContext;
 
   useEffect(() => {
-    if (!organization?.auditLogs) return;
-    setAuditLogs(organization.auditLogs);
-    setFilteredLogs(organization.auditLogs);
+    if (!institute?.auditLogs) return;
+    setAuditLogs(institute.auditLogs);
+    setFilteredLogs(institute.auditLogs);
   }, [rerender]);
 
   const filterInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -226,7 +226,7 @@ const AuditLogs: React.FC = () => {
     <div>
       <div className="mt-5 ml-5">
         <Breadcrumbs>
-          <BreadcrumbItem>{organization.name}</BreadcrumbItem>
+          <BreadcrumbItem>{institute.name}</BreadcrumbItem>
           <BreadcrumbItem href={"/settings"}>Settings</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/security"}>Security</BreadcrumbItem>
           <BreadcrumbItem href={"/settings/security/audit-logs"}>

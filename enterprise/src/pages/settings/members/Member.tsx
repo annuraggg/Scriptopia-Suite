@@ -6,11 +6,9 @@ import {
   TableColumn,
   TableRow,
   TableCell,
-  Tab,
-  Tabs,
-  Select,
-  SelectItem,
-} from "@heroui/react";
+} from "@heroui/table";
+import { Tabs, Tab } from "@heroui/tabs";
+import { Select, SelectItem } from "@heroui/select";
 import InviteModal from "./InviteModal";
 import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
 import { Member } from "@shared-types/Organization";
@@ -20,9 +18,9 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Button,
   useDisclosure,
-} from "@heroui/react";
+} from "@heroui/modal";
+import { Button } from "@heroui/button";
 import { useOutletContext } from "react-router-dom";
 import { SettingsContext } from "@/types/SettingsContext";
 
@@ -120,8 +118,8 @@ const Members: React.FC = () => {
                   <TableRow key={member.email}>
                     <TableCell>{member.email}</TableCell>
                     <TableCell>
-                      {member?.addedOn
-                        ? new Date(member.addedOn).toLocaleDateString()
+                      {member?.createdAt
+                        ? new Date(member.createdAt).toLocaleDateString()
                         : "pending"}
                     </TableCell>
 
@@ -136,7 +134,7 @@ const Members: React.FC = () => {
                         isDisabled={member._id === user._id}
                       >
                         {(organization?.roles || []).map((role) => (
-                          <SelectItem key={role?.slug!} value={role?.slug}>
+                          <SelectItem key={role?.slug!}>
                             {role.name}
                           </SelectItem>
                         ))}
@@ -176,8 +174,8 @@ const Members: React.FC = () => {
                   <TableRow key={index}>
                     <TableCell>{member.email}</TableCell>
                     <TableCell>
-                      {member?.addedOn
-                        ? new Date(member.addedOn).toLocaleDateString()
+                      {member?.createdAt
+                        ? new Date(member.createdAt).toLocaleDateString()
                         : "pending"}
                     </TableCell>
                     <TableCell>{member.role}</TableCell>

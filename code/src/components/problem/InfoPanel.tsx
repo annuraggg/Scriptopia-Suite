@@ -1,4 +1,4 @@
-import { Card, Code, Spinner, Tab, Tabs } from "@nextui-org/react";
+import { Card, Code, Spinner, Tab, Tabs } from "@heroui/react";
 import { FlaskConical } from "lucide-react";
 
 interface RunResponseResult {

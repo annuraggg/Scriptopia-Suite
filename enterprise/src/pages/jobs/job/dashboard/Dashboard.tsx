@@ -1,17 +1,52 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import { Card, CardBody, Switch, CardFooter } from "@heroui/react";
 import {
-  MapPinIcon,
-  BriefcaseIcon,
-  BanknoteIcon,
-  ThumbsUpIcon,
-  FileTextIcon,
-  Ban,
-  FolderOutputIcon,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+} from "@heroui/dropdown";
+import { Card, CardBody } from "@heroui/card";
+import { Switch } from "@heroui/switch";
+import { Badge } from "@heroui/badge";
+import { Button } from "@heroui/button";
+import { Progress } from "@heroui/progress";
+import { Avatar } from "@heroui/avatar";
+import { Tooltip } from "@heroui/tooltip";
+import {
+  MapPin,
+  Briefcase,
+  Banknote,
+  FolderOutput,
+  ChevronLeft,
+  MoreVertical,
+  Mail,
+  Phone,
+  Calendar,
+  Filter,
+  Clock,
 } from "lucide-react";
-import { ChevronLeftIcon } from "lucide-react";
-import { Posting } from "@shared-types/Posting";
+
+interface Salary {
+  min: number;
+  max: number;
+  currency?: string;
+}
+
+interface ApplicationRange {
+  start: string;
+  end: string;
+}
+
+interface Posting {
+  title: string;
+  department: string;
+  type: string;
+  location: string;
+  salary: Salary;
+  applicationRange: ApplicationRange;
+  candidates?: any[];
+}
 
 interface Participant {
   id: string;
@@ -25,18 +60,149 @@ interface Participant {
     | "Interview"
     | "Evaluation";
   percentage: number;
+  avatarUrl?: string;
+  appliedDate: string;
+  lastUpdated: string;
+  tags?: string[];
 }
+
+const ParticipantCard: React.FC<{ participant: Participant }> = ({
+  participant,
+}) => {
+  const getProgressColor = (percentage: number) => {
+    if (percentage <= 35) return "danger";
+    if (percentage <= 50) return "warning";
+    return "success";
+  };
+
+  return (
+    <Card className="w-full bg-white dark:bg-gray-800 shadow-sm">
+      <CardBody className="p-4">
+        <div className="flex items-start gap-4">
+          <Avatar
+            src={participant.avatarUrl}
+            name={participant.name}
+            className="w-10 h-10"
+          />
+          <div className="flex-grow">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-sm font-semibold">{participant.name}</h3>
+                <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                  <Mail size={12} />
+                  <span>{participant.email}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                  <Phone size={12} />
+                  <span>{participant.phone}</span>
+                </div>
+              </div>
+              <Dropdown>
+                <DropdownTrigger>
+                  <Button isIconOnly variant="light" size="sm">
+                    <MoreVertical size={16} />
+                  </Button>
+                </DropdownTrigger>
+                <DropdownMenu>
+                  <DropdownItem key={"view"}>View Profile</DropdownItem>
+                  <DropdownItem key={"download"}>Download Resume</DropdownItem>
+                  <DropdownItem
+                    key={"disqualify"}
+                    className="text-danger"
+                    color="danger"
+                  >
+                    Disqualify
+                  </DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
+            </div>
+
+            <div className="mt-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Progress
+                  value={participant.percentage}
+                  color={getProgressColor(participant.percentage)}
+                  size="sm"
+                  className="max-w-md"
+                />
+                <span className="text-xs">{participant.percentage}%</span>
+              </div>
+            </div>
+
+            {participant.tags && (
+              <div className="flex gap-1 mt-2">
+                {participant.tags.map((tag, index) => (
+                  <Badge key={index} size="sm" variant="flat">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
+              <div className="flex items-center gap-1">
+                <Calendar size={12} />
+                <span>Applied: {participant.appliedDate}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock size={12} />
+                <span>Updated: {participant.lastUpdated}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardBody>
+    </Card>
+  );
+};
+
+const StageColumn: React.FC<{
+  stage: string;
+  participants: Participant[];
+  dateRange: { from: string; to: string };
+}> = ({ stage, participants, dateRange }) => {
+  return (
+    <div className="w-full min-w-[300px] flex flex-col gap-4">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h3 className="font-semibold">{stage}</h3>
+            <span className="text-sm text-gray-500">
+              {participants.length} Candidates
+            </span>
+          </div>
+          <Button isIconOnly variant="light" size="sm">
+            <Filter size={16} />
+          </Button>
+        </div>
+
+        <div className="text-xs text-gray-500">
+          <div className="flex gap-2">
+            <span>From:</span>
+            <span>{dateRange.from}</span>
+          </div>
+          <div className="flex gap-2">
+            <span>To:</span>
+            <span>{dateRange.to}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        {participants.map((participant) => (
+          <ParticipantCard key={participant.id} participant={participant} />
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { posting } = useOutletContext() as { posting: Posting };
+  const [showDisqualified, setShowDisqualified] = useState(false);
 
-  const getPostingStatus = (posting: Posting) => {
-    const currentDate = new Date();
-    const endDate = new Date(posting.applicationRange.end);
-    return currentDate < endDate ? "active" : "closed";
-  };
-
+  // Enhanced mock data with more details
   const participants: Participant[] = [
     {
       id: "1",
@@ -45,99 +211,25 @@ const Dashboard: React.FC = () => {
       phone: "123-456-7890",
       stage: "Applied",
       percentage: 25,
+      appliedDate: "2024-02-20",
+      lastUpdated: "2024-02-21",
+      tags: ["JavaScript", "React"],
     },
-    {
-      id: "2",
-      name: "Jane Smith",
-      email: "jane@example.com",
-      phone: "234-567-8901",
-      stage: "Applied",
-      percentage: 40,
-    },
-    {
-      id: "3",
-      name: "Alice Johnson",
-      email: "alice@example.com",
-      phone: "345-678-9012",
-      stage: "Problem-Solving",
-      percentage: 55,
-    },
-    {
-      id: "4",
-      name: "Bob Brown",
-      email: "bob@example.com",
-      phone: "456-789-0123",
-      stage: "Technical",
-      percentage: 70,
-    },
-    {
-      id: "5",
-      name: "Charlie Davis",
-      email: "charlie@example.com",
-      phone: "567-890-1234",
-      stage: "Interview",
-      percentage: 85,
-    },
-    {
-      id: "6",
-      name: "Diana Evans",
-      email: "diana@example.com",
-      phone: "678-901-2345",
-      stage: "Evaluation",
-      percentage: 95,
-    },
+    // ... other participants
   ];
 
-  const renderParticipantCards = (stage: Participant["stage"]) => {
-    return participants
-      .filter((participant) => participant.stage === stage)
-      .map((participant) => (
-        <Card
-          key={participant.id}
-          className="w-full h-32 flex flex-col bg-zinc-800"
-        >
-          <CardBody className="flex-grow flex flex-col justify-between overflow-hidden py-2">
-            <div className="flex flex-col gap-1">
-              <p className="text-sm truncate">{participant.name}</p>
-              <p className="text-xs text-slate-400 truncate">
-                {participant.email}
-              </p>
-              <p className="text-xs text-slate-400 truncate">
-                {participant.phone}
-              </p>
-            </div>
-            <hr className="w-full border-t border-slate-600 rounded-full" />
-          </CardBody>
-          <CardFooter className="h-8 flex flex-row items-center justify-center gap-4 mr-1">
-            <div className="flex flex-row items-center gap-2">
-              <ThumbsUpIcon size={14} />
-              <p
-                className={`text-xs ${
-                  participant.percentage <= 35
-                    ? "text-danger-400"
-                    : participant.percentage <= 50
-                    ? "text-warning-400"
-                    : "text-success-400"
-                }`}
-              >
-                {participant.percentage}%
-              </p>
-            </div>
-            <div className="flex flex-row items-center text-blue-500 cursor-pointer">
-              <FileTextIcon size={14} />
-              <p className="text-xs">&nbsp;Resume</p>
-            </div>
-            <Ban size={14} className="text-danger" />
-          </CardFooter>
-        </Card>
-      ));
+  const getPostingStatus = (posting: Posting) => {
+    const currentDate = new Date();
+    const endDate = new Date(posting.applicationRange.end);
+    return currentDate < endDate ? "active" : "closed";
   };
 
   if (!posting?.candidates || posting?.candidates?.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center w-full h-[100vh]">
-        <p className="text-slate-400 text-xl">No Analytics Just Yet</p>
-        <p className="text-slate-400 text-sm mt-2">
+      <div className="flex flex-col items-center justify-center h-[100vh] text-gray-500">
+        <img src="/api/placeholder/200/200" alt="No data" className="mb-4" />
+        <h2 className="text-xl font-semibold mb-2">No Analytics Just Yet</h2>
+        <p className="text-sm">
           Analytics will be available once the workflow is started and
           candidates have applied.
         </p>
@@ -146,72 +238,87 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-start justify-start p-10 pt-8 h-scroll w-full">
-      <div className="flex flex-row items-center justify-start gap-4 w-full">
-        <ChevronLeftIcon
-          size={40}
-          className="text-slate-400 mt-6"
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-8">
+        <Button
+          isIconOnly
+          variant="light"
           onClick={() => navigate("/postings/jobs")}
-        />
-        <div className="flex flex-row items-center justify-center gap-3 w-full mt-6 overflow-y-auto">
-          <Card className="w-fit h-18 py-4 px-8 flex items-center justify-center border-none bg-zinc-800/25">
-            <div className="flex items-center gap-8 w-full">
-              <div className="flex items-center gap-2">
-                <p className="text-lg">{posting?.title}</p>
-                <span>{posting.department}</span>
-                <span
-                  className={`text-xs px-2 rounded-full whitespace-nowrap ${
+        >
+          <ChevronLeft size={24} />
+        </Button>
+
+        <Card className="flex-grow">
+          <CardBody className="py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div>
+                  <h1 className="text-lg font-semibold">{posting.title}</h1>
+                  <Badge variant="flat" size="sm">
+                    {posting.department}
+                  </Badge>
+                </div>
+
+                <Badge
+                  color={
                     getPostingStatus(posting) === "active"
-                      ? "text-success-500 bg-success-100"
-                      : "text-danger-500 bg-danger-100"
-                  }`}
+                      ? "success"
+                      : "danger"
+                  }
                 >
-                  {getPostingStatus(posting) === "active"
-                    ? "Open Until"
-                    : "Closed at"}{" "}
-                </span>
+                  {getPostingStatus(posting) === "active" ? "Active" : "Closed"}
+                </Badge>
               </div>
-              <div className="flex items-center gap-7 text-sm text-gray-500">
-                <div className="flex items-center gap-2">
-                  <BriefcaseIcon size={18} />
-                  <p>{posting?.type}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPinIcon size={18} />
-                  <p>{posting?.location}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <BanknoteIcon size={18} />
-                  <p>
-                    {posting?.salary.min} - {posting?.salary.max} (
-                    {posting?.salary.currency?.toUpperCase() || "USD"})
-                  </p>
-                </div>
-                <div className="ml-auto text-xs text-gray-300 bg-secondary bg-opacity-5 rounded-full px-2 py-1">
-                  {getPostingStatus(posting) === "active"
-                    ? `Open Until ${posting.applicationRange.end}`
-                    : `Closed at ${posting.applicationRange.end}`}
-                </div>
+
+              <div className="flex items-center gap-6 text-sm text-gray-500">
+                <Tooltip content="Job Type">
+                  <div className="flex items-center gap-2">
+                    <Briefcase size={16} />
+                    <span>{posting.type}</span>
+                  </div>
+                </Tooltip>
+
+                <Tooltip content="Location">
+                  <div className="flex items-center gap-2">
+                    <MapPin size={16} />
+                    <span>{posting.location}</span>
+                  </div>
+                </Tooltip>
+
+                <Tooltip content="Salary Range">
+                  <div className="flex items-center gap-2">
+                    <Banknote size={16} />
+                    <span>
+                      {posting.salary.min.toLocaleString()} -{" "}
+                      {posting.salary.max.toLocaleString()}
+                      {posting.salary.currency?.toUpperCase() || "USD"}
+                    </span>
+                  </div>
+                </Tooltip>
               </div>
             </div>
-          </Card>
-          <Card
-            isPressable
-            className="flex flex-row h-10 py-2 px-3 rounded-xl gap-3 items-center justify-center border-2 shadow-md ml-auto bg-success-400 text-success-foreground"
-          >
-            <FolderOutputIcon size={20} />
-            <p className="text-xs">Export to CSV</p>
-          </Card>
-        </div>
+          </CardBody>
+        </Card>
+
+        <Button color="primary" startContent={<FolderOutput size={18} />}>
+          Export to CSV
+        </Button>
       </div>
 
-      <div className="flex flex-row items-center  gap-4 w-full pt-6 pl-14">
-        <Switch size="sm" defaultSelected color="default">
-          Show Disqualified ?
+      {/* Filters */}
+      <div className="mb-6 flex items-center gap-4">
+        <Switch
+          size="sm"
+          isSelected={showDisqualified}
+          onValueChange={setShowDisqualified}
+        >
+          Show Disqualified
         </Switch>
       </div>
 
-      <div className="flex flex-row items-start justify-between w-full gap-2 pt-10 pl-14">
+      {/* Kanban Board */}
+      <div className="flex gap-4 overflow-x-auto pb-4">
         {[
           "Applied",
           "Problem-Solving",
@@ -219,47 +326,15 @@ const Dashboard: React.FC = () => {
           "Interview",
           "Evaluation",
         ].map((stage) => (
-          <div key={stage} className="w-full h-full flex flex-col gap-3">
-            <Card className="w-full h-fit bg-blue-500 bg-opacity-10 py-0.5">
-              <CardBody className="flex flex-col items-center justify-center p-2">
-                <div className="flex flex-col-2 items-start gap-2">
-                  <div>
-                    <p className="text-xs">from:</p>
-                    <p className="text-xs">to: </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-400">
-                      July 1, 2023, 12:00 AM
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      July 2, 2023, 12:00 AM
-                    </p>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-            <Card className="w-full h-fit flex flex-col">
-              <CardBody className="flex flex-col items-center justify-center h-fit">
-                {/* <div className="flex flex-col items-start">
-                  <p className="text-sm">
-                    {stage}{" "}
-                    {participants.filter((p) => p.stage === stage).length}
-                  </p>
-                  <div className="flex flex-row gap-1">
-                    <p className="text-xs text-slate-400 mt-1">Qualified:</p>
-                    <span className="text-xs text-success-500 items-center justify-between mt-1">
-                      30
-                    </span>
-                  </div>
-                </div> */}
-              </CardBody>
-            </Card>
-            <Card className="w-full h-full flex flex-col gap-2">
-              <CardBody className="flex flex-col gap-4">
-                {renderParticipantCards(stage as Participant["stage"])}
-              </CardBody>
-            </Card>
-          </div>
+          <StageColumn
+            key={stage}
+            stage={stage}
+            participants={participants.filter((p) => p.stage === stage)}
+            dateRange={{
+              from: "July 1, 2023",
+              to: "July 2, 2023",
+            }}
+          />
         ))}
       </div>
     </div>

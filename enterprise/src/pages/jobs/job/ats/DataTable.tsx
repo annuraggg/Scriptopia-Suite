@@ -1,85 +1,74 @@
+import React, { useEffect, useMemo } from "react";
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  SortingState,
-  useReactTable,
-} from "@tanstack/react-table";
-
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+} from "@heroui/dropdown";
 import {
+  Selection,
   Table,
   TableBody,
   TableCell,
-  TableHead,
+  TableColumn,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-
-import {
-  ArrowUpDown,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Download,
-  X,
-  UserCheck,
-  UserX,
-  Users,
-} from "lucide-react";
-import { Tooltip } from "@heroui/tooltip";
-import { Button, Checkbox, Input } from "@heroui/react";
+} from "@heroui/table";
+import { Download, UserCheck, UserX, Users } from "lucide-react";
+import { Input } from "@heroui/input";
+import { Button } from "@heroui/button";
 import { useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useOutletContext } from "react-router-dom";
 import { Posting } from "@shared-types/Posting";
+import { IconChevronDown, IconMenu2 } from "@tabler/icons-react";
+import { Pagination } from "@heroui/pagination";
 
-interface DataTableProps<TData> {
-  data: TData[];
-  postingId: string;
-  matchThreshold: number;
-  stepNo: number;
-  setData: (data: TData[]) => void;
+export interface CandidateTable {
+  _id: string;
+  name: string;
+  email: string;
+  received: string;
+  match: string;
+  status: string;
 }
 
-export function DataTable<TData>({
-  data,
-  postingId,
-  matchThreshold = 0,
-  stepNo,
-  setData,
-}: DataTableProps<TData>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [pageIndex, setPageIndex] = useState(0);
+interface DataTableProps {
+  data: CandidateTable[];
+  setData: React.Dispatch<React.SetStateAction<CandidateTable[]>>;
+}
 
-  interface Candidates {
-    _id: string;
-    name: string;
-    email: string;
-    received: string;
-    match: string;
-    status: string;
-    currentStepStatus: string;
-  }
+const rowsPerPage = 7;
 
+const DataTableNew = ({ data: vanillaData }: DataTableProps) => {
+  const [selectedRows, setSelectedRows] = useState<Selection>(
+    new Set<string>()
+  );
+  const [page, setPage] = useState(1);
+  const [data, setData] = useState<CandidateTable[]>([]);
+
+  useEffect(() => {
+    setData(vanillaData);
+  }, [vanillaData]);
+
+  const pages = Math.ceil(data.length / rowsPerPage);
   const { getToken } = useAuth();
   const axios = ax(getToken);
   const { posting } = useOutletContext() as { posting: Posting };
 
-  const currentStep = posting.workflow?.steps?.findIndex(
-    (step) => !step.completed
-  );
+  const items = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    return data.slice(start, end);
+  }, [page, data]);
 
   const downloadResume = (_id: string) => {
     axios
-      .post("candidates/resume/download", { candidateId: _id, postingId })
-      .then((res) => window.open(res.data.data, "_blank"))
+      .get(`postings/candidate/${_id}/resume`)
+      .then((res) => window.open(res.data.data.url, "_blank"))
       .catch((err) => {
         toast.error(err.response.data.message || "Failed to download resume");
         console.error(err);
@@ -87,71 +76,66 @@ export function DataTable<TData>({
   };
 
   const disqualify = (_id: string) => {
-    const newData = [...data] as Candidates[];
+    const newData = [...data] as CandidateTable[];
     const index = newData.findIndex((c) => c._id === _id);
-    newData[index].currentStepStatus = "disqualified";
-    setData(newData as TData[]);
+    newData[index].status = "rejected";
+    setData(newData);
 
     axios
-      .post("candidates/resume/disqualify", {
-        candidateId: _id,
-        postingId,
+      .put("postings/candidate/disqualify", {
+        _id: _id,
+        postingId: posting?._id,
       })
-
       .catch((err) => {
         toast.error(
           err.response.data.message || "Failed to disqualify candidate"
         );
         console.error(err);
 
-        const newData = [...data] as Candidates[];
+        const newData = [...data] as CandidateTable[];
         const index = newData.findIndex((c) => c._id === _id);
-        newData[index].currentStepStatus = "pending";
-        setData(newData as TData[]);
+        newData[index].status = "pending";
+        setData(newData);
       });
   };
 
   const selectCand = (_id: string) => {
-    const newData = [...data] as Candidates[];
+    const newData = [...data] as CandidateTable[];
     const index = newData.findIndex((c) => c._id === _id);
-    newData[index].currentStepStatus = "qualified";
-    setData(newData as TData[]);
+    newData[index].status = "inprogress";
+    setData(newData);
 
     axios
-      .post("candidates/resume/qualify", {
-        candidateId: _id,
-        postingId,
+      .put("postings/candidate/qualify", {
+        _id: _id,
+        postingId: posting?._id,
       })
       .catch((err) => {
         toast.error(err.response.data.message || "Failed to select candidate");
         console.error(err);
 
-        const newData = [...data] as Candidates[];
+        const newData = [...data] as CandidateTable[];
         const index = newData.findIndex((c) => c._id === _id);
-        newData[index].currentStepStatus = "pending";
-        setData(newData as TData[]);
+        newData[index].status = "pending";
+        setData(newData);
       });
   };
 
   const disqualifyAllSelected = () => {
-    const selectedIds = table
-      .getSelectedRowModel()
-      .rows.map((row) => (row.original as Candidates)._id);
-
-    // Optimistically update the state
-    const newData = [...data] as Candidates[];
+    const selectedIds = Array.from(selectedRows);
+    const newData = [...data] as CandidateTable[];
     selectedIds.forEach((id) => {
       const index = newData.findIndex((c) => c._id === id);
       if (index !== -1) {
-        newData[index].currentStepStatus = "disqualified";
+        newData[index].status = "rejected";
       }
     });
-    setData(newData as TData[]);
+    setData(newData);
 
     axios
-      .post("candidates/resume/disqualify/bulk", {
+      .put("postings/candidate/disqualify/bulk", {
         candidateIds: selectedIds,
-        postingId,
+        postingId: posting?._id,
       })
       .then(() => {
         toast.success("Selected candidates disqualified successfully");
@@ -163,37 +147,33 @@ export function DataTable<TData>({
         );
         console.error(err);
 
-        // Revert the optimistic update if the API call fails
-        const revertedData = [...data] as Candidates[];
+        const revertedData = [...data] as CandidateTable[];
         selectedIds.forEach((id) => {
           const index = revertedData.findIndex((c) => c._id === id);
           if (index !== -1) {
-            revertedData[index].currentStepStatus = "pending"; // or any other original status
+            revertedData[index].status = "pending";
           }
         });
-        setData(revertedData as TData[]);
+        setData(revertedData);
       });
   };
 
   const qualifyAllSelected = () => {
-    const selectedIds = table
-      .getSelectedRowModel()
-      .rows.map((row) => (row.original as Candidates)._id);
+    const selectedIds = Array.from(selectedRows);
 
-    // Optimistically update the state
-    const newData = [...data] as Candidates[];
+    const newData = [...data] as CandidateTable[];
     selectedIds.forEach((id) => {
       const index = newData.findIndex((c) => c._id === id);
       if (index !== -1) {
-        newData[index].currentStepStatus = "qualified";
+        newData[index].status = "inprogress";
       }
     });
-    setData(newData as TData[]);
+    setData(newData);
 
     axios
-      .post("candidates/resume/qualify/bulk", {
+      .put("postings/candidate/qualify/bulk", {
         candidateIds: selectedIds,
-        postingId,
+        postingId: posting?._id,
       })
       .then(() => {
         toast.success("Selected candidates qualified successfully");
@@ -204,287 +184,198 @@ export function DataTable<TData>({
         );
         console.error(err);
 
-        // Revert the optimistic update if the API call fails
-        const revertedData = [...data] as Candidates[];
+        const revertedData = [...data] as CandidateTable[];
         selectedIds.forEach((id) => {
           const index = revertedData.findIndex((c) => c._id === id);
           if (index !== -1) {
-            revertedData[index].currentStepStatus = "pending"; // or any other original status
+            revertedData[index].status = "pending";
           }
         });
-        setData(revertedData as TData[]);
+        setData(revertedData);
       });
   };
 
   const selectAllAboveThreshold = () => {
-    table.toggleAllRowsSelected(false);
-    table.getFilteredRowModel().rows.forEach((row) => {
-      if (parseFloat((row.original as Candidates).match) > matchThreshold) {
-        row.toggleSelected(true);
+    const threshold = posting?.ats?.minimumScore || 0;
+    const newData = [...data] as CandidateTable[];
+    const newSelect = new Set(selectedRows);
+    newData.forEach((c) => {
+      if (parseInt(c.match) >= threshold) {
+        newSelect.add(c._id);
       }
     });
+    setSelectedRows(newSelect);
   };
 
-  const columns: ColumnDef<Candidates>[] = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          isSelected={
-            (table.getIsAllPageRowsSelected() as boolean) ||
-            table.getIsSomePageRowsSelected()
-          }
-          onValueChange={(value) => table.toggleAllPageRowsSelected(value)}
-          aria-label="Select all"
-          isDisabled={currentStep !== stepNo}
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          isSelected={row.getIsSelected()}
-          onValueChange={(value) => row.toggleSelected(value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      accessorKey: "name",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Name
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-    },
-    {
-      accessorKey: "email",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Email
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-    },
-    {
-      accessorKey: "received",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Received On
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-    },
-    {
-      accessorKey: "match",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Match
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-    },
-    {
-      accessorKey: "currentStepStatus",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="light"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Status
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        const _id = row.original._id;
-        return (
-          <div>
-            <Tooltip content="Select">
-              <Button
-                isIconOnly
-                variant="flat"
-                color="success"
-                className="ml-3"
-                onClick={() => selectCand(_id)}
-                isDisabled={
-                  currentStep !== stepNo ||
-                  row.original.currentStepStatus === "qualified"
-                }
-              >
-                <Check />
-              </Button>
-            </Tooltip>
-
-            <Tooltip content="Disqualify">
-              <Button
-                isIconOnly
-                variant="flat"
-                color="danger"
-                className="ml-3"
-                onClick={() => disqualify(_id)}
-                isDisabled={
-                  currentStep !== stepNo ||
-                  row.original.currentStepStatus === "disqualified"
-                }
-              >
-                <X />
-              </Button>
-            </Tooltip>
-
-            <Tooltip content="Download Resume">
-              <Button
-                isIconOnly
-                variant="flat"
-                color="warning"
-                className="ml-3"
-                onClick={() => downloadResume(_id)}
-              >
-                <Download />
-              </Button>
-            </Tooltip>
-          </div>
-        );
-      },
-    },
-  ];
-
-  const table = useReactTable({
-    data, // @ts-expect-error - data is not assignable to type TData[]
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    state: {
-      sorting,
-      columnFilters,
-      pagination: { pageSize: 10, pageIndex: pageIndex },
-    },
-  });
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "inprogress":
+        return "bg-blue-100 text-blue-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
 
   return (
-    <div className="rounded-md">
-      <div className="flex items-center gap-5 flex-wrap">
-        <div className="flex items-center justify-end space-x-2 py-4">
+    <div className="rounded-lg space-y-4">
+      <div className="flex items-center justify-between gap-4 mb-5 flex-wrap">
+        <Input
+          placeholder="Filter by email..."
+          className="w-full max-w-xs"
+          onChange={(e) => {
+            const value = e.target.value;
+            if (!value) {
+              setData(vanillaData);
+              return;
+            }
+            const newData = vanillaData.filter((d) =>
+              d.email.toLowerCase().includes(value.toLowerCase())
+            );
+            setData(newData);
+          }}
+        />
+
+        <div className="flex items-center space-x-2">
+          <Dropdown>
+            <DropdownTrigger>
+              <Button variant="bordered" className="flex items-center gap-2">
+                Bulk Actions <IconChevronDown size={16} />
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu>
+              <DropdownItem
+                key="qualify"
+                onPress={qualifyAllSelected}
+                className="text-green-600 hover:bg-green-50"
+              >
+                Qualify Selected
+              </DropdownItem>
+              <DropdownItem
+                key="disqualify"
+                onPress={disqualifyAllSelected}
+                className="text-red-600 hover:bg-red-50"
+              >
+                Disqualify Selected
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+
           <Button
-            onClick={() => setPageIndex(pageIndex - 1)}
-            isDisabled={!table.getCanPreviousPage()}
-            isIconOnly
+            variant="bordered"
+            onPress={selectAllAboveThreshold}
+            className="flex items-center gap-2"
           >
-            <ChevronLeft />
-          </Button>
-          <Button
-            onClick={() => setPageIndex(pageIndex + 1)}
-            isDisabled={!table.getCanNextPage()}
-            isIconOnly
-          >
-            <ChevronRight />
+            <Users size={16} />
+            Select Above {posting?.ats?.minimumScore}%
           </Button>
         </div>
-        <Input
-          placeholder="Filter emails..."
-          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("email")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-          isDisabled={currentStep !== stepNo}
-        />
-        <Button
-          onClick={disqualifyAllSelected}
-          color="danger"
-          isDisabled={currentStep !== stepNo}
-        >
-          <UserX className="mr-2 h-4 w-4" />
-          Disqualify Selected
-        </Button>
-        <Button
-          onClick={qualifyAllSelected}
-          color="success"
-          isDisabled={currentStep !== stepNo}
-        >
-          <UserCheck className="mr-2 h-4 w-4" />
-          Qualify Selected
-        </Button>
-        <Button
-          onClick={selectAllAboveThreshold}
-          color="primary"
-          isDisabled={currentStep !== stepNo}
-        >
-          <Users className="mr-2 h-4 w-4" />
-          Select All Above {matchThreshold}%
-        </Button>
       </div>
-      <Table className="mt-5">
+
+      <Table
+        selectionMode="multiple"
+        removeWrapper
+        className="w-full"
+        onSelectionChange={setSelectedRows}
+        selectedKeys={selectedRows}
+        bottomContent={
+          <div className="flex justify-center mt-4">
+            <Pagination
+              isCompact
+              showControls
+              color="secondary"
+              page={page}
+              total={pages}
+              onChange={(page) => setPage(page)}
+            />
+          </div>
+        }
+      >
         <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                );
-              })}
-            </TableRow>
-          ))}
+          <TableColumn className="text-left">Name</TableColumn>
+          <TableColumn className="text-left">Email</TableColumn>
+          <TableColumn className="text-right">Received On</TableColumn>
+          <TableColumn className="text-right">JD Match %</TableColumn>
+          <TableColumn className="text-left">Status</TableColumn>
+          <TableColumn className="text-center">Actions</TableColumn>
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+          {items?.map((row) => (
+            <TableRow
+              key={row._id}
+              className="hover:bg-gray-50 transition-colors"
+            >
+              <TableCell className="font-medium text-gray-900">
+                {row.name}
+              </TableCell>
+              <TableCell className="text-gray-600">{row.email}</TableCell>
+              <TableCell className="text-right text-gray-600">
+                {row.received}
+              </TableCell>
+              <TableCell className="text-right font-semibold text-gray-800">
+                {row.match}%
+              </TableCell>
+              <TableCell>
+                <span
+                  className={`
+                  px-2 py-1 rounded-full text-xs font-medium capitalize
+                  ${getStatusColor(row.status)}
+                `}
+                >
+                  {row.status}
+                </span>
+              </TableCell>
+              <TableCell className="text-center">
+                <Dropdown>
+                  <DropdownTrigger>
+                    <Button
+                      variant="light"
+                      size="sm"
+                      isIconOnly
+                      className="hover:bg-gray-100"
+                    >
+                      <IconMenu2 size={16} />
+                    </Button>
+                  </DropdownTrigger>
+                  <DropdownMenu>
+                    {row.status !== "inprogress" ? (
+                      <DropdownItem
+                        key="qualify"
+                        onPress={() => selectCand(row._id)}
+                        startContent={<UserCheck size={16} />}
+                        className="text-green-600 hover:bg-green-50"
+                      >
+                        Qualify Candidate
+                      </DropdownItem>
+                    ) : null}
+                    {row.status !== "rejected" ? (
+                      <DropdownItem
+                        key="disqualify"
+                        onPress={() => disqualify(row._id)}
+                        startContent={<UserX size={16} />}
+                        className="text-red-600 hover:bg-red-50"
+                      >
+                        Disqualify Candidate
+                      </DropdownItem>
+                    ) : null}
+                    <DropdownItem
+                      key="download"
+                      onPress={() => downloadResume(row._id)}
+                      startContent={<Download size={16} />}
+                      className="text-blue-600 hover:bg-blue-50"
+                    >
+                      Download Resume
+                    </DropdownItem>
+                  </DropdownMenu>
+                </Dropdown>
               </TableCell>
             </TableRow>
-          )}
+          ))}
         </TableBody>
       </Table>
     </div>
   );
-}
+};
+
+export default DataTableNew;

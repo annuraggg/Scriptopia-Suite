@@ -6,7 +6,7 @@ import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
 import { useSelector } from "react-redux";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { Spinner } from "@heroui/react";
+import { Spinner } from "@heroui/spinner";
 
 interface Candidate {
   _id: string;

@@ -76,7 +76,7 @@ const General = () => {
             <Image src={institute.logo} width={200} height={200} />
           ) : (
             <p className="mt-5 text-center text-sm opacity-50">
-              No Logo. Upload one to make your organization look better.
+              No Logo. Upload one to make your institute look better.
             </p>
           )}
           <input

@@ -37,6 +37,7 @@ const Education = () => {
     current: false,
     percentage: 0,
   });
+
   const [isEditing, setIsEditing] = useState(false);
 
   // Add state for branch modal
@@ -57,6 +58,32 @@ const Education = () => {
   const programs = ["B.E.", "B.Tech", "Diploma", "HSC", "SSC"];
 
   const educationTypes = ["Full Time", "Part Time", "Distance Learning"];
+
+  const getParsedType = (type: string) => {
+    switch (type) {
+      case "Full Time":
+        return "fulltime";
+      case "Part Time":
+        return "parttime";
+      case "Distance Learning":
+        return "distance";
+      default:
+        return type;
+    }
+  };
+
+  const getFormattedType = (str: string) => {
+    switch (str) {
+      case "fulltime":
+        return "Full Time";
+      case "parttime":
+        return "Part Time";
+      case "distance":
+        return "Distance Learning";
+      default:
+        return str;
+    }
+  };
 
   const handleAddBranch = () => {
     if (newBranch.trim()) {
@@ -213,7 +240,10 @@ const Education = () => {
                     }
                   >
                     {educationTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
+                      <SelectItem
+                        key={getParsedType(type)}
+                        value={getParsedType(type)}
+                      >
                         {type}
                       </SelectItem>
                     ))}
@@ -424,7 +454,7 @@ const Education = () => {
                       <span className="text-default-500 text-sm">
                         Education Type:
                       </span>
-                      <p>{edu.type}</p>
+                      <p>{getFormattedType(edu.type)}</p>
                     </div>
                   </div>
                   <div>

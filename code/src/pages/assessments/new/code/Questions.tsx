@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardHeader, Chip, Spinner } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Chip, Spinner } from "@heroui/react";
 import {
   Sheet,
   SheetContent,

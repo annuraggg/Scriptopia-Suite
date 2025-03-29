@@ -11,10 +11,15 @@ import {
   ModalFooter,
   useDisclosure,
   Checkbox,
+  DatePicker,
 } from "@nextui-org/react";
-import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
-import { parseDate, today } from "@internationalized/date";
+import {
+  getLocalTimeZone,
+  parseAbsoluteToLocal,
+  today,
+  ZonedDateTime,
+} from "@internationalized/date";
 import { Plus, Edit2, Trash, FileBadge2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -28,52 +33,78 @@ const Certificates = () => {
     setUser: (user: Candidate) => void;
   };
 
-  const [currentCertificate, setCurrentCertificate] = useState<Certificate>(
-    {} as Certificate
-  );
-  const [isEditing, setIsEditing] = useState(false);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [editId, setEditId] = useState<string | null>(null);
 
-  const initialCertificate: Certificate = {
-    title: "",
-    issuer: "",
-    url: "",
-    licenseNumber: "",
-    issueDate: today("IST").toDate("IST"),
-    doesExpire: false,
-    hasScore: false,
-    description: "",
-  };
+  // Modal Handlers
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [title, setTitle] = useState("");
+  const [issuer, setIssuer] = useState("");
+  const [url, setUrl] = useState<string | null>("");
+  const [licenseNumber, setLicenseNumber] = useState<string | null>("");
+  const [issueDate, setIssueDate] = useState(
+    today(getLocalTimeZone()).toDate(getLocalTimeZone())
+  );
+  const [doesExpire, setDoesExpire] = useState(false);
+  const [hasScore, setHasScore] = useState(false);
+  const [description, setDescription] = useState("");
 
   const handleOpen = (certificate?: Certificate) => {
     if (certificate) {
-      setCurrentCertificate(certificate);
-      setIsEditing(true);
+      setTitle(certificate.title);
+      setIssuer(certificate.issuer);
+      setUrl(certificate.url || null);
+      setLicenseNumber(certificate.licenseNumber || null);
+      setIssueDate(new Date(certificate.issueDate));
+      setDoesExpire(certificate.doesExpire);
+      setHasScore(certificate.hasScore);
+      setDescription(certificate.description);
+      setEditId(certificate._id || null);
     } else {
-      setCurrentCertificate({
-        ...initialCertificate,
-        _id: crypto.randomUUID(),
-      });
-      setIsEditing(false);
+      setTitle("");
+      setIssuer("");
+      setUrl(null);
+      setLicenseNumber(null);
+      setIssueDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
+      setDoesExpire(false);
+      setHasScore(false);
+      setDescription("");
+      setEditId(null);
     }
     onOpen();
   };
 
   const handleClose = () => {
-    setCurrentCertificate({} as Certificate);
-    setIsEditing(false);
+    setTitle("");
+    setIssuer("");
+    setUrl(null);
+    setLicenseNumber(null);
+    setIssueDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
+    setDoesExpire(false);
+    setHasScore(false);
+    setDescription("");
+    setEditId(null);
     onClose();
   };
 
   const handleSave = () => {
-    if (!currentCertificate) return;
-
-    if (!currentCertificate.title || !currentCertificate.issuer) {
-      toast.error("Please fill in all required fields");
+    if (!title || !issuer) {
+      toast.error("Please fill all required fields");
       return;
     }
 
-    if (isEditing) {
+    const currentCertificate: Certificate = {
+      _id: editId || undefined,
+      title,
+      issuer,
+      url: url || undefined,
+      licenseNumber: licenseNumber || undefined,
+      issueDate,
+      doesExpire,
+      hasScore,
+      description,
+    };
+
+    if (editId) {
       const newCertificates = user?.certificates?.map((cert) =>
         cert._id === currentCertificate._id ? currentCertificate : cert
       );
@@ -93,6 +124,12 @@ const Certificates = () => {
       (cert) => cert._id !== id
     );
     setUser({ ...user, certificates: newCertificates });
+  };
+
+  const handleDateChange = (date: ZonedDateTime | null) => {
+    if (!date) return;
+    const dateObj = new Date(date.year, date.month - 1, date.day);
+    setIssueDate(dateObj);
   };
 
   return (
@@ -206,87 +243,53 @@ const Certificates = () => {
           {() => (
             <>
               <ModalHeader>
-                {isEditing ? "Edit Certification" : "Add New Certification"}
+                {editId ? "Edit Certification" : "Add New Certification"}
               </ModalHeader>
               <ModalBody>
                 <div className="grid gap-4">
                   <Input
                     label="Name"
                     placeholder="Enter certification name"
-                    value={currentCertificate?.title || ""}
-                    onChange={(e) =>
-                      setCurrentCertificate((prev) => ({
-                        ...prev!,
-                        name: e.target.value,
-                      }))
-                    }
-                    isRequired
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                   />
                   <Input
                     label="Issuing Authority"
                     placeholder="Enter issuing authority"
-                    value={currentCertificate?.issuer || ""}
-                    onChange={(e) =>
-                      setCurrentCertificate((prev) => ({
-                        ...prev!,
-                        authority: e.target.value,
-                      }))
-                    }
+                    value={issuer}
+                    onChange={(e) => setIssuer(e.target.value)}
                     isRequired
                   />
                   <Input
                     label="Certification URL"
                     placeholder="Enter certification URL"
-                    value={currentCertificate?.url || ""}
-                    onChange={(e) =>
-                      setCurrentCertificate((prev) => ({
-                        ...prev!,
-                        url: e.target.value,
-                      }))
-                    }
+                    value={url || ""}
+                    onChange={(e) => setUrl(e.target.value)}
                   />
                   <Input
                     label="License Number"
                     placeholder="Enter license number"
-                    value={currentCertificate?.licenseNumber || ""}
-                    onChange={(e) =>
-                      setCurrentCertificate((prev) => ({
-                        ...prev!,
-                        licenseNumber: e.target.value,
-                      }))
-                    }
+                    value={licenseNumber || ""}
+                    onChange={(e) => setLicenseNumber(e.target.value)}
                   />
-                  <DateInput
-                    label="Certification Date"
-                    value={parseDate(currentCertificate?.issueDate.toISOString().split("T")[0])}
-                    onChange={(date) =>
-                      setCurrentCertificate((prev) => ({
-                        ...prev!,
-                        date,
-                      }))
-                    }
-                    maxValue={today("IST")}
+                  <DatePicker
+                    className="max-w-xs"
+                    label="Issue Date (mm/dd/yyyy)"
+                    granularity="day"
+                    maxValue={today(getLocalTimeZone())}
+                    value={parseAbsoluteToLocal(issueDate.toISOString())}
+                    onChange={handleDateChange}
                   />
                   <div className="flex gap-4">
                     <Checkbox
-                      isSelected={currentCertificate?.doesExpire}
-                      onValueChange={(value) =>
-                        setCurrentCertificate((prev) => ({
-                          ...prev!,
-                          hasExpiry: value,
-                        }))
-                      }
+                      isSelected={doesExpire}
+                      onValueChange={(value) => setDoesExpire(value)}
                     >
                       This certificate has an expiry date
                     </Checkbox>
                     <Checkbox
-                      isSelected={currentCertificate?.hasScore}
-                      onValueChange={(value) =>
-                        setCurrentCertificate((prev) => ({
-                          ...prev!,
-                          hasScore: value,
-                        }))
-                      }
+                      isSelected={hasScore}
+                      onValueChange={(value) => setHasScore(value)}
                     >
                       I have a score for this certification
                     </Checkbox>
@@ -294,13 +297,8 @@ const Certificates = () => {
                   <Textarea
                     label="Description"
                     placeholder="Enter certification description"
-                    value={currentCertificate?.description || ""}
-                    onChange={(e) =>
-                      setCurrentCertificate((prev) => ({
-                        ...prev!,
-                        description: e.target.value,
-                      }))
-                    }
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                   />
                 </div>
               </ModalBody>

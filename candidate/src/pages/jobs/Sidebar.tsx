@@ -65,7 +65,7 @@ const Sidebar = () => {
                       : "text-muted-foreground opacity-50 hover:text-white"
                   } `}
                   onClick={() => {
-                    navigate("/dashboard/jobs" + item.link);
+                    navigate("/jobs" + item.link);
                     setActive(item.label.toLowerCase());
                   }}
                 >

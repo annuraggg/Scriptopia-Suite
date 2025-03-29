@@ -9,29 +9,25 @@ import {
   Book,
   Copy,
 } from "lucide-react";
-import {
-  Button,
-  Card,
-  CardBody,
-  DateValue,
-  Divider,
-  TimeInput,
-  TimeInputValue,
-} from "@heroui/react";
+import { Card, CardBody } from "@heroui/card";
+import type { DateValue } from "@internationalized/date";
+import { Button } from "@heroui/button";
 import {
   Modal,
   ModalContent,
   ModalHeader,
   ModalBody,
-  Tooltip,
   ModalFooter,
-} from "@heroui/react";
+} from "@heroui/modal";
+import { Divider } from "@heroui/divider";
+import { Tooltip } from "@heroui/tooltip";
 import { Switch } from "@heroui/switch";
-import { DatePicker } from "@heroui/react";
+import { DatePicker } from "@heroui/date-picker";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { motion, Reorder } from "framer-motion"; // Added framer-motion for animation
+import { TimeInput, TimeInputValue } from "@heroui/date-input";
 
 const Create = () => {
   const [editingId, setEditingId] = useState<string | null>(null);

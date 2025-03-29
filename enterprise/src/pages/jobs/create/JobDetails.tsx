@@ -1,12 +1,8 @@
-import {
-  Button,
-  Input,
-  Select,
-  SelectItem,
-  DateValue,
-  RangeValue,
-} from "@heroui/react";
-import { DatePicker } from "@heroui/react";
+import { Input } from "@heroui/input";
+import { Select, SelectItem } from "@heroui/select";
+import type { DateValue } from "@internationalized/date";
+import type { RangeValue } from "@react-types/shared";
+import { DatePicker } from "@heroui/date-picker";
 import TagsInput from "react-tagsinput";
 import "react-tagsinput/react-tagsinput.css";
 import ReactQuill from "react-quill";
@@ -15,6 +11,9 @@ import { ChevronRight } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 import { useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
+import currencyData from "@/data/currency";
+import { Autocomplete, AutocompleteItem } from "@heroui/autocomplete";
+import { Button } from "@heroui/button";
 
 interface JobDetailsProps {
   setAction: Dispatch<SetStateAction<number>>;
@@ -121,35 +120,37 @@ const JobDetails = ({
             onChange={(e) => setCategory(e.target.value)}
             className="w-[500px]"
           >
-            <SelectItem value="full_time" key="full_time">
+            <SelectItem key="full_time">
               Full Time
             </SelectItem>
-            <SelectItem value="part_time" key="part_time">
+            <SelectItem key="part_time">
               Part Time
             </SelectItem>
-            <SelectItem value="contract" key="contract">
+            <SelectItem key="contract">
               Contract
             </SelectItem>
-            <SelectItem value="internship" key="internship">
+            <SelectItem key="internship">
               Internship
             </SelectItem>
-            <SelectItem value="temporary" key="temporary">
+            <SelectItem key="temporary">
               Temporary
             </SelectItem>
           </Select>
 
-          <Select
+          <Autocomplete
             label="Department"
-            selectedKeys={[department]}
-            onChange={(e) => setDepartment(e.target.value)}
+            selectedKey={department}
+            onSelectionChange={(e) => setDepartment(e?.toString() || "")}
             className="max-w-[300px] mt-3"
           >
             {(organization?.departments || [])?.map((department) => (
-              <SelectItem value={department._id} key={department?._id || ""}>
+              <AutocompleteItem
+                key={department?._id || ""}
+              >
                 {department.name}
-              </SelectItem>
+              </AutocompleteItem>
             ))}
-          </Select>
+          </Autocomplete>
 
           <Input
             label="Openings"
@@ -169,22 +170,19 @@ const JobDetails = ({
           </p>
         </div>
         <div className="flex w-[500px] gap-3">
-          <Select
+          <Autocomplete
             label="Currency"
             className="w-[400px]"
-            selectedKeys={[currency]}
-            onChange={(e) => setCurrency(e.target.value)}
+            selectedKey={currency}
+            onSelectionChange={(e) => setCurrency(e?.toString() || "")}
+            isVirtualized
           >
-            <SelectItem value="usd" key="usd">
-              USD
-            </SelectItem>
-            <SelectItem value="eur" key="eur">
-              EUR
-            </SelectItem>
-            <SelectItem value="gbp" key="gbp">
-              GBP
-            </SelectItem>
-          </Select>
+            {currencyData.map((c) => (
+              <AutocompleteItem key={c.currency_code}>
+                {c.currency_code}
+              </AutocompleteItem>
+            ))}
+          </Autocomplete>
           <Input
             label="Min. Salary"
             type="number"
@@ -210,7 +208,7 @@ const JobDetails = ({
         <div className="flex gap-3 max-w-[500px]">
           <DatePicker
             className="w-[500px]"
-            value={applicationRange?.start}
+            value={applicationRange?.start as DateValue | null | undefined}
             aria-label="Start"
             label="Entry Starts"
             onChange={(e) => {
@@ -220,7 +218,7 @@ const JobDetails = ({
           />
           <DatePicker
             className="w-[500px]"
-            value={applicationRange?.end}
+            value={applicationRange?.end as DateValue | null | undefined}
             aria-label="End"
             label="Entry Ends"
             onChange={(e) => {

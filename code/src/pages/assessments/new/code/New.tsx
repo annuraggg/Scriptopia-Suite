@@ -8,7 +8,7 @@ import {
   Tab,
   Tabs,
   TimeInputValue,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useEffect, useState } from "react";
 import General from "./General";
 import Questions from "./Questions";
@@ -27,7 +27,7 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { Problem as VanillaProblem } from "@shared-types/Problem";
-import { Problem as ProblemAssessment } from "@shared-types/Assessment";
+import { Problem as ProblemAssessment } from "@shared-types/CodeAssessment";
 import { Key } from "react";
 import { Delta } from "quill/core";
 import Candidates from "./Candidates";
@@ -178,13 +178,37 @@ const New = () => {
     };
 
     const axios = ax(getToken);
+    const safeUrls = [
+      "https://enterprise.scriptopia.tech/",
+      "https://scriptopia.tech/",
+      "https://campus.scriptopia.tech/",
+      "https://candidate.scriptopia.tech/",
+      "localhost:5172",
+      "localhost:5173",
+      "localhost:5174",
+      "localhost:5175",
+    ];
 
     axios
       .post("/assessments/code", reqBody)
       .then(() => {
         toast.success("Assessment created successfully");
         if (redirectParam) {
-          window.location.href = redirectParam;
+          try {
+            const redirectUrl = new URL(redirectParam);
+            const isSafeUrl = safeUrls.some(
+              (url) => redirectUrl.origin === url
+            );
+            if (isSafeUrl) {
+              window.location.href = redirectParam; 
+            } else {
+              console.warn("Unsafe redirect URL detected:", redirectParam);
+              window.location.href = "/"; 
+            }
+          } catch (error) {
+            console.error("Invalid redirect URL:", redirectParam);
+            window.location.href = "/"; 
+          }
         } else {
           window.location.href = window.location.pathname
             .split("/")

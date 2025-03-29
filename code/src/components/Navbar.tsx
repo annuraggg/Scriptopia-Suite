@@ -1,10 +1,12 @@
 import { UserButton } from "@clerk/clerk-react";
 import { useTheme } from './theme-provider';
-import { Button } from '@nextui-org/react';
+import { Button } from "@heroui/react";
 import { Moon, Sun } from 'lucide-react';
+import Wallet from './Wallet';
+import { useAuth } from "@clerk/clerk-react";
 
 const Navbar = () => {
-
+  const { userId } = useAuth();
   const links = [
     {
       path: "/problems",
@@ -53,6 +55,7 @@ const Navbar = () => {
           >
             {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
           </Button>
+          {userId && <Wallet userId={userId} />}
           <UserButton />
         </div>
       </div>

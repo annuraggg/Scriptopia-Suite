@@ -10,40 +10,23 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
+  DatePicker,
 } from "@nextui-org/react";
-import { DateInput } from "@nextui-org/date-input";
 import { useState } from "react";
-import { CalendarDate, parseDate, today } from "@internationalized/date";
+import {
+  today,
+  ZonedDateTime,
+  parseAbsoluteToLocal,
+  getLocalTimeZone,
+} from "@internationalized/date";
 import { Plus, Edit2, Trash2, PlusIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { z } from "zod";
 import {
   Candidate,
   ExtraCurricular as IExtraCurricular,
 } from "@shared-types/Candidate";
 import { useOutletContext } from "react-router-dom";
-
-const extraCurricularSchema = z
-  .object({
-    category: z.string().min(2, "Category must be at least 2 characters"),
-    startDate: z.string(),
-    endDate: z.string(),
-    description: z
-      .string()
-      .max(1000, "Description cannot exceed 1000 characters"),
-  })
-  .refine(
-    (data) => {
-      const start = parseDate(data.startDate);
-      const end = parseDate(data.endDate);
-      return start <= end;
-    },
-    {
-      message: "End date must be after start date",
-      path: ["endDate"],
-    }
-  );
 
 const ExtraCurricular = () => {
   const { user, setUser } = useOutletContext() as {
@@ -51,71 +34,82 @@ const ExtraCurricular = () => {
     setUser: (user: Candidate) => void;
   };
 
-  const [currentActivity, setCurrentActivity] = useState<IExtraCurricular>({
-    title: "",
-    category: "",
-    startDate: today("IST").toDate("IST"),
-    endDate: today("IST").toDate("IST"),
-    current: false,
-    description: "",
-  });
+  // Split states for each field
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [startDate, setStartDate] = useState<Date>(
+    today(getLocalTimeZone()).toDate(getLocalTimeZone())
+  );
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    today(getLocalTimeZone()).toDate(getLocalTimeZone())
+  );
+  const [current, setCurrent] = useState(false);
+  const [description, setDescription] = useState("");
+
   const [errors, setErrors] = useState<
     Partial<Record<keyof IExtraCurricular, string>>
   >({});
-  const [isEditing, setIsEditing] = useState(false);
+  const [editingActivityId, setEditingActivityId] = useState<string | null>(
+    null
+  );
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const validateField = (name: keyof IExtraCurricular, value: any) => {
-    try {
-      if (name === "startDate" || name === "endDate") {
-        const dateStr = value instanceof CalendarDate ? value.toString() : value;
-        (extraCurricularSchema as any)._def.shape()[name].parse(dateStr);
-      } else {
-        // @ts-expect-error
-        extraCurricularSchema.shape[name]?.parse(value);
-      }
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-      return true;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        setErrors((prev) => ({ ...prev, [name]: error.errors[0].message }));
-        return false;
-      }
-      return false;
+  const validateForm = () => {
+    const newErrors: Partial<Record<keyof IExtraCurricular, string>> = {};
+
+    if (!category || category.trim().length < 2) {
+      newErrors.category = "Category must be at least 2 characters";
     }
+
+    if (startDate && endDate && !current) {
+      if (startDate > endDate) {
+        newErrors.endDate = "End date must be after start date";
+      }
+    }
+
+    if (description && description.length > 1000) {
+      newErrors.description = "Description cannot exceed 1000 characters";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (name: keyof IExtraCurricular, value: any) => {
-    if (name === "startDate" || name === "endDate") {
-      const dateStr = value instanceof CalendarDate ? value.toString() : value;
-      setCurrentActivity((prev) => ({ ...prev, [name]: dateStr }));
-      validateField(name, dateStr);
+  const handleDateChange = (
+    date: ZonedDateTime | null,
+    field: "startDate" | "endDate"
+  ) => {
+    if (!date) return;
+
+    const dateObj = new Date(date.year, date.month - 1, date.day);
+
+    if (field === "startDate") {
+      setStartDate(dateObj);
     } else {
-      const sanitizedValue = typeof value === "string" ? value.trim() : value;
-      setCurrentActivity((prev) => ({ ...prev, [name]: sanitizedValue }));
-      if (typeof value === "string") {
-        validateField(name, value);
-      }
+      setEndDate(dateObj);
     }
   };
 
   const handleAdd = () => {
-    setIsEditing(false);
-    setCurrentActivity({
-      title: "",
-      category: "",
-      startDate: today("IST").toDate("IST"),
-      endDate: today("IST").toDate("IST"),
-      current: false,
-      description: "",
-    });
+    setEditingActivityId(null);
+    setTitle("");
+    setCategory("");
+    setStartDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
+    setEndDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
+    setCurrent(false);
+    setDescription("");
     setErrors({});
     onOpen();
   };
 
   const handleEdit = (activity: IExtraCurricular) => {
-    setIsEditing(true);
-    setCurrentActivity(activity);
+    setEditingActivityId(activity._id || null);
+    setTitle(activity.title || "");
+    setCategory(activity.category);
+    setStartDate(new Date(activity.startDate));
+    setEndDate(activity.endDate ? new Date(activity.endDate) : undefined);
+    setCurrent(activity.current || false);
+    setDescription(activity.description || "");
     setErrors({});
     onOpen();
   };
@@ -125,39 +119,57 @@ const ExtraCurricular = () => {
       (activity) => activity._id !== id
     );
     setUser({ ...user, extraCurriculars: newActivities });
+    toast.success("Activity deleted successfully");
   };
 
   const handleSave = () => {
-    try {
-      extraCurricularSchema.parse(currentActivity);
+    if (!validateForm()) return;
 
-      if (isEditing) {
-        const newActivities = user?.extraCurriculars?.map((activity) =>
-          activity._id === currentActivity._id
-            ? { ...currentActivity }
-            : activity
-        );
-        setUser({ ...user, extraCurriculars: newActivities });
-      } else {
-        const newActivity = {
-          ...currentActivity,
-          _id: crypto.randomUUID(), 
-        } as IExtraCurricular;
+    const preparedData: IExtraCurricular = {
+      title,
+      category,
+      startDate,
+      endDate: current ? undefined : endDate,
+      current,
+      description,
+    };
 
-        const newActivities = user?.extraCurriculars ?? [];
-        newActivities.push(newActivity);
-        setUser({ ...user, extraCurriculars: newActivities });
-      }
+    let newActivities: IExtraCurricular[] = [];
 
-      onClose();
-      toast.success(isEditing ? "Activity updated successfully" : "Activity added successfully");
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        error.errors.forEach((err) => {
-          toast.error(`${err.path.join(".")}: ${err.message}`);
-        });
-      }
+    if (editingActivityId) {
+      newActivities = (user?.extraCurriculars || []).map((activity) =>
+        activity._id === editingActivityId
+          ? { ...preparedData, _id: activity._id }
+          : activity
+      );
+    } else {
+      const newActivity = {
+        ...preparedData,
+        createdAt: new Date(),
+      } as IExtraCurricular;
+
+      newActivities = [...(user?.extraCurriculars || []), newActivity];
     }
+
+    setUser({ ...user, extraCurriculars: newActivities });
+    onClose();
+    toast.success(
+      editingActivityId
+        ? "Activity updated successfully"
+        : "Activity added successfully"
+    );
+  };
+
+  const closeAndReset = () => {
+    setEditingActivityId(null);
+    setTitle("");
+    setCategory("");
+    setStartDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
+    setEndDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
+    setCurrent(false);
+    setDescription("");
+    setErrors({});
+    onClose();
   };
 
   return (
@@ -233,7 +245,12 @@ const ExtraCurricular = () => {
                     <div>
                       <h3 className="font-medium">{activity.category}</h3>
                       <p className="text-small">
-                        {activity.startDate.toString()} - {activity.endDate?.toString()}
+                        {new Date(activity.startDate).toLocaleDateString()} -{" "}
+                        {activity.current
+                          ? "Present"
+                          : activity.endDate
+                          ? new Date(activity.endDate).toLocaleDateString()
+                          : ""}
                       </p>
                       <p className="text-small mt-2">{activity.description}</p>
                     </div>
@@ -262,56 +279,69 @@ const ExtraCurricular = () => {
         </motion.div>
       </div>
 
-      <Modal
-        isOpen={isOpen}
-        onClose={() => {
-          onClose();
-          setErrors({});
-        }}
-        size="2xl"
-      >
+      <Modal isOpen={isOpen} onClose={closeAndReset} size="2xl">
         <ModalContent>
           {(onClose) => (
             <>
               <ModalHeader>
-                {isEditing
+                {editingActivityId
                   ? "Edit Activity"
                   : "Add New Extra-curricular Activity"}
               </ModalHeader>
               <ModalBody>
                 <div className="flex flex-col gap-4">
                   <Input
+                    label="Title (Optional)"
+                    placeholder="Activity title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+                  <Input
                     label="Category"
                     placeholder="e.g. Singing, Dancing etc"
-                    value={currentActivity.category}
-                    onChange={(e) =>
-                      handleInputChange("category", e.target.value)
-                    }
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
                     isInvalid={!!errors.category}
                     errorMessage={errors.category}
                   />
                   <div className="grid grid-cols-2 gap-4">
-                    <DateInput
-                      label="Start Date"
-                      value={parseDate(currentActivity.startDate.toISOString().split("T")[0])}
-                      onChange={(date) => handleInputChange("startDate", date)}
-                      isInvalid={!!errors.startDate}
-                      errorMessage={errors.startDate?.toString()}
+                    <DatePicker
+                      label="Start Date (mm/dd/yyyy)"
+                      granularity="day"
+                      maxValue={today(getLocalTimeZone())}
+                      value={parseAbsoluteToLocal(startDate.toISOString())}
+                      onChange={(date) => handleDateChange(date, "startDate")}
                     />
-                    <DateInput
-                      label="End Date"
-                      value={parseDate((currentActivity.endDate ?? today("IST").toDate("IST")).toISOString().split("T")[0])}
-                      onChange={(date) => handleInputChange("endDate", date)}
+                    <DatePicker
+                      label="End Date (mm/dd/yyyy)"
+                      granularity="day"
+                      value={
+                        endDate
+                          ? parseAbsoluteToLocal(endDate.toISOString())
+                          : undefined
+                      }
+                      onChange={(date) => handleDateChange(date, "endDate")}
+                      maxValue={today(getLocalTimeZone())}
+                      isDisabled={current}
+                      errorMessage={errors.endDate}
                       isInvalid={!!errors.endDate}
-                      errorMessage={errors.endDate?.toString()}
                     />
+                  </div>
+                  <div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={current}
+                        onChange={(e) => setCurrent(e.target.checked)}
+                        className="rounded"
+                      />
+                      <span>I currently do this activity</span>
+                    </label>
                   </div>
                   <Textarea
                     label="Description"
-                    value={currentActivity.description}
-                    onChange={(e) =>
-                      handleInputChange("description", e.target.value)
-                    }
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                     isInvalid={!!errors.description}
                     errorMessage={errors.description}
                   />

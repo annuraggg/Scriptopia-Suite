@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -8,7 +9,7 @@ import {
   Chip,
   Progress,
   Button,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Clock, Award, Calendar, CheckCircle, XCircle } from "lucide-react";
 import { Assessment } from "@shared-types/Assessment";
 
