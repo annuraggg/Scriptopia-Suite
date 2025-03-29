@@ -55,7 +55,7 @@ const Sidebar = ({
     {
       icon: IconBookFilled,
       label: "Campus",
-      link: "/campus",
+      link: "/campus/drives",
       visible: true,
     },
     // {
@@ -86,7 +86,7 @@ const Sidebar = ({
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
 
-  const subNavbarRoutes = ["profile", "campus"];
+  const subNavbarRoutes = ["profile"];
 
   useEffect(() => {
     setActive(window.location.pathname.split("/")[1]);

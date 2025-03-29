@@ -4,6 +4,8 @@ import { Context } from "hono";
 import clerkClient from "@/config/clerk";
 import checkInstitutePermission from "../../../middlewares/checkInstitutePermission";
 import PlacementGroup from "@/models/PlacementGroup";
+import Candidate from "@/models/Candidate";
+
 const createPlacementGroup = async (c: Context) => {
   try {
     const { userId, _id } = c.get("auth");
@@ -129,8 +131,146 @@ const getPlacementGroup = async (c: Context) => {
   }
 };
 
+const joinPlacementGroup = async (c: Context) => {
+  try {
+    const id = c.req.param("id");
+    const { _id } = c.get("auth");
+
+    const user = await Candidate.findOne({ userId: _id });
+    if (!user) {
+      return sendError(c, 404, "User not found");
+    }
+
+    const institute = await Institute.findById(user.institute);
+    if (!institute) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    if (!institute.candidates.includes(user._id)) {
+      return sendError(c, 403, "Unauthorized");
+    }
+
+    const group = await PlacementGroup.findById(id);
+    if (!group) {
+      return sendError(c, 404, "Placement group not found");
+    }
+
+    if (group.candidates.includes(user._id)) {
+      return sendError(c, 400, "Already a member of the group");
+    }
+
+    if (group.pendingCandidates.includes(user._id)) {
+      return sendError(c, 400, "Already requested to join the group");
+    }
+
+    if (group.accessType === "public") {
+      group.candidates.push(user._id);
+      await group.save();
+      return sendSuccess(c, 200, "Joined placement group", group);
+    }
+    if (group.accessType === "private") {
+      group.pendingCandidates.push(user._id);
+      await group.save();
+      return sendSuccess(c, 200, "Request sent to join placement group", group);
+    }
+  } catch (err) {
+    console.error(err);
+    return sendError(c, 500, "Internal server error", err);
+  }
+};
+
+const acceptCandidate = async (c: Context) => {
+  try {
+    const id = c.req.param("id");
+    const { _id } = c.get("auth");
+
+    const user = await Candidate.findOne({ userId: _id });
+    if (!user) {
+      return sendError(c, 404, "User not found");
+    }
+
+    const group = await PlacementGroup.findById(id);
+    if (!group) {
+      return sendError(c, 404, "Placement group not found");
+    }
+
+    if (!group.pendingCandidates.includes(user._id)) {
+      return sendError(c, 400, "Candidate not in pending list");
+    }
+
+    group.candidates.push(user._id);
+    group.pendingCandidates = group.pendingCandidates.filter(
+      (candidate) => candidate.toString() !== user._id.toString()
+    );
+    await group.save();
+
+    return sendSuccess(c, 200, "Candidate accepted", group);
+  } catch (err) {
+    console.error(err);
+    return sendError(c, 500, "Internal server error", err);
+  }
+};
+
+const rejectCandidate = async (c: Context) => {
+  try {
+    const id = c.req.param("id");
+    const { _id } = c.get("auth");
+    const user = await Candidate.findOne({ userId: _id });
+    if (!user) {
+      return sendError(c, 404, "User not found");
+    }
+
+    const group = await PlacementGroup.findById(id);
+    if (!group) {
+      return sendError(c, 404, "Placement group not found");
+    }
+
+    if (!group.pendingCandidates.includes(user._id)) {
+      return sendError(c, 400, "Candidate not in pending list");
+    }
+
+    group.pendingCandidates = group.pendingCandidates.filter(
+      (candidate) => candidate.toString() !== user._id.toString()
+    );
+
+    await group.save();
+    return sendSuccess(c, 200, "Candidate rejected", group);
+  } catch (err) {
+    console.error(err);
+    return sendError(c, 500, "Internal server error", err);
+  }
+};
+
+const getCandidatePlacementGroups = async (c: Context) => {
+  const { _id } = c.get("auth");
+
+  try {
+    const user = await Candidate.findOne({ userId: _id });
+    if (!user) {
+      return sendError(c, 404, "User not found");
+    }
+
+    const groups = await PlacementGroup.find({
+      $or: [{ candidates: user._id }, { pendingCandidates: user._id }],
+    })
+      .populate("departments")
+      .populate("candidates")
+      .populate("createdBy")
+      .sort({ createdAt: -1 });
+
+    return sendSuccess(c, 200, "Placement groups fetched", groups);
+  } catch (err) {
+    console.error(err);
+    return sendError(c, 500, "Internal server error", err);
+  }
+};
+
 export default {
   createPlacementGroup,
   getPlacementGroups,
   getPlacementGroup,
+  joinPlacementGroup,
+  acceptCandidate,
+  rejectCandidate,
+  getCandidatePlacementGroups,
 };

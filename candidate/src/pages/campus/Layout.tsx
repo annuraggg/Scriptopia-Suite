@@ -9,7 +9,7 @@ import {
 import { useEffect, useState } from "react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import Loader from "./Loader";
+import Loader from "@/components/Loader";
 import { ExtendedCandidate } from "@shared-types/ExtendedCandidate";
 
 const Layout = () => {
@@ -46,9 +46,7 @@ const Layout = () => {
       <SignedIn>
         <div className="">
           <div className="flex w-full h-screen">
-            <div className="h-full">
-              <Sidebar />
-            </div>
+            <Sidebar />
 
             <div className="h-full w-full overflow-y-auto">
               <Outlet context={{ user, setUser }} />

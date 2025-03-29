@@ -13,7 +13,10 @@ import Apply from "./pages/posting/apply/Apply";
 import Resume from "./pages/resume/Resume";
 import Myjobs from "./pages/jobs/Myjobs";
 import Assignment from "./pages/posting/assignment/Assignment";
-import Campus from "./pages/campus/Campus";
+import CampusLayout from "./pages/campus/Layout";
+import Drives from "./pages/campus/drives/Drives";
+import PlacementGroups from "./pages/campus/placementgroups/PlacementGroups";
+import JoinPlacementGroup from "./pages/campus/placementgroups/join/Join";
 
 function App() {
   const router = createBrowserRouter([
@@ -65,18 +68,26 @@ function App() {
           path: "resume",
           element: <Resume />,
         },
+        {
+          path: "/campus",
+          element: <CampusLayout />,
+          children: [
+            {
+              path: "drives",
+              element: <Drives />,
+            },
+            {
+              path: "placement-groups",
+              element: <PlacementGroups />,
+            },
+            {
+              path: "placement-groups/join/:id",
+              element: <JoinPlacementGroup />,
+            },
+          ],
+        },
       ],
     },
-    {
-      path: "/campus",
-      element: <Layout />,
-      children: [
-        {
-          path: "",
-          element: <Campus />,
-        }
-      ]
-    }
   ]);
 
   return <RouterProvider router={router} />;
