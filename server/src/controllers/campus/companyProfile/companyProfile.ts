@@ -14,7 +14,7 @@ const getCompanies = async (c: Context) => {
             return sendError(c, 401, "Unauthorized");
         }
 
-        const institute = await Institute.findById(perms.data?.institute?._id);
+        const institute = await Institute.findById(perms.data?.institute?._id).populate("companies")
         if (!institute) {
             return sendError(c, 404, "Institute not found");
         }

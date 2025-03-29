@@ -89,11 +89,11 @@ const Myjobs = () => {
                   <div className="flex justify-between items-start">
                     <div className="space-y-2">
                       <h2 className="text-xl font-semibold">
-                        {job.posting.title}
+                        {job.posting?.title}
                       </h2>
                       <div className="flex items-center gap-2 text-gray-600">
                         <Building2 size={16} />
-                        <span>{job.posting.organizationId.name}</span>
+                        <span>{job.posting?.organizationId.name}</span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600">
                         <Calendar size={16} />
@@ -151,16 +151,16 @@ const Myjobs = () => {
                             </div>
                           </div>
                         </div>
-                        {job.posting.workflow?.steps.map(
+                        {job.posting?.workflow?.steps.map(
                           (step: WorkflowStep, index: number) => (
                             <div key={index} className="flex gap-4 mb-4">
                               <div className="relative">
                                 {" "}
                                 <div className={getDotClasses(step.status)} />
                                 <div className={step.type} />
-                                {job.posting.workflow?.steps &&
+                                {job.posting?.workflow?.steps &&
                                   index !==
-                                    job.posting.workflow.steps.length - 1 && (
+                                    job.posting?.workflow.steps.length - 1 && (
                                     <div className="absolute top-3 left-1.5 w-0.5 h-full bg-gray-300" />
                                   )}
                               </div>
