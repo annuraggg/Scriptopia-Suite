@@ -3,15 +3,15 @@ import { motion } from "framer-motion";
 import { Problem } from "@shared-types/Problem";
 import {
   Problem as ProblemAssessment,
-  TestCases,
-} from "@shared-types/Assessment";
+  Testcases,
+} from "@shared-types/CodeAssessment";
 
 interface GradingProps {
   gradingMetric: string;
   setGradingMetric: (gradingMetric: string) => void;
   selectedQuestions: Problem[];
-  testCaseGrading: TestCases;
-  setTestCaseGrading: (testCaseGrading: TestCases) => void;
+  testCaseGrading: Testcases;
+  setTestCaseGrading: (testCaseGrading: Testcases) => void;
   questionsGrading: ProblemAssessment[];
   setQuestionsGrading: (
     questionsGrading:
@@ -150,7 +150,6 @@ const Grading: React.FC<GradingProps> = ({
                       ?.points?.toString()}
                     onChange={(e) => {
                       const value = parseInt(e.target.value, 10);
-                      // @ts-expect-error - TS doesn't know that the value is a number
                       setQuestionsGrading((prev) => {
                         const exists = prev.find(
                           (q) => q.problemId === question._id
@@ -165,7 +164,7 @@ const Grading: React.FC<GradingProps> = ({
                         return [
                           ...prev,
                           {
-                            problemId: question._id,
+                            problemId: question._id ?? "",
                             points: value,
                           },
                         ];

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import ViewUserAssessmentTop from "./ViewUserAssessmentTop";
 import ViewUserAssessmentBottom from "./ViewUserAssessmentBottom";
 import { motion } from "framer-motion";

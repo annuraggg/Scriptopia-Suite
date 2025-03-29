@@ -27,7 +27,7 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { Problem as VanillaProblem } from "@shared-types/Problem";
-import { Problem as ProblemAssessment } from "@shared-types/Assessment";
+import { Problem as ProblemAssessment } from "@shared-types/CodeAssessment";
 import { Key } from "react";
 import { Delta } from "quill/core";
 import Candidates from "./Candidates";
