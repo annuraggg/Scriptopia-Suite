@@ -11,6 +11,7 @@ import ax from "@/config/axios";
 import { toast } from "sonner";
 import Loader from "@/components/Loader";
 import { ExtendedCandidate } from "@shared-types/ExtendedCandidate";
+import InstituteOnboarding from "./InstituteOnboarding";
 
 const Layout = () => {
   const { getToken } = useAuth();
@@ -44,15 +45,19 @@ const Layout = () => {
   return (
     <>
       <SignedIn>
-        <div className="">
-          <div className="flex w-full h-screen">
-            <Sidebar />
+        {user?.institute ? (
+          <div className="">
+            <div className="flex w-full h-screen">
+              <Sidebar />
 
-            <div className="h-full w-full overflow-y-auto">
-              <Outlet context={{ user, setUser }} />
+              <div className="h-full w-full overflow-y-auto">
+                <Outlet context={{ user, setUser }} />
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <InstituteOnboarding />
+        )}
       </SignedIn>
       <SignedOut>
         <RedirectToSignIn />
