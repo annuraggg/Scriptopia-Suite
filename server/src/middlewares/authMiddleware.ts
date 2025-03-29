@@ -4,7 +4,6 @@ import { Context } from "hono";
 import { sendError } from "../utils/sendResponse";
 
 const authMiddleware = createMiddleware(async (c: Context, next) => {
-  // @ts-expect-error
   const auth = getAuth(c);
   const credentials = {
     userId: auth?.userId,

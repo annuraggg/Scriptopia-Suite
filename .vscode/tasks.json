@@ -44,6 +44,24 @@
       "runOptions": { "runOn": "default" }
     },
     {
+      "label": "4. Update All Dependencies",
+      "dependsOn": [
+        "Update Code",
+        "Update Main",
+        "Update Enterprise",
+        "Update Candidate",
+        "Update Meet",
+        "Update Campus",
+        "Update Server"
+      ],
+      "dependsOrder": "parallel",
+      "group": "build",
+      "icon": {
+        "id": "refresh",
+        "color": "terminal.ansiYellow"
+      }
+    },
+    {
       "label": "Build Batch 1",
       "dependsOn": [
         "Build Code",
@@ -120,6 +138,19 @@
       }
     },
     {
+      "label": "Update Code",
+      "type": "shell",
+      "command": "cd code; npm update",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
       "label": "Main",
       "type": "shell",
       "command": "cd main; npm run forceStart",
@@ -151,6 +182,19 @@
       "label": "Build Main (supress)",
       "type": "shell",
       "command": "cd main; npm run build; if ($?) { Write-Host \"Build succeeded\" } else { Write-Host \"Error During Build\" }",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Update Main",
+      "type": "shell",
+      "command": "cd main; npm update",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -202,6 +246,19 @@
       }
     },
     {
+      "label": "Update Enterprise",
+      "type": "shell",
+      "command": "cd enterprise; npm update",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
       "label": "Candidate",
       "type": "shell",
       "command": "cd candidate; npm run forceStart",
@@ -243,6 +300,19 @@
       }
     },
     {
+      "label": "Update Candidate",
+      "type": "shell",
+      "command": "cd candidate; npm update",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
       "label": "Meet",
       "type": "shell",
       "command": "cd meet; npm run forceStart",
@@ -274,6 +344,19 @@
       "label": "Build Meet (supress)",
       "type": "shell",
       "command": "cd meet; npm run build; if ($?) { Write-Host \"Build succeeded\" } else { Write-Host \"Error During Build\" }",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Update Meet",
+      "type": "shell",
+      "command": "cd meet; npm update",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -326,6 +409,19 @@
       }
     },
     {
+      "label": "Update Campus",
+      "type": "shell",
+      "command": "cd campus; npm update",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
       "label": "Server",
       "type": "shell",
       "command": "cd server; npm run forceStart",
@@ -357,6 +453,19 @@
       "label": "Build Server (supress)",
       "type": "shell",
       "command": "cd server; npm run build; if ($?) { Write-Host \"Build succeeded\" } else { Write-Host \"Error During Build\" }",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Update Server",
+      "type": "shell",
+      "command": "cd server; npm update",
       "options": {
         "cwd": "${workspaceFolder}"
       },

@@ -1117,6 +1117,8 @@ const getInstitute = async (c: Context): Promise<any> => {
       (m) => m?.user?._id?.toString() === userId.toString()
     );
 
+    console.log(institute.members);
+
     if (!member?.role) {
       return sendError(c, 403, "Invalid member access");
     }
