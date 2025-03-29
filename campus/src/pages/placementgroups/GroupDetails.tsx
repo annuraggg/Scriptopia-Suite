@@ -13,7 +13,6 @@ import { DataTable } from "./DataTable";
 
 type FilterTypes = "all" | "placed" | "unplaced" | "in-process";
 
-// Main Component
 const GroupDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { getToken } = useAuth();
@@ -52,12 +51,7 @@ const GroupDetails: React.FC = () => {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="p-6"
-    >
-      {/* Group Header */}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6">
       <div className="flex items-center justify-between p-2">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
           {group.name}
@@ -101,7 +95,6 @@ const GroupDetails: React.FC = () => {
         {/* Group Details Tab */}
         <Tab key="details" title="Group Details">
           <div className="space-y-6 mt-5">
-            {/* Group Information Display */}
             <Card className="bg-default-50 p-2">
               <CardBody>
                 <h3 className="text-xl font-semibold mb-4">
@@ -148,7 +141,6 @@ const GroupDetails: React.FC = () => {
               </CardBody>
             </Card>
 
-            {/* Group Access Display */}
             <Card className="bg-default-50 p-2">
               <CardBody>
                 <h3 className="text-xl font-semibold mb-4">Group Access</h3>
@@ -256,7 +248,6 @@ const GroupDetails: React.FC = () => {
           </div>
         </Tab>
 
-        {/* Students Tab */}
         <Tab key="students" title="Student Details">
           <DataTable data={group.candidates} />
         </Tab>

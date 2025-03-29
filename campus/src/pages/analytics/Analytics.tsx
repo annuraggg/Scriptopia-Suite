@@ -170,7 +170,7 @@ const monthlyGrowthData: YearData = {
 };
 
 const Analytics = () => {
-  const org = useSelector((state: RootState) => state.organization);
+  const org = useSelector((state: RootState) => state.institute);
   const [timeRange, setTimeRange] = useState("30days");
   const [selectedYear, setSelectedYear] = useState<string>("2024");
   const [selectedMonth, setSelectedMonth] = useState<string>("Jan");
@@ -259,7 +259,7 @@ const Analytics = () => {
     <div className=" max-h-full mt-5 ml-5">
       <div className="mb-6">
         <Breadcrumbs>
-          <BreadcrumbItem>{org.name}</BreadcrumbItem>
+          <BreadcrumbItem>{org.name || "APSIT"}</BreadcrumbItem>
           <BreadcrumbItem>Analytics</BreadcrumbItem>
         </Breadcrumbs>
 
@@ -466,7 +466,7 @@ const Analytics = () => {
             </CardBody>
           </Card>
         </motion.div>
-
+ 
         <motion.div
           variants={cardVariants}
           initial="hidden"
