@@ -1,9 +1,9 @@
+import Company from "../../../models/Company";
 import Institute from "../../../models/Institute";
 import checkPermission from "../../../middlewares/checkInstitutePermission";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import logger from "../../../utils/logger";
 import { Context } from "hono";
-import mongoose from "mongoose";
 import clerkClient from "@/config/clerk";
 import { AuditLog } from "@shared-types/Institute";
 
@@ -14,12 +14,17 @@ const getCompanies = async (c: Context) => {
             return sendError(c, 401, "Unauthorized");
         }
 
-        const institute = await Institute.findById(perms.data?.institute?._id);
+        const institute = await Institute.findById(perms.data?.institute?._id).exec();
+            
         if (!institute) {
             return sendError(c, 404, "Institute not found");
         }
 
-        const formattedCompanies = institute.companies.map((company) => ({
+        const companies = await Company.find({
+            _id: { $in: institute.companies }
+        }).exec();
+
+        const formattedCompanies = companies.map((company) => ({
             _id: company._id?.toString(),
             name: company.name,
             description: company.description,
@@ -58,27 +63,24 @@ const createCompany = async (c: Context) => {
             return sendError(c, 404, "Institute not found");
         }
 
-        const existingCompany = institute.companies.find(
-            (company) => company.name.toLowerCase() === name.toLowerCase()
-        );
-
+        const existingCompany = await Company.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
         if (existingCompany) {
             return sendError(c, 400, "A company with this name already exists");
         }
 
-        const newCompany = {
-            _id: new mongoose.Types.ObjectId(),
+        const newCompany = new Company({
             name,
             description,
             generalInfo,
             hrContacts,
-            createdAt: new Date(),
-            updatedAt: new Date(),
             archived: false,
-        };
+        });
 
-        institute.companies.push(newCompany);
-        await institute.save();
+        await newCompany.save();
+
+        await Institute.findByIdAndUpdate(perms.data?.institute?._id, {
+            $push: { companies: newCompany._id }
+        });
 
         const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
         const auditLog: AuditLog = {
@@ -118,40 +120,42 @@ const updateCompany = async (c: Context) => {
             return sendError(c, 404, "Institute not found");
         }
 
-        const companyIndex = institute.companies.findIndex(
-            (company) => company._id?.toString() === _id
+        const isCompanyInInstitute = institute.companies.some(
+            companyId => companyId.toString() === _id
         );
 
-        if (companyIndex === -1) {
+        if (!isCompanyInInstitute) {
+            return sendError(c, 404, "Company not found in this institute");
+        }
+
+        const company = await Company.findById(_id);
+        if (!company) {
             return sendError(c, 404, "Company not found");
         }
 
-        if (name && name !== institute.companies[companyIndex].name) {
-            const existingCompany = institute.companies.find(
-                (company) =>
-                    company.name.toLowerCase() === name.toLowerCase() &&
-                    company._id?.toString() !== _id
-            );
+        if (name && name !== company.name) {
+            const existingCompany = await Company.findOne({
+                _id: { $ne: _id },
+                name: { $regex: new RegExp(`^${name}$`, 'i') }
+            });
+            
             if (existingCompany) {
                 return sendError(c, 400, "A company with this name already exists");
             }
         }
 
-        if (name) institute.companies[companyIndex].name = name;
-        if (description)
-            institute.companies[companyIndex].description = description;
-        if (generalInfo)
-            institute.companies[companyIndex].generalInfo = generalInfo;
-        if (hrContacts) institute.companies[companyIndex].hrContacts = hrContacts;
+        if (name) company.name = name;
+        if (description) company.description = description;
+        if (generalInfo) company.generalInfo = generalInfo;
+        if (hrContacts) company.hrContacts = hrContacts;
 
-        institute.companies[companyIndex].updatedAt = new Date();
-        await institute.save();
+        await company.save();
 
         const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
         const auditLog: AuditLog = {
             user: clerkUser.firstName + " " + clerkUser.lastName,
             userId: clerkUser.id,
-            action: `Updated company profile: ${institute.companies[companyIndex].name}`,
+            action: `Updated company profile: ${company.name}`,
             type: "info",
         };
 
@@ -159,12 +163,7 @@ const updateCompany = async (c: Context) => {
             $push: { auditLogs: auditLog },
         });
 
-        return sendSuccess(
-            c,
-            200,
-            "Company updated successfully",
-            institute.companies[companyIndex]
-        );
+        return sendSuccess(c, 200, "Company updated successfully", company);
     } catch (e: any) {
         logger.error(e);
         return sendError(c, 500, `Error updating company: ${e.message}`);
@@ -184,27 +183,28 @@ const archiveCompany = async (c: Context) => {
             return sendError(c, 404, "Institute not found");
         }
 
-        const companyIndex = institute.companies.findIndex(
-            (company) => company._id?.toString() === id
+        const isCompanyInInstitute = institute.companies.some(
+            companyId => companyId.toString() === id
         );
 
-        if (companyIndex === -1) {
+        if (!isCompanyInInstitute) {
+            return sendError(c, 404, "Company not found in this institute");
+        }
+
+        const company = await Company.findById(id);
+        if (!company) {
             return sendError(c, 404, "Company not found");
         }
 
-        institute.companies[companyIndex].archived =
-            !institute.companies[companyIndex].archived;
-        institute.companies[companyIndex].updatedAt = new Date();
-        await institute.save();
+        company.archived = !company.archived;
+        await company.save();
 
         const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
-        const status = institute.companies[companyIndex].archived
-            ? "Archived"
-            : "Unarchived";
+        const status = company.archived ? "Archived" : "Unarchived";
         const auditLog: AuditLog = {
             user: clerkUser.firstName + " " + clerkUser.lastName,
             userId: clerkUser.id,
-            action: `${status} company: ${institute.companies[companyIndex].name}`,
+            action: `${status} company: ${company.name}`,
             type: "info",
         };
 
@@ -212,12 +212,7 @@ const archiveCompany = async (c: Context) => {
             $push: { auditLogs: auditLog },
         });
 
-        return sendSuccess(
-            c,
-            200,
-            `Company ${status.toLowerCase()} successfully`,
-            institute.companies[companyIndex]
-        );
+        return sendSuccess(c, 200, `Company ${status.toLowerCase()} successfully`, company);
     } catch (e: any) {
         logger.error(e);
         return sendError(c, 500, `Error archiving company: ${e.message}`);
@@ -237,17 +232,26 @@ const deleteCompany = async (c: Context) => {
             return sendError(c, 404, "Institute not found");
         }
 
-        const companyIndex = institute.companies.findIndex(
-            (company) => company._id?.toString() === companyId
+        const isCompanyInInstitute = institute.companies.some(
+            companyId => companyId.toString() === companyId.toString()
         );
 
-        if (companyIndex === -1) {
-            return sendError(c, 404, "Company not found");
+        if (!isCompanyInInstitute) {
+            return sendError(c, 404, "Company not found in this institute");
         }
 
-        const companyName = institute.companies[companyIndex].name;
-        institute.companies.splice(companyIndex, 1);
-        await institute.save();
+        const company = await Company.findById(companyId);
+        if (!company) {
+            return sendError(c, 404, "Company not found");
+        }
+        
+        const companyName = company.name;
+
+        await Institute.findByIdAndUpdate(perms.data?.institute?._id, {
+            $pull: { companies: companyId }
+        });
+
+        await Company.findByIdAndDelete(companyId);
 
         const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
         const auditLog: AuditLog = {

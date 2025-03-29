@@ -78,7 +78,7 @@ const CompanyProfiles = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "archived">("all");
   const [showCreateForm, setShowCreateForm] = useState(false);
-  
+
   const [filters, setFilters] = useState<Filters>({
     year: '',
     studentsRange: '',
@@ -94,8 +94,13 @@ const CompanyProfiles = () => {
     try {
       setIsLoading(true);
       const response = await axios.get("/companies");
+      console.log("API Response:", response.data);
+
       if (response.data?.data?.companies) {
         setCompanies(response.data.data.companies);
+      } else {
+        setError("Invalid data format received from server");
+        console.error("Invalid data format:", response.data);
       }
     } catch (err) {
       setError("Failed to load companies");
@@ -119,7 +124,7 @@ const CompanyProfiles = () => {
       const isArchived = !!company.archived;
       if (filter === "active" && isArchived) return false;
       if (filter === "archived" && !isArchived) return false;
-      
+
       if (isFiltersApplied) {
         if (filters.year && !company.generalInfo.yearVisit.includes(filters.year)) {
           return false;
@@ -149,7 +154,7 @@ const CompanyProfiles = () => {
 
       return true;
     }).sort((a, b) => {
-      return sort === "newest" 
+      return sort === "newest"
         ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     });
@@ -159,7 +164,7 @@ const CompanyProfiles = () => {
     e.stopPropagation();
     try {
       await axios.post("/companies/archive", { id });
-      setCompanies(prev => prev.map(company => 
+      setCompanies(prev => prev.map(company =>
         company._id === id ? { ...company, archived: !company.archived } : company
       ));
     } catch (err) {
@@ -198,7 +203,7 @@ const CompanyProfiles = () => {
   const applyFilters = () => {
     setIsFiltersApplied(true);
   };
-  
+
   const availableYears = useMemo(() => {
     const years = new Set<string>();
     companies.forEach(company => {
@@ -402,11 +407,10 @@ const CompanyProfiles = () => {
                               <div className="flex items-center gap-2 mb-2">
                                 <h3 className="text-lg font-semibold">{company.name}</h3>
                                 <span
-                                  className={`px-2 py-1 rounded-full text-xs ${
-                                    company.archived
-                                      ? "bg-default-100 text-default-600"
-                                      : "bg-success-100 text-success-600"
-                                  }`}
+                                  className={`px-2 py-1 rounded-full text-xs ${company.archived
+                                    ? "bg-default-100 text-default-600"
+                                    : "bg-success-100 text-success-600"
+                                    }`}
                                 >
                                   {company.archived ? "Archived" : "Active"}
                                 </span>
@@ -444,8 +448,8 @@ const CompanyProfiles = () => {
                               </Button>
                               <Dropdown>
                                 <DropdownTrigger>
-                                  <Button 
-                                    isIconOnly 
+                                  <Button
+                                    isIconOnly
                                     variant="light"
                                     onClick={(e) => e.stopPropagation()}
                                   >
@@ -456,10 +460,10 @@ const CompanyProfiles = () => {
                                   <DropdownItem onClick={(e) => {
                                     e.preventDefault();
                                     navigate(`/company/${company._id}/edit`);
-                                  }}>
+                                  } } key={''}>
                                     Edit Profile
                                   </DropdownItem>
-                                  <DropdownItem onClick={(e) => handleArchive(company._id, e)}>
+                                  <DropdownItem onClick={(e) => handleArchive(company._id, e)} key={''}>
                                     {company.archived ? "Unarchive" : "Archive"}
                                   </DropdownItem>
                                   <DropdownItem
@@ -468,8 +472,7 @@ const CompanyProfiles = () => {
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleDelete(company._id);
-                                    }}
-                                  >
+                                    } } key={''}                                  >
                                     Delete
                                   </DropdownItem>
                                 </DropdownMenu>
