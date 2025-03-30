@@ -1,5 +1,5 @@
 import Drive from "../../../models/Drive";
-import checkPermission from "../../../middlewares/checkOrganizationPermission";
+import checkPermission from "../../../middlewares/checkInstitutePermission";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import logger from "../../../utils/logger";
 import { Context } from "hono";
