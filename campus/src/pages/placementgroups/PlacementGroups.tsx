@@ -18,8 +18,12 @@ import ax from "@/config/axios";
 import Filter from "./Filter";
 import { PlacementGroup } from "@shared-types/PlacementGroup";
 import { Department } from "@shared-types/Institute";
+import EditGroupModal from "./EditGroupModal";
+import { useOutletContext } from "react-router-dom";
+import { RootContext } from "@/types/RootContext";
 
 const PlacementGroups = () => {
+  const { institute } = useOutletContext<RootContext>();
   const [groups, setGroups] = useState<PlacementGroup[]>([]);
   const [instituteDepartments, setInstituteDepartments] = useState<
     Department[]
@@ -38,6 +42,7 @@ const PlacementGroups = () => {
     year: "",
     departments: [],
   });
+  const [editGroup, setEditGroup] = useState<PlacementGroup | null>(null);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -112,9 +117,8 @@ const PlacementGroups = () => {
         if (filter === "archived" && !isArchived) return false;
 
         if (activeFilters.year) {
-          const yearString = `${group.academicYear.start || ""}-${
-            group.academicYear.end || ""
-          }`;
+          const yearString = `${group.academicYear.start || ""}-${group.academicYear.end || ""
+            }`;
           if (!yearString.includes(activeFilters.year)) {
             return false;
           }
@@ -220,8 +224,8 @@ const PlacementGroups = () => {
           </h3>
           <p className="text-gray-500 dark:text-gray-400 mb-6">
             {searchTerm ||
-            activeFilters.year ||
-            activeFilters.departments.length > 0
+              activeFilters.year ||
+              activeFilters.departments.length > 0
               ? "Try adjusting your search or filters"
               : "Create your first placement group to get started"}
           </p>
@@ -250,11 +254,10 @@ const PlacementGroups = () => {
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="text-lg font-semibold">{group.name}</h3>
                   <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      group.archived
+                    className={`px-2 py-1 rounded-full text-xs ${group.archived
                         ? "bg-default-100 text-default-600"
                         : "bg-success-100 text-success-600"
-                    }`}
+                      }`}
                   >
                     {group.archived ? "Archived" : "Active"}
                   </span>
@@ -297,11 +300,7 @@ const PlacementGroups = () => {
                 </Button>
                 <Dropdown>
                   <DropdownTrigger>
-                    <Button
-                      isIconOnly
-                      variant="flat"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <Button isIconOnly variant="flat">
                       <MoreVertical size={18} />
                     </Button>
                   </DropdownTrigger>
@@ -309,14 +308,10 @@ const PlacementGroups = () => {
                     onAction={(key) => {
                       if (key === "archive") {
                         handleArchive(group._id!, {
-                          stopPropagation: () => {},
+                          stopPropagation: () => { },
                         } as React.MouseEvent);
                       } else if (key === "edit") {
-                        navigate(`//placement-groups/${group._id}/edit`);
-                        const event = window.event;
-                        if (event) {
-                          event.stopPropagation();
-                        }
+                        setEditGroup(group);
                       }
                     }}
                   >
@@ -395,27 +390,24 @@ const PlacementGroups = () => {
 
               <div className="flex gap-4 mb-6">
                 <Button
-                  className={`w-1/3 ${
-                    filter === "all" ? "bg-default-100" : ""
-                  }`}
+                  className={`w-1/3 ${filter === "all" ? "bg-default-100" : ""
+                    }`}
                   variant={filter === "all" ? "flat" : "ghost"}
                   onClick={() => setFilter("all")}
                 >
                   All
                 </Button>
                 <Button
-                  className={`w-1/3 ${
-                    filter === "active" ? "bg-success-100" : ""
-                  }`}
+                  className={`w-1/3 ${filter === "active" ? "bg-success-100" : ""
+                    }`}
                   variant={filter === "active" ? "flat" : "ghost"}
                   onClick={() => setFilter("active")}
                 >
                   Active
                 </Button>
                 <Button
-                  className={`w-1/3 ${
-                    filter === "archived" ? "bg-default-100" : ""
-                  }`}
+                  className={`w-1/3 ${filter === "archived" ? "bg-default-100" : ""
+                    }`}
                   variant={filter === "archived" ? "flat" : "ghost"}
                   onClick={() => setFilter("archived")}
                 >
@@ -424,6 +416,23 @@ const PlacementGroups = () => {
               </div>
 
               {renderPlacementGroups()}
+
+              {editGroup && (
+                <EditGroupModal
+                  group={editGroup}
+                  instituteDepartments={instituteDepartments}
+                  instituteCandidates={institute.candidates}
+                  onClose={() => setEditGroup(null)}
+                  onSave={(updatedGroup) => {
+                    setGroups(
+                      groups.map((g) =>
+                        g._id === updatedGroup._id ? updatedGroup : g
+                      )
+                    );
+                    setEditGroup(null);
+                  }}
+                />
+              )}
             </div>
           </div>
         </motion.div>

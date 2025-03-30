@@ -265,6 +265,50 @@ const getCandidatePlacementGroups = async (c: Context) => {
   }
 };
 
+const updatePlacementGroup = async (c: Context) => {
+  try {
+    const { userId, _id } = c.get("auth");
+    const groupId = c.req.param("id");
+    const body = await c.req.json();
+
+    const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
+    if (!perms.allowed) {
+      return sendError(c, 403, "Unauthorized");
+    }
+
+    const clerkUser = await clerkClient.users.getUser(userId);
+    if (!clerkUser) {
+      return sendError(c, 403, "Unauthorized");
+    }
+
+    const instituteId = (clerkUser.publicMetadata.institute as any)?._id;
+
+    const group = await PlacementGroup.findByIdAndUpdate(
+      groupId,
+      {
+        $set: {
+          ...body,
+          academicYear: body.academicYear,
+          candidates: body.candidates
+        }
+      },
+      { new: true }
+    )
+      .populate("departments")
+      .populate("candidates")
+      .populate("createdBy");
+
+    if (!group) {
+      return sendError(c, 404, "Group not found");
+    }
+
+    return sendSuccess(c, 200, "Group updated", group);
+  } catch (err) {
+    console.error(err);
+    return sendError(c, 500, "Internal server error", err);
+  }
+};
+
 export default {
   createPlacementGroup,
   getPlacementGroups,
@@ -273,4 +317,5 @@ export default {
   acceptCandidate,
   rejectCandidate,
   getCandidatePlacementGroups,
+  updatePlacementGroup,
 };
