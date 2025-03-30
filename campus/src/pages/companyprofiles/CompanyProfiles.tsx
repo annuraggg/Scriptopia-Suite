@@ -489,15 +489,6 @@ const CompanyProfiles = () => {
               exit={{ opacity: 0, x: -20 }}
               className="w-full"
             >
-              <div className="mb-8">
-                <Button
-                  variant="light"
-                  startContent={<ArrowLeft size={20} />}
-                  onClick={() => setShowCreateForm(false)}
-                >
-                  Back to Companies
-                </Button>
-              </div>
               <CreateCompanyForm onClose={() => setShowCreateForm(false)} />
             </motion.div>
           )}

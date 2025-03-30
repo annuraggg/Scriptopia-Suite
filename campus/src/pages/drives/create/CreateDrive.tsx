@@ -45,6 +45,7 @@ const CreateDrive = () => {
   const [category, setCategory] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [openings, setOpenings] = useState<number>(0);
+  const [selectedPlacementGroups, setSelectedPlacementGroups] = useState<string[]>([]);
   const [applicationRange, setApplicationRange] = useState<
     RangeValue<DateValue>
   >({
@@ -117,6 +118,7 @@ const CreateDrive = () => {
       },
       workflow: formattedData,
       additionalDetails: formattedAdditionalDetails,
+      placementGroups: selectedPlacementGroups,
       published: false,
     };
 
@@ -183,7 +185,14 @@ const CreateDrive = () => {
             setAdditionalDetails={setAdditionalDetails}
           />
         )}
-        {active === 2 && <Access setAction={setActive} />}
+        {active === 2 && (
+          <Access
+            setAction={setActive}
+            placementGroups={institute?.placementGroups || []}
+            selectedGroups={selectedPlacementGroups}
+            onSelectGroups={setSelectedPlacementGroups}
+          />
+        )}
         {active === 3 && (
           <Workflow
             setAction={setActive}
