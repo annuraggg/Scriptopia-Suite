@@ -20,6 +20,7 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
 // import WorkflowSchedule from "./WorkflowSchedule";
 import type { RangeValue } from "@react-types/shared";
+import Access from "./Access";
 interface Component {
   icon: React.ElementType;
   label: string;
@@ -43,7 +44,6 @@ const CreateDrive = () => {
   const [title, setTitle] = useState<string>("");
   const [category, setCategory] = useState<string>("");
   const [location, setLocation] = useState<string>("");
-  const [department, setDepartment] = useState<string>("");
   const [openings, setOpenings] = useState<number>(0);
   const [applicationRange, setApplicationRange] = useState<
     RangeValue<DateValue>
@@ -56,6 +56,7 @@ const CreateDrive = () => {
   const [maxSalary, setMaxSalary] = useState<number>(0);
   const [skills, setSkills] = useState<string[]>([]);
   const [description, setDescription] = useState<Record<string, unknown>>({});
+  const [company, setCompany] = useState<string>("");
 
   // Additional Details States
   const [requiredFields, setRequiredFields] = useState<string[]>([]);
@@ -100,11 +101,10 @@ const CreateDrive = () => {
     const drive: Drive = {
       title,
       description,
-      department,
       location,
+      company,
       type: category as DriveType,
       openings,
-
       applicationRange: {
         start: applicationRange.start.toDate(getLocalTimeZone()),
         end: applicationRange.end.toDate(getLocalTimeZone()),
@@ -125,7 +125,7 @@ const CreateDrive = () => {
       .then((res) => {
         toast.success("Drive created successfully");
         const newInstitute = { ...institute };
-        newInstitute.drives.push(res.data.data);
+        newInstitute.drives?.push(res.data.data);
         setInstitute(newInstitute);
         console.log(newInstitute);
         navigate("/drives");
@@ -152,8 +152,6 @@ const CreateDrive = () => {
             setTitle={setTitle}
             category={category}
             setCategory={setCategory}
-            department={department}
-            setDepartment={setDepartment}
             openings={openings}
             setOpenings={setOpenings}
             applicationRange={applicationRange}
@@ -170,6 +168,8 @@ const CreateDrive = () => {
             setDescription={setDescription}
             location={location}
             setLocation={setLocation}
+            company={company}
+            setCompany={setCompany}
           />
         )}
         {active === 1 && (
@@ -183,7 +183,8 @@ const CreateDrive = () => {
             setAdditionalDetails={setAdditionalDetails}
           />
         )}
-        {active === 2 && (
+        {active === 2 && <Access setAction={setActive} />}
+        {active === 3 && (
           <Workflow
             setAction={setActive}
             addedComponents={addedComponents}
@@ -191,12 +192,12 @@ const CreateDrive = () => {
           />
         )}
         {/* {active === 3 && <WorkflowSchedule addedComponents={addedComponents} />} */}
-        {active === 3 && (
+        {active === 4 && (
           <Summary
             setAction={setActive}
             title={title}
             category={category}
-            department={department}
+            company={company}
             openings={openings}
             applicationRange={applicationRange}
             currency={currency}

@@ -15,6 +15,7 @@ export interface CompanyHRContacts {
 }
 
 export interface Company {
+  _id: string;
   name: string;
   description?: string;
   generalInfo: CompanyGeneralInfo;

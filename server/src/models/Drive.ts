@@ -201,7 +201,7 @@ const driveSchema = new Schema(
     },
     title: { type: String, required: true },
     description: { type: Object, required: true },
-    department: { type: mongoose.Schema.Types.ObjectId, ref: "Department" },
+    company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
     location: { type: String, required: true },
     type: {
       type: String,

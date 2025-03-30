@@ -164,7 +164,7 @@ interface Drive {
   institute?: string;
   title: string;
   description: Record<string, unknown>;
-  department?: string;
+  company?: string;
   location: string;
   type: DriveType;
   url?: string;

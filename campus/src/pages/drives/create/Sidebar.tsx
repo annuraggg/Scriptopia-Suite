@@ -18,12 +18,12 @@ const Sidebar = ({
     },
     {
       id: 3,
+      title: "Access",
+    },
+    {
+      id: 4,
       title: "Workflow",
     },
-    // {
-    //   id: 4,
-    //   title: "Workflow Schedule",
-    // },
     {
       id: 5,
       title: "Preview",
