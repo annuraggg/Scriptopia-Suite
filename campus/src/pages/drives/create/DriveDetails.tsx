@@ -21,8 +21,6 @@ interface DriveDetailsProps {
   setTitle: (value: string) => void;
   category: string;
   setCategory: (value: string) => void;
-  department: string;
-  setDepartment: (value: string) => void;
   openings: number;
   setOpenings: (value: number) => void;
   applicationRange: RangeValue<DateValue>;
@@ -39,6 +37,8 @@ interface DriveDetailsProps {
   setDescription: (value: Record<string, unknown>) => void;
   location: string;
   setLocation: (value: string) => void;
+  company: string;
+  setCompany: (value: string) => void;
 }
 
 const DriveDetails = ({
@@ -47,8 +47,6 @@ const DriveDetails = ({
   setTitle,
   category,
   setCategory,
-  department,
-  setDepartment,
   openings,
   setOpenings,
   applicationRange,
@@ -65,6 +63,8 @@ const DriveDetails = ({
   setDescription,
   location,
   setLocation,
+  company,
+  setCompany,
 }: DriveDetailsProps) => {
   const { institute } = useOutletContext() as RootContext;
 
@@ -84,6 +84,30 @@ const DriveDetails = ({
             onChange={(e) => setTitle(e.target.value)}
             className="w-[500px]"
           />
+        </div>
+      </div>
+
+      <div className="flex justify-between mt-7">
+        <div className="text-sm w-[30%]">
+          <p>Associated Company</p>
+          <p className="opacity-50">
+            Choose the company that is associated with this drive. If not
+            listed, please create a new company profile first.
+          </p>
+        </div>
+        <div>
+          <Autocomplete
+            label="Company"
+            selectedKey={company}
+            onSelectionChange={(e) => setCompany(e?.toString() || "")}
+            className="max-w-[300px]"
+          >
+            {institute?.companies?.map((company) => (
+              <AutocompleteItem key={company?._id || ""}>
+                {company.name}
+              </AutocompleteItem>
+            ))}
+          </Autocomplete>
         </div>
       </div>
 
@@ -120,37 +144,12 @@ const DriveDetails = ({
             onChange={(e) => setCategory(e.target.value)}
             className="w-[500px]"
           >
-            <SelectItem key="full_time">
-              Full Time
-            </SelectItem>
-            <SelectItem key="part_time">
-              Part Time
-            </SelectItem>
-            <SelectItem key="contract">
-              Contract
-            </SelectItem>
-            <SelectItem key="internship">
-              Internship
-            </SelectItem>
-            <SelectItem key="temporary">
-              Temporary
-            </SelectItem>
+            <SelectItem key="full_time">Full Time</SelectItem>
+            <SelectItem key="part_time">Part Time</SelectItem>
+            <SelectItem key="contract">Contract</SelectItem>
+            <SelectItem key="internship">Internship</SelectItem>
+            <SelectItem key="temporary">Temporary</SelectItem>
           </Select>
-
-          <Autocomplete
-            label="Department"
-            selectedKey={department}
-            onSelectionChange={(e) => setDepartment(e?.toString() || "")}
-            className="max-w-[300px] mt-3"
-          >
-            {(institute?.departments || [])?.map((department) => (
-              <AutocompleteItem
-                key={department?._id || ""}
-              >
-                {department.name}
-              </AutocompleteItem>
-            ))}
-          </Autocomplete>
 
           <Input
             label="Openings"
@@ -217,12 +216,12 @@ const DriveDetails = ({
             }}
           />
           <DatePicker
-            className="w-[500px]"// @ts-expect-error - TS doesn't know the keys of componentMap
+            className="w-[500px]" // @ts-expect-error - TS doesn't know the keys of componentMap
             value={applicationRange?.end as DateValue | null | undefined}
             aria-label="End"
             label="Entry Ends"
             onChange={(e) => {
-              if (!e) return;// @ts-expect-error - TS doesn't know the keys of componentMap
+              if (!e) return; // @ts-expect-error - TS doesn't know the keys of componentMap
               setApplicationRange({ ...applicationRange, end: e });
             }}
           />
@@ -233,8 +232,8 @@ const DriveDetails = ({
         <div className="text-sm w-[30%]">
           <p>Location</p>
           <p className="opacity-50">
-            Choose the location where the drive will be based at. For remote drives,
-            write "Remote" or "Anywhere"
+            Choose the location where the drive will be based at. For remote
+            drives, write "Remote" or "Anywhere"
           </p>
         </div>
         <div>

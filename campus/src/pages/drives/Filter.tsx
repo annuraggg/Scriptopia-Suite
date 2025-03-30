@@ -6,14 +6,14 @@ import {
   SelectItem,
   Checkbox,
 } from "@nextui-org/react";
-import { Department } from "@shared-types/Institute";
+import { Company } from "@shared-types/Company";
 
 interface FilterProps {
   workScheduleFilter: string[];
   setWorkScheduleFilter: React.Dispatch<React.SetStateAction<string[]>>;
-  departmentFilter: string;
-  departments: Department[];
-  setDepartmentFilter: React.Dispatch<React.SetStateAction<string>>;
+  companyFilter: string;
+  companies: Company[];
+  setCompanyFilter: React.Dispatch<React.SetStateAction<string>>;
   dateRange: { start: string; end: string };
   setDateRange: React.Dispatch<
     React.SetStateAction<{ start: string; end: string }>
@@ -25,9 +25,9 @@ interface FilterProps {
 const Filter: React.FC<FilterProps> = ({
   workScheduleFilter,
   setWorkScheduleFilter,
-  departmentFilter,
-  setDepartmentFilter,
-  departments,
+  companyFilter,
+  setCompanyFilter,
+  companies,
   // sort,
   // setSort,
   //   dateRange,
@@ -74,17 +74,17 @@ const Filter: React.FC<FilterProps> = ({
             </Checkbox>
           </div>
 
-          <p className="text-base mt-5">Department</p>
+          <p className="text-base mt-5">Company</p>
           <div className="flex flex-col items-start justify-start gap-4 w-full text-sm mt-2">
             <Select
               size="sm"
-              placeholder="Select department"
+              placeholder="Select company"
               className="w-full"
-              value={departmentFilter}
-              onChange={(e) => setDepartmentFilter(e.target.value)}
+              value={companyFilter}
+              onChange={(e) => setCompanyFilter(e.target.value)}
             >
-              {departments?.map((department) => (
-                <SelectItem key={department.name}>{department.name}</SelectItem>
+              {companies?.map((company) => (
+                <SelectItem key={company.name}>{company.name}</SelectItem>
               ))}
             </Select>
           </div>

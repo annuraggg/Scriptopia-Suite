@@ -1061,6 +1061,8 @@ const permissionFieldMap = {
     "candidates",
     "postings",
     "code",
+    "companies",
+    "placementGroups",
   ],
   manage_institute: [
     "name",
@@ -1075,6 +1077,8 @@ const permissionFieldMap = {
     "candidates",
     "postings",
     "code",
+    "companies",
+    "placementGroups",
   ],
   view_billing: ["name", "email", "website", "subscriptions"],
   manage_billing: ["name", "email", "website", "subscriptions"],
@@ -1086,6 +1090,8 @@ const permissionFieldMap = {
     "departments",
     "candidates",
     "postings",
+    "placementGroups",
+    "companies",
   ],
   interviewer: [
     "name",
@@ -1095,6 +1101,8 @@ const permissionFieldMap = {
     "departments",
     "candidates",
     "postings",
+    "placementGroups",
+    "companies",
   ],
 };
 
@@ -1148,7 +1156,9 @@ const getInstitute = async (c: Context): Promise<any> => {
         .select(fieldsToSelect.join(" "))
         .populate("members.user")
         .populate("candidates")
-        .populate("pendingCandidates"),
+        .populate("pendingCandidates")
+        .populate("companies")
+        .populate("placementGroups"),
 
       User.findOne({ _id: userId }).lean(),
     ]);
