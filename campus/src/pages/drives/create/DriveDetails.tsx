@@ -149,6 +149,11 @@ const DriveDetails = ({
             <SelectItem key="contract">Contract</SelectItem>
             <SelectItem key="internship">Internship</SelectItem>
             <SelectItem key="temporary">Temporary</SelectItem>
+            <SelectItem key="full_time">Full Time</SelectItem>
+            <SelectItem key="part_time">Part Time</SelectItem>
+            <SelectItem key="contract">Contract</SelectItem>
+            <SelectItem key="internship">Internship</SelectItem>
+            <SelectItem key="temporary">Temporary</SelectItem>
           </Select>
 
           <Input
@@ -217,10 +222,12 @@ const DriveDetails = ({
           />
           <DatePicker
             className="w-[500px]" // @ts-expect-error - TS doesn't know the keys of componentMap
+            className="w-[500px]" // @ts-expect-error - TS doesn't know the keys of componentMap
             value={applicationRange?.end as DateValue | null | undefined}
             aria-label="End"
             label="Entry Ends"
             onChange={(e) => {
+              if (!e) return; // @ts-expect-error - TS doesn't know the keys of componentMap
               if (!e) return; // @ts-expect-error - TS doesn't know the keys of componentMap
               setApplicationRange({ ...applicationRange, end: e });
             }}
@@ -232,6 +239,8 @@ const DriveDetails = ({
         <div className="text-sm w-[30%]">
           <p>Location</p>
           <p className="opacity-50">
+            Choose the location where the drive will be based at. For remote
+            drives, write "Remote" or "Anywhere"
             Choose the location where the drive will be based at. For remote
             drives, write "Remote" or "Anywhere"
           </p>
