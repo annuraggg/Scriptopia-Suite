@@ -1059,7 +1059,7 @@ const permissionFieldMap = {
     "auditLogs",
     "subscriptions",
     "candidates",
-    "postings",
+    "drives",
     "code",
     "companies",
     "placementGroups",
@@ -1075,7 +1075,7 @@ const permissionFieldMap = {
     "auditLogs",
     "subscriptions",
     "candidates",
-    "postings",
+    "drives",
     "code",
     "companies",
     "placementGroups",
@@ -1089,7 +1089,7 @@ const permissionFieldMap = {
     "logo",
     "departments",
     "candidates",
-    "postings",
+    "drives",
     "placementGroups",
     "companies",
   ],
@@ -1100,7 +1100,7 @@ const permissionFieldMap = {
     "logo",
     "departments",
     "candidates",
-    "postings",
+    "drives",
     "placementGroups",
     "companies",
   ],
@@ -1115,6 +1115,8 @@ const getInstitute = async (c: Context): Promise<any> => {
       .populate("members.user")
       .populate("candidates")
       .populate("pendingCandidates")
+      .populate("companies")
+      .populate("drives")
       .lean();
 
     if (!institute) {
@@ -1158,9 +1160,10 @@ const getInstitute = async (c: Context): Promise<any> => {
         .populate("candidates")
         .populate("pendingCandidates")
         .populate("companies")
-        .populate("placementGroups"),
-
-      User.findOne({ _id: userId }).lean(),
+        .populate("placementGroups")
+        .populate("drives"),
+      
+        User.findOne({ _id: userId }).lean(),
     ]);
 
     if (!selectedInstitute || !userDoc) {

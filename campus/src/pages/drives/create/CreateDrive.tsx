@@ -20,6 +20,7 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
 // import WorkflowSchedule from "./WorkflowSchedule";
 import type { RangeValue } from "@react-types/shared";
+import Access from "./Access";
 interface Component {
   icon: React.ElementType;
   label: string;
@@ -182,7 +183,8 @@ const CreateDrive = () => {
             setAdditionalDetails={setAdditionalDetails}
           />
         )}
-        {active === 2 && (
+        {active === 2 && <Access setAction={setActive} />}
+        {active === 3 && (
           <Workflow
             setAction={setActive}
             addedComponents={addedComponents}
@@ -190,7 +192,7 @@ const CreateDrive = () => {
           />
         )}
         {/* {active === 3 && <WorkflowSchedule addedComponents={addedComponents} />} */}
-        {active === 3 && (
+        {active === 4 && (
           <Summary
             setAction={setActive}
             title={title}

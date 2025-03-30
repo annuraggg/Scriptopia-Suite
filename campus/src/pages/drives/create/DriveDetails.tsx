@@ -222,12 +222,10 @@ const DriveDetails = ({
           />
           <DatePicker
             className="w-[500px]" // @ts-expect-error - TS doesn't know the keys of componentMap
-            className="w-[500px]" // @ts-expect-error - TS doesn't know the keys of componentMap
             value={applicationRange?.end as DateValue | null | undefined}
             aria-label="End"
             label="Entry Ends"
             onChange={(e) => {
-              if (!e) return; // @ts-expect-error - TS doesn't know the keys of componentMap
               if (!e) return; // @ts-expect-error - TS doesn't know the keys of componentMap
               setApplicationRange({ ...applicationRange, end: e });
             }}

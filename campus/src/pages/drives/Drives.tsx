@@ -105,11 +105,11 @@ const Drives: React.FC = () => {
     if (workScheduleFilter.length > 0) {
       return workScheduleFilter.includes(post.type);
     }
-    if (dateRange.start && dateRange.end) {
+    if (dateRange.start && dateRange?.end) {
       const postStartDate = new Date(post.applicationRange.start);
-      const postEndDate = new Date(post.applicationRange.end);
+      const postEndDate = new Date(post.applicationRange?.end);
       const filterStartDate = new Date(dateRange.start);
-      const filterEndDate = new Date(dateRange.end);
+      const filterEndDate = new Date(dateRange?.end);
 
       if (postStartDate < filterStartDate || postEndDate > filterEndDate) {
         return false;
@@ -117,9 +117,9 @@ const Drives: React.FC = () => {
     }
 
     if (selectedFilter === "active") {
-      return new Date(post.applicationRange.end) > new Date();
+      return new Date(post.applicationRange?.end) > new Date();
     } else if (selectedFilter === "inactive") {
-      return new Date(post.applicationRange.end) < new Date();
+      return new Date(post.applicationRange?.end) < new Date();
     } else {
       return post;
     }
@@ -164,7 +164,7 @@ const Drives: React.FC = () => {
   };
 
   const getDriveStatus = (drive: Drive) => {
-    if (new Date(drive.applicationRange.end) < new Date()) {
+    if (new Date(drive.applicationRange?.end) < new Date()) {
       return "closed";
     }
     return "active";
@@ -173,6 +173,7 @@ const Drives: React.FC = () => {
   useEffect(() => {
     setDrives(institute?.drives! as Drive[]);
     setCompanies(institute?.companies || []);
+    console.log(institute?.drives);
   }, [rerender]);
 
   const { getToken } = useAuth();
@@ -315,10 +316,10 @@ const Drives: React.FC = () => {
                         <p className="text-xs mt-3">
                           {getDriveStatus(drive) === "active"
                             ? `Open Until ${new Date(
-                                drive.applicationRange.end
+                                drive.applicationRange?.end
                               ).toLocaleString()}`
                             : `Closed at ${new Date(
-                                drive.applicationRange.end
+                                drive.applicationRange?.end
                               ).toLocaleString()}`}
                         </p>
                       </div>
