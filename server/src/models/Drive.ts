@@ -195,9 +195,9 @@ const InterviewSchema = new Schema({
 
 const driveSchema = new Schema(
   {
-    organizationId: {
+    institute: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Organization",
+      ref: "Institute",
     },
     title: { type: String, required: true },
     description: { type: Object, required: true },

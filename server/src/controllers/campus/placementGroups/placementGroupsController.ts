@@ -281,28 +281,31 @@ const updatePlacementGroup = async (c: Context) => {
       return sendError(c, 403, "Unauthorized");
     }
 
-    const instituteId = (clerkUser.publicMetadata.institute as any)?._id;
+    const existingGroup = await PlacementGroup.findById(groupId);
+    if (!existingGroup) {
+      return sendError(c, 404, "Group not found");
+    }
 
-    const group = await PlacementGroup.findByIdAndUpdate(
-      groupId,
-      {
-        $set: {
-          ...body,
-          academicYear: body.academicYear,
-          candidates: body.candidates
-        }
-      },
-      { new: true }
-    )
+    const updateObj = {
+      name: body.name,
+      academicYear: body.academicYear,
+      departments: body.departments,
+      purpose: body.purpose,
+      expiryDate: body.expiryDate,
+      accessType: body.accessType,
+    };
+
+    existingGroup.candidates = [];
+    existingGroup.candidates = body.candidates;
+
+    await existingGroup.save();
+
+    const updatedGroup = await PlacementGroup.findById(groupId)
       .populate("departments")
       .populate("candidates")
       .populate("createdBy");
 
-    if (!group) {
-      return sendError(c, 404, "Group not found");
-    }
-
-    return sendSuccess(c, 200, "Group updated", group);
+    return sendSuccess(c, 200, "Group updated", updatedGroup);
   } catch (err) {
     console.error(err);
     return sendError(c, 500, "Internal server error", err);

@@ -4,7 +4,7 @@ const appliedPostingSchema = new Schema(
   {
     posting: { type: Schema.Types.ObjectId, required: true, ref: "Posting" },
     user: { type: Schema.Types.ObjectId, required: true, ref: "Candidate" },
-    disqualifiedStage: { type: Number },
+    disqualifiedStage: { type: String },
     disqualifiedReason: { type: String },
     scores: [
       {

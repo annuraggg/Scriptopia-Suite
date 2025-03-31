@@ -194,6 +194,172 @@ function App() {
       ),
       children: [
         {
+          path: "drives/:id",
+          element: (
+            <Suspense fallback={<Loader />}>
+              <DriveLayout />
+            </Suspense>
+          ),
+          children: [
+            {
+              path: "info",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <DriveInfo />
+                </Suspense>
+              ),
+            },
+            {
+              path: "dashboard",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <DriveDashboard />
+                </Suspense>
+              ),
+            },
+            {
+              path: "workflow",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Workflow />
+                </Suspense>
+              ),
+            },
+            {
+              path: "pipeline",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Pipeline />
+                </Suspense>
+              ),
+            },
+            {
+              path: "custom",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <CustomLayout />
+                </Suspense>
+              ),
+
+              children: [
+                {
+                  path: ":id",
+                  element: (
+                    <Suspense fallback={<Loader />}>
+                      <Custom />
+                    </Suspense>
+                  ),
+                },
+              ],
+            },
+
+            {
+              path: "ats",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Ats />
+                </Suspense>
+              ),
+            },
+            {
+              path: "candidates",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <DriveCandidates />
+                </Suspense>
+              ),
+            },
+            {
+              path: "assessments",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Assessments />
+                </Suspense>
+              ),
+            },
+            {
+              path: "assessments/m/:id/view/:candId",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <ViewUserMCQAssessment />
+                </Suspense>
+              ),
+            },
+            {
+              path: "assessments/c/:id/view/:candId",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <ViewUserCodeAssessment />
+                </Suspense>
+              ),
+            },
+            {
+              path: "assessments/c/:id/view",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <ViewCodeAssessmentResults />
+                </Suspense>
+              ),
+            },
+            {
+              path: "assessments/c/:id/view",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <ViewCodeAssessmentResults />
+                </Suspense>
+              ),
+            },
+            {
+              path: "assessments/m/:id/view",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <ViewMcqAssessmentResults />
+                </Suspense>
+              ),
+            },
+            //   {
+            //     path: "assessments/m/:id/view/:candId",
+            //     element: (
+            //       <Suspense fallback={<Loader />}>
+            //         <ViewMcqAssessmentResult />
+            //       </Suspense>
+            //     ),
+            //   },
+            {
+              path: "assignments",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Assignments />
+                </Suspense>
+              ),
+            },
+            {
+              path: "assignments/:id",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <ViewAssignment />
+                </Suspense>
+              ),
+            },
+            {
+              path: "assignments/new",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <NewAssignment />
+                </Suspense>
+              ),
+            },
+            {
+              path: "interviews",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Interviews />
+                </Suspense>
+              ),
+            },
+          ],
+        },
+        {
           path: "/settings",
           element: (
             <Suspense fallback={<Loader />}>
@@ -396,172 +562,6 @@ function App() {
           element: (
             <Suspense fallback={<Loader />}>
               <Support />
-            </Suspense>
-          ),
-        },
-      ],
-    },
-    {
-      path: "drives/:id",
-      element: (
-        <Suspense fallback={<Loader />}>
-          <DriveLayout />
-        </Suspense>
-      ),
-      children: [
-        {
-          path: "info",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <DriveInfo />
-            </Suspense>
-          ),
-        },
-        {
-          path: "dashboard",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <DriveDashboard />
-            </Suspense>
-          ),
-        },
-        {
-          path: "workflow",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Workflow />
-            </Suspense>
-          ),
-        },
-        {
-          path: "pipeline",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Pipeline />
-            </Suspense>
-          ),
-        },
-        {
-          path: "custom",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <CustomLayout />
-            </Suspense>
-          ),
-
-          children: [
-            {
-              path: ":id",
-              element: (
-                <Suspense fallback={<Loader />}>
-                  <Custom />
-                </Suspense>
-              ),
-            },
-          ],
-        },
-
-        {
-          path: "ats",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Ats />
-            </Suspense>
-          ),
-        },
-        {
-          path: "candidates",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <DriveCandidates />
-            </Suspense>
-          ),
-        },
-        {
-          path: "assessments",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Assessments />
-            </Suspense>
-          ),
-        },
-        {
-          path: "assessments/m/:id/view/:candId",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <ViewUserMCQAssessment />
-            </Suspense>
-          ),
-        },
-        {
-          path: "assessments/c/:id/view/:candId",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <ViewUserCodeAssessment />
-            </Suspense>
-          ),
-        },
-        {
-          path: "assessments/c/:id/view",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <ViewCodeAssessmentResults />
-            </Suspense>
-          ),
-        },
-        {
-          path: "assessments/c/:id/view",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <ViewCodeAssessmentResults />
-            </Suspense>
-          ),
-        },
-        {
-          path: "assessments/m/:id/view",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <ViewMcqAssessmentResults />
-            </Suspense>
-          ),
-        },
-        //   {
-        //     path: "assessments/m/:id/view/:candId",
-        //     element: (
-        //       <Suspense fallback={<Loader />}>
-        //         <ViewMcqAssessmentResult />
-        //       </Suspense>
-        //     ),
-        //   },
-        {
-          path: "assignments",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Assignments />
-            </Suspense>
-          ),
-        },
-        {
-          path: "assignments/:id",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <ViewAssignment />
-            </Suspense>
-          ),
-        },
-        {
-          path: "assignments/new",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <NewAssignment />
-            </Suspense>
-          ),
-        },
-        {
-          path: "interviews",
-          element: (
-            <Suspense fallback={<Loader />}>
-              <Interviews />
             </Suspense>
           ),
         },

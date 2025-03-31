@@ -24,7 +24,7 @@ const getDrives = async (c: Context) => {
     }
 
     const drive = await Drive.find({
-      instituteId: perms.data?.institute?._id,
+      institute: perms.data?.institute?._id,
     });
 
     const institute = await Institute.findById(
@@ -59,7 +59,7 @@ const getDrive = async (c: Context) => {
           model: "AppliedDrive",
         },
       })
-      .populate("instituteId")
+      .populate("institute")
       .populate("assignments.submissions")
       .populate("interviews.interview");
 
@@ -80,7 +80,7 @@ const getDriveBySlug = async (c: Context) => {
       .populate("mcqAssessments.assessmentId")
       .populate("codeAssessments.assessmentId")
       .populate("candidates")
-      .populate("instituteId")
+      .populate("institute")
       .populate("assignments.submissions");
 
     if (!drive) {
@@ -90,6 +90,7 @@ const getDriveBySlug = async (c: Context) => {
     return sendSuccess(c, 200, "drive fetched successfully", drive);
   } catch (e: any) {
     logger.error(e);
+    console.log(e);
     return sendError(c, 500, "Something went wrong");
   }
 };
@@ -121,7 +122,7 @@ const createDrive = async (c: Context) => {
 
     const newDrive = new Drive({
       ...drive,
-      instituteId: perms.data?.institute?._id,
+      institute: perms.data?.institute?._id,
     });
 
     await newDrive.save();
@@ -540,7 +541,7 @@ const saveAssignmentSubmission = async (c: Context) => {
         email: user.email as string,
         dataVariables: {
           // @ts-expect-error - Type 'string' is not assignable to type 'DataVariables'
-          institute: drive?.instituteId?.name || "the company",
+          institute: drive?.institute?.name || "the company",
         },
       });
     } catch (emailError) {

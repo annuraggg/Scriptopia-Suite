@@ -2,6 +2,7 @@ import r2Client from "@/config/s3";
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
 import AppliedPosting from "@/models/AppliedPosting";
 import Candidate from "@/models/Candidate";
+import Posting from "@/models/Posting";
 import logger from "@/utils/logger";
 import { sendError, sendSuccess } from "@/utils/sendResponse";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
@@ -77,6 +78,7 @@ const qualifyCandidate = async (c: Context) => {
     }
 
     appliedPosting.status = "inprogress";
+    appliedPosting.disqualifiedStage = null;
     await appliedPosting.save();
 
     return sendSuccess(c, 200, "Candidate qualified successfully");
@@ -107,6 +109,17 @@ const disqualifyCandidate = async (c: Context) => {
     }
 
     appliedPosting.status = "rejected";
+    const posting = await Posting.findOne({ _id: postingId })
+
+    if (!posting) {
+      return sendError(c, 404, "Posting not found");
+    }
+
+    const stage = posting?.workflow?.steps?.find(step => step.status === "in-progress")?._id;
+
+    console.log("stage", stage);
+
+    appliedPosting.disqualifiedStage = stage?.toString();
     appliedPosting.disqualifiedReason = reason;
     await appliedPosting.save();
 
@@ -133,6 +146,7 @@ const bulkQualify = async (c: Context) => {
 
     for (const appliedPosting of appliedPostings) {
       appliedPosting.status = "inprogress";
+      appliedPosting.disqualifiedStage = null;
       await appliedPosting.save();
     }
 
@@ -157,8 +171,18 @@ const bulkDisqualify = async (c: Context) => {
       posting: postingId,
     });
 
+    const posting = await Posting.findOne({ _id: postingId })
+
+    if (!posting) {
+      return sendError(c, 404, "Posting not found");
+    }
+    const stage = posting?.workflow?.steps?.find(step => step.status === "in-progress")?._id;
+
+
     for (const appliedPosting of appliedPostings) {
       appliedPosting.status = "rejected";
+
+      appliedPosting.disqualifiedStage = stage?.toString();
       appliedPosting.disqualifiedReason = reason;
       await appliedPosting.save();
     }

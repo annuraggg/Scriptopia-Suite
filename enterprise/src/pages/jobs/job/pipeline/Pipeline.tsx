@@ -251,8 +251,8 @@ const Pipeline = () => {
         {posting?.workflow?.steps?.map((step, index) => {
           const stageApplicants = appliedPostings.filter((applied) => {
             return step.status === "in-progress"
-              ? applied.status === "inprogress"
-              : applied.disqualifiedStage === index;
+              ? applied.status === "inprogress" || applied.disqualifiedStage?.toString() === step._id?.toString()
+              : applied.disqualifiedStage?.toString() === step._id?.toString();
           });
 
           return (
