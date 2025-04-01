@@ -397,7 +397,7 @@ const createCodeAssessment = async (c: Context) => {
         return sendError(c, 400, "Workflow not found");
       }
 
-      const assessmentstep = parseInt(step) + 1;
+      const assessmentstep = parseInt(step);
       const workflowId = posting.workflow.steps[assessmentstep]?._id;
 
       await Posting.findByIdAndUpdate(postingId, {
