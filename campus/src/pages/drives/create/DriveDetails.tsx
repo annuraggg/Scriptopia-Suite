@@ -211,22 +211,22 @@ const DriveDetails = ({
         </div>
         <div className="flex gap-3 max-w-[500px]">
           <DatePicker
-            className="w-[500px]" // @ts-expect-error - TS doesn't know the keys of componentMap
+            className="w-[500px]"
             value={applicationRange?.start as DateValue}
             aria-label="Start"
             label="Entry Starts"
             onChange={(e) => {
-              if (!e) return; // @ts-expect-error - TS doesn't know the keys of componentMap
+              if (!e) return;
               setApplicationRange({ ...applicationRange, start: e });
             }}
           />
           <DatePicker
-            className="w-[500px]" // @ts-expect-error - TS doesn't know the keys of componentMap
-            value={applicationRange?.end as DateValue | null | undefined}
+            className="w-[500px]"
+            value={applicationRange?.end as DateValue}
             aria-label="End"
             label="Entry Ends"
             onChange={(e) => {
-              if (!e) return; // @ts-expect-error - TS doesn't know the keys of componentMap
+              if (!e) return;
               setApplicationRange({ ...applicationRange, end: e });
             }}
           />
