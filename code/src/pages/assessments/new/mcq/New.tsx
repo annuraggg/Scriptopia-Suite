@@ -173,16 +173,16 @@ const New = () => {
       step,
     };
 
-    const safeUrls = [
-      "https://enterprise.scriptopia.tech/",
-      "https://scriptopia.tech/",
-      "https://campus.scriptopia.tech/",
-      "https://candidate.scriptopia.tech/",
-      "localhost:5172",
-      "localhost:5173",
-      "localhost:5174",
-      "localhost:5175",
-    ];
+    // const safeUrls = [
+    //   "https://enterprise.scriptopia.tech/",
+    //   "https://scriptopia.tech/",
+    //   "https://campus.scriptopia.tech/",
+    //   "https://candidate.scriptopia.tech/",
+    //   "localhost:5172",
+    //   "localhost:5173",
+    //   "localhost:5174",
+    //   "localhost:5175",
+    // ];
 
     const axios = ax(getToken);
     axios
