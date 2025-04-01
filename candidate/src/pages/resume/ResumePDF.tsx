@@ -1,3 +1,5 @@
+// @ts-expect-error - TS(7016) - No types for react-pdf/renderer
+import React from "react";
 import {
   Document,
   Link,
