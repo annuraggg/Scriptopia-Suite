@@ -6,14 +6,12 @@ import CompanyStatsTab from "./CompanyStatsTab";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 
 interface CreateCompanyFormProps {
   onClose: () => void;
 }
 
 const CreateCompanyForm: React.FC<CreateCompanyFormProps> = ({ onClose }) => {
-  const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
 
   const [name, setName] = useState("");
@@ -29,7 +27,7 @@ const CreateCompanyForm: React.FC<CreateCompanyFormProps> = ({ onClose }) => {
   const [avgPackage, setAvgPackage] = useState("");
   const [highestPackage, setHighestPackage] = useState("");
   const [studentsHired, setStudentsHired] = useState("");
-  const [yearVisit, setYearVisit] = useState<string[]>([new Date().getFullYear().toString()]);
+  const [yearVisit] = useState<string[]>([new Date().getFullYear().toString()]);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -69,7 +67,7 @@ const CreateCompanyForm: React.FC<CreateCompanyFormProps> = ({ onClose }) => {
         }
       };
 
-      const response = await axios.post("/companies/create", companyData);
+      await axios.post("/companies/create", companyData);
 
       toast.success("Company profile created successfully!");
       

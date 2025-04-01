@@ -13,7 +13,7 @@ import {
   DropdownItem,
   Spinner
 } from '@nextui-org/react';
-import { Search, Plus, MoreVertical, Copy, ArrowLeft, Calendar, Users, DollarSign } from 'lucide-react';
+import { Search, Plus, MoreVertical, Copy, Calendar, Users, DollarSign } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
 import ax from '@/config/axios';
 import CreateCompanyForm from './CreateCompanyForm';

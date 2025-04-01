@@ -13,7 +13,8 @@ import {
     Divider,
 } from "@nextui-org/react";
 import { PlacementGroup } from "@shared-types/PlacementGroup";
-import { Department, Candidate as CandidateType } from "@shared-types/Institute";
+import { Department } from "@shared-types/Institute";
+import { Candidate as CandidateType } from "@shared-types/Candidate";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";

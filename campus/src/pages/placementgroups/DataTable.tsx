@@ -52,6 +52,8 @@ interface DataTableProps<TData extends Candidate> {
   data: TData[];
   type?: "pending" | "active";
   onDataUpdate?: () => void;
+  selectedCandidates?: string[];
+  setSelectedCandidates?: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 export function DataTable<TData extends Candidate>({
@@ -351,9 +353,9 @@ export function DataTable<TData extends Candidate>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
