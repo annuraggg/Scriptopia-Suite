@@ -1212,7 +1212,7 @@ const getOrganization = async (c: Context): Promise<Response> => {
         try {
           data = await r2Client.send(command);
           const buffer = await data?.Body?.transformToByteArray();
-          const base64 = Buffer.from(buffer as unknown as ArrayBuffer).toString(
+          const base64 = Buffer.from(buffer as unknown as ArrayBuffer)?.toString(
             "base64"
           );
           selectedOrg.logo = `data:image/png;base64,${base64}`;
