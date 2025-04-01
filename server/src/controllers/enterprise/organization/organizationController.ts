@@ -1162,7 +1162,7 @@ const getOrganization = async (c: Context): Promise<Response> => {
       (m) =>
         (
           m?.user as Types.ObjectId | { _id: Types.ObjectId }
-        )?._id?.toString() === userId.toString()
+        )?._id?.toString() === userId?.toString()
     );
     if (!member?.role) {
       return sendError(c, 403, "Invalid member access");

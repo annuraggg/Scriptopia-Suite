@@ -35,11 +35,13 @@ const Members: React.FC = () => {
     isOpen: removeConfirmOpen,
     onOpen: onRemoveConfirmOpen,
     onOpenChange: onRemoveConfirmOpenChange,
+    onClose: onRemoveConfirmClose,
   } = useDisclosure();
   const {
     isOpen: revokeConfirmOpen,
     onOpen: onRevokeConfirmOpen,
     onOpenChange: onRevokeConfirmOpenChange,
+    onClose: onRevokeConfirmClose,
   } = useDisclosure();
 
   const { organization, setOrganization, user, rerender } =
@@ -82,6 +84,7 @@ const Members: React.FC = () => {
       (member) => member.email !== email
     );
     setOrganization({ ...newOrganization, members: updatedMembers });
+    onRemoveConfirmClose();
   };
 
   const revokeMember = (email: string) => {
@@ -90,8 +93,7 @@ const Members: React.FC = () => {
       (member) => member.email !== email
     );
     setOrganization({ ...newOrganization, members: updatedMembers });
-
-    onRevokeConfirmOpenChange();
+    onRevokeConfirmClose();
   };
 
   return (
