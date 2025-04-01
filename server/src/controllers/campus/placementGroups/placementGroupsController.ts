@@ -8,7 +8,7 @@ import Candidate from "@/models/Candidate";
 
 const createPlacementGroup = async (c: Context) => {
   try {
-    const { userId, _id } = c.get("auth");
+    const { userId } = c.get("auth");
     const body = await c.req.json();
 
     const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
@@ -43,7 +43,7 @@ const createPlacementGroup = async (c: Context) => {
       expiryDate,
       accessType,
       candidates,
-      createdBy: _id,
+      createdBy: userId,
     });
 
     await Institute.findByIdAndUpdate(instituteId, {
@@ -56,7 +56,7 @@ const createPlacementGroup = async (c: Context) => {
       $push: {
         auditLogs: {
           action: "create",
-          userId: _id,
+          userId: userId,
           user: clerkUser.fullName,
           type: "info",
         },
@@ -267,7 +267,7 @@ const getCandidatePlacementGroups = async (c: Context) => {
 
 const updatePlacementGroup = async (c: Context) => {
   try {
-    const { userId, _id } = c.get("auth");
+    const { userId } = c.get("auth");
     const groupId = c.req.param("id");
     const body = await c.req.json();
 
@@ -286,14 +286,12 @@ const updatePlacementGroup = async (c: Context) => {
       return sendError(c, 404, "Group not found");
     }
 
-    const updateObj = {
-      name: body.name,
-      academicYear: body.academicYear,
-      departments: body.departments,
-      purpose: body.purpose,
-      expiryDate: body.expiryDate,
-      accessType: body.accessType,
-    };
+    existingGroup.name = body.name;
+    existingGroup.academicYear = body.academicYear;
+    existingGroup.departments = body.departments;
+    existingGroup.purpose = body.purpose;
+    existingGroup.expiryDate = body.expiryDate;
+    existingGroup.accessType = body.accessType;
 
     existingGroup.candidates = [];
     existingGroup.candidates = body.candidates;
