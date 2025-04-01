@@ -1,12 +1,12 @@
 import Drive from "../../../models/Drive";
-import checkPermission from "../../../middlewares/checkOrganizationPermission";
+import checkPermission from "../../../middlewares/checkInstitutePermission";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import logger from "../../../utils/logger";
 import { Context } from "hono";
-import Organization from "@/models/Organization";
+import Institute from "@/models/Institute";
 import mongoose from "mongoose";
 import clerkClient from "@/config/clerk";
-import { AuditLog } from "@shared-types/Organization";
+import { AuditLog } from "@shared-types/Institute";
 import AssignmentSubmission from "@/models/AssignmentSubmission";
 import { Upload } from "@aws-sdk/lib-storage";
 import r2Client from "@/config/s3";
@@ -24,16 +24,16 @@ const getDrives = async (c: Context) => {
     }
 
     const drive = await Drive.find({
-      organizationId: perms.data?.organization?._id,
+      institute: perms.data?.institute?._id,
     });
 
-    const organization = await Organization.findById(
-      perms.data?.organization?._id
+    const institute = await Institute.findById(
+      perms.data?.institute?._id
     );
 
     return sendSuccess(c, 200, "Drive fetched successfully", {
       drives: drive,
-      departments: organization?.departments,
+      departments: institute?.departments,
     });
   } catch (e: any) {
     logger.error(e);
@@ -59,7 +59,7 @@ const getDrive = async (c: Context) => {
           model: "AppliedDrive",
         },
       })
-      .populate("organizationId")
+      .populate("institute")
       .populate("assignments.submissions")
       .populate("interviews.interview");
 
@@ -80,7 +80,7 @@ const getDriveBySlug = async (c: Context) => {
       .populate("mcqAssessments.assessmentId")
       .populate("codeAssessments.assessmentId")
       .populate("candidates")
-      .populate("organizationId")
+      .populate("institute")
       .populate("assignments.submissions");
 
     if (!drive) {
@@ -90,6 +90,7 @@ const getDriveBySlug = async (c: Context) => {
     return sendSuccess(c, 200, "drive fetched successfully", drive);
   } catch (e: any) {
     logger.error(e);
+    console.log(e);
     return sendError(c, 500, "Something went wrong");
   }
 };
@@ -100,6 +101,7 @@ const createDrive = async (c: Context) => {
 
     const perms = await checkPermission.all(c, ["manage_drive"]);
     if (!perms.allowed) {
+      console.error("Unauthorized access attempt")
       return sendError(c, 401, "Unauthorized");
     }
 
@@ -120,7 +122,7 @@ const createDrive = async (c: Context) => {
 
     const newDrive = new Drive({
       ...drive,
-      organizationId: perms.data?.organization?._id,
+      institute: perms.data?.institute?._id,
     });
 
     await newDrive.save();
@@ -140,7 +142,7 @@ const createDrive = async (c: Context) => {
       type: "info",
     };
 
-    await Organization.findByIdAndUpdate(perms.data?.organization?._id, {
+    await Institute.findByIdAndUpdate(perms.data?.institute?._id, {
       $push: {
         auditLogs: auditLog,
         drives: newDrive._id,
@@ -177,7 +179,7 @@ const createWorkflow = async (c: Context) => {
       type: "info",
     };
 
-    await Organization.findByIdAndUpdate(perms.data?.organization?._id, {
+    await Institute.findByIdAndUpdate(perms.data?.institute?._id, {
       $push: { auditLogs: auditLog },
     });
 
@@ -243,7 +245,7 @@ const updateAts = async (c: Context) => {
       type: "info",
     };
 
-    await Organization.findByIdAndUpdate(perms.data?.organization?._id, {
+    await Institute.findByIdAndUpdate(perms.data?.institute?._id, {
       $push: { auditLogs: auditLog },
     });
 
@@ -293,7 +295,7 @@ const updateAssignment = async (c: Context) => {
       type: "info",
     };
 
-    await Organization.findByIdAndUpdate(perms.data?.organization?._id, {
+    await Institute.findByIdAndUpdate(perms.data?.institute?._id, {
       $push: { auditLogs: auditLog },
     });
 
@@ -336,7 +338,7 @@ const updateInterview = async (c: Context) => {
       type: "info",
     };
 
-    await Organization.findByIdAndUpdate(perms.data?.organization?._id, {
+    await Institute.findByIdAndUpdate(perms.data?.institute?._id, {
       $push: { auditLogs: auditLog },
     });
 
@@ -376,7 +378,7 @@ const publishDrive = async (c: Context) => {
       type: "info",
     };
 
-    await Organization.findByIdAndUpdate(perms.data?.organization?._id, {
+    await Institute.findByIdAndUpdate(perms.data?.institute?._id, {
       $push: { auditLogs: auditLog },
     });
 
@@ -399,7 +401,7 @@ const deleteDrive = async (c: Context) => {
       return sendError(c, 404, "drive not found");
     }
 
-    await Organization.findByIdAndUpdate(perms.data?.organization?._id, {
+    await Institute.findByIdAndUpdate(perms.data?.institute?._id, {
       $pull: { drives: drive._id },
     });
 
@@ -539,7 +541,7 @@ const saveAssignmentSubmission = async (c: Context) => {
         email: user.email as string,
         dataVariables: {
           // @ts-expect-error - Type 'string' is not assignable to type 'DataVariables'
-          organization: drive?.organizationId?.name || "the company",
+          institute: drive?.institute?.name || "the company",
         },
       });
     } catch (emailError) {

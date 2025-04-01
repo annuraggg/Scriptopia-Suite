@@ -102,14 +102,14 @@ interface Salary {
   currency?: string;
 }
 
-  interface Assignment {
-    _id?: string;
-    name: string;
-    workflowId: string;
-    description: string;
-    submissionType: "file" | "text" | "link";
-    submissions?: string[];
-  }
+interface Assignment {
+  _id?: string;
+  name: string;
+  workflowId: string;
+  description: string;
+  submissionType: "file" | "text" | "link";
+  submissions?: string[];
+}
 
 interface Assessment {
   _id?: string;
@@ -164,7 +164,7 @@ interface Drive {
   institute?: string;
   title: string;
   description: Record<string, unknown>;
-  department?: string;
+  company?: string;
   location: string;
   type: DriveType;
   url?: string;
@@ -180,6 +180,7 @@ interface Drive {
   interviews?: [Interview];
   candidates?: string[];
   additionalDetails?: AdditionalDetails;
+  placementGroups: string[];
   published: boolean;
   publishedOn?: Date;
   createdAt?: Date;

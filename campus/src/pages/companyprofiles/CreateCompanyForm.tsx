@@ -1,12 +1,8 @@
-import { useState } from "react";
-import {
-  Card,
-  Input,
-  Button,
-  CardBody,
-  Textarea,
-  Chip,
-} from "@nextui-org/react";
+import React, { useState } from "react";
+import { ChevronRight } from "lucide-react";
+import CompanyDetailsTab from "./CompanyDetailsTab";
+import CompanyHRTab from "./CompanyHRTab";
+import CompanyStatsTab from "./CompanyStatsTab";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
@@ -15,447 +11,174 @@ interface CreateCompanyFormProps {
   onClose: () => void;
 }
 
-interface CompanyFormData {
-  name: string;
-  description: string;
-  generalInfo: {
-    industry: string[];
-    yearVisit: string[];
-    studentsHired: number;
-    averagePackage: number;
-    highestPackage: number;
-    rolesOffered: string[];
-  };
-  hrContacts: {
-    name: string;
-    phone: string;
-    email: string;
-    website: string;
-  };
-}
+const CreateCompanyForm: React.FC<CreateCompanyFormProps> = ({ onClose }) => {
+  const [activeStep, setActiveStep] = useState(0);
 
-const industries = [
-  "Technology",
-  "Finance",
-  "Healthcare",
-  "Manufacturing",
-  "Retail",
-  "Education",
-  "Consulting",
-  "Other"
-];
+  const [name, setName] = useState("");
+  const [industry, setIndustry] = useState<string[]>([]);
+  const [description, setDescription] = useState("");
+  const [rolesOffered, setRolesOffered] = useState<string[]>([]);
 
-const roles = [
-  "Software Engineer",
-  "Data Analyst",
-  "Product Manager",
-  "Marketing Specialist",
-  "Business Analyst",
-  "HR Manager",
-  "Sales Executive",
-  "Other"
-];
+  const [hrName, setHrName] = useState("");
+  const [hrEmail, setHrEmail] = useState("");
+  const [hrPhone, setHrPhone] = useState("");
+  const [hrWebsite, setHrWebsite] = useState("");
 
-const CreateCompanyForm = ({ onClose }: CreateCompanyFormProps) => {
+  const [avgPackage, setAvgPackage] = useState("");
+  const [highestPackage, setHighestPackage] = useState("");
+  const [studentsHired, setStudentsHired] = useState("");
+  const [yearVisit] = useState<string[]>([new Date().getFullYear().toString()]);
+
   const { getToken } = useAuth();
   const axios = ax(getToken);
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
-  const [formData, setFormData] = useState<CompanyFormData>({
-    name: "",
-    description: "",
-    generalInfo: {
-      industry: [],
-      yearVisit: [],
-      studentsHired: 0,
-      averagePackage: 0,
-      highestPackage: 0,
-      rolesOffered: []
-    },
-    hrContacts: {
-      name: "",
-      phone: "",
-      email: "",
-      website: "https://"
-    }
-  });
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
+  const handleSave = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      await axios.post("/companies/create", formData);
-      toast.success("Company created successfully!");
+      if (!name) {
+        toast.error("Company name is required");
+        setLoading(false);
+        return;
+      }
+
+      if (!studentsHired || !avgPackage || !highestPackage) {
+        toast.error("All placement statistics are required");
+        setLoading(false);
+        return;
+      }
+
+      const companyData = {
+        name,
+        description,
+        hrContacts: {
+          name: hrName,
+          email: hrEmail,
+          phone: hrPhone,
+          website: hrWebsite || ""
+        },
+        generalInfo: {
+          industry: industry,
+          yearVisit: yearVisit,
+          studentsHired: Number(studentsHired),
+          averagePackage: Number(avgPackage),
+          highestPackage: Number(highestPackage),
+          rolesOffered: rolesOffered
+        }
+      };
+
+      await axios.post("/companies/create", companyData);
+
+      toast.success("Company profile created successfully!");
+      
       onClose();
-    } catch (err) {
+      
+      window.location.href = "/companyprofiles";
+    } catch (err: any) {
       console.error("Error creating company:", err);
-      toast.error("Failed to create company");
+      toast.error(err.response?.data?.message || "Error creating company profile");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleIndustryToggle = (industry: string) => {
-    setFormData(prev => ({
-      ...prev,
-      generalInfo: {
-        ...prev.generalInfo,
-        industry: prev.generalInfo.industry.includes(industry)
-          ? prev.generalInfo.industry.filter(i => i !== industry)
-          : [...prev.generalInfo.industry, industry]
-      }
-    }));
-  };
-
-  const handleRoleToggle = (role: string) => {
-    setFormData(prev => ({
-      ...prev,
-      generalInfo: {
-        ...prev.generalInfo,
-        rolesOffered: prev.generalInfo.rolesOffered.includes(role)
-          ? prev.generalInfo.rolesOffered.filter(r => r !== role)
-          : [...prev.generalInfo.rolesOffered, role]
-      }
-    }));
-  };
-
   return (
-    <div className="w-full max-w-4xl mx-auto h-screen flex flex-col">
-      <div className="sticky top-0 bg-background z-10 p-6 shadow-sm">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-500 bg-clip-text text-transparent">
-            Create a New Company Profile
-          </h1>
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 text-gray-400">
-              <span
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                  currentStep >= 1
-                    ? "bg-green-600 text-white"
-                    : "bg-green-500 text-white"
-                }`}
-              >
-                1
-              </span>
-              <span className="font-medium">Company Information</span>
-              <span className="mx-4 h-px w-16 bg-gradient-to-r from-green-500 to-gray-700" />
-              <span
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                  currentStep >= 2 ? "bg-green-500 text-white" : "bg-gray-700"
-                }`}
-              >
-                2
-              </span>
-              <span className="font-medium">Placement Details</span>
-              <span className="mx-4 h-px w-16 bg-gradient-to-r from-green-500 to-gray-700" />
-              <span
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                  currentStep >= 3 ? "bg-green-500 text-white" : "bg-gray-700"
-                }`}
-              >
-                3
-              </span>
-              <span className="font-medium">Contact Information</span>
+    <div className="flex gap-5 h-full py-8">
+      <div className="flex flex-col space-y-4 px-4 w-[30%]">
+        {[
+          { id: 1, title: "Company Details" },
+          { id: 2, title: "HR Contacts" },
+          { id: 3, title: "Placement Stats" },
+        ].map((step, index) => (
+          <div
+            key={step.id}
+            className={`
+              flex items-center justify-between 
+              px-4 py-3 
+              rounded-lg 
+              transition-all duration-300 ease-in-out 
+              ${activeStep === index
+                ? "bg-foreground text-background"
+                : "bg-background text-foreground"
+              }
+              cursor-pointer group
+            `}
+            onClick={() => {
+              if (
+                index === activeStep - 1 ||
+                index === activeStep + 1 ||
+                index === activeStep
+              ) {
+                setActiveStep(index);
+              }
+            }}
+          >
+            <div className="flex items-center space-x-4">
+              <div
+                className={`
+                  w-10 h-1 
+                  rounded-full 
+                  transition-all duration-300 
+                  ${activeStep === index ? "bg-background" : "bg-foreground"}
+                `}
+              ></div>
+              <span className={`font-medium text-sm w-full`}>{step.title}</span>
             </div>
-            <span className="text-xl font-bold text-green-500">
-              {currentStep}/3
-            </span>
+            <ChevronRight
+              className={`
+                text-white 
+                opacity-0 group-hover:opacity-100 
+                transition-opacity duration-300
+                ${activeStep === index ? "opacity-100" : ""}
+              `}
+              size={20}
+            />
           </div>
-        </div>
+        ))}
       </div>
 
-      <div className="flex-1 p-6 overflow-y-auto">
-        {currentStep === 1 && (
-          <Card className="bg-white dark:bg-gray-800 shadow-xl">
-            <CardBody className="p-8 space-y-8">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Company Name
-                </label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter company name"
-                  className="shadow-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Company Description
-                </label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Brief description of the company"
-                  minRows={3}
-                  className="shadow-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Industry</label>
-                <div className="flex flex-wrap gap-2">
-                  {industries.map((industry) => (
-                    <Chip
-                      key={industry}
-                      className={`cursor-pointer transition-all duration-300 hover:scale-105 ${
-                        formData.generalInfo.industry.includes(industry)
-                          ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300"
-                          : "bg-gray-100 dark:bg-gray-800"
-                      }`}
-                      onClick={() => handleIndustryToggle(industry)}
-                    >
-                      {industry}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4">
-                <Button
-                  color="danger"
-                  variant="light"
-                  onClick={onClose}
-                  className="hover:bg-red-50"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  color="primary"
-                  variant="solid"
-                  onClick={() => setCurrentStep(2)}
-                  className=""
-                  isDisabled={
-                    !formData.name ||
-                    !formData.description ||
-                    formData.generalInfo.industry.length === 0
-                  }
-                >
-                  Next
-                </Button>
-              </div>
-            </CardBody>
-          </Card>
+      <div className="w-full overflow-y-auto h-full">
+        {activeStep === 0 && (
+          <CompanyDetailsTab
+            name={name}
+            setName={setName}
+            industry={industry}
+            setIndustry={setIndustry}
+            description={description}
+            setDescription={setDescription}
+            rolesOffered={rolesOffered}
+            setRolesOffered={setRolesOffered}
+            activeStep={activeStep}
+            setActiveStep={setActiveStep}
+          />
         )}
-
-        {currentStep === 2 && (
-          <Card className="bg-white dark:bg-gray-800 shadow-xl">
-            <CardBody className="p-8 space-y-8">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Students Hired
-                </label>
-                <Input
-                  type="number"
-                  value={formData.generalInfo.studentsHired.toString()}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    generalInfo: {
-                      ...formData.generalInfo,
-                      studentsHired: Number(e.target.value)
-                    }
-                  })}
-                  placeholder="Number of students hired"
-                  className="shadow-sm"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Average Package (₹)
-                  </label>
-                  <Input
-                    type="number"
-                    value={formData.generalInfo.averagePackage.toString()}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      generalInfo: {
-                        ...formData.generalInfo,
-                        averagePackage: Number(e.target.value)
-                      }
-                    })}
-                    placeholder="Average package offered"
-                    className="shadow-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Highest Package (₹)
-                  </label>
-                  <Input
-                    type="number"
-                    value={formData.generalInfo.highestPackage.toString()}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      generalInfo: {
-                        ...formData.generalInfo,
-                        highestPackage: Number(e.target.value)
-                      }
-                    })}
-                    placeholder="Highest package offered"
-                    className="shadow-sm"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Roles Offered
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {roles.map((role) => (
-                    <Chip
-                      key={role}
-                      className={`cursor-pointer transition-all duration-300 hover:scale-105 ${
-                        formData.generalInfo.rolesOffered.includes(role)
-                          ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300"
-                          : "bg-gray-100 dark:bg-gray-800"
-                      }`}
-                      onClick={() => handleRoleToggle(role)}
-                    >
-                      {role}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4">
-                <Button
-                  color="danger"
-                  variant="light"
-                  onClick={() => setCurrentStep(1)}
-                  className="hover:bg-red-50"
-                >
-                  Back
-                </Button>
-                <Button
-                  color="primary"
-                  variant="solid"
-                  onClick={() => setCurrentStep(3)}
-                  className=""
-                  isDisabled={
-                    formData.generalInfo.studentsHired <= 0 ||
-                    formData.generalInfo.averagePackage <= 0 ||
-                    formData.generalInfo.highestPackage <= 0 ||
-                    formData.generalInfo.rolesOffered.length === 0
-                  }
-                >
-                  Next
-                </Button>
-              </div>
-            </CardBody>
-          </Card>
+        {activeStep === 1 && (
+          <CompanyHRTab
+            hrName={hrName}
+            setHrName={setHrName}
+            hrEmail={hrEmail}
+            setHrEmail={setHrEmail}
+            hrPhone={hrPhone}
+            setHrPhone={setHrPhone}
+            hrWebsite={hrWebsite}
+            setHrWebsite={setHrWebsite}
+            activeStep={activeStep}
+            setActiveStep={setActiveStep}
+          />
         )}
-
-        {currentStep === 3 && (
-          <Card className="bg-white dark:bg-gray-800 shadow-xl">
-            <CardBody className="p-8 space-y-8">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  HR Contact Name
-                </label>
-                <Input
-                  value={formData.hrContacts.name}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    hrContacts: {
-                      ...formData.hrContacts,
-                      name: e.target.value
-                    }
-                  })}
-                  placeholder="Name of HR contact person"
-                  className="shadow-sm"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Email Address
-                  </label>
-                  <Input
-                    type="email"
-                    value={formData.hrContacts.email}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      hrContacts: {
-                        ...formData.hrContacts,
-                        email: e.target.value
-                      }
-                    })}
-                    placeholder="Email address"
-                    className="shadow-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Phone Number
-                  </label>
-                  <Input
-                    type="tel"
-                    value={formData.hrContacts.phone}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      hrContacts: {
-                        ...formData.hrContacts,
-                        phone: e.target.value
-                      }
-                    })}
-                    placeholder="Phone number"
-                    className="shadow-sm"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Company Website
-                </label>
-                <Input
-                  type="url"
-                  value={formData.hrContacts.website}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    hrContacts: {
-                      ...formData.hrContacts,
-                      website: e.target.value
-                    }
-                  })}
-                  placeholder="Company website URL"
-                  className="shadow-sm"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4">
-                <Button
-                  color="danger"
-                  variant="light"
-                  onClick={() => setCurrentStep(2)}
-                  className="hover:bg-red-50"
-                >
-                  Back
-                </Button>
-                <Button
-                  color="primary"
-                  variant="solid"
-                  onClick={handleSubmit}
-                  isLoading={loading}
-                  isDisabled={
-                    !formData.hrContacts.name ||
-                    !formData.hrContacts.email ||
-                    !formData.hrContacts.phone ||
-                    !formData.hrContacts.website
-                  }
-                >
-                  Create Company
-                </Button>
-              </div>
-            </CardBody>
-          </Card>
+        {activeStep === 2 && (
+          <CompanyStatsTab
+            avgPackage={avgPackage}
+            setAvgPackage={setAvgPackage}
+            highestPackage={highestPackage}
+            setHighestPackage={setHighestPackage}
+            studentsHired={studentsHired}
+            setStudentsHired={setStudentsHired}
+            activeStep={activeStep}
+            setActiveStep={setActiveStep}
+            onSave={handleSave}
+            loading={loading}
+          />
         )}
       </div>
     </div>

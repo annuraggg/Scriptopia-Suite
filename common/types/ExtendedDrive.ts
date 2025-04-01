@@ -8,6 +8,7 @@ interface ExtendedDrive
   institute: Omit<Organization, "members">;
   candidates: ExtendedCandidate[];
   interviews: ExtendedInterviews[];
+  department?: string;
 }
 
 interface ExtendedInterviews extends Omit<Interview, "interview"> {

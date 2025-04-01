@@ -28,7 +28,7 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { Drive } from "@shared-types/Drive";
-import { Department } from "@shared-types/Institute";
+import { Company } from "@shared-types/Company";
 import {
   Modal,
   ModalContent,
@@ -68,13 +68,13 @@ const Drives: React.FC = () => {
   }, [institute]);
 
   const [drives, setDrives] = useState<Drive[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
 
   const [sort, setSort] = useState(new Set(["newest"]));
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [workScheduleFilter, setWorkScheduleFilter] = useState<string[]>([]);
-  const [departmentFilter, setDepartmentFilter] = useState<string>("");
+  const [companyFilter, setCompanyFilter] = useState<string>("");
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
     start: "",
     end: "",
@@ -98,18 +98,18 @@ const Drives: React.FC = () => {
     if (searchTerm) {
       return post.title.toLowerCase().includes(searchTerm.toLowerCase());
     }
-    const department = departments.find((dep) => dep._id === post.department);
-    if (departmentFilter) {
-      return department?.name === departmentFilter;
+    const company = companies.find((dep) => dep._id === post.company);
+    if (companyFilter) {
+      return company?.name === companyFilter;
     }
     if (workScheduleFilter.length > 0) {
       return workScheduleFilter.includes(post.type);
     }
-    if (dateRange.start && dateRange.end) {
+    if (dateRange.start && dateRange?.end) {
       const postStartDate = new Date(post.applicationRange.start);
-      const postEndDate = new Date(post.applicationRange.end);
+      const postEndDate = new Date(post.applicationRange?.end);
       const filterStartDate = new Date(dateRange.start);
-      const filterEndDate = new Date(dateRange.end);
+      const filterEndDate = new Date(dateRange?.end);
 
       if (postStartDate < filterStartDate || postEndDate > filterEndDate) {
         return false;
@@ -117,9 +117,9 @@ const Drives: React.FC = () => {
     }
 
     if (selectedFilter === "active") {
-      return new Date(post.applicationRange.end) > new Date();
+      return new Date(post.applicationRange?.end) > new Date();
     } else if (selectedFilter === "inactive") {
-      return new Date(post.applicationRange.end) < new Date();
+      return new Date(post.applicationRange?.end) < new Date();
     } else {
       return post;
     }
@@ -156,15 +156,15 @@ const Drives: React.FC = () => {
   };
 
   const openCreateDriveModal = () => {
-    if (!departments.length) {
-      toast.error("Please create a department first");
+    if (!companies.length) {
+      toast.error("Please create a company first");
       return;
     }
     navigate("create");
   };
 
   const getDriveStatus = (drive: Drive) => {
-    if (new Date(drive.applicationRange.end) < new Date()) {
+    if (new Date(drive.applicationRange?.end) < new Date()) {
       return "closed";
     }
     return "active";
@@ -172,7 +172,8 @@ const Drives: React.FC = () => {
 
   useEffect(() => {
     setDrives(institute?.drives! as Drive[]);
-    setDepartments(institute?.departments || []);
+    setCompanies(institute?.companies || []);
+    console.log(institute?.drives);
   }, [rerender]);
 
   const { getToken } = useAuth();
@@ -208,11 +209,11 @@ const Drives: React.FC = () => {
             <Filter
               workScheduleFilter={workScheduleFilter}
               setWorkScheduleFilter={setWorkScheduleFilter}
-              departmentFilter={departmentFilter}
-              setDepartmentFilter={setDepartmentFilter}
+              companyFilter={companyFilter}
+              setCompanyFilter={setCompanyFilter}
               dateRange={dateRange}
               setDateRange={setDateRange}
-              departments={departments}
+              companies={companies}
               sort={sort}
               setSort={setSort}
             />
@@ -293,9 +294,9 @@ const Drives: React.FC = () => {
                             className={`text-xs mr-3 rounded-full whitespace-nowrap`}
                           >
                             {
-                              departments.find(
-                                (department) =>
-                                  department._id === drive.department
+                              companies.find(
+                                (company) =>
+                                  company._id === drive.company
                               )?.name
                             }
                           </span>
@@ -315,10 +316,10 @@ const Drives: React.FC = () => {
                         <p className="text-xs mt-3">
                           {getDriveStatus(drive) === "active"
                             ? `Open Until ${new Date(
-                                drive.applicationRange.end
+                                drive.applicationRange?.end
                               ).toLocaleString()}`
                             : `Closed at ${new Date(
-                                drive.applicationRange.end
+                                drive.applicationRange?.end
                               ).toLocaleString()}`}
                         </p>
                       </div>

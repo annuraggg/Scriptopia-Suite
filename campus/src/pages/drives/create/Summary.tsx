@@ -20,7 +20,7 @@ interface SummaryProps {
   setAction: (page: number) => void;
   title: string;
   category: string;
-  department: string;
+  company: string;
   openings: number;
   applicationRange: RangeValue<DateValue>;
   currency: string;

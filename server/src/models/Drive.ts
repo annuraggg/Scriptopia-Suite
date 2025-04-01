@@ -195,13 +195,13 @@ const InterviewSchema = new Schema({
 
 const driveSchema = new Schema(
   {
-    organizationId: {
+    institute: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Organization",
+      ref: "Institute",
     },
     title: { type: String, required: true },
     description: { type: Object, required: true },
-    department: { type: mongoose.Schema.Types.ObjectId, ref: "Department" },
+    company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
     location: { type: String, required: true },
     type: {
       type: String,
@@ -259,6 +259,12 @@ const driveSchema = new Schema(
       },
       required: false,
     },
+    placementGroups: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "PlacementGroup",
+      },
+    ],
     published: { type: Boolean, default: false },
     publishedOn: { type: Date },
   },

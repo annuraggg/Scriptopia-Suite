@@ -326,7 +326,7 @@ const Create = () => {
                       <div className="flex gap-2 mt-2">
                         <DatePicker
                           className="max-w-[284px]"
-                          label="End Date"  // @ts-expect-error - TS doesn't know the keys of componentMap
+                          label="End Date"
                           value={autoSchedule[index]?.end!}
                         />
                         <TimeInput
