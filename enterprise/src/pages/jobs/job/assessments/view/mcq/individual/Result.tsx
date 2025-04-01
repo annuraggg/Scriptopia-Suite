@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ExtendedMCQAssessmentSubmission } from "@shared-types/ExtendedMCQAssessmentSubmission";
-import { CheckCircle, XCircle, User, Mail } from "lucide-react";
+import { CheckCircle, XCircle, User, Mail, Award } from "lucide-react";
 import { Option } from "@shared-types/MCQAssessment";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
@@ -319,6 +319,31 @@ const AssessmentResults: React.FC<AssessmentResultsProps> = ({
         </div>
       </div>
 
+      {/* Legend for better understanding */}
+      <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+        <div className="p-4 border-b border-gray-200">
+          <h2 className="text-lg font-bold text-gray-900">Answer Legend</h2>
+        </div>
+        <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="flex items-center gap-2">
+            <div className="h-5 w-5 bg-green-50 border border-green-200 rounded"></div>
+            <span className="text-sm">Correct answer selected</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-5 w-5 bg-red-50 border border-red-200 rounded"></div>
+            <span className="text-sm">Incorrect answer selected</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-5 w-5 bg-blue-50 border border-blue-200 rounded"></div>
+            <span className="text-sm">Correct answer (not selected)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Award className="h-5 w-5 text-yellow-500" />
+            <span className="text-sm">Correct option indicator</span>
+          </div>
+        </div>
+      </div>
+
       {/* Detailed Results By Section */}
       {sections.map((section, sectionIndex) => (
         <div
@@ -435,7 +460,12 @@ const AssessmentResults: React.FC<AssessmentResultsProps> = ({
 
                             return (
                               <div key={option._id} className={optionClass}>
-                                <div className="flex-1">{option.option}</div>
+                                <div className="flex-1 flex items-center">
+                                  <span>{option.option}</span>
+                                  {isCorrectOption && (
+                                    <Award className="h-5 w-5 text-yellow-500 ml-2" />
+                                  )}
+                                </div>
                                 {isSelected && (
                                   <div className="ml-2">
                                     {isCorrectOption ? (
@@ -487,7 +517,12 @@ const AssessmentResults: React.FC<AssessmentResultsProps> = ({
 
                             return (
                               <div key={option._id} className={optionClass}>
-                                <div className="flex-1">{option.option}</div>
+                                <div className="flex-1 flex items-center">
+                                  <span>{option.option}</span>
+                                  {isCorrectOption && (
+                                    <Award className="h-5 w-5 text-yellow-500 ml-2" />
+                                  )}
+                                </div>
                                 {isSelected && (
                                   <div className="ml-2">
                                     {isCorrectOption ? (
@@ -522,8 +557,9 @@ const AssessmentResults: React.FC<AssessmentResultsProps> = ({
 
                           {question.correct && (
                             <>
-                              <div className="text-sm font-medium text-gray-500 mb-2">
-                                Correct Answer:
+                              <div className="text-sm font-medium text-gray-500 mb-2 flex items-center">
+                                <span>Correct Answer:</span>
+                                <Award className="h-5 w-5 text-yellow-500 ml-2" />
                               </div>
                               <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
                                 {question.correct}
@@ -580,8 +616,9 @@ const AssessmentResults: React.FC<AssessmentResultsProps> = ({
                           {question.fillInBlankAnswers &&
                             question.fillInBlankAnswers.length > 0 && (
                               <>
-                                <div className="text-sm font-medium text-gray-500 mb-2">
-                                  Correct Answers:
+                                <div className="text-sm font-medium text-gray-500 mb-2 flex items-center">
+                                  <span>Correct Answers:</span>
+                                  <Award className="h-5 w-5 text-yellow-500 ml-2" />
                                 </div>
                                 <div className="space-y-2">
                                   {question.fillInBlankAnswers.map(
@@ -614,8 +651,6 @@ const AssessmentResults: React.FC<AssessmentResultsProps> = ({
                           <div className="space-y-2 mb-4">
                             {question.options?.map(
                               (option: Option, idx: number) => {
-                                // Find the matching pair for this option
-
                                 const submittedPair =
                                   submission.selectedOptions[idx];
 
@@ -676,8 +711,9 @@ const AssessmentResults: React.FC<AssessmentResultsProps> = ({
                             )}
                           </div>
 
-                          <div className="text-sm font-medium text-gray-500 mb-2">
-                            Correct Pairs:
+                          <div className="text-sm font-medium text-gray-500 mb-2 flex items-center">
+                            <span>Correct Pairs:</span>
+                            <Award className="h-5 w-5 text-yellow-500 ml-2" />
                           </div>
                           <div className="space-y-2">
                             {question.options?.map(
@@ -714,8 +750,9 @@ const AssessmentResults: React.FC<AssessmentResultsProps> = ({
 
                           {question.correct && (
                             <>
-                              <div className="text-sm font-medium text-gray-500 mb-2">
-                                Expected Response:
+                              <div className="text-sm font-medium text-gray-500 mb-2 flex items-center">
+                                <span>Expected Response:</span>
+                                <Award className="h-5 w-5 text-yellow-500 ml-2" />
                               </div>
                               <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
                                 {question.correct}
