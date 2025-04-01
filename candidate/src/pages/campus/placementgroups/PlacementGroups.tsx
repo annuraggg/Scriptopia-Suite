@@ -2,6 +2,7 @@ import Loader from "@/components/Loader";
 import ax from "@/config/axios";
 import { useAuth } from "@clerk/clerk-react";
 import { PlacementGroup } from "@shared-types/PlacementGroup";
+import { Candidate } from "@shared-types/Candidate";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -334,7 +335,7 @@ const PlacementGroups = () => {
               <div className="mt-5">
                 {selectedGroup.candidates && selectedGroup.candidates.length > 0 ? (
                   <DataTable
-                    data={selectedGroup.candidates}
+                    data={selectedGroup.candidates.map(candidateId => ({ id: candidateId } as unknown as Candidate))}
                     type="active"
                     onDataUpdate={fetchPlacementGroups}
                   />
