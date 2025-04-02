@@ -31,10 +31,10 @@ const Assessments = () => {
       const driveId = window.location.pathname.split("/")[2];
       try {
         const mcqCreatedAssessments = await axios.get(
-          "/assessments/mcq/created/enterprise/" + driveId
+          "/assessments/mcq/created/campus/" + driveId
         );
         const codeCreatedAssessments = await axios.get(
-          "/assessments/code/created/enterprise/" + driveId
+          "/assessments/code/created/campus/" + driveId
         );
 
         setData({

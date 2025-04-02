@@ -157,9 +157,9 @@ const Pipeline = () => {
           setSelectedCandidate(isSelected ? null : applied._id || null)
         }
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white font-medium text-sm">
+        <div className="flex items-start gap-5 justify-between ">
+          <div className="flex items-center justify-start gap-4">
+            <div className="max-w-12 max-h-12 min-h-12 min-w-12 rounded-full bg-indigo-600 flex items-center justify-center text-white font-medium text-sm">
               {candidateInitials}
             </div>
             <div>

@@ -76,8 +76,10 @@ const mcqAssessmentSchema = new mongoose.Schema(
     obtainableScore: { type: Number, required: true },
     autoObtainableScore: { type: Number, required: true },
     isEnterprise: { type: Boolean, default: false },
+    isCampus: { type: Boolean, default: false },
     requiresManualReview: { type: Boolean, default: false },
     postingId: { type: mongoose.Schema.Types.ObjectId, ref: "Posting" },
+    driveId: { type: mongoose.Schema.Types.ObjectId, ref: "Drive" },
   },
   { timestamps: true }
 );

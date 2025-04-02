@@ -26,6 +26,10 @@ import { Upload } from "@aws-sdk/lib-storage";
 import r2Client from "@/config/s3";
 import { GetObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import AppliedDrive from "@/models/AppliedDrive";
+import checkInstitutePermission from "@/middlewares/checkInstitutePermission";
+import Drive from "@/models/Drive";
+import CandidateModel from "@/models/Candidate";
 
 async function getIoServer() {
   const { ioServer } = await import("@/config/init");
@@ -267,10 +271,8 @@ const createMcqAssessment = async (c: Context) => {
     const userid = c.get("auth")?._id;
 
     const isEnterprise = body.isEnterprise;
+    const isCampus = body.isCampus;
     const newAssessment = new MCQAssessment();
-
-    console.log(isEnterprise);
-    console.log(c.get("auth"));
 
     if (isEnterprise) {
       const perms = await checkOrganizationPermission.all(c, ["manage_job"]);
@@ -279,8 +281,6 @@ const createMcqAssessment = async (c: Context) => {
       }
 
       const { postingId, step } = body;
-      console.log("Enterprise Assessment");
-      console.log(postingId, step);
 
       const posting = await Posting.findOne({
         _id: postingId,
@@ -316,6 +316,35 @@ const createMcqAssessment = async (c: Context) => {
 
       await Organization.findByIdAndUpdate(perms.data!.organization?._id, {
         $push: { auditLogs: auditLog },
+      });
+    }
+
+    if (isCampus) {
+      const perms = await checkInstitutePermission.all(c, ["manage_drive"]);
+      if (!perms.allowed) {
+        return sendError(c, 401, "Unauthorized");
+      }
+
+      const { driveId, step } = body;
+
+      const drive = await Drive.findOne({
+        _id: driveId,
+      }).populate("mcqAssessments");
+
+      if (!drive) {
+        return sendError(c, 404, "Drive not found");
+      }
+
+      const assessmentstep = parseInt(step);
+      const workflowId = drive.workflow?.steps[assessmentstep]?._id;
+      await Drive.findByIdAndUpdate(driveId, {
+        $push: {
+          mcqAssessments: {
+            assessmentId: newAssessment._id,
+            workflowId: workflowId,
+          },
+        },
+        updatedOn: new Date(),
       });
     }
 
@@ -368,11 +397,14 @@ const createCodeAssessment = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    // calculate total obtainable score
     let totalScore = 0;
     const assessment: ICodeAssessment = body;
     const gradingType = assessment?.grading?.type;
     const isEnterprise = body.isEnterprise;
+    const isCampus = body.isCampus;
+
+    console.log("isEnterprise", isEnterprise);
+    console.log("isCampus", isCampus);
 
     const newAssessment = new CodeAssessment();
 
@@ -420,6 +452,37 @@ const createCodeAssessment = async (c: Context) => {
 
       await Organization.findByIdAndUpdate(perms.data!.organization?._id, {
         $push: { auditLogs: auditLog },
+      });
+    }
+
+    if (isCampus) {
+      const perms = await checkInstitutePermission.all(c, ["manage_drive"]);
+      if (!perms.allowed) {
+        return sendError(c, 401, "Unauthorized");
+      }
+
+      const { driveId, step } = body;
+      console.log("Campus Assessment" + driveId);
+
+      const drive = await Drive.findOne({
+        _id: driveId,
+      }).populate("codeAssessments");
+
+      if (!drive) {
+        return sendError(c, 404, "Drive not found");
+      }
+
+      const assessmentstep = parseInt(step);
+      const workflowId = drive.workflow?.steps[assessmentstep]?._id;
+
+      await Drive.findByIdAndUpdate(driveId, {
+        $push: {
+          codeAssessments: {
+            assessmentId: newAssessment._id,
+            workflowId: workflowId,
+          },
+        },
+        updatedOn: new Date(),
       });
     }
 
@@ -515,6 +578,51 @@ const submitMcqAssessment = async (c: Context) => {
     submission.timer = timer;
     submission.status = "completed";
     submission.cheatingStatus = getCheatingStatus(offenses);
+
+    if (assessment?.isEnterprise || assessment?.isCampus) {
+      const totalMarks = grades?.total || 0;
+      const obtaintableMarks = assessment?.obtainableScore || 0;
+      const passPercentage = assessment?.passingPercentage || 0;
+      const passMarks = (passPercentage / 100) * obtaintableMarks;
+
+      const isPassed = totalMarks >= passMarks;
+
+      const user = await CandidateModel.findOne({
+        email,
+      });
+
+      if (!user) {
+        return sendError(c, 404, "User not found");
+      }
+
+      if (assessment?.isEnterprise) {
+        const appliedPosting = await AppliedPosting.findOne({
+          user: user._id,
+          postingId: assessment.postingId,
+        });
+
+        if (!appliedPosting) {
+          return sendError(c, 404, "Applied Posting not found");
+        }
+
+        appliedPosting.status = isPassed ? "inprogress" : "rejected";
+        await appliedPosting.save();
+      }
+
+      if (assessment?.isCampus) {
+        const appliedDrive = await AppliedDrive.findOne({
+          user: user._id,
+          drive: assessment.driveId,
+        });
+
+        if (!appliedDrive) {
+          return sendError(c, 404, "Applied Drive not found");
+        }
+
+        appliedDrive.status = isPassed ? "inprogress" : "rejected";
+        await appliedDrive.save();
+      }
+    }
 
     await submission.save();
 
@@ -625,6 +733,44 @@ const codeSubmit = async (c: Context) => {
     submission.obtainedGrades = grades;
     submission.timer = timer;
     submission.status = "completed";
+
+    if (assessment?.isEnterprise || assessment?.isCampus) {
+      // CHECK IF CANDIDATE HAS PASSSED OR FAILED THE ASSESSMENT
+      const totalMarks = grades?.total || 0;
+      const obtaintableMarks = assessment?.obtainableScore || 0;
+      const passPercentage = assessment?.passingPercentage || 0;
+      const passMarks = (passPercentage / 100) * obtaintableMarks;
+
+      const isPassed = totalMarks >= passMarks;
+
+      if (assessment?.isEnterprise) {
+        const appliedPosting = await AppliedPosting.findOne({
+          email,
+          postingId: assessment.postingId,
+        });
+
+        if (!appliedPosting) {
+          return sendError(c, 404, "Applied Posting not found");
+        }
+
+        appliedPosting.status = isPassed ? "inprogress" : "rejected";
+        await appliedPosting.save();
+      }
+
+      if (assessment?.isCampus) {
+        const appliedDrive = await AppliedDrive.findOne({
+          email,
+          drive: assessment.driveId,
+        });
+
+        if (!appliedDrive) {
+          return sendError(c, 404, "Applied Posting not found");
+        }
+
+        appliedDrive.status = isPassed ? "inprogress" : "rejected";
+        await appliedDrive.save();
+      }
+    }
 
     await submission.save();
 
@@ -794,6 +940,27 @@ const verifyAccess = async (c: Context) => {
       }
 
       const candidates = posting.candidates as unknown as Candidate[];
+      if (!candidates.some((candidate) => candidate.email === body.email)) {
+        return sendError(
+          c,
+          403,
+          "You are not allowed to take this assessment",
+          {
+            allowedForTest: false,
+            testActive: true,
+          }
+        );
+      }
+    } else if (assessment.isCampus) {
+      const drive = await Drive.findOne({
+        _id: assessment.driveId,
+      }).populate("candidates");
+
+      if (!drive) {
+        return sendError(c, 404, "Drive not found");
+      }
+
+      const candidates = drive.candidates as unknown as Candidate[];
       if (!candidates.some((candidate) => candidate.email === body.email)) {
         return sendError(
           c,
@@ -1024,6 +1191,7 @@ const getAssessmentSubmissions = async (c: Context) => {
     const auth = c.get("auth");
     const id = c.req.param("id");
     const postingId = c.req.param("postingId");
+    const driveId = c.req.param("driveId");
 
     const queries = await Promise.all([
       CodeAssessment.findById(id).lean(),
@@ -1042,6 +1210,10 @@ const getAssessmentSubmissions = async (c: Context) => {
 
     if (assessment.isEnterprise && postingId) {
       if (assessment?.postingId?.toString() !== postingId) {
+        return sendError(c, 403, "Unauthorized");
+      }
+    } else if (assessment.isCampus) {
+      if (assessment?.driveId?.toString() !== driveId) {
         return sendError(c, 403, "Unauthorized");
       }
     } else {
@@ -1199,6 +1371,10 @@ const getAssessmentSubmission = async (c: Context) => {
       if (assessment?.postingId?.toString() !== postingId) {
         return sendError(c, 403, "Unauthorized in Posts");
       }
+    } else if (assessment.isCampus) {
+      if (assessment?.driveId?.toString() !== postingId) {
+        return sendError(c, 403, "Unauthorized in Drive");
+      }
     } else {
       if (assessment.author !== auth?._id) {
         return sendError(c, 403, "Unauthorized");
@@ -1292,6 +1468,82 @@ const getPostingCodeAssessments = async (c: Context) => {
   }
 };
 
+const getDriveMCQAssessments = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const driveId = c.req.param("driveId");
+
+    const perms = await checkInstitutePermission.all(c, ["view_drive"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const drive = await Drive.findById(driveId)
+      .populate("mcqAssessments.assessmentId")
+      .populate("institute");
+
+    if (!drive) {
+      return sendError(c, 404, "Drive not found");
+    }
+
+    if (
+      // @ts-expect-error
+      drive?.institute?.members?.filter(
+        (member: Member) => member?.user?.toString() === auth?._id.toString()
+      ).length === 0
+    ) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const assessments = drive.mcqAssessments.map(
+      (assessment: any) => assessment.assessmentId
+    );
+
+    return sendSuccess(c, 200, "Success", assessments);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
+const getDriveCodeAssessments = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const driveId = c.req.param("driveId");
+
+    const perms = await checkInstitutePermission.all(c, ["view_drive"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const drive = await Drive.findById(driveId)
+      .populate("codeAssessments.assessmentId")
+      .populate("institute");
+
+    if (!drive) {
+      return sendError(c, 404, "Drive not found");
+    }
+
+    if (
+      // @ts-expect-error
+      drive?.institute?.members?.filter(
+        (member: Member) => member?.user?.toString() === auth?._id.toString()
+      ).length === 0
+    ) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const assessments = drive.codeAssessments.map(
+      (assessment: any) => assessment.assessmentId
+    );
+
+    return sendSuccess(c, 200, "Success", assessments);
+  } catch (error) {
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error", error);
+  }
+};
+
 const getMcqAssessmentSubmissions = async (c: Context) => {
   try {
     const auth = c.get("auth");
@@ -1305,6 +1557,11 @@ const getMcqAssessmentSubmissions = async (c: Context) => {
     if (assessment.author !== auth?._id) {
       if (assessment.isEnterprise) {
         const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+        if (!perms.allowed) {
+          return sendError(c, 401, "Unauthorized");
+        }
+      } else if (assessment.isCampus) {
+        const perms = await checkInstitutePermission.all(c, ["view_drive"]);
         if (!perms.allowed) {
           return sendError(c, 401, "Unauthorized");
         }
@@ -1337,6 +1594,11 @@ const getCodeAssessmentSubmissions = async (c: Context) => {
     if (assessment.author !== auth?._id) {
       if (assessment.isEnterprise) {
         const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+        if (!perms.allowed) {
+          return sendError(c, 401, "Unauthorized");
+        }
+      } else if (assessment.isCampus) {
+        const perms = await checkInstitutePermission.all(c, ["view_drive"]);
         if (!perms.allowed) {
           return sendError(c, 401, "Unauthorized");
         }
@@ -1377,6 +1639,11 @@ const getMcqAssessmentSubmission = async (c: Context) => {
         if (!perms.allowed) {
           return sendError(c, 401, "Unauthorized");
         }
+      } else if (assessment.isCampus) {
+        const perms = await checkInstitutePermission.all(c, ["view_drive"]);
+        if (!perms.allowed) {
+          return sendError(c, 401, "Unauthorized");
+        }
       } else return sendError(c, 403, "Unauthorized");
     }
 
@@ -1407,6 +1674,11 @@ const getCodeAssessmentSubmission = async (c: Context) => {
     if (assessment.author !== auth?._id) {
       if (assessment.isEnterprise) {
         const perms = await checkOrganizationPermission.all(c, ["view_job"]);
+        if (!perms.allowed) {
+          return sendError(c, 401, "Unauthorized");
+        }
+      } else if (assessment.isCampus) {
+        const perms = await checkInstitutePermission.all(c, ["view_drive"]);
         if (!perms.allowed) {
           return sendError(c, 401, "Unauthorized");
         }
@@ -1651,4 +1923,6 @@ export default {
   gradeMCQAnswer,
   gradeCodeAnswer,
   saveReview,
+  getDriveMCQAssessments,
+  getDriveCodeAssessments,
 };
