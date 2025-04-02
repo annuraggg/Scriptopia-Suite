@@ -103,51 +103,58 @@ const Problems = ({
       </div>
 
       <div className="mt-3 md:mt-5 overflow-x-auto md:overflow-x-visible w-[45vh] md:w-[100%]">
-        <Table isStriped aria-label="Problems" className="min-w-full">
-          <TableHeader>
-            <TableColumn className="text-sm">Problem</TableColumn>
-            <TableColumn className="text-sm">Difficulty</TableColumn>
-            <TableColumn className="text-sm">Tags</TableColumn>
-            <TableColumn className="text-sm">Status</TableColumn>
-          </TableHeader>
-          <TableBody>
-            {filteredProblems?.map((problem: Problem) => (
-              <TableRow className="h-14" key={problem.title}>
-                <TableCell
-                  className="w-full md:w-auto hover:text-blue-500 cursor-pointer"
-                  onClick={() => navigate(`/problems/${problem._id}`)}
-                >
-                  <p className="truncate max-w-[500px]">{problem.title}</p>
-                </TableCell>
-                <TableCell
-                  className={`
-              ${problem.difficulty.toLowerCase() === "easy" && "text-green-400"}
-              ${
-                problem.difficulty.toLowerCase() === "medium" &&
-                "text-yellow-400"
-              }
-              ${problem.difficulty.toLowerCase() === "hard" && "text-red-400"}
-            `}
-                >
-                  {problem.difficulty.slice(0, 1).toUpperCase() +
-                    problem.difficulty.slice(1)}
-                </TableCell>
-                <TableCell className="w-full md:w-auto">
-                  <p className="truncate max-w-[250px]">
-                    {problem.tags.join(", ")}
-                  </p>
-                </TableCell>
-                <TableCell>
-                  {solvedProblems?.find(
-                    (solvedProblem) => solvedProblem === problem._id
-                  )
-                    ? "Solved"
-                    : "Not Solved"}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        {filteredProblems.length > 0 ? (
+          <Table isStriped aria-label="Problems" className="min-w-full">
+            <TableHeader>
+              <TableColumn className="text-sm">Problem</TableColumn>
+              <TableColumn className="text-sm">Difficulty</TableColumn>
+              <TableColumn className="text-sm">Tags</TableColumn>
+              <TableColumn className="text-sm">Status</TableColumn>
+            </TableHeader>
+            <TableBody>
+              {filteredProblems.map((problem: Problem) => (
+                <TableRow className="h-14" key={problem.title}>
+                  <TableCell
+                    className="w-full md:w-auto hover:text-blue-500 cursor-pointer"
+                    onClick={() => navigate(`/problems/${problem._id}`)}
+                  >
+                    <p className="truncate max-w-[500px]">{problem.title}</p>
+                  </TableCell>
+                  <TableCell
+                    className={`
+                ${problem.difficulty.toLowerCase() === "easy" && "text-green-400"}
+                ${
+                  problem.difficulty.toLowerCase() === "medium" &&
+                  "text-yellow-400"
+                }
+                ${problem.difficulty.toLowerCase() === "hard" && "text-red-400"}
+              `}
+                  >
+                    {problem.difficulty.slice(0, 1).toUpperCase() +
+                      problem.difficulty.slice(1)}
+                  </TableCell>
+                  <TableCell className="w-full md:w-auto">
+                    <p className="truncate max-w-[250px]">
+                      {problem.tags.join(", ")}
+                    </p>
+                  </TableCell>
+                  <TableCell>
+                    {solvedProblems?.find(
+                      (solvedProblem) => solvedProblem === problem._id
+                    )
+                      ? "Solved"
+                      : "Not Solved"}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-10 text-gray-500">
+            <p className="text-xl font-medium">No problems found</p>
+            <p className="text-sm mt-2">Try changing your search criteria or filters</p>
+          </div>
+        )}
       </div>
     </div>
   );
