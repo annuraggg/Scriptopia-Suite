@@ -83,7 +83,7 @@ export function DataTable<TData extends Candidate>({
       enableHiding: false,
     },
     {
-      accessorKey: "uid",
+      accessorKey: "instituteUid",
       header: ({ column }) => (
         <Button
           variant="light"
@@ -95,7 +95,7 @@ export function DataTable<TData extends Candidate>({
       ),
     },
     {
-      accessorKey: "candidate.name",
+      accessorKey: "name",
       header: ({ column }) => (
         <Button
           variant="light"
@@ -107,7 +107,7 @@ export function DataTable<TData extends Candidate>({
       ),
     },
     {
-      accessorKey: "candidate.email",
+      accessorKey: "email",
       header: ({ column }) => (
         <Button
           variant="light"
@@ -119,7 +119,7 @@ export function DataTable<TData extends Candidate>({
       ),
     },
     {
-      accessorKey: "candidate.createdAt",
+      accessorKey: "createdAt",
       header: ({ column }) => (
         <Button
           variant="light"
