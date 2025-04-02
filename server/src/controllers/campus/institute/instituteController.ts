@@ -1345,6 +1345,8 @@ const acceptCandidate = async (c: Context) => {
     institute.candidates.push(candidate._id);
     institute.pendingCandidates = newPending;
 
+    console.log(newPending)
+
     candidate.institute = institute._id;
 
     candidate.notifications.push({
