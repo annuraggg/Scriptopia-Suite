@@ -1,7 +1,10 @@
 import r2Client from "@/config/s3";
+import checkInstitutePermission from "@/middlewares/checkInstitutePermission";
 import checkOrganizationPermission from "@/middlewares/checkOrganizationPermission";
+import AppliedDrive from "@/models/AppliedDrive";
 import AppliedPosting from "@/models/AppliedPosting";
 import Candidate from "@/models/Candidate";
+import Drive from "@/models/Drive";
 import Posting from "@/models/Posting";
 import logger from "@/utils/logger";
 import { sendError, sendSuccess } from "@/utils/sendResponse";
@@ -109,13 +112,15 @@ const disqualifyCandidate = async (c: Context) => {
     }
 
     appliedPosting.status = "rejected";
-    const posting = await Posting.findOne({ _id: postingId })
+    const posting = await Posting.findOne({ _id: postingId });
 
     if (!posting) {
       return sendError(c, 404, "Posting not found");
     }
 
-    const stage = posting?.workflow?.steps?.find(step => step.status === "in-progress")?._id;
+    const stage = posting?.workflow?.steps?.find(
+      (step) => step.status === "in-progress"
+    )?._id;
 
     console.log("stage", stage);
 
@@ -171,13 +176,14 @@ const bulkDisqualify = async (c: Context) => {
       posting: postingId,
     });
 
-    const posting = await Posting.findOne({ _id: postingId })
+    const posting = await Posting.findOne({ _id: postingId });
 
     if (!posting) {
       return sendError(c, 404, "Posting not found");
     }
-    const stage = posting?.workflow?.steps?.find(step => step.status === "in-progress")?._id;
-
+    const stage = posting?.workflow?.steps?.find(
+      (step) => step.status === "in-progress"
+    )?._id;
 
     for (const appliedPosting of appliedPostings) {
       appliedPosting.status = "rejected";
@@ -194,6 +200,145 @@ const bulkDisqualify = async (c: Context) => {
   }
 };
 
+const qualifyCandidateInCampus = async (c: Context) => {
+  try {
+    const perms = await checkInstitutePermission.some(c, ["manage_drive"]);
+
+    if (!perms.allowed) {
+      return sendError(c, 403, "Unauthorized");
+    }
+
+    const { driveId, _id } = await c.req.json();
+    console.log(driveId, _id);
+    const appliedDrive = await AppliedDrive.findOne({
+      user: _id,
+      drive: driveId,
+    });
+
+    if (!appliedDrive) {
+      return sendError(c, 404, "Applied drive not found");
+    }
+
+    appliedDrive.status = "inprogress";
+    appliedDrive.disqualifiedStage = null;
+    await appliedDrive.save();
+
+    return sendSuccess(c, 200, "Candidate qualified successfully");
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
+const disqualifyCandidateInCampus = async (c: Context) => {
+  try {
+    const perms = await checkInstitutePermission.some(c, ["manage_drive"]);
+
+    if (!perms.allowed) {
+      return sendError(c, 403, "Unauthorized");
+    }
+
+    const { _id, driveId, reason } = await c.req.json();
+    console.log(_id, driveId, reason);
+
+    const appliedDrive = await AppliedDrive.findOne({
+      user: _id,
+      drive: driveId,
+    });
+
+    if (!appliedDrive) {
+      return sendError(c, 404, "Applied drive not found");
+    }
+
+    appliedDrive.status = "rejected";
+    const posting = await Drive.findOne({ _id: driveId });
+
+    if (!posting) {
+      return sendError(c, 404, "Posting not found");
+    }
+
+    const stage = posting?.workflow?.steps?.find(
+      (step) => step.status === "in-progress"
+    )?._id;
+
+    console.log("stage", stage);
+
+    appliedDrive.disqualifiedStage = stage?.toString();
+    appliedDrive.disqualifiedReason = reason;
+    await appliedDrive.save();
+
+    return sendSuccess(c, 200, "Candidate disqualified successfully");
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
+const bulkQualifyInCampus = async (c: Context) => {
+  try {
+    const perms = await checkInstitutePermission.some(c, ["manage_drive"]);
+
+    if (!perms.allowed) {
+      return sendError(c, 403, "Unauthorized");
+    }
+
+    const { driveId, candidateIds } = await c.req.json();
+    const appliedDrives = await AppliedDrive.find({
+      user: { $in: candidateIds },
+      drive: driveId,
+    });
+
+    for (const appliedDrive of appliedDrives) {
+      appliedDrive.status = "inprogress";
+      appliedDrive.disqualifiedStage = null;
+      await appliedDrive.save();
+    }
+
+    return sendSuccess(c, 200, "Candidates qualified successfully");
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
+const bulkDisqualifyInCampus = async (c: Context) => {
+  try {
+    const perms = await checkInstitutePermission.some(c, ["manage_drive"]);
+
+    if (!perms.allowed) {
+      return sendError(c, 403, "Unauthorized");
+    }
+
+    const { driveId, candidateIds, reason } = await c.req.json();
+    const appliedDrives = await AppliedDrive.find({
+      user: { $in: candidateIds },
+      drive: driveId,
+    });
+
+    const posting = await Drive.findOne({ _id: driveId });
+
+    if (!posting) {
+      return sendError(c, 404, "Posting not found");
+    }
+    const stage = posting?.workflow?.steps?.find(
+      (step) => step.status === "in-progress"
+    )?._id;
+
+    for (const appliedDrive of appliedDrives) {
+      appliedDrive.status = "rejected";
+
+      appliedDrive.disqualifiedStage = stage?.toString();
+      appliedDrive.disqualifiedReason = reason;
+      await appliedDrive.save();
+    }
+
+    return sendSuccess(c, 200, "Candidates disqualified successfully");
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
 export default {
   getCandidate,
   getResume,
@@ -201,4 +346,8 @@ export default {
   disqualifyCandidate,
   bulkQualify,
   bulkDisqualify,
+  qualifyCandidateInCampus,
+  disqualifyCandidateInCampus,
+  bulkQualifyInCampus,
+  bulkDisqualifyInCampus,
 };

@@ -27,9 +27,7 @@ const getDrives = async (c: Context) => {
       institute: perms.data?.institute?._id,
     });
 
-    const institute = await Institute.findById(
-      perms.data?.institute?._id
-    );
+    const institute = await Institute.findById(perms.data?.institute?._id);
 
     return sendSuccess(c, 200, "Drive fetched successfully", {
       drives: drive,
@@ -74,6 +72,62 @@ const getDrive = async (c: Context) => {
   }
 };
 
+const getDrivesForCandidate = async (c: Context) => {
+  try {
+    const { _id } = c.get("auth");
+
+    const candidate = await Candidate.findOne({ userId: _id });
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const institute = await Institute.findById(candidate?.institute).populate(
+      "drives"
+    );
+
+    const onlyPublishedDrives = institute?.drives.filter( //@ts-expect-error - Type 'Drive[]' is not assignable to type 'Drive[] | undefined'
+      (drive) => drive?.published === true
+    );
+
+    return sendSuccess(c, 200, "Drive fetched successfully", {
+      drives: onlyPublishedDrives,
+      departments: institute?.departments,
+    });
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
+const getDriveForCandidate = async (c: Context) => {
+  try {
+    const { _id } = c.get("auth");
+    const id = c.req.param("id");
+
+    const candidate = await Candidate.findOne({ userId: _id });
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const institute = await Institute.findById(candidate?.institute).populate(
+      "drives"
+    );
+
+    const drive = await Drive.findOne({
+      _id: id,
+      published: true,
+    });
+
+    return sendSuccess(c, 200, "Drive fetched successfully", {
+      drive: drive,
+      departments: institute?.departments,
+    });
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
 const getDriveBySlug = async (c: Context) => {
   try {
     const drive = await Drive.findOne({ url: c.req.param("slug") })
@@ -101,7 +155,7 @@ const createDrive = async (c: Context) => {
 
     const perms = await checkPermission.all(c, ["manage_drive"]);
     if (!perms.allowed) {
-      console.error("Unauthorized access attempt")
+      console.error("Unauthorized access attempt");
       return sendError(c, 401, "Unauthorized");
     }
 
@@ -667,6 +721,33 @@ const getAppliedDrives = async (c: Context) => {
   }
 };
 
+const getCandidatesForDrive = async (c: Context) => {
+  try {
+    const perms = await checkPermission.all(c, ["view_drive"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const drive = await Drive.findById(c.req.param("id")).populate(
+      "candidates"
+    );
+
+    if (!drive) {
+      return sendError(c, 404, "Drive not found");
+    }
+
+    return sendSuccess(
+      c,
+      200,
+      "Candidates fetched successfully",
+      drive.candidates
+    );
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
 export default {
   getDrives,
   getDrive,
@@ -683,4 +764,7 @@ export default {
   gradeAssignment,
   getAssignmentSubmission,
   getAppliedDrives,
+  getDrivesForCandidate,
+  getDriveForCandidate,
+  getCandidatesForDrive,
 };

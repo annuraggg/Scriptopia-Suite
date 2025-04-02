@@ -11,6 +11,10 @@ import { Context } from "hono";
 import { PDFExtract } from "pdf.js-extract";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import AppliedPosting from "@/models/AppliedPosting";
+import AppliedDrive from "@/models/AppliedDrive";
+import DriveModel from "@/models/Drive";
+import Institute from "@/models/Institute";
+import Drive from "@/models/Drive";
 
 const getCandidate = async (c: Context) => {
   try {
@@ -267,6 +271,65 @@ const apply = async (c: Context) => {
   }
 };
 
+const applyToDrive = async (c: Context) => {
+  try {
+    const { driveId } = await c.req.json();
+    const userId = c.get("auth")?._id;
+
+    const candidate = await Candidate.findOne({ userId });
+    const candId = candidate?._id;
+    console.log("Candidate ID: ", candId);
+    const posting = await Drive.findById(driveId);
+
+    if (!posting) {
+      return sendError(c, 404, "Posting not found");
+    }
+
+    const today = new Date();
+    if (
+      today < posting?.applicationRange?.start! ||
+      today > posting?.applicationRange?.end!
+    ) {
+      return sendError(c, 400, "Posting is closed for applications");
+    }
+
+    const newApply = await AppliedDrive.create({
+      drive: driveId,
+      user: candId,
+    });
+
+    const postingUp = await DriveModel.findByIdAndUpdate(driveId, {
+      $push: {
+        candidates: candId,
+      },
+    });
+
+    await postingUp?.save();
+
+    const auditLog: AuditLog = {
+      user: "System",
+      userId: "system",
+      action: `Received application for ${posting.title}`,
+      type: "info",
+    };
+
+    await Institute.findByIdAndUpdate(posting.institute, {
+      $push: { auditLogs: auditLog },
+    });
+
+    await Candidate.findByIdAndUpdate(candId, {
+      $push: {
+        appliedDrives: newApply._id,
+      },
+    });
+
+    return sendSuccess(c, 200, "Application submitted successfully");
+  } catch (e: any) {
+    console.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
 const extractTextFromResume = async (resume: File, candidateId: string) => {
   const resumeBuffer = Buffer.from(await resume.arrayBuffer());
   const pdfExtract = new PDFExtract();
@@ -325,6 +388,31 @@ const getAppliedPostings = async (c: Context) => {
   }
 };
 
+const getAppliedDrives = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+
+    if (!auth) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const candidate = await Candidate.findOne({ userId: auth._id });
+
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const appliedDrives = await AppliedDrive.find({ user: candidate._id })
+      .populate("drive")
+      .lean();
+
+    return sendSuccess(c, 200, "Applied Drives", appliedDrives);
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Internal Server Error");
+  }
+};
+
 export default {
   getCandidate,
   createCandidate,
@@ -334,4 +422,6 @@ export default {
   getResume,
   getAppliedPostings,
   getCandidateById,
+  applyToDrive,
+  getAppliedDrives
 };

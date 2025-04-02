@@ -14,6 +14,7 @@ import CampusLayout from "./pages/campus/Layout";
 import Drives from "./pages/campus/drives/Drives";
 import PlacementGroups from "./pages/campus/placementgroups/PlacementGroups";
 import JoinPlacementGroup from "./pages/campus/placementgroups/join/Join";
+import Drive from "./pages/campus/drives/drive/Drive";
 
 function App() {
   const router = createBrowserRouter([
@@ -67,6 +68,10 @@ function App() {
             {
               path: "drives",
               element: <Drives />,
+            },
+            {
+              path: "drives/:id",
+              element: <Drive />,
             },
             {
               path: "placement-groups",

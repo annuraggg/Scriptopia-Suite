@@ -22,9 +22,9 @@ import { DriveContext } from "@/types/DriveContext";
 import { ExtendedAppliedDrive } from "@shared-types/ExtendedAppliedDrive";
 
 const Pipeline = () => {
-  const [appliedDrives, setAppliedDrives] = useState<
-    ExtendedAppliedDrive[]
-  >([]);
+  const [appliedDrives, setAppliedDrives] = useState<ExtendedAppliedDrive[]>(
+    []
+  );
   const { drive } = useOutletContext<DriveContext>();
   const [loading, setLoading] = useState(true);
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(
@@ -83,6 +83,8 @@ const Pipeline = () => {
           drive.workflow?.steps?.findIndex(
             (step) => step.status === "in-progress"
           ) ?? -1;
+      } else if (applied.status === "applied") {
+        stepIndex = 0;
       } else {
         stepIndex = applied.disqualifiedStage;
       }
@@ -251,7 +253,10 @@ const Pipeline = () => {
         {drive?.workflow?.steps?.map((step, index) => {
           const stageApplicants = appliedDrives.filter((applied) => {
             return step.status === "in-progress"
-              ? applied.status === "inprogress" || applied.disqualifiedStage?.toString() === step._id?.toString()
+              ? applied.status === "inprogress" ||
+                  applied.disqualifiedStage?.toString() ===
+                    step._id?.toString() ||
+                  (index === 0 && applied.status === "applied")
               : applied.disqualifiedStage?.toString() === step._id?.toString();
           });
 
