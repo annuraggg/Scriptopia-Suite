@@ -7,7 +7,7 @@ import Drive from "../../../models/Drive";
 import Organization from "../../../models/Organization";
 import CandidateModel from "../../../models/Candidate";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
-import checkPermission from "../../../middlewares/checkOrganizationPermission";
+import checkPermission from "../../../middlewares/checkInstitutePermission";
 import { Assessment, Assignment } from "@shared-types/Drive";
 import User from "@/models/User";
 import Meet from "@/models/Meet";
@@ -86,7 +86,7 @@ const advanceWorkflow = async (c: Context) => {
 
     const updatedDrive = await Drive.findById(_id)
       .populate("candidates")
-      .populate("organizationId");
+      .populate("institute");
     return sendSuccess(
       c,
       200,
@@ -163,7 +163,7 @@ const handleAssignmentRound = async (drive: any, step: any) => {
   const assignment = drive.assignments?.find(
     (a: Assignment) => a.name === step.name
   );
-  const organization = await Organization.findById(drive.organizationId);
+  const organization = await Organization.findById(drive.institute);
 
   if (!assignment || !organization) return;
 
@@ -197,7 +197,7 @@ const handleAssessmentRound = async (drive: any, step: any) => {
     drive.codeAssessments?.find(
       (a: Assessment) => a.workflowId.toString() === step._id.toString()
     );
-  const organization = await Organization.findById(drive.organizationId);
+  const organization = await Organization.findById(drive.institute);
   if (!assessment || !organization) return;
 
   const candidates = await CandidateModel.find({
@@ -228,7 +228,7 @@ const handleAssessmentRound = async (drive: any, step: any) => {
 
 const handleInterviewRound = async (drive: any, step: any) => {
   console.log("Detected interview round");
-  const organization = await Organization.findById(drive.organizationId);
+  const organization = await Organization.findById(drive.institute);
   if (!organization) return;
 
   const candidates = await CandidateModel.find({

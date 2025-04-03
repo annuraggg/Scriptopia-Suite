@@ -1338,11 +1338,14 @@ const acceptCandidate = async (c: Context) => {
       return sendError(c, 404, "Pending candidate not found");
     }
 
-    institute.pendingCandidates.filter(
+    const newPending =  institute.pendingCandidates.filter(
       (c) => c?.toString() !== candidate._id.toString()
     );
 
     institute.candidates.push(candidate._id);
+    institute.pendingCandidates = newPending;
+
+    console.log(newPending)
 
     candidate.institute = institute._id;
 

@@ -4,7 +4,7 @@ const appliedDriveSchema = new Schema(
   {
     drive: { type: Schema.Types.ObjectId, required: true, ref: "Drive" },
     user: { type: Schema.Types.ObjectId, required: true, ref: "Candidate" },
-    disqualifiedStage: { type: Number },
+    disqualifiedStage: { type: String },
     disqualifiedReason: { type: String },
     scores: [
       {

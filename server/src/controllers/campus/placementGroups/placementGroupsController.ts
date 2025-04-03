@@ -8,7 +8,7 @@ import Candidate from "@/models/Candidate";
 
 const createPlacementGroup = async (c: Context) => {
   try {
-    const { userId } = c.get("auth");
+    const { userId, _id } = c.get("auth");
     const body = await c.req.json();
 
     const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
@@ -43,7 +43,7 @@ const createPlacementGroup = async (c: Context) => {
       expiryDate,
       accessType,
       candidates,
-      createdBy: userId,
+      createdBy: _id,
     });
 
     await Institute.findByIdAndUpdate(instituteId, {
@@ -56,7 +56,7 @@ const createPlacementGroup = async (c: Context) => {
       $push: {
         auditLogs: {
           action: "create",
-          userId: userId,
+          userId: _id,
           user: clerkUser.fullName,
           type: "info",
         },

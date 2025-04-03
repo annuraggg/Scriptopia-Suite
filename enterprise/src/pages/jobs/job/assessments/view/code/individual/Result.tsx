@@ -80,10 +80,6 @@ const CodeAssessmentResults: React.FC<CodeAssessmentResultsProps> = ({
         const problem = assessmentId.problems.find(
           (p) => p._id === submission.problemId._id
         );
-        const problemPoints =
-          assessmentId.grading?.problem?.find(
-            (p) => p.problemId === submission.problemId._id
-          )?.points || 0;
 
         const passedTestCases =
           submission.results?.filter((result) => result.passed).length || 0;
@@ -93,10 +89,98 @@ const CodeAssessmentResults: React.FC<CodeAssessmentResultsProps> = ({
             ? Math.round((passedTestCases / totalTestCases) * 100)
             : 0;
 
+        // Calculate points based on grading type
+        let earnedPoints = 0;
+        let problemPoints = 0;
+
+        if (assessmentId.grading?.type === "problem") {
+          // For "problem" type: all or nothing points
+          problemPoints =
+            assessmentId.grading?.problem?.find(
+              (p) => p.problemId === submission.problemId._id
+            )?.points || 0;
+
+          // Only award points if all test cases passed
+          earnedPoints =
+            passedTestCases === totalTestCases && totalTestCases > 0
+              ? problemPoints
+              : 0;
+        } else if (assessmentId.grading?.type === "testcase") {
+          // For "testcase" type: points are proportional to passed test cases
+
+          // Maps each result to its corresponding test case to get the difficulty
+          const resultsWithDifficulty =
+            submission.results?.map((result) => {
+              // Find the matching test case in the problem based on caseId
+              const testCase = problem?.testCases.find(
+                (tc) => tc._id === result.caseId
+              );
+              return {
+                ...result,
+                difficulty: testCase?.difficulty || "medium", // Default to medium if not found
+              };
+            }) || [];
+
+          // Count test cases by difficulty
+          const easyPassed = resultsWithDifficulty.filter(
+            (result) => result.difficulty === "easy" && result.passed
+          ).length;
+
+          const mediumPassed = resultsWithDifficulty.filter(
+            (result) => result.difficulty === "medium" && result.passed
+          ).length;
+
+          const hardPassed = resultsWithDifficulty.filter(
+            (result) => result.difficulty === "hard" && result.passed
+          ).length;
+
+          const easyTotal = resultsWithDifficulty.filter(
+            (r) => r.difficulty === "easy"
+          ).length;
+
+          const mediumTotal = resultsWithDifficulty.filter(
+            (r) => r.difficulty === "medium"
+          ).length;
+
+          const hardTotal = resultsWithDifficulty.filter(
+            (r) => r.difficulty === "hard"
+          ).length;
+
+          // Calculate points based on testcase configuration
+          const easyPoints = assessmentId.grading?.testcases?.easy || 0;
+          const mediumPoints = assessmentId.grading?.testcases?.medium || 0;
+          const hardPoints = assessmentId.grading?.testcases?.hard || 0;
+
+          // Calculate earned points for each difficulty level
+          const earnedEasyPoints =
+            easyTotal > 0
+              ? (easyPassed / easyTotal) * easyPoints * easyTotal
+              : 0;
+
+          const earnedMediumPoints =
+            mediumTotal > 0
+              ? (mediumPassed / mediumTotal) * mediumPoints * mediumTotal
+              : 0;
+
+          const earnedHardPoints =
+            hardTotal > 0
+              ? (hardPassed / hardTotal) * hardPoints * hardTotal
+              : 0;
+
+          earnedPoints =
+            earnedEasyPoints + earnedMediumPoints + earnedHardPoints;
+
+          problemPoints =
+            easyPoints * easyTotal +
+            mediumPoints * mediumTotal +
+            hardPoints * hardTotal;
+        }
+
         return {
           ...submission,
           problem,
           problemPoints,
+          earnedPoints,
           passedTestCases,
           totalTestCases,
           testCasePercentage,

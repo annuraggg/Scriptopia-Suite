@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import {
   Breadcrumbs,
   BreadcrumbItem,
@@ -47,6 +46,7 @@ import { ThemeStyles } from "@/types/ResumeTheme";
 import Themes from "./Themes";
 import ThemeCustomizer from "./ThemeCustomizer";
 import { pdf } from "@react-pdf/renderer";
+import { useState } from "react";
 
 // ATS Check interface
 interface ATSCheckResult {

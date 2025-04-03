@@ -11,7 +11,8 @@ const Candidates = () => {
   const axios = ax(getToken);
 
   useEffect(() => {
-    axios.get("/institutes/candidates").then((res) => {
+    const driveId = window.location.pathname.split("/")[2];
+    axios.get(`/drives/${driveId}/candidates`).then((res) => {
       setCandidatesData(res.data.data);
     });
   }, []);
@@ -21,6 +22,22 @@ const Candidates = () => {
       window.open(res.data.data.url);
     });
   };
+
+  if (candidatesData.length === 0) {
+    return (
+      <div className="w-full p-10">
+        <motion.div
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="text-center text-lg font-semibold">
+            No candidates found
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full p-10">

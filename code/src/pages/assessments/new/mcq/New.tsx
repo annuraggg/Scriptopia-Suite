@@ -173,16 +173,16 @@ const New = () => {
       step,
     };
 
-    const safeUrls = [
-      "https://enterprise.scriptopia.tech/",
-      "https://scriptopia.tech/",
-      "https://campus.scriptopia.tech/",
-      "https://candidate.scriptopia.tech/",
-      "localhost:5172",
-      "localhost:5173",
-      "localhost:5174",
-      "localhost:5175",
-    ];
+    // const safeUrls = [
+    //   "https://enterprise.scriptopia.tech/",
+    //   "https://scriptopia.tech/",
+    //   "https://campus.scriptopia.tech/",
+    //   "https://candidate.scriptopia.tech/",
+    //   "localhost:5172",
+    //   "localhost:5173",
+    //   "localhost:5174",
+    //   "localhost:5175",
+    // ];
 
     const axios = ax(getToken);
     axios
@@ -190,21 +190,22 @@ const New = () => {
       .then(() => {
         toast.success("Assessment created successfully");
         if (redirectParam) {
-          try {
-            const redirectUrl = new URL(redirectParam);
-            const isSafeUrl = safeUrls.some(
-              (url) => redirectUrl.origin === url
-            );
-            if (isSafeUrl) {
-              window.location.href = redirectParam;
-            } else {
-              console.warn("Unsafe redirect URL detected:", redirectParam);
-              window.location.href = "/";
-            }
-          } catch (error) {
-            console.error("Invalid redirect URL:", redirectParam);
-            window.location.href = "/";
-          }
+          // try {
+          //   const redirectUrl = new URL(redirectParam);
+          //   const isSafeUrl = safeUrls.some(
+          //     (url) => redirectUrl.origin === url
+          //   );
+          //   if (isSafeUrl) {
+          //     window.location.href = redirectParam;
+          //   } else {
+          //     console.warn("Unsafe redirect URL detected:", redirectParam);
+          //     window.location.href = "/";
+          //   }
+          // } catch (error) {
+          //   console.error("Invalid redirect URL:", redirectParam);
+          //   window.location.href = "/";
+          // }
+          window.location.href = redirectParam;
         } else {
           window.location.href = window.location.pathname
             .split("/")

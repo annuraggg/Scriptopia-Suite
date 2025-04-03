@@ -59,7 +59,7 @@ const CreateGroupForm: React.FC = () => {
           { id: 1, title: "Group Details" },
           { id: 2, title: "Access Settings" },
           { id: 3, title: "Add Candidates" },
-        ].map((step, index) => (
+        ]?.map((step, index) => (
           <div
             key={step.id}
             className={`

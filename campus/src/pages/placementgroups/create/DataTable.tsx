@@ -83,7 +83,7 @@ export function DataTable<TData extends Candidate>({
       enableHiding: false,
     },
     {
-      accessorKey: "uid",
+      accessorKey: "instituteUid",
       header: ({ column }) => (
         <Button
           variant="light"
@@ -95,7 +95,7 @@ export function DataTable<TData extends Candidate>({
       ),
     },
     {
-      accessorKey: "candidate.name",
+      accessorKey: "name",
       header: ({ column }) => (
         <Button
           variant="light"
@@ -107,7 +107,7 @@ export function DataTable<TData extends Candidate>({
       ),
     },
     {
-      accessorKey: "candidate.email",
+      accessorKey: "email",
       header: ({ column }) => (
         <Button
           variant="light"
@@ -119,7 +119,7 @@ export function DataTable<TData extends Candidate>({
       ),
     },
     {
-      accessorKey: "candidate.createdAt",
+      accessorKey: "createdAt",
       header: ({ column }) => (
         <Button
           variant="light"
@@ -156,9 +156,9 @@ export function DataTable<TData extends Candidate>({
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
+            {table.getHeaderGroups()?.map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
+                {headerGroup.headers?.map((header) => (
                   <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
@@ -173,12 +173,12 @@ export function DataTable<TData extends Candidate>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+              table.getRowModel().rows?.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                 >
-                  {row.getVisibleCells().map((cell) => (
+                  {row.getVisibleCells()?.map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,

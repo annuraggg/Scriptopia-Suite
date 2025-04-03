@@ -59,6 +59,7 @@ const InviteModal = ({
       classNames={{
         base: "max-w-md",
       }}
+      isDismissable={false}
     >
       <ModalContent>
         {(onClose) => (
@@ -89,7 +90,7 @@ const InviteModal = ({
                 }}
               >
                 {roles.map((role) => (
-                  <SelectItem key={role?.slug} >
+                  <SelectItem key={role?.slug}>
                     {role.name}
                   </SelectItem>
                 ))}

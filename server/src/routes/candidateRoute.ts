@@ -11,6 +11,8 @@ app.put("candidate", candidateController.updateCandidate);
 app.put("/resume", candidateController.updateResume);
 app.get("resume", candidateController.getResume);
 app.post("/apply", candidateController.apply);
+app.post("/drive/apply", candidateController.applyToDrive);
 app.get("/applied", candidateController.getAppliedPostings);
+app.get("/applied/drives", candidateController.getAppliedDrives);
 
 export default app;
