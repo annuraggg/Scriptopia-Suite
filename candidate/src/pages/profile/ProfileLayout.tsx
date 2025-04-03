@@ -36,7 +36,7 @@ const Layout = () => {
         <div className="flex w-full">
           <Sidebar />
 
-          <div className="h-full w-full">
+          <div className="h-screen w-full overflow-y-auto">
             <Outlet context={{ user, setUser: updateUser }} />
           </div>
         </div>

@@ -12,6 +12,12 @@ import {
   BreadcrumbItem,
   Breadcrumbs,
   DatePicker,
+  Select,
+  SelectItem,
+  Card,
+  CardBody,
+  CardHeader,
+  Divider,
 } from "@nextui-org/react";
 import {
   today,
@@ -19,299 +25,420 @@ import {
   parseAbsoluteToLocal,
   ZonedDateTime,
 } from "@internationalized/date";
-import { motion } from "framer-motion";
-import { Plus, Edit2, Trash2, Trophy } from "lucide-react";
+import { Plus, Edit2, Trash2, Trophy, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useOutletContext } from "react-router-dom";
 import { Award, Candidate } from "@shared-types/Candidate";
+import { z } from "zod";
+
+// Define award types for better type safety
+const awardTypes = ["academic", "professional", "personal"] as const;
+type AwardType = (typeof awardTypes)[number];
+
+// Zod validation schema
+const awardSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  issuer: z.string().min(1, "Issuer is required"),
+  associatedWith: z.enum(["academic", "professional", "personal"]),
+  date: z.date().max(new Date(), "Date cannot be in the future"),
+  description: z.string().optional(),
+});
+
+type AwardFormData = z.infer<typeof awardSchema>;
 
 const Awards = () => {
   const { user, setUser } = useOutletContext() as {
     user: Candidate;
     setUser: (user: Candidate) => void;
   };
-  // States
+
+  // Form states
+  const [formData, setFormData] = useState<AwardFormData>({
+    title: "",
+    issuer: "",
+    associatedWith: "academic",
+    date: today(getLocalTimeZone()).toDate(getLocalTimeZone()),
+    description: "",
+  });
+
+  // Form errors
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof AwardFormData, string>>
+  >({});
+
+  // Current award being edited
   const [currentAward, setCurrentAward] = useState<string | null>(null);
 
-  // Modal States
+  // Modal control
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [issuer, setIssuer] = useState("");
-  const [associatedWith, setAssociatedWith] = useState("academic");
-  const [date, setDate] = useState<Date>(
-    today(getLocalTimeZone()).toDate(getLocalTimeZone())
-  );
 
+  // Reset form
   const resetForm = () => {
-    setTitle("");
-    setDescription("");
-    setIssuer("");
-    setAssociatedWith("academic");
-    setDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
+    setFormData({
+      title: "",
+      issuer: "",
+      associatedWith: "academic",
+      date: today(getLocalTimeZone()).toDate(getLocalTimeZone()),
+      description: "",
+    });
+    setErrors({});
     setCurrentAward(null);
   };
 
+  // Handle opening modal for new award or editing existing one
   const handleOpenModal = (award?: Award) => {
     if (award) {
       setCurrentAward(award._id || null);
-      setTitle(award.title);
-      setDescription(award.description || "");
-      setIssuer(award.issuer);
-      setAssociatedWith(award.associatedWith);
-      setDate(new Date(award.date));
+      setFormData({
+        title: award.title,
+        issuer: award.issuer,
+        associatedWith: award.associatedWith as AwardType,
+        date: new Date(award.date),
+        description: award.description || "",
+      });
     } else {
       resetForm();
     }
     onOpen();
   };
 
+  // Handle closing modal
   const handleCloseModal = () => {
     resetForm();
     onClose();
   };
 
+  // Validate form data
+  const validateForm = (): boolean => {
+    try {
+      awardSchema.parse(formData);
+      setErrors({});
+      return true;
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        const newErrors: Partial<Record<keyof AwardFormData, string>> = {};
+        err.errors.forEach((error) => {
+          const path = error.path[0] as keyof AwardFormData;
+          newErrors[path] = error.message;
+        });
+        setErrors(newErrors);
+      }
+      return false;
+    }
+  };
+
+  // Handle saving award
   const handleSave = () => {
-    if (!title || !issuer || !associatedWith) {
-      toast.error("Please fill in all required fields");
+    if (!validateForm()) {
+      toast.error("Please correct the errors in the form");
       return;
     }
 
-    if (currentAward) {
-      // Edit existing award
-      const newAwards =
-        user?.awards?.map((award) =>
+    try {
+      if (currentAward) {
+        // Edit existing award
+        const awards = user?.awards || [];
+        const newAwards = awards.map((award) =>
           award._id === currentAward
             ? {
-                id: currentAward,
-                title,
-                description,
-                issuer,
-                associatedWith: associatedWith as
-                  | "academic"
-                  | "personal"
-                  | "professional",
-                date: date,
+                ...award,
+                ...formData,
               }
             : award
-        ) || [];
+        );
 
-      setUser({
-        ...user,
-        awards: newAwards?.map((award) => ({
-          ...award,
-          date: parseAbsoluteToLocal(award.date.toString()).toDate(),
-        })),
-      });
-    } else {
-      // Add new award
-      const newAwards = user?.awards || [];
-      setUser({
-        ...user,
-        awards: [
-          ...newAwards,
-          {
-            title,
-            description,
-            issuer,
-            associatedWith: associatedWith as
-              | "academic"
-              | "professional"
-              | "personal",
-            date: date,
-          },
-        ],
-      });
+        setUser({
+          ...user,
+          awards: newAwards,
+        });
+        toast.success("Award updated successfully");
+      } else {
+        // Add new award
+        const newAwards = user?.awards || [];
+        setUser({
+          ...user,
+          awards: [
+            ...newAwards,
+            {
+              ...formData,
+              _id: `award-${Date.now()}`, // Generate temporary ID for new awards
+            } as Award,
+          ],
+        });
+        toast.success("Award added successfully");
+      }
+
+      handleCloseModal();
+    } catch (error) {
+      toast.error("An error occurred while saving the award");
+      console.error("Save error:", error);
     }
-
-    handleCloseModal();
   };
 
+  // Handle deleting award
   const handleDelete = (id: string) => {
-    const awards = user?.awards || [];
-    setUser({
-      ...user,
-      awards: awards.filter((award) => award._id !== id),
-    });
+    try {
+      const awards = user?.awards || [];
+      setUser({
+        ...user,
+        awards: awards.filter((award) => award._id !== id),
+      });
+      toast.success("Award deleted successfully");
+    } catch (error) {
+      toast.error("An error occurred while deleting the award");
+      console.error("Delete error:", error);
+    }
   };
 
+  // Handle form input changes
+  const handleInputChange = (field: keyof AwardFormData, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    // Clear field-specific error when user makes a change
+    if (errors[field]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: undefined,
+      }));
+    }
+  };
+
+  // Handle date picker change
   const handleDateChange = (date: ZonedDateTime | null) => {
     if (!date) return;
     const dateObj = new Date(date.year, date.month - 1, date.day);
-    setDate(dateObj);
+    handleInputChange("date", dateObj);
   };
 
+  // Confirmation dialog for delete
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="p-5"
-    >
-      <Breadcrumbs>
+    <div className="p-5">
+      <Breadcrumbs className="mb-6">
         <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
         <BreadcrumbItem href="/profile/awards">Awards</BreadcrumbItem>
       </Breadcrumbs>
 
-      <div className="py-5">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-          className="p-5 rounded-xl"
+      <div className="flex justify-end mb-6">
+        <Button
+          color="primary"
+          startContent={<Plus size={18} />}
+          onPress={() => handleOpenModal()}
         >
-          <div className="flex justify-end items-center mb-6">
-            {user?.awards && user?.awards?.length > 0 && (
-              <Button
-                startContent={<Plus size={18} />}
-                onPress={() => handleOpenModal()}
-              >
-                Add new
-              </Button>
-            )}
-          </div>
-
-          {user?.awards && user?.awards.length === 0 ? (
-            <motion.div
-              key="empty"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col items-center justify-center gap-4 p-10"
-            >
-              <motion.div
-                animate={{
-                  scale: [1, 1.1, 1],
-                  rotate: [0, 5, -5, 0],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  repeatType: "reverse",
-                }}
-              >
-                <Trophy size={50} />
-              </motion.div>
-
-              <h3 className="text-xl mt-3">No Award Added Yet</h3>
-              <p className="text-gray-500">Start by adding your first award!</p>
-              <Button
-                onClick={() => onOpen()}
-                startContent={<Plus size={18} />}
-              >
-                Add new
-              </Button>
-            </motion.div>
-          ) : (
-            <div className="grid gap-4">
-              {user?.awards &&
-                user?.awards.map((award) => (
-                  <motion.div
-                    key={award._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-4 border rounded-lg"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium">{award.title}</h3>
-                        <p className="text-sm text-gray-500">
-                          {award.issuer} • {award.associatedWith}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {award.date.toString()}
-                        </p>
-                        {award.description && (
-                          <p className="mt-2">{award.description}</p>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          isIconOnly
-                          variant="light"
-                          onPress={() => handleOpenModal(award)}
-                        >
-                          <Edit2 size={18} />
-                        </Button>
-                        <Button
-                          isIconOnly
-                          variant="light"
-                          color="danger"
-                          onPress={() => handleDelete(award._id as string)}
-                        >
-                          <Trash2 size={18} />
-                        </Button>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-            </div>
-          )}
-        </motion.div>
+          Add Award
+        </Button>
       </div>
 
-      <Modal isOpen={isOpen} onClose={handleCloseModal} size="2xl">
+      {!user?.awards || user.awards.length === 0 ? (
+        <Card className="p-6">
+          <CardBody className="flex flex-col items-center py-8">
+            <Trophy size={40} className="text-gray-400 mb-3" />
+            <h3 className="text-xl font-semibold mb-2">No Awards Added</h3>
+            <p className="text-gray-500 mb-4">
+              Showcase your achievements by adding awards or recognitions
+            </p>
+            <Button
+              color="primary"
+              startContent={<Plus size={18} />}
+              onPress={() => handleOpenModal()}
+            >
+              Add Your First Award
+            </Button>
+          </CardBody>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {user.awards.map((award) => (
+            <Card key={award._id} className="w-full">
+              <CardHeader className="flex justify-between items-center px-6 py-4">
+                <h3 className="text-lg font-semibold">{award.title}</h3>
+                <div className="flex gap-2">
+                  <Button
+                    isIconOnly
+                    variant="light"
+                    onPress={() => handleOpenModal(award)}
+                    aria-label="Edit award"
+                  >
+                    <Edit2 size={18} />
+                  </Button>
+                  <Button
+                    isIconOnly
+                    variant="light"
+                    color="danger"
+                    onPress={() => setDeleteConfirmId(award._id as string)}
+                    aria-label="Delete award"
+                  >
+                    <Trash2 size={18} />
+                  </Button>
+                </div>
+              </CardHeader>
+              <Divider />
+              <CardBody className="px-6 py-4">
+                <div className="grid gap-2">
+                  <div className="flex flex-wrap gap-x-6 text-sm text-gray-600">
+                    <span>Issuer: {award.issuer}</span>
+                    <span>Type: {award.associatedWith}</span>
+                    <span>
+                      Date: {new Date(award.date).toLocaleDateString()}
+                    </span>
+                  </div>
+                  {award.description && (
+                    <p className="mt-2 text-gray-700">{award.description}</p>
+                  )}
+                </div>
+              </CardBody>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Add/Edit Award Modal */}
+      <Modal
+        isOpen={isOpen}
+        onClose={handleCloseModal}
+        size="2xl"
+        scrollBehavior="inside"
+      >
         <ModalContent>
-          {(onClose) => (
+          {() => (
             <>
               <ModalHeader>
                 {currentAward ? "Edit Award" : "Add New Award"}
               </ModalHeader>
               <ModalBody>
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-5">
                   <Input
-                    label="Position Title"
-                    placeholder="Enter Position Title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    label="Award Title"
+                    placeholder="Enter award title"
+                    value={formData.title}
+                    onChange={(e) => handleInputChange("title", e.target.value)}
                     isRequired
+                    isInvalid={!!errors.title}
+                    errorMessage={errors.title}
+                    aria-label="Award title"
                   />
                   <Input
-                    label="Issuer/Organizer"
-                    placeholder="Enter Issuer/Organizer"
-                    value={issuer}
-                    onChange={(e) => setIssuer(e.target.value)}
+                    label="Issuer/Organization"
+                    placeholder="Enter organization that issued the award"
+                    value={formData.issuer}
+                    onChange={(e) =>
+                      handleInputChange("issuer", e.target.value)
+                    }
                     isRequired
+                    isInvalid={!!errors.issuer}
+                    errorMessage={errors.issuer}
+                    aria-label="Award issuer"
                   />
-                  <Input
-                    label="Associated With"
-                    placeholder="Enter Associated With"
-                    value={associatedWith}
-                    onChange={(e) => setAssociatedWith(e.target.value)}
+                  <Select
+                    label="Award Type"
+                    selectedKeys={[formData.associatedWith]}
+                    onChange={(e) =>
+                      handleInputChange("associatedWith", e.target.value)
+                    }
                     isRequired
-                  />
+                    isInvalid={!!errors.associatedWith}
+                    errorMessage={errors.associatedWith}
+                    aria-label="Award type"
+                  >
+                    <SelectItem key="academic" value="academic">
+                      Academic
+                    </SelectItem>
+                    <SelectItem key="professional" value="professional">
+                      Professional
+                    </SelectItem>
+                    <SelectItem key="personal" value="personal">
+                      Personal
+                    </SelectItem>
+                  </Select>
                   <div>
-                    <label className="block text-sm mb-1">Issue Date</label>
+                    <label className="block text-sm font-medium mb-1">
+                      Issue Date
+                    </label>
                     <DatePicker
-                      className="max-w-xs"
-                      label="Issue Date (mm/dd/yyyy)"
+                      aria-label="Award date"
+                      className="w-full"
+                      errorMessage={errors.date}
                       granularity="day"
+                      isInvalid={!!errors.date}
                       maxValue={today(getLocalTimeZone())}
-                      value={parseAbsoluteToLocal(date.toISOString())}
                       onChange={handleDateChange}
+                      value={parseAbsoluteToLocal(formData.date.toISOString())}
                     />
                   </div>
                   <Textarea
-                    label="Description"
-                    placeholder="Enter award description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    label="Description (Optional)"
+                    placeholder="Enter a brief description of the award"
+                    value={formData.description || ""}
+                    onChange={(e) =>
+                      handleInputChange("description", e.target.value)
+                    }
                     minRows={3}
+                    maxRows={5}
+                    isInvalid={!!errors.description}
+                    errorMessage={errors.description}
+                    aria-label="Award description"
                   />
                 </div>
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
+                <Button variant="flat" onPress={handleCloseModal}>
                   Cancel
                 </Button>
                 <Button color="primary" onPress={handleSave}>
-                  Save
+                  {currentAward ? "Update Award" : "Save Award"}
                 </Button>
               </ModalFooter>
             </>
           )}
         </ModalContent>
       </Modal>
-    </motion.div>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!deleteConfirmId}
+        onClose={() => setDeleteConfirmId(null)}
+        size="sm"
+      >
+        <ModalContent>
+          {() => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Confirm Deletion
+              </ModalHeader>
+              <ModalBody>
+                <div className="flex items-center gap-3">
+                  <AlertCircle size={24} className="text-danger" />
+                  <p>
+                    Are you sure you want to delete this award? This action
+                    cannot be undone.
+                  </p>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="flat" onPress={() => setDeleteConfirmId(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  color="danger"
+                  onPress={() => {
+                    if (deleteConfirmId) {
+                      handleDelete(deleteConfirmId);
+                      setDeleteConfirmId(null);
+                    }
+                  }}
+                >
+                  Delete
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </div>
   );
 };
 

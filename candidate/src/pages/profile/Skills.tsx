@@ -16,28 +16,53 @@ import {
   Input,
 } from "@nextui-org/react";
 import { Plus } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
 import { Candidate } from "@shared-types/Candidate";
 import { useOutletContext } from "react-router-dom";
+import { z } from "zod";
 
+// Define schema for validation
+const skillSchema = z.object({
+  name: z.string().min(2, "Skill name must be at least 2 characters"),
+  proficiency: z.enum(["Beginner", "Intermediate", "Advanced", "Professional"]),
+});
+
+// Type definitions for better type safety
+type SkillCategory = "technical" | "languages" | "subjects";
+type ProficiencyLevel =
+  | "Beginner"
+  | "Intermediate"
+  | "Advanced"
+  | "Professional";
+type SkillFormData = {
+  name: string;
+  proficiency: ProficiencyLevel | null;
+};
+
+// Initial data
 const initialSkillsList = [
   "React.js",
   "React Native",
   "React",
-  "Reactive",
-  "Reactor",
-  "REACH Compliance",
-  "Reaction Engineering",
-  "Reaction Kinetics",
-  "Reactor Design",
+  "TypeScript",
+  "JavaScript",
+  "HTML",
+  "CSS",
+  "Node.js",
+  "Express",
+  "MongoDB",
+  "SQL",
+  "Python",
+  "Java",
+  "C++",
+  "C#",
 ];
 
-const proficiencyLevels = [
+const proficiencyLevels: ProficiencyLevel[] = [
   "Beginner",
   "Intermediate",
-  "Advance",
+  "Advanced", // Fixed typo from "Advance" to "Advanced"
   "Professional",
 ];
 
@@ -54,48 +79,77 @@ const Skills = () => {
     setUser: (user: Candidate) => void;
   };
 
-  const [selectedCategory, setSelectedCategory] = useState<
-    "technical" | "languages" | "subjects" | null
-  >(null);
-
+  const [selectedCategory, setSelectedCategory] =
+    useState<SkillCategory | null>(null);
   const [skillsList, setSkillsList] = useState(initialSkillsList);
-  const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
-  const [selectedProficiency, setSelectedProficiency] = useState<string | null>(
-    null
-  );
+  const [formData, setFormData] = useState<SkillFormData>({
+    name: "",
+    proficiency: null,
+  });
   const [customSkill, setCustomSkill] = useState("");
+  const [formErrors, setFormErrors] = useState<{
+    name?: string;
+    proficiency?: string;
+  }>({});
+
+  // Reset form data when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setFormData({ name: "", proficiency: null });
+      setFormErrors({});
+    }
+  }, [isOpen]);
+
+  const validateForm = (): boolean => {
+    const errors: { name?: string; proficiency?: string } = {};
+
+    if (!formData.name) {
+      errors.name = "Please select or add a skill";
+    }
+
+    if (!formData.proficiency) {
+      errors.proficiency = "Please select a proficiency level";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleAddCustomSkill = () => {
-    if (customSkill && !skillsList.includes(customSkill)) {
-      setSkillsList([...skillsList, customSkill]);
-      setSelectedSkill(customSkill);
+    try {
+      // Validate custom skill name
+      const trimmedSkill = customSkill.trim();
+      skillSchema.shape.name.parse(trimmedSkill);
+
+      if (skillsList.includes(trimmedSkill)) {
+        toast.error("This skill already exists in the list.");
+        return;
+      }
+
+      // Add to skills list and select it
+      setSkillsList((prev) => [...prev, trimmedSkill]);
+      setFormData({ ...formData, name: trimmedSkill });
       setCustomSkill("");
       onCustomSkillClose();
       toast.success("Custom skill added.");
-    } else {
-      toast.error("Please enter a valid and unique skill name.");
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      } else {
+        toast.error("Failed to add custom skill.");
+      }
     }
   };
 
-  const validateInputs = () => {
-    if (!selectedSkill) {
-      toast.error("Please select or add a skill.");
-      return false;
-    }
-    if (!selectedProficiency) {
-      toast.error("Please select a proficiency level.");
-      return false;
-    }
-    return true;
-  };
-
-  const getProficiencyNumber = (proficiency: string | null) => {
+  const getProficiencyNumber = (
+    proficiency: ProficiencyLevel | null
+  ): number => {
     switch (proficiency) {
       case "Beginner":
         return 1;
       case "Intermediate":
         return 2;
-      case "Advance":
+      case "Advanced":
         return 3;
       case "Professional":
         return 4;
@@ -104,230 +158,253 @@ const Skills = () => {
     }
   };
 
-  const handleSave = async () => {
-    if (validateInputs()) {
-      if (selectedCategory === "technical") {
-        const newSkill = {
-          skill: selectedSkill as string,
-          proficiency: getProficiencyNumber(selectedProficiency),
-        };
-        const newSkills = [...(user.technicalSkills || []), newSkill];
-        const newUser = { ...user, technicalSkills: newSkills };
-        setUser(newUser);
-      } else if (selectedCategory === "languages") {
-        const newSkill = {
-          language: selectedSkill as string,
-          proficiency: getProficiencyNumber(selectedProficiency),
-        };
-        const newSkills = [...(user.languages || []), newSkill];
-        const newUser = { ...user, languages: newSkills };
-        setUser(newUser);
-      } else if (selectedCategory === "subjects") {
-        const newSkill = {
-          subject: selectedSkill as string,
-          proficiency: getProficiencyNumber(selectedProficiency),
-        };
-        const newSkills = [...(user.subjects || []), newSkill];
-        const newUser = { ...user, subjects: newSkills };
-        setUser(newUser);
+  const getProficiencyLabel = (level: number): string => {
+    switch (level) {
+      case 1:
+        return "Beginner";
+      case 2:
+        return "Intermediate";
+      case 3:
+        return "Advanced";
+      case 4:
+        return "Professional";
+      default:
+        return "Beginner";
+    }
+  };
+
+  const handleSave = () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      if (!selectedCategory || !formData.name || !formData.proficiency) {
+        toast.error("Missing required information.");
+        return;
       }
 
-      setSelectedSkill(null);
-      setSelectedProficiency(null);
+      // Create a copy of the user object to avoid direct state mutations
+      const updatedUser = { ...user };
+
+      if (selectedCategory === "technical") {
+        const newSkill = {
+          _id: Date.now().toString(), // Temporary ID for new items
+          skill: formData.name,
+          proficiency: getProficiencyNumber(formData.proficiency),
+        };
+        updatedUser.technicalSkills = [
+          ...(updatedUser.technicalSkills || []),
+          newSkill,
+        ];
+      } else if (selectedCategory === "languages") {
+        const newSkill = {
+          _id: Date.now().toString(),
+          language: formData.name,
+          proficiency: getProficiencyNumber(formData.proficiency),
+        };
+        updatedUser.languages = [...(updatedUser.languages || []), newSkill];
+      } else if (selectedCategory === "subjects") {
+        const newSkill = {
+          _id: Date.now().toString(),
+          subject: formData.name,
+          proficiency: getProficiencyNumber(formData.proficiency),
+        };
+        updatedUser.subjects = [...(updatedUser.subjects || []), newSkill];
+      }
+
+      setUser(updatedUser);
       onClose();
+      toast.success("Skill added successfully.");
+    } catch (error) {
+      toast.error("Failed to add skill. Please try again.");
     }
   };
 
-  const handleDelete = async (
-    id: string,
-    category: "technical" | "languages" | "subjects"
+  const handleDelete = (id: string, category: SkillCategory) => {
+    try {
+      const updatedUser = { ...user };
+
+      if (category === "technical") {
+        updatedUser.technicalSkills =
+          updatedUser.technicalSkills?.filter((item) => item._id !== id) || [];
+      } else if (category === "languages") {
+        updatedUser.languages =
+          updatedUser.languages?.filter((item) => item._id !== id) || [];
+      } else if (category === "subjects") {
+        updatedUser.subjects =
+          updatedUser.subjects?.filter((item) => item._id !== id) || [];
+      }
+
+      setUser(updatedUser);
+      toast.success("Skill removed successfully.");
+    } catch (error) {
+      toast.error("Failed to remove skill. Please try again.");
+    }
+  };
+
+  const renderSkillList = (
+    category: SkillCategory,
+    items: Array<any> | undefined,
+    labelKey: string
   ) => {
-    let newSkills = [];
-    if (category === "technical") {
-      newSkills =
-        user.technicalSkills?.filter((skill) => skill._id !== id) || [];
-      setUser({ ...user, technicalSkills: newSkills });
-    } else if (category === "languages") {
-      newSkills = user.languages?.filter((skill) => skill._id !== id) || [];
-      setUser({ ...user, languages: newSkills });
-    } else if (category === "subjects") {
-      newSkills = user.subjects?.filter((skill) => skill._id !== id) || [];
-      setUser({ ...user, subjects: newSkills });
+    if (!items || items.length === 0) {
+      return (
+        <p className="text-default-500 my-3">
+          You have not added any{" "}
+          {category === "technical"
+            ? "Technical Skills"
+            : category === "languages"
+            ? "Languages"
+            : "Subjects"}{" "}
+          yet.
+        </p>
+      );
     }
-  };
 
-  const handleModalClose = () => {
-    setSelectedSkill(null);
-    setSelectedProficiency(null);
-    onClose();
+    return (
+      <div className="flex flex-wrap gap-2">
+        {items.map((item) => (
+          <Chip
+            key={item._id}
+            onClose={() => handleDelete(item._id as string, category)}
+            variant="flat"
+            className="py-2 px-3"
+            color="primary"
+            size="md"
+          >
+            {item[labelKey]} • {getProficiencyLabel(item.proficiency)}
+          </Chip>
+        ))}
+      </div>
+    );
   };
-
-  const memoizedSkillsList = useMemo(() => skillsList, [skillsList]);
 
   return (
     <div className="p-5">
-      <Breadcrumbs>
+      <Breadcrumbs className="mb-6">
         <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
         <BreadcrumbItem href="/profile/skills">Skills</BreadcrumbItem>
       </Breadcrumbs>
 
-      <div className="space-y-8 mt-5">
+      <div className="space-y-6">
         {/* Technical Skills Card */}
-        <Card>
-          <CardBody>
+        <Card shadow="sm">
+          <CardBody className="p-5">
             <div className="flex justify-between items-center mb-4">
-              <h4>Technical Skills</h4>
+              <h3 className="text-xl font-semibold">Technical Skills</h3>
               <Button
                 onClick={() => {
                   setSelectedCategory("technical");
                   onOpen();
                 }}
                 startContent={<Plus size={18} />}
+                color="primary"
+                variant="flat"
+                size="sm"
               >
-                Add new
+                Add Skill
               </Button>
             </div>
-            {user.technicalSkills && user?.technicalSkills.length === 0 ? (
-              <p className="text-default-500">
-                You have not added any Technical Skills yet.
-              </p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {user?.technicalSkills?.map((skill) => (
-                  <motion.div
-                    key={skill._id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Chip
-                      onClose={() =>
-                        handleDelete(skill._id as string, "technical")
-                      }
-                      variant="flat"
-                      className="py-3 px-3"
-                    >
-                      {skill.skill} • {skill.proficiency}
-                    </Chip>
-                  </motion.div>
-                ))}
-              </div>
-            )}
+            {renderSkillList("technical", user.technicalSkills, "skill")}
           </CardBody>
         </Card>
 
         {/* Languages Card */}
-        <Card>
-          <CardBody>
+        <Card shadow="sm">
+          <CardBody className="p-5">
             <div className="flex justify-between items-center mb-4">
-              <h4>Languages</h4>
+              <h3 className="text-xl font-semibold">Languages</h3>
               <Button
                 onClick={() => {
                   setSelectedCategory("languages");
                   onOpen();
                 }}
                 startContent={<Plus size={18} />}
+                color="primary"
+                variant="flat"
+                size="sm"
               >
-                Add new
+                Add Language
               </Button>
             </div>
-            {user.languages && user?.languages.length === 0 ? (
-              <p className="text-default-500">
-                You have not added any Languages yet.
-              </p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {user?.languages?.map((skill) => (
-                  <motion.div
-                    key={skill._id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Chip
-                      onClose={() =>
-                        handleDelete(skill._id as string, "languages")
-                      }
-                      variant="flat"
-                    >
-                      {skill.language} • {skill.proficiency}
-                    </Chip>
-                  </motion.div>
-                ))}
-              </div>
-            )}
+            {renderSkillList("languages", user.languages, "language")}
           </CardBody>
         </Card>
 
         {/* Subjects Card */}
-        <Card>
-          <CardBody>
+        <Card shadow="sm">
+          <CardBody className="p-5">
             <div className="flex justify-between items-center mb-4">
-              <h4>Subjects</h4>
+              <h3 className="text-xl font-semibold">Subjects</h3>
               <Button
                 onClick={() => {
                   setSelectedCategory("subjects");
                   onOpen();
                 }}
                 startContent={<Plus size={18} />}
+                color="primary"
+                variant="flat"
+                size="sm"
               >
-                Add new
+                Add Subject
               </Button>
             </div>
-            {user?.subjects && user?.subjects?.length === 0 ? (
-              <p className="text-default-500">
-                You have not added any Subjects yet.
-              </p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {user?.subjects?.map((skill) => (
-                  <motion.div
-                    key={skill._id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Chip
-                      onClose={() =>
-                        handleDelete(skill._id as string, "subjects")
-                      }
-                      variant="flat"
-                    >
-                      {skill.subject} • {skill.proficiency}
-                    </Chip>
-                  </motion.div>
-                ))}
-              </div>
-            )}
+            {renderSkillList("subjects", user.subjects, "subject")}
           </CardBody>
         </Card>
       </div>
 
       {/* Main Skill Modal */}
-      <Modal isOpen={isOpen} onClose={handleModalClose}>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        classNames={{
+          body: "py-6",
+          backdrop: "bg-[rgba(0,0,0,0.5)]",
+          base: "border-0 shadow-lg",
+        }}
+      >
         <ModalContent>
-          <ModalHeader>Add New Skill</ModalHeader>
+          <ModalHeader className="flex flex-col gap-1">
+            Add New{" "}
+            {selectedCategory === "technical"
+              ? "Technical Skill"
+              : selectedCategory === "languages"
+              ? "Language"
+              : "Subject"}
+          </ModalHeader>
           <ModalBody>
             <Select
               label="Select a Skill"
-              placeholder="Select a skill or add a custom skill"
-              selectedKeys={selectedSkill ? [selectedSkill] : []}
-              onChange={(e) => setSelectedSkill(e.target.value)}
+              placeholder="Choose from list or add custom"
+              selectedKeys={formData.name ? [formData.name] : []}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              isInvalid={!!formErrors.name}
+              errorMessage={formErrors.name}
+              className="mb-4"
             >
-              {memoizedSkillsList.map((skill) => (
+              {skillsList.map((skill) => (
                 <SelectItem key={skill} value={skill}>
                   {skill}
                 </SelectItem>
               ))}
             </Select>
             <Select
-              label="Select Proficiency"
-              placeholder="Select proficiency level"
-              selectedKeys={selectedProficiency ? [selectedProficiency] : []}
-              onChange={(e) => setSelectedProficiency(e.target.value)}
+              label="Proficiency Level"
+              placeholder="Select your proficiency level"
+              selectedKeys={formData.proficiency ? [formData.proficiency] : []}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  proficiency: e.target.value as ProficiencyLevel,
+                })
+              }
+              isInvalid={!!formErrors.proficiency}
+              errorMessage={formErrors.proficiency}
+              className="mb-4"
             >
               {proficiencyLevels.map((level) => (
                 <SelectItem key={level} value={level}>
@@ -335,12 +412,16 @@ const Skills = () => {
                 </SelectItem>
               ))}
             </Select>
-            <Button variant="light" onPress={onCustomSkillOpen}>
+            <Button
+              variant="light"
+              onPress={onCustomSkillOpen}
+              className="text-primary"
+            >
               Add Custom Skill
             </Button>
           </ModalBody>
           <ModalFooter>
-            <Button color="danger" variant="light" onPress={handleModalClose}>
+            <Button color="danger" variant="light" onPress={onClose}>
               Cancel
             </Button>
             <Button color="primary" onPress={handleSave}>
@@ -351,15 +432,30 @@ const Skills = () => {
       </Modal>
 
       {/* Custom Skill Modal */}
-      <Modal isOpen={isCustomSkillModalOpen} onClose={onCustomSkillClose}>
+      <Modal
+        isOpen={isCustomSkillModalOpen}
+        onClose={onCustomSkillClose}
+        classNames={{
+          backdrop: "bg-[rgba(0,0,0,0.5)]",
+          base: "border-0 shadow-lg",
+        }}
+      >
         <ModalContent>
           <ModalHeader>Add Custom Skill</ModalHeader>
           <ModalBody>
             <Input
-              placeholder="Enter custom skill name"
+              placeholder="Enter skill name"
               value={customSkill}
               onChange={(e) => setCustomSkill(e.target.value)}
               fullWidth
+              label="Custom Skill Name"
+              type="text"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleAddCustomSkill();
+                }
+              }}
             />
           </ModalBody>
           <ModalFooter>
@@ -367,7 +463,7 @@ const Skills = () => {
               Cancel
             </Button>
             <Button color="primary" onPress={handleAddCustomSkill}>
-              Save
+              Add Skill
             </Button>
           </ModalFooter>
         </ModalContent>
