@@ -72,7 +72,9 @@ interface MCQAssessment {
   obtainableScore: number;
   autoObtainableScore?: boolean;
   isEnterprise?: boolean;
+  isCampus?: boolean;
   postingId?: string;
+  driveId?: string;
   requiresManualReview?: boolean;
   createdAt?: Date;
   updatedAt?: Date;

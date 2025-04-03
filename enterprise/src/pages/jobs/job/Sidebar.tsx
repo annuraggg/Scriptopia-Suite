@@ -167,12 +167,12 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
       if (
         ["CODING_ASSESSMENT", "MCQ_ASSESSMENT"].includes(step.type) &&
         (posting?.codeAssessments?.some(
-          (a) => a.workflowId.toString() === step?._id?.toString()
+          (a) => a?.workflowId?.toString() === step?._id?.toString()
         )
           ? 1
           : 0) +
           (posting?.mcqAssessments?.some(
-            (a) => a.workflowId.toString() === step?._id?.toString()
+            (a) => a.workflowId?.toString() === step?._id?.toString()
           )
             ? 1
             : 0)
@@ -182,7 +182,7 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
       if (
         step.type === "ASSIGNMENT" &&
         posting?.assignments?.some(
-          (a) => a.workflowId.toString() === step?._id?.toString()
+          (a) => a.workflowId?.toString() === step?._id?.toString()
         )
       ) {
         totalCompleted++;

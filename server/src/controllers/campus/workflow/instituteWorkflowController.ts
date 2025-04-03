@@ -4,7 +4,7 @@ import loops from "@/config/loops";
 import clerkClient from "@/config/clerk";
 
 import Drive from "../../../models/Drive";
-import Organization from "../../../models/Organization";
+import Institute from "../../../models/Institute";
 import CandidateModel from "../../../models/Candidate";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import checkPermission from "../../../middlewares/checkInstitutePermission";
@@ -65,7 +65,7 @@ const advanceWorkflow = async (c: Context) => {
 
     switch (currentStep.type) {
       case "RESUME_SCREENING":
-        handleResumeScreening(drive, perms.data!.organization?._id);
+        handleResumeScreening(drive, perms.data!.institute?._id);
         break;
       case "ASSIGNMENT":
         handleAssignmentRound(drive, currentStep);
@@ -125,7 +125,7 @@ const handleResumeScreening = async (drive: any, orgId?: string) => {
     })
   );
 
-  const org = await Organization.findById(orgId).populate("members.user");
+  const org = await Institute.findById(orgId).populate("members.user");
   const step = drive.workflow.steps.find(
     (step: any) => step.type === "RESUME_SCREENING"
   );
@@ -163,9 +163,9 @@ const handleAssignmentRound = async (drive: any, step: any) => {
   const assignment = drive.assignments?.find(
     (a: Assignment) => a.name === step.name
   );
-  const organization = await Organization.findById(drive.institute);
+  const institute = await Institute.findById(drive.institute);
 
-  if (!assignment || !organization) return;
+  if (!assignment || !institute) return;
 
   const candidates = await CandidateModel.find({
     _id: { $in: drive.candidates },
@@ -180,7 +180,7 @@ const handleAssignmentRound = async (drive: any, step: any) => {
         dataVariables: {
           name: candidate.name,
           driveName: drive.title,
-          company: organization.name,
+          company: institute.name,
           assignmentLink: `${process.env.CANDIDATE_FRONTEND_URL}/drives/${drive._id}/assignments/${assignment._id}`,
         },
       })
@@ -197,8 +197,8 @@ const handleAssessmentRound = async (drive: any, step: any) => {
     drive.codeAssessments?.find(
       (a: Assessment) => a.workflowId.toString() === step._id.toString()
     );
-  const organization = await Organization.findById(drive.institute);
-  if (!assessment || !organization) return;
+  const institute = await Institute.findById(drive.institute);
+  if (!assessment || !institute) return;
 
   const candidates = await CandidateModel.find({
     _id: { $in: drive.candidates },
@@ -216,10 +216,10 @@ const handleAssessmentRound = async (drive: any, step: any) => {
         email: candidate.email,
         dataVariables: {
           name: candidate.name,
-          driveName: drive.title,
+          postingName: drive.title,
           type: assessmentType,
           assessmentLink: `${process.env.SCRIPTOPIA_FRONTEND_URL}/assessments/${type}/${assessment.assessmentId}`,
-          company: organization.name,
+          company: institute.name,
         },
       })
     )
@@ -228,8 +228,8 @@ const handleAssessmentRound = async (drive: any, step: any) => {
 
 const handleInterviewRound = async (drive: any, step: any) => {
   console.log("Detected interview round");
-  const organization = await Organization.findById(drive.institute);
-  if (!organization) return;
+  const institute = await Institute.findById(drive.institute);
+  if (!institute) return;
 
   const candidates = await CandidateModel.find({
     _id: { $in: drive.candidates },
@@ -261,7 +261,7 @@ const handleInterviewRound = async (drive: any, step: any) => {
           name: candidate.name,
           driveName: drive.title,
           interviewLink: `${process.env.MEET_FRONTEND_URL}/v3/${interview.code}`,
-          company: organization.name,
+          company: institute.name,
         },
       });
 
@@ -269,7 +269,7 @@ const handleInterviewRound = async (drive: any, step: any) => {
     })
   );
 
-  const interviewer = organization.members.find(
+  const interviewer = institute.members.find(
     (member: any) => member.role === "hiring_manager"
   );
 
@@ -282,12 +282,12 @@ const handleInterviewRound = async (drive: any, step: any) => {
 
 const logWorkflowAdvance = async (c: Context, drive: any, perms: any) => {
   const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
-  const organization = await Organization.findById(
-    perms.data!.organization?._id
+  const institute = await Institute.findById(
+    perms.data!.institute?._id
   );
-  if (!organization) return;
+  if (!institute) return;
 
-  organization.auditLogs.push({
+  institute.auditLogs.push({
     action: `Advanced workflow for ${drive.title} to next step`,
     user: `${clerkUser.firstName} ${clerkUser.lastName}`,
     userId: clerkUser.id,
@@ -301,10 +301,10 @@ const logWorkflowAdvance = async (c: Context, drive: any, perms: any) => {
     read: false,
   };
 
-  organization.members.forEach((member) => {
+  institute.members.forEach((member) => {
     if (
       member.role &&
-      organization.roles.some(
+      institute.roles.some(
         (r: any) =>
           r.slug === member.role && r.permissions.includes("manage_drive")
       )
@@ -313,7 +313,7 @@ const logWorkflowAdvance = async (c: Context, drive: any, perms: any) => {
     }
   });
 
-  await organization.save();
+  await institute.save();
 };
 
 export default { advanceWorkflow };

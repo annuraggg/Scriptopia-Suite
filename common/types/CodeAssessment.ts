@@ -58,7 +58,9 @@ interface CodeAssessment {
   feedbackEmail: string;
   obtainableScore: number;
   isEnterprise: boolean;
+  isCampus?: boolean;
   postingId?: string;
+  driveId?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
