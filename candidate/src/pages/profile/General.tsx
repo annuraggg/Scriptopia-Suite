@@ -236,7 +236,7 @@ const General = () => {
               </label>
               <Input
                 isDisabled
-                value={candidate.gender || ""}
+                value={candidate.gender?.slice(0,1).toUpperCase() + candidate.gender?.slice(1).toLowerCase() || ""}
                 aria-label="Gender"
                 classNames={{
                   input: "bg-neutral-50 dark:bg-neutral-900",
@@ -256,6 +256,8 @@ const General = () => {
                 aria-label="Email"
                 type="email"
                 autoComplete="email"
+                readOnly
+                description="You can change your email in account settings"
               />
             </div>
 
