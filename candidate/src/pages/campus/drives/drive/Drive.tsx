@@ -19,11 +19,11 @@ import {
   IconMapPin,
   IconBone as IconMoney,
   IconUsers,
-  IconAdjustments as IconDepartment,
   IconEscalator as IconSteps,
   IconArrowNarrowRight,
+  IconExternalLink,
 } from "@tabler/icons-react";
-import { Posting as PostingType } from "@shared-types/Posting";
+import { Drive as PostingType } from "@shared-types/Drive";
 import { Organization } from "@shared-types/Organization";
 import Quill from "quill";
 import Loader from "@/components/Loader";
@@ -60,6 +60,7 @@ const Posting = () => {
   const [applied, setApplied] = useState(false);
   const [timeLeft, setTimeLeft] = useState("");
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
 
   const { user } = useUser();
   const { user: userDoc } = useOutletContext() as { user: Candidate };
@@ -83,11 +84,11 @@ const Posting = () => {
     axios
       .get(`/drives/candidate/${postingId}`)
       .then((res) => {
-        if(!res.data.data.drive) {
+        if (!res.data.data.drive) {
           toast.error("Drive not found");
           return;
         }
-        console.log(res.data.data.drive);   
+        console.log(res.data.data.drive);
         setPosting(res.data.data.drive);
         updateTimeLeft(res.data.data.drive.applicationRange.end);
         setTimeout(() => {
@@ -136,6 +137,7 @@ const Posting = () => {
         setApplied(true);
         toast.success("Application submitted successfully");
         onOpenChange();
+        setSuccessModalOpen(true);
       })
       .catch((err) => {
         toast.error(
@@ -144,6 +146,10 @@ const Posting = () => {
         console.error(err);
       })
       .finally(() => setApplyLoading(false));
+  };
+
+  const closeSuccessModal = () => {
+    setSuccessModalOpen(false);
   };
 
   if (loading) {
@@ -284,7 +290,6 @@ const Posting = () => {
                 color="primary"
                 variant="flat"
               >
-                {" "}
                 {/* @ts-expect-error */}
                 {routineMap[posting?.type]}
               </Chip>
@@ -297,11 +302,24 @@ const Posting = () => {
               </Chip>
             </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-col items-end">
             {applied ? (
-              <Button color="success" variant="flat" disabled>
-                Application Submitted
-              </Button>
+              <>
+                <Button color="success" variant="flat" disabled>
+                  Application Submitted
+                </Button>
+                {posting?.link && (
+                  <a
+                    href={posting.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-primary hover:underline"
+                  >
+                    <IconExternalLink size={16} />
+                    Registration Link
+                  </a>
+                )}
+              </>
             ) : (
               <Button
                 onClick={apply}
@@ -319,6 +337,30 @@ const Posting = () => {
       <div className="grid grid-cols-3 gap-6 mt-6">
         {/* Main Content - Left 2 Columns */}
         <div className="col-span-2 space-y-6">
+          {/* Registration Link Banner (shown only when applied) */}
+          {applied && posting?.link && (
+            <Card className="shadow-sm bg-blue-50 border border-blue-200">
+              <CardBody className="px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <IconExternalLink className="h-5 w-5 text-blue-600" />
+                    <p className="font-medium text-blue-700">
+                      Complete your registration with the external link
+                    </p>
+                  </div>
+                  <a
+                    href={posting.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    Register Now
+                  </a>
+                </div>
+              </CardBody>
+            </Card>
+          )}
+
           {/* Timeline Card */}
           <Card className="shadow-sm">
             <CardHeader className="px-6 py-4">
@@ -382,7 +424,7 @@ const Posting = () => {
               <div>
                 {posting?.workflow?.steps?.map((step, index) => (
                   <div key={index} className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full text-sm flex items-center justify-center  font-medium">
+                    <div className="w-6 h-6 rounded-full text-sm flex items-center justify-center font-medium">
                       {index + 1}
                     </div>
                     <div>
@@ -428,20 +470,6 @@ const Posting = () => {
                 </div>
 
                 <Divider />
-
-                <div className="flex items-start gap-3">
-                  <IconDepartment className="h-5 w-5 text-gray-500 mt-1" />
-                  <div>
-                    <p className="text-sm text-gray-500">Department</p>
-                    <p className="font-medium mt-1">
-                      {
-                        posting?.organizationId?.departments?.find(
-                          (d) => d._id === posting?.department
-                        )?.name
-                      }
-                    </p>
-                  </div>
-                </div>
               </div>
             </CardBody>
           </Card>
@@ -457,7 +485,7 @@ const Posting = () => {
                     posting?.organizationId?.logo || "/api/placeholder/200/100"
                   }
                   alt="Company logo"
-                  className=" rounded-2xl h-20"
+                  className="rounded-2xl h-20"
                 />
                 <h4 className="font-medium text-lg">
                   {posting?.organizationId?.name}
@@ -481,6 +509,7 @@ const Posting = () => {
         </div>
       </div>
 
+      {/* Apply Modal */}
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
@@ -752,6 +781,72 @@ const Posting = () => {
                   isLoading={applyLoading}
                 >
                   Apply
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Success Modal with Registration Link */}
+      <Modal isOpen={successModalOpen} onOpenChange={closeSuccessModal}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Application Successful
+              </ModalHeader>
+              <ModalBody>
+                <div className="flex flex-col items-center py-6">
+                  <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-10 w-10 text-green-500"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-semibold text-center mb-2">
+                    Your application has been submitted!
+                  </h2>
+                  <p className="text-center text-gray-600 mb-6">
+                    You've successfully applied to {posting?.title} at{" "}
+                    {posting?.organizationId?.name}.
+                  </p>
+                  {posting?.link ? (
+                    <div className="w-full bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4">
+                      <p className="text-center font-medium text-blue-700 mb-3">
+                        Please complete your registration using the link below:
+                      </p>
+                      <a
+                        href={posting.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                      >
+                        <IconExternalLink size={18} />
+                        Complete Registration
+                      </a>
+                    </div>
+                  ) : (
+                    <p className="text-center text-gray-600">
+                      We'll notify you about the next steps in the application
+                      process.
+                    </p>
+                  )}
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="primary" onPress={onClose}>
+                  Close
                 </Button>
               </ModalFooter>
             </>

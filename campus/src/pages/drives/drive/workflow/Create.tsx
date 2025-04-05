@@ -115,6 +115,7 @@ const Create = () => {
     "MCQ + Code Assessment": "mcqca",
     Assignment: "as",
     Interview: "pi",
+
   };
 
   const handleSave = () => {

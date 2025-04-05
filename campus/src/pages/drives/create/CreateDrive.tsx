@@ -42,6 +42,7 @@ const CreateDrive = () => {
 
   // Drive Details States
   const [title, setTitle] = useState<string>("");
+  const [link, setLink] = useState<string>("");
   const [category, setCategory] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [openings, setOpenings] = useState<number>(0);
@@ -79,8 +80,8 @@ const CreateDrive = () => {
 
     const formattedData = {
       steps: addedComponents.map((component) => ({
-        name: component.name, // @ts-ignore
-        type: componentMap[component.label] as StepType,
+        name: component.name, 
+        type: componentMap[component.label] as StepType || "CUSTOM",
         status: "pending" as StepStatus,
         timestamp: new Date(),
       })),
@@ -101,6 +102,7 @@ const CreateDrive = () => {
 
     const drive: Drive = {
       title,
+      link,
       description,
       location,
       company,
@@ -152,6 +154,8 @@ const CreateDrive = () => {
             setAction={setActive}
             title={title}
             setTitle={setTitle}
+            link={link}
+            setLink={setLink}
             category={category}
             setCategory={setCategory}
             openings={openings}

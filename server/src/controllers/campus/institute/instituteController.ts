@@ -1315,7 +1315,7 @@ const getCandidate = async (c: Context) => {
 const acceptCandidate = async (c: Context) => {
   try {
     const candidateId = c.req.param("cid");
-    const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
+    const perms = await checkInstitutePermission.all(c, ["verify_candidate"]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
@@ -1367,7 +1367,7 @@ const acceptCandidate = async (c: Context) => {
 const rejectCandidate = async (c: Context) => {
   try {
     const candidateId = c.req.param("cid");
-    const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
+    const perms = await checkInstitutePermission.all(c, ["verify_candidate"]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }

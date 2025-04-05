@@ -16,6 +16,7 @@ import DriveModel from "@/models/Drive";
 import Institute from "@/models/Institute";
 import Drive from "@/models/Drive";
 import clerkClient from "@/config/clerk";
+import PlacementGroup from "@/models/PlacementGroup";
 
 const getCandidate = async (c: Context) => {
   try {
@@ -285,11 +286,30 @@ const applyToDrive = async (c: Context) => {
 
     const candidate = await Candidate.findOne({ userId });
     const candId = candidate?._id;
-    console.log("Candidate ID: ", candId);
     const posting = await Drive.findById(driveId);
 
     if (!posting) {
       return sendError(c, 404, "Posting not found");
+    }
+
+    console.log("Candidate ID: ", candId);
+    const placementGroups = await PlacementGroup.find({
+      candidates: { $in: [candId] },
+    });
+
+    console.log("Placement Groups: ", placementGroups);
+    console.log("Posting Placement Groups: ", posting?.placementGroups);
+
+    if (placementGroups.length === 0) {
+      return sendError(c, 400, "Candidate not part of any placement group");
+    }
+
+    const allowed = placementGroups
+      .map((group) => group._id)
+      .some((groupId) => posting?.placementGroups.includes(groupId));
+
+    if (!allowed) {
+      return sendError(c, 400, "Candidate is not eligible for this drive");
     }
 
     const today = new Date();

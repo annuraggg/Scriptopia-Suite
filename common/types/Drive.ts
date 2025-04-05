@@ -163,6 +163,7 @@ interface Drive {
   _id?: string;
   institute?: string;
   title: string;
+  link?: string;
   description: Record<string, unknown>;
   company?: string;
   location: string;

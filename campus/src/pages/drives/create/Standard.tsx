@@ -14,6 +14,7 @@ import { Chip } from "@heroui/chip";
 import { motion, Reorder } from "framer-motion";
 import { Tooltip } from "@heroui/tooltip";
 import type { DateValue } from "@react-types/calendar";
+import { Tabs, Tab } from "@heroui/tabs";
 
 interface Component {
   icon: React.ElementType;
@@ -54,6 +55,14 @@ const Create = ({
     { icon: Workflow, label: "Custom Step", isUnidirectional: true },
   ];
 
+  const pipelineComponents = [
+    { icon: Workflow, label: "Aptitude Round" },
+    { icon: Workflow, label: "Coding Round" },
+    { icon: Workflow, label: "Group Discussion" },
+    { icon: Workflow, label: "Technical Interview" },
+    { icon: Workflow, label: "HR Interview" },
+  ];
+
   const dragStart = (e: React.DragEvent<HTMLDivElement>, label: string) => {
     e.dataTransfer.setData("text", label);
     setIsDragging(true); // Set dragging state to true
@@ -67,8 +76,9 @@ const Create = ({
     e.preventDefault();
     setIsDragging(false); // Reset dragging state on drop
     const label = e.dataTransfer.getData("text");
-    const component = components.find((c) => c.label === label);
-
+    const component =
+      components.find((c) => c.label === label) ||
+      pipelineComponents.find((c) => c.label === label);
     if (component) {
       const newComponent = {
         ...component,
@@ -199,7 +209,7 @@ const Create = ({
             {isDragging ? "Drop here!" : "+ Add Component"}
           </motion.div>
         </div>
-        <div className="w-[70%] flex flex-col gap-5">
+        <div className="w-[70%]">
           {/* <div className="flex gap-3 text-xs items-center">
             <p>Enable Canvas Mode</p>
             <Chip color="warning" size="sm">
@@ -211,27 +221,62 @@ const Create = ({
               size="sm"
             />
           </div> */}
-          {components.map((component, index) => (
-            <motion.div
-              key={index}
-              draggable // @ts-expect-error - TS doesn't know the keys of componentMap
-              onDragStart={(e) => dragStart(e, component.label)}
-              onDragEnd={dragEnd}
-              className="p-5 border rounded-xl cursor-pointer hover:bg-primary/70 transition-colors flex items-center gap-5"
-              whileHover={{ scale: 1.05 }}
-              whileDrag={{ scale: 1.1, opacity: 0.8 }}
+          <Tabs aria-label="Options" className="w-full">
+            <Tab
+              key="pipeline"
+              title="Pipeline Components"
+              className="flex flex-col gap-5"
             >
-              <component.icon />
-              {component.label}
-              {component?.isUnidirectional && (
-                <Tooltip content="This means that in this workflow step, there is no input required from the candidate.">
-                  <Chip color="warning" size="sm">
-                    Non Interactive
-                  </Chip>
-                </Tooltip>
-              )}
-            </motion.div>
-          ))}
+              <p className="text-xs">
+                These components are non-interactive, meaning that they do not
+                require any input from the candidate. They are used to create a
+                pipeline of steps in the workflow.
+              </p>
+              {pipelineComponents.map((component, index) => (
+                <motion.div
+                  key={index}
+                  draggable // @ts-expect-error - TS doesn't know the keys of componentMap
+                  onDragStart={(e) => dragStart(e, component.label)}
+                  onDragEnd={dragEnd}
+                  className="p-5 border rounded-xl cursor-pointer hover:bg-primary/70 transition-colors flex items-center gap-5"
+                  whileHover={{ scale: 1.05 }}
+                  whileDrag={{ scale: 1.1, opacity: 0.8 }}
+                >
+                  <component.icon />
+                  {component.label}
+                </motion.div>
+              ))}
+            </Tab>
+
+            <Tab
+              key="Advanced Components"
+              title="Advance Components"
+              className="flex flex-col gap-5"
+            >
+              {components.map((component, index) => (
+                <motion.div
+                  key={index}
+                  draggable // @ts-expect-error - TS doesn't know the keys of componentMap
+                  onDragStart={(e) => dragStart(e, component.label)}
+                  onDragEnd={dragEnd}
+                  className="p-5 border rounded-xl cursor-pointer hover:bg-primary/70 transition-colors flex items-center gap-5"
+                  whileHover={{ scale: 1.05 }}
+                  whileDrag={{ scale: 1.1, opacity: 0.8 }}
+                >
+                  <component.icon />
+                  {component.label}
+                  {component?.isUnidirectional && (
+                    <Tooltip content="This means that in this workflow step, there is no input required from the candidate.">
+                      <Chip color="warning" size="sm">
+                        Non Interactive
+                      </Chip>
+                    </Tooltip>
+                  )}
+                </motion.div>
+              ))}
+            </Tab>
+          </Tabs>
+
           <Button
             className="w-full mt-5"
             color="success"

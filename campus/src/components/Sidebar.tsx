@@ -67,7 +67,8 @@ const Sidebar = ({
       link: "/candidates/active",
       visible:
         user?.permissions?.includes("view_drive") ||
-        user?.permissions?.includes("manage_drive"),
+        user?.permissions?.includes("manage_drive") ||
+        user?.permissions?.includes("verify_candidate"),
     },
     {
       icon: IconChartPieFilled,
