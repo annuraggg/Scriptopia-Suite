@@ -25,7 +25,6 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { debounce } from "lodash";
 
-// Schema for validation
 const phoneRegex = /^\+?[1-9]\d{1,14}$/;
 
 const formSchema = z.object({
@@ -68,8 +67,8 @@ const General = () => {
 
   const validateField = (name: keyof Candidate, value: string) => {
     try {
-      // @ts-expect-error - Dynamic key access
-      formSchema.shape[name].parse(value);
+      // @ts-expect-error 
+      formSchema.shape[name]?.parse(value);
       setErrors((prev) => ({ ...prev, [name]: undefined }));
       return true;
     } catch (error) {
@@ -86,7 +85,6 @@ const General = () => {
       setSaving(true);
       formSchema.parse(updatedCandidate);
       setUser(updatedCandidate);
-      toast.success("Changes saved");
       setHasChanges(false);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -99,7 +97,6 @@ const General = () => {
     }
   };
 
-  // Debounced save function that triggers 800ms after typing stops
   const debouncedSave = useCallback(
     debounce((data: Candidate) => {
       saveChanges(data);
@@ -111,7 +108,9 @@ const General = () => {
     name: keyof Candidate,
     value: string | CalendarDate
   ) => {
-    const sanitizedValue = typeof value === "string" ? value.trim() : value;
+    const sanitizedValue =
+      typeof value === "string" && name !== "address" ? value.trim() : value;
+
     const updatedCandidate = { ...candidate, [name]: sanitizedValue };
     setCandidate(updatedCandidate);
     setHasChanges(true);
@@ -202,9 +201,14 @@ const General = () => {
                 Name
               </label>
               <Input
-                isDisabled
                 value={`${candidate.name || ""}`}
                 aria-label="Name"
+                readOnly
+                description={
+                  <div className="text-warning-500">
+                    This Field cannot be changed
+                  </div>
+                }
                 classNames={{
                   input: "bg-neutral-50 dark:bg-neutral-900",
                 }}
@@ -216,17 +220,17 @@ const General = () => {
                 Date of Birth
               </label>
               <DateInput
-                isDisabled
+                description={
+                  <div className="text-warning-500">
+                    This Field cannot be changed
+                  </div>
+                }
                 value={
                   candidate?.dob?.toString()
                     ? parseDate(candidate?.dob?.toString()?.split("T")[0])
                     : today("IST")
                 }
-                onChange={(date) => handleInputChange("dob", date)}
                 maxValue={today("IST")}
-                classNames={{
-                  input: "bg-neutral-50 dark:bg-neutral-900",
-                }}
               />
             </div>
 
@@ -235,8 +239,16 @@ const General = () => {
                 Gender
               </label>
               <Input
-                isDisabled
-                value={candidate.gender?.slice(0,1).toUpperCase() + candidate.gender?.slice(1).toLowerCase() || ""}
+                readOnly
+                description={
+                  <div className="text-warning-500">
+                    This Field cannot be changed
+                  </div>
+                }
+                value={
+                  candidate.gender?.slice(0, 1).toUpperCase() +
+                    candidate.gender?.slice(1).toLowerCase() || ""
+                }
                 aria-label="Gender"
                 classNames={{
                   input: "bg-neutral-50 dark:bg-neutral-900",
@@ -358,7 +370,7 @@ const General = () => {
                 </Button>
               </Tooltip>
             </div>
-            <div className="bg-neutral-50 dark:bg-neutral-900 p-4 rounded-lg min-h-[200px]">
+            <div className="p-4 rounded-lg min-h-[200px]">
               {candidate.summary ? (
                 <pre className="whitespace-pre-wrap break-words font-neue">
                   {candidate.summary}

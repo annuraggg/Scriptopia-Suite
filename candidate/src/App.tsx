@@ -57,10 +57,7 @@ function App() {
           element: <ProfileLayout />,
           children: [...profileRoutes],
         },
-        {
-          path: "resume",
-          element: <Resume />,
-        },
+
         {
           path: "/campus",
           element: <CampusLayout />,
@@ -80,6 +77,10 @@ function App() {
             {
               path: "placement-groups/join/:id",
               element: <JoinPlacementGroup />,
+            },
+            {
+              path: "resume",
+              element: <Resume />,
             },
           ],
         },

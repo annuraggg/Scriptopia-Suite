@@ -19,7 +19,9 @@ import {
   IconSquareRoundedPlusFilled,
   IconColorPicker,
   IconBooks,
+  IconUsersGroup,
 } from "@tabler/icons-react";
+import { UserButton } from "@clerk/clerk-react";
 
 interface SidebarProps {
   icon: any;
@@ -102,6 +104,27 @@ const profileItems: SidebarProps[] = [
   },
 ];
 
+const campusItems: SidebarProps[] = [
+  {
+    icon: IconBriefcaseFilled,
+    label: "Drives",
+    link: "drives",
+    visible: true,
+  },
+  {
+    icon: IconUsersGroup,
+    label: "Placement Groups",
+    link: "placement-groups",
+    visible: true,
+  },
+  {
+    icon: IconFileTextFilled,
+    label: "Resume",
+    link: "resume",
+    visible: true,
+  },
+];
+
 const Sidebar = () => {
   const [active, setActive] = useState<string>("");
   const [expandedItem, setExpandedItem] = useState<SidebarProps | null>(null);
@@ -121,14 +144,14 @@ const Sidebar = () => {
       visible: true,
       children: profileItems,
     },
-    {
-      icon: IconFileTextFilled,
-      label: "Resume",
-      link: "resume",
-      visible: true,
-    },
     { icon: IconBriefcaseFilled, label: "Jobs", link: "jobs", visible: true },
-    { icon: IconBookFilled, label: "Campus", link: "campus", visible: true },
+    {
+      icon: IconBookFilled,
+      label: "Campus",
+      link: "campus",
+      visible: true,
+      children: campusItems,
+    },
   ];
 
   const bottomItems: SidebarProps[] = [
@@ -154,7 +177,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="h-screen flex bg-foreground text-background rounded-r-2xl">
+    <div className="h-screen flex bg-foreground text-background rounded-r-2xl ">
       <div className="flex flex-col items-center justify-between py-5">
         <div>
           <img src="/logo.svg" alt="Logo" className="w-10 h-10 mb-5 mx-auto" />
@@ -171,7 +194,8 @@ const Sidebar = () => {
             </Tooltip>
           ))}
         </div>
-        <div className="justify-self-end">
+        <div className="justify-self-end flex flex-col items-center gap-4">
+          <UserButton />
           {bottomItems.map((item) => (
             <Tooltip key={item.label} content={item.label} placement="right">
               <div className="cursor-pointer m-2 p-1">
@@ -183,7 +207,7 @@ const Sidebar = () => {
       </div>
 
       {expandedItem?.children && (
-        <div className="bg-foreground text-background py-2 px-4 rounded-r-2xl scroll-m-5 overflow-y-auto my-3">
+        <div className="bg-foreground text-background py-2 px-4 rounded-r-2xl scroll-m-5 overflow-y-auto my-3 w-[250px]">
           {expandedItem.children.map((child) => (
             <div
               key={child.label}

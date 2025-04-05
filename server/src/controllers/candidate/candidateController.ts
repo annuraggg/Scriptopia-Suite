@@ -15,6 +15,7 @@ import AppliedDrive from "@/models/AppliedDrive";
 import DriveModel from "@/models/Drive";
 import Institute from "@/models/Institute";
 import Drive from "@/models/Drive";
+import clerkClient from "@/config/clerk";
 
 const getCandidate = async (c: Context) => {
   try {
@@ -85,15 +86,21 @@ const createCandidate = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    console.log(auth);
     const candidate = await Candidate.findOne({ userId: auth._id });
+
+    const clerkUser = await clerkClient.users.getUser(auth.userId);
 
     if (candidate) {
       return sendError(c, 400, "Candidate already exists");
     }
 
+    if (!clerkUser) {
+      return sendError(c, 400, "User not found");
+    }
+
     const newCandidate = new Candidate({
       ...body,
+      name: clerkUser.fullName,
       userId: auth._id,
     });
 
@@ -423,5 +430,5 @@ export default {
   getAppliedPostings,
   getCandidateById,
   applyToDrive,
-  getAppliedDrives
+  getAppliedDrives,
 };

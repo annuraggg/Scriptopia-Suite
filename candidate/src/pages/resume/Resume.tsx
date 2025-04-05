@@ -29,15 +29,6 @@ import {
 import {
   Download,
   GripVertical,
-  Briefcase,
-  GraduationCap,
-  Code,
-  FileCode,
-  Languages,
-  Award,
-  StickyNote,
-  Settings,
-  User,
   CheckCircle,
   AlertTriangle,
 } from "lucide-react";
@@ -70,13 +61,12 @@ interface ResumeSection {
   title: string;
   active: boolean;
   content: any;
-  icon: React.ReactNode;
 }
 
 const Resume: React.FC = () => {
   const { user } = useOutletContext() as { user: Candidate };
   const [theme, setTheme] = useState<ThemeStyles>(
-    Themes.getThemeByName("professional")
+    Themes.getThemeByName("Minimal")
   );
 
   const [sections, setSections] = useState<ResumeSection[]>([
@@ -85,21 +75,18 @@ const Resume: React.FC = () => {
       title: "Summary",
       active: true,
       content: user.summary || "",
-      icon: <User size={18} />,
     },
     {
       id: "education",
       title: "Education",
       active: (user.education && user.education.length > 0) || false,
       content: user.education || [],
-      icon: <GraduationCap size={18} />,
     },
     {
       id: "workExperience",
       title: "Work Experience",
       active: (user.workExperience && user.workExperience.length > 0) || false,
       content: user.workExperience || [],
-      icon: <Briefcase size={18} />,
     },
     {
       id: "technicalSkills",
@@ -107,35 +94,30 @@ const Resume: React.FC = () => {
       active:
         (user.technicalSkills && user.technicalSkills.length > 0) || false,
       content: user.technicalSkills || [],
-      icon: <Code size={18} />,
     },
     {
       id: "projects",
       title: "Projects",
       active: (user.projects && user.projects.length > 0) || false,
       content: user.projects || [],
-      icon: <FileCode size={18} />,
     },
     {
       id: "languages",
       title: "Languages",
       active: (user.languages && user.languages.length > 0) || false,
       content: user.languages || [],
-      icon: <Languages size={18} />,
     },
     {
       id: "certificates",
       title: "Certificates",
       active: (user.certificates && user.certificates.length > 0) || false,
       content: user.certificates || [],
-      icon: <StickyNote size={18} />,
     },
     {
       id: "awards",
       title: "Awards",
       active: (user.awards && user.awards.length > 0) || false,
       content: user.awards || [],
-      icon: <Award size={18} />,
     },
   ]);
   const [isATSModalOpen, setIsATSModalOpen] = useState<boolean>(false);
@@ -364,7 +346,6 @@ const Resume: React.FC = () => {
       <div
         className={`flex items-center gap-2 ${theme.sectionHeadingStyle} ${theme.border} pb-1 mb-3`}
       >
-        {section.icon}
         <h2
           className={`text-lg font-semibold ${theme.heading} ${theme.font.heading}`}
         >
@@ -741,14 +722,14 @@ const Resume: React.FC = () => {
         </Breadcrumbs>
 
         <div className="flex gap-2">
-          <Button
+          {/* <Button
             color="secondary"
             variant="flat"
             startContent={<CheckCircle size={18} />}
             onClick={() => setIsATSModalOpen(true)}
           >
             ATS Compatibility Check
-          </Button>
+          </Button> */}
           <Button
             color="primary"
             variant="solid"
@@ -767,7 +748,6 @@ const Resume: React.FC = () => {
       <Tabs aria-label="Resume Options">
         <Tab key="sections" title="Sections">
           <div className="p-2">
-            <h3 className="text-lg font-medium mb-3">Sections</h3>
             <DragDropContext onDragEnd={onDragEnd}>
               <Droppable droppableId="sections">
                 {(provided) => (
@@ -810,7 +790,6 @@ const Resume: React.FC = () => {
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                      {section.icon}
                                       <Input
                                         type="text"
                                         value={section.title}
@@ -862,7 +841,7 @@ const Resume: React.FC = () => {
             </p>
           </div>
         </Tab>
-        <Tab key="theming" title="Theme">
+        <Tab key="theming" title="Theme" className="hidden">
           <div className="p-2">
             <ThemeCustomizer
               initialTheme="professional"
@@ -878,12 +857,11 @@ const Resume: React.FC = () => {
     <div className="p-5">
       {renderTopButtons()}
 
-      <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-140px)]">
+      <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-110px)]">
         {/* Builder Section (Left Column) - Fixed height */}
         <Card className="w-full md:w-1/3 h-full">
           <CardHeader className="flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <Settings size={20} />
               <h2 className="text-xl font-semibold">Resume Builder</h2>
             </div>
           </CardHeader>

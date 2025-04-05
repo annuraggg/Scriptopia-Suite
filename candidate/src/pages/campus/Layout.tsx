@@ -1,5 +1,4 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import Sidebar from "./Sidebar";
 import {
   RedirectToSignIn,
   SignedIn,
@@ -48,8 +47,6 @@ const Layout = () => {
         {user?.institute ? (
           <div className="">
             <div className="flex w-full h-screen">
-              <Sidebar />
-
               <div className="h-full w-full overflow-y-auto">
                 <Outlet context={{ user, setUser }} />
               </div>
