@@ -200,7 +200,7 @@ const driveSchema = new Schema(
       ref: "Institute",
     },
     title: { type: String, required: true },
-    link: { type: String, required: true },
+    link: { type: String, required: false },
     description: { type: Object, required: true },
     company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
     location: { type: String, required: true },
@@ -267,6 +267,11 @@ const driveSchema = new Schema(
 
     published: { type: Boolean, default: false },
     publishedOn: { type: Date },
+    hasEnded: { type: Boolean, default: false },
+    hiredCandidates: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Candidate",
+    },
   },
   { timestamps: true }
 );

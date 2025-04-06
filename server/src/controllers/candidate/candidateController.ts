@@ -34,7 +34,8 @@ const getCandidate = async (c: Context) => {
           populate: { path: "organizationId", model: "Organization" },
         },
       })
-      .populate("userId"); // Populate userId separately
+      .populate("appliedDrives")
+      .populate("userId");
 
     if (!candidate) {
       return sendError(c, 404, "Candidate not found");
@@ -297,16 +298,13 @@ const applyToDrive = async (c: Context) => {
       candidates: { $in: [candId] },
     });
 
-    console.log("Placement Groups: ", placementGroups);
-    console.log("Posting Placement Groups: ", posting?.placementGroups);
-
     if (placementGroups.length === 0) {
       return sendError(c, 400, "Candidate not part of any placement group");
     }
 
     const allowed = placementGroups
       .map((group) => group._id)
-      .some((groupId) => posting?.placementGroups.includes(groupId));
+      .some((groupId) => posting?.placementGroup == groupId);
 
     if (!allowed) {
       return sendError(c, 400, "Candidate is not eligible for this drive");

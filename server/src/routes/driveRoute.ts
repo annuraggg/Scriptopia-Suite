@@ -37,5 +37,6 @@ app.put("/candidate/disqualify", candidatesController.disqualifyCandidateInCampu
 app.put("/candidate/qualify/bulk", candidatesController.bulkQualifyInCampus);
 app.put("/candidate/disqualify/bulk", candidatesController.bulkDisqualifyInCampus);
 app.get("/:id/applied", driveController.getAppliedDrives);
+app.post("/end-drive", driveController.endDrive);
 
 export default app;

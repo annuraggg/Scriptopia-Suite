@@ -91,7 +91,7 @@ const DriveDetails = ({
         </div>
       </div>
 
-      <div className="flex justify-between">
+      <div className="flex justify-between  mt-7">
         <div className="text-sm w-[30%]">
           <p>Application Link</p>
           <p className="opacity-50">Link to the application form or website.</p>

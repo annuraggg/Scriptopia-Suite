@@ -266,7 +266,7 @@ const candidateSchema = new Schema(
       { type: mongoose.Schema.Types.ObjectId, ref: "AppliedPosting" },
     ],
     appliedDrives: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "AppliedDrives" },
+      { type: mongoose.Schema.Types.ObjectId, ref: "AppliedDrive" },
     ],
 
     notifications: [notificationSchema],

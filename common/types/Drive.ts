@@ -184,6 +184,8 @@ interface Drive {
   placementGroup: string;
   published: boolean;
   publishedOn?: Date;
+  hasEnded: boolean;
+  hiredCandidates?: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }

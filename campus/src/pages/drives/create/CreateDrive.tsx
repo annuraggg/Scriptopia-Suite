@@ -122,6 +122,7 @@ const CreateDrive = () => {
       additionalDetails: formattedAdditionalDetails,
       placementGroup: selectedPlacementGroups,
       published: false,
+      hasEnded: false,
     };
 
     axios

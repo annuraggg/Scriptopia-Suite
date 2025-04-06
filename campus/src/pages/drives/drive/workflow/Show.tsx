@@ -230,7 +230,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
         onAdvanceModalClose();
         setSelectedStep(null);
         setDrive(res.data.data);
-        refetch()
+        refetch();
       })
       .catch((err) => {
         console.error(err);
@@ -253,29 +253,70 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
     return step.status;
   };
 
+  const endDrive = async () => {
+    setLoading(true);
+    try {
+      await axios.post("/drives/end-drive", {
+        driveId: drive._id,
+      });
+      toast.success("Drive ended successfully");
+      setDrive({ ...drive, hasEnded: true });
+      refetch();
+      onEndModalClose();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to end drive");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="mx-auto px-16 py-8 space-y-6">
       {drive.published && (
-        <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-          <Progress value={progress} className="h-2" color="primary" />
+        <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-100">
+          <div className="p-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-medium text-gray-800">
+                Workflow Progress
+              </h2>
+              <p className="text-sm text-gray-500">
+                {completedSteps} of {totalSteps} steps completed
+              </p>
+            </div>
+            <div className="text-lg font-semibold text-blue-600">
+              {progress.toFixed(0)}%
+            </div>
+          </div>
+          <Progress
+            value={progress}
+            className="h-2"
+            color={progress === 100 ? "success" : "primary"}
+          />
         </div>
       )}
 
       {/* Alert for workflow status */}
-      {(!drive.published ||
-        drive.workflow?.steps[0].status === "pending") && (
+      {(!drive.published || drive.workflow?.steps[0].status === "pending") && (
         <Alert
           color="secondary"
           title={
-            !drive.published
-              ? "Drive Not Published"
-              : "Workflow Not Started"
+            !drive.published ? "Drive Not Published" : "Workflow Not Started"
           }
           description={
             !drive.published
               ? "Publish this drive to begin workflow operations"
               : "Start the workflow by advancing the first step"
           }
+          className="rounded-lg shadow-sm"
+        />
+      )}
+
+      {drive.hasEnded && (
+        <Alert
+          color="success"
+          title="Drive Ended"
+          description="This drive has ended. You can still view the candidates and their progress."
           className="rounded-lg shadow-sm"
         />
       )}
@@ -298,7 +339,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
               <div className="flex items-center space-x-4">
                 {/* Status Indicator */}
                 <div className="flex-shrink-0">
-                  {status === "completed" && (
+                  {(status === "completed" || drive.hasEnded) && (
                     <div className="w-8 h-8 bg-green-100 border-2 border-green-500 rounded-full flex items-center justify-center">
                       <svg
                         className="w-5 h-5 text-green-500"
@@ -315,14 +356,15 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
                       </svg>
                     </div>
                   )}
-                  {status === "in-progress" && (
+                  {status === "in-progress" && !drive.hasEnded && (
                     <div className="w-8 h-8 bg-blue-100 border-2 border-blue-500 rounded-full flex items-center justify-center">
                       <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
                     </div>
                   )}
-                  {(status === "pending" || status === "upcoming") && (
-                    <div className="w-8 h-8 bg-gray-100 border-2 border-gray-300 rounded-full" />
-                  )}
+                  {(status === "pending" || status === "upcoming") &&
+                    !drive.hasEnded && (
+                      <div className="w-8 h-8 bg-gray-100 border-2 border-gray-300 rounded-full" />
+                    )}
                 </div>
 
                 {/* Step Card */}
@@ -369,35 +411,37 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
 
                     {/* Action Buttons */}
                     <div className="flex items-center space-x-2">
-                      {status === "upcoming" && drive.published && (
-                        <>
-                          <Button
-                            color="primary"
-                            size="sm"
-                            onPress={() => advance(index)}
-                            isLoading={loading}
-                            className="shadow-sm"
-                          >
-                            Advance
-                          </Button>
-                          {step.type !== "CUSTOM" &&
-                            step.type !== "INTERVIEW" &&
-                            step.type !== "RESUME_SCREENING" && (
-                              <Button
-                                variant="bordered"
-                                size="sm"
-                                onPress={() => {
-                                  setSelectedStep({ step, index });
-                                  onScheduleModalOpen();
-                                }}
-                                isLoading={loading}
-                                className="shadow-sm"
-                              >
-                                Schedule
-                              </Button>
-                            )}
-                        </>
-                      )}
+                      {status === "upcoming" &&
+                        drive.published &&
+                        !drive.hasEnded && (
+                          <>
+                            <Button
+                              color="primary"
+                              size="sm"
+                              onPress={() => advance(index)}
+                              isLoading={loading}
+                              className="shadow-sm"
+                            >
+                              Advance
+                            </Button>
+                            {step.type !== "CUSTOM" &&
+                              step.type !== "INTERVIEW" &&
+                              step.type !== "RESUME_SCREENING" && (
+                                <Button
+                                  variant="bordered"
+                                  size="sm"
+                                  onPress={() => {
+                                    setSelectedStep({ step, index });
+                                    onScheduleModalOpen();
+                                  }}
+                                  isLoading={loading}
+                                  className="shadow-sm"
+                                >
+                                  Schedule
+                                </Button>
+                              )}
+                          </>
+                        )}
                     </div>
                   </div>
                 </Card>
@@ -407,7 +451,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
         })}
 
         {/* End Workflow Button */}
-        {completedSteps === totalSteps - 1 && (
+        {completedSteps === totalSteps - 1 && !drive.hasEnded && (
           <div className="flex justify-end mt-4">
             <Button
               color="success"
@@ -433,9 +477,11 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
           </ModalHeader>
           <ModalBody>
             <p>
-              Are you sure you want to end the workflow? You will still be able
-              to access and manage the candidates in the drive. This action
-              will mark all rounds as completed.
+              Are you sure you want to end this drive? You will still be able to
+              access and view the candidates in the drive. This action will mark
+              all rounds as completed and end the workflow for all candidates.
+              Additionally, candidates will be asked to upload their offer
+              letter.
             </p>
           </ModalBody>
           <ModalFooter>
@@ -447,12 +493,8 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
             >
               Cancel
             </Button>
-            <Button
-              color="danger"
-              onPress={() => onEndModalClose()}
-              isLoading={loading}
-            >
-              End Workflow
+            <Button color="danger" onPress={endDrive} isLoading={loading}>
+              End Drive
             </Button>
           </ModalFooter>
         </ModalContent>

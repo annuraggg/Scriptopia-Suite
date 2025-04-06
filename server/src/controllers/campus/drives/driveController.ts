@@ -85,7 +85,8 @@ const getDrivesForCandidate = async (c: Context) => {
       "drives"
     );
 
-    const onlyPublishedDrives = institute?.drives.filter( //@ts-expect-error - Type 'Drive[]' is not assignable to type 'Drive[] | undefined'
+    const onlyPublishedDrives = institute?.drives.filter(
+      //@ts-expect-error - Type 'Drive[]' is not assignable to type 'Drive[] | undefined'
       (drive) => drive?.published === true
     );
 
@@ -748,6 +749,47 @@ const getCandidatesForDrive = async (c: Context) => {
   }
 };
 
+const endDrive = async (c: Context) => {
+  try {
+    const perms = await checkPermission.all(c, ["manage_drive"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const { driveId } = await c.req.json();
+    const drive = await Drive.findById(driveId);
+
+    if (!drive) {
+      return sendError(c, 404, "Drive not found");
+    }
+
+    drive.hasEnded = true;
+    drive?.workflow?.steps.forEach((step) => {
+      step.status = "completed";
+    });
+
+    const appliedPosting = await AppliedDrive.find({
+      drive: driveId,
+      status: { $in: ["applied", "inprogress"] },
+    });
+
+    if (appliedPosting.length > 0) {
+      appliedPosting.forEach((applied) => {
+        applied.status = "hired";
+        drive.hiredCandidates.push(applied.user);
+        applied.save();
+      });
+    }
+
+    await drive.save();
+
+    return sendSuccess(c, 200, "Drive ended successfully", drive);
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
 export default {
   getDrives,
   getDrive,
@@ -767,4 +809,5 @@ export default {
   getDrivesForCandidate,
   getDriveForCandidate,
   getCandidatesForDrive,
+  endDrive,
 };

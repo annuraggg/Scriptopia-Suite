@@ -188,6 +188,8 @@ const Pipeline = () => {
                     ? "bg-indigo-100 text-indigo-700"
                     : applied.status === "applied"
                     ? "bg-purple-100 text-purple-700"
+                    : applied.status === "hired"
+                    ? "bg-green-100 text-green-700"
                     : "bg-red-100 text-red-700"
                 }`}
               >
@@ -195,6 +197,8 @@ const Pipeline = () => {
                   ? "In Progress"
                   : applied.status === "applied"
                   ? "Applied"
+                  : applied.status === "hired"
+                  ? "Hired"
                   : "Disqualified"}
               </div>
             )}
@@ -293,13 +297,24 @@ const Pipeline = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {drive?.workflow?.steps?.map((step, index) => {
+          const isLastStep =
+            index === (drive?.workflow?.steps?.length ?? 0) - 1;
+
           const stageApplicants = filteredAppliedDrives.filter((applied) => {
-            return step.status === "in-progress"
-              ? applied.status === "inprogress" ||
-                  applied.disqualifiedStage?.toString() ===
-                    step._id?.toString() ||
-                  (index === 0 && applied.status === "applied")
-              : applied.disqualifiedStage?.toString() === step._id?.toString();
+            if (step.status === "in-progress") {
+              return (
+                applied.status === "inprogress" ||
+                applied.disqualifiedStage?.toString() ===
+                  step._id?.toString() ||
+                (index === 0 && applied.status === "applied")
+              );
+            } else if (isLastStep && step.status === "completed") {
+              return applied.status === "hired";
+            } else {
+              return (
+                applied.disqualifiedStage?.toString() === step._id?.toString()
+              );
+            }
           });
 
           return (
