@@ -36,6 +36,11 @@ const CreateGroupForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const handleSave = () => {
+    if (!selectedDepartments.length) {
+      toast.error("Please select at least one department");
+      return;
+    }
+
     setLoading(true);
     axios
       .post("/placement-groups", {

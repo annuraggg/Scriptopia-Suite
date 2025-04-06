@@ -673,7 +673,7 @@ export function DataTable<TData extends Candidate>({
     <div className="w-full">
       <div className="flex justify-between items-center mb-5">
         <div className="flex items-center gap-2">
-          <p>Select Candidates to Add:</p>
+          <p>Select Candidates to Add to this Placement Group:</p>
           {rules && rules.length > 0 && (
             <Badge color="primary" variant="flat">
               {`${rules.length} ${

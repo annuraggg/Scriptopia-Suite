@@ -26,7 +26,7 @@ import {
   Edit2,
   Save,
 } from "lucide-react";
-import { PlacementGroupRule } from "@shared-types/Drive";
+import { PlacementGroupRule } from "@shared-types/PlacementGroup";
 import { useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
 import { Department } from "@shared-types/Institute";

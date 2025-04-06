@@ -111,7 +111,6 @@ const Drawer = ({
       finalAssessment = {
         ...selectedAssessment,
         _id: undefined,
-        isCampus: false,
         isCampus: true,
         openRange: undefined,
         candidates: [],
@@ -131,7 +130,6 @@ const Drawer = ({
       finalAssessment = {
         ...selectedAssessment,
         _id: undefined,
-        isCampus: false,
         isCampus: true,
         openRange: undefined,
         candidates: [],

@@ -59,6 +59,7 @@ const Posting = () => {
   );
   const [applied, setApplied] = useState(false);
   const [timeLeft, setTimeLeft] = useState("");
+  const [areApplicationsOpen, setAreApplicationsOpen] = useState(false);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const { user } = useUser();
@@ -84,6 +85,15 @@ const Posting = () => {
       .then((res) => {
         setPosting(res.data.data);
         updateTimeLeft(res.data.data.applicationRange.end);
+
+        // Check if applications are open - i.e.  if current date is between start and end date
+        const now = new Date();
+        const startDate = new Date(res.data.data.applicationRange.start);
+        const endDate = new Date(res.data.data.applicationRange.end);
+        setAreApplicationsOpen(
+          now >= startDate && now <= endDate && res.data.data.active
+        );
+
         setTimeout(() => {
           const quill = new Quill("#editor-div", {
             readOnly: true,
@@ -296,7 +306,7 @@ const Posting = () => {
               <Button color="success" variant="flat" disabled>
                 Application Submitted
               </Button>
-            ) : (
+            ) : areApplicationsOpen ? (
               <Button
                 onClick={apply}
                 color="primary"
@@ -305,6 +315,10 @@ const Posting = () => {
               >
                 Apply Now
               </Button>
+            ) : (
+              <p className="text-gray-500 font-semibold text-lg">
+                Applications Closed
+              </p>
             )}
           </div>
         </div>

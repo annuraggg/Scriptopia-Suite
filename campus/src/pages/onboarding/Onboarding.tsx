@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./Onboarding.css";
 import Info from "./Info";
 import Contact from "./Contact";
@@ -9,6 +9,7 @@ import { useAuth, useUser } from "@clerk/clerk-react";
 import { setInstitute } from "@/reducers/instituteReducer";
 import { useDispatch } from "react-redux";
 import ax from "@/config/axios";
+import Loader from "@/components/Loader";
 
 interface InvitedMember {
   email: string;
@@ -22,7 +23,8 @@ const Onboarding = () => {
   const [instituteEmail, setInstituteEmail] = useState<string>("");
   const [instituteWebsite, setInstituteWebsite] = useState<string>("");
   const [instituteAddress, setInstituteAddress] = useState<string>("");
-  const [instituteStreetAddress, setInstituteStreetAddress] = useState<string>("");
+  const [instituteStreetAddress, setInstituteStreetAddress] =
+    useState<string>("");
   const [instituteCity, setInstituteCity] = useState<string>("");
   const [instituteState, setInstituteState] = useState<string>("");
   const [instituteCountry, setInstituteCountry] = useState<string>("");
@@ -30,7 +32,16 @@ const Onboarding = () => {
 
   const [invitedMembers, setInvitedMembers] = useState<InvitedMember[]>([]);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+
+  useEffect(() => {
+    axios.get("/institutes").then(() => {
+      window.location.href = "/dashboard";
+    }).catch(() => setLoading(false));
+  }, []);
 
   const steps = [
     {
@@ -84,9 +95,16 @@ const Onboarding = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const websiteRegex = /^(http|https):\/\/[^ "]+$/;
 
-    if (!instituteName || !instituteEmail || !instituteWebsite ||
-      !instituteStreetAddress || !instituteCity || !instituteState ||
-      !instituteCountry || !instituteZipCode) {
+    if (
+      !instituteName ||
+      !instituteEmail ||
+      !instituteWebsite ||
+      !instituteStreetAddress ||
+      !instituteCity ||
+      !instituteState ||
+      !instituteCountry ||
+      !instituteZipCode
+    ) {
       toast.error("Please fill all fields");
       return false;
     }
@@ -104,14 +122,11 @@ const Onboarding = () => {
     return true;
   };
 
-  const { getToken } = useAuth();
   const { user } = useUser();
   const dispatch = useDispatch();
 
   const submit = () => {
     if (!validate()) return;
-
-    const axios = ax(getToken);
     setLoading(true);
     axios
       .post("/institutes/create", {
@@ -123,7 +138,7 @@ const Onboarding = () => {
           city: instituteCity,
           state: instituteState,
           country: instituteCountry,
-          zipCode: instituteZipCode
+          zipCode: instituteZipCode,
         },
         members: invitedMembers,
       })
@@ -141,11 +156,11 @@ const Onboarding = () => {
       .catch((err) => {
         console.error(err);
         setLoading(false);
-        toast.error(
-          err.response.data.message || "Failed to create institute"
-        );
+        toast.error(err.response.data.message || "Failed to create institute");
       });
   };
+
+  if (loading) return <Loader />;
 
   return (
     <div className="flex items-center justify-center h-screen p-10 py-5">
@@ -155,12 +170,13 @@ const Onboarding = () => {
           {steps.map((_s, i) => (
             <div
               className={`w-14 h-3 rounded-full transition-colors
-              ${currentStep === i
+              ${
+                currentStep === i
                   ? "bg-success-200"
                   : currentStep > i
-                    ? "bg-success-300"
-                    : "bg-gray-700 opacity-50"
-                }
+                  ? "bg-success-300"
+                  : "bg-gray-700 opacity-50"
+              }
               `}
             ></div>
           ))}

@@ -144,7 +144,7 @@ const Sidebar = () => {
       visible: true,
       children: profileItems,
     },
-    { icon: IconBriefcaseFilled, label: "Jobs", link: "jobs", visible: true },
+    // { icon: IconBriefcaseFilled, label: "Jobs", link: "jobs", visible: true },
     {
       icon: IconBookFilled,
       label: "Campus",
