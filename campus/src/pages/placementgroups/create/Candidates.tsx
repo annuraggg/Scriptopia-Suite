@@ -3,7 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
 import { Button } from "@nextui-org/react";
 import { ChevronRight } from "lucide-react";
-import { PlacementGroupRule } from "@shared-types/Drive";
+import { PlacementGroupRule } from "@shared-types/PlacementGroup";
 
 interface CandidatesProps {
   candidates: string[];

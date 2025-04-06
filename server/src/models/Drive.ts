@@ -260,12 +260,11 @@ const driveSchema = new Schema(
       },
       required: false,
     },
-    placementGroups: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "PlacementGroup",
-      },
-    ],
+    placementGroup: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PlacementGroup",
+    },
+
     published: { type: Boolean, default: false },
     publishedOn: { type: Date },
   },

@@ -31,7 +31,7 @@ import {
 } from "@nextui-org/react";
 import { useState, useEffect } from "react";
 import { Candidate } from "@shared-types/Candidate";
-import { PlacementGroupRule } from "@shared-types/Drive";
+import { PlacementGroupRule } from "@shared-types/PlacementGroup";
 
 interface DataTableProps<TData extends Candidate> {
   data: TData[];

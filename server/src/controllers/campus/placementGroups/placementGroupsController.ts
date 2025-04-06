@@ -24,6 +24,7 @@ const createPlacementGroup = async (c: Context) => {
       expiryDate,
       accessType,
       candidates,
+      criteria,
     } = body;
 
     const clerkUser = await clerkClient.users.getUser(userId);
@@ -38,6 +39,7 @@ const createPlacementGroup = async (c: Context) => {
       name,
       institute: instituteId,
       academicYear,
+      criteria,
       departments,
       purpose,
       expiryDate,
@@ -63,7 +65,7 @@ const createPlacementGroup = async (c: Context) => {
       },
     });
 
-    return sendSuccess(c, 201, "Placement group created", group);
+    return sendSuccess(c, 200, "Placement group created", group);
   } catch (err) {
     console.error(err);
     return sendError(c, 500, "Internal server error", err);

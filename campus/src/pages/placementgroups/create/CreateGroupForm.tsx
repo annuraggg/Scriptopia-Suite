@@ -8,7 +8,7 @@ import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Criteria from "./Criteria";
-import { PlacementGroupRule } from "@shared-types/Drive";
+import { PlacementGroupRule } from "@shared-types/PlacementGroup";
 
 const CreateGroupForm: React.FC = () => {
   const navigate = useNavigate();
@@ -42,6 +42,7 @@ const CreateGroupForm: React.FC = () => {
         name,
         academicYear: { start: startYear, end: endYear },
         departments: selectedDepartments,
+        criteria: rules,
         purpose,
         expiryDate,
         accessType,
