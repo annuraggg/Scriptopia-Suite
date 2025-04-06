@@ -33,6 +33,19 @@ const educationSchema = new Schema({
     enum: ["fulltime", "parttime", "distance"],
   },
   percentage: { type: Number, required: true },
+  // New fields for backlogs
+  activeBacklogs: { type: Number, default: 0 },
+  totalBacklogs: { type: Number, default: 0 },
+  clearedBacklogs: { type: Number, default: 0 },
+  backlogHistory: [
+    {
+      subject: { type: String, required: true },
+      semester: { type: Number, required: true },
+      cleared: { type: Boolean, default: false },
+      attemptCount: { type: Number, default: 1 },
+      clearedDate: { type: Date, required: false },
+    },
+  ],
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -213,7 +226,17 @@ const candidateSchema = new Schema(
     phone: { type: String, required: true },
     address: { type: String, required: true },
 
+    // Optional profile fields
     summary: { type: String, required: false },
+    profileImage: { type: String, required: false },
+
+    // Academic aggregates for quick filtering
+    academicAggregates: {
+      overallCGPA: { type: Number, required: false },
+      hasBacklogs: { type: Boolean, default: false },
+      activeBacklogs: { type: Number, default: 0 },
+      totalBacklogs: { type: Number, default: 0 },
+    },
 
     socialLinks: { type: [socialLinkSchema], required: false },
     education: { type: [educationSchema], required: false },
@@ -250,6 +273,10 @@ const candidateSchema = new Schema(
 
     institute: { type: mongoose.Schema.Types.ObjectId, ref: "Institute" },
     instituteUid: { type: String, required: false },
+
+    // Profile completion metadata
+    profileCompletionPercentage: { type: Number, default: 0 },
+    lastProfileUpdate: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );
@@ -258,6 +285,10 @@ candidateSchema.index({ email: 1 });
 candidateSchema.index({ userId: 1 });
 candidateSchema.index({ "appliedPostings.postingId": 1 });
 candidateSchema.index({ "appliedDrives.driveId": 1 });
+candidateSchema.index({ instituteUid: 1 });
+candidateSchema.index({ institute: 1 });
+candidateSchema.index({ "academicAggregates.hasBacklogs": 1 });
+candidateSchema.index({ "academicAggregates.activeBacklogs": 1 });
 
 const Candidate = mongoose.model("Candidate", candidateSchema);
 export default Candidate;

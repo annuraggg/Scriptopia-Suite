@@ -242,9 +242,9 @@ const Scholarships = () => {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div>
       <div className="mb-6">
-        <Breadcrumbs size="sm">
+        <Breadcrumbs>
           <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
           <BreadcrumbItem>Scholarships</BreadcrumbItem>
         </Breadcrumbs>
@@ -256,7 +256,6 @@ const Scholarships = () => {
           color="primary"
           onPress={onOpen}
           startContent={<Plus size={18} />}
-          size="sm"
         >
           Add Scholarship
         </Button>
@@ -277,7 +276,6 @@ const Scholarships = () => {
                 color="primary"
                 onPress={onOpen}
                 startContent={<Plus size={16} />}
-                size="sm"
               >
                 Add Scholarship
               </Button>
@@ -316,7 +314,6 @@ const Scholarships = () => {
                   <div className="flex gap-2 justify-end">
                     <Button
                       isIconOnly
-                      size="sm"
                       variant="light"
                       onPress={() => handleEdit(scholarship)}
                       aria-label="Edit scholarship"
@@ -325,7 +322,6 @@ const Scholarships = () => {
                     </Button>
                     <Button
                       isIconOnly
-                      size="sm"
                       variant="light"
                       color="danger"
                       onPress={() => handleDelete(scholarship.id)}
@@ -369,7 +365,6 @@ const Scholarships = () => {
                     isInvalid={!!errors.position}
                     errorMessage={errors.position}
                     placeholder="Research Fellowship"
-                    variant="bordered"
                   />
 
                   <div>
@@ -387,7 +382,6 @@ const Scholarships = () => {
                       isInvalid={!!errors.associatedWith}
                       errorMessage={errors.associatedWith}
                       placeholder="Select an organization"
-                      variant="bordered"
                     >
                       {organizations.map((org) => (
                         <SelectItem key={org.value} value={org.value}>
@@ -407,7 +401,6 @@ const Scholarships = () => {
                         isRequired
                         className="mt-2"
                         placeholder="Enter organization name"
-                        variant="bordered"
                       />
                     )}
                   </div>
@@ -438,25 +431,18 @@ const Scholarships = () => {
                     }
                     placeholder="Briefly describe the scholarship or grant"
                     minRows={3}
-                    variant="bordered"
                   />
                 </div>
               </ModalBody>
               <Divider />
               <ModalFooter>
-                <Button
-                  color="default"
-                  variant="flat"
-                  onPress={handleClose}
-                  size="sm"
-                >
+                <Button color="default" variant="flat" onPress={handleClose}>
                   Cancel
                 </Button>
                 <Button
                   color="primary"
                   onPress={handleSave}
                   isLoading={isSubmitting}
-                  size="sm"
                 >
                   Save
                 </Button>

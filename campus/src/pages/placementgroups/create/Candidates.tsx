@@ -3,6 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
 import { Button } from "@nextui-org/react";
 import { ChevronRight } from "lucide-react";
+import { PlacementGroupRule } from "@shared-types/Drive";
 
 interface CandidatesProps {
   candidates: string[];
@@ -11,6 +12,7 @@ interface CandidatesProps {
   setActiveStep: (step: number) => void;
   onSave: () => void;
   loading?: boolean;
+  rules: PlacementGroupRule[];
 }
 
 const Candidates = ({
@@ -20,6 +22,7 @@ const Candidates = ({
   setActiveStep,
   onSave,
   loading = false,
+  rules,
 }: CandidatesProps) => {
   const { institute } = useOutletContext<RootContext>();
 
@@ -30,6 +33,8 @@ const Candidates = ({
           data={institute.candidates}
           selectedCandidates={candidates}
           setSelectedCandidates={setCandidates}
+          rules={rules}
+
         />
       </div>
 

@@ -15,9 +15,22 @@ import {
   CardBody,
   Chip,
   DatePicker,
+  Divider,
+  Tooltip,
+  Skeleton,
 } from "@nextui-org/react";
 import { useState, useEffect } from "react";
-import { Edit2, Trash2, Plus, Award } from "lucide-react";
+import {
+  Edit2,
+  Trash2,
+  Plus,
+  Award,
+  Calendar,
+  Building,
+  Briefcase,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
 import {
   today,
   ZonedDateTime,
@@ -29,30 +42,59 @@ import { Candidate, Responsibility } from "@shared-types/Candidate";
 import { toast } from "sonner";
 import { z } from "zod";
 
-// Define schema for validation
-const responsibilitySchema = z.object({
-  title: z.string().min(1, "Position title is required"),
-  organization: z.string().min(1, "Organization name is required"),
-  startDate: z.date({
-    required_error: "Start date is required",
-  }),
-  current: z.boolean(),
-  endDate: z.date().optional().nullable(),
-  description: z.string().min(1, "Description is required"),
-});
-
-// Custom validation to check date logic
-const validateDateLogic = (data: z.infer<typeof responsibilitySchema>) => {
-  if (!data.current && !data.endDate) {
-    throw new Error("End date is required when not a current position");
-  }
-
-  if (!data.current && data.endDate && data.startDate > data.endDate) {
-    throw new Error("End date cannot be before start date");
-  }
-
-  return data;
-};
+// Define schema for validation with improved error messages
+const responsibilitySchema = z
+  .object({
+    title: z
+      .string()
+      .min(1, "Position title is required")
+      .max(100, "Title is too long"),
+    organization: z
+      .string()
+      .min(1, "Organization name is required")
+      .max(100, "Organization name is too long"),
+    startDate: z.date({
+      required_error: "Start date is required",
+      invalid_type_error: "Invalid date format",
+    }),
+    current: z.boolean(),
+    endDate: z
+      .date({
+        invalid_type_error: "Invalid date format",
+      })
+      .optional()
+      .nullable(),
+    description: z
+      .string()
+      .min(10, "Description should be at least 10 characters")
+      .max(1000, "Description is too long"),
+  })
+  .refine(
+    (data) => {
+      // If not current, end date is required
+      if (!data.current && !data.endDate) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "End date is required when not a current position",
+      path: ["endDate"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Ensure end date is after start date
+      if (data.endDate && data.startDate > data.endDate) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "End date cannot be before start date",
+      path: ["endDate"],
+    }
+  );
 
 export default function Responsibilities() {
   const [editingResponsibility, setEditingResponsibility] = useState<
@@ -62,22 +104,34 @@ export default function Responsibilities() {
     Record<string, string>
   >({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+
+  // Form state
+  const [formData, setFormData] = useState({
+    title: "",
+    organization: "",
+    startDate: today(getLocalTimeZone()).toDate(getLocalTimeZone()),
+    current: false,
+    endDate: null as Date | null,
+    description: "",
+  });
 
   // Modal States
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [title, setTitle] = useState("");
-  const [organization, setOrganization] = useState("");
-  const [startDate, setStartDate] = useState<Date>(
-    today(getLocalTimeZone()).toDate(getLocalTimeZone())
-  );
-  const [current, setCurrent] = useState(false);
-  const [endDate, setEndDate] = useState<Date | null>(null);
-  const [description, setDescription] = useState("");
+  const deleteModal = useDisclosure();
 
-  const { user, setUser } = useOutletContext<{
+  const { user, setUser, isLoading } = useOutletContext<{
     user: Candidate;
     setUser: (user: Candidate) => void;
+    isLoading?: boolean;
   }>();
+
+  // Ensure responsibilities array exists
+  useEffect(() => {
+    if (!user.responsibilities) {
+      setUser({ ...user, responsibilities: [] });
+    }
+  }, [user, setUser]);
 
   useEffect(() => {
     // Reset form validation on modal close
@@ -93,65 +147,67 @@ export default function Responsibilities() {
   };
 
   const resetForm = () => {
-    setTitle("");
-    setOrganization("");
-    setStartDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
-    setCurrent(false);
-    setEndDate(null);
-    setDescription("");
+    setFormData({
+      title: "",
+      organization: "",
+      startDate: today(getLocalTimeZone()).toDate(getLocalTimeZone()),
+      current: false,
+      endDate: null,
+      description: "",
+    });
     setValidationErrors({});
   };
 
   const handleEdit = (responsibility: Responsibility) => {
-    setEditingResponsibility(responsibility?._id || null);
-    setTitle(responsibility.title);
-    setOrganization(responsibility.organization);
-    setStartDate(new Date(responsibility.startDate));
-    setCurrent(responsibility.current);
-    setEndDate(
-      responsibility.endDate ? new Date(responsibility.endDate) : null
-    );
-    setDescription(responsibility.description || "");
-    setValidationErrors({});
-    onOpen();
+    try {
+      setEditingResponsibility(responsibility?._id || null);
+      setFormData({
+        title: responsibility.title,
+        organization: responsibility.organization,
+        startDate: new Date(responsibility.startDate),
+        current: responsibility.current,
+        endDate: responsibility.endDate
+          ? new Date(responsibility.endDate)
+          : null,
+        description: responsibility.description || "",
+      });
+      setValidationErrors({});
+      onOpen();
+    } catch (error) {
+      console.error("Error editing responsibility:", error);
+      toast.error("Could not edit this position. Invalid data format.");
+    }
   };
 
-  const handleDelete = (id: string) => {
-    if (!user.responsibilities) return;
+  const confirmDeletePosition = (id: string) => {
+    setConfirmDelete(id);
+    deleteModal.onOpen();
+  };
 
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this position?"
-    );
-    if (!confirmDelete) return;
+  const handleDelete = () => {
+    if (!confirmDelete || !user.responsibilities) return;
+    setIsSubmitting(true);
 
     try {
       const newResponsibilities = user.responsibilities.filter(
-        (resp) => resp._id !== id
+        (resp) => resp._id !== confirmDelete
       );
       setUser({ ...user, responsibilities: newResponsibilities });
       toast.success("Position deleted successfully");
     } catch (error) {
       toast.error("Failed to delete position");
       console.error(error);
+    } finally {
+      setIsSubmitting(false);
+      setConfirmDelete(null);
+      deleteModal.onClose();
     }
   };
 
   const validateForm = (): boolean => {
     try {
-      const formData = {
-        title,
-        organization,
-        startDate,
-        current,
-        endDate: current ? null : endDate,
-        description,
-      };
-
       // Validate with zod schema
       responsibilitySchema.parse(formData);
-
-      // Additional date validation
-      validateDateLogic(formData);
 
       // Clear validation errors if all is good
       setValidationErrors({});
@@ -164,14 +220,6 @@ export default function Responsibilities() {
           errors[field] = err.message;
         });
         setValidationErrors(errors);
-      } else if (error instanceof Error) {
-        // Handle custom validation errors
-        if (error.message.includes("End date")) {
-          setValidationErrors({
-            ...validationErrors,
-            endDate: error.message,
-          });
-        }
       }
       return false;
     }
@@ -185,45 +233,43 @@ export default function Responsibilities() {
 
     const dateObj = new Date(date.year, date.month - 1, date.day);
 
-    if (field === "startDate") {
-      setStartDate(dateObj);
+    setFormData((prev) => ({
+      ...prev,
+      [field]: dateObj,
+    }));
 
-      // Update validation errors
-      if (validationErrors.startDate) {
-        const newErrors = { ...validationErrors };
-        delete newErrors.startDate;
-        setValidationErrors(newErrors);
-      }
+    // Clear errors for this field
+    if (validationErrors[field]) {
+      const newErrors = { ...validationErrors };
+      delete newErrors[field];
+      setValidationErrors(newErrors);
+    }
 
-      // Validate against end date if it exists
-      if (endDate && !current && dateObj > endDate) {
-        setValidationErrors({
-          ...validationErrors,
+    // Additional validations
+    if (field === "startDate" && formData.endDate && !formData.current) {
+      if (dateObj > formData.endDate) {
+        setValidationErrors((prev) => ({
+          ...prev,
           startDate: "Start date cannot be after end date",
-        });
+        }));
       }
-    } else {
-      setEndDate(dateObj);
-
-      // Update validation errors
-      if (validationErrors.endDate) {
-        const newErrors = { ...validationErrors };
-        delete newErrors.endDate;
-        setValidationErrors(newErrors);
-      }
-
-      // Validate against start date
-      if (dateObj < startDate) {
-        setValidationErrors({
-          ...validationErrors,
-          endDate: "End date cannot be before start date",
-        });
-      }
+    } else if (field === "endDate" && dateObj < formData.startDate) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        endDate: "End date cannot be before start date",
+      }));
     }
   };
 
   const handleSave = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      // Find the first error to show in toast
+      const firstError = Object.values(validationErrors)[0];
+      if (firstError) {
+        toast.error(firstError);
+      }
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -231,22 +277,17 @@ export default function Responsibilities() {
       let newResponsibilities: Responsibility[] = [];
 
       const preparedData: Responsibility = {
-        title,
-        organization,
-        startDate,
-        current,
-        endDate: current ? undefined : endDate || undefined,
-        description,
+        title: formData.title,
+        organization: formData.organization,
+        startDate: formData.startDate,
+        current: formData.current,
+        endDate: formData.current ? undefined : formData.endDate || undefined,
+        description: formData.description,
       };
 
       if (editingResponsibility) {
-        // Make sure we have responsibilities array
-        if (!user.responsibilities) {
-          throw new Error("Responsibilities data not found");
-        }
-
-        // Check if the edited responsibility still exists
-        const responsibilityExists = user.responsibilities.some(
+        // Make sure the edited responsibility still exists
+        const responsibilityExists = (user.responsibilities || []).some(
           (resp) => resp._id === editingResponsibility
         );
 
@@ -256,20 +297,14 @@ export default function Responsibilities() {
 
         newResponsibilities = (user.responsibilities || []).map((resp) =>
           resp._id === editingResponsibility
-            ? { ...preparedData, _id: resp._id }
+            ? { ...preparedData, _id: resp._id, createdAt: resp.createdAt }
             : resp
         );
         toast.success("Position updated successfully");
       } else {
         const newResp: Responsibility = {
           ...preparedData,
-          _id: `resp_${Date.now()}_${Math.random()
-            .toString(36)
-            .substring(2, 9)}`,
-          startDate: new Date(preparedData.startDate),
-          endDate: preparedData.endDate
-            ? new Date(preparedData.endDate)
-            : undefined,
+          _id: `resp_${Date.now()}`,
           createdAt: new Date(),
         };
         newResponsibilities = [...(user?.responsibilities || []), newResp];
@@ -277,17 +312,21 @@ export default function Responsibilities() {
       }
 
       // Sort by most recent first
-      newResponsibilities.sort(
-        (a, b) =>
+      newResponsibilities.sort((a, b) => {
+        // Current positions first
+        if (a.current && !b.current) return -1;
+        if (!a.current && b.current) return 1;
+        // Then by start date (most recent first)
+        return (
           new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-      );
+        );
+      });
 
       setUser({
         ...user,
         responsibilities: newResponsibilities,
       });
 
-      setEditingResponsibility(null);
       onClose();
     } catch (error) {
       toast.error(
@@ -301,7 +340,7 @@ export default function Responsibilities() {
 
   const formatDate = (date: Date | string) => {
     try {
-      return new Date(date).toLocaleDateString("en-US", {
+      return new Date(date).toLocaleDateString(undefined, {
         year: "numeric",
         month: "short",
       });
@@ -311,140 +350,184 @@ export default function Responsibilities() {
     }
   };
 
-  const handleInputChange = (
-    value: string,
-    field: keyof Responsibility,
-    setter: (value: string) => void
-  ) => {
-    setter(value);
-    if (validationErrors[field] && value.trim()) {
+  const handleInputChange = (field: keyof typeof formData, value: any) => {
+    setFormData({
+      ...formData,
+      [field]: value,
+    });
+
+    if (validationErrors[field]) {
       const newErrors = { ...validationErrors };
       delete newErrors[field];
       setValidationErrors(newErrors);
     }
-  };
 
-  const handleCurrentChange = (isSelected: boolean) => {
-    setCurrent(isSelected);
-    if (isSelected && validationErrors.endDate) {
-      const newErrors = { ...validationErrors };
-      delete newErrors.endDate;
-      setValidationErrors(newErrors);
+    // Special handling for current checkbox
+    if (field === "current" && value === true) {
+      // Clear end date errors when setting to current
+      if (validationErrors.endDate) {
+        const newErrors = { ...validationErrors };
+        delete newErrors.endDate;
+        setValidationErrors(newErrors);
+      }
     }
   };
 
+  // Get organization avatar initials
+  const getOrganizationInitials = (name: string): string => {
+    if (!name) return "?";
+
+    const words = name.trim().split(/\s+/);
+    if (words.length === 1) {
+      return name.charAt(0).toUpperCase();
+    }
+
+    return (
+      words[0].charAt(0) + words[words.length - 1].charAt(0)
+    ).toUpperCase();
+  };
+
   return (
-    <div className="p-5">
-      <Breadcrumbs>
+    <div>
+      <Breadcrumbs className="mb-6">
         <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
         <BreadcrumbItem href="/profile/responsibilities">
-          Responsibilities
+          Positions & Responsibilities
         </BreadcrumbItem>
       </Breadcrumbs>
 
-      <div className="py-5 flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-xl font-semibold">Positions of Responsibility</h1>
-          <p className="text-sm text-neutral-500">
-            Manage your leadership roles and responsibilities
+          <h1 className="text-2xl font-semibold">
+            Positions of Responsibility
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Showcase your leadership roles and organizational responsibilities
           </p>
         </div>
         <Button
-          variant="flat"
+          color="primary"
           onClick={handleAdd}
           startContent={<Plus size={18} />}
-          color="primary"
         >
           Add Position
         </Button>
       </div>
 
       <div className="space-y-4">
-        {!user.responsibilities?.length ? (
-          <div className="flex flex-col items-center justify-center gap-4 p-10 border border-neutral-200 dark:border-neutral-800 rounded-lg bg-neutral-50 dark:bg-neutral-900">
-            <div className="p-4 bg-neutral-100 dark:bg-neutral-800 rounded-full">
-              <Award size={32} className="text-neutral-500" />
-            </div>
-
-            <h3 className="text-lg font-medium mt-2">No Positions Added</h3>
-            <p className="text-neutral-500 text-center max-w-md">
-              Add your leadership roles and positions of responsibility to
-              enhance your profile.
-            </p>
-            <Button
-              color="primary"
-              onClick={handleAdd}
-              startContent={<Plus size={16} />}
-              size="sm"
-            >
-              Add Position
-            </Button>
+        {isLoading ? (
+          // Skeleton loader for loading state
+          <div className="space-y-4">
+            <Skeleton className="w-full h-32 rounded-lg" />
+            <Skeleton className="w-full h-32 rounded-lg" />
           </div>
+        ) : !user.responsibilities?.length ? (
+          <Card className="w-full bg-gray-50 border-dashed border-2 border-gray-200">
+            <CardBody className="py-12 flex flex-col items-center justify-center gap-4">
+              <div className="bg-primary-50 p-5 rounded-full">
+                <Award size={36} className="text-primary" />
+              </div>
+              <div className="text-center max-w-lg">
+                <h3 className="text-xl font-medium mb-2">
+                  No Positions Added Yet
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Leadership positions and responsibilities demonstrate your
+                  management skills, accountability, and ability to take
+                  initiative. Add positions like club president, team leader,
+                  event coordinator, or committee member.
+                </p>
+                <Button
+                  color="primary"
+                  onClick={handleAdd}
+                  startContent={<Plus size={18} />}
+                  size="lg"
+                >
+                  Add Your First Position
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
         ) : (
           <>
             {user.responsibilities.map((responsibility) => (
-              <Card
-                key={responsibility._id}
-                className="w-full border border-neutral-200 dark:border-neutral-800 shadow-sm"
-              >
-                <CardBody>
+              <Card key={responsibility._id} className="w-full shadow-sm">
+                <CardBody className="p-5">
                   <div className="flex items-start w-full gap-4">
-                    <div className="w-10 h-10 bg-neutral-100 dark:bg-neutral-800 rounded flex items-center justify-center text-neutral-700 dark:text-neutral-300 shrink-0 font-medium">
-                      {responsibility.organization.charAt(0).toUpperCase()}
+                    <div className="w-12 h-12 bg-primary-50 rounded-lg flex items-center justify-center text-primary shrink-0 font-medium">
+                      {getOrganizationInitials(responsibility.organization)}
                     </div>
                     <div className="flex items-start justify-between w-full">
                       <div className="w-full">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="text-base font-medium">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <h3 className="text-lg font-medium">
                             {responsibility.title}
                           </h3>
                           {responsibility.current && (
-                            <Chip size="sm" color="primary" variant="flat">
+                            <Chip
+                              color="success"
+                              variant="flat"
+                              startContent={<Clock size={12} />}
+                            >
                               Current
                             </Chip>
                           )}
                         </div>
-                        <p className="text-neutral-600 dark:text-neutral-400 text-sm">
-                          {responsibility.organization}
-                        </p>
-                        <p className="text-neutral-500 dark:text-neutral-500 text-xs mt-1">
-                          {formatDate(responsibility.startDate)} -{" "}
-                          {responsibility.current
-                            ? "Present"
-                            : responsibility.endDate
-                            ? formatDate(responsibility.endDate)
-                            : ""}
-                        </p>
+
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Building size={14} className="text-gray-400" />
+                          <p className="text-sm">
+                            {responsibility.organization}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-gray-600 mt-1">
+                          <Calendar size={14} className="text-gray-400" />
+                          <p className="text-sm">
+                            {formatDate(responsibility.startDate)} -{" "}
+                            {responsibility.current
+                              ? "Present"
+                              : responsibility.endDate
+                              ? formatDate(responsibility.endDate)
+                              : ""}
+                          </p>
+                        </div>
+
                         {responsibility.description && (
-                          <div className="mt-3 text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-line">
-                            {responsibility.description}
-                          </div>
+                          <>
+                            <Divider className="my-3" />
+                            <div className="text-sm text-gray-700 whitespace-pre-line">
+                              {responsibility.description}
+                            </div>
+                          </>
                         )}
                       </div>
 
-                      <div className="flex gap-1 shrink-0 ml-2">
-                        <Button
-                          isIconOnly
-                          variant="light"
-                          onClick={() => handleEdit(responsibility)}
-                          size="sm"
-                          aria-label="Edit position"
-                        >
-                          <Edit2 size={16} />
-                        </Button>
-                        <Button
-                          isIconOnly
-                          variant="light"
-                          color="danger"
-                          onClick={() =>
-                            responsibility._id &&
-                            handleDelete(responsibility._id)
-                          }
-                          size="sm"
-                          aria-label="Delete position"
-                        >
-                          <Trash2 size={16} />
-                        </Button>
+                      <div className="flex gap-2 self-start">
+                        <Tooltip content="Edit position">
+                          <Button
+                            isIconOnly
+                            variant="light"
+                            onClick={() => handleEdit(responsibility)}
+                            aria-label="Edit position"
+                          >
+                            <Edit2 size={16} />
+                          </Button>
+                        </Tooltip>
+                        <Tooltip content="Delete position" color="danger">
+                          <Button
+                            isIconOnly
+                            variant="light"
+                            color="danger"
+                            onClick={() =>
+                              responsibility._id &&
+                              confirmDeletePosition(responsibility._id)
+                            }
+                            aria-label="Delete position"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </Tooltip>
                       </div>
                     </div>
                   </div>
@@ -455,117 +538,166 @@ export default function Responsibilities() {
         )}
       </div>
 
+      {/* Add/Edit Position Modal */}
       <Modal
         isOpen={isOpen}
-        onClose={onClose}
+        onClose={() => !isSubmitting && onClose()}
         size="2xl"
         scrollBehavior="inside"
-        isDismissable={false}
+        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="border-b">
-                {editingResponsibility ? "Edit Position" : "Add New Position"}
+              <ModalHeader className="flex flex-col gap-1 border-b">
+                <div className="flex items-center gap-2">
+                  <Award size={20} className="text-primary" />
+                  <h3 className="text-lg">
+                    {editingResponsibility
+                      ? "Edit Position"
+                      : "Add New Position"}
+                  </h3>
+                </div>
+                <p className="text-sm text-gray-500">
+                  {editingResponsibility
+                    ? "Update details about your leadership role or responsibility"
+                    : "Share information about a position of responsibility you've held"}
+                </p>
               </ModalHeader>
-              <ModalBody className="py-6">
+
+              <ModalBody className="py-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     label="Position Title"
-                    placeholder="Enter position title"
+                    placeholder="E.g. Club President, Team Leader, Committee Head"
                     isRequired
                     isInvalid={!!validationErrors.title}
                     errorMessage={validationErrors.title}
-                    value={title}
-                    onChange={(e) =>
-                      handleInputChange(e.target.value, "title", setTitle)
+                    value={formData.title}
+                    onChange={(e) => handleInputChange("title", e.target.value)}
+                    startContent={
+                      <Briefcase size={16} className="text-gray-400" />
                     }
-                    classNames={{
-                      inputWrapper:
-                        "border-neutral-300 dark:border-neutral-700",
-                    }}
+                    description="Your role or position in the organization"
+                    isDisabled={isSubmitting}
                   />
+
                   <Input
                     label="Organization"
-                    placeholder="Enter organization name"
+                    placeholder="E.g. Student Council, IEEE, Red Cross"
                     isRequired
                     isInvalid={!!validationErrors.organization}
                     errorMessage={validationErrors.organization}
-                    value={organization}
+                    value={formData.organization}
                     onChange={(e) =>
-                      handleInputChange(
-                        e.target.value,
-                        "organization",
-                        setOrganization
-                      )
+                      handleInputChange("organization", e.target.value)
                     }
-                    classNames={{
-                      inputWrapper:
-                        "border-neutral-300 dark:border-neutral-700",
-                    }}
+                    startContent={
+                      <Building size={16} className="text-gray-400" />
+                    }
+                    description="Name of the organization or group"
+                    isDisabled={isSubmitting}
                   />
-                  <div className="flex flex-col">
+
+                  <div>
+                    <label className="block text-small font-medium text-foreground mb-1.5">
+                      Start Date <span className="text-danger">*</span>
+                    </label>
                     <DatePicker
-                      label="Start Date"
-                      isRequired
+                      aria-label="Start Date"
                       isInvalid={!!validationErrors.startDate}
                       errorMessage={validationErrors.startDate}
                       maxValue={today(getLocalTimeZone())}
-                      value={parseAbsoluteToLocal(startDate.toISOString())}
+                      value={parseAbsoluteToLocal(
+                        formData.startDate.toISOString()
+                      )}
                       onChange={(date) => handleDateChange(date, "startDate")}
+                      isDisabled={isSubmitting}
+                      hideTimeZone
+                      granularity="day"
                     />
+                    <p className="text-tiny text-default-500 mt-1">
+                      When you began this position
+                    </p>
                   </div>
-                  <div className="flex flex-col">
+
+                  <div>
+                    <label className="block text-small font-medium text-foreground mb-1.5">
+                      End Date{" "}
+                      {!formData.current && (
+                        <span className="text-danger">*</span>
+                      )}
+                    </label>
                     <DatePicker
-                      label="End Date"
+                      aria-label="End Date"
                       isInvalid={!!validationErrors.endDate}
                       errorMessage={validationErrors.endDate}
                       value={
-                        endDate
-                          ? parseAbsoluteToLocal(endDate.toISOString())
+                        formData.endDate
+                          ? parseAbsoluteToLocal(formData.endDate.toISOString())
                           : undefined
                       }
                       onChange={(date) => handleDateChange(date, "endDate")}
                       maxValue={today(getLocalTimeZone())}
-                      isDisabled={current}
+                      isDisabled={formData.current || isSubmitting}
+                      hideTimeZone
+                      granularity="day"
                     />
+                    <p className="text-tiny text-default-500 mt-1">
+                      {formData.current
+                        ? "Not required for current positions"
+                        : "When you completed this position"}
+                    </p>
                   </div>
+
                   <div className="col-span-2 mt-1">
                     <Checkbox
-                      isSelected={current}
-                      onValueChange={handleCurrentChange}
+                      isSelected={formData.current}
+                      onValueChange={(value) =>
+                        handleInputChange("current", value)
+                      }
+                      isDisabled={isSubmitting}
                     >
                       I currently hold this position
                     </Checkbox>
                   </div>
                 </div>
+
                 <Textarea
                   label="Description"
-                  placeholder="Describe your responsibilities, achievements, and impact"
+                  placeholder="Describe your responsibilities, achievements, and impact in this role. You can use bullet points for better readability."
                   className="mt-4"
-                  value={description}
+                  value={formData.description}
                   onChange={(e) =>
-                    handleInputChange(
-                      e.target.value,
-                      "description",
-                      setDescription
-                    )
+                    handleInputChange("description", e.target.value)
                   }
-                  minRows={3}
+                  minRows={4}
+                  maxRows={8}
                   isRequired
                   isInvalid={!!validationErrors.description}
                   errorMessage={validationErrors.description}
-                  classNames={{
-                    inputWrapper: "border-neutral-300 dark:border-neutral-700",
-                  }}
+                  isDisabled={isSubmitting}
+                  description="Provide details about what you did and accomplished in this role"
                 />
-                <p className="text-xs text-neutral-500 mt-1">
-                  Use bullet points to highlight key achievements and
-                  responsibilities
-                </p>
+
+                <div className="flex justify-between mt-2">
+                  <p className="text-xs text-gray-500">
+                    Consider using bullet points by starting lines with • or -
+                    for better readability
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {formData.description.length}/1000 characters
+                  </p>
+                </div>
               </ModalBody>
+
               <ModalFooter className="border-t">
-                <Button color="default" variant="light" onPress={onClose}>
+                <Button
+                  color="default"
+                  variant="light"
+                  onPress={onClose}
+                  isDisabled={isSubmitting}
+                >
                   Cancel
                 </Button>
                 <Button
@@ -575,6 +707,51 @@ export default function Responsibilities() {
                   isDisabled={isSubmitting}
                 >
                   {editingResponsibility ? "Update" : "Save"}
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModal.isOpen}
+        onClose={() => !isSubmitting && deleteModal.onClose()}
+        isDismissable={!isSubmitting}
+      >
+        <ModalContent>
+          {() => (
+            <>
+              <ModalHeader className="border-b">
+                <h3>Confirm Deletion</h3>
+              </ModalHeader>
+              <ModalBody className="py-5">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-danger/10 p-2 flex-shrink-0">
+                    <AlertCircle size={22} className="text-danger" />
+                  </div>
+                  <p className="text-gray-600">
+                    Are you sure you want to delete this position? This action
+                    cannot be undone.
+                  </p>
+                </div>
+              </ModalBody>
+              <ModalFooter className="border-t">
+                <Button
+                  variant="light"
+                  onPress={() => !isSubmitting && deleteModal.onClose()}
+                  isDisabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  color="danger"
+                  onPress={handleDelete}
+                  isLoading={isSubmitting}
+                  isDisabled={isSubmitting}
+                >
+                  Delete
                 </Button>
               </ModalFooter>
             </>

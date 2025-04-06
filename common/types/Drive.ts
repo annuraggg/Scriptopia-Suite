@@ -159,10 +159,21 @@ interface AdditionalDetails {
   };
 }
 
+interface PlacementGroupRule {
+  _id?: string;
+  category: string; // basic, education, work, skills, other
+  subcategory: string; // specific field like percentage, branch, etc.
+  operator: string; // =, !=, >, >=, <, <=, contains, not_contains
+  value: any; // the comparison value
+  type?: string; // for education-specific rules (ssc, hsc, etc.)
+  createdAt?: Date;
+}
+
 interface Drive {
   _id?: string;
   institute?: string;
   title: string;
+  criteria: PlacementGroupRule;
   link?: string;
   description: Record<string, unknown>;
   company?: string;
@@ -202,6 +213,7 @@ export type {
   AdditionalDetails,
   Drive,
   Schedule,
+  PlacementGroupRule,
 };
 
 export { StepType, StepStatus, DriveType };

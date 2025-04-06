@@ -21,16 +21,25 @@ import {
   Badge,
   Card,
   CardBody,
+  CardHeader,
   Tooltip,
+  Divider,
+  Chip,
+  Skeleton,
 } from "@nextui-org/react";
 import { useState, useEffect } from "react";
 import {
   Plus,
   Edit2,
   Trash2,
-  FileCheck,
-  HelpCircle,
   AlertCircle,
+  Calendar,
+  Award,
+  BookOpen,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  PlusCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useOutletContext } from "react-router-dom";
@@ -44,18 +53,62 @@ import {
 import { DatePicker } from "@nextui-org/react";
 import { z } from "zod";
 
-// Patent schema for form validation
-const patentSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  patentOffice: z.string().min(1, "Patent office is required"),
-  patentNumber: z.string().min(1, "Patent number is required"),
-  status: z.enum(["pending", "granted", "rejected"], {
-    errorMap: () => ({ message: "Status is required" }),
-  }),
-  filingDate: z.date({ required_error: "Filing date is required" }),
-  issueDate: z.date().optional(),
-  description: z.string().min(1, "Description is required"),
-});
+// Patent schema for form validation with improved error messages
+const patentSchema = z
+  .object({
+    title: z
+      .string()
+      .min(1, "Patent title is required")
+      .max(200, "Patent title is too long"),
+    patentOffice: z
+      .string()
+      .min(1, "Patent office is required")
+      .max(100, "Patent office name is too long"),
+    patentNumber: z
+      .string()
+      .min(1, "Patent/application number is required")
+      .max(50, "Patent number is too long"),
+    status: z.enum(["pending", "granted", "rejected"], {
+      errorMap: () => ({ message: "Please select a valid status" }),
+    }),
+    filingDate: z
+      .date({
+        required_error: "Filing date is required",
+        invalid_type_error: "Please enter a valid filing date",
+      })
+      .max(new Date(), "Filing date cannot be in the future"),
+    issueDate: z.date().optional().nullable(),
+    description: z
+      .string()
+      .min(1, "Description is required")
+      .max(1000, "Description is too long"),
+  })
+  .refine(
+    (data) => {
+      // If status is granted, issue date is required
+      if (data.status === "granted" && !data.issueDate) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Issue date is required for granted patents",
+      path: ["issueDate"],
+    }
+  )
+  .refine(
+    (data) => {
+      // If both dates exist, ensure issue date is after filing date
+      if (data.issueDate && data.filingDate > data.issueDate) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Issue date must be after filing date",
+      path: ["issueDate"],
+    }
+  );
 
 type PatentFormData = z.infer<typeof patentSchema>;
 
@@ -80,16 +133,29 @@ const patentOffices = [
 ];
 
 const patentStatuses = [
-  { label: "Pending", value: "pending" },
-  { label: "Granted", value: "granted" },
-  { label: "Rejected", value: "rejected" },
+  {
+    label: "Pending",
+    value: "pending",
+    icon: <Clock size={14} className="text-warning" />,
+  },
+  {
+    label: "Granted",
+    value: "granted",
+    icon: <CheckCircle2 size={14} className="text-success" />,
+  },
+  {
+    label: "Rejected",
+    value: "rejected",
+    icon: <XCircle size={14} className="text-danger" />,
+  },
 ];
 
 const Patents = () => {
-  const { user, setUser } = useOutletContext() as {
+  const { user, setUser, isLoading } = useOutletContext<{
     user: Candidate;
     setUser: (user: Candidate) => void;
-  };
+    isLoading?: boolean;
+  }>();
 
   // Modal state
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -99,6 +165,7 @@ const Patents = () => {
   const [errors, setErrors] = useState<
     Partial<Record<keyof PatentFormData, string>>
   >({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState<PatentFormData>({
@@ -107,7 +174,7 @@ const Patents = () => {
     patentNumber: "",
     status: "pending",
     filingDate: today(getLocalTimeZone()).toDate(getLocalTimeZone()),
-    issueDate: undefined,
+    issueDate: null,
     description: "",
   });
 
@@ -119,14 +186,18 @@ const Patents = () => {
   }, [user, setUser]);
 
   // Format date for display
-  const formatDate = (date: Date | string | undefined): string => {
+  const formatDate = (date: Date | string | undefined | null): string => {
     if (!date) return "—";
-    const dateObj = date instanceof Date ? date : new Date(date);
-    return dateObj.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    try {
+      const dateObj = date instanceof Date ? date : new Date(date);
+      return dateObj.toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch (error) {
+      return "Invalid date";
+    }
   };
 
   // Handle date picker change
@@ -137,12 +208,38 @@ const Patents = () => {
     if (!date) return;
     const dateObj = new Date(date.year, date.month - 1, date.day);
     setFormData((prev) => ({ ...prev, [field]: dateObj }));
+
+    // Clear validation errors for this field
+    if (errors[field]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+
+    // Additional validation for date relationships
+    if (field === "issueDate" && formData.filingDate > dateObj) {
+      setErrors((prev) => ({
+        ...prev,
+        issueDate: "Issue date must be after filing date",
+      }));
+    } else if (
+      field === "filingDate" &&
+      formData.issueDate &&
+      dateObj > formData.issueDate
+    ) {
+      setErrors((prev) => ({
+        ...prev,
+        filingDate: "Filing date must be before issue date",
+      }));
+    }
   };
 
   // Handle input changes
   const handleInputChange = (
     field: keyof PatentFormData,
-    value: string | Date | undefined
+    value: string | Date | undefined | null
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
 
@@ -154,6 +251,24 @@ const Patents = () => {
         return newErrors;
       });
     }
+
+    // Special handling for status changes
+    if (field === "status") {
+      if (value !== "granted" && errors.issueDate) {
+        setErrors((prev) => {
+          const { issueDate, ...rest } = prev;
+          return rest;
+        });
+      }
+
+      // If changing to granted and no issue date, add warning
+      if (value === "granted" && !formData.issueDate) {
+        setErrors((prev) => ({
+          ...prev,
+          issueDate: "Issue date is required for granted patents",
+        }));
+      }
+    }
   };
 
   // Reset form to initial state
@@ -164,7 +279,7 @@ const Patents = () => {
       patentNumber: "",
       status: "pending",
       filingDate: today(getLocalTimeZone()).toDate(getLocalTimeZone()),
-      issueDate: undefined,
+      issueDate: null,
       description: "",
     });
     setErrors({});
@@ -174,12 +289,6 @@ const Patents = () => {
   // Handle form submission
   const validateForm = (): boolean => {
     try {
-      // Special handling for issue date based on status
-      if (formData.status === "granted" && !formData.issueDate) {
-        setErrors({ issueDate: "Issue date is required for granted patents" });
-        return false;
-      }
-
       patentSchema.parse(formData);
       setErrors({});
       return true;
@@ -204,27 +313,32 @@ const Patents = () => {
 
   // Handle editing an existing patent
   const handleEdit = (patent: Patent) => {
-    const editData: PatentFormData = {
-      title: patent.title,
-      patentOffice: patent.patentOffice,
-      patentNumber: patent.patentNumber,
-      status: patent.status,
-      filingDate:
-        patent.filingDate instanceof Date
-          ? patent.filingDate
-          : new Date(patent.filingDate),
-      issueDate: patent.issueDate
-        ? patent.issueDate instanceof Date
-          ? patent.issueDate
-          : new Date(patent.issueDate)
-        : undefined,
-      description: patent.description,
-    };
+    try {
+      const editData: PatentFormData = {
+        title: patent.title,
+        patentOffice: patent.patentOffice,
+        patentNumber: patent.patentNumber,
+        status: patent.status,
+        filingDate:
+          patent.filingDate instanceof Date
+            ? patent.filingDate
+            : new Date(patent.filingDate),
+        issueDate: patent.issueDate
+          ? patent.issueDate instanceof Date
+            ? patent.issueDate
+            : new Date(patent.issueDate)
+          : null,
+        description: patent.description,
+      };
 
-    setFormData(editData);
-    setEditingPatent(patent._id || null);
-    setErrors({});
-    onOpen();
+      setFormData(editData);
+      setEditingPatent(patent._id || null);
+      setErrors({});
+      onOpen();
+    } catch (error) {
+      console.error("Error editing patent:", error);
+      toast.error("Could not edit patent. Invalid data format.");
+    }
   };
 
   // Confirm patent deletion
@@ -236,17 +350,34 @@ const Patents = () => {
   // Delete a patent
   const handleDelete = () => {
     if (!patentToDelete || !user.patents) return;
+    setIsSubmitting(true);
 
-    const newPatents = user.patents.filter((p) => p._id !== patentToDelete);
-    setUser({ ...user, patents: newPatents });
-    toast.success("Patent deleted successfully");
-    deleteModal.onClose();
-    setPatentToDelete(null);
+    try {
+      const newPatents = user.patents.filter((p) => p._id !== patentToDelete);
+      setUser({ ...user, patents: newPatents });
+      toast.success("Patent deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete patent");
+      console.error("Error deleting patent:", error);
+    } finally {
+      deleteModal.onClose();
+      setPatentToDelete(null);
+      setIsSubmitting(false);
+    }
   };
 
   // Save new or updated patent
   const handleSave = () => {
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      // Find the first error and show a toast
+      const firstError = Object.values(errors)[0];
+      if (firstError) {
+        toast.error(firstError);
+      }
+      return;
+    }
+
+    setIsSubmitting(true);
 
     // Process form data for saving
     try {
@@ -299,6 +430,8 @@ const Patents = () => {
     } catch (error) {
       toast.error("An error occurred while saving the patent");
       console.error("Error saving patent:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -316,25 +449,40 @@ const Patents = () => {
     }
   };
 
+  // Get status icon
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "granted":
+        return <CheckCircle2 size={16} className="text-success" />;
+      case "pending":
+        return <Clock size={16} className="text-warning" />;
+      case "rejected":
+        return <XCircle size={16} className="text-danger" />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div>
       {/* Header section */}
-      <div className="mb-8">
-        <Breadcrumbs size="sm" className="mb-4">
+      <div className="mb-6">
+        <Breadcrumbs  className="mb-4">
           <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
           <BreadcrumbItem>Patents</BreadcrumbItem>
         </Breadcrumbs>
 
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-semibold">Patents</h1>
-            <p className="text-gray-500 text-sm">
-              Manage your patent portfolio
+            <h1 className="text-2xl font-semibold">
+              Patents & Intellectual Property
+            </h1>
+            <p className="text-gray-500 text-sm mt-1">
+              Document your innovations and intellectual property
             </p>
           </div>
           <Button
             color="primary"
-            variant="flat"
             startContent={<Plus size={18} />}
             onClick={handleAdd}
           >
@@ -343,39 +491,52 @@ const Patents = () => {
         </div>
       </div>
 
-      {/* Empty state */}
-      {!user.patents?.length ? (
-        <Card className="w-full py-8">
-          <CardBody className="flex flex-col items-center justify-center gap-4">
-            <FileCheck size={40} className="text-gray-400" />
-            <div className="text-center">
-              <h3 className="text-xl font-medium mb-2">No Patents Added</h3>
-              <p className="text-gray-500 mb-4">
-                Your patent portfolio is currently empty. Add your patents to
-                showcase your intellectual property.
+      {isLoading ? (
+        // Skeleton loader for loading state
+        <div className="space-y-4">
+          <Skeleton className="w-full h-32 rounded-lg" />
+          <Skeleton className="w-full h-32 rounded-lg" />
+        </div>
+      ) : !user.patents?.length ? (
+        <Card className="w-full bg-gray-50 border-dashed border-2 border-gray-200">
+          <CardBody className="py-12 flex flex-col items-center justify-center gap-4">
+            <div className="bg-primary-50 p-5 rounded-full">
+              <Award size={36} className="text-primary" />
+            </div>
+            <div className="text-center max-w-lg">
+              <h3 className="text-xl font-medium mb-2">No Patents Added Yet</h3>
+              <p className="text-gray-600 mb-6">
+                Patents demonstrate your innovative contributions and
+                intellectual property. Add information about patents you've
+                filed, been granted, or are pending.
               </p>
               <Button
                 color="primary"
                 onClick={handleAdd}
-                startContent={<Plus size={18} />}
+                startContent={<PlusCircle size={18} />}
+                size="lg"
               >
-                Add Patent
+                Add Your First Patent
               </Button>
             </div>
           </CardBody>
         </Card>
       ) : (
-        /* Patent table */
-        <Card shadow="sm">
-          <Table
-            aria-label="Patents table"
-            removeWrapper
-            classNames={{
-              th: "bg-default-50",
-            }}
-          >
+        /* Patent card with table */
+        <Card className="shadow-sm">
+          <CardHeader className="bg-gray-50/50 flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <Award size={18} className="text-primary" />
+              <h2 className="text-lg font-medium">Your Patents</h2>
+              <Chip  variant="flat">
+                {user.patents.length}
+              </Chip>
+            </div>
+          </CardHeader>
+          <Divider />
+          <Table aria-label="Patents table" removeWrapper>
             <TableHeader>
-              <TableColumn>TITLE</TableColumn>
+              <TableColumn>TITLE & DESCRIPTION</TableColumn>
               <TableColumn>PATENT INFO</TableColumn>
               <TableColumn>STATUS</TableColumn>
               <TableColumn>DATES</TableColumn>
@@ -383,19 +544,25 @@ const Patents = () => {
             </TableHeader>
             <TableBody>
               {user.patents.map((patent) => (
-                <TableRow key={patent._id}>
+                <TableRow key={patent._id} className="border-b">
                   <TableCell>
-                    <div className="font-medium line-clamp-2">
+                    <div className="font-medium mb-1 max-w-xs">
                       {patent.title}
                     </div>
+                    {patent.description && (
+                      <p className="text-xs text-gray-500 line-clamp-2">
+                        {patent.description}
+                      </p>
+                    )}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">
                         {patent.patentOffice}
                       </span>
-                      <span className="text-xs text-gray-500">
-                        #{patent.patentNumber}
+                      <span className="text-xs text-gray-500 flex items-center gap-1">
+                        <BookOpen size={14} className="text-gray-400" />
+                        {patent.patentNumber}
                       </span>
                     </div>
                   </TableCell>
@@ -403,21 +570,28 @@ const Patents = () => {
                     <Badge
                       color={getStatusColor(patent.status)}
                       variant="flat"
-                      className="capitalize"
+                      className="flex items-center gap-1 capitalize"
                     >
+                      {getStatusIcon(patent.status)}
                       {patent.status}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-col text-sm">
+                    <div className="flex flex-col text-sm gap-1">
                       <div className="flex items-center gap-1">
-                        <span className="text-gray-500">Filed:</span>
-                        <span>{formatDate(patent.filingDate)}</span>
+                        <Calendar size={14} className="text-gray-400" />
+                        <span className="text-xs text-gray-500">Filed:</span>
+                        <span className="text-xs">
+                          {formatDate(patent.filingDate)}
+                        </span>
                       </div>
-                      {patent.status === "granted" && (
+                      {patent.status === "granted" && patent.issueDate && (
                         <div className="flex items-center gap-1">
-                          <span className="text-gray-500">Issued:</span>
-                          <span>{formatDate(patent.issueDate)}</span>
+                          <CheckCircle2 size={14} className="text-success" />
+                          <span className="text-xs text-gray-500">Issued:</span>
+                          <span className="text-xs">
+                            {formatDate(patent.issueDate)}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -427,24 +601,24 @@ const Patents = () => {
                       <Tooltip content="Edit patent">
                         <Button
                           isIconOnly
-                          size="sm"
+                          
                           variant="light"
                           onClick={() => handleEdit(patent)}
                         >
-                          <Edit2 size={18} />
+                          <Edit2 size={16} />
                         </Button>
                       </Tooltip>
                       <Tooltip content="Delete patent" color="danger">
                         <Button
                           isIconOnly
-                          size="sm"
+                          
                           variant="light"
                           color="danger"
                           onClick={() =>
                             patent._id && confirmDelete(patent._id)
                           }
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={16} />
                         </Button>
                       </Tooltip>
                     </div>
@@ -460,30 +634,45 @@ const Patents = () => {
       <Modal
         isOpen={isOpen}
         onClose={() => {
-          resetForm();
-          onClose();
+          if (!isSubmitting) {
+            resetForm();
+            onClose();
+          }
         }}
         size="2xl"
         scrollBehavior="inside"
+        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (
             <>
-              <ModalHeader>
-                <h3>{editingPatent ? "Edit Patent" : "Add New Patent"}</h3>
+              <ModalHeader className="flex flex-col gap-1 border-b">
+                <div className="flex items-center gap-2">
+                  <Award size={20} className="text-primary" />
+                  <h3 className="text-lg">
+                    {editingPatent ? "Edit Patent" : "Add New Patent"}
+                  </h3>
+                </div>
+                <p className="text-sm text-gray-500">
+                  {editingPatent
+                    ? "Update details of your patent or intellectual property"
+                    : "Add information about your patent or intellectual property"}
+                </p>
               </ModalHeader>
-              <ModalBody>
+              <ModalBody className="py-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     label="Patent Title"
                     placeholder="Enter the full patent title"
                     value={formData.title}
                     onChange={(e) => handleInputChange("title", e.target.value)}
-                    variant="bordered"
+                    
                     isRequired
                     isInvalid={!!errors.title}
                     errorMessage={errors.title}
                     className="col-span-1 md:col-span-2"
+                    description="Full title as it appears on the patent application"
+                    isDisabled={isSubmitting}
                   />
 
                   <Select
@@ -498,10 +687,12 @@ const Patents = () => {
                         keys.currentKey as string
                       )
                     }
-                    variant="bordered"
+                    
                     isRequired
                     isInvalid={!!errors.patentOffice}
                     errorMessage={errors.patentOffice}
+                    description="Organization where the patent was filed"
+                    isDisabled={isSubmitting}
                   >
                     {patentOffices.map((office) => (
                       <SelectItem key={office.value} value={office.value}>
@@ -517,15 +708,12 @@ const Patents = () => {
                     onChange={(e) =>
                       handleInputChange("patentNumber", e.target.value)
                     }
-                    variant="bordered"
+                    
                     isRequired
                     isInvalid={!!errors.patentNumber}
                     errorMessage={errors.patentNumber}
-                    startContent={
-                      <Tooltip content="This is the reference number assigned by the patent office">
-                        <HelpCircle size={16} className="text-gray-400" />
-                      </Tooltip>
-                    }
+                    description="Reference number assigned by the patent office"
+                    isDisabled={isSubmitting}
                   />
 
                   <Select
@@ -538,37 +726,56 @@ const Patents = () => {
                         keys.currentKey as "pending" | "granted" | "rejected"
                       )
                     }
-                    variant="bordered"
+                    labelPlacement="outside"
+                    
                     isRequired
                     isInvalid={!!errors.status}
                     errorMessage={errors.status}
+                    description="Current status of your patent application"
+                    isDisabled={isSubmitting}
                   >
                     {patentStatuses.map((stat) => (
-                      <SelectItem key={stat.value} value={stat.value}>
+                      <SelectItem
+                        key={stat.value}
+                        value={stat.value}
+                        startContent={stat.icon}
+                      >
                         {stat.label}
                       </SelectItem>
                     ))}
                   </Select>
 
                   <div>
+                    <label className="block text-small font-medium text-foreground mb-1.5">
+                      Filing Date <span className="text-danger">*</span>
+                    </label>
                     <DatePicker
-                      label="Filing Date"
+                      aria-label="Filing Date"
                       granularity="day"
                       maxValue={today(getLocalTimeZone())}
                       value={parseAbsoluteToLocal(
                         formData.filingDate.toISOString()
                       )}
                       onChange={(date) => handleDateChange(date, "filingDate")}
-                      isRequired
                       isInvalid={!!errors.filingDate}
                       errorMessage={errors.filingDate}
                       className="w-full"
+                      isDisabled={isSubmitting}
                     />
+                    <p className="text-tiny text-default-500 mt-1">
+                      Date when the patent was filed
+                    </p>
                   </div>
 
                   <div>
+                    <label className="block text-small font-medium text-foreground mb-1.5">
+                      Issue Date{" "}
+                      {formData.status === "granted" && (
+                        <span className="text-danger">*</span>
+                      )}
+                    </label>
                     <DatePicker
-                      label="Issue Date"
+                      aria-label="Issue Date"
                       granularity="day"
                       value={
                         formData.issueDate
@@ -579,21 +786,16 @@ const Patents = () => {
                       }
                       onChange={(date) => handleDateChange(date, "issueDate")}
                       maxValue={today(getLocalTimeZone())}
-                      isDisabled={formData.status !== "granted"}
+                      isDisabled={formData.status !== "granted" || isSubmitting}
                       isInvalid={!!errors.issueDate}
                       errorMessage={errors.issueDate}
                       className="w-full"
-                      startContent={
-                        formData.status === "granted" ? (
-                          <AlertCircle size={16} className="text-warning" />
-                        ) : null
-                      }
                     />
-                    {formData.status === "granted" && !formData.issueDate && (
-                      <span className="text-xs text-warning">
-                        Required for granted patents
-                      </span>
-                    )}
+                    <p className="text-tiny text-default-500 mt-1">
+                      {formData.status === "granted"
+                        ? "Date when the patent was granted (required)"
+                        : "Only applicable for granted patents"}
+                    </p>
                   </div>
                 </div>
 
@@ -604,26 +806,37 @@ const Patents = () => {
                   onChange={(e) =>
                     handleInputChange("description", e.target.value)
                   }
-                  variant="bordered"
+                  
                   isRequired
                   isInvalid={!!errors.description}
                   errorMessage={errors.description}
                   className="mt-4"
                   minRows={3}
+                  maxRows={5}
+                  description="Brief explanation of the patent and its importance"
+                  isDisabled={isSubmitting}
                 />
               </ModalBody>
-              <ModalFooter>
+              <ModalFooter className="border-t">
                 <Button
                   color="danger"
                   variant="light"
                   onPress={() => {
-                    resetForm();
-                    onClose();
+                    if (!isSubmitting) {
+                      resetForm();
+                      onClose();
+                    }
                   }}
+                  isDisabled={isSubmitting}
                 >
                   Cancel
                 </Button>
-                <Button color="primary" onPress={handleSave}>
+                <Button
+                  color="primary"
+                  onPress={handleSave}
+                  isLoading={isSubmitting}
+                  isDisabled={isSubmitting}
+                >
                   {editingPatent ? "Update Patent" : "Save Patent"}
                 </Button>
               </ModalFooter>
@@ -635,26 +848,41 @@ const Patents = () => {
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={deleteModal.isOpen}
-        onClose={deleteModal.onClose}
-        size="sm"
+        onClose={() => !isSubmitting && deleteModal.onClose()}
+        
+        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (
             <>
-              <ModalHeader>
+              <ModalHeader className="border-b">
                 <h3>Confirm Deletion</h3>
               </ModalHeader>
-              <ModalBody>
-                <p>
-                  Are you sure you want to delete this patent? This action
-                  cannot be undone.
-                </p>
+              <ModalBody className="py-5">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-danger/10 p-2 flex-shrink-0">
+                    <AlertCircle size={22} className="text-danger" />
+                  </div>
+                  <p className="text-gray-600">
+                    Are you sure you want to delete this patent? This action
+                    cannot be undone.
+                  </p>
+                </div>
               </ModalBody>
-              <ModalFooter>
-                <Button variant="light" onPress={deleteModal.onClose}>
+              <ModalFooter className="border-t">
+                <Button
+                  variant="light"
+                  onPress={() => !isSubmitting && deleteModal.onClose()}
+                  isDisabled={isSubmitting}
+                >
                   Cancel
                 </Button>
-                <Button color="danger" onPress={handleDelete}>
+                <Button
+                  color="danger"
+                  onPress={handleDelete}
+                  isLoading={isSubmitting}
+                  isDisabled={isSubmitting}
+                >
                   Delete
                 </Button>
               </ModalFooter>

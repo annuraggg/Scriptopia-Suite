@@ -33,7 +33,7 @@ const Layout = () => {
     <>
       <div className="">
         <div className="flex w-full">
-          <div className="h-screen w-full overflow-y-auto">
+          <div className="h-screen w-full overflow-y-auto p-5">
             <Outlet context={{ user, setUser: updateUser }} />
           </div>
         </div>

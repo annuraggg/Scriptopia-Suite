@@ -17,9 +17,23 @@ import {
   CardBody,
   Chip,
   DatePicker,
+  Tooltip,
+  Avatar,
+  Skeleton,
 } from "@nextui-org/react";
 import { useState, useEffect } from "react";
-import { Edit2, Trash2, Plus, BriefcaseBusiness } from "lucide-react";
+import {
+  Edit2,
+  Trash2,
+  Plus,
+  BriefcaseBusiness,
+  MapPin,
+  Calendar,
+  Building,
+  Briefcase,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
 import {
   today,
   ZonedDateTime,
@@ -31,62 +45,170 @@ import { Candidate, WorkExperience as Work } from "@shared-types/Candidate";
 import { toast } from "sonner";
 import { z } from "zod";
 
-// Define schema for validation
-const workExperienceSchema = z.object({
-  company: z.string().min(1, "Company name is required"),
-  sector: z.string().min(1, "Sector is required"),
-  title: z.string().min(1, "Job title is required"),
-  location: z.string().min(1, "Location is required"),
-  type: z.enum(
-    ["fulltime", "parttime", "internship", "contract", "freelance"],
+// Define schema for validation with improved error messages
+const workExperienceSchema = z
+  .object({
+    company: z
+      .string()
+      .min(1, "Company name is required")
+      .max(100, "Company name is too long"),
+    sector: z.string().min(1, "Sector is required"),
+    title: z
+      .string()
+      .min(1, "Job title is required")
+      .max(100, "Job title is too long"),
+    location: z
+      .string()
+      .min(1, "Location is required")
+      .max(100, "Location is too long"),
+    type: z.enum(
+      ["fulltime", "parttime", "internship", "contract", "freelance"],
+      {
+        required_error: "Position type is required",
+        invalid_type_error: "Please select a valid position type",
+      }
+    ),
+    jobFunction: z.string().min(1, "Job function is required"),
+    startDate: z.date({
+      required_error: "Start date is required",
+      invalid_type_error: "Start date must be a valid date",
+    }),
+    current: z.boolean(),
+    endDate: z
+      .date({
+        invalid_type_error: "End date must be a valid date",
+      })
+      .optional()
+      .nullable(),
+    description: z.string().max(3000, "Description is too long").optional(),
+  })
+  .refine(
+    (data) => {
+      // If not current, end date is required
+      if (!data.current && !data.endDate) {
+        return false;
+      }
+      return true;
+    },
     {
-      required_error: "Position type is required",
+      message: "End date is required when not currently employed",
+      path: ["endDate"],
     }
-  ),
-  jobFunction: z.string().min(1, "Job function is required"),
-  startDate: z.date({
-    required_error: "Start date is required",
-  }),
-  current: z.boolean(),
-  endDate: z.date().optional().nullable(),
-  description: z.string().optional(),
-});
+  )
+  .refine(
+    (data) => {
+      // Ensure end date is after start date
+      if (data.endDate && data.startDate > data.endDate) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "End date cannot be before start date",
+      path: ["endDate"],
+    }
+  );
 
-// Custom validation to check date logic
-const validateDateLogic = (data: z.infer<typeof workExperienceSchema>) => {
-  if (!data.current && !data.endDate) {
-    throw new Error("End date is required when not current job");
-  }
+// Position types with labels and descriptions
+const positionTypes = [
+  {
+    value: "fulltime",
+    label: "Full-time",
+    color: "primary",
+    description: "Standard full-time position",
+  },
+  {
+    value: "parttime",
+    label: "Part-time",
+    color: "secondary",
+    description: "Less than full-time hours",
+  },
+  {
+    value: "internship",
+    label: "Internship",
+    color: "success",
+    description: "Temporary training position",
+  },
+  {
+    value: "contract",
+    label: "Contract",
+    color: "warning",
+    description: "Fixed-term employment contract",
+  },
+  {
+    value: "freelance",
+    label: "Freelance",
+    color: "default",
+    description: "Independent contractor work",
+  },
+] as const;
 
-  if (!data.current && data.endDate && data.startDate > data.endDate) {
-    throw new Error("End date cannot be before start date");
-  }
-
-  return data;
+// Job functions organized by category
+const jobFunctionsByCategory = {
+  "Engineering & Technology": [
+    "Engineering - Web / Software",
+    "Engineering - Mobile",
+    "Engineering - Hardware",
+    "Engineering - DevOps",
+    "Engineering - QA",
+    "Data Science",
+    "Machine Learning",
+    "IT Operations",
+  ],
+  "Design & Creative": [
+    "Product Design",
+    "UX/UI Design",
+    "Graphic Design",
+    "Content Creation",
+    "Art Direction",
+  ],
+  "Business & Marketing": [
+    "Marketing",
+    "Sales",
+    "Business Development",
+    "Finance",
+    "Human Resources",
+    "Project Management",
+    "Product Management",
+  ],
+  Other: ["Customer Support", "Operations", "Research", "Education", "Other"],
 };
 
-const positionTypes = [
-  "fulltime",
-  "parttime",
-  "internship",
-  "contract",
-  "freelance",
-] as const;
-
-const jobFunctions = [
-  "Engineering - Web / Software",
-  "Computer Science - Software - IT",
-  "Design",
-  "Marketing",
-] as const;
-
-const sectors = [
-  "Technology",
-  "Healthcare",
-  "Finance",
-  "Education",
-  "Manufacturing",
-] as const;
+// Sectors with categories
+const sectorsByCategory = {
+  "Technology & Internet": [
+    "Technology",
+    "Software Development",
+    "Information Technology",
+    "E-commerce",
+    "Telecommunications",
+  ],
+  "Finance & Business": [
+    "Finance",
+    "Banking",
+    "Insurance",
+    "Consulting",
+    "Real Estate",
+  ],
+  "Healthcare & Education": [
+    "Healthcare",
+    "Pharmaceuticals",
+    "Education",
+    "Research",
+  ],
+  "Other Industries": [
+    "Manufacturing",
+    "Retail",
+    "Media & Entertainment",
+    "Transportation",
+    "Hospitality",
+    "Energy",
+    "Agriculture",
+    "Government",
+    "Non-profit",
+    "Other",
+  ],
+};
 
 export default function WorkExperience() {
   const [editingExperience, setEditingExperience] = useState<string | null>(
@@ -96,25 +218,32 @@ export default function WorkExperience() {
     Record<string, string>
   >({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Modal States
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [company, setCompany] = useState("");
-  const [sector, setSector] = useState("");
-  const [title, setTitle] = useState("");
-  const [location, setLocation] = useState("");
-  const [type, setType] = useState<Work["type"]>("fulltime");
-  const [jobFunction, setJobFunction] = useState("");
-  const [startDate, setStartDate] = useState<Date>(
-    today(getLocalTimeZone()).toDate(getLocalTimeZone())
-  );
-  const [current, setCurrent] = useState(false);
-  const [endDate, setEndDate] = useState<Date | null>(null);
-  const [description, setDescription] = useState("");
+  const deleteModal = useDisclosure();
 
-  const { user, setUser } = useOutletContext<{
+  // Form state in a single object for better management
+  const [formData, setFormData] = useState<
+    z.infer<typeof workExperienceSchema>
+  >({
+    company: "",
+    sector: "",
+    title: "",
+    location: "",
+    type: "fulltime" as Work["type"],
+    jobFunction: "",
+    startDate: today(getLocalTimeZone()).toDate(getLocalTimeZone()),
+    current: false,
+    endDate: null,
+    description: "",
+  });
+
+  const { user, setUser, isLoading } = useOutletContext<{
     user: Candidate;
     setUser: (user: Candidate) => void;
+    isLoading?: boolean;
   }>();
 
   useEffect(() => {
@@ -124,6 +253,16 @@ export default function WorkExperience() {
     }
   }, [isOpen]);
 
+  // Initialize workExperience array if it doesn't exist
+  useEffect(() => {
+    if (user && !user.workExperience && setUser) {
+      setUser({
+        ...user,
+        workExperience: [],
+      });
+    }
+  }, [user, setUser]);
+
   const handleAdd = () => {
     setEditingExperience(null);
     resetForm();
@@ -131,93 +270,83 @@ export default function WorkExperience() {
   };
 
   const resetForm = () => {
-    setCompany("");
-    setSector("");
-    setTitle("");
-    setLocation("");
-    setType("fulltime");
-    setJobFunction("");
-    setStartDate(today(getLocalTimeZone()).toDate(getLocalTimeZone()));
-    setCurrent(false);
-    setEndDate(null);
-    setDescription("");
+    setFormData({
+      company: "",
+      sector: "",
+      title: "",
+      location: "",
+      type: "fulltime",
+      jobFunction: "",
+      startDate: today(getLocalTimeZone()).toDate(getLocalTimeZone()),
+      current: false,
+      endDate: null,
+      description: "",
+    });
     setValidationErrors({});
   };
 
   const handleEdit = (experience: Work) => {
-    setEditingExperience(experience?._id || null);
-    setCompany(experience.company);
-    setSector(experience.sector);
-    setTitle(experience.title);
-    setLocation(experience.location);
-    setType(experience.type);
-    setJobFunction(experience.jobFunction);
-    setStartDate(new Date(experience.startDate));
-    setCurrent(experience.current);
-    setEndDate(experience.endDate ? new Date(experience.endDate) : null);
-    setDescription(experience.description || "");
-    setValidationErrors({});
-    onOpen();
+    try {
+      setEditingExperience(experience?._id || null);
+      setFormData({
+        company: experience.company || "",
+        sector: experience.sector || "",
+        title: experience.title || "",
+        location: experience.location || "",
+        type: experience.type || "fulltime",
+        jobFunction: experience.jobFunction || "",
+        startDate: new Date(experience.startDate),
+        current: experience.current || false,
+        endDate: experience.endDate ? new Date(experience.endDate) : null,
+        description: experience.description || "",
+      });
+      setValidationErrors({});
+      onOpen();
+    } catch (error) {
+      console.error("Error editing experience:", error);
+      toast.error("Could not edit this experience. Invalid data format.");
+    }
   };
 
-  const handleDelete = (id: string) => {
-    if (!user.workExperience) return;
+  const confirmDelete = (id: string) => {
+    setDeleteConfirmId(id);
+    deleteModal.onOpen();
+  };
 
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this experience?"
-    );
-    if (!confirmDelete) return;
+  const handleDelete = () => {
+    if (!deleteConfirmId || !user.workExperience) return;
+
+    setIsSubmitting(true);
 
     try {
-      const newExp = user.workExperience.filter((exp) => exp._id !== id);
+      const newExp = user.workExperience.filter(
+        (exp) => exp._id !== deleteConfirmId
+      );
       setUser({ ...user, workExperience: newExp });
       toast.success("Experience deleted successfully");
     } catch (error) {
       toast.error("Failed to delete experience");
       console.error(error);
+    } finally {
+      setIsSubmitting(false);
+      setDeleteConfirmId(null);
+      deleteModal.onClose();
     }
   };
 
   const validateForm = (): boolean => {
     try {
-      const formData = {
-        company,
-        sector,
-        title,
-        location,
-        type,
-        jobFunction,
-        startDate,
-        current,
-        endDate: current ? null : endDate,
-        description,
-      };
-
-      // Validate with zod schema
       workExperienceSchema.parse(formData);
-
-      // Additional date validation
-      validateDateLogic(formData);
-
-      // Clear validation errors if all is good
       setValidationErrors({});
       return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errors: Record<string, string> = {};
         error.errors.forEach((err) => {
-          const field = err.path[0] as string;
-          errors[field] = err.message;
+          const path = err.path[0] as string;
+          errors[path] = err.message;
         });
         setValidationErrors(errors);
-      } else if (error instanceof Error) {
-        // Handle custom validation errors
-        if (error.message.includes("End date")) {
-          setValidationErrors({
-            ...validationErrors,
-            endDate: error.message,
-          });
-        }
       }
       return false;
     }
@@ -231,113 +360,105 @@ export default function WorkExperience() {
 
     const dateObj = new Date(date.year, date.month - 1, date.day);
 
-    if (field === "startDate") {
-      setStartDate(dateObj);
+    setFormData((prev) => ({
+      ...prev,
+      [field]: dateObj,
+    }));
 
-      // Update validation errors
-      if (validationErrors.startDate) {
-        const newErrors = { ...validationErrors };
-        delete newErrors.startDate;
-        setValidationErrors(newErrors);
-      }
+    // Clear validation errors
+    if (validationErrors[field]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
 
-      // Validate against end date if it exists
-      if (endDate && !current && dateObj > endDate) {
-        setValidationErrors({
-          ...validationErrors,
-          startDate: "Start date cannot be after end date",
-        });
-      }
-    } else {
-      setEndDate(dateObj);
-
-      // Update validation errors
-      if (validationErrors.endDate) {
-        const newErrors = { ...validationErrors };
-        delete newErrors.endDate;
-        setValidationErrors(newErrors);
-      }
-
-      // Validate against start date
-      if (dateObj < startDate) {
-        setValidationErrors({
-          ...validationErrors,
-          endDate: "End date cannot be before start date",
-        });
-      }
+    // Validate date relationships
+    if (
+      field === "startDate" &&
+      formData.endDate &&
+      !formData.current &&
+      dateObj > formData.endDate
+    ) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        startDate: "Start date cannot be after end date",
+      }));
+    } else if (
+      field === "endDate" &&
+      formData.startDate &&
+      dateObj < formData.startDate
+    ) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        endDate: "End date cannot be before start date",
+      }));
     }
   };
 
   const handleSave = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      // Find first error to display
+      const firstError = Object.values(validationErrors)[0];
+      if (firstError) {
+        toast.error(firstError);
+      }
+      return;
+    }
 
     setIsSubmitting(true);
 
     try {
       let newWorkExperience: Work[] = [];
 
-      const preparedData: Work = {
-        company,
-        sector,
-        title,
-        location,
-        type,
-        jobFunction,
-        startDate,
-        current,
-        endDate: current ? undefined : endDate || undefined,
-        description,
+      // Create work experience object from form data
+      const workData: Work = {
+        company: formData.company,
+        sector: formData.sector,
+        title: formData.title,
+        location: formData.location,
+        type: formData.type,
+        jobFunction: formData.jobFunction,
+        startDate: formData.startDate,
+        current: formData.current,
+        endDate: formData.current ? undefined : formData.endDate || undefined,
+        description: formData.description,
       };
 
       if (editingExperience) {
-        // Make sure we have work experience array
-        if (!user.workExperience) {
-          throw new Error("Work experience data not found");
-        }
-
-        // Check if the edited experience still exists
-        const experienceExists = user.workExperience.some(
-          (exp) => exp._id === editingExperience
-        );
-
-        if (!experienceExists) {
-          throw new Error("Experience to edit not found");
-        }
-
+        // Update existing experience
         newWorkExperience = (user.workExperience || []).map((exp) =>
           exp._id === editingExperience
-            ? { ...preparedData, _id: exp._id }
+            ? { ...workData, _id: exp._id, createdAt: exp.createdAt }
             : exp
         );
         toast.success("Experience updated successfully");
       } else {
+        // Add new experience
         const newExp: Work = {
-          ...preparedData,
-          _id: `exp_${Date.now()}_${Math.random()
-            .toString(36)
-            .substring(2, 9)}`, // More unique ID generation
-          startDate: new Date(preparedData.startDate),
-          endDate: preparedData.endDate
-            ? new Date(preparedData.endDate)
-            : undefined,
+          ...workData,
+          _id: `exp_${Date.now()}`, // More unique ID generation
           createdAt: new Date(),
         };
         newWorkExperience = [...(user?.workExperience || []), newExp];
         toast.success("Experience added successfully");
       }
 
-      // Sort by most recent first
-      newWorkExperience.sort(
-        (a, b) =>
+      // Sort by current first, then by most recent start date
+      newWorkExperience.sort((a, b) => {
+        if (a.current && !b.current) return -1;
+        if (!a.current && b.current) return 1;
+        return (
           new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-      );
+        );
+      });
 
       setUser({
         ...user,
         workExperience: newWorkExperience,
       });
 
-      setEditingExperience(null);
       onClose();
     } catch (error) {
       toast.error(
@@ -351,9 +472,9 @@ export default function WorkExperience() {
 
   const formatDate = (date: Date | string) => {
     try {
-      return new Date(date).toLocaleDateString("en-US", {
+      return new Date(date).toLocaleDateString(undefined, {
         year: "numeric",
-        month: "short",
+        month: "long",
       });
     } catch (e) {
       console.error("Invalid date format", e);
@@ -362,163 +483,270 @@ export default function WorkExperience() {
   };
 
   const getPositionTypeBadge = (type: string) => {
-    const colors: Record<string, any> = {
-      fulltime: "primary",
-      parttime: "secondary",
-      internship: "success",
-      contract: "warning",
-      freelance: "default",
-    };
+    const positionType =
+      positionTypes.find((p) => p.value === type) || positionTypes[0];
 
     return (
-      <Chip size="sm" color={colors[type] || "default"} variant="flat">
-        {type.charAt(0).toUpperCase() + type.slice(1)}
+      <Chip color={positionType.color as any} variant="flat">
+        {positionType.label}
       </Chip>
     );
   };
 
-  const handleInputChange = (
-    value: string,
-    field: keyof Work,
-    setter: (value: string) => void
+  // Calculate duration of experience
+  const getDuration = (
+    startDate: Date | string,
+    endDate?: Date | string,
+    current?: boolean
   ) => {
-    setter(value);
-    if (validationErrors[field] && value.trim()) {
-      const newErrors = { ...validationErrors };
-      delete newErrors[field];
-      setValidationErrors(newErrors);
+    try {
+      const start = new Date(startDate);
+      const end = current
+        ? new Date()
+        : endDate
+        ? new Date(endDate)
+        : new Date();
+
+      const months =
+        (end.getFullYear() - start.getFullYear()) * 12 +
+        (end.getMonth() - start.getMonth());
+      const years = Math.floor(months / 12);
+      const remainingMonths = months % 12;
+
+      let result = "";
+      if (years > 0) {
+        result += `${years} year${years > 1 ? "s" : ""}`;
+      }
+      if (remainingMonths > 0 || years === 0) {
+        if (years > 0) result += " ";
+        result += `${remainingMonths} month${remainingMonths !== 1 ? "s" : ""}`;
+      }
+
+      return result;
+    } catch (e) {
+      return "Invalid date";
     }
   };
 
-  const handleSelectionChange = (
-    value: string,
-    field: keyof Work,
-    setter: (value: any) => void
-  ) => {
-    setter(value);
-    if (validationErrors[field] && value) {
-      const newErrors = { ...validationErrors };
-      delete newErrors[field];
-      setValidationErrors(newErrors);
+  // Handle form field changes
+  const handleInputChange = (field: keyof typeof formData, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    // Clear validation error for this field
+    if (validationErrors[field]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+
+    // Special handling for "current" checkbox
+    if (field === "current" && value === true) {
+      // Clear end date errors when setting to current position
+      if (validationErrors.endDate) {
+        setValidationErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.endDate;
+          return newErrors;
+        });
+      }
     }
   };
 
-  const handleCurrentChange = (isSelected: boolean) => {
-    setCurrent(isSelected);
-    if (isSelected && validationErrors.endDate) {
-      const newErrors = { ...validationErrors };
-      delete newErrors.endDate;
-      setValidationErrors(newErrors);
+  // Handle modal close
+  const handleCloseModal = () => {
+    if (!isSubmitting) {
+      resetForm();
+      onClose();
     }
+  };
+
+  // Get company avatar initials
+  const getCompanyInitials = (company: string) => {
+    if (!company) return "C";
+
+    const words = company.trim().split(/\s+/);
+    if (words.length === 1) {
+      return company.charAt(0).toUpperCase();
+    }
+
+    return (
+      words[0].charAt(0) + words[words.length - 1].charAt(0)
+    ).toUpperCase();
   };
 
   return (
-    <div className="p-5">
-      <Breadcrumbs>
+    <div>
+      <Breadcrumbs className="mb-6">
         <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
-        <BreadcrumbItem href="/profile/experience">Experience</BreadcrumbItem>
+        <BreadcrumbItem href="/profile/experience">
+          Work Experience
+        </BreadcrumbItem>
       </Breadcrumbs>
 
-      <div className="py-5 flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-xl font-semibold">Work Experience</h1>
-          <p className="text-sm text-neutral-500">
-            Manage your professional history
+          <h1 className="text-2xl font-semibold">Work Experience</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Track your professional career history
           </p>
         </div>
         <Button
-          variant="flat"
+          color="primary"
           onClick={handleAdd}
           startContent={<Plus size={18} />}
-          color="primary"
         >
           Add Experience
         </Button>
       </div>
 
       <div className="space-y-4">
-        {!user.workExperience?.length ? (
-          <div className="flex flex-col items-center justify-center gap-4 p-10 border border-neutral-200 dark:border-neutral-800 rounded-lg bg-neutral-50 dark:bg-neutral-900">
-            <div className="p-4 bg-neutral-100 dark:bg-neutral-800 rounded-full">
-              <BriefcaseBusiness size={32} className="text-neutral-500" />
-            </div>
-
-            <h3 className="text-lg font-medium mt-2">
-              No Work Experience Added
-            </h3>
-            <p className="text-neutral-500 text-center max-w-md">
-              Add your professional history to complete your profile.
-            </p>
-            <Button
-              color="primary"
-              onClick={handleAdd}
-              startContent={<Plus size={16} />}
-              size="sm"
-            >
-              Add Experience
-            </Button>
+        {isLoading ? (
+          // Skeleton loader for loading state
+          <div className="space-y-4">
+            <Skeleton className="h-40 w-full rounded-lg" />
+            <Skeleton className="h-40 w-full rounded-lg" />
           </div>
+        ) : !user.workExperience?.length ? (
+          <Card className="w-full bg-gray-50 border-dashed border-2 border-gray-200">
+            <CardBody className="flex flex-col items-center justify-center py-12">
+              <div className="bg-primary-50 p-5 rounded-full">
+                <Briefcase size={36} className="text-primary" />
+              </div>
+              <div className="text-center max-w-lg">
+                <h3 className="text-xl font-medium mb-2">
+                  No Work Experience Added Yet
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Your professional history showcases your career progression
+                  and skills. Add details about your current and past work
+                  experiences to highlight your expertise and industry
+                  background.
+                </p>
+                <Button
+                  color="primary"
+                  onClick={handleAdd}
+                  startContent={<Plus size={18} />}
+                  size="lg"
+                >
+                  Add Your First Experience
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
         ) : (
           <>
             {user.workExperience.map((experience) => (
-              <Card
-                key={experience._id}
-                className="w-full border border-neutral-200 dark:border-neutral-800 shadow-sm"
-              >
-                <CardBody>
+              <Card key={experience._id} className="w-full shadow-sm">
+                <CardBody className="p-5">
                   <div className="flex items-start w-full gap-4">
-                    <div className="w-10 h-10 bg-neutral-100 dark:bg-neutral-800 rounded flex items-center justify-center text-neutral-700 dark:text-neutral-300 shrink-0 font-medium">
-                      {experience.company.charAt(0).toUpperCase()}
-                    </div>
+                    <Avatar
+                      name={getCompanyInitials(experience.company)}
+                      size="md"
+                      radius="md"
+                      color="primary"
+                      classNames={{
+                        base: "bg-primary-100",
+                        name: "text-primary-600 font-semibold",
+                      }}
+                    />
                     <div className="flex items-start justify-between w-full">
                       <div className="w-full">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="text-base font-medium">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <h3 className="text-lg font-medium">
                             {experience.title}
                           </h3>
                           {getPositionTypeBadge(experience.type)}
+                          {experience.current && (
+                            <Chip
+                              color="success"
+                              variant="flat"
+                              startContent={<Clock size={12} />}
+                            >
+                              Current
+                            </Chip>
+                          )}
                         </div>
-                        <p className="text-neutral-600 dark:text-neutral-400 text-sm">
-                          {experience.company} · {experience.sector}
-                        </p>
-                        <p className="text-neutral-500 dark:text-neutral-500 text-xs mt-1">
-                          {formatDate(experience.startDate)} -{" "}
-                          {experience.current
-                            ? "Present"
-                            : experience.endDate
-                            ? formatDate(experience.endDate)
-                            : ""}{" "}
-                          · {experience.location}
-                        </p>
+
+                        <div className="flex items-center gap-2">
+                          <Building size={14} className="text-gray-400" />
+                          <p className="text-gray-600">{experience.company}</p>
+                          <span className="text-gray-400 mx-1">•</span>
+                          <span className="text-gray-500 text-sm">
+                            {experience.sector}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-2">
+                          <div className="flex items-center gap-2">
+                            <Calendar size={14} className="text-gray-400" />
+                            <span className="text-gray-600">
+                              {formatDate(experience.startDate)} -{" "}
+                              {experience.current
+                                ? "Present"
+                                : experience.endDate
+                                ? formatDate(experience.endDate)
+                                : ""}
+                            </span>
+                            <Chip
+                              variant="flat"
+                              color="primary"
+                              className="ml-1"
+                              startContent={<Clock size={12} />}
+                            >
+                              {getDuration(
+                                experience.startDate,
+                                experience.endDate,
+                                experience.current
+                              )}
+                            </Chip>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <MapPin size={14} className="text-gray-400" />
+                            <span className="text-gray-600">
+                              {experience.location}
+                            </span>
+                          </div>
+                        </div>
+
                         {experience.description && (
-                          <div className="mt-3 text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-line">
-                            {experience.description}
+                          <div className="mt-4 bg-gray-50 p-4 rounded-lg text-sm">
+                            <p className="whitespace-pre-line">
+                              {experience.description}
+                            </p>
                           </div>
                         )}
                       </div>
 
-                      <div className="flex gap-1 shrink-0 ml-2">
-                        <Button
-                          isIconOnly
-                          variant="light"
-                          onClick={() => handleEdit(experience)}
-                          size="sm"
-                          aria-label="Edit experience"
-                        >
-                          <Edit2 size={16} />
-                        </Button>
-                        <Button
-                          isIconOnly
-                          variant="light"
-                          color="danger"
-                          onClick={() =>
-                            experience._id && handleDelete(experience._id)
-                          }
-                          size="sm"
-                          aria-label="Delete experience"
-                        >
-                          <Trash2 size={16} />
-                        </Button>
+                      <div className="flex gap-2 shrink-0 ml-2">
+                        <Tooltip content="Edit experience">
+                          <Button
+                            isIconOnly
+                            variant="light"
+                            onClick={() => handleEdit(experience)}
+                            aria-label="Edit experience"
+                          >
+                            <Edit2 size={16} />
+                          </Button>
+                        </Tooltip>
+                        <Tooltip content="Delete experience" color="danger">
+                          <Button
+                            isIconOnly
+                            variant="light"
+                            color="danger"
+                            onClick={() =>
+                              experience._id && confirmDelete(experience._id)
+                            }
+                            aria-label="Delete experience"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </Tooltip>
                       </div>
                     </div>
                   </div>
@@ -529,186 +757,287 @@ export default function WorkExperience() {
         )}
       </div>
 
+      {/* Add/Edit Experience Modal */}
       <Modal
         isOpen={isOpen}
-        onClose={onClose}
+        onClose={handleCloseModal}
         size="2xl"
         scrollBehavior="inside"
-        isDismissable={false}
+        isDismissable={!isSubmitting}
       >
         <ModalContent>
-          {(onClose) => (
+          {() => (
             <>
-              <ModalHeader className="border-b">
-                {editingExperience ? "Edit Experience" : "Add New Experience"}
+              <ModalHeader className="flex flex-col gap-1 border-b">
+                <div className="flex items-center gap-2">
+                  <Briefcase size={20} className="text-primary" />
+                  <h2 className="text-lg">
+                    {editingExperience
+                      ? "Edit Work Experience"
+                      : "Add New Work Experience"}
+                  </h2>
+                </div>
+                <p className="text-sm text-gray-500">
+                  {editingExperience
+                    ? "Update details about your professional experience"
+                    : "Share information about your work history and professional career"}
+                </p>
               </ModalHeader>
-              <ModalBody className="py-6">
+
+              <ModalBody className="py-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     label="Company Name"
-                    placeholder="Enter company name"
+                    placeholder="Enter the organization where you worked"
                     isRequired
                     isInvalid={!!validationErrors.company}
                     errorMessage={validationErrors.company}
-                    value={company}
+                    value={formData.company}
                     onChange={(e) =>
-                      handleInputChange(e.target.value, "company", setCompany)
+                      handleInputChange("company", e.target.value)
                     }
-                    classNames={{
-                      inputWrapper:
-                        "border-neutral-300 dark:border-neutral-700",
-                    }}
+                    startContent={
+                      <Building size={16} className="text-gray-400" />
+                    }
+                    description="Name of the company or organization"
+                    isDisabled={isSubmitting}
                   />
+
                   <Select
                     label="Company Sector"
-                    placeholder="Select company sector"
-                    selectedKeys={sector ? [sector] : []}
+                    placeholder="Select company's industry"
+                    selectedKeys={formData.sector ? [formData.sector] : []}
                     isRequired
                     isInvalid={!!validationErrors.sector}
                     errorMessage={validationErrors.sector}
                     onSelectionChange={(keys) => {
-                      const selected = Array.from(keys)[0] as string;
-                      handleSelectionChange(selected, "sector", setSector);
+                      if (Array.isArray(keys) && keys.length > 0) {
+                        handleInputChange(
+                          "sector",
+                          Array.from(keys)[0] as string
+                        );
+                      }
                     }}
-                    classNames={{
-                      trigger: "border-neutral-300 dark:border-neutral-700",
-                    }}
+                    startContent={
+                      <BriefcaseBusiness size={16} className="text-gray-400" />
+                    }
+                    description="Industry or business sector"
+                    isDisabled={isSubmitting}
                   >
-                    {sectors.map((sector) => (
-                      <SelectItem key={sector} value={sector}>
-                        {sector}
-                      </SelectItem>
-                    ))}
+                    {Object.entries(sectorsByCategory).map(
+                      ([category, sectors]) => (
+                        <SelectItem key={category} textValue={category}>
+                          <div className="font-semibold text-small">
+                            {category}
+                          </div>
+                          {sectors.map((sector) => (
+                            <SelectItem key={sector} value={sector}>
+                              {sector}
+                            </SelectItem>
+                          ))}
+                        </SelectItem>
+                      )
+                    )}
                   </Select>
+
                   <Input
                     label="Job Title"
-                    placeholder="Enter job title"
-                    value={title}
+                    placeholder="Your position or role"
+                    value={formData.title}
                     isRequired
                     isInvalid={!!validationErrors.title}
                     errorMessage={validationErrors.title}
-                    onChange={(e) =>
-                      handleInputChange(e.target.value, "title", setTitle)
+                    onChange={(e) => handleInputChange("title", e.target.value)}
+                    startContent={
+                      <Briefcase size={16} className="text-gray-400" />
                     }
-                    classNames={{
-                      inputWrapper:
-                        "border-neutral-300 dark:border-neutral-700",
-                    }}
+                    description="Your official job title"
+                    isDisabled={isSubmitting}
                   />
+
                   <Input
                     label="Location"
-                    placeholder="City, Country"
+                    placeholder="City, Country or Remote"
                     isRequired
                     isInvalid={!!validationErrors.location}
                     errorMessage={validationErrors.location}
-                    value={location}
+                    value={formData.location}
                     onChange={(e) =>
-                      handleInputChange(e.target.value, "location", setLocation)
+                      handleInputChange("location", e.target.value)
                     }
-                    classNames={{
-                      inputWrapper:
-                        "border-neutral-300 dark:border-neutral-700",
-                    }}
+                    startContent={
+                      <MapPin size={16} className="text-gray-400" />
+                    }
+                    description="Where the work was performed"
+                    isDisabled={isSubmitting}
                   />
+
                   <Select
-                    label="Position Type"
+                    label="Employment Type"
                     placeholder="Select position type"
                     isRequired
                     isInvalid={!!validationErrors.type}
                     errorMessage={validationErrors.type}
-                    selectedKeys={type ? [type] : []}
+                    selectedKeys={formData.type ? [formData.type] : []}
                     onSelectionChange={(keys) => {
-                      const selected = Array.from(keys)[0] as Work["type"];
-                      handleSelectionChange(selected, "type", setType);
+                      if (Array.isArray(keys) && keys.length > 0) {
+                        handleInputChange(
+                          "type",
+                          Array.from(keys)[0] as Work["type"]
+                        );
+                      }
                     }}
-                    classNames={{
-                      trigger: "border-neutral-300 dark:border-neutral-700",
-                    }}
+                    startContent={
+                      <BriefcaseBusiness size={16} className="text-gray-400" />
+                    }
+                    description="Type of employment arrangement"
+                    isDisabled={isSubmitting}
                   >
                     {positionTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      <SelectItem
+                        key={type.value}
+                        value={type.value}
+                        description={type.description}
+                      >
+                        {type.label}
                       </SelectItem>
                     ))}
                   </Select>
+
                   <Select
                     label="Job Function"
-                    placeholder="Select job function"
+                    placeholder="Select primary area of work"
                     isRequired
                     isInvalid={!!validationErrors.jobFunction}
                     errorMessage={validationErrors.jobFunction}
-                    selectedKeys={jobFunction ? [jobFunction] : []}
+                    selectedKeys={
+                      formData.jobFunction ? [formData.jobFunction] : []
+                    }
                     onSelectionChange={(keys) => {
-                      const selected = Array.from(keys)[0] as string;
-                      handleSelectionChange(
-                        selected,
-                        "jobFunction",
-                        setJobFunction
-                      );
+                      if (Array.isArray(keys) && keys.length > 0) {
+                        handleInputChange(
+                          "jobFunction",
+                          Array.from(keys)[0] as string
+                        );
+                      }
                     }}
-                    classNames={{
-                      trigger: "border-neutral-300 dark:border-neutral-700",
-                    }}
+                    description="Your main professional field"
+                    isDisabled={isSubmitting}
                   >
-                    {jobFunctions.map((func) => (
-                      <SelectItem key={func} value={func}>
-                        {func}
-                      </SelectItem>
-                    ))}
+                    {Object.entries(jobFunctionsByCategory).map(
+                      ([category, functions]) => (
+                        <SelectItem key={category} textValue={category}>
+                          <div className="font-semibold text-small">
+                            {category}
+                          </div>
+                          {functions.map((func) => (
+                            <SelectItem key={func} value={func}>
+                              {func}
+                            </SelectItem>
+                          ))}
+                        </SelectItem>
+                      )
+                    )}
                   </Select>
-                  <div className="flex flex-col">
+
+                  <div>
+                    <label className="block text-small font-medium text-foreground mb-1.5">
+                      Start Date <span className="text-danger">*</span>
+                    </label>
                     <DatePicker
-                      label="Start Date"
+                      aria-label="Start Date"
                       isRequired
                       isInvalid={!!validationErrors.startDate}
                       errorMessage={validationErrors.startDate}
                       maxValue={today(getLocalTimeZone())}
-                      value={parseAbsoluteToLocal(startDate.toISOString())}
+                      value={parseAbsoluteToLocal(
+                        formData.startDate.toISOString()
+                      )}
                       onChange={(date) => handleDateChange(date, "startDate")}
+                      showMonthAndYearPickers
+                      isDisabled={isSubmitting}
+                      hideTimeZone
+                      granularity="day"
                     />
+                    <p className="text-tiny text-default-500 mt-1">
+                      When you started this position
+                    </p>
                   </div>
-                  <div className="flex flex-col">
+
+                  <div>
+                    <label className="block text-small font-medium text-foreground mb-1.5">
+                      End Date{" "}
+                      {!formData.current && (
+                        <span className="text-danger">*</span>
+                      )}
+                    </label>
                     <DatePicker
-                      label="End Date"
+                      aria-label="End Date"
                       isInvalid={!!validationErrors.endDate}
                       errorMessage={validationErrors.endDate}
                       value={
-                        endDate
-                          ? parseAbsoluteToLocal(endDate.toISOString())
+                        formData.endDate
+                          ? parseAbsoluteToLocal(formData.endDate.toISOString())
                           : undefined
                       }
                       onChange={(date) => handleDateChange(date, "endDate")}
                       maxValue={today(getLocalTimeZone())}
-                      isDisabled={current}
+                      isDisabled={formData.current || isSubmitting}
+                      showMonthAndYearPickers
+                      hideTimeZone
+                      granularity="day"
                     />
+                    <p className="text-tiny text-default-500 mt-1">
+                      {formData.current
+                        ? "Not required for current positions"
+                        : "When you left this position"}
+                    </p>
                   </div>
+
                   <div className="col-span-2 mt-1">
                     <Checkbox
-                      isSelected={current}
-                      onValueChange={handleCurrentChange}
+                      isSelected={formData.current}
+                      onValueChange={(checked) =>
+                        handleInputChange("current", checked)
+                      }
+                      isDisabled={isSubmitting}
                     >
                       I currently work here
                     </Checkbox>
                   </div>
+
+                  <div className="col-span-2">
+                    <Textarea
+                      label="Description"
+                      placeholder="Describe your responsibilities, achievements, and skills utilized in this role. Consider including key projects, metrics, and outcomes."
+                      value={formData.description || ""}
+                      onChange={(e) =>
+                        handleInputChange("description", e.target.value)
+                      }
+                      minRows={3}
+                      maxRows={5}
+                      isDisabled={isSubmitting}
+                      description="Highlight your key responsibilities and accomplishments"
+                    />
+                    <div className="flex justify-between mt-1">
+                      <p className="text-xs text-gray-500">
+                        Use bullet points by starting lines with • or - for
+                        better readability
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {formData.description?.length || 0}/3000
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <Textarea
-                  label="Description"
-                  placeholder="Describe your responsibilities, achievements, and skills"
-                  className="mt-4"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  minRows={3}
-                  classNames={{
-                    inputWrapper: "border-neutral-300 dark:border-neutral-700",
-                  }}
-                />
-                <p className="text-xs text-neutral-500 mt-1">
-                  Use bullet points to highlight key achievements and
-                  responsibilities
-                </p>
               </ModalBody>
+
               <ModalFooter className="border-t">
-                <Button color="default" variant="light" onPress={onClose}>
+                <Button
+                  variant="light"
+                  onPress={handleCloseModal}
+                  isDisabled={isSubmitting}
+                >
                   Cancel
                 </Button>
                 <Button
@@ -718,6 +1047,51 @@ export default function WorkExperience() {
                   isDisabled={isSubmitting}
                 >
                   {editingExperience ? "Update" : "Save"}
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModal.isOpen}
+        onClose={() => !isSubmitting && deleteModal.onClose()}
+        isDismissable={!isSubmitting}
+      >
+        <ModalContent>
+          {() => (
+            <>
+              <ModalHeader className="border-b">
+                <h3>Confirm Deletion</h3>
+              </ModalHeader>
+              <ModalBody className="py-5">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-danger/10 p-2 flex-shrink-0">
+                    <AlertCircle size={22} className="text-danger" />
+                  </div>
+                  <p className="text-gray-600">
+                    Are you sure you want to delete this work experience? This
+                    action cannot be undone.
+                  </p>
+                </div>
+              </ModalBody>
+              <ModalFooter className="border-t">
+                <Button
+                  variant="light"
+                  onPress={() => !isSubmitting && deleteModal.onClose()}
+                  isDisabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  color="danger"
+                  onPress={handleDelete}
+                  isLoading={isSubmitting}
+                  isDisabled={isSubmitting}
+                >
+                  Delete
                 </Button>
               </ModalFooter>
             </>
