@@ -16,7 +16,6 @@ const Candidates = () => {
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [rerender, setRerender] = useState(false);
 
   const { getToken } = useAuth();
   useEffect(() => {
@@ -32,7 +31,7 @@ const Candidates = () => {
         setError("Failed to fetch candidates");
         setLoading(false);
       });
-  }, [rerender]);
+  }, []);
 
   if (loading)
     return (
@@ -59,7 +58,7 @@ const Candidates = () => {
         className=""
       >
         <div className="p-5">
-          <DataTable data={candidates} type="active" onDataUpdate={() =>setRerender(!rerender)} />
+          <DataTable data={candidates} type="active" setData={setCandidates} />
         </div>
       </motion.div>
     </>

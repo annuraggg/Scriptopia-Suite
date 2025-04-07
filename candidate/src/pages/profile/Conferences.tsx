@@ -250,7 +250,6 @@ export default function Conferences() {
         const newConf: Conference = {
           ...preparedData,
           createdAt: new Date(),
-          _id: `conf_${Date.now()}`, // Generate a temporary ID
         };
         newConferences = [...(user?.conferences || []), newConf];
       }

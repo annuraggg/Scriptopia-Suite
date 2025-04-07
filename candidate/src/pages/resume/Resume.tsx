@@ -18,7 +18,7 @@ import {
   Tabs,
 } from "@nextui-org/react";
 import { Candidate } from "@shared-types/Candidate";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, Link } from "react-router-dom";
 import ResumePDF from "./ResumePDF";
 import {
   DragDropContext,
@@ -31,13 +31,14 @@ import {
   GripVertical,
   CheckCircle,
   AlertTriangle,
+  UserCog,
 } from "lucide-react";
 import axios from "axios";
 import { ThemeStyles } from "@/types/ResumeTheme";
 import Themes from "./Themes";
 import ThemeCustomizer from "./ThemeCustomizer";
 import { pdf } from "@react-pdf/renderer";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // ATS Check interface
 interface ATSCheckResult {
@@ -125,6 +126,38 @@ const Resume: React.FC = () => {
   const [atsResult, setAtsResult] = useState<ATSCheckResult | null>(null);
   const [jobDescription, setJobDescription] = useState<string>("");
   const [jobTitle, setJobTitle] = useState<string>("");
+  const [isProfileEmpty, setIsProfileEmpty] = useState<boolean>(true);
+
+  // Check if all sections are empty
+  useEffect(() => {
+    const checkIfProfileEmpty = () => {
+      // Check if user has any content
+      const hasSummary = !!user.summary;
+      const hasEducation = user.education && user.education.length > 0;
+      const hasWorkExperience =
+        user.workExperience && user.workExperience.length > 0;
+      const hasTechnicalSkills =
+        user.technicalSkills && user.technicalSkills.length > 0;
+      const hasProjects = user.projects && user.projects.length > 0;
+      const hasLanguages = user.languages && user.languages.length > 0;
+      const hasCertificates = user.certificates && user.certificates.length > 0;
+      const hasAwards = user.awards && user.awards.length > 0;
+
+      // If all are empty, profile is empty
+      setIsProfileEmpty(
+        !hasSummary &&
+          !hasEducation &&
+          !hasWorkExperience &&
+          !hasTechnicalSkills &&
+          !hasProjects &&
+          !hasLanguages &&
+          !hasCertificates &&
+          !hasAwards
+      );
+    };
+
+    checkIfProfileEmpty();
+  }, [user]);
 
   // Handle section title change
   const handleSectionTitleChange = (id: string, newTitle: string): void => {
@@ -722,14 +755,6 @@ const Resume: React.FC = () => {
         </Breadcrumbs>
 
         <div className="flex gap-2">
-          {/* <Button
-            color="secondary"
-            variant="flat"
-            startContent={<CheckCircle size={18} />}
-            onClick={() => setIsATSModalOpen(true)}
-          >
-            ATS Compatibility Check
-          </Button> */}
           <Button
             color="primary"
             variant="solid"
@@ -832,13 +857,6 @@ const Resume: React.FC = () => {
                 )}
               </Droppable>
             </DragDropContext>
-
-            <Divider className="my-4" />
-
-            <p className="text-sm text-gray-500">
-              Tip: Drag to reorder sections, toggle to show/hide, and customize
-              section titles.
-            </p>
           </div>
         </Tab>
         <Tab key="theming" title="Theme" className="hidden">
@@ -852,6 +870,40 @@ const Resume: React.FC = () => {
       </Tabs>
     );
   };
+
+  // If profile is empty, show message to update profile
+  if (isProfileEmpty) {
+    return (
+      <div className="p-5">
+        <Card className="w-full">
+          <CardBody className="flex flex-col items-center justify-center py-16">
+            <div className="text-center">
+              <div className="mb-6 flex justify-center">
+                <UserCog size={64} className="text-gray-400" />
+              </div>
+              <h2 className="text-2xl font-semibold mb-3">
+                Your profile is empty
+              </h2>
+              <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                To create your resume, please first update your profile with
+                relevant information such as education, work experience, skills,
+                and projects.
+              </p>
+              <Button
+                as={Link}
+                to="/profile"
+                color="primary"
+                size="lg"
+                className="font-medium"
+              >
+                Complete Your Profile
+              </Button>
+            </div>
+          </CardBody>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="p-5">

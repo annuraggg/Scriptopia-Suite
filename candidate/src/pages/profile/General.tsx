@@ -113,7 +113,6 @@ const General = () => {
       formSchema.parse(updatedCandidate);
       setUser(updatedCandidate);
       setHasChanges(false);
-      toast.success("Changes saved successfully");
     } catch (error) {
       if (error instanceof z.ZodError) {
         error.errors.forEach((err) => {
@@ -533,12 +532,12 @@ const General = () => {
                     />
 
                     {resumeUploadLoading && (
-                      <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                      <div className="w-full bg-gray-200 rounded-full my-3">
                         <div
                           className="bg-primary h-2.5 rounded-full"
                           style={{ width: `${uploadProgress}%` }}
                         ></div>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-gray-500">
                           Uploading: {uploadProgress}%
                         </p>
                       </div>

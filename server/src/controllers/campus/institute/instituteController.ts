@@ -18,6 +18,8 @@ import { MemberWithPermission } from "@shared-types/MemberWithPermission";
 import { UserMeta } from "@shared-types/UserMeta";
 import CandidateModel from "@/models/Candidate";
 import { Types } from "mongoose";
+import Candidate from "@/models/Candidate";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const createInstitute = async (c: Context) => {
   try {
@@ -1162,8 +1164,8 @@ const getInstitute = async (c: Context): Promise<any> => {
         .populate("companies")
         .populate("placementGroups")
         .populate("drives"),
-      
-        User.findOne({ _id: userId }).lean(),
+
+      User.findOne({ _id: userId }).lean(),
     ]);
 
     if (!selectedInstitute || !userDoc) {
@@ -1316,6 +1318,7 @@ const acceptCandidate = async (c: Context) => {
   try {
     const candidateId = c.req.param("cid");
     const perms = await checkInstitutePermission.all(c, ["verify_candidate"]);
+    console.log(perms.data?.institute?.role);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
@@ -1338,14 +1341,14 @@ const acceptCandidate = async (c: Context) => {
       return sendError(c, 404, "Pending candidate not found");
     }
 
-    const newPending =  institute.pendingCandidates.filter(
+    const newPending = institute.pendingCandidates.filter(
       (c) => c?.toString() !== candidate._id.toString()
     );
 
     institute.candidates.push(candidate._id);
     institute.pendingCandidates = newPending;
 
-    console.log(newPending)
+    console.log(newPending);
 
     candidate.institute = institute._id;
 
@@ -1406,6 +1409,40 @@ const rejectCandidate = async (c: Context) => {
   } catch (error) {
     logger.error("Failed to reject candidate: " + error);
     return sendError(c, 500, "Failed to reject candidate", error);
+  }
+};
+
+const getResume = async (c: Context) => {
+  try {
+    const auth = c.get("auth");
+    const cid = c.req.param("cid");
+
+    if (!auth) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const perms = await checkInstitutePermission.all(c, ["view_institute"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const candidate = await Candidate.findOne({ _id: cid });
+
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const command = new GetObjectCommand({
+      Bucket: process.env.R2_S3_RESUME_BUCKET!,
+      Key: `${candidate._id}.pdf`,
+    });
+
+    const url = await getSignedUrl(r2Client, command, { expiresIn: 600 });
+
+    return sendSuccess(c, 200, "Resume URL", { url });
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Internal Server Error");
   }
 };
 
@@ -1473,4 +1510,5 @@ export default {
   acceptCandidate,
   rejectCandidate,
   removeCandidate,
+  getResume,
 };

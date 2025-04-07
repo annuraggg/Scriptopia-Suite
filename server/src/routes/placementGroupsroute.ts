@@ -11,5 +11,6 @@ app.put("/:id", placementGroupController.updatePlacementGroup);
 app.post("/:id/join", placementGroupController.joinPlacementGroup);
 app.post("/:id/accept", placementGroupController.acceptCandidate);
 app.post("/:id/reject", placementGroupController.rejectCandidate);
+app.delete("/:id", placementGroupController.deletePlacementGroup);
 
 export default app;

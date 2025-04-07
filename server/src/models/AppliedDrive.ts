@@ -19,6 +19,11 @@ const appliedDriveSchema = new Schema(
       enum: ["applied", "inprogress", "rejected", "hired"],
       default: "applied",
     },
+
+    salary: {
+      type: Number,
+      required: false,
+    },
   },
   { timestamps: true }
 );

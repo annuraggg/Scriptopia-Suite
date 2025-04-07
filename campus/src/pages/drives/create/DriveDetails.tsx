@@ -168,11 +168,6 @@ const DriveDetails = ({
             <SelectItem key="contract">Contract</SelectItem>
             <SelectItem key="internship">Internship</SelectItem>
             <SelectItem key="temporary">Temporary</SelectItem>
-            <SelectItem key="full_time">Full Time</SelectItem>
-            <SelectItem key="part_time">Part Time</SelectItem>
-            <SelectItem key="contract">Contract</SelectItem>
-            <SelectItem key="internship">Internship</SelectItem>
-            <SelectItem key="temporary">Temporary</SelectItem>
           </Select>
 
           <Input

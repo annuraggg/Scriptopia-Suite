@@ -55,12 +55,6 @@ const placementGroupSchema = new Schema(
       type: [ruleSchema],
       default: [],
     },
-    accessType: {
-      type: String,
-      enum: ["public", "private"],
-      required: true,
-      default: "private",
-    },
     candidates: [
       {
         type: mongoose.Schema.Types.ObjectId,

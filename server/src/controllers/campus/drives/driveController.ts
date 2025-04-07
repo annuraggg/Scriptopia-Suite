@@ -797,6 +797,7 @@ const uploadOfferLetter = async (c: Context) => {
     const formData = await c.req.formData();
     const file = formData.get("file");
     const id = formData.get("driveId");
+    const ctc = formData.get("ctc");
 
     const candidate = await Candidate.findOne({ userId: c.get("auth")._id });
     if (!candidate) {
@@ -816,6 +817,21 @@ const uploadOfferLetter = async (c: Context) => {
       return sendError(c, 400, "Drive has not ended yet");
     }
 
+    const appliedDrive = await AppliedDrive.findOne({
+      user: candidate._id,
+      drive: id,
+    });
+
+    if (!appliedDrive) {
+      return sendError(c, 404, "Applied drive not found");
+    }
+
+    if (appliedDrive.status !== "hired") {
+      return sendError(c, 400, "Candidate is not hired yet");
+    }
+
+    appliedDrive.salary = Number(ctc);
+
     const uploadParams = {
       Bucket: process.env.R2_S3_OFFERLETTER_BUCKET!,
       Key: `${id}/${candidate._id}`,
@@ -832,6 +848,7 @@ const uploadOfferLetter = async (c: Context) => {
 
     drive.offerLetters?.push(candidate._id);
     await drive.save();
+    await appliedDrive.save();
 
     return sendSuccess(c, 200, "File uploaded successfully", null);
   } catch (e: any) {

@@ -157,13 +157,14 @@ const Posting: React.FC = () => {
   const [uploadLoading, setUploadLoading] = useState<boolean>(false);
 
   // And update your handleFileUpload function:
-  const handleFileUpload = (file: File): void => {
+  const handleFileUpload = (file: File, ctc: string): void => {
     setUploadLoading(true); // Set loading to true when starting upload
 
     const formData = new FormData();
     formData.append("file", file);
     formData.append("driveId", posting._id!);
     formData.append("candidateId", userDoc._id!);
+    formData.append("ctc", ctc);
 
     axios
       .post("/drives/upload-offer-letter", formData)

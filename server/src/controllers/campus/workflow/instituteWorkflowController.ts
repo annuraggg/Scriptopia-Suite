@@ -11,6 +11,7 @@ import checkPermission from "../../../middlewares/checkInstitutePermission";
 import { Assessment, Assignment } from "@shared-types/Drive";
 import User from "@/models/User";
 import Meet from "@/models/Meet";
+import AppliedDrive from "@/models/AppliedDrive";
 
 const REGION = "ap-south-1";
 
@@ -77,6 +78,9 @@ const advanceWorkflow = async (c: Context) => {
       case "INTERVIEW":
         handleInterviewRound(drive, currentStep);
         break;
+      case "CUSTOM":
+        handleCustomRound(drive);
+        break;
     }
 
     console.log("Workflow advanced to next step", currentStep.type);
@@ -87,12 +91,7 @@ const advanceWorkflow = async (c: Context) => {
     const updatedDrive = await Drive.findById(_id)
       .populate("candidates")
       .populate("institute");
-    return sendSuccess(
-      c,
-      200,
-      "Workflow advanced successfully",
-      updatedDrive
-    );
+    return sendSuccess(c, 200, "Workflow advanced successfully", updatedDrive);
   } catch (error) {
     console.error(error);
     return sendError(c, 500, "Internal Server Error", error);
@@ -226,6 +225,22 @@ const handleAssessmentRound = async (drive: any, step: any) => {
   );
 };
 
+const handleCustomRound = async (drive: any) => {
+  console.log("Detected custom round");
+  const institute = await Institute.findById(drive.institute);
+  if (!institute) return;
+
+  const appliedDrives = await AppliedDrive.find({
+    drive: drive._id,
+    status: { $ne: "rejected" },
+  });
+
+  for (const appliedDrive of appliedDrives) {
+    appliedDrive.status = "inprogress";
+    await appliedDrive.save();
+  }
+};
+
 const handleInterviewRound = async (drive: any, step: any) => {
   console.log("Detected interview round");
   const institute = await Institute.findById(drive.institute);
@@ -282,9 +297,7 @@ const handleInterviewRound = async (drive: any, step: any) => {
 
 const logWorkflowAdvance = async (c: Context, drive: any, perms: any) => {
   const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
-  const institute = await Institute.findById(
-    perms.data!.institute?._id
-  );
+  const institute = await Institute.findById(perms.data!.institute?._id);
   if (!institute) return;
 
   institute.auditLogs.push({

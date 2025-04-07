@@ -304,7 +304,6 @@ export default function Responsibilities() {
       } else {
         const newResp: Responsibility = {
           ...preparedData,
-          _id: `resp_${Date.now()}`,
           createdAt: new Date(),
         };
         newResponsibilities = [...(user?.responsibilities || []), newResp];

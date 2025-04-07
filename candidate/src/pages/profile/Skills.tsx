@@ -420,7 +420,6 @@ const Skills = () => {
 
       if (selectedCategory === "technical") {
         const newSkill = {
-          _id: `tech_${Date.now()}`, // Temporary ID for new items
           skill: formData.name,
           proficiency: getProficiencyNumber(formData.proficiency),
         };
@@ -430,14 +429,12 @@ const Skills = () => {
         ];
       } else if (selectedCategory === "languages") {
         const newSkill = {
-          _id: `lang_${Date.now()}`,
           language: formData.name,
           proficiency: getProficiencyNumber(formData.proficiency),
         };
         updatedUser.languages = [...(updatedUser.languages || []), newSkill];
       } else if (selectedCategory === "subjects") {
         const newSkill = {
-          _id: `subj_${Date.now()}`,
           subject: formData.name,
           proficiency: getProficiencyNumber(formData.proficiency),
         };

@@ -249,7 +249,7 @@ const Certificates = () => {
       certificateSchema.parse(formData);
 
       const currentCertificate: Certificate = {
-        _id: editId || `temp-${Date.now()}`,
+        _id: editId || undefined,
         title,
         issuer,
         url: url || undefined,

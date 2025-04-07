@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import GroupDetailsTab from "./Details";
-import AccessConfigTab from "./Access";
 import CandidatesTab from "./Candidates";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
@@ -21,9 +20,6 @@ const CreateGroupForm: React.FC = () => {
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [purpose, setPurpose] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
-
-  // Access Config State
-  const [accessType, setAccessType] = useState<"public" | "private">("private");
 
   // Criteria State
   const [rules, setRules] = useState<PlacementGroupRule[]>([]);
@@ -50,7 +46,6 @@ const CreateGroupForm: React.FC = () => {
         criteria: rules,
         purpose,
         expiryDate,
-        accessType,
         candidates,
       })
       .then(() => {
@@ -68,7 +63,6 @@ const CreateGroupForm: React.FC = () => {
       <div className="flex flex-col space-y-4 px-4 w-[30%]">
         {[
           { id: 1, title: "Group Details" },
-          { id: 2, title: "Access Settings" },
           { id: 3, title: "Group Criteria" },
           { id: 4, title: "Add Candidates" },
         ]?.map((step, index) => (
@@ -134,14 +128,6 @@ const CreateGroupForm: React.FC = () => {
           />
         )}
         {activeStep === 1 && (
-          <AccessConfigTab
-            accessType={accessType}
-            setAccessType={setAccessType}
-            activeStep={activeStep}
-            setActiveStep={setActiveStep}
-          />
-        )}
-        {activeStep === 2 && (
           <Criteria
             activeStep={activeStep}
             setActiveStep={setActiveStep}
@@ -149,7 +135,7 @@ const CreateGroupForm: React.FC = () => {
             setRules={setRules}
           />
         )}
-        {activeStep === 3 && (
+        {activeStep === 2 && (
           <CandidatesTab
             candidates={candidates}
             setCandidates={setCandidates}

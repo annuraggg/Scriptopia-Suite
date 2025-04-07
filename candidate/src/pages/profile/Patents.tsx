@@ -402,7 +402,6 @@ const Patents = () => {
         // Add new patent with creation timestamp
         const newPatent: Patent = {
           ...patentData,
-          _id: `patent_${Date.now()}`, // Generate temporary ID
           createdAt: new Date(),
         };
         newPatents = [...(user?.patents || []), newPatent];

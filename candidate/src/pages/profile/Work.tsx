@@ -438,7 +438,6 @@ export default function WorkExperience() {
         // Add new experience
         const newExp: Work = {
           ...workData,
-          _id: `exp_${Date.now()}`, // More unique ID generation
           createdAt: new Date(),
         };
         newWorkExperience = [...(user?.workExperience || []), newExp];

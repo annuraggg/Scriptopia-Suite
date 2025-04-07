@@ -7,6 +7,7 @@ import {
   ModalFooter,
   Button,
   Spinner,
+  Input,
 } from "@nextui-org/react";
 import {
   IconUpload,
@@ -18,9 +19,9 @@ import {
 interface UploadOfferLetterProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onUpload: (file: File) => void;
+  onUpload: (file: File, ctc: string) => void;
   title?: string;
-  isLoading?: boolean; // New prop to handle loading state
+  isLoading?: boolean;
 }
 
 const UploadOfferLetter: React.FC<UploadOfferLetterProps> = ({
@@ -28,14 +29,15 @@ const UploadOfferLetter: React.FC<UploadOfferLetterProps> = ({
   onOpenChange,
   onUpload,
   title = "Upload File",
-  isLoading = false, // Default to false
+  isLoading = false,
 }) => {
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [file, setFile] = useState<File | null>(null);
+  const [ctc, setCtc] = useState<string>("");
   const [error, setError] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+  const MAX_SIZE = 2 * 1024 * 1024;
   const ACCEPTED_TYPES = [
     "application/pdf",
     "image/jpeg",
@@ -99,10 +101,8 @@ const UploadOfferLetter: React.FC<UploadOfferLetterProps> = ({
   };
 
   const handleSubmit = (): void => {
-    if (file) {
-      onUpload(file);
-      // Note: Not calling handleReset here because we want to keep the file while loading
-      // The reset will happen when the modal closes or when the upload is complete
+    if (file && isCtcValid()) {
+      onUpload(file, ctc);
     }
   };
 
@@ -126,15 +126,26 @@ const UploadOfferLetter: React.FC<UploadOfferLetterProps> = ({
     }
   };
 
+  const handleCtcChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    const value = e.target.value;
+    if (value === "" || (!isNaN(Number(value)) && Number(value) >= 0)) {
+      setCtc(value);
+    }
+  };
+
+  const isCtcValid = (): boolean => {
+    return ctc !== "" && Number(ctc) > 0;
+  };
+
   return (
     <Modal
       isOpen={isOpen}
       onOpenChange={(open: boolean) => {
-        if (!open && !isLoading) handleReset(); // Only reset if not loading
-        if (!isLoading) onOpenChange(open); // Only allow close if not loading
+        if (!open && !isLoading) handleReset();
+        if (!isLoading) onOpenChange(open);
       }}
-      isDismissable={!isLoading} // Prevent dismissal during loading
-      hideCloseButton={isLoading} // Hide close button during loading
+      isDismissable={!isLoading}
+      hideCloseButton={isLoading}
     >
       <ModalContent>
         {(onClose) => (
@@ -224,21 +235,40 @@ const UploadOfferLetter: React.FC<UploadOfferLetterProps> = ({
                   {error}
                 </div>
               )}
+
+              <Input
+                type="text"
+                label="CTC (in LPA)"
+                placeholder="Enter your CTC"
+                value={ctc}
+                onChange={handleCtcChange}
+                className="mt-4"
+                isDisabled={isLoading}
+                isRequired
+                isInvalid={
+                  ctc !== "" && (Number(ctc) <= 0 || isNaN(Number(ctc)))
+                }
+              />
+              {ctc !== "" && (Number(ctc) <= 0 || isNaN(Number(ctc))) && (
+                <div className="text-danger text-sm mt-1">
+                  CTC must be a positive number
+                </div>
+              )}
             </ModalBody>
             <ModalFooter>
               <Button
                 color="danger"
                 variant="light"
                 onPress={onClose}
-                isDisabled={isLoading} // Disable during loading
+                isDisabled={isLoading}
               >
                 Cancel
               </Button>
               <Button
                 color="primary"
                 onPress={handleSubmit}
-                isDisabled={!file || !!error || isLoading} // Disable during loading
-                isLoading={isLoading} // Show loading state
+                isDisabled={!file || !!error || isLoading}
+                isLoading={isLoading}
               >
                 {isLoading ? "Uploading..." : "Upload"}
               </Button>

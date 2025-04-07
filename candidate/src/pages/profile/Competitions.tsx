@@ -195,7 +195,7 @@ const Competitions = () => {
 
     try {
       const competitionToSave: Competition = {
-        _id: editingId || `temp-${Date.now()}`,
+        _id: editingId || undefined,
         title,
         position,
         organizer,

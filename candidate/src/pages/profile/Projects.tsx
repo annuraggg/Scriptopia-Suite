@@ -269,7 +269,6 @@ const Projects = () => {
         // Add new project with temporary ID and creation timestamp
         const projectWithId: Project = {
           ...newProject,
-          _id: `project_${Date.now()}`,
           createdAt: new Date(),
         };
 

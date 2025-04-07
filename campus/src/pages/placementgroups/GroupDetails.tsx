@@ -19,7 +19,7 @@ const GroupDetails: React.FC = () => {
 
   const [group, setGroup] = useState<ExtendedPlacementGroup | null>(null);
   const [selected, setSelected] = useState("details");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     axios
@@ -45,7 +45,11 @@ const GroupDetails: React.FC = () => {
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="p-6"
+    >
       <div className="flex items-center justify-between p-2">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
           {group.name}
@@ -145,14 +149,6 @@ const GroupDetails: React.FC = () => {
                     </p>
                     <p className="text-base font-medium">
                       {new Date(group.expiryDate).toDateString()}
-                    </p>
-                  </div>
-
-                  <div className="mx-2">
-                    <p className="text-sm text-default-500 mb-1">Access Type</p>
-                    <p className="text-base font-medium">
-                      {group.accessType.slice(0, 1).toUpperCase() +
-                        group.accessType.slice(1)}
                     </p>
                   </div>
 

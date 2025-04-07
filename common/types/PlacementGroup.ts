@@ -43,7 +43,6 @@ export interface PlacementGroup {
   purpose?: string;
   expiryDate: Date;
   criteria?: PlacementGroupRule[];
-  accessType: "public" | "private";
   candidates: string[];
   pendingCandidates: string[];
   createdBy: string;

@@ -336,7 +336,6 @@ const ExtraCurricular = () => {
           activity._id === editingActivityId
             ? {
                 ...preparedData,
-                _id: activity._id,
                 createdAt: activity.createdAt,
               }
             : activity
@@ -346,7 +345,6 @@ const ExtraCurricular = () => {
         // Add new activity
         const newActivity = {
           ...preparedData,
-          _id: `activity_${Date.now()}`,
           createdAt: new Date(),
         } as IExtraCurricular;
 

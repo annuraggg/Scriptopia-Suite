@@ -11,8 +11,14 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
 } from "@nextui-org/react";
-import { Search, Plus, MoreVertical, Copy, Archive } from "lucide-react";
+import { Search, Plus, MoreVertical, Copy, Trash } from "lucide-react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import Filter from "./Filter";
@@ -33,8 +39,7 @@ const PlacementGroups = () => {
   const navigate = useNavigate();
   const [sort, setSort] = useState<string>("newest");
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [filter, setFilter] = useState<"all" | "active" | "archived">("all");
-  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [filter] = useState<"all" | "active" | "archived">("all");
   const [activeFilters, setActiveFilters] = useState<{
     year: string;
     departments: string[];
@@ -43,6 +48,13 @@ const PlacementGroups = () => {
     departments: [],
   });
   const [editGroup, setEditGroup] = useState<PlacementGroup | null>(null);
+  const [deleteGroup, setDeleteGroup] = useState<PlacementGroup | null>(null);
+  const {
+    isOpen: isDeleteModalOpen,
+    onOpen: openDeleteModal,
+    onClose: closeDeleteModal,
+  } = useDisclosure();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -95,12 +107,6 @@ const PlacementGroups = () => {
     fetchGroups();
   }, []);
 
-  useEffect(() => {
-    if (!showCreateGroup) {
-      fetchGroups();
-    }
-  }, [showCreateGroup]);
-
   const filteredGroups = useMemo(() => {
     return (groups || [])
       .filter((group) => {
@@ -117,8 +123,9 @@ const PlacementGroups = () => {
         if (filter === "archived" && !isArchived) return false;
 
         if (activeFilters.year) {
-          const yearString = `${group.academicYear.start || ""}-${group.academicYear.end || ""
-            }`;
+          const yearString = `${group.academicYear.start || ""}-${
+            group.academicYear.end || ""
+          }`;
           if (!yearString.includes(activeFilters.year)) {
             return false;
           }
@@ -193,6 +200,40 @@ const PlacementGroups = () => {
     }
   };
 
+  const handleDeleteClick = (group: PlacementGroup, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDeleteGroup(group);
+    openDeleteModal();
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteGroup?._id) return;
+
+    try {
+      setIsDeleting(true);
+      const response = await axios.delete(
+        `/placement-groups/${deleteGroup._id}`
+      );
+
+      if (response.data && response.data.success) {
+        // Remove the group from state
+        setGroups((prevGroups) =>
+          prevGroups.filter((group) => group._id !== deleteGroup._id)
+        );
+
+        // Close the modal and reset deleteGroup
+        closeDeleteModal();
+        setDeleteGroup(null);
+      } else {
+        console.error("Failed to delete group:", response.data);
+      }
+    } catch (error) {
+      console.error("Error deleting group:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const renderPlacementGroups = () => {
     if (isLoading) {
       return (
@@ -224,15 +265,15 @@ const PlacementGroups = () => {
           </h3>
           <p className="text-gray-500 dark:text-gray-400 mb-6">
             {searchTerm ||
-              activeFilters.year ||
-              activeFilters.departments.length > 0
+            activeFilters.year ||
+            activeFilters.departments.length > 0
               ? "Try adjusting your search or filters"
               : "Create your first placement group to get started"}
           </p>
           <Button
             color="primary"
             startContent={<Plus size={18} />}
-            onClick={() => setShowCreateGroup(true)}
+            onClick={() => navigate("create")}
           >
             Create New Group
           </Button>
@@ -254,10 +295,11 @@ const PlacementGroups = () => {
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="text-lg font-semibold">{group.name}</h3>
                   <span
-                    className={`px-2 py-1 rounded-full text-xs ${group.archived
+                    className={`px-2 py-1 rounded-full text-xs ${
+                      group.archived
                         ? "bg-default-100 text-default-600"
                         : "bg-success-100 text-success-600"
-                      }`}
+                    }`}
                   >
                     {group.archived ? "Archived" : "Active"}
                   </span>
@@ -308,21 +350,33 @@ const PlacementGroups = () => {
                     onAction={(key) => {
                       if (key === "archive") {
                         handleArchive(group._id!, {
-                          stopPropagation: () => { },
+                          stopPropagation: () => {},
                         } as React.MouseEvent);
                       } else if (key === "edit") {
                         setEditGroup(group);
+                      } else if (key === "delete") {
+                        handleDeleteClick(group, {
+                          stopPropagation: () => {},
+                        } as React.MouseEvent);
                       }
                     }}
                   >
                     <DropdownItem key="edit">Edit</DropdownItem>
-                    <DropdownItem
+                    {/* <DropdownItem
                       key="archive"
-                      className="text-danger"
-                      color="danger"
+                      className="text-warning"
+                      color="warning"
                       startContent={<Archive size={18} />}
                     >
                       {group.archived ? "Unarchive" : "Archive"}
+                    </DropdownItem> */}
+                    <DropdownItem
+                      key="delete"
+                      className="text-danger"
+                      color="danger"
+                      startContent={<Trash size={18} />}
+                    >
+                      Delete
                     </DropdownItem>
                   </DropdownMenu>
                 </Dropdown>
@@ -389,30 +443,33 @@ const PlacementGroups = () => {
               </div>
 
               <div className="flex gap-4 mb-6">
-                <Button
-                  className={`w-1/3 ${filter === "all" ? "bg-default-100" : ""
-                    }`}
+                {/* <Button
+                  className={`w-1/2 ${
+                    filter === "all" ? "bg-default-100" : ""
+                  }`}
                   variant={filter === "all" ? "flat" : "ghost"}
                   onClick={() => setFilter("all")}
                 >
                   All
                 </Button>
                 <Button
-                  className={`w-1/3 ${filter === "active" ? "bg-success-100" : ""
-                    }`}
+                  className={`w-1/2 ${
+                    filter === "active" ? "bg-success-100" : ""
+                  }`}
                   variant={filter === "active" ? "flat" : "ghost"}
                   onClick={() => setFilter("active")}
                 >
                   Active
-                </Button>
-                <Button
-                  className={`w-1/3 ${filter === "archived" ? "bg-default-100" : ""
-                    }`}
+                </Button> */}
+                {/* <Button
+                  className={`w-1/3 ${
+                    filter === "archived" ? "bg-default-100" : ""
+                  }`}
                   variant={filter === "archived" ? "flat" : "ghost"}
                   onClick={() => setFilter("archived")}
                 >
                   Archived
-                </Button>
+                </Button> */}
               </div>
 
               {renderPlacementGroups()}
@@ -433,6 +490,50 @@ const PlacementGroups = () => {
                   }}
                 />
               )}
+
+              {/* Delete Confirmation Modal */}
+              <Modal isOpen={isDeleteModalOpen} onClose={closeDeleteModal}>
+                <ModalContent>
+                  {(onClose) => (
+                    <>
+                      <ModalHeader className="flex flex-col gap-1">
+                        Confirm Deletion
+                      </ModalHeader>
+                      <ModalBody>
+                        <p>
+                          Are you sure you want to delete the placement group
+                          <span className="font-bold">
+                            {" "}
+                            {deleteGroup?.name}
+                          </span>
+                          ?
+                        </p>
+                        <p className="text-danger">
+                          This action cannot be undone.
+                        </p>
+                      </ModalBody>
+                      <ModalFooter>
+                        <Button
+                          variant="flat"
+                          onPress={onClose}
+                          disabled={isDeleting}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          color="danger"
+                          onPress={handleDeleteConfirm}
+                          startContent={<Trash size={18} />}
+                          isLoading={isDeleting}
+                          disabled={isDeleting}
+                        >
+                          {isDeleting ? "Deleting..." : "Delete"}
+                        </Button>
+                      </ModalFooter>
+                    </>
+                  )}
+                </ModalContent>
+              </Modal>
             </div>
           </div>
         </motion.div>

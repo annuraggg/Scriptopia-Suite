@@ -19,6 +19,8 @@ import {
   Tooltip,
   Divider,
   Skeleton,
+  Autocomplete,
+  AutocompleteItem,
 } from "@nextui-org/react";
 import {
   Edit2,
@@ -48,23 +50,166 @@ const EDUCATION_TYPES = [
   { label: "Distance Learning", value: "distance" },
 ];
 
+// Enhanced education program options with categorization
 const PROGRAMS = [
+  // Not Applicable option
+  "N/A",
+
+  // School Education
+  "SSC/10th",
+  "HSC/12th",
+  "CBSE 10th",
+  "CBSE 12th",
+  "ICSE 10th",
+  "ISC 12th",
+  "State Board 10th",
+  "State Board 12th",
+  "International Baccalaureate (IB)",
+  "Cambridge IGCSE",
+  "Cambridge A-Levels",
+
+  // Diploma & Certificate Programs
+  "Diploma",
+  "Certificate Course",
+  "ITI Certificate",
+  "Vocational Training Certificate",
+  "Professional Certificate",
+
+  // Undergraduate Degrees
   "B.E.",
   "B.Tech",
+  "BCA",
+  "B.Sc",
+  "B.Sc (IT)",
+  "B.Sc (CS)",
+  "B.Sc (Agriculture)",
+  "B.Com",
+  "B.Com (Hons)",
+  "BBA",
+  "BA",
+  "BA (Hons)",
+  "LLB",
+  "B.Arch",
+  "B.Des",
+  "BFA",
+  "B.Ed",
+  "BHM",
+  "BAMS",
+  "BHMS",
+  "BDS",
+  "MBBS",
+
+  // Postgraduate Degrees
   "M.Tech",
   "M.E.",
-  "BCA",
   "MCA",
-  "B.Sc",
   "M.Sc",
-  "B.Com",
+  "M.Sc (IT)",
+  "M.Sc (CS)",
   "M.Com",
-  "BBA",
   "MBA",
-  "Diploma",
+  "MA",
+  "LLM",
+  "M.Arch",
+  "M.Des",
+  "MFA",
+  "M.Ed",
+  "MHM",
+  "MD",
+  "MS (Medicine)",
+
+  // Doctoral and Above
   "Ph.D",
-  "HSC/12th",
-  "SSC/10th",
+  "D.Litt",
+  "D.Sc",
+  "Post-Doctoral Fellowship",
+];
+
+// Group programs by category for better organization in the autocomplete
+const PROGRAM_CATEGORIES = [
+  {
+    label: "General",
+    options: ["N/A"],
+  },
+  {
+    label: "School Education",
+    options: [
+      "SSC/10th",
+      "HSC/12th",
+      "CBSE 10th",
+      "CBSE 12th",
+      "ICSE 10th",
+      "ISC 12th",
+      "State Board 10th",
+      "State Board 12th",
+      "International Baccalaureate (IB)",
+      "Cambridge IGCSE",
+      "Cambridge A-Levels",
+    ],
+  },
+  {
+    label: "Diploma & Certificates",
+    options: [
+      "Diploma",
+      "Certificate Course",
+      "ITI Certificate",
+      "Vocational Training Certificate",
+      "Professional Certificate",
+    ],
+  },
+  {
+    label: "Undergraduate",
+    options: [
+      "B.E.",
+      "B.Tech",
+      "BCA",
+      "B.Sc",
+      "B.Sc (IT)",
+      "B.Sc (CS)",
+      "B.Sc (Agriculture)",
+      "B.Com",
+      "B.Com (Hons)",
+      "BBA",
+      "BA",
+      "BA (Hons)",
+      "LLB",
+      "B.Arch",
+      "B.Des",
+      "BFA",
+      "B.Ed",
+      "BHM",
+      "BAMS",
+      "BHMS",
+      "BDS",
+      "MBBS",
+    ],
+  },
+  {
+    label: "Postgraduate",
+    options: [
+      "M.Tech",
+      "M.E.",
+      "MCA",
+      "M.Sc",
+      "M.Sc (IT)",
+      "M.Sc (CS)",
+      "M.Com",
+      "MBA",
+      "MA",
+      "LLM",
+      "M.Arch",
+      "M.Des",
+      "MFA",
+      "M.Ed",
+      "MHM",
+      "MD",
+      "MS (Medicine)",
+    ],
+  },
+  {
+    label: "Doctoral and Above",
+    options: ["Ph.D", "D.Litt", "D.Sc", "Post-Doctoral Fellowship"],
+  },
 ];
 
 // Define schema for validation
@@ -189,7 +334,11 @@ const Education = () => {
     "Business Administration",
     "Arts",
     "Science",
+    "Not Applicable", // Adding N/A option for school education
   ]);
+
+  // Search states for autocomplete
+  const [degreeSearchValue, setDegreeSearchValue] = useState("");
 
   // Initialize education array if it doesn't exist
   useEffect(() => {
@@ -232,6 +381,7 @@ const Education = () => {
     setValidationErrors({});
     setIsEditing(false);
     setEditingEducationId(null);
+    setDegreeSearchValue("");
   };
 
   const handleAddNewEducation = () => {
@@ -257,6 +407,8 @@ const Education = () => {
         activeBacklogs: education.activeBacklogs || 0,
         totalBacklogs: education.totalBacklogs || 0,
       });
+
+      setDegreeSearchValue(education.degree);
 
       onOpen();
     } catch (error) {
@@ -440,11 +592,12 @@ const Education = () => {
         // Add new education with unique ID
         const educationWithId: IEducation = {
           ...newEducation,
-          _id: `edu_${Date.now()}`,
           createdAt: new Date(),
         };
 
         const updatedEducation = [...(user.education || []), educationWithId];
+
+        console.log(updatedEducation);
 
         setUser({
           ...user,
@@ -544,7 +697,12 @@ const Education = () => {
   const getEducationLevel = (degree: string) => {
     const lowerDegree = degree.toLowerCase();
 
-    if (lowerDegree.includes("phd") || lowerDegree.includes("doctorate")) {
+    if (
+      lowerDegree.includes("phd") ||
+      lowerDegree.includes("doctorate") ||
+      lowerDegree.includes("d.litt") ||
+      lowerDegree.includes("d.sc")
+    ) {
       return "Doctoral";
     } else if (
       lowerDegree.includes("master") ||
@@ -552,7 +710,9 @@ const Education = () => {
       lowerDegree === "mba" ||
       lowerDegree === "mca" ||
       lowerDegree === "m.tech" ||
-      lowerDegree === "m.e."
+      lowerDegree === "m.e." ||
+      lowerDegree === "md" ||
+      lowerDegree === "ms"
     ) {
       return "Post Graduate";
     } else if (
@@ -561,19 +721,44 @@ const Education = () => {
       lowerDegree === "bba" ||
       lowerDegree === "bca" ||
       lowerDegree === "b.tech" ||
-      lowerDegree === "b.e."
+      lowerDegree === "b.e." ||
+      lowerDegree === "mbbs" ||
+      lowerDegree === "bds" ||
+      lowerDegree === "bams" ||
+      lowerDegree === "bhms"
     ) {
       return "Under Graduate";
-    } else if (lowerDegree.includes("diploma")) {
+    } else if (
+      lowerDegree.includes("diploma") ||
+      lowerDegree.includes("certificate")
+    ) {
       return "Diploma";
-    } else if (lowerDegree.includes("12th") || lowerDegree.includes("hsc")) {
+    } else if (
+      lowerDegree.includes("12th") ||
+      lowerDegree.includes("hsc") ||
+      lowerDegree.includes("ib") ||
+      lowerDegree.includes("a-level")
+    ) {
       return "Higher Secondary";
-    } else if (lowerDegree.includes("10th") || lowerDegree.includes("ssc")) {
+    } else if (
+      lowerDegree.includes("10th") ||
+      lowerDegree.includes("ssc") ||
+      lowerDegree.includes("igcse")
+    ) {
       return "Secondary";
+    } else if (lowerDegree.includes("n/a")) {
+      return "Not Applicable";
     }
 
     return "Other";
   };
+
+  // Filter programs based on search input for autocomplete
+  const filteredPrograms = degreeSearchValue
+    ? PROGRAMS.filter((program) =>
+        program.toLowerCase().includes(degreeSearchValue.toLowerCase())
+      )
+    : PROGRAMS;
 
   return (
     <div>
@@ -618,36 +803,71 @@ const Education = () => {
                         onChange={(e) =>
                           handleInputChange("school", e.target.value)
                         }
-                        
                         isDisabled={isSubmitting}
                         startContent={
                           <School size={16} className="text-gray-400" />
                         }
                         description="Name of the educational institution"
                       />
-                      <Select
+
+                      {/* Replacing Select with Autocomplete */}
+                      <Autocomplete
                         label="Program/Degree/Certificate"
-                        placeholder="Select program"
+                        placeholder="Search for a program"
                         isRequired
                         isInvalid={!!validationErrors.degree}
                         errorMessage={validationErrors.degree}
-                        selectedKeys={formData.degree ? [formData.degree] : []}
-                        onChange={(e) =>
-                          handleInputChange("degree", e.target.value)
-                        }
-                        
+                        defaultItems={filteredPrograms.map((program) => ({
+                          label: program,
+                          value: program,
+                        }))}
+                        inputValue={degreeSearchValue}
+                        onInputChange={setDegreeSearchValue}
+                        selectedKey={formData.degree}
+                        onSelectionChange={(key) => {
+                          if (key) {
+                            handleInputChange("degree", key.toString());
+                          }
+                        }}
                         isDisabled={isSubmitting}
                         startContent={
                           <BookOpen size={16} className="text-gray-400" />
                         }
                         description="Type of degree or program"
+                        className="max-w-xs"
+                        listboxProps={{
+                          itemClasses: {
+                            base: "data-[hover=true]:bg-primary-100 dark:data-[hover=true]:bg-primary-800/20",
+                          },
+                          classNames: {
+                            list: "max-h-64",
+                          },
+                        }}
                       >
-                        {PROGRAMS.map((prog) => (
-                          <SelectItem key={prog} value={prog}>
-                            {prog}
-                          </SelectItem>
-                        ))}
-                      </Select>
+                        {(item) => {
+                          // Display program items grouped by category
+                          const category =
+                            PROGRAM_CATEGORIES.find((cat) =>
+                              cat.options.includes(item.label)
+                            )?.label || "Other";
+
+                          return (
+                            <AutocompleteItem
+                              key={item.value}
+                              textValue={item.label}
+                              value={item.value}
+                              className="data-[selected=true]:bg-primary-100 dark:data-[selected=true]:bg-primary-800/40"
+                            >
+                              <div className="flex flex-col">
+                                <span>{item.label}</span>
+                                <span className="text-xs text-gray-500">
+                                  {category}
+                                </span>
+                              </div>
+                            </AutocompleteItem>
+                          );
+                        }}
+                      </Autocomplete>
 
                       <Input
                         label="Board/University"
@@ -659,7 +879,6 @@ const Education = () => {
                         onChange={(e) =>
                           handleInputChange("board", e.target.value)
                         }
-                        
                         isDisabled={isSubmitting}
                         startContent={
                           <Building size={16} className="text-gray-400" />
@@ -667,30 +886,36 @@ const Education = () => {
                         description="Board or university affiliation"
                       />
                       <div className="flex flex-col gap-2">
-                        <Select
+                        <Autocomplete
                           label="Branch/Specialization"
                           placeholder="Select branch"
                           isRequired
                           isInvalid={!!validationErrors.branch}
                           errorMessage={validationErrors.branch}
-                          selectedKeys={
-                            formData.branch ? [formData.branch] : []
-                          }
-                          onChange={(e) =>
-                            handleInputChange("branch", e.target.value)
-                          }
-                          
+                          defaultItems={branches.map((branch) => ({
+                            value: branch,
+                            label: branch,
+                          }))}
+                          selectedKey={formData.branch}
+                          onSelectionChange={(key) => {
+                            if (key) {
+                              handleInputChange("branch", key.toString());
+                            }
+                          }}
                           isDisabled={isSubmitting}
                           description="Field of study or specialization"
+                          className="max-w-xs"
                         >
-                          {branches.map((branch) => (
-                            <SelectItem key={branch} value={branch}>
-                              {branch}
-                            </SelectItem>
-                          ))}
-                        </Select>
+                          {(item) => (
+                            <AutocompleteItem
+                              key={item.value}
+                              value={item.value}
+                            >
+                              {item.label}
+                            </AutocompleteItem>
+                          )}
+                        </Autocomplete>
                         <Button
-                          
                           variant="light"
                           className="self-start"
                           onPress={onBranchModalOpen}
@@ -710,7 +935,6 @@ const Education = () => {
                         onChange={(e) =>
                           handleInputChange("type", e.target.value)
                         }
-                        
                         isDisabled={isSubmitting}
                         startContent={
                           <Clock size={16} className="text-gray-400" />
@@ -750,7 +974,6 @@ const Education = () => {
                               : parseFloat(e.target.value);
                           handleInputChange("percentage", value);
                         }}
-                        
                         isDisabled={isSubmitting}
                         startContent={
                           <Percent size={16} className="text-gray-400" />
@@ -784,7 +1007,6 @@ const Education = () => {
                         endContent={
                           <Calendar className="text-gray-400" size={16} />
                         }
-                        
                         isDisabled={isSubmitting}
                         description="Year you started this program"
                       />
@@ -808,7 +1030,6 @@ const Education = () => {
                         endContent={
                           <Calendar className="text-gray-400" size={16} />
                         }
-                        
                         description={
                           formData.current
                             ? "Not required for current programs"
@@ -876,7 +1097,6 @@ const Education = () => {
                         description="Subjects you still need to clear"
                         isInvalid={!!validationErrors.activeBacklogs}
                         errorMessage={validationErrors.activeBacklogs}
-                        
                         isDisabled={isSubmitting}
                       />
 
@@ -900,7 +1120,6 @@ const Education = () => {
                         description="All backlogs ever received (including cleared ones)"
                         isInvalid={!!validationErrors.totalBacklogs}
                         errorMessage={validationErrors.totalBacklogs}
-                        
                         isDisabled={isSubmitting}
                       />
                     </div>
@@ -935,7 +1154,6 @@ const Education = () => {
 
       {/* Add Branch Modal */}
       <Modal
-        
         isOpen={isBranchModalOpen}
         onClose={onBranchModalClose}
         isDismissable={!isSubmitting}
@@ -961,7 +1179,6 @@ const Education = () => {
                       setValidationErrors(newErrors);
                     }
                   }}
-                  
                   isDisabled={isSubmitting}
                   autoFocus
                 />
@@ -992,7 +1209,6 @@ const Education = () => {
       <Modal
         isOpen={deleteConfirmationOpen}
         onClose={() => !isSubmitting && setDeleteConfirmationOpen(false)}
-        
         isDismissable={!isSubmitting}
       >
         <ModalContent>
@@ -1153,11 +1369,13 @@ const Education = () => {
                       <div className="w-full">
                         <div className="flex flex-wrap items-center gap-2">
                           <h3 className="text-lg font-medium">
-                            {edu.degree} {edu.branch && `- ${edu.branch}`}
+                            {edu.degree}{" "}
+                            {edu.branch &&
+                              edu.branch !== "Not Applicable" &&
+                              `- ${edu.branch}`}
                           </h3>
                           {edu.current && (
                             <Chip
-                              
                               color="primary"
                               variant="flat"
                               startContent={<Clock size={12} />}
@@ -1165,7 +1383,7 @@ const Education = () => {
                               Currently Pursuing
                             </Chip>
                           )}
-                          <Chip  variant="flat" color="secondary">
+                          <Chip variant="flat" color="secondary">
                             {getEducationLevel(edu.degree)}
                           </Chip>
                           {(edu.activeBacklogs || 0) > 0 && (
@@ -1173,7 +1391,7 @@ const Education = () => {
                               content={`${edu.activeBacklogs} active, ${edu.totalBacklogs} total backlogs`}
                               color="warning"
                             >
-                              <Chip  color="warning" variant="flat">
+                              <Chip color="warning" variant="flat">
                                 <div className="flex items-center gap-1">
                                   <AlertTriangle size={12} />
                                   <span>Backlogs: {edu.activeBacklogs}</span>
@@ -1268,7 +1486,6 @@ const Education = () => {
                             isIconOnly
                             variant="light"
                             onPress={() => handleEditEducation(edu)}
-                            
                             aria-label="Edit education"
                           >
                             <Edit2 size={16} />
@@ -1280,7 +1497,6 @@ const Education = () => {
                             variant="light"
                             color="danger"
                             onPress={() => confirmDelete(edu._id || "")}
-                            
                             aria-label="Delete education"
                           >
                             <Trash2 size={16} />

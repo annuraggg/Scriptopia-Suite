@@ -152,7 +152,7 @@ const Drives: React.FC = () => {
   }, [sort]);
 
   const handleDetailsClick = (drive: Drive) => {
-    navigate(`${drive._id}/dashboard`, { state: { drive } });
+    navigate(`${drive._id}/info`, { state: { drive } });
   };
 
   const openCreateDriveModal = () => {

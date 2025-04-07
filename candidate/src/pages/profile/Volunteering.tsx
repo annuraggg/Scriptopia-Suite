@@ -424,7 +424,6 @@ const Volunteering = () => {
         // Add new volunteer experience
         const newExp: Volunteer = {
           ...volunteerData,
-          _id: `volunteer_${Date.now()}`, // Temporary ID until we get one from API
           createdAt: new Date().toISOString(),
         };
         newVolunteering = [...(user?.volunteering || []), newExp];
