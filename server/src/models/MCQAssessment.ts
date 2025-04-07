@@ -61,9 +61,9 @@ const securitySchema = new mongoose.Schema({
 
 const mcqAssessmentSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, index: true },
+    name: { type: String, required: true, },
     description: { type: String, required: true },
-    author: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+    author: { type: mongoose.Schema.Types.ObjectId, required: true, },
     timeLimit: { type: Number, required: true },
     passingPercentage: { type: Number, required: true },
     openRange: { type: openRangeSchema },

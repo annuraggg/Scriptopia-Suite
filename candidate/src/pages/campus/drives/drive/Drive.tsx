@@ -36,8 +36,9 @@ import {
 } from "@nextui-org/react";
 import { useOutletContext } from "react-router-dom";
 import { Candidate } from "@shared-types/Candidate";
-
-const routineMap = {
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import UploadOfferLetter from "./UploadOfferLetter";
+const routineMap: Record<string, string> = {
   full_time: "Full Time",
   part_time: "Part Time",
   internship: "Internship",
@@ -50,17 +51,18 @@ interface PostingOrganization extends Omit<PostingType, "organizationId"> {
   createdOn: string;
 }
 
-const Posting = () => {
+const Posting: React.FC = () => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [posting, setPosting] = useState<PostingOrganization>(
     {} as PostingOrganization
   );
-  const [applied, setApplied] = useState(false);
-  const [timeLeft, setTimeLeft] = useState("");
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [applied, setApplied] = useState<boolean>(false);
+  const [timeLeft, setTimeLeft] = useState<string>("");
+  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+  const [successModalOpen, setSuccessModalOpen] = useState<boolean>(false);
+  const [uploadModalOpen, setUploadModalOpen] = useState<boolean>(false);
 
   const { user } = useUser();
   const { user: userDoc } = useOutletContext() as { user: Candidate };
@@ -76,7 +78,7 @@ const Posting = () => {
 
     console.log(posting?.candidates);
     console.log(userDoc?._id);
-  }, [user, posting]);
+  }, [user, posting, userDoc?._id]);
 
   useEffect(() => {
     setLoading(true);
@@ -110,7 +112,7 @@ const Posting = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const updateTimeLeft = (endDate: string) => {
+  const updateTimeLeft = (endDate: string): void => {
     const now = new Date();
     const end = new Date(endDate);
 
@@ -124,19 +126,19 @@ const Posting = () => {
     setTimeLeft(`${days} days`);
   };
 
-  const apply = () => {
+  const apply = (): void => {
     onOpen();
   };
 
-  const [applyLoading, setApplyLoading] = useState(false);
-  const applyToJob = () => {
+  const [applyLoading, setApplyLoading] = useState<boolean>(false);
+  const applyToJob = (): void => {
     setApplyLoading(true);
     axios
       .post(`/candidates/drive/apply`, { driveId: posting?._id })
       .then(() => {
         setApplied(true);
         toast.success("Application submitted successfully");
-        onOpenChange();
+        onClose();
         setSuccessModalOpen(true);
       })
       .catch((err) => {
@@ -148,8 +150,40 @@ const Posting = () => {
       .finally(() => setApplyLoading(false));
   };
 
-  const closeSuccessModal = () => {
+  const closeSuccessModal = (): void => {
     setSuccessModalOpen(false);
+  };
+
+  const [uploadLoading, setUploadLoading] = useState<boolean>(false);
+
+  // And update your handleFileUpload function:
+  const handleFileUpload = (file: File): void => {
+    setUploadLoading(true); // Set loading to true when starting upload
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("driveId", posting._id!);
+    formData.append("candidateId", userDoc._id!);
+
+    axios
+      .post("/drives/upload-offer-letter", formData)
+      .then(() => {
+        toast.success("Offer letter uploaded successfully!");
+        setPosting({
+          ...posting,
+          offerLetters: [...(posting.offerLetters || []), userDoc._id ?? ""],
+        });
+        setUploadModalOpen(false);
+      })
+      .catch((error) => {
+        toast.error(
+          error.response.data.message || "Failed to upload offer letter"
+        );
+        console.error(error);
+      })
+      .finally(() => {
+        setUploadLoading(false); // Set loading to false when finished
+      });
   };
 
   if (loading) {
@@ -158,7 +192,7 @@ const Posting = () => {
 
   const isJobOpen = new Date(posting?.applicationRange?.end) > new Date();
 
-  const getRequiredFieldsMissingCount = () => {
+  const getRequiredFieldsMissingCount = (): number => {
     let count = 0;
 
     if (
@@ -262,7 +296,25 @@ const Posting = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 bg-gray-50 min-h-screen">
-      {/* Header Section */}
+      {posting?.hiredCandidates?.includes(userDoc?._id!) && (
+        <Alert className="bg-green-500/30 text-green-800 my-5">
+          <AlertTitle>
+            Congratulations on being hired for this position!
+          </AlertTitle>
+        </Alert>
+      )}
+
+      {posting?.hiredCandidates?.includes(userDoc?._id!) &&
+        !posting?.offerLetters?.includes(userDoc?._id!) && (
+          <Alert className="bg-danger-500/30 text-danger-800 my-5">
+            <AlertTitle className="justify-between flex items-center">
+              Please Upload your offer letter to complete the process.
+              <Button color="danger" onPress={() => setUploadModalOpen(true)}>
+                Upload Now
+              </Button>
+            </AlertTitle>
+          </Alert>
+        )}
       <div className="bg-white rounded-xl p-8 shadow-sm">
         <div className="flex justify-between items-start">
           <div className="space-y-4">
@@ -290,8 +342,7 @@ const Posting = () => {
                 color="primary"
                 variant="flat"
               >
-                {/* @ts-expect-error */}
-                {routineMap[posting?.type]}
+                {routineMap[posting?.type] || posting?.type}
               </Chip>
               <Chip
                 startContent={<IconMapPin size={16} />}
@@ -628,13 +679,13 @@ const Posting = () => {
                       <>
                         <Chip color="danger" variant="flat">
                           Missing
-                          {posting?.additionalDetails?.skills?.languages
-                            ?.allowEmpty && (
-                            <Chip color="warning" variant="flat">
-                              Optional
-                            </Chip>
-                          )}
                         </Chip>
+                        {posting?.additionalDetails?.skills?.languages
+                          ?.allowEmpty && (
+                          <Chip color="warning" variant="flat">
+                            Optional
+                          </Chip>
+                        )}
                       </>
                     )}
                   </div>
@@ -720,7 +771,6 @@ const Posting = () => {
                 {posting?.additionalDetails?.achievements?.certificates
                   ?.required && (
                   <div className="flex items-center gap-2">
-                    {" "}
                     <p>Certificates</p>
                     {(userDoc?.certificates?.length ?? 0) <= 0 && (
                       <>
@@ -853,6 +903,15 @@ const Posting = () => {
           )}
         </ModalContent>
       </Modal>
+
+      {/* Upload Offer Letter Modal */}
+      <UploadOfferLetter
+        isOpen={uploadModalOpen}
+        onOpenChange={setUploadModalOpen}
+        onUpload={handleFileUpload}
+        title="Upload Offer Letter"
+        isLoading={uploadLoading} // Pass the loading state
+      />
     </div>
   );
 };

@@ -186,6 +186,7 @@ interface Drive {
   publishedOn?: Date;
   hasEnded: boolean;
   hiredCandidates?: string[];
+  offerLetters?: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }

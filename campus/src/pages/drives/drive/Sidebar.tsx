@@ -18,6 +18,7 @@ import {
   IconInfoCircle,
   IconJoinStraight,
   IconAdjustments,
+  IconInbox,
 } from "@tabler/icons-react";
 import {
   Modal,
@@ -51,10 +52,7 @@ const Sidebar = ({ drive, loading, isMobile, onClose }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  const workflowSteps = useMemo(
-    () => drive?.workflow?.steps || [],
-    [drive]
-  );
+  const workflowSteps = useMemo(() => drive?.workflow?.steps || [], [drive]);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -136,6 +134,12 @@ const Sidebar = ({ drive, loading, isMobile, onClose }: SidebarProps) => {
         link: "/candidates",
         visible: true,
       },
+      {
+        icon: IconInbox,
+        label: "Offer Letters",
+        link: "/offer-letters",
+        visible: drive?.hasEnded,
+      },
     ],
     [drive, workflowSteps]
   );
@@ -197,7 +201,7 @@ const Sidebar = ({ drive, loading, isMobile, onClose }: SidebarProps) => {
 
   const copyLink = () => {
     navigator.clipboard.writeText(
-      `${import.meta.env.VITE_CANDIDATE_URL}/drives/${drive?.url}`
+      `${import.meta.env.VITE_CANDIDATE_URL}/campus/drives/${drive?._id}`
     );
     toast.success("Link copied to clipboard");
   };
@@ -363,8 +367,8 @@ const Sidebar = ({ drive, loading, isMobile, onClose }: SidebarProps) => {
             <>
               <ModalHeader>Publish Drive</ModalHeader>
               <ModalBody>
-                Are you sure you want to publish this drive? This action
-                cannot be undone.
+                Are you sure you want to publish this drive? This action cannot
+                be undone.
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>

@@ -15,6 +15,7 @@ import GroupDetails from "./pages/placementgroups/GroupDetails";
 // Lazy load components
 import Loader from "./components/Loader";
 import PendingCandidates from "./pages/candidates/PendingCandidates";
+import OfferLetters from "./pages/drives/drive/offer-letters/OfferLetters";
 const Lander = lazy(() => import("./pages/lander/Lander"));
 const Layout = lazy(() => import("./components/Layout"));
 const DriveLayout = lazy(() => import("./pages/drives/drive/Layout"));
@@ -251,6 +252,14 @@ function App() {
                   ),
                 },
               ],
+            },
+            {
+              path: "offer-letters",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <OfferLetters />
+                </Suspense>
+              ),
             },
 
             {

@@ -331,10 +331,10 @@ const Drives: React.FC = () => {
                             variant="flat"
                             onClick={() => {
                               // copy link to clipboard
-                              if (!drive?.url) return;
+                              if (!drive?._id) return;
                               navigator.clipboard.writeText(
                                 import.meta.env.VITE_CANDIDATE_URL +
-                                  "/" +
+                                  "/campus/drives" +
                                   drive?.url
                               );
                               toast.success("Link copied to clipboard");

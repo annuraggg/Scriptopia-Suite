@@ -32,7 +32,6 @@ const placementGroupSchema = new Schema(
       type: String,
       required: true,
       trim: true,
-      index: true,
     },
     institute: {
       type: mongoose.Schema.Types.ObjectId,
@@ -42,7 +41,6 @@ const placementGroupSchema = new Schema(
     academicYear: {
       type: academicYearSchema,
       required: true,
-      index: true,
     },
     departments: [{ type: mongoose.Schema.Types.ObjectId }],
     purpose: {
@@ -52,7 +50,6 @@ const placementGroupSchema = new Schema(
     expiryDate: {
       type: Date,
       required: true,
-      index: true,
     },
     criteria: {
       type: [ruleSchema],
@@ -84,13 +81,10 @@ const placementGroupSchema = new Schema(
     archived: {
       type: Boolean,
       default: false,
-      index: true,
     },
   },
   {
     timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
   }
 );
 

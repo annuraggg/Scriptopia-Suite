@@ -272,6 +272,11 @@ const driveSchema = new Schema(
       type: [mongoose.Schema.Types.ObjectId],
       ref: "Candidate",
     },
+    offerLetters: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Candidate",
+      required: false,
+    }
   },
   { timestamps: true }
 );
