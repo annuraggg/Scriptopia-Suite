@@ -12,6 +12,8 @@ app.get("/mcq/created", assessmentController.getCreatedMcqAssessments);
 app.get("/code/created", assessmentController.getCreatedCodeAssessments);
 app.get("/mcq/created/enterprise/:postingId", assessmentController.getPostingMCQAssessments);
 app.get("/code/created/enterprise/:postingId", assessmentController.getPostingCodeAssessments);
+app.get("/mcq/created/campus/:driveId", assessmentController.getDriveMCQAssessments);
+app.get("/code/created/campus/:driveId", assessmentController.getDriveCodeAssessments);
 
 // Get User Taken Assessments
 app.get("/mcq/taken", assessmentController.getTakenMcqAssessments);

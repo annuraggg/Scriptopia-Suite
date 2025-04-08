@@ -67,7 +67,7 @@ const GroupDetailsTab: React.FC<GroupDetailsTabProps> = ({
     return (
       <div
         className={`
-          px-3 py-1 rounded-full cursor-pointer transition-all duration-200 ease-in-out
+       rounded-full cursor-pointer transition-all duration-200 ease-in-out p-1 px-3
           ${
             isSelected
               ? "bg-blue-500 text-white hover:bg-blue-600"
@@ -120,7 +120,7 @@ const GroupDetailsTab: React.FC<GroupDetailsTabProps> = ({
               }}
               className="w-[500px]"
             >
-              {generateYears().map((year) => (
+              {generateYears()?.map((year) => (
                 <SelectItem key={year}>{year}</SelectItem>
               ))}
             </Select>
@@ -134,7 +134,7 @@ const GroupDetailsTab: React.FC<GroupDetailsTabProps> = ({
               }}
               className="w-[500px]"
             >
-              {generateYears().map((year) => (
+              {generateYears()?.map((year) => (
                 <SelectItem key={year}>{year}</SelectItem>
               ))}
             </Select>
@@ -148,7 +148,7 @@ const GroupDetailsTab: React.FC<GroupDetailsTabProps> = ({
           </div>
           <div className="flex flex-col items-end w-[500px]">
             <div className="flex flex-wrap gap-2">
-              {institute.departments.map((department) => (
+              {institute.departments?.map((department) => (
                 <DepartmentChip
                   key={department._id}
                   department={department}

@@ -3,7 +3,7 @@ import { Breadcrumbs, BreadcrumbItem } from "@heroui/react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { Role } from "@shared-types/Institute";
-import { Card, CardBody} from "@heroui/react";
+import { Card, CardBody } from "@heroui/react";
 import { Input } from "@heroui/react";
 import { Checkbox } from "@heroui/react";
 import { useOutletContext } from "react-router-dom";
@@ -12,12 +12,11 @@ import { SettingsContext } from "@/types/SettingsContext";
 const permissions = [
   "manage_drive",
   "view_drive",
+  "verify_candidates",
   "view_institute",
   "manage_institute",
   "view_billing",
   "manage_billing",
-  "view_analytics",
-  "interviewer",
 ];
 
 const Roles = () => {

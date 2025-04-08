@@ -42,10 +42,11 @@ const CreateDrive = () => {
 
   // Drive Details States
   const [title, setTitle] = useState<string>("");
+  const [link, setLink] = useState<string>("");
   const [category, setCategory] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [openings, setOpenings] = useState<number>(0);
-  const [selectedPlacementGroups, setSelectedPlacementGroups] = useState<string[]>([]);
+  const [selectedPlacementGroups, setSelectedPlacementGroups] = useState<string>("");
   const [applicationRange, setApplicationRange] = useState<
     RangeValue<DateValue>
   >({
@@ -79,8 +80,8 @@ const CreateDrive = () => {
 
     const formattedData = {
       steps: addedComponents.map((component) => ({
-        name: component.name, // @ts-ignore
-        type: componentMap[component.label] as StepType,
+        name: component.name, 
+        type: componentMap[component.label] as StepType || "CUSTOM",
         status: "pending" as StepStatus,
         timestamp: new Date(),
       })),
@@ -101,6 +102,7 @@ const CreateDrive = () => {
 
     const drive: Drive = {
       title,
+      link,
       description,
       location,
       company,
@@ -118,8 +120,9 @@ const CreateDrive = () => {
       },
       workflow: formattedData,
       additionalDetails: formattedAdditionalDetails,
-      placementGroups: selectedPlacementGroups,
+      placementGroup: selectedPlacementGroups,
       published: false,
+      hasEnded: false,
     };
 
     axios
@@ -152,6 +155,8 @@ const CreateDrive = () => {
             setAction={setActive}
             title={title}
             setTitle={setTitle}
+            link={link}
+            setLink={setLink}
             category={category}
             setCategory={setCategory}
             openings={openings}
@@ -189,8 +194,8 @@ const CreateDrive = () => {
           <Access
             setAction={setActive}
             placementGroups={institute?.placementGroups || []}
-            selectedGroups={selectedPlacementGroups}
-            onSelectGroups={setSelectedPlacementGroups}
+            selectedGroup={selectedPlacementGroups}
+            onSelectGroup={setSelectedPlacementGroups}
           />
         )}
         {active === 3 && (

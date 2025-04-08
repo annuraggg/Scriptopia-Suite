@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useOutletContext } from "react-router-dom";
-import { Card, CardBody, Button, Tabs, Tab } from "@nextui-org/react";
-import { Link } from "lucide-react";
+import {
+  Card,
+  CardBody,
+  Button,
+  Tabs,
+  Tab,
+  Chip,
+  Divider,
+} from "@nextui-org/react";
+import { Link, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import Loader from "@/components/Loader";
 import { useAuth } from "@clerk/clerk-react";
@@ -10,6 +18,7 @@ import { toast } from "sonner";
 import { RootContext } from "@/types/RootContext";
 import { DataTable } from "./DataTable";
 import { ExtendedPlacementGroup } from "@shared-types/ExtendedPlacementGroup";
+import { PlacementGroupRule } from "@shared-types/PlacementGroup";
 
 const GroupDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,7 +28,7 @@ const GroupDetails: React.FC = () => {
 
   const [group, setGroup] = useState<ExtendedPlacementGroup | null>(null);
   const [selected, setSelected] = useState("details");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     axios
@@ -34,6 +43,64 @@ const GroupDetails: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  const getCategoryFriendlyName = (category: string): string => {
+    const categoryMap: Record<string, string> = {
+      education: "Education",
+      academics: "Academic Performance",
+      skills: "Skills",
+      experience: "Work Experience",
+      profile: "Profile Information",
+      demographics: "Demographics",
+      personal: "Personal Details",
+    };
+    return categoryMap[category.toLowerCase()] || category;
+  };
+
+  const getOperatorDescription = (operator: string): string => {
+    const operatorMap: Record<string, string> = {
+      eq: "is equal to",
+      neq: "is not equal to",
+      gt: "is greater than",
+      gte: "is at least",
+      lt: "is less than",
+      lte: "is at most",
+      in: "is one of",
+      nin: "is not one of",
+      contains: "contains",
+      startswith: "starts with",
+      endswith: "ends with",
+    };
+    return operatorMap[operator] || operator;
+  };
+
+  const formatCriterion = (rule: PlacementGroupRule): string => {
+    let valueDisplay = rule.value;
+
+    if (Array.isArray(rule.value)) {
+      valueDisplay = rule.value.join(", ");
+    } else if (typeof rule.value === "boolean") {
+      valueDisplay = rule.value ? "Yes" : "No";
+    }
+
+    return `${rule.subcategory} ${getOperatorDescription(
+      rule.operator
+    )} ${valueDisplay}`;
+  };
+
+  const getCriteriaByCategory = (): Record<string, PlacementGroupRule[]> => {
+    if (!group?.criteria || group.criteria.length === 0) return {};
+
+    return group.criteria.reduce(
+      (acc: Record<string, PlacementGroupRule[]>, rule) => {
+        const category = rule.category;
+        if (!acc[category]) acc[category] = [];
+        acc[category].push(rule);
+        return acc;
+      },
+      {}
+    );
+  };
+
   if (loading) return <Loader />;
 
   if (!group) {
@@ -44,49 +111,27 @@ const GroupDetails: React.FC = () => {
     );
   }
 
+  const criteriaByCategory = getCriteriaByCategory();
+  const hasCriteria = Object.keys(criteriaByCategory).length > 0;
+
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="p-6"
+    >
       <div className="flex items-center justify-between p-2">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
           {group.name}
         </h1>
       </div>
 
-      {/* Stats Cards */}
-      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-        {group.stats.map((stat, index) => (
-          <Card key={index} className="bg-default-50">
-            <CardBody className="flex flex-row items-center gap-4">
-              <div className="p-3 rounded-lg bg-primary/10">
-                <stat.icon size={24} className="text-primary" />
-              </div>
-              <div>
-                <p className="text-small text-default-500">{stat.title}</p>
-                <div className="flex items-baseline gap-1">
-                  <p className="text-xl font-semibold">{stat.value}</p>
-                  <Chip
-                    size="sm"
-                    color={stat.trend === "up" ? "success" : "danger"}
-                    variant="flat"
-                    className="text-xs"
-                  >
-                    {stat.change}
-                  </Chip>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-        ))}
-      </div> */}
-
-      {/* Tabs */}
       <Tabs
         selectedKey={selected}
         onSelectionChange={setSelected as any}
         variant="underlined"
         color="primary"
       >
-        {/* Group Details Tab */}
         <Tab key="details" title="Group Details">
           <div className="space-y-6 mt-5">
             <Card className="bg-default-50 p-2">
@@ -113,16 +158,16 @@ const GroupDetails: React.FC = () => {
                     <p className="text-sm text-default-500 mb-1">
                       Department(s)
                     </p>
-                    <p className="text-base font-medium">
+                    <div>
                       {group.departments.map((d) => (
-                        <p>
+                        <p key={d} className="text-base font-medium">
                           {
                             institute.departments.find((dept) => dept._id === d)
                               ?.name
                           }
                         </p>
                       ))}
-                    </p>
+                    </div>
                   </div>
 
                   <div className="mx-2 md:col-span-2">
@@ -132,6 +177,65 @@ const GroupDetails: React.FC = () => {
                     <p className="text-base font-medium">{group.purpose}</p>
                   </div>
                 </div>
+              </CardBody>
+            </Card>
+
+            <Card className="bg-default-50 p-2">
+              <CardBody>
+                <h3 className="text-xl font-semibold mb-4">
+                  Eligibility Criteria
+                </h3>
+
+                {hasCriteria ? (
+                  <div className="space-y-6">
+                    {Object.entries(criteriaByCategory).map(
+                      ([category, rules], idx) => (
+                        <div key={idx} className="space-y-2">
+                          <h4 className="text-md font-medium text-primary">
+                            {getCategoryFriendlyName(category)}
+                          </h4>
+                          <div className="pl-2 border-l-2 border-primary/30 space-y-2">
+                            {rules.map((rule, ruleIdx) => (
+                              <div
+                                key={ruleIdx}
+                                className="flex items-center gap-2"
+                              >
+                                <p className="text-sm text-default-700">
+                                  {formatCriterion(rule)}
+                                </p>
+                                {rule.type && (
+                                  <Chip
+                                    size="sm"
+                                    variant="flat"
+                                    color={
+                                      rule.type.toLowerCase() === "optional"
+                                        ? "warning"
+                                        : "primary"
+                                    }
+                                    className="text-xs"
+                                  >
+                                    {rule.type}
+                                  </Chip>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {idx < Object.keys(criteriaByCategory).length - 1 && (
+                            <Divider className="my-2" />
+                          )}
+                        </div>
+                      )
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-default-500">
+                    <AlertCircle size={18} />
+                    <p>
+                      No specific eligibility criteria set for this placement
+                      group.
+                    </p>
+                  </div>
+                )}
               </CardBody>
             </Card>
 
@@ -148,14 +252,6 @@ const GroupDetails: React.FC = () => {
                     </p>
                   </div>
 
-                  <div className="mx-2">
-                    <p className="text-sm text-default-500 mb-1">Access Type</p>
-                    <p className="text-base font-medium">
-                      {group.accessType.slice(0, 1).toUpperCase() +
-                        group.accessType.slice(1)}
-                    </p>
-                  </div>
-
                   <div className="mx-2 md:col-span-2">
                     <p className="text-sm text-default-500 mb-1">Invite Link</p>
                     <div className="flex gap-2 items-center">
@@ -163,7 +259,7 @@ const GroupDetails: React.FC = () => {
                         <Link size={16} className="text-default-500" />
                         <p className="text-sm truncate">
                           {import.meta.env.VITE_CANDIDATE_URL}
-                          /campus/placement-groups/join/${group._id}
+                          /campus/placement-groups/join/{group._id}
                         </p>
                       </div>
                       <Button
@@ -186,59 +282,6 @@ const GroupDetails: React.FC = () => {
                 </div>
               </CardBody>
             </Card>
-
-            {/* Additional sections can continue below if needed */}
-            {/* <Card className="bg-default-50 p-2">
-              <CardBody>
-                <h3 className="text-xl font-semibold mb-4">
-                  Participating Companies
-                </h3>
-                <div className="space-y-3">
-                  {group.companies.map((company) => (
-                    <Card
-                      key={company.id}
-                      className="border border-default-200"
-                    >
-                      <CardBody className="p-3">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="font-semibold">{company.name}</p>
-                            <p className="text-small text-default-500">
-                              {company.industry}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <div className="text-right">
-                              <p className="text-small text-default-500">
-                                Openings
-                              </p>
-                              <p className="font-semibold">
-                                {company.openings}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-small text-default-500">
-                                Package
-                              </p>
-                              <p className="font-semibold">{company.package}</p>
-                            </div>
-                            <Button size="sm" variant="flat" color="primary">
-                              View
-                            </Button>
-                          </div>
-                        </div>
-                      </CardBody>
-                    </Card>
-                  ))}
-                </div>
-
-                <div className="mt-4 text-center">
-                  <Button variant="light" color="primary">
-                    View All Companies
-                  </Button>
-                </div>
-              </CardBody>
-            </Card> */}
           </div>
         </Tab>
 

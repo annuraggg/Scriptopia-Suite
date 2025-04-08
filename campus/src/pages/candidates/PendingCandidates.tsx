@@ -15,7 +15,6 @@ const Candidates = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [rerender, setRerender] = useState(false);
 
   const { getToken } = useAuth();
   useEffect(() => {
@@ -32,7 +31,7 @@ const Candidates = () => {
         setError("Failed to fetch candidates");
         setLoading(false);
       });
-  }, [rerender]);
+  }, []);
 
   const copyInvite = () => {
     navigator.clipboard.writeText(
@@ -74,7 +73,7 @@ const Candidates = () => {
           <DataTable
             data={candidates}
             type="pending"
-            onDataUpdate={() => setRerender(!rerender)}
+            setData={setCandidates}
           />
         </div>
       </motion.div>

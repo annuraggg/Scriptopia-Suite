@@ -69,9 +69,16 @@ const assessmentSchema = new mongoose.Schema(
     obtainableScore: { type: Number, required: true },
 
     isEnterprise: { type: Boolean, required: true, default: false },
+    isCampus: { type: Boolean, required: true, default: false },
+
     postingId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Posting",
+      required: false,
+    },
+    driveId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Drive",
       required: false,
     },
   },

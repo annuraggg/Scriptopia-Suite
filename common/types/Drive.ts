@@ -163,6 +163,7 @@ interface Drive {
   _id?: string;
   institute?: string;
   title: string;
+  link?: string;
   description: Record<string, unknown>;
   company?: string;
   location: string;
@@ -180,9 +181,12 @@ interface Drive {
   interviews?: [Interview];
   candidates?: string[];
   additionalDetails?: AdditionalDetails;
-  placementGroups: string[];
+  placementGroup: string;
   published: boolean;
   publishedOn?: Date;
+  hasEnded: boolean;
+  hiredCandidates?: string[];
+  offerLetters?: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }

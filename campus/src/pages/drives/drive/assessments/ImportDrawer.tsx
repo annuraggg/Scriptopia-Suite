@@ -111,7 +111,7 @@ const Drawer = ({
       finalAssessment = {
         ...selectedAssessment,
         _id: undefined,
-        isEnterprise: true,
+        isCampus: true,
         openRange: undefined,
         candidates: [],
         public: true,
@@ -130,7 +130,7 @@ const Drawer = ({
       finalAssessment = {
         ...selectedAssessment,
         _id: undefined,
-        isEnterprise: true,
+        isCampus: true,
         openRange: undefined,
         candidates: [],
         public: true,
@@ -144,6 +144,7 @@ const Drawer = ({
     if (type === "MCQ_ASSESSMENT") url = "/assessments/mcq";
 
     try {
+      console.log("Final Assessment: ", finalAssessment);
       await axios.post(url, finalAssessment);
       toast.success("Assessment imported successfully");
       console.log("Assessment imported successfully");

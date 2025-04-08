@@ -19,6 +19,8 @@ interface DriveDetailsProps {
   setAction: Dispatch<SetStateAction<number>>;
   title: string;
   setTitle: (value: string) => void;
+  link: string;
+  setLink: (value: string) => void;
   category: string;
   setCategory: (value: string) => void;
   openings: number;
@@ -45,6 +47,8 @@ const DriveDetails = ({
   setAction,
   title,
   setTitle,
+  link,
+  setLink,
   category,
   setCategory,
   openings,
@@ -82,6 +86,21 @@ const DriveDetails = ({
             placeholder="eg. Senior Software Engineer"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            className="w-[500px]"
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-between  mt-7">
+        <div className="text-sm w-[30%]">
+          <p>Application Link</p>
+          <p className="opacity-50">Link to the application form or website.</p>
+        </div>
+        <div>
+          <Input
+            placeholder="eg. https://example.com/apply"
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
             className="w-[500px]"
           />
         </div>
@@ -144,11 +163,6 @@ const DriveDetails = ({
             onChange={(e) => setCategory(e.target.value)}
             className="w-[500px]"
           >
-            <SelectItem key="full_time">Full Time</SelectItem>
-            <SelectItem key="part_time">Part Time</SelectItem>
-            <SelectItem key="contract">Contract</SelectItem>
-            <SelectItem key="internship">Internship</SelectItem>
-            <SelectItem key="temporary">Temporary</SelectItem>
             <SelectItem key="full_time">Full Time</SelectItem>
             <SelectItem key="part_time">Part Time</SelectItem>
             <SelectItem key="contract">Contract</SelectItem>
@@ -238,9 +252,9 @@ const DriveDetails = ({
           <p>Location</p>
           <p className="opacity-50">
             Choose the location where the drive will be based at. For remote
-            drives, write "Remote" or "Anywhere"
-            Choose the location where the drive will be based at. For remote
-            drives, write "Remote" or "Anywhere"
+            drives, write "Remote" or "Anywhere" Choose the location where the
+            drive will be based at. For remote drives, write "Remote" or
+            "Anywhere"
           </p>
         </div>
         <div>

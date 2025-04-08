@@ -1,229 +1,228 @@
+import { Tooltip } from "@nextui-org/react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Tooltip } from "@nextui-org/tooltip";
-import { ChevronRight, X } from "lucide-react";
 import {
-  IconLayoutDashboardFilled,
-  IconBriefcaseFilled,
-  IconUserFilled,
-  IconFileTextFilled,
+  IconBellFilled,
   IconBookFilled,
+  IconBriefcaseFilled,
+  IconFileDescriptionFilled,
+  IconFileTextFilled,
+  IconLayoutDashboardFilled,
+  IconUserFilled,
+  IconLayoutKanbanFilled,
+  IconFolderFilled,
+  IconTrophyFilled,
+  IconRosetteDiscountCheckFilled,
+  IconDiamondFilled,
+  IconCopyrightFilled,
+  IconGlobeFilled,
+  IconSquareRoundedPlusFilled,
+  IconColorPicker,
+  IconBooks,
+  IconUsersGroup,
 } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
 import { UserButton } from "@clerk/clerk-react";
-import { Badge, Button } from "@nextui-org/react";
 
 interface SidebarProps {
-  icon: any; // Using any for Tabler icons compatibility
+  icon: any;
   label: string;
   link: string;
   visible?: boolean;
   length?: number;
+  children?: SidebarProps[];
 }
 
-const Sidebar = ({
-  isMobile,
-  onClose,
-}: {
-  isMobile?: boolean;
-  onClose?: () => void;
-}) => {
+const profileItems: SidebarProps[] = [
+  {
+    icon: IconFileDescriptionFilled,
+    label: "General",
+    link: "",
+    visible: true,
+  },
+  {
+    icon: IconBookFilled,
+    label: "Education",
+    link: "education",
+    visible: true,
+  },
+  { icon: IconBriefcaseFilled, label: "Work", link: "work", visible: true },
+  { icon: IconColorPicker, label: "Skills", link: "skills", visible: true },
+  {
+    icon: IconLayoutKanbanFilled,
+    label: "Responsibilities",
+    link: "responsibilities",
+    visible: true,
+  },
+  {
+    icon: IconFolderFilled,
+    label: "Projects",
+    link: "projects",
+    visible: true,
+  },
+  { icon: IconTrophyFilled, label: "Awards", link: "awards", visible: true },
+  {
+    icon: IconRosetteDiscountCheckFilled,
+    label: "Certifications",
+    link: "certifications",
+    visible: true,
+  },
+  {
+    icon: IconDiamondFilled,
+    label: "Competitions",
+    link: "competitions",
+    visible: true,
+  },
+  {
+    icon: IconUserFilled,
+    label: "Conferences",
+    link: "conferences",
+    visible: true,
+  },
+  {
+    icon: IconCopyrightFilled,
+    label: "Patents",
+    link: "patents",
+    visible: true,
+  },
+  {
+    icon: IconBooks,
+    label: "Scholarships",
+    link: "scholarships",
+    visible: true,
+  },
+  {
+    icon: IconGlobeFilled,
+    label: "Volunteering",
+    link: "volunteering",
+    visible: true,
+  },
+  {
+    icon: IconSquareRoundedPlusFilled,
+    label: "Extra Curricular",
+    link: "extra-curricular",
+    visible: true,
+  },
+];
+
+const campusItems: SidebarProps[] = [
+  {
+    icon: IconBriefcaseFilled,
+    label: "Drives",
+    link: "drives",
+    visible: true,
+  },
+  {
+    icon: IconUsersGroup,
+    label: "Placement Groups",
+    link: "placement-groups",
+    visible: true,
+  },
+  {
+    icon: IconFileTextFilled,
+    label: "Resume",
+    link: "resume",
+    visible: true,
+  },
+];
+
+const Sidebar = () => {
+  const [active, setActive] = useState<string>("");
+  const [expandedItem, setExpandedItem] = useState<SidebarProps | null>(null);
+  const navigate = useNavigate();
+
   const topItems: SidebarProps[] = [
     {
       icon: IconLayoutDashboardFilled,
       label: "Dashboard",
-      link: "/dashboard",
+      link: "dashboard",
       visible: true,
     },
     {
       icon: IconUserFilled,
       label: "Profile",
-      link: "/profile",
+      link: "profile",
       visible: true,
+      children: profileItems,
     },
-    {
-      icon: IconFileTextFilled,
-      label: "Resume",
-      link: "/resume",
-      visible: true,
-    },
-    {
-      icon: IconBriefcaseFilled,
-      label: "Jobs",
-      link: "/jobs",
-      visible: true,
-    },
+    // { icon: IconBriefcaseFilled, label: "Jobs", link: "jobs", visible: true },
     {
       icon: IconBookFilled,
       label: "Campus",
-      link: "/campus",
+      link: "campus",
       visible: true,
+      children: campusItems,
     },
-    // {
-    //   icon: IconAlertCircleFilled,
-    //   label: "Alerts",
-    //   link: "/alerts",
-    //   visible: true,
-    // },
   ];
 
   const bottomItems: SidebarProps[] = [
-    // {
-    //   icon: IconBellFilled,
-    //   label: "Notifications",
-    //   link: "/notifications",
-    //   visible: true,
-    //   length: 3, // Example notification count
-    // },
-    // {
-    //   icon: IconSettingsFilled,
-    //   label: "Settings",
-    //   link: "/settings",
-    //   visible: true,
-    // },
+    {
+      icon: IconBellFilled,
+      label: "Notifications",
+      link: "notifications",
+      visible: true,
+      length: 3,
+    },
   ];
 
-  const [active, setActive] = useState("dashboard");
-  const [collapsed, setCollapsed] = useState(false);
-  const navigate = useNavigate();
+  const changePage = (item: SidebarProps, parentLink?: string) => {
+    setActive(item.label);
 
-  const subNavbarRoutes = ["profile", "campus"];
-
-  useEffect(() => {
-    setActive(window.location.pathname.split("/")[1]);
-  }, []);
+    // If we have a parentLink, navigate to the parent/child pattern
+    if (parentLink) {
+      navigate(`${parentLink}/${item.link}`);
+    } else {
+      navigate(item.link);
+      setExpandedItem(item.children ? item : null);
+    }
+  };
 
   return (
-    <aside
-      className={`h-[100vh] bg-foreground text-background ${
-        subNavbarRoutes.includes(window.location.pathname.split("/")[1])
-          ? "border-r-background/10"
-          : "rounded-r-2xl"
-      } border-r flex flex-col overflow-hidden transition-all duration-300 
-        ${isMobile ? "w-64" : collapsed ? "w-16" : "w-64"}
-        ${isMobile ? "fixed left-0 top-0 z-50" : "relative"}`}
-    >
-      {/* Mobile Close Button */}
-      {isMobile && (
-        <Button
-          isIconOnly
-          variant="light"
-          className="absolute top-4 right-4"
-          onPress={onClose}
-        >
-          <X className="h-6 w-6" />
-        </Button>
-      )}
-
-      <nav className="flex flex-col gap-2 p-3">
-        {(!isMobile || !collapsed) && (
-          <div className={`${isMobile ? "mt-12" : "mt-4"} mb-6`}>
-            <img
-              src="/logo.svg"
-              alt="logo"
-              className="cursor-pointer h-10"
-              onClick={() => {
-                window.location.href = "/";
-              }}
-            />
-          </div>
-        )}
-
-        {topItems.map((item, index) => (
-          <Tooltip
-            key={index}
-            content={item.label}
-            placement="right"
-            isDisabled={isMobile || !collapsed}
-          >
-            <div
-              className={`${!item.visible ? "hidden" : ""}`}
-              onClick={() => {
-                navigate(item.link);
-                setActive(item.label.toLowerCase());
-                if (isMobile) onClose?.();
-              }}
-            >
+    <div className="h-screen flex bg-foreground text-background rounded-r-2xl ">
+      <div className="flex flex-col items-center justify-between py-5">
+        <div>
+          <img src="/logo.svg" alt="Logo" className="w-10 h-10 mb-5 mx-auto" />
+          {topItems.map((item) => (
+            <Tooltip key={item.label} content={item.label} placement="right">
               <div
-                className={`flex items-center p-2 py-3 rounded-lg cursor-pointer transition-colors duration-200  
-                  ${
-                    active?.toLowerCase() === item.label.toLowerCase()
-                      ? "bg-primary text-foreground"
-                      : "text-default hover:bg-accent/40"
-                  }`}
+                className={`cursor-pointer m-3 p-2 rounded-xl hover:bg-zinc-50/10 ${
+                  active === item.label && "bg-zinc-50/10"
+                }`}
+                onClick={() => changePage(item)}
               >
-                <div className="min-w-[24px] flex items-center justify-center">
-                  <item.icon className="w-6 h-6" />
-                </div>
-                {(!collapsed || isMobile) && (
-                  <span className="ml-3 text-sm font-medium">{item.label}</span>
-                )}
+                <item.icon />
               </div>
-            </div>
-          </Tooltip>
-        ))}
-      </nav>
-
-      <nav className="mt-auto flex flex-col gap-2 p-3">
-        <div className="ml-[6px] mb-4">
-          <UserButton />
+            </Tooltip>
+          ))}
         </div>
-
-        {bottomItems.map((item, index) => (
-          <Tooltip
-            key={index}
-            content={item.label}
-            placement="right"
-            isDisabled={isMobile || !collapsed}
-          >
-            <div
-              className={`${!item.visible ? "hidden" : ""}`}
-              onClick={() => {
-                navigate(item.link);
-                setActive(item.label.toLowerCase());
-                if (isMobile) onClose?.();
-              }}
-            >
-              <div
-                className={`flex items-center p-2 py-3 rounded-xl cursor-pointer transition-colors duration-200   
-                  ${
-                    active?.toLowerCase() === item.label.toLowerCase()
-                      ? "bg-primary text-foreground"
-                      : "text-default hover:bg-accent/40"
-                  }`}
-              >
-                <div className="min-w-[24px] flex items-center justify-center relative">
-                  <Badge
-                    content={item?.length}
-                    color="warning"
-                    className={!item?.length ? "hidden" : ""}
-                  >
-                    <item.icon className="w-5 h-5" />
-                  </Badge>
-                </div>
-                {(!collapsed || isMobile) && (
-                  <span className="ml-3 text-sm font-medium">{item.label}</span>
-                )}
+        <div className="justify-self-end flex flex-col items-center gap-4">
+          <UserButton />
+          {bottomItems.map((item) => (
+            <Tooltip key={item.label} content={item.label} placement="right">
+              <div className="cursor-pointer m-2 p-1">
+                <item.icon />
               </div>
-            </div>
-          </Tooltip>
-        ))}
+            </Tooltip>
+          ))}
+        </div>
+      </div>
 
-        {/* Collapse Button */}
-        {!isMobile && (
-          <div className="flex w-full mt-4 px-2">
-            <button
-              onClick={() => setCollapsed(!collapsed)}
-              className="p-1 rounded-xl transition-colors duration-200 w-full"
+      {expandedItem?.children && (
+        <div className="bg-foreground text-background py-2 px-4 rounded-r-2xl scroll-m-5 overflow-y-auto my-3 w-[250px]">
+          {expandedItem.children.map((child) => (
+            <div
+              key={child.label}
+              className={`cursor-pointer m-3 p-2 flex items-center rounded-xl hover:bg-zinc-50/10 ${
+                active === child.label && "bg-zinc-50/10"
+              }`}
+              onClick={() => changePage(child, expandedItem.link)}
             >
-              <ChevronRight
-                className={`h-5 w-5 transition-transform duration-200 text-background
-                  ${!collapsed ? "rotate-180" : ""}`}
-              />
-            </button>
-          </div>
-        )}
-      </nav>
-    </aside>
+              <child.icon className="mr-3 min-w-6" />
+              <p className="text-sm">{child.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 

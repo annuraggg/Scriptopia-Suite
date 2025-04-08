@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useNavigate } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
 import { toast } from "sonner";
 import {
@@ -10,7 +10,6 @@ import {
   Users,
   ChevronRight,
   ArrowUpRight,
-  MoreHorizontal,
   Download,
   Search,
 } from "lucide-react";
@@ -18,6 +17,17 @@ import ax from "@/config/axios";
 import Loader from "@/components/Loader";
 import { DriveContext } from "@/types/DriveContext";
 import { ExtendedAppliedDrive } from "@shared-types/ExtendedAppliedDrive";
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  Button,
+  Input,
+  Avatar,
+  Chip,
+  Divider,
+  Badge,
+} from "@nextui-org/react";
 
 const Pipeline = () => {
   const [appliedDrives, setAppliedDrives] = useState<ExtendedAppliedDrive[]>(
@@ -29,6 +39,8 @@ const Pipeline = () => {
     null
   );
   const [searchTerm, setSearchTerm] = useState("");
+  const [resumeLoading, setResumeLoading] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -130,11 +142,58 @@ const Pipeline = () => {
     document.body.removeChild(link);
   };
 
+  const handleViewResume = (candidateId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setResumeLoading(candidateId);
+
+    axios
+      .get(`/institutes/candidate/${candidateId}/resume`)
+      .then((res) => {
+        window.open(res.data.data.url);
+      })
+      .catch((err) => {
+        toast.error(err.response?.data?.message || "Error fetching resume");
+        console.error(err);
+      })
+      .finally(() => setResumeLoading(null));
+  };
+
+  const handleViewProfile = (candidateId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card collapse
+    navigate(`/c/${candidateId}`);
+  };
+
   const filteredAppliedDrives = appliedDrives.filter(
     (applied) =>
       applied.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       applied.user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "inprogress":
+        return "primary";
+      case "applied":
+        return "secondary";
+      case "hired":
+        return "success";
+      default:
+        return "danger";
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "inprogress":
+        return "In Progress";
+      case "applied":
+        return "Applied";
+      case "hired":
+        return "Hired";
+      default:
+        return "Disqualified";
+    }
+  };
 
   const CandidateCard = ({ applied }: { applied: ExtendedAppliedDrive }) => {
     const isSelected = selectedCandidate === applied._id;
@@ -146,27 +205,34 @@ const Pipeline = () => {
       .toUpperCase();
 
     return (
-      <div
+      <Card
         key={applied._id}
-        className={`p-4 mb-4 border rounded-lg shadow-sm transition-all ${
-          isSelected
-            ? "bg-indigo-50 border-indigo-300"
-            : "bg-white border-gray-200 hover:border-indigo-200 hover:shadow"
-        }`}
-        onClick={() =>
+        className="mb-4"
+        isPressable
+        isHoverable
+        onPress={() =>
           setSelectedCandidate(isSelected ? null : applied._id || null)
         }
+        shadow={isSelected ? "md" : "sm"}
+        classNames={{
+          base: isSelected
+            ? "bg-primary-50 border-primary-200"
+            : "bg-background",
+        }}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white font-medium text-sm">
-              {candidateInitials}
-            </div>
-            <div>
-              <h5 className="font-semibold text-gray-900 text-base">
-                {applied.user.name}
-              </h5>
-              <div className="flex items-center text-xs text-gray-500 mt-1">
+        <CardBody className="p-4 gap-4">
+          <div className="flex items-start gap-4">
+            <Avatar
+              name={candidateInitials}
+              color="primary"
+              size="md"
+              classNames={{
+                base: "min-w-12 min-h-12",
+              }}
+            />
+            <div className="flex flex-col gap-1 flex-grow">
+              <h5 className="font-semibold text-base">{applied.user.name}</h5>
+              <div className="flex items-center text-xs text-gray-500">
                 <Calendar className="w-3 h-3 mr-1.5" />
                 <span>
                   Applied{" "}
@@ -177,73 +243,63 @@ const Pipeline = () => {
                   )}
                 </span>
               </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {!isSelected && (
-              <div
-                className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  applied.status === "inprogress"
-                    ? "bg-indigo-100 text-indigo-700"
-                    : applied.status === "applied"
-                    ? "bg-purple-100 text-purple-700"
-                    : "bg-red-100 text-red-700"
-                }`}
-              >
-                {applied.status === "inprogress"
-                  ? "In Progress"
-                  : applied.status === "applied"
-                  ? "Applied"
-                  : "Disqualified"}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {isSelected && (
-          <div className="mt-5 pt-4 border-t border-gray-200">
-            <div className="grid grid-cols-2 gap-5 mb-5">
-              <div className="flex items-center text-sm text-gray-600">
-                <Mail className="w-4 h-4 mr-3 text-indigo-500" />
-                <span className="truncate">{applied.user.email}</span>
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <Phone className="w-4 h-4 mr-3 text-indigo-500" />
-                <span>{applied.user.phone || "Not provided"}</span>
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <Users className="w-4 h-4 mr-3 text-indigo-500" />
-                <span>{applied.user.gender || "Not specified"}</span>
-              </div>
-              {applied.user.resumeUrl && (
-                <div className="flex items-center text-sm text-indigo-600">
-                  <FileText className="w-4 h-4 mr-3" />
-                  <a
-                    href={applied.user.resumeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="truncate hover:underline"
-                  >
-                    View Resume
-                  </a>
-                </div>
+              {!isSelected && (
+                <Chip
+                  color={getStatusColor(applied.status) as any}
+                  variant="flat"
+                  size="sm"
+                  className="mt-2"
+                >
+                  {getStatusLabel(applied.status)}
+                </Chip>
               )}
             </div>
-
-            <div className="flex items-center justify-end gap-3 mt-4">
-              <button className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center">
-                <MoreHorizontal className="w-4 h-4 mr-2" />
-                Options
-              </button>
-              <button className="px-4 py-2 text-sm text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors flex items-center">
-                View Profile
-                <ChevronRight className="w-4 h-4 ml-2" />
-              </button>
-            </div>
           </div>
-        )}
-      </div>
+
+          {isSelected && (
+            <>
+              <Divider className="my-2" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center text-sm text-gray-600">
+                  <Mail className="w-4 h-4 mr-3 text-primary" />
+                  <span className="truncate">{applied.user.email}</span>
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <Phone className="w-4 h-4 mr-3 text-primary" />
+                  <span>{applied.user.phone || "Not provided"}</span>
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <Users className="w-4 h-4 mr-3 text-primary" />
+                  <span>{applied.user.gender || "Not specified"}</span>
+                </div>
+                {applied.user.resumeUrl && (
+                  <div className="flex items-center text-sm">
+                    <FileText className="w-4 h-4 mr-3 text-primary" />
+                    <Button
+                      variant="light"
+                      size="sm"
+                      isLoading={resumeLoading === applied._id}
+                      onClick={(e) => handleViewResume(applied.user?._id!, e)}
+                      className="p-0 m-0 h-auto min-w-0"
+                    >
+                      View Resume
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <Button
+                color="primary"
+                className="w-full mt-4"
+                endContent={<ChevronRight className="w-4 h-4" />}
+                onClick={(e) => handleViewProfile(applied.user._id!, e)}
+              >
+                View Profile
+              </Button>
+            </>
+          )}
+        </CardBody>
+      </Card>
     );
   };
 
@@ -252,7 +308,7 @@ const Pipeline = () => {
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       <div className="mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
               Candidate Pipeline
@@ -263,68 +319,74 @@ const Pipeline = () => {
             </p>
           </div>
           <div className="flex gap-4">
-            <button
+            <Button
+              variant="bordered"
+              startContent={<Download className="w-4 h-4" />}
               onClick={downloadCSV}
-              className="px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 text-gray-700 flex items-center transition-colors shadow-sm"
             >
-              <Download className="w-4 h-4 mr-2" />
               Download CSV
-            </button>
-            <button className="px-4 py-2 bg-indigo-600 rounded-md text-white hover:bg-indigo-700 flex items-center transition-colors shadow-sm">
-              <ArrowUpRight className="w-4 h-4 mr-2" />
+            </Button>
+            <Button
+              color="primary"
+              startContent={<ArrowUpRight className="w-4 h-4" />}
+            >
               View Drive Details
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
       <div className="mb-8">
-        <div className="relative max-w-lg">
-          <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search candidates..."
-            className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 shadow-sm"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        <Input
+          type="text"
+          placeholder="Search candidates..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          startContent={<Search className="w-5 h-5 text-gray-400" />}
+          classNames={{
+            base: "max-w-lg",
+            inputWrapper: "shadow-sm",
+          }}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {drive?.workflow?.steps?.map((step, index) => {
+          const isLastStep =
+            index === (drive?.workflow?.steps?.length ?? 0) - 1;
+
           const stageApplicants = filteredAppliedDrives.filter((applied) => {
-            return step.status === "in-progress"
-              ? applied.status === "inprogress" ||
-                  applied.disqualifiedStage?.toString() ===
-                    step._id?.toString() ||
-                  (index === 0 && applied.status === "applied")
-              : applied.disqualifiedStage?.toString() === step._id?.toString();
+            if (step.status === "in-progress") {
+              return (
+                applied.status === "inprogress" ||
+                applied.disqualifiedStage?.toString() ===
+                  step._id?.toString() ||
+                (index === 0 && applied.status === "applied")
+              );
+            } else if (isLastStep && step.status === "completed") {
+              return applied.status === "hired";
+            } else {
+              return (
+                applied.disqualifiedStage?.toString() === step._id?.toString()
+              );
+            }
           });
 
           return (
-            <div
-              key={index}
-              className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-auto border border-gray-200"
-            >
+            <Card key={index} className="h-auto">
               <div
-                className="h-2"
+                className="h-2 w-full"
                 style={{ backgroundColor: getStepColor(index) }}
-              ></div>
-              <div className="p-5 border-b border-gray-200 flex items-center justify-between">
+              />
+              <CardHeader className="flex justify-between items-center">
                 <div>
                   <div className="flex items-center gap-3">
                     <h3 className="font-semibold text-gray-900 text-lg">
                       {step.name}
                     </h3>
-                    <div className="flex items-center">
-                      <div
-                        className="w-6 h-6 rounded-full flex items-center justify-center text-xs text-white font-medium"
-                        style={{ backgroundColor: getStepColor(index) }}
-                      >
-                        {stageApplicants.length}
-                      </div>
-                    </div>
+                    <Badge color="primary" shape="circle" size="sm">
+                      {stageApplicants.length}
+                    </Badge>
                   </div>
                   <p className="text-sm text-gray-500 mt-1">
                     {step.status === "in-progress"
@@ -332,12 +394,11 @@ const Pipeline = () => {
                       : step.status}
                   </p>
                 </div>
-              </div>
+              </CardHeader>
 
-              <div
-                className="overflow-y-auto p-4 flex-1"
-                style={{ maxHeight: "500px" }}
-              >
+              <Divider />
+
+              <CardBody className="overflow-y-auto max-h-[500px]">
                 {stageApplicants.length > 0 ? (
                   stageApplicants.map((applied) => (
                     <CandidateCard key={applied._id} applied={applied} />
@@ -348,8 +409,8 @@ const Pipeline = () => {
                     <p className="text-sm">No candidates in this stage</p>
                   </div>
                 )}
-              </div>
-            </div>
+              </CardBody>
+            </Card>
           );
         })}
       </div>

@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import GroupDetailsTab from "./Details";
-import AccessConfigTab from "./Access";
 import CandidatesTab from "./Candidates";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import Criteria from "./Criteria";
+import { PlacementGroupRule } from "@shared-types/PlacementGroup";
 
 const CreateGroupForm: React.FC = () => {
   const navigate = useNavigate();
@@ -20,8 +21,8 @@ const CreateGroupForm: React.FC = () => {
   const [purpose, setPurpose] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
 
-  // Access Config State
-  const [accessType, setAccessType] = useState<"public" | "private">("private");
+  // Criteria State
+  const [rules, setRules] = useState<PlacementGroupRule[]>([]);
 
   // Candidates State
   const [candidates, setCandidates] = useState<string[]>([]);
@@ -31,15 +32,20 @@ const CreateGroupForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const handleSave = () => {
+    if (!selectedDepartments.length) {
+      toast.error("Please select at least one department");
+      return;
+    }
+
     setLoading(true);
     axios
       .post("/placement-groups", {
         name,
         academicYear: { start: startYear, end: endYear },
         departments: selectedDepartments,
+        criteria: rules,
         purpose,
         expiryDate,
-        accessType,
         candidates,
       })
       .then(() => {
@@ -57,8 +63,8 @@ const CreateGroupForm: React.FC = () => {
       <div className="flex flex-col space-y-4 px-4 w-[30%]">
         {[
           { id: 1, title: "Group Details" },
-          { id: 2, title: "Access Settings" },
-          { id: 3, title: "Add Candidates" },
+          { id: 3, title: "Group Criteria" },
+          { id: 4, title: "Add Candidates" },
         ]?.map((step, index) => (
           <div
             key={step.id}
@@ -75,14 +81,7 @@ const CreateGroupForm: React.FC = () => {
               cursor-pointer group
             `}
             onClick={() => {
-              // Only allow going to previous or next steps
-              if (
-                index === activeStep - 1 ||
-                index === activeStep + 1 ||
-                index === activeStep
-              ) {
-                setActiveStep(index);
-              }
+              setActiveStep(index);
             }}
           >
             <div className="flex items-center space-x-4">
@@ -129,11 +128,11 @@ const CreateGroupForm: React.FC = () => {
           />
         )}
         {activeStep === 1 && (
-          <AccessConfigTab
-            accessType={accessType}
-            setAccessType={setAccessType}
+          <Criteria
             activeStep={activeStep}
             setActiveStep={setActiveStep}
+            rules={rules}
+            setRules={setRules}
           />
         )}
         {activeStep === 2 && (
@@ -144,6 +143,7 @@ const CreateGroupForm: React.FC = () => {
             setActiveStep={setActiveStep}
             onSave={handleSave}
             loading={loading}
+            rules={rules}
           />
         )}
       </div>

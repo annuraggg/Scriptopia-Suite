@@ -36,5 +36,6 @@ app.get("/candidate/:cid", instituteController.getCandidate);
 app.post("/candidate/:cid/accept", instituteController.acceptCandidate);
 app.post("/candidate/:cid/reject", instituteController.rejectCandidate);
 app.post("/candidate/:cid/remove", instituteController.removeCandidate);
+app.get("/candidate/:cid/resume", instituteController.getResume);
 
 export default app;

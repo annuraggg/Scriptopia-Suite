@@ -15,6 +15,7 @@ interface AppliedDriveScore {
     disqualifiedReason?: string;
     scores?: AppliedDriveScore[];
     status: AppliedDriveStatus;
+    salary: number;
     createdAt?: Date;
     updatedAt?: Date;
   }

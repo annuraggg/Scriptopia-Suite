@@ -5,6 +5,7 @@ import clerkClient from "@/config/clerk";
 import checkInstitutePermission from "../../../middlewares/checkInstitutePermission";
 import PlacementGroup from "@/models/PlacementGroup";
 import Candidate from "@/models/Candidate";
+import Drive from "@/models/Drive";
 
 const createPlacementGroup = async (c: Context) => {
   try {
@@ -24,6 +25,7 @@ const createPlacementGroup = async (c: Context) => {
       expiryDate,
       accessType,
       candidates,
+      criteria,
     } = body;
 
     const clerkUser = await clerkClient.users.getUser(userId);
@@ -38,6 +40,7 @@ const createPlacementGroup = async (c: Context) => {
       name,
       institute: instituteId,
       academicYear,
+      criteria,
       departments,
       purpose,
       expiryDate,
@@ -63,7 +66,7 @@ const createPlacementGroup = async (c: Context) => {
       },
     });
 
-    return sendSuccess(c, 201, "Placement group created", group);
+    return sendSuccess(c, 200, "Placement group created", group);
   } catch (err) {
     console.error(err);
     return sendError(c, 500, "Internal server error", err);
@@ -161,17 +164,6 @@ const joinPlacementGroup = async (c: Context) => {
 
     if (group.pendingCandidates.includes(user._id)) {
       return sendError(c, 400, "Already requested to join the group");
-    }
-
-    if (group.accessType === "public") {
-      group.candidates.push(user._id);
-      await group.save();
-      return sendSuccess(c, 200, "Joined placement group", group);
-    }
-    if (group.accessType === "private") {
-      group.pendingCandidates.push(user._id);
-      await group.save();
-      return sendSuccess(c, 200, "Request sent to join placement group", group);
     }
   } catch (err) {
     console.error(err);
@@ -291,7 +283,6 @@ const updatePlacementGroup = async (c: Context) => {
     existingGroup.departments = body.departments;
     existingGroup.purpose = body.purpose;
     existingGroup.expiryDate = body.expiryDate;
-    existingGroup.accessType = body.accessType;
 
     existingGroup.candidates = [];
     existingGroup.candidates = body.candidates;
@@ -310,6 +301,49 @@ const updatePlacementGroup = async (c: Context) => {
   }
 };
 
+const deletePlacementGroup = async (c: Context) => {
+  try {
+    const { userId } = c.get("auth");
+    const groupId = c.req.param("id");
+
+    const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
+    if (!perms.allowed) {
+      return sendError(c, 403, "Unauthorized");
+    }
+
+    const clerkUser = await clerkClient.users.getUser(userId);
+    if (!clerkUser) {
+      return sendError(c, 403, "Unauthorized");
+    }
+
+    const existingGroup = await PlacementGroup.findById(groupId);
+    if (!existingGroup) {
+      return sendError(c, 404, "Group not found");
+    }
+
+    const drives = await Drive.find({
+      placementGroup: groupId,
+    });
+
+    const activeDrives = drives.filter((drive) => {
+      return drive.published || !drive.hasEnded;
+    });
+
+    if (activeDrives.length > 0) {
+      return sendError(c, 400, "Cannot delete group with active drives");
+    } else {
+      await Drive.deleteMany({ placementGroup: groupId });
+    }
+
+    await existingGroup.deleteOne();
+
+    return sendSuccess(c, 200, "Group deleted", existingGroup);
+  } catch (err) {
+    console.error(err);
+    return sendError(c, 500, "Internal server error", err);
+  }
+};
+
 export default {
   createPlacementGroup,
   getPlacementGroups,
@@ -319,4 +353,5 @@ export default {
   rejectCandidate,
   getCandidatePlacementGroups,
   updatePlacementGroup,
+  deletePlacementGroup,
 };

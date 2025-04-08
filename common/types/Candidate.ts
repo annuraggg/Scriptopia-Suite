@@ -12,6 +12,14 @@ interface SocialLink {
   createdAt?: Date;
 }
 
+interface BacklogHistory {
+  subject: string;
+  semester: number;
+  cleared: boolean;
+  attemptCount: number;
+  clearedDate?: Date;
+}
+
 interface Education {
   _id?: string;
   school: string;
@@ -23,6 +31,11 @@ interface Education {
   current: boolean;
   type: "fulltime" | "parttime" | "distance";
   percentage: number;
+  // New fields for backlogs
+  activeBacklogs?: number;
+  totalBacklogs?: number;
+  clearedBacklogs?: number;
+  backlogHistory?: BacklogHistory[];
   createdAt?: Date;
 }
 
@@ -179,10 +192,17 @@ interface ExtraCurricular {
 
 interface Notification {
   _id?: string;
-  type: "info" | "warning" | "error";
+  type: "info" | "warning" | "error" | "success";
   message: string;
   read: boolean;
   createdAt?: Date;
+}
+
+interface AcademicAggregates {
+  overallCGPA?: number;
+  hasBacklogs: boolean;
+  activeBacklogs: number;
+  totalBacklogs: number;
 }
 
 interface Candidate {
@@ -194,7 +214,13 @@ interface Candidate {
   email: string;
   phone: string;
   address: string;
+
   summary?: string;
+  profileImage?: string;
+
+  // Academic aggregates for quick filtering
+  academicAggregates?: AcademicAggregates;
+
   socialLinks?: SocialLink[];
   education?: Education[];
   workExperience?: WorkExperience[];
@@ -216,13 +242,20 @@ interface Candidate {
   appliedPostings?: string[];
   appliedDrives?: string[];
   institute?: string;
+  instituteUid?: string;
   notifications?: Notification[];
+
+  // Profile completion metadata
+  profileCompletionPercentage?: number;
+  lastProfileUpdate?: Date;
+
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 export type {
   SocialLink,
+  BacklogHistory,
   Education,
   WorkExperience,
   Skill,
@@ -238,5 +271,7 @@ export type {
   Scholarship,
   Volunteering,
   ExtraCurricular,
+  Notification,
+  AcademicAggregates,
   Candidate,
 };

@@ -1,5 +1,4 @@
 import { Outlet, useOutletContext } from "react-router-dom";
-import Sidebar from "./Sidebar";
 import { Candidate } from "@shared-types/Candidate";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
@@ -17,6 +16,7 @@ const Layout = () => {
 
   const updateUser = (newUser: Candidate) => {
     const oldState = user;
+    console.log("New User", newUser);
     setUser(newUser);
     axios
       .put("candidates/candidate", newUser)
@@ -34,9 +34,7 @@ const Layout = () => {
     <>
       <div className="">
         <div className="flex w-full">
-          <Sidebar />
-
-          <div className="h-full w-full">
+          <div className="h-screen w-full overflow-y-auto p-5">
             <Outlet context={{ user, setUser: updateUser }} />
           </div>
         </div>

@@ -11,28 +11,29 @@ import { Candidate } from "@shared-types/Candidate";
 
 const Candidates = () => {
   const org = useSelector((state: RootState) => state.institute);
-  const [candidates, setCandidates] = useState<Candidate[]>(
-    []
-  );
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [rerender, setRerender] = useState(false);
 
   const { getToken } = useAuth();
+  
+  const fetchCandidates = async () => {
+    setLoading(true);
+    try {
+      const axios = ax(getToken);
+      const response = await axios.get("/institutes/candidates");
+      setCandidates(response.data.data || []);
+      setLoading(false);
+    } catch (error) {
+      console.error(error);
+      setError("Failed to fetch candidates");
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const axios = ax(getToken);
-    axios
-      .get("/institutes/candidates")
-      .then((response) => {
-        setCandidates(response.data.data || []);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error(error);
-        setError("Failed to fetch candidates");
-        setLoading(false);
-      });
-  }, [rerender]);
+    fetchCandidates();
+  }, []);
 
   if (loading)
     return (
@@ -59,7 +60,12 @@ const Candidates = () => {
         className=""
       >
         <div className="p-5">
-          <DataTable data={candidates} type="active" onDataUpdate={() =>setRerender(!rerender)} />
+          <DataTable 
+            data={candidates} 
+            type="active" 
+            setData={setCandidates} 
+            onDataChange={fetchCandidates} 
+          />
         </div>
       </motion.div>
     </>

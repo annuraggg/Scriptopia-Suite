@@ -3,8 +3,7 @@ import ThemeCustomizer from "./ThemeEngine";
 import ThemeSelector from "./ThemeSelector";
 import { getThemeByName, getThemeOptions } from "./Themes";
 import { ThemeStyles } from "@/types/ResumeTheme";
-import "./themes/themes.css"; // Import the fonts CSS file
-
+import "./themes/themes.css";
 interface ThemeCustomizerWrapperProps {
   initialTheme?: string;
   onThemeChange: (theme: ThemeStyles) => void;

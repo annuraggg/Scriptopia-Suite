@@ -2,7 +2,7 @@ import React from "react";
 import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
 import { ChevronRight } from "lucide-react";
-import { Autocomplete, AutocompleteItem } from "@nextui-org/react";
+import TagsInput from "react-tagsinput";
 
 interface CompanyDetailsTabProps {
   name: string;
@@ -25,19 +25,7 @@ const industries = [
   "Retail",
   "Education",
   "Consulting",
-  "Other"
-];
-
-const defaultRoles = [
-  "Software Engineer",
-  "Data Scientist",
-  "Product Manager",
-  "Business Analyst",
-  "UX Designer",
-  "Sales Executive",
-  "Marketing Specialist",
-  "Operations Manager",
-  "Finance Analyst"
+  "Other",
 ];
 
 const CompanyDetailsTab: React.FC<CompanyDetailsTabProps> = ({
@@ -55,30 +43,9 @@ const CompanyDetailsTab: React.FC<CompanyDetailsTabProps> = ({
   const toggleIndustry = (industryName: string) => {
     setIndustry(
       industry.includes(industryName)
-        ? industry.filter(i => i !== industryName)
+        ? industry.filter((i) => i !== industryName)
         : [...industry, industryName]
     );
-  };
-
-  const handleRoleSelect = (role: string) => {
-    if (!rolesOffered.includes(role)) {
-      setRolesOffered([...rolesOffered, role]);
-    }
-  };
-
-  const handleRemoveRole = (role: string) => {
-    setRolesOffered(rolesOffered.filter(r => r !== role));
-  };
-
-  const handleRoleInputChange = (value: string) => {
-    if (value.endsWith(",") || value.endsWith(" ")) {
-      const newRole = value.slice(0, -1).trim();
-      if (newRole && !rolesOffered.includes(newRole)) {
-        setRolesOffered([...rolesOffered, newRole]);
-        return "";
-      }
-    }
-    return value;
   };
 
   return (
@@ -146,38 +113,12 @@ const CompanyDetailsTab: React.FC<CompanyDetailsTabProps> = ({
             <p className="opacity-50">Positions available for placement</p>
           </div>
           <div className="w-[500px]">
-            <Autocomplete
-              placeholder="Type a role and press Enter or comma"
-              allowsCustomValue={true}
-              onSelectionChange={(key) => {
-                if (key) handleRoleSelect(String(key));
-              }}
-              onInputChange={handleRoleInputChange}
-              className="w-full mb-2"
-            >
-              {defaultRoles.map((role) => (
-                <AutocompleteItem key={role} value={role}>
-                  {role}
-                </AutocompleteItem>
-              ))}
-            </Autocomplete>
-            
-            <div className="flex flex-wrap gap-2 mt-2">
-              {rolesOffered.map((role) => (
-                <div
-                  key={role}
-                  className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full flex items-center"
-                >
-                  <span>{role}</span>
-                  <button
-                    className="ml-2 text-blue-600 font-semibold"
-                    onClick={() => handleRemoveRole(role)}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
+            <TagsInput
+              value={rolesOffered}
+              onChange={setRolesOffered}
+              onlyUnique
+              inputProps={{ placeholder: "Add a Skill" }}
+            />
           </div>
         </div>
       </div>

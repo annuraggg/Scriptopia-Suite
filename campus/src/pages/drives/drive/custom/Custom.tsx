@@ -32,7 +32,7 @@ const Custom = () => {
   if (!isCurrent) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <h4 className="text-2xl font-semibold">Step Not Current</h4>
+        <h4 className="text-2xl font-semibold">This Step is Not Currently Active.</h4>
       </div>
     );
   }

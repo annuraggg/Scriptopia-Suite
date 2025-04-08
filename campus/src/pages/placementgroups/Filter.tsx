@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Card,
-  CardBody,
-  Select,
-  SelectItem,
-  Checkbox,
-} from "@nextui-org/react";
+import { Card, CardBody, Select, SelectItem } from "@nextui-org/react";
 import { Department } from "@shared-types/Institute";
 
 export interface FilterProps {
@@ -16,32 +10,11 @@ export interface FilterProps {
 
 const years = ["2023-2024", "2022-2023", "2021-2022"];
 
-const Filter: React.FC<FilterProps> = ({
-  departments,
-  onFilterChange,
-  onClearFilters,
-}) => {
+const Filter: React.FC<FilterProps> = ({ onFilterChange, onClearFilters }) => {
   const [selectedYear, setSelectedYear] = React.useState<string>("");
   const [selectedDepartments, setSelectedDepartments] = React.useState<
     string[]
   >([]);
-
-  const handleDepartmentChange = (deptId: string) => {
-    let newSelectedDepts: string[] = [];
-
-    if (deptId === "select-all") {
-      newSelectedDepts = departments.map((dept) => dept._id) as string[];
-    } else if (deptId === "clear-all") {
-      newSelectedDepts = [];
-    } else {
-      newSelectedDepts = selectedDepartments.includes(deptId)
-        ? selectedDepartments.filter((id) => id !== deptId)
-        : [...selectedDepartments, deptId];
-    }
-
-    setSelectedDepartments(newSelectedDepts);
-    onFilterChange({ year: selectedYear, departments: newSelectedDepts });
-  };
 
   const handleYearChange = (year: string) => {
     setSelectedYear(year);
@@ -78,7 +51,7 @@ const Filter: React.FC<FilterProps> = ({
             </Select>
           </div>
 
-          <div>
+          {/* <div>
             <h4 className="text-lg mb-3">Department</h4>
             <div className="space-y-2">
               <Checkbox
@@ -107,7 +80,7 @@ const Filter: React.FC<FilterProps> = ({
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
 
           <div className="flex justify-between mt-6">
             <button className="text-sm text-default-500" onClick={handleClear}>

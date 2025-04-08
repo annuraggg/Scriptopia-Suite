@@ -17,7 +17,9 @@ import { ExtendedInstitute } from "@shared-types/ExtendedInstitute";
 
 const Layout = () => {
   const [notifications, setNotifications] = useState([]);
-  const [institute, setInstitute] = useState<ExtendedInstitute>({} as ExtendedInstitute);
+  const [institute, setInstitute] = useState<ExtendedInstitute>(
+    {} as ExtendedInstitute
+  );
   const [user, setUser] = useState<MWP>({} as MWP);
   const [rerender, setRerender] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

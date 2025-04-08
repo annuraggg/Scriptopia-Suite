@@ -51,13 +51,15 @@ import { Candidate } from "@shared-types/Candidate";
 interface DataTableProps<TData extends Candidate> {
   data: TData[];
   type: "pending" | "active";
-  onDataUpdate: () => void;
+  setData: React.Dispatch<React.SetStateAction<TData[]>>;
+  onDataChange?: () => void; // New callback for data changes
 }
 
 export function DataTable<TData extends Candidate>({
   data = [],
   type,
-  onDataUpdate,
+  setData,
+  onDataChange,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -94,7 +96,10 @@ export function DataTable<TData extends Candidate>({
       .post(`/institutes/candidate/${id}/accept`)
       .then(() => {
         toast.success("Candidate Accepted Successfully");
-        onDataUpdate?.();
+        // Update local state
+        setData((prev) => prev.filter((candidate) => candidate._id !== id));
+        // Refresh data from server to ensure consistency
+        if (onDataChange) onDataChange();
         onCloseAcceptModal();
       })
       .catch((err) => {
@@ -112,7 +117,10 @@ export function DataTable<TData extends Candidate>({
       .post(`/institutes/candidate/${id}/reject`)
       .then(() => {
         toast.success("Candidate Rejected Successfully");
-        onDataUpdate?.();
+        // Update local state
+        setData((prev) => prev.filter((candidate) => candidate._id !== id));
+        // Refresh data from server to ensure consistency
+        if (onDataChange) onDataChange();
         onCloseRejectModal();
       })
       .catch((err) => {
@@ -130,7 +138,10 @@ export function DataTable<TData extends Candidate>({
       .post(`/institutes/candidate/${id}/remove`)
       .then(() => {
         toast.success("Candidate Removed Successfully");
-        onDataUpdate?.();
+        // Update local state
+        setData((prev) => prev.filter((candidate) => candidate._id !== id));
+        // Refresh data from server to ensure consistency
+        if (onDataChange) onDataChange();
         onCloseRemoveModal();
       })
       .catch((err) => {
@@ -222,7 +233,7 @@ export function DataTable<TData extends Candidate>({
       },
       cell: ({ row }) => {
         const createdAt = row.original.createdAt;
-        return new Date(createdAt!).toDateString();
+        return createdAt ? new Date(createdAt).toDateString() : "N/A";
       },
     },
     {
@@ -251,9 +262,7 @@ export function DataTable<TData extends Candidate>({
                 isIconOnly
                 variant="flat"
                 color="primary"
-                onPress={() =>
-                  window.open(`/c/${row.row.original._id}`)
-                }
+                onPress={() => window.open(`/c/${row.row.original._id}`)}
               >
                 <Eye />
               </Button>
@@ -339,7 +348,7 @@ export function DataTable<TData extends Candidate>({
               table.getColumn("email")?.setFilterValue(event.target.value)
             }
             className="max-w-sm"
-          />{" "}
+          />
         </div>
         <Table className="mt-5">
           <TableHeader>
@@ -417,9 +426,7 @@ export function DataTable<TData extends Candidate>({
                   color="success"
                   isLoading={isAccepting}
                   onPress={() =>
-                    handleAcceptCandidate(
-                      selectedCandidate?._id || ""
-                    )
+                    handleAcceptCandidate(selectedCandidate?._id || "")
                   }
                 >
                   Accept
@@ -456,9 +463,7 @@ export function DataTable<TData extends Candidate>({
                   color="danger"
                   isLoading={isRejecting}
                   onPress={() =>
-                    handleRejectCandidate(
-                      selectedCandidate?._id || ""
-                    )
+                    handleRejectCandidate(selectedCandidate?._id || "")
                   }
                 >
                   Reject
@@ -480,8 +485,7 @@ export function DataTable<TData extends Candidate>({
               <ModalBody>
                 <p>
                   Are you sure you want to remove{" "}
-                  <strong>{selectedCandidate?.name}</strong> from the
-                  campus?
+                  <strong>{selectedCandidate?.name}</strong> from the campus?
                 </p>
               </ModalBody>
               <ModalFooter>
@@ -496,9 +500,7 @@ export function DataTable<TData extends Candidate>({
                   color="danger"
                   isLoading={isRemoving}
                   onPress={() =>
-                    handleRemoveCandidate(
-                      selectedCandidate?._id || ""
-                    )
+                    handleRemoveCandidate(selectedCandidate?._id || "")
                   }
                 >
                   Remove

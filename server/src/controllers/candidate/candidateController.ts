@@ -15,6 +15,8 @@ import AppliedDrive from "@/models/AppliedDrive";
 import DriveModel from "@/models/Drive";
 import Institute from "@/models/Institute";
 import Drive from "@/models/Drive";
+import clerkClient from "@/config/clerk";
+import PlacementGroup from "@/models/PlacementGroup";
 
 const getCandidate = async (c: Context) => {
   try {
@@ -32,7 +34,8 @@ const getCandidate = async (c: Context) => {
           populate: { path: "organizationId", model: "Organization" },
         },
       })
-      .populate("userId"); // Populate userId separately
+      .populate("appliedDrives")
+      .populate("userId");
 
     if (!candidate) {
       return sendError(c, 404, "Candidate not found");
@@ -85,15 +88,21 @@ const createCandidate = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    console.log(auth);
     const candidate = await Candidate.findOne({ userId: auth._id });
+
+    const clerkUser = await clerkClient.users.getUser(auth.userId);
 
     if (candidate) {
       return sendError(c, 400, "Candidate already exists");
     }
 
+    if (!clerkUser) {
+      return sendError(c, 400, "User not found");
+    }
+
     const newCandidate = new Candidate({
       ...body,
+      name: clerkUser.fullName,
       userId: auth._id,
     });
 
@@ -278,11 +287,27 @@ const applyToDrive = async (c: Context) => {
 
     const candidate = await Candidate.findOne({ userId });
     const candId = candidate?._id;
-    console.log("Candidate ID: ", candId);
     const posting = await Drive.findById(driveId);
 
     if (!posting) {
       return sendError(c, 404, "Posting not found");
+    }
+
+    console.log("Candidate ID: ", candId);
+    const placementGroups = await PlacementGroup.find({
+      candidates: { $in: [candId] },
+    });
+
+    if (placementGroups.length === 0) {
+      return sendError(c, 400, "Candidate not part of any placement group");
+    }
+
+    const allowed = placementGroups
+      .map((group) => group._id)
+      .some((groupId) => posting?.placementGroup == groupId);
+
+    if (!allowed) {
+      return sendError(c, 400, "Candidate is not eligible for this drive");
     }
 
     const today = new Date();
@@ -423,5 +448,5 @@ export default {
   getAppliedPostings,
   getCandidateById,
   applyToDrive,
-  getAppliedDrives
+  getAppliedDrives,
 };

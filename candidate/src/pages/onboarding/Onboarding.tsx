@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./Onboarding.css";
 import Info from "./Info";
 import Contact from "./Contact";
@@ -13,6 +13,7 @@ import {
 } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import Address from "./Address";
+import Loader from "@/components/Loader";
 
 const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -26,7 +27,15 @@ const Onboarding = () => {
 
   const [address, setAddress] = useState<string>("");
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const axios = ax(getToken);
+    axios
+      .get("candidates/candidate")
+      .then(() => (window.location.href = "/dashboard"))
+      .catch(() => setLoading(false));
+  }, []);
 
   const steps = [
     {
@@ -115,6 +124,8 @@ const Onboarding = () => {
         toast.error(err.response.data.message || "Failed to create profile");
       });
   };
+
+  if (loading) return <Loader />;
 
   return (
     <>

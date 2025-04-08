@@ -200,6 +200,7 @@ const driveSchema = new Schema(
       ref: "Institute",
     },
     title: { type: String, required: true },
+    link: { type: String, required: false },
     description: { type: Object, required: true },
     company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
     location: { type: String, required: true },
@@ -259,14 +260,23 @@ const driveSchema = new Schema(
       },
       required: false,
     },
-    placementGroups: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "PlacementGroup",
-      },
-    ],
+    placementGroup: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PlacementGroup",
+    },
+
     published: { type: Boolean, default: false },
     publishedOn: { type: Date },
+    hasEnded: { type: Boolean, default: false },
+    hiredCandidates: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Candidate",
+    },
+    offerLetters: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Candidate",
+      required: false,
+    }
   },
   { timestamps: true }
 );

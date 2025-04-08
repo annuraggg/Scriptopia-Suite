@@ -25,7 +25,7 @@ const getDrives = async (c: Context) => {
 
     const drive = await Drive.find({
       institute: perms.data?.institute?._id,
-    });
+    }).populate("company");
 
     const institute = await Institute.findById(perms.data?.institute?._id);
 
@@ -58,8 +58,10 @@ const getDrive = async (c: Context) => {
         },
       })
       .populate("institute")
+      .populate("company")
       .populate("assignments.submissions")
-      .populate("interviews.interview");
+      .populate("interviews.interview")
+      .populate("hiredCandidates");
 
     if (!drive) {
       return sendError(c, 404, "drive not found");
@@ -85,7 +87,8 @@ const getDrivesForCandidate = async (c: Context) => {
       "drives"
     );
 
-    const onlyPublishedDrives = institute?.drives.filter( //@ts-expect-error - Type 'Drive[]' is not assignable to type 'Drive[] | undefined'
+    const onlyPublishedDrives = institute?.drives.filter(
+      //@ts-expect-error - Type 'Drive[]' is not assignable to type 'Drive[] | undefined'
       (drive) => drive?.published === true
     );
 
@@ -748,6 +751,143 @@ const getCandidatesForDrive = async (c: Context) => {
   }
 };
 
+const endDrive = async (c: Context) => {
+  try {
+    const perms = await checkPermission.all(c, ["manage_drive"]);
+    if (!perms.allowed) {
+      return sendError(c, 401, "Unauthorized");
+    }
+
+    const { driveId } = await c.req.json();
+    const drive = await Drive.findById(driveId);
+
+    if (!drive) {
+      return sendError(c, 404, "Drive not found");
+    }
+
+    drive.hasEnded = true;
+    drive?.workflow?.steps.forEach((step) => {
+      step.status = "completed";
+    });
+
+    const appliedPosting = await AppliedDrive.find({
+      drive: driveId,
+      status: { $in: ["applied", "inprogress", "hired"] },
+    });
+
+    if (appliedPosting.length > 0) {
+      appliedPosting.forEach((applied) => {
+        applied.status = "hired";
+        drive.hiredCandidates.push(applied.user);
+        applied.save();
+      });
+    }
+
+    await drive.save();
+
+    return sendSuccess(c, 200, "Drive ended successfully", drive);
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
+const uploadOfferLetter = async (c: Context) => {
+  try {
+    const formData = await c.req.formData();
+    const file = formData.get("file");
+    const id = formData.get("driveId");
+    const ctc = formData.get("ctc");
+
+    const candidate = await Candidate.findOne({ userId: c.get("auth")._id });
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    if (!file) {
+      return sendError(c, 400, "File is required for this assignment");
+    }
+
+    const drive = await Drive.findById(id);
+    if (!drive) {
+      return sendError(c, 404, "Drive not found");
+    }
+
+    if (!drive.hasEnded) {
+      return sendError(c, 400, "Drive has not ended yet");
+    }
+
+    const appliedDrive = await AppliedDrive.findOne({
+      user: candidate._id,
+      drive: id,
+    });
+
+    if (!appliedDrive) {
+      return sendError(c, 404, "Applied drive not found");
+    }
+
+    if (appliedDrive.status !== "hired") {
+      return sendError(c, 400, "Candidate is not hired yet");
+    }
+
+    appliedDrive.salary = Number(ctc);
+
+    const uploadParams = {
+      Bucket: process.env.R2_S3_OFFERLETTER_BUCKET!,
+      Key: `${id}/${candidate._id}`,
+      Body: file, // @ts-expect-error - Type 'File' is not assignable to type 'Body'
+      ContentType: file.type,
+    };
+
+    const upload = new Upload({
+      client: r2Client,
+      params: uploadParams,
+    });
+
+    await upload.done();
+
+    drive.offerLetters?.push(candidate._id);
+    await drive.save();
+    await appliedDrive.save();
+
+    return sendSuccess(c, 200, "File uploaded successfully", null);
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
+const getOfferLetter = async (c: Context) => {
+  try {
+    const { did, id } = c.req.param();
+    const candidate = await Candidate.findOne({ _id: id });
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const drive = await Drive.findById(did);
+    if (!drive) {
+      return sendError(c, 404, "Drive not found");
+    }
+
+    if (!drive.offerLetters?.includes(candidate._id)) {
+      return sendError(c, 400, "Candidate has not uploaded offer letter yet");
+    }
+
+    const command = new GetObjectCommand({
+      Bucket: process.env.R2_S3_OFFERLETTER_BUCKET!,
+      Key: `${did}/${candidate._id}`,
+    });
+
+    const url = await getSignedUrl(r2Client, command, { expiresIn: 600 });
+
+    return sendSuccess(c, 200, "File URL", { url });
+  } catch (e: any) {
+    logger.error(e);
+    return sendError(c, 500, "Something went wrong");
+  }
+};
+
 export default {
   getDrives,
   getDrive,
@@ -767,4 +907,7 @@ export default {
   getDrivesForCandidate,
   getDriveForCandidate,
   getCandidatesForDrive,
+  endDrive,
+  uploadOfferLetter,
+  getOfferLetter,
 };
