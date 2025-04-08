@@ -115,11 +115,11 @@ const Home = () => {
         setPostings(response.data.data.drives || []);
         setFilteredPostings(response.data.data.drives || []);
       } else {
-        setError("No job listings available");
+        setError("No drive listings available");
       }
     } catch (err) {
-      console.error("Failed to fetch job postings:", err);
-      setError("Failed to load job listings. Please try again later.");
+      console.error("Failed to fetch drive postings:", err);
+      setError("Failed to load drive listings. Please try again later.");
       setPostings([]);
       setFilteredPostings([]);
     } finally {
@@ -303,7 +303,7 @@ const Home = () => {
             </h1>
             <p className="text-gray-500 mt-1">
               {filteredPostings.length}{" "}
-              {filteredPostings.length === 1 ? "job" : "jobs"} available
+              {filteredPostings.length === 1 ? "drive" : "drives"} available
             </p>
           </div>
         </div>
@@ -349,8 +349,8 @@ const Home = () => {
               {/* Search */}
               <div className="mb-6">
                 <Input
-                  label="Search jobs"
-                  placeholder="Job title, company, location..."
+                  label="Search drives"
+                  placeholder="Drive title, company, location..."
                   startContent={<Search size={16} className="text-gray-400" />}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -368,7 +368,7 @@ const Home = () => {
               {/* Job Type */}
               <div className="my-4">
                 <h3 className="text-sm font-semibold mb-3 text-gray-700">
-                  Job Type
+                  Drive Type
                 </h3>
                 <CheckboxGroup
                   value={selectedJobTypes}
@@ -448,10 +448,10 @@ const Home = () => {
                     <Briefcase size={24} className="text-gray-400" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                    No jobs found
+                    No drives found
                   </h3>
                   <p className="text-gray-500 mb-4 text-center">
-                    We couldn't find any jobs matching your criteria.
+                    We couldn't find any drives matching your criteria.
                   </p>
                   <Button color="primary" onClick={clearFilters}>
                     Clear Filters
@@ -503,7 +503,7 @@ const Home = () => {
                       <div className="flex flex-wrap gap-2 my-3">
                         {posting?.type && (
                           <Tooltip
-                            content={`Job Type: ${normalizeText(posting.type)}`}
+                            content={`Drive Type: ${normalizeText(posting.type)}`}
                           >
                             <Chip
                               color={

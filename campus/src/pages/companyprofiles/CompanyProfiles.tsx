@@ -17,6 +17,7 @@ import { Search, Plus, MoreVertical, Copy, Calendar, Users, DollarSign } from 'l
 import { useAuth } from '@clerk/clerk-react';
 import ax from '@/config/axios';
 import CreateCompanyForm from './CreateCompanyForm';
+import EditCompanyModal from './EditCompanyModal';
 
 interface Company {
   _id: string;
@@ -73,6 +74,10 @@ const CompanyProfiles = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "archived">("all");
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [companyToDelete, setCompanyToDelete] = useState<string | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [companyToEdit, setCompanyToEdit] = useState<Company | null>(null);
 
   const [filters, setFilters] = useState<Filters>({
     year: '',
@@ -155,8 +160,7 @@ const CompanyProfiles = () => {
     });
   }, [companies, searchTerm, filter, sort, filters, isFiltersApplied]);
 
-  const handleArchive = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleArchive = async (id: string) => {
     try {
       await axios.post("/companies/archive", { id });
       setCompanies(prev => prev.map(company =>
@@ -451,23 +455,22 @@ const CompanyProfiles = () => {
                                     <MoreVertical size={20} />
                                   </Button>
                                 </DropdownTrigger>
-                                <DropdownMenu>
-                                  <DropdownItem onClick={(e) => {
-                                    e.preventDefault();
-                                    navigate(`/company/${company._id}/edit`);
-                                  } } key={''}>
-                                    Edit Profile
-                                  </DropdownItem>
-                                  <DropdownItem onClick={(e) => handleArchive(company._id, e)} key={''}>
+                                <DropdownMenu onAction={(key) => {
+                                  if (key === "edit") {
+                                    setCompanyToEdit(company);
+                                    setShowEditModal(true);
+                                  } else if (key === "archive") {
+                                    handleArchive(company._id);
+                                  } else if (key === "delete") {
+                                    setCompanyToDelete(company._id);
+                                    setShowDeleteModal(true);
+                                  }
+                                }}>
+                                  <DropdownItem key="edit">Edit Profile</DropdownItem>
+                                  <DropdownItem key="archive">
                                     {company.archived ? "Unarchive" : "Archive"}
                                   </DropdownItem>
-                                  <DropdownItem
-                                    className="text-danger"
-                                    color="danger"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDelete(company._id);
-                                    } } key={''}                                  >
+                                  <DropdownItem key="delete" className="text-danger" color="danger">
                                     Delete
                                   </DropdownItem>
                                 </DropdownMenu>
@@ -494,6 +497,51 @@ const CompanyProfiles = () => {
           )}
         </AnimatePresence>
       </div>
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-gray-900 rounded-lg p-6 max-w-md w-full"
+          >
+            <h3 className="text-lg font-semibold mb-4">Confirm Deletion</h3>
+            <p className="mb-6">Are you sure you want to delete this company? This action cannot be undone.</p>
+            <div className="flex justify-end gap-3">
+              <Button variant="flat" onClick={() => setShowDeleteModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                color="danger"
+                onClick={() => {
+                  if (companyToDelete) {
+                    handleDelete(companyToDelete);
+                    setShowDeleteModal(false);
+                    setCompanyToDelete(null);
+                  }
+                }}
+              >
+                Delete
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {showEditModal && companyToEdit && (
+        <EditCompanyModal
+          company={companyToEdit}
+          onClose={() => {
+            setShowEditModal(false);
+            setCompanyToEdit(null);
+          }}
+          onSave={() => {
+            fetchCompanies();
+            setShowEditModal(false);
+            setCompanyToEdit(null);
+          }}
+        />
+      )}
     </div>
   );
 };

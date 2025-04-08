@@ -282,9 +282,8 @@ const joinInstitute = async (c: Context) => {
       const auditLog: AuditLog = {
         user: clerkUser.firstName + " " + clerkUser.lastName,
         userId: userId,
-        action: `User Joined Institute. Invited By: ${
-          inviterClerk.firstName + " " + inviterClerk.lastName
-        }`,
+        action: `User Joined Institute. Invited By: ${inviterClerk.firstName + " " + inviterClerk.lastName
+          }`,
         type: "info",
       };
 
@@ -371,9 +370,8 @@ const updateInstitute = async (c: Context) => {
     }
 
     const currentUser = await clerkClient.users.getUser(c.get("auth").userId);
-    const inviterName = `${currentUser.firstName || ""} ${
-      currentUser.lastName || ""
-    }`.trim();
+    const inviterName = `${currentUser.firstName || ""} ${currentUser.lastName || ""
+      }`.trim();
 
     const oldMembers = institute.members || [];
     const newMembers = body.members || [];
@@ -671,9 +669,8 @@ const updateMembers = async (c: Context) => {
     }
 
     const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
-    const fullName = `${clerkUser.firstName || ""} ${
-      clerkUser.lastName || ""
-    }`.trim();
+    const fullName = `${clerkUser.firstName || ""} ${clerkUser.lastName || ""
+      }`.trim();
 
     const oldMemberEmails = institute.members.map((member) => member.email);
     const newMemberEmails = members.map((member: Member) => member.email);
@@ -1029,6 +1026,16 @@ const requestToJoin = async (c: Context) => {
       return sendError(c, 400, "Already a faculty of the institute");
     }
 
+    // Check if the instituteUid is already in use
+    const existingCandidate = await CandidateModel.findOne({
+      instituteUid: uid,
+      institute: institute._id
+    });
+
+    if (existingCandidate) {
+      return sendError(c, 400, "A candidate with this unique ID already exists");
+    }
+
     const updatedInstitute = await Institute.findByIdAndUpdate(
       institute._id,
       {
@@ -1341,14 +1348,23 @@ const acceptCandidate = async (c: Context) => {
       return sendError(c, 404, "Pending candidate not found");
     }
 
+    // Check if the instituteUid is already in use by another candidate
+    const existingCandidate = await CandidateModel.findOne({
+      instituteUid: candidate.instituteUid,
+      institute: institute._id,
+      _id: { $ne: candidate._id } // Exclude the current candidate
+    });
+
+    if (existingCandidate) {
+      return sendError(c, 400, "A candidate with this unique ID already exists");
+    }
+
     const newPending = institute.pendingCandidates.filter(
       (c) => c?.toString() !== candidate._id.toString()
     );
 
     institute.candidates.push(candidate._id);
     institute.pendingCandidates = newPending;
-
-    console.log(newPending);
 
     candidate.institute = institute._id;
 
@@ -1393,7 +1409,8 @@ const rejectCandidate = async (c: Context) => {
       return sendError(c, 404, "Pending candidate not found");
     }
 
-    institute.candidates?.filter(
+    // Fix: Properly update the pendingCandidates array
+    institute.pendingCandidates = institute.pendingCandidates.filter(
       (c) => c?.toString() !== candidate._id.toString()
     );
 
@@ -1464,19 +1481,27 @@ const removeCandidate = async (c: Context) => {
       return sendError(c, 404, "Candidate not found");
     }
 
-    const existingCandidate = institute.candidates.find(
+    // Check if the candidate is actually in this institute
+    const isInInstitute = institute.candidates.some(
       (c) => c?.toString() === candidate._id.toString()
     );
 
-    if (!existingCandidate) {
-      return sendError(c, 404, "Candidate not found in the institute");
+    if (!isInInstitute) {
+      return sendError(c, 404, "Candidate not found in this institute");
     }
 
-    institute.candidates.filter(
+    // Remove the candidate from the institute
+    institute.candidates = institute.candidates.filter(
       (c) => c?.toString() !== candidate._id.toString()
     );
 
-    candidate.institute = null;
+    // Clear the institute reference from the candidate
+    candidate.institute = undefined;
+
+    candidate.notifications.push({
+      message: `You have been removed from ${institute.name}`,
+      type: "institute",
+    });
 
     await candidate.save();
     await institute.save();

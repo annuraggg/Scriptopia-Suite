@@ -52,12 +52,14 @@ interface DataTableProps<TData extends Candidate> {
   data: TData[];
   type: "pending" | "active";
   setData: React.Dispatch<React.SetStateAction<TData[]>>;
+  onDataChange?: () => void; // New callback for data changes
 }
 
 export function DataTable<TData extends Candidate>({
   data = [],
   type,
   setData,
+  onDataChange,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -94,7 +96,10 @@ export function DataTable<TData extends Candidate>({
       .post(`/institutes/candidate/${id}/accept`)
       .then(() => {
         toast.success("Candidate Accepted Successfully");
+        // Update local state
         setData((prev) => prev.filter((candidate) => candidate._id !== id));
+        // Refresh data from server to ensure consistency
+        if (onDataChange) onDataChange();
         onCloseAcceptModal();
       })
       .catch((err) => {
@@ -112,7 +117,10 @@ export function DataTable<TData extends Candidate>({
       .post(`/institutes/candidate/${id}/reject`)
       .then(() => {
         toast.success("Candidate Rejected Successfully");
+        // Update local state
         setData((prev) => prev.filter((candidate) => candidate._id !== id));
+        // Refresh data from server to ensure consistency
+        if (onDataChange) onDataChange();
         onCloseRejectModal();
       })
       .catch((err) => {
@@ -130,7 +138,10 @@ export function DataTable<TData extends Candidate>({
       .post(`/institutes/candidate/${id}/remove`)
       .then(() => {
         toast.success("Candidate Removed Successfully");
+        // Update local state
         setData((prev) => prev.filter((candidate) => candidate._id !== id));
+        // Refresh data from server to ensure consistency
+        if (onDataChange) onDataChange();
         onCloseRemoveModal();
       })
       .catch((err) => {
@@ -222,7 +233,7 @@ export function DataTable<TData extends Candidate>({
       },
       cell: ({ row }) => {
         const createdAt = row.original.createdAt;
-        return new Date(createdAt!).toDateString();
+        return createdAt ? new Date(createdAt).toDateString() : "N/A";
       },
     },
     {
@@ -337,7 +348,7 @@ export function DataTable<TData extends Candidate>({
               table.getColumn("email")?.setFilterValue(event.target.value)
             }
             className="max-w-sm"
-          />{" "}
+          />
         </div>
         <Table className="mt-5">
           <TableHeader>

@@ -19,9 +19,13 @@ import {
   IconDeviceLaptop,
   IconCertificate,
   IconMessage,
+  IconBuildingSkyscraper,
+  IconUserPlus,
 } from "@tabler/icons-react";
 import { WorkflowStep } from "@shared-types/Drive";
 import { ExtendedDrive } from "@shared-types/ExtendedDrive";
+import { Company } from "@shared-types/Company"; 
+import { PlacementGroup } from "@shared-types/PlacementGroup";
 import getSymbolFromCurrency from "currency-symbol-map";
 
 const Info = () => {
@@ -81,7 +85,6 @@ const Info = () => {
 
   return (
     <div className="gap-6 p-6 grid grid-cols-1 lg:grid-cols-2">
-      {/* Main Info Card */}
       <Card className="col-span-2">
         <CardHeader className="flex justify-between items-center px-6 py-4">
           <div className="flex flex-col gap-1">
@@ -122,6 +125,28 @@ const Info = () => {
                   {drive?.institute?.departments?.find(
                     (d) => d._id === drive?.department
                   )?.name || "Not specified"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <IconBuildingSkyscraper className="text-default-500" size={20} />
+              <div>
+                <p className="text-sm text-default-500">Company</p>
+                <p className="font-medium">
+                  {drive.company && typeof drive.company === 'object' 
+                    ? (drive.company as Company)?.name || "Name not available" 
+                    : drive.company || "Not specified"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <IconUserPlus className="text-default-500" size={20} />
+              <div>
+                <p className="text-sm text-default-500">Placement Group</p>
+                <p className="font-medium">
+                  {drive.placementGroup && typeof drive.placementGroup === 'object' 
+                    ? (drive.placementGroup as PlacementGroup)?.name || "Name not available" 
+                    : drive.placementGroup || "Not specified"}
                 </p>
               </div>
             </div>
@@ -174,7 +199,6 @@ const Info = () => {
         </CardBody>
       </Card>
 
-      {/* Workflow Progress Card */}
       <Card>
         <CardHeader className="px-6 py-4">
           <h2 className="text-xl font-semibold">Workflow Progress</h2>
@@ -231,7 +255,6 @@ const Info = () => {
         </CardBody>
       </Card>
 
-      {/* Statistics Card */}
       <Card>
         <CardHeader className="px-6 py-4">
           <h2 className="text-xl font-semibold">Statistics</h2>

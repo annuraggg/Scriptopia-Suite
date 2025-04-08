@@ -456,7 +456,7 @@ const Posting: React.FC = () => {
             <CardHeader className="px-6 py-4">
               <div className="flex items-center gap-2">
                 <IconBriefcase className="h-5 w-5 text-primary" />
-                <h3 className="text-lg font-semibold">Job Description</h3>
+                <h3 className="text-lg font-semibold">Drive Description</h3>
               </div>
             </CardHeader>
             <CardBody className="px-6">
@@ -493,7 +493,7 @@ const Posting: React.FC = () => {
         <div className="space-y-6">
           <Card className="shadow-sm">
             <CardHeader className="px-6 py-4">
-              <h3 className="text-lg font-semibold">Job Overview</h3>
+              <h3 className="text-lg font-semibold">Drive Overview</h3>
             </CardHeader>
             <CardBody className="px-6">
               <div className="space-y-6">
