@@ -263,7 +263,7 @@ const joinInstitute = async (c: Context) => {
         publicMetadata: {
           ...clerkUser.publicMetadata,
           institute: {
-            id: decoded.institute,
+            _id: decoded.institute,
             name: institute.name,
             role: role,
           },
