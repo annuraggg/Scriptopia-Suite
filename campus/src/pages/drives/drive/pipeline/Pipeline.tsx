@@ -207,7 +207,7 @@ const Pipeline = () => {
     return (
       <Card
         key={applied._id}
-        className="mb-4"
+        className="mb-4 w-full"
         isPressable
         isHoverable
         onPress={() =>
@@ -372,6 +372,14 @@ const Pipeline = () => {
             }
           });
 
+          // Calculate the dynamic height based on number of candidates
+          const minHeight = 500; // Minimum height
+          const candidateHeight = 120; // Approximate height per candidate
+          const dynamicHeight = Math.max(
+            minHeight,
+            stageApplicants.length * candidateHeight
+          );
+
           return (
             <Card key={index} className="h-auto">
               <div
@@ -398,7 +406,13 @@ const Pipeline = () => {
 
               <Divider />
 
-              <CardBody className="overflow-y-auto max-h-[500px]">
+              <CardBody
+                className="overflow-y-auto"
+                style={{
+                  maxHeight: `${dynamicHeight}px`,
+                  minHeight: `${minHeight}px`,
+                }}
+              >
                 {stageApplicants.length > 0 ? (
                   stageApplicants.map((applied) => (
                     <CandidateCard key={applied._id} applied={applied} />
