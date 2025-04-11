@@ -207,7 +207,7 @@ const Pipeline = () => {
     return (
       <Card
         key={applied._id}
-        className="mb-4 w-full"
+        className="mb-4 w-full min-w-full"
         isPressable
         isHoverable
         onPress={() =>
@@ -356,32 +356,28 @@ const Pipeline = () => {
             index === (drive?.workflow?.steps?.length ?? 0) - 1;
 
           const stageApplicants = filteredAppliedDrives.filter((applied) => {
+            // For the in-progress step
             if (step.status === "in-progress") {
               return (
                 applied.status === "inprogress" ||
-                applied.disqualifiedStage?.toString() ===
-                  step._id?.toString() ||
                 (index === 0 && applied.status === "applied")
               );
-            } else if (isLastStep && step.status === "completed") {
+            }
+            // For the "hired" candidates in the last step
+            else if (isLastStep && step.status === "completed") {
               return applied.status === "hired";
-            } else {
+            }
+            // For disqualified candidates, check if they were disqualified at this stage
+            else if (applied.status === "disqualified") {
               return (
                 applied.disqualifiedStage?.toString() === step._id?.toString()
               );
             }
+            return false;
           });
 
-          // Calculate the dynamic height based on number of candidates
-          const minHeight = 500; // Minimum height
-          const candidateHeight = 120; // Approximate height per candidate
-          const dynamicHeight = Math.max(
-            minHeight,
-            stageApplicants.length * candidateHeight
-          );
-
           return (
-            <Card key={index} className="h-auto">
+            <Card key={index} className="h-auto flex flex-col">
               <div
                 className="h-2 w-full"
                 style={{ backgroundColor: getStepColor(index) }}
@@ -406,23 +402,19 @@ const Pipeline = () => {
 
               <Divider />
 
-              <CardBody
-                className="overflow-y-auto"
-                style={{
-                  maxHeight: `${dynamicHeight}px`,
-                  minHeight: `${minHeight}px`,
-                }}
-              >
-                {stageApplicants.length > 0 ? (
-                  stageApplicants.map((applied) => (
-                    <CandidateCard key={applied._id} applied={applied} />
-                  ))
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-64 text-center p-6 text-gray-400">
-                    <Users className="w-10 h-10 mb-3 opacity-50" />
-                    <p className="text-sm">No candidates in this stage</p>
-                  </div>
-                )}
+              <CardBody className="overflow-y-auto flex-grow h-96">
+                <div className="w-full">
+                  {stageApplicants.length > 0 ? (
+                    stageApplicants.map((applied) => (
+                      <CandidateCard key={applied._id} applied={applied} />
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-64 text-center p-6 text-gray-400">
+                      <Users className="w-10 h-10 mb-3 opacity-50" />
+                      <p className="text-sm">No candidates in this stage</p>
+                    </div>
+                  )}
+                </div>
               </CardBody>
             </Card>
           );
