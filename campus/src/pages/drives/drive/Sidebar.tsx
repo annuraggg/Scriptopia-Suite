@@ -19,6 +19,7 @@ import {
   IconJoinStraight,
   IconAdjustments,
   IconInbox,
+  IconChartPie,
 } from "@tabler/icons-react";
 import {
   Modal,
@@ -138,6 +139,12 @@ const Sidebar = ({ drive, loading, isMobile, onClose }: SidebarProps) => {
         icon: IconInbox,
         label: "Offer Letters",
         link: "/offer-letters",
+        visible: drive?.hasEnded,
+      },
+      {
+        icon: IconChartPie,
+        label: "Analytics",
+        link: "/analytics",
         visible: drive?.hasEnded,
       },
     ],

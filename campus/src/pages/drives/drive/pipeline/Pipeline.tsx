@@ -368,7 +368,7 @@ const Pipeline = () => {
               return applied.status === "hired";
             }
             // For disqualified candidates, check if they were disqualified at this stage
-            else if (applied.status === "disqualified") {
+            else if (applied.status === "rejected") {
               return (
                 applied.disqualifiedStage?.toString() === step._id?.toString()
               );
