@@ -7,13 +7,11 @@ const defaultInstituteRoles = [
     permissions: [
       "manage_drive",
       "view_drive",
-      "verify_details",
+      "verify_candidate",
       "view_institute",
       "manage_institute",
       "view_billing",
       "manage_billing",
-      "verify_hiring",
-      "hire_candidate",
     ],
   },
 
@@ -26,7 +24,6 @@ const defaultInstituteRoles = [
       "view_drive",
       "view_institute",
       "view_billing",
-      "verify_hiring",
     ],
   },
 

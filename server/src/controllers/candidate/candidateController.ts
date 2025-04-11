@@ -304,7 +304,7 @@ const applyToDrive = async (c: Context) => {
 
     const allowed = placementGroups
       .map((group) => group._id)
-      .some((groupId) => posting?.placementGroup == groupId);
+      .some((groupId) => posting?.placementGroup?.toString() === groupId?.toString());
 
     if (!allowed) {
       return sendError(c, 400, "Candidate is not eligible for this drive");
