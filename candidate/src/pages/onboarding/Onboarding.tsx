@@ -10,6 +10,7 @@ import {
   SignedIn,
   SignedOut,
   useAuth,
+  useUser,
 } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import Address from "./Address";
@@ -21,13 +22,10 @@ const Onboarding = () => {
   const [name, setName] = useState<string>("");
   const [dob, setDob] = useState<CalendarDate | undefined>();
   const [gender, setGender] = useState<string>("");
-
   const [phone, setPhone] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-
   const [address, setAddress] = useState<string>("");
-
   const [loading, setLoading] = useState(true);
+  const { user, isLoaded } = useUser();
 
   useEffect(() => {
     const axios = ax(getToken);
@@ -57,8 +55,7 @@ const Onboarding = () => {
       description: "Contact details of yourself",
       component: (
         <Contact
-          email={email}
-          setEmail={setEmail}
+          email={user?.emailAddresses[0].emailAddress || ""}
           phone={phone}
           setPhone={setPhone}
         />
@@ -72,15 +69,8 @@ const Onboarding = () => {
   ];
 
   const validate = () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
     if (!name || !dob || gender === "") {
       toast.error("Please fill in all fields");
-      return false;
-    }
-
-    if (!emailRegex.test(email)) {
-      toast.error("Please enter a valid email address");
       return false;
     }
 
@@ -109,7 +99,7 @@ const Onboarding = () => {
         name,
         dob: dob?.toDate("UTC"),
         gender,
-        email,
+        email: user?.emailAddresses[0].emailAddress,
         phone,
         address,
       })
@@ -125,7 +115,7 @@ const Onboarding = () => {
       });
   };
 
-  if (loading) return <Loader />;
+  if (loading || !isLoaded) return <Loader />;
 
   return (
     <>

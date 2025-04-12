@@ -466,7 +466,7 @@ const Patents = () => {
     <div>
       {/* Header section */}
       <div className="mb-6">
-        <Breadcrumbs  className="mb-4">
+        <Breadcrumbs className="mb-4">
           <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
           <BreadcrumbItem>Patents</BreadcrumbItem>
         </Breadcrumbs>
@@ -527,9 +527,7 @@ const Patents = () => {
             <div className="flex items-center gap-2">
               <Award size={18} className="text-primary" />
               <h2 className="text-lg font-medium">Your Patents</h2>
-              <Chip  variant="flat">
-                {user.patents.length}
-              </Chip>
+              <Chip variant="flat">{user.patents.length}</Chip>
             </div>
           </CardHeader>
           <Divider />
@@ -569,10 +567,10 @@ const Patents = () => {
                     <Badge
                       color={getStatusColor(patent.status)}
                       variant="flat"
-                      className="flex items-center gap-1 capitalize"
+                      className="flex items-center capitalize"
                     >
                       {getStatusIcon(patent.status)}
-                      {patent.status}
+                      <p className="ml-2">{patent.status}</p>
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -600,7 +598,6 @@ const Patents = () => {
                       <Tooltip content="Edit patent">
                         <Button
                           isIconOnly
-                          
                           variant="light"
                           onClick={() => handleEdit(patent)}
                         >
@@ -610,7 +607,6 @@ const Patents = () => {
                       <Tooltip content="Delete patent" color="danger">
                         <Button
                           isIconOnly
-                          
                           variant="light"
                           color="danger"
                           onClick={() =>
@@ -665,7 +661,6 @@ const Patents = () => {
                     placeholder="Enter the full patent title"
                     value={formData.title}
                     onChange={(e) => handleInputChange("title", e.target.value)}
-                    
                     isRequired
                     isInvalid={!!errors.title}
                     errorMessage={errors.title}
@@ -686,7 +681,6 @@ const Patents = () => {
                         keys.currentKey as string
                       )
                     }
-                    
                     isRequired
                     isInvalid={!!errors.patentOffice}
                     errorMessage={errors.patentOffice}
@@ -707,7 +701,6 @@ const Patents = () => {
                     onChange={(e) =>
                       handleInputChange("patentNumber", e.target.value)
                     }
-                    
                     isRequired
                     isInvalid={!!errors.patentNumber}
                     errorMessage={errors.patentNumber}
@@ -726,7 +719,6 @@ const Patents = () => {
                       )
                     }
                     labelPlacement="outside"
-                    
                     isRequired
                     isInvalid={!!errors.status}
                     errorMessage={errors.status}
@@ -805,7 +797,6 @@ const Patents = () => {
                   onChange={(e) =>
                     handleInputChange("description", e.target.value)
                   }
-                  
                   isRequired
                   isInvalid={!!errors.description}
                   errorMessage={errors.description}
@@ -848,7 +839,6 @@ const Patents = () => {
       <Modal
         isOpen={deleteModal.isOpen}
         onClose={() => !isSubmitting && deleteModal.onClose()}
-        
         isDismissable={!isSubmitting}
       >
         <ModalContent>

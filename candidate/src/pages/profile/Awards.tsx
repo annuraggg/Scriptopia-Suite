@@ -199,7 +199,6 @@ const Awards = () => {
             ...newAwards,
             {
               ...formData,
-              _id: `award-${Date.now()}`, // Generate temporary ID for new awards
               createdAt: new Date(),
             } as Award,
           ],

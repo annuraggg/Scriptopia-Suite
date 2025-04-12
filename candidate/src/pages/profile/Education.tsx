@@ -1284,19 +1284,19 @@ const Education = () => {
                 </h3>
                 <div className="flex flex-wrap gap-4 text-sm mt-1">
                   <div className="flex gap-1 items-center">
-                    <Badge
-                      color="warning"
-                      content={user?.academicAggregates?.activeBacklogs || 0}
-                    >
-                      <span className="text-warning-600">Active Backlogs</span>
+                    <Badge color="warning">
+                      <span className="text-warning-600">
+                        Active Backlogs:{" "}
+                        {user?.academicAggregates?.activeBacklogs || 0}
+                      </span>
                     </Badge>
                   </div>
                   <div className="flex gap-1 items-center">
-                    <Badge
-                      color="default"
-                      content={user?.academicAggregates?.totalBacklogs || 0}
-                    >
-                      <span className="text-gray-600">Total Backlogs</span>
+                    <Badge color="default">
+                      <span className="text-gray-600">
+                        Total Backlogs:{" "}
+                        {user?.academicAggregates?.totalBacklogs || 0}
+                      </span>
                     </Badge>
                   </div>
                 </div>

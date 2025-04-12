@@ -32,15 +32,18 @@ const Onboarding = () => {
 
   const [invitedMembers, setInvitedMembers] = useState<InvitedMember[]>([]);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
   useEffect(() => {
-    axios.get("/institutes").then(() => {
-      window.location.href = "/dashboard";
-    }).catch(() => setLoading(false));
+    axios
+      .get("/institutes")
+      .then(() => {
+        window.location.href = "/dashboard";
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   const steps = [

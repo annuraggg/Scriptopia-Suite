@@ -2,12 +2,10 @@ import { Input } from "@nextui-org/react";
 
 const Contact = ({
   email,
-  setEmail,
   phone,
   setPhone,
 }: {
   email: string;
-  setEmail: React.Dispatch<React.SetStateAction<string>>;
   phone: string;
   setPhone: React.Dispatch<React.SetStateAction<string>>;
 }) => {
@@ -22,7 +20,8 @@ const Contact = ({
           label="Your Email"
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          isReadOnly
+          description="This field cannot be changed"
         />
         <Input
           label="Your Phone"

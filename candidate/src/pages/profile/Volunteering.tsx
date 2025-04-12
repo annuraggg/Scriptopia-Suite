@@ -21,6 +21,7 @@ import {
   Breadcrumbs,
   BreadcrumbItem,
   Skeleton,
+  Badge,
 } from "@nextui-org/react";
 import { useState, useEffect } from "react";
 import {
@@ -31,7 +32,6 @@ import {
   Briefcase,
   Award,
   Clock,
-  MapPin,
   Heart,
   AlertCircle,
 } from "lucide-react";
@@ -44,29 +44,7 @@ import {
 } from "@internationalized/date";
 import { useOutletContext } from "react-router-dom";
 import { z } from "zod";
-
-// Interface matching the backend schema
-interface Volunteer {
-  _id?: string;
-  organization: string;
-  role: string;
-  cause: string;
-  location?: string;
-  startDate: Date | string;
-  endDate?: Date | string;
-  current: boolean;
-  description: string;
-  createdAt?: string;
-}
-
-// User context interface
-interface UserContext {
-  user: {
-    volunteering?: Volunteer[];
-  };
-  setUser: (user: any) => void;
-  isLoading?: boolean;
-}
+import { Candidate, Volunteering } from "@shared-types/Candidate";
 
 // Available causes with categories
 const causes = [
@@ -123,7 +101,6 @@ const volunteerSchema = z
       .max(100, "Organization name is too long"),
     role: z.string().min(1, "Role is required").max(100, "Role is too long"),
     cause: z.string().min(1, "Cause is required"),
-    location: z.string().optional(),
     startDate: z.date({
       required_error: "Start date is required",
       invalid_type_error: "Invalid date format",
@@ -148,7 +125,7 @@ const volunteerSchema = z
       return true;
     },
     {
-      message: "End date is required when not currently volunteering",
+      message: "End date is required when not currently volunteerings",
       path: ["endDate"],
     }
   )
@@ -171,7 +148,7 @@ type ValidationErrors = {
   [K in keyof z.infer<typeof volunteerSchema>]?: string;
 };
 
-const Volunteering = () => {
+const VolunteeringComponent = () => {
   // State for editing experience
   const [editingExperience, setEditingExperience] = useState<string | null>(
     null
@@ -191,7 +168,6 @@ const Volunteering = () => {
     organization: "",
     role: "",
     cause: "",
-    location: "",
     startDate: today(getLocalTimeZone()).toDate(getLocalTimeZone()),
     current: false,
     endDate: undefined,
@@ -199,7 +175,11 @@ const Volunteering = () => {
   });
 
   // Access user context
-  const { user, setUser, isLoading } = useOutletContext<UserContext>();
+  const { user, setUser, isLoading } = useOutletContext<{
+    user: Candidate;
+    setUser: (user: Candidate) => void;
+    isLoading?: boolean;
+  }>();
 
   // Reset form when modal is closed
   useEffect(() => {
@@ -208,12 +188,12 @@ const Volunteering = () => {
     }
   }, [isOpen]);
 
-  // Initialize volunteering array if it doesn't exist
+  // Initialize volunteerings array if it doesn't exist
   useEffect(() => {
-    if (user && !user.volunteering && setUser) {
+    if (user && !user.volunteerings && setUser) {
       setUser({
         ...user,
-        volunteering: [],
+        volunteerings: [],
       });
     }
   }, [user, setUser]);
@@ -226,7 +206,6 @@ const Volunteering = () => {
       organization: "",
       role: "",
       cause: "",
-      location: "",
       startDate: today(getLocalTimeZone()).toDate(getLocalTimeZone()),
       current: false,
       endDate: undefined,
@@ -241,14 +220,13 @@ const Volunteering = () => {
   };
 
   // Handle edit experience
-  const handleEdit = (experience: Volunteer) => {
+  const handleEdit = (experience: Volunteering) => {
     try {
       setEditingExperience(experience?._id || null);
       setFormData({
         organization: experience.organization,
         role: experience.role,
         cause: experience.cause,
-        location: experience.location || "",
         startDate: new Date(experience.startDate),
         current: experience.current,
         endDate: experience.endDate ? new Date(experience.endDate) : undefined,
@@ -270,15 +248,15 @@ const Volunteering = () => {
 
   // Handle delete experience
   const handleDelete = () => {
-    if (!deleteConfirmId || !user.volunteering) return;
+    if (!deleteConfirmId || !user.volunteerings) return;
 
     setIsSubmitting(true);
 
     try {
-      const newVolunteering = user.volunteering.filter(
+      const newVolunteering = user.volunteerings?.filter(
         (exp) => exp._id !== deleteConfirmId
       );
-      setUser({ ...user, volunteering: newVolunteering });
+      setUser({ ...user, volunteerings: newVolunteering });
       toast.success("Volunteer experience deleted successfully");
     } catch (error) {
       toast.error("Failed to delete volunteer experience");
@@ -398,14 +376,13 @@ const Volunteering = () => {
     setIsSubmitting(true);
 
     try {
-      let newVolunteering: Volunteer[] = [];
+      let newVolunteering: Volunteering[] = [];
 
       // Create a new volunteer experience object
-      const volunteerData: Volunteer = {
+      const volunteerData: Volunteering = {
         organization: formData.organization,
         role: formData.role,
         cause: formData.cause,
-        location: formData.location,
         startDate: formData.startDate,
         endDate: formData.current ? undefined : formData.endDate,
         current: formData.current,
@@ -414,7 +391,7 @@ const Volunteering = () => {
 
       if (editingExperience) {
         // Update existing volunteer experience
-        newVolunteering = (user?.volunteering || []).map((exp) =>
+        newVolunteering = (user?.volunteerings || []).map((exp) =>
           exp._id === editingExperience
             ? { ...volunteerData, _id: exp._id, createdAt: exp.createdAt }
             : { ...exp }
@@ -422,11 +399,11 @@ const Volunteering = () => {
         toast.success("Volunteer experience updated successfully");
       } else {
         // Add new volunteer experience
-        const newExp: Volunteer = {
+        const newExp: Volunteering = {
           ...volunteerData,
-          createdAt: new Date().toISOString(),
+          createdAt: new Date(),
         };
-        newVolunteering = [...(user?.volunteering || []), newExp];
+        newVolunteering = [...(user?.volunteerings || []), newExp];
         toast.success("Volunteer experience added successfully");
       }
 
@@ -441,7 +418,7 @@ const Volunteering = () => {
 
       setUser({
         ...user,
-        volunteering: newVolunteering,
+        volunteerings: newVolunteering,
       });
 
       onClose();
@@ -548,10 +525,51 @@ const Volunteering = () => {
     return initials;
   };
 
+  // Filter by volunteerings type
+  const [activeTab, setActiveTab] = useState<string>("all");
+
+  // Count volunteer experiences by cause category
+  const getVolunteerCountByCategory = () => {
+    const counts: Record<string, number> = {
+      all: (user?.volunteerings || []).length,
+      "Youth & Education": 0,
+      "Health & Wellness": 0,
+      "Environment & Animals": 0,
+      "Community & Society": 0,
+      Humanitarian: 0,
+      Other: 0,
+    };
+
+    user?.volunteerings?.forEach((vol) => {
+      const cause = causes.find((c) => c.value === vol.cause);
+      if (cause) {
+        counts[cause.category] = (counts[cause.category] || 0) + 1;
+      }
+    });
+
+    return counts;
+  };
+
+  const volunteerCounts = getVolunteerCountByCategory();
+
+  // Filter volunteerings experiences by category
+  const filteredVolunteering = (user?.volunteerings || [])
+    .filter((vol) => {
+      if (activeTab === "all") return true;
+      const cause = causes.find((c) => c.value === vol.cause);
+      return cause?.category === activeTab;
+    })
+    .sort((a, b) => {
+      // Sort by current first, then by most recent start date
+      if (a.current && !b.current) return -1;
+      if (!a.current && b.current) return 1;
+      return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+    });
+
   return (
     <div>
       <div className="mb-6">
-        <Breadcrumbs >
+        <Breadcrumbs>
           <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
           <BreadcrumbItem>Volunteer Experience</BreadcrumbItem>
         </Breadcrumbs>
@@ -564,13 +582,15 @@ const Volunteering = () => {
             Track your community service and volunteer contributions
           </p>
         </div>
-        <Button
-          color="primary"
-          onClick={handleAdd}
-          startContent={<Plus size={18} />}
-        >
-          Add Experience
-        </Button>
+        {!isLoading && (user?.volunteerings?.length ?? 0) > 0 && (
+          <Button
+            color="primary"
+            onClick={handleAdd}
+            startContent={<Plus size={18} />}
+          >
+            Add Experience
+          </Button>
+        )}
       </div>
 
       {isLoading ? (
@@ -579,7 +599,7 @@ const Volunteering = () => {
           <Skeleton className="h-40 w-full rounded-lg" />
           <Skeleton className="h-40 w-full rounded-lg" />
         </div>
-      ) : !user.volunteering?.length ? (
+      ) : !user.volunteerings?.length ? (
         <Card className="w-full bg-gray-50 border-dashed border-2 border-gray-200">
           <CardBody className="flex flex-col items-center justify-center py-12">
             <div className="bg-primary-50 p-5 rounded-full">
@@ -587,7 +607,7 @@ const Volunteering = () => {
             </div>
             <div className="text-center max-w-lg">
               <h3 className="text-xl font-medium mb-2">
-                No Volunteering Added Yet
+                No volunteerings Added Yet
               </h3>
               <p className="text-gray-600 mb-6">
                 Volunteer experience demonstrates your commitment to causes you
@@ -607,122 +627,159 @@ const Volunteering = () => {
           </CardBody>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {user.volunteering.map((experience) => (
-            <Card key={experience._id} className="w-full shadow-sm">
-              <CardHeader className="flex justify-between pb-0">
-                <div className="flex gap-4 items-center">
-                  <Avatar
-                    name={getOrganizationAvatar(experience.organization)}
-                    color="primary"
-                    size="md"
-                    radius="md"
-                    showFallback
-                    className="bg-primary-100 text-primary-600"
-                  />
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-lg font-semibold">
-                        {experience.role}
-                      </h3>
-                      {experience.current && (
+        <>
+          {/* Filter tabs by cause category */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            <Button
+              variant={activeTab === "all" ? "flat" : "light"}
+              color={activeTab === "all" ? "primary" : "default"}
+              onClick={() => setActiveTab("all")}
+              className="px-3"
+            >
+              All
+              <Badge color="default" shape="circle">
+                {volunteerCounts.all}
+              </Badge>
+            </Button>
+
+            {Object.entries(volunteerCounts)
+              .filter(([key]) => key !== "all" && volunteerCounts[key] > 0)
+              .map(([category, count]) => (
+                <Button
+                  key={category}
+                  variant={activeTab === category ? "flat" : "light"}
+                  color={
+                    activeTab === category ? getCauseColor(category) : "default"
+                  }
+                  onClick={() => setActiveTab(category)}
+                  className="px-3"
+                  startContent={<Heart size={14} />}
+                >
+                  {category}
+                  <Badge color="default" shape="circle">
+                    {count}
+                  </Badge>
+                </Button>
+              ))}
+          </div>
+
+          {filteredVolunteering.length === 0 ? (
+            <div className="p-8 text-center bg-gray-50 rounded-lg">
+              <p className="text-gray-600">
+                No volunteer experience found for this category
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredVolunteering.map((experience) => (
+                <Card key={experience._id} className="w-full shadow-sm">
+                  <CardHeader className="flex justify-between pb-0">
+                    <div className="flex gap-4 items-center">
+                      <Avatar
+                        name={getOrganizationAvatar(experience.organization)}
+                        color="primary"
+                        size="md"
+                        radius="md"
+                        showFallback
+                        className="bg-primary-100 text-primary-600"
+                      />
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-lg font-semibold">
+                            {experience.role}
+                          </h3>
+                          {experience.current && (
+                            <Chip
+                              color="success"
+                              variant="flat"
+                              startContent={<Clock size={12} />}
+                            >
+                              Current
+                            </Chip>
+                          )}
+                        </div>
+                        <p className="text-gray-600">
+                          {experience.organization}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Tooltip content="Edit">
+                        <Button
+                          isIconOnly
+                          variant="light"
+                          onClick={() => handleEdit(experience)}
+                          aria-label="Edit"
+                        >
+                          <Edit2 size={16} />
+                        </Button>
+                      </Tooltip>
+                      <Tooltip content="Delete" color="danger">
+                        <Button
+                          isIconOnly
+                          variant="light"
+                          color="danger"
+                          onClick={() =>
+                            experience._id && confirmDelete(experience._id)
+                          }
+                          aria-label="Delete"
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </Tooltip>
+                    </div>
+                  </CardHeader>
+
+                  <CardBody className="py-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={16} className="text-gray-400" />
+                        <span>
+                          {formatDate(experience.startDate)} -{" "}
+                          {experience.current
+                            ? "Present"
+                            : experience.endDate
+                            ? formatDate(experience.endDate)
+                            : ""}
+                        </span>
                         <Chip
-                          
-                          color="success"
                           variant="flat"
+                          color="primary"
                           startContent={<Clock size={12} />}
                         >
-                          Current
+                          {getDuration(
+                            experience.startDate,
+                            experience.endDate,
+                            experience.current
+                          )}
                         </Chip>
-                      )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Heart size={16} className="text-gray-400" />
+                        <span>Cause:</span>
+                        <Chip
+                          variant="flat"
+                          color={getCauseColor(experience.cause)}
+                        >
+                          {experience.cause}
+                        </Chip>
+                      </div>
                     </div>
-                    <p className="text-gray-600">{experience.organization}</p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Tooltip content="Edit">
-                    <Button
-                      isIconOnly
-                      variant="light"
-                      onClick={() => handleEdit(experience)}
-                      aria-label="Edit"
-                    >
-                      <Edit2 size={16} />
-                    </Button>
-                  </Tooltip>
-                  <Tooltip content="Delete" color="danger">
-                    <Button
-                      isIconOnly
-                      variant="light"
-                      color="danger"
-                      onClick={() =>
-                        experience._id && confirmDelete(experience._id)
-                      }
-                      aria-label="Delete"
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </Tooltip>
-                </div>
-              </CardHeader>
 
-              <CardBody className="py-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-                  <div className="flex items-center gap-2">
-                    <Calendar size={16} className="text-gray-400" />
-                    <span>
-                      {formatDate(experience.startDate)} -{" "}
-                      {experience.current
-                        ? "Present"
-                        : experience.endDate
-                        ? formatDate(experience.endDate)
-                        : ""}
-                    </span>
-                    <Chip
-                      
-                      variant="flat"
-                      color="primary"
-                      startContent={<Clock size={12} />}
-                    >
-                      {getDuration(
-                        experience.startDate,
-                        experience.endDate,
-                        experience.current
-                      )}
-                    </Chip>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Heart size={16} className="text-gray-400" />
-                    <span>Cause:</span>
-                    <Chip
-                      
-                      variant="flat"
-                      color={getCauseColor(experience.cause)}
-                    >
-                      {experience.cause}
-                    </Chip>
-                  </div>
-
-                  {experience.location && (
-                    <div className="flex items-center gap-2">
-                      <MapPin size={16} className="text-gray-400" />
-                      <span>{experience.location}</span>
-                    </div>
-                  )}
-                </div>
-
-                {experience.description && (
-                  <div className="mt-4 bg-gray-50 p-4 rounded-lg text-sm">
-                    <p className="whitespace-pre-line">
-                      {experience.description}
-                    </p>
-                  </div>
-                )}
-              </CardBody>
-            </Card>
-          ))}
-        </div>
+                    {experience.description && (
+                      <div className="mt-4 bg-gray-50 p-4 rounded-lg text-sm">
+                        <p className="whitespace-pre-line">
+                          {experience.description}
+                        </p>
+                      </div>
+                    )}
+                  </CardBody>
+                </Card>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/* Add/Edit Experience Modal */}
@@ -763,7 +820,6 @@ const Volunteering = () => {
                     isRequired
                     isInvalid={!!validationErrors.organization}
                     errorMessage={validationErrors.organization}
-                    
                     startContent={
                       <Briefcase size={16} className="text-gray-400" />
                     }
@@ -778,23 +834,8 @@ const Volunteering = () => {
                     isRequired
                     isInvalid={!!validationErrors.role}
                     errorMessage={validationErrors.role}
-                    
                     startContent={<Award size={16} className="text-gray-400" />}
                     description="Your position or title"
-                    isDisabled={isSubmitting}
-                  />
-                  <Input
-                    label="Location (Optional)"
-                    placeholder="E.g., New York, NY or Remote"
-                    value={formData.location}
-                    onChange={(e) =>
-                      handleInputChange("location", e.target.value)
-                    }
-                    
-                    startContent={
-                      <MapPin size={16} className="text-gray-400" />
-                    }
-                    description="Where the volunteer work was performed"
                     isDisabled={isSubmitting}
                   />
 
@@ -806,7 +847,6 @@ const Volunteering = () => {
                     isRequired
                     isInvalid={!!validationErrors.cause}
                     errorMessage={validationErrors.cause}
-                    
                     startContent={<Heart size={16} className="text-gray-400" />}
                     description="Category of volunteer work"
                     isDisabled={isSubmitting}
@@ -839,7 +879,7 @@ const Volunteering = () => {
                       }}
                       isDisabled={isSubmitting}
                     >
-                      I am currently volunteering with this organization
+                      I am currently volunteerings with this organization
                     </Checkbox>
                   </div>
 
@@ -860,7 +900,7 @@ const Volunteering = () => {
                       isDisabled={isSubmitting}
                     />
                     <p className="text-tiny text-default-500 mt-1">
-                      When you began volunteering
+                      When you began volunteerings
                     </p>
                   </div>
 
@@ -888,7 +928,7 @@ const Volunteering = () => {
                     <p className="text-tiny text-default-500 mt-1">
                       {formData.current
                         ? "Not required for current positions"
-                        : "When you stopped volunteering"}
+                        : "When you stopped volunteerings"}
                     </p>
                   </div>
 
@@ -904,7 +944,6 @@ const Volunteering = () => {
                       maxRows={5}
                       isInvalid={!!validationErrors.description}
                       errorMessage={validationErrors.description}
-                      
                       isDisabled={isSubmitting}
                       description="Describe your contributions and their impact"
                     />
@@ -947,7 +986,6 @@ const Volunteering = () => {
       <Modal
         isOpen={deleteModal.isOpen}
         onClose={() => !isSubmitting && deleteModal.onClose()}
-        
         isDismissable={!isSubmitting}
       >
         <ModalContent>
@@ -992,4 +1030,4 @@ const Volunteering = () => {
   );
 };
 
-export default Volunteering;
+export default VolunteeringComponent;

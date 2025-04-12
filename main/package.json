@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "forceStart": "npx kill-port 5170 && npm run dev",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc -b"
   },
   "dependencies": {
     "@nextui-org/react": "^2.4.8",

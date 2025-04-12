@@ -30,7 +30,7 @@ import { Delta } from "quill";
 import Loader from "@/components/Loader";
 import ax from "@/config/axios";
 import RootContext from "@/types/RootContext";
-import { ExtendedPosting } from "@shared-types/ExtendedPosting";
+import { ExtendedDrive } from "@shared-types/ExtendedDrive";
 
 // Type definitions
 type JobType =
@@ -67,10 +67,8 @@ const JOB_STATUS_COLORS: Record<JobStatus, string> = {
  */
 const Home = () => {
   const { user } = useOutletContext<RootContext>();
-  const [postings, setPostings] = useState<ExtendedPosting[]>([]);
-  const [filteredPostings, setFilteredPostings] = useState<ExtendedPosting[]>(
-    []
-  );
+  const [drives, setDrives] = useState<ExtendedDrive[]>([]);
+  const [filteredDrives, setFilteredDrives] = useState<ExtendedDrive[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedJobTypes, setSelectedJobTypes] = useState<JobType[]>([]);
@@ -86,25 +84,25 @@ const Home = () => {
   const navigate = useNavigate();
   const axios = ax(getToken);
 
-  // Fetch job postings on component mount
+  // Fetch job drives on component mount
   useEffect(() => {
-    fetchPostings();
+    fetchDrives();
   }, []);
 
-  // Apply filters when filter values or postings change
+  // Apply filters when filter values or drives change
   useEffect(() => {
     applyFilters();
-  }, [selectedJobTypes, salaryRange, postings, searchQuery]);
+  }, [selectedJobTypes, salaryRange, drives, searchQuery]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filteredPostings]);
+  }, [filteredDrives]);
 
   /**
-   * Fetch job postings from API
+   * Fetch job drives from API
    */
-  const fetchPostings = async () => {
+  const fetchDrives = async () => {
     setLoading(true);
     setError(null);
 
@@ -112,38 +110,39 @@ const Home = () => {
       const response = await axios.get("/drives/candidate");
 
       if (response.data?.data) {
-        setPostings(response.data.data.drives || []);
-        setFilteredPostings(response.data.data.drives || []);
+        console.log("Fetched drives:", response.data.data.drives);
+        setDrives(response.data.data.drives || []);
+        setFilteredDrives(response.data.data.drives || []);
       } else {
         setError("No drive listings available");
       }
     } catch (err) {
-      console.error("Failed to fetch drive postings:", err);
+      console.error("Failed to fetch drive drives:", err);
       setError("Failed to load drive listings. Please try again later.");
-      setPostings([]);
-      setFilteredPostings([]);
+      setDrives([]);
+      setFilteredDrives([]);
     } finally {
       setLoading(false);
     }
   };
 
   /**
-   * Apply filters to job postings
+   * Apply filters to job drives
    */
   const applyFilters = () => {
-    let filtered = [...postings];
+    let filtered = [...drives];
 
     // Apply job type filter
     if (selectedJobTypes.length > 0) {
-      filtered = filtered.filter((posting) =>
-        selectedJobTypes.includes(posting.type.toLowerCase() as JobType)
+      filtered = filtered.filter((drive) =>
+        selectedJobTypes.includes(drive.type.toLowerCase() as JobType)
       );
     }
 
     // Apply salary filter
-    filtered = filtered.filter((posting) => {
-      const minSalary = posting.salary?.min || 0;
-      const maxSalary = posting.salary?.max || 0;
+    filtered = filtered.filter((drive) => {
+      const minSalary = drive.salary?.min || 0;
+      const maxSalary = drive.salary?.max || 0;
 
       // Include jobs with overlapping salary ranges
       return (
@@ -157,14 +156,14 @@ const Home = () => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(
-        (posting) =>
-          posting.title.toLowerCase().includes(query) ||
-          posting.organizationId?.name?.toLowerCase().includes(query) ||
-          posting.location?.toLowerCase().includes(query)
+        (drive) =>
+          drive.title.toLowerCase().includes(query) ||
+          drive.company?.name?.toLowerCase().includes(query) ||
+          drive.location?.toLowerCase().includes(query)
       );
     }
 
-    setFilteredPostings(filtered);
+    setFilteredDrives(filtered);
   };
 
   /**
@@ -203,7 +202,7 @@ const Home = () => {
   };
 
   /**
-   * Calculate days since posting
+   * Calculate days since drive
    */
   const getAgoDays = (dateString: string | Date): string => {
     if (!dateString) return "Recently";
@@ -223,7 +222,7 @@ const Home = () => {
   };
 
   /**
-   * Get application status for a job posting
+   * Get application status for a job drive
    */
   const getStatus = (postingId?: string): JobStatus => {
     if (!postingId || !user?.appliedDrives?.length) return "rejected";
@@ -283,12 +282,12 @@ const Home = () => {
   };
 
   // Pagination logic
-  const paginatedPostings = useMemo(() => {
+  const paginatedDrives = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredPostings.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredPostings, currentPage]);
+    return filteredDrives.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredDrives, currentPage]);
 
-  const totalPages = Math.ceil(filteredPostings.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredDrives.length / itemsPerPage);
 
   if (loading) return <Loader />;
 
@@ -302,8 +301,8 @@ const Home = () => {
               Explore Opportunities
             </h1>
             <p className="text-gray-500 mt-1">
-              {filteredPostings.length}{" "}
-              {filteredPostings.length === 1 ? "drive" : "drives"} available
+              {filteredDrives.length}{" "}
+              {filteredDrives.length === 1 ? "drive" : "drives"} available
             </p>
           </div>
         </div>
@@ -436,12 +435,12 @@ const Home = () => {
               <Card className="w-full shadow-sm mb-6">
                 <CardBody className="flex flex-col items-center justify-center py-12">
                   <p className="text-gray-500 mb-3">{error}</p>
-                  <Button color="primary" onClick={fetchPostings}>
+                  <Button color="primary" onClick={fetchDrives}>
                     Try Again
                   </Button>
                 </CardBody>
               </Card>
-            ) : filteredPostings.length === 0 ? (
+            ) : filteredDrives.length === 0 ? (
               <Card className="w-full shadow-sm mb-6">
                 <CardBody className="flex flex-col items-center justify-center py-12">
                   <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
@@ -460,69 +459,69 @@ const Home = () => {
               </Card>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
-                {paginatedPostings.map((posting) => (
+                {paginatedDrives.map((drive) => (
                   <Card
-                    key={posting._id}
+                    key={drive._id}
                     className="shadow-sm hover:shadow-md transition-shadow border-none"
                     isPressable
-                    onPress={() => navigate(`${posting._id}`)}
+                    onPress={() => navigate(`${drive._id}`)}
                   >
                     <CardBody className="p-5">
                       <div className="flex mb-4">
                         <div
                           className="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0 mr-4"
                           style={{
-                            backgroundImage: posting?.organizationId?.logo
-                              ? `url(${posting.organizationId.logo})`
-                              : undefined,
                             backgroundSize: "cover",
                             backgroundPosition: "center",
                           }}
                         >
-                          {!posting?.organizationId?.logo && (
-                            <Building2 className="w-full h-full p-2 text-gray-400" />
-                          )}
+                          <Building2 className="w-full h-full p-2 text-gray-400" />
                         </div>
                         <div className="flex-1">
                           <h3 className="font-semibold text-gray-800 line-clamp-1">
-                            {posting?.title || "Untitled Position"}
+                            {drive?.title || "Untitled Position"}
                           </h3>
                           <div className="flex items-center text-sm text-gray-500 mt-1">
                             <span className="line-clamp-1 mr-2">
-                              {posting?.organizationId?.name ||
-                                "Unknown Organization"}
+                              {drive?.company?.name || "Unknown Organization"}
                             </span>
                             <Users size={14} className="mr-1" />
                             <span>
-                              {posting?.candidates?.length || 0} applicants
+                              {drive?.candidates?.length || 0} applicants
                             </span>
                           </div>
                         </div>
                       </div>
 
                       <div className="flex flex-wrap gap-2 my-3">
-                        {posting?.type && (
+                        {drive?.type && (
                           <Tooltip
-                            content={`Drive Type: ${normalizeText(posting.type)}`}
+                            content={`Drive Type: ${normalizeText(drive.type)}`}
                           >
                             <Chip
                               color={
-                                JOB_TYPE_COLORS[
-                                  posting.type.toLowerCase() as JobType
-                                ] as "primary" | "default" | "secondary" | "success" | "warning" | "danger" || "default"
+                                (JOB_TYPE_COLORS[
+                                  drive.type.toLowerCase() as JobType
+                                ] as
+                                  | "primary"
+                                  | "default"
+                                  | "secondary"
+                                  | "success"
+                                  | "warning"
+                                  | "danger") || "default"
                               }
                               variant="flat"
                               size="sm"
                               startContent={<Briefcase size={14} />}
                               className="h-6"
                             >
-                              {normalizeText(posting.type)}
+                              {normalizeText(drive.type)}
                             </Chip>
                           </Tooltip>
                         )}
 
-                        {posting?.location && (
-                          <Tooltip content={`Location: ${posting.location}`}>
+                        {drive?.location && (
+                          <Tooltip content={`Location: ${drive.location}`}>
                             <Chip
                               color="default"
                               variant="flat"
@@ -530,14 +529,14 @@ const Home = () => {
                               startContent={<MapPin size={14} />}
                               className="h-6"
                             >
-                              {posting.location}
+                              {drive.location}
                             </Chip>
                           </Tooltip>
                         )}
 
-                        {posting?.openings && (
+                        {drive?.openings && (
                           <Tooltip
-                            content={`${posting.openings} positions available`}
+                            content={`${drive.openings} positions available`}
                           >
                             <Chip
                               color="secondary"
@@ -545,30 +544,41 @@ const Home = () => {
                               size="sm"
                               className="h-6"
                             >
-                              {posting.openings}{" "}
-                              {posting.openings === 1 ? "Opening" : "Openings"}
+                              {drive.openings}{" "}
+                              {drive.openings === 1 ? "Opening" : "Openings"}
                             </Chip>
                           </Tooltip>
                         )}
 
                         <Tooltip
                           content={`Application status: ${normalizeText(
-                            getStatus(posting._id)
+                            getStatus(drive._id)
                           )}`}
                         >
                           <Chip
                             variant="flat"
                             size="sm"
-                            color={JOB_STATUS_COLORS[getStatus(posting._id)] as "primary" | "default" | "secondary" | "success" | "warning" | "danger" | undefined}
+                            color={
+                              JOB_STATUS_COLORS[getStatus(drive._id)] as
+                                | "primary"
+                                | "default"
+                                | "secondary"
+                                | "success"
+                                | "warning"
+                                | "danger"
+                                | undefined
+                            }
                             className="h-6"
                           >
-                            {normalizeText(getStatus(posting._id))}
+                            {normalizeText(getStatus(drive._id))}
                           </Chip>
                         </Tooltip>
                       </div>
 
                       <p className="text-sm text-gray-600 line-clamp-2 min-h-[2.5rem] mb-3">
-                        {formatDescription(posting?.description as unknown as Delta)}
+                        {formatDescription(
+                          drive?.description as unknown as Delta
+                        )}
                       </p>
 
                       <Divider className="my-3" />
@@ -576,14 +586,14 @@ const Home = () => {
                       <div className="flex justify-between items-center mt-1 text-xs">
                         <div className="flex items-center text-gray-500">
                           <DollarSign size={14} className="mr-1" />
-                          <span>{formatSalary(posting?.salary)}</span>
+                          <span>{formatSalary(drive?.salary)}</span>
                         </div>
 
                         <div className="flex items-center text-gray-500">
                           <CalendarClock size={14} className="mr-1" />
                           <span>
-                            {posting?.createdAt
-                              ? getAgoDays(posting.createdAt)
+                            {drive?.createdAt
+                              ? getAgoDays(drive.createdAt)
                               : "Recently posted"}
                           </span>
                         </div>
@@ -605,7 +615,7 @@ const Home = () => {
             )}
 
             {/* Pagination */}
-            {filteredPostings.length > itemsPerPage && (
+            {filteredDrives.length > itemsPerPage && (
               <div className="flex justify-center mt-6">
                 <Pagination
                   total={totalPages}

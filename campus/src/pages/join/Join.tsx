@@ -28,7 +28,10 @@ interface Token {
 const Join = () => {
   const [loading, setLoading] = useState(true);
   const { isSignedIn, user, isLoaded } = useUser();
-  const [submitLoading, setSubmitLoading] = useState(false);
+
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [acceptLoading, setAcceptLoading] = useState(false);
+
   const [error, setError] = useState(false);
 
   const [token, setToken] = useState<Token>({} as Token);
@@ -52,7 +55,13 @@ const Join = () => {
   }, []);
 
   const handleJoin = (status: "accept" | "decline") => {
-    setSubmitLoading(true);
+    if (status === "accept") {
+      setAcceptLoading(true);
+    }
+    if (status === "decline") {
+      setCancelLoading(true);
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
     axios
@@ -67,7 +76,10 @@ const Join = () => {
         console.error(err);
         toast.error("Failed to join institute");
       })
-      .finally(() => setSubmitLoading(false));
+      .finally(() => {
+        setAcceptLoading(false);
+        setCancelLoading(false);
+      });
   };
 
   return (
@@ -96,9 +108,7 @@ const Join = () => {
           </Card>
         ) : (
           <Card>
-            <CardHeader className="justify-center">
-              institute Invite
-            </CardHeader>
+            <CardHeader className="justify-center">institute Invite</CardHeader>
             <CardBody className="items-center px-10 w-[30vw]">
               <div className="flex gap-5 items-center">
                 <Avatar src={user?.imageUrl} size="lg" />
@@ -111,9 +121,7 @@ const Join = () => {
                   : "You have been invited to join"}
               </p>
               <h3 className="mt-3">
-                {token?.institutename
-                  ? token.institutename
-                  : "institute"}
+                {token?.institutename ? token.institutename : "institute"}
               </h3>
             </CardBody>
             <CardFooter>
@@ -122,8 +130,8 @@ const Join = () => {
                 color="danger"
                 variant="flat"
                 onClick={() => handleJoin("decline")}
-                isDisabled={submitLoading}
-                isLoading={submitLoading}
+                isDisabled={acceptLoading}
+                isLoading={cancelLoading}
               >
                 Decline
               </Button>
@@ -132,8 +140,8 @@ const Join = () => {
                 color="success"
                 variant="flat"
                 onClick={() => handleJoin("accept")}
-                isDisabled={submitLoading}
-                isLoading={submitLoading}
+                isDisabled={cancelLoading}
+                isLoading={acceptLoading}
               >
                 Join
               </Button>

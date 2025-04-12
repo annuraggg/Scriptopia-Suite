@@ -62,6 +62,16 @@
       }
     },
     {
+      "label": "5. Check All Platforms For Errors",
+      "dependsOn": ["Check Batch 1", "Check Batch 2"],
+      "dependsOrder": "sequence",
+      "group": "test",
+      "icon": {
+        "id": "check",
+        "color": "terminal.ansiCyan"
+      }
+    },
+    {
       "label": "Build Batch 1",
       "dependsOn": [
         "Build Code",
@@ -93,6 +103,21 @@
         "Build Campus (supress)",
         "Build Server (supress)"
       ],
+      "dependsOrder": "parallel"
+    },
+    {
+      "label": "Check Batch 1",
+      "dependsOn": [
+        "Check Code",
+        "Check Main",
+        "Check Enterprise",
+        "Check Candidate"
+      ],
+      "dependsOrder": "parallel"
+    },
+    {
+      "label": "Check Batch 2",
+      "dependsOn": ["Check Meet", "Check Campus", "Check Server"],
       "dependsOrder": "parallel"
     },
     {
@@ -132,6 +157,19 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Check Code",
+      "type": "shell",
+      "command": "cd code; npm run typecheck",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": ["$tsc"],
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
@@ -192,6 +230,19 @@
       }
     },
     {
+      "label": "Check Main",
+      "type": "shell",
+      "command": "cd main; npm run typecheck",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": ["$tsc"],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
       "label": "Update Main",
       "type": "shell",
       "command": "cd main; npm update",
@@ -240,6 +291,19 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Check Enterprise",
+      "type": "shell",
+      "command": "cd enterprise; npm run typecheck",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": ["$tsc"],
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
@@ -300,6 +364,19 @@
       }
     },
     {
+      "label": "Check Candidate",
+      "type": "shell",
+      "command": "cd candidate; npm run typecheck",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": ["$tsc"],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
       "label": "Update Candidate",
       "type": "shell",
       "command": "cd candidate; npm update",
@@ -348,6 +425,19 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Check Meet",
+      "type": "shell",
+      "command": "cd meet; npm run typecheck",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": ["$tsc"],
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
@@ -409,6 +499,19 @@
       }
     },
     {
+      "label": "Check Campus",
+      "type": "shell",
+      "command": "cd campus; npm run typecheck",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": ["$tsc"],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
       "label": "Update Campus",
       "type": "shell",
       "command": "cd campus; npm update",
@@ -457,6 +560,19 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Check Server",
+      "type": "shell",
+      "command": "cd server; npm run check",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": ["$tsc"],
       "presentation": {
         "panel": "dedicated",
         "reveal": "always"
