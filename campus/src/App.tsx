@@ -106,6 +106,9 @@ const ViewUserMCQAssessment = lazy(
 const Pipeline = lazy(() => import("./pages/drives/drive/pipeline/Pipeline"));
 const CustomLayout = lazy(() => import("./pages/drives/drive/custom/Layout"));
 const Custom = lazy(() => import("./pages/drives/drive/custom/Custom"));
+const DriveAnalytics = lazy(
+  () => import("./pages/drives/drive/analytics/Analytics")
+);
 
 function App() {
   const { user, isSignedIn } = useUser();
@@ -261,7 +264,14 @@ function App() {
                 </Suspense>
               ),
             },
-
+            {
+              path: "analytics",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <DriveAnalytics />
+                </Suspense>
+              ),
+            },
             {
               path: "ats",
               element: (

@@ -16,9 +16,6 @@ import {
   Divider,
   Tooltip,
   Badge,
-  Progress,
-  Tabs,
-  Tab,
   Skeleton,
 } from "@nextui-org/react";
 import {
@@ -26,8 +23,6 @@ import {
   Code,
   Globe,
   BookOpen,
-  Search,
-  X,
   Star,
   MoreHorizontal,
   AlertCircle,
@@ -36,25 +31,6 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Candidate } from "@shared-types/Candidate";
 import { useOutletContext } from "react-router-dom";
-import { z } from "zod";
-
-// Define schema for validation with improved error messages
-const skillSchema = z.object({
-  name: z
-    .string()
-    .min(2, "Skill name must be at least 2 characters")
-    .max(50, "Skill name cannot exceed 50 characters")
-    .refine(
-      (val) => !/^\s+|\s+$/.test(val),
-      "Skill name cannot start or end with spaces"
-    ),
-  proficiency: z.enum(
-    ["Beginner", "Intermediate", "Advanced", "Professional"],
-    {
-      errorMap: () => ({ message: "Please select a valid proficiency level" }),
-    }
-  ),
-});
 
 // Type definitions for better type safety
 type SkillCategory = "technical" | "languages" | "subjects";
@@ -182,11 +158,6 @@ const categoryInfo: Record<SkillCategory, CategoryData> = {
 const Skills = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
-    isOpen: isCustomSkillModalOpen,
-    onOpen: onCustomSkillOpen,
-    onClose: onCustomSkillClose,
-  } = useDisclosure();
-  const {
     isOpen: isConfirmDeleteOpen,
     onOpen: onConfirmDeleteOpen,
     onClose: onConfirmDeleteClose,
@@ -200,20 +171,17 @@ const Skills = () => {
 
   const [selectedCategory, setSelectedCategory] =
     useState<SkillCategory | null>(null);
-  const [skillsList, setSkillsList] = useState<Record<SkillCategory, string[]>>(
-    {
-      technical: skillsData.technical,
-      languages: skillsData.languages,
-      subjects: skillsData.subjects,
-    }
-  );
+  const [skillsList] = useState<Record<SkillCategory, string[]>>({
+    technical: skillsData.technical,
+    languages: skillsData.languages,
+    subjects: skillsData.subjects,
+  });
 
   const [formData, setFormData] = useState<SkillFormData>({
     name: "",
     proficiency: null,
   });
 
-  const [customSkill, setCustomSkill] = useState("");
   const [formErrors, setFormErrors] = useState<{
     name?: string;
     proficiency?: string;
@@ -225,7 +193,6 @@ const Skills = () => {
     category: SkillCategory;
   } | null>(null);
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Reset form data when modal closes
@@ -233,7 +200,6 @@ const Skills = () => {
     if (!isOpen) {
       setFormData({ name: "", proficiency: null });
       setFormErrors({});
-      setSearchQuery("");
     }
   }, [isOpen]);
 
@@ -275,54 +241,6 @@ const Skills = () => {
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
-  };
-
-  const handleAddCustomSkill = () => {
-    try {
-      // Validate custom skill name
-      const trimmedSkill = customSkill.trim();
-      skillSchema.shape.name.parse(trimmedSkill);
-
-      // Check if skill already exists in the current category
-      if (
-        selectedCategory &&
-        skillsList[selectedCategory].includes(trimmedSkill)
-      ) {
-        toast.error(
-          `This ${
-            selectedCategory === "languages" ? "language" : "skill"
-          } already exists in the list.`
-        );
-        return;
-      }
-
-      // Add to skills list for the specific category and select it
-      if (selectedCategory) {
-        setSkillsList((prev) => ({
-          ...prev,
-          [selectedCategory]: [...prev[selectedCategory], trimmedSkill],
-        }));
-        setFormData({ ...formData, name: trimmedSkill });
-      }
-
-      setCustomSkill("");
-      onCustomSkillClose();
-      toast.success(
-        `Custom ${
-          selectedCategory === "languages" ? "language" : "skill"
-        } added.`
-      );
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast.error(error.errors[0].message);
-      } else {
-        toast.error(
-          `Failed to add custom ${
-            selectedCategory === "languages" ? "language" : "skill"
-          }.`
-        );
-      }
-    }
   };
 
   const getProficiencyNumber = (
@@ -503,12 +421,12 @@ const Skills = () => {
     }
   };
 
-  // Filter skills based on search query
-  const filterSkills = (category: SkillCategory) => {
-    if (!searchQuery) return skillsList[category];
+  // Filter skills based on input text
+  const filterSkills = (category: SkillCategory, inputText: string = "") => {
+    if (!inputText) return skillsList[category];
 
     return skillsList[category].filter((skill) =>
-      skill.toLowerCase().includes(searchQuery.toLowerCase())
+      skill.toLowerCase().includes(inputText.toLowerCase())
     );
   };
 
@@ -611,7 +529,7 @@ const Skills = () => {
 
   return (
     <div>
-      <Breadcrumbs className="mb-6" >
+      <Breadcrumbs className="mb-6">
         <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
         <BreadcrumbItem href="/profile/skills">
           Skills & Expertise
@@ -650,7 +568,7 @@ const Skills = () => {
               <h3 className="text-lg font-semibold">
                 {categoryInfo.technical.title}
               </h3>
-              <Badge color="primary" variant="flat" >
+              <Badge color="primary" variant="flat">
                 {user.technicalSkills?.length || 0}
               </Badge>
             </div>
@@ -662,7 +580,6 @@ const Skills = () => {
               startContent={<Plus size={16} />}
               color="primary"
               variant="flat"
-              
             >
               Add Skill
             </Button>
@@ -688,7 +605,7 @@ const Skills = () => {
               <h3 className="text-lg font-semibold">
                 {categoryInfo.languages.title}
               </h3>
-              <Badge color="success" variant="flat" >
+              <Badge color="success" variant="flat">
                 {user.languages?.length || 0}
               </Badge>
             </div>
@@ -700,7 +617,6 @@ const Skills = () => {
               startContent={<Plus size={16} />}
               color="success"
               variant="flat"
-              
             >
               Add Language
             </Button>
@@ -726,7 +642,7 @@ const Skills = () => {
               <h3 className="text-lg font-semibold">
                 {categoryInfo.subjects.title}
               </h3>
-              <Badge color="warning" variant="flat" >
+              <Badge color="warning" variant="flat">
                 {user.subjects?.length || 0}
               </Badge>
             </div>
@@ -738,7 +654,6 @@ const Skills = () => {
               startContent={<Plus size={16} />}
               color="warning"
               variant="flat"
-              
             >
               Add Subject
             </Button>
@@ -780,182 +695,122 @@ const Skills = () => {
               {selectedCategory && categoryInfo[selectedCategory].description}
             </p>
           </ModalHeader>
-          <ModalBody className="py-6">
-            <div className="relative mb-4">
-              <Input
-                label="Search"
-                placeholder="Type to search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                startContent={<Search size={16} className="text-gray-400" />}
-                endContent={
-                  searchQuery ? (
-                    <Button
-                      isIconOnly
-                      
-                      variant="light"
-                      onClick={() => setSearchQuery("")}
-                    >
-                      <X size={14} />
-                    </Button>
-                  ) : null
-                }
-                
-                isClearable
-                isDisabled={isSubmitting}
-              />
-            </div>
-
-            <Tabs aria-label="Skill tabs"  className="mb-4">
-              <Tab
-                key="selection"
-                title={
-                  <span className="flex items-center gap-1">
-                    <Search size={14} />
-                    Choose from List
-                  </span>
-                }
-              >
-                <div className="mt-4">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-1">
-                    {selectedCategory &&
-                    filterSkills(selectedCategory).length === 0 ? (
-                      <p className="text-sm text-gray-500 col-span-3">
-                        No matching skills found
-                      </p>
-                    ) : (
-                      selectedCategory &&
-                      filterSkills(selectedCategory).map((skill) => (
-                        <Button
-                          key={skill}
-                          variant={formData.name === skill ? "flat" : "light"}
-                          color={
-                            formData.name === skill
-                              ? selectedCategory === "languages"
-                                ? "success"
-                                : selectedCategory === "subjects"
-                                ? "warning"
-                                : "primary"
-                              : "default"
-                          }
-                          onClick={() =>
-                            setFormData({ ...formData, name: skill })
-                          }
-                          className="justify-start text-left"
-                          
-                          isDisabled={isSubmitting}
-                        >
-                          {skill}
-                        </Button>
-                      ))
-                    )}
-                  </div>
-
-                  <Button
-                    variant="light"
-                    onPress={onCustomSkillOpen}
-                    className="text-primary mt-4"
-                    
-                    startContent={<Plus size={14} />}
-                    isDisabled={isSubmitting}
-                  >
-                    Add Custom{" "}
-                    {selectedCategory === "languages" ? "Language" : "Skill"}
-                  </Button>
-                </div>
-              </Tab>
-              <Tab
-                key="proficiency"
-                title={
-                  <span className="flex items-center gap-1">
-                    <Star size={14} />
-                    Set Proficiency
-                  </span>
-                }
-              >
-                <div className="mt-4">
-                  <div className="space-y-6">
-                    {proficiencyLevels.map((level) => {
-                      const isSelected = formData.proficiency === level;
-                      let progressValue = 0;
-                      let progressColor:
-                        | "default"
-                        | "primary"
-                        | "success"
-                        | "warning" = "default";
-
-                      if (level === "Beginner") {
-                        progressValue = 25;
-                        progressColor = "default";
-                      } else if (level === "Intermediate") {
-                        progressValue = 50;
-                        progressColor = "primary";
-                      } else if (level === "Advanced") {
-                        progressValue = 75;
-                        progressColor = "success";
-                      } else {
-                        progressValue = 100;
-                        progressColor = "warning";
-                      }
-
-                      return (
-                        <div key={level} className="space-y-1">
-                          <Button
-                            variant={isSelected ? "flat" : "light"}
-                            color={isSelected ? progressColor : "default"}
-                            onClick={() =>
-                              setFormData({ ...formData, proficiency: level })
-                            }
-                            className="justify-start w-full"
-                            isDisabled={isSubmitting}
-                          >
-                            <div className="flex items-center justify-between w-full">
-                              <span>{level}</span>
-                              {isSelected && (
-                                <Star size={14} className="text-warning" />
-                              )}
-                            </div>
-                          </Button>
-                          <Progress
-                            value={progressValue}
-                            color={progressColor}
-                            
-                            aria-label={`${level} proficiency level`}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </Tab>
-            </Tabs>
-
-            {formErrors.name && (
-              <p className="text-danger text-sm mt-1">{formErrors.name}</p>
-            )}
-            {formErrors.proficiency && (
-              <p className="text-danger text-sm mt-1">
-                {formErrors.proficiency}
-              </p>
-            )}
-
-            <div className="flex items-start gap-2 mt-4 bg-gray-50 p-3 rounded-md">
-              <p className="text-sm font-medium">Selected:</p>
+          <ModalBody className="py-3">
+            {/* Two column layout: Input on left, Proficiency on right */}
+            <div className="flex flex-col">
+              {/* Left Column - Input and Suggestions */}
               <div>
-                <p className="text-sm">
-                  {formData.name || (
-                    <span className="text-gray-400">No skill selected</span>
-                  )}
-                </p>
-                <p className="text-sm">
-                  {formData.proficiency || (
-                    <span className="text-gray-400">
-                      No proficiency selected
-                    </span>
-                  )}
-                </p>
+                <h3 className="text-medium font-medium mb-2">Name</h3>
+                <Input
+                  label={
+                    selectedCategory === "languages" ? "Language" : "Skill"
+                  }
+                  placeholder={
+                    selectedCategory
+                      ? `Type ${
+                          selectedCategory === "languages"
+                            ? "language"
+                            : "skill"
+                        } name...`
+                      : "Type name..."
+                  }
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  isDisabled={isSubmitting}
+                />
+                {formErrors.name && (
+                  <p className="text-danger text-sm mt-1">{formErrors.name}</p>
+                )}
+              </div>
+
+              {/* Right Column - Proficiency Selection */}
+              <div>
+                <h3 className="text-medium font-medium">Proficiency Level</h3>
+                <div className="flex gap-2">
+                  {proficiencyLevels.map((level) => {
+                    const isSelected = formData.proficiency === level;
+                    let progressColor:
+                      | "default"
+                      | "primary"
+                      | "success"
+                      | "warning" = "default";
+
+                    if (level === "Beginner") {
+                      progressColor = "default";
+                    } else if (level === "Intermediate") {
+                      progressColor = "primary";
+                    } else if (level === "Advanced") {
+                      progressColor = "success";
+                    } else {
+                      progressColor = "warning";
+                    }
+
+                    return (
+                      <Button
+                        key={level}
+                        variant={isSelected ? "flat" : "bordered"}
+                        color={isSelected ? progressColor : "default"}
+                        onClick={() =>
+                          setFormData({ ...formData, proficiency: level })
+                        }
+                        className="justify-start w-1/4"
+                        isDisabled={isSubmitting}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <span>{level}</span>
+                        </div>
+                      </Button>
+                    );
+                  })}
+                </div>
+                {formErrors.proficiency && (
+                  <p className="text-danger text-sm mt-1">
+                    {formErrors.proficiency}
+                  </p>
+                )}
               </div>
             </div>
+
+            {/* Suggestions Section */}
+            <div className="mt-3">
+              <h3 className="text-sm font-medium mb-2">Suggestions</h3>
+              <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-1">
+                {selectedCategory &&
+                filterSkills(selectedCategory, formData.name).length === 0 ? (
+                  <p className="text-sm text-gray-500">
+                    No matching suggestions found
+                  </p>
+                ) : (
+                  selectedCategory &&
+                  filterSkills(selectedCategory, formData.name)
+                    .slice(0, 20) // Limit to 20 suggestions
+                    .map((skill) => (
+                      <Chip
+                        key={skill}
+                        variant={formData.name === skill ? "flat" : "bordered"}
+                        color={
+                          selectedCategory === "languages"
+                            ? "success"
+                            : selectedCategory === "subjects"
+                            ? "warning"
+                            : "primary"
+                        }
+                        onClick={() =>
+                          setFormData({ ...formData, name: skill })
+                        }
+                        className="cursor-pointer"
+                        size="sm"
+                      >
+                        {skill}
+                      </Chip>
+                    ))
+                )}
+              </div>
+            </div>
+
+      
           </ModalBody>
           <Divider />
           <ModalFooter className="border-t">
@@ -985,65 +840,10 @@ const Skills = () => {
         </ModalContent>
       </Modal>
 
-      {/* Custom Skill Modal */}
-      <Modal
-        isOpen={isCustomSkillModalOpen}
-        onClose={() => !isSubmitting && onCustomSkillClose()}
-        
-        isDismissable={!isSubmitting}
-      >
-        <ModalContent>
-          <ModalHeader className="border-b">
-            Add Custom {selectedCategory === "languages" ? "Language" : "Skill"}
-          </ModalHeader>
-          <ModalBody className="py-6">
-            <Input
-              placeholder={`Enter ${
-                selectedCategory === "languages" ? "language" : "skill"
-              } name`}
-              value={customSkill}
-              onChange={(e) => setCustomSkill(e.target.value)}
-              label={`Custom ${
-                selectedCategory === "languages" ? "Language" : "Skill"
-              } Name`}
-              type="text"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleAddCustomSkill();
-                }
-              }}
-              
-              isDisabled={isSubmitting}
-            />
-          </ModalBody>
-          <Divider />
-          <ModalFooter className="border-t">
-            <Button
-              color="danger"
-              variant="light"
-              onPress={onCustomSkillClose}
-              isDisabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button
-              color="primary"
-              onPress={handleAddCustomSkill}
-              isDisabled={!customSkill.trim() || isSubmitting}
-              isLoading={isSubmitting}
-            >
-              Add
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={isConfirmDeleteOpen}
         onClose={() => !isSubmitting && onConfirmDeleteClose()}
-        
         isDismissable={!isSubmitting}
       >
         <ModalContent>

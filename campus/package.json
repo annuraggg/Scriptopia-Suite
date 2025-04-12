@@ -9,7 +9,8 @@
     "forceStart": "npx kill-port 5175 && npm run dev",
     "build": "tsc -b && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc -b"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.2.10",

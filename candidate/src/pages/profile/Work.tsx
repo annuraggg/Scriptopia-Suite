@@ -11,6 +11,7 @@ import {
   useDisclosure,
   Select,
   SelectItem,
+  SelectSection,
   Checkbox,
   Textarea,
   Card,
@@ -20,6 +21,7 @@ import {
   Tooltip,
   Avatar,
   Skeleton,
+  Divider,
 } from "@nextui-org/react";
 import { useState, useEffect } from "react";
 import {
@@ -763,11 +765,16 @@ export default function WorkExperience() {
         size="2xl"
         scrollBehavior="inside"
         isDismissable={!isSubmitting}
+        classNames={{
+          base: "max-w-2xl",
+          body: "py-6",
+          closeButton: "top-3 right-3",
+        }}
       >
         <ModalContent>
           {() => (
             <>
-              <ModalHeader className="flex flex-col gap-1 border-b">
+              <ModalHeader className="flex flex-col gap-1 border-b px-6 py-4">
                 <div className="flex items-center gap-2">
                   <Briefcase size={20} className="text-primary" />
                   <h2 className="text-lg">
@@ -783,231 +790,266 @@ export default function WorkExperience() {
                 </p>
               </ModalHeader>
 
-              <ModalBody className="py-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    label="Company Name"
-                    placeholder="Enter the organization where you worked"
-                    isRequired
-                    isInvalid={!!validationErrors.company}
-                    errorMessage={validationErrors.company}
-                    value={formData.company}
-                    onChange={(e) =>
-                      handleInputChange("company", e.target.value)
-                    }
-                    startContent={
-                      <Building size={16} className="text-gray-400" />
-                    }
-                    description="Name of the company or organization"
-                    isDisabled={isSubmitting}
-                  />
+              <ModalBody className="px-6">
+                <div className="space-y-6">
+                  {/* Company Information Section */}
+                  <div>
+                    <h3 className="text-md font-medium mb-3">
+                      Company Information
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        label="Company Name"
+                        placeholder="Enter the organization where you worked"
+                        isRequired
+                        isInvalid={!!validationErrors.company}
+                        errorMessage={validationErrors.company}
+                        value={formData.company}
+                        onChange={(e) =>
+                          handleInputChange("company", e.target.value)
+                        }
+                        startContent={
+                          <Building size={16} className="text-gray-400" />
+                        }
+                        description="Name of the company or organization"
+                        isDisabled={isSubmitting}
+                      />
 
-                  <Select
-                    label="Company Sector"
-                    placeholder="Select company's industry"
-                    selectedKeys={formData.sector ? [formData.sector] : []}
-                    isRequired
-                    isInvalid={!!validationErrors.sector}
-                    errorMessage={validationErrors.sector}
-                    onSelectionChange={(keys) => {
-                      if (Array.isArray(keys) && keys.length > 0) {
-                        handleInputChange(
-                          "sector",
-                          Array.from(keys)[0] as string
-                        );
-                      }
-                    }}
-                    startContent={
-                      <BriefcaseBusiness size={16} className="text-gray-400" />
-                    }
-                    description="Industry or business sector"
-                    isDisabled={isSubmitting}
-                  >
-                    {Object.entries(sectorsByCategory).map(
-                      ([category, sectors]) => (
-                        <SelectItem key={category} textValue={category}>
-                          <div className="font-semibold text-small">
-                            {category}
-                          </div>
-                          {sectors.map((sector) => (
-                            <SelectItem key={sector} value={sector}>
-                              {sector}
-                            </SelectItem>
-                          ))}
-                        </SelectItem>
-                      )
-                    )}
-                  </Select>
-
-                  <Input
-                    label="Job Title"
-                    placeholder="Your position or role"
-                    value={formData.title}
-                    isRequired
-                    isInvalid={!!validationErrors.title}
-                    errorMessage={validationErrors.title}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                    startContent={
-                      <Briefcase size={16} className="text-gray-400" />
-                    }
-                    description="Your official job title"
-                    isDisabled={isSubmitting}
-                  />
-
-                  <Input
-                    label="Location"
-                    placeholder="City, Country or Remote"
-                    isRequired
-                    isInvalid={!!validationErrors.location}
-                    errorMessage={validationErrors.location}
-                    value={formData.location}
-                    onChange={(e) =>
-                      handleInputChange("location", e.target.value)
-                    }
-                    startContent={
-                      <MapPin size={16} className="text-gray-400" />
-                    }
-                    description="Where the work was performed"
-                    isDisabled={isSubmitting}
-                  />
-
-                  <Select
-                    label="Employment Type"
-                    placeholder="Select position type"
-                    isRequired
-                    isInvalid={!!validationErrors.type}
-                    errorMessage={validationErrors.type}
-                    selectedKeys={formData.type ? [formData.type] : []}
-                    onSelectionChange={(keys) => {
-                      if (Array.isArray(keys) && keys.length > 0) {
-                        handleInputChange(
-                          "type",
-                          Array.from(keys)[0] as Work["type"]
-                        );
-                      }
-                    }}
-                    startContent={
-                      <BriefcaseBusiness size={16} className="text-gray-400" />
-                    }
-                    description="Type of employment arrangement"
-                    isDisabled={isSubmitting}
-                  >
-                    {positionTypes.map((type) => (
-                      <SelectItem
-                        key={type.value}
-                        value={type.value}
-                        description={type.description}
+                      <Select
+                        label="Company Sector"
+                        placeholder="Select company's industry"
+                        selectedKeys={formData.sector ? [formData.sector] : []}
+                        isRequired
+                        isInvalid={!!validationErrors.sector}
+                        errorMessage={validationErrors.sector}
+                        onSelectionChange={(keys) => {
+                          if (keys instanceof Set && keys.size > 0) {
+                            handleInputChange("sector", Array.from(keys)[0]);
+                          }
+                        }}
+                        startContent={
+                          <BriefcaseBusiness
+                            size={16}
+                            className="text-gray-400"
+                          />
+                        }
+                        description="Industry or business sector"
+                        isDisabled={isSubmitting}
                       >
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </Select>
+                        {Object.entries(sectorsByCategory).map(
+                          ([category, sectors]) => (
+                            <SelectSection key={category} title={category}>
+                              {sectors.map((sector) => (
+                                <SelectItem key={sector} value={sector}>
+                                  {sector}
+                                </SelectItem>
+                              ))}
+                            </SelectSection>
+                          )
+                        )}
+                      </Select>
+                    </div>
+                  </div>
 
-                  <Select
-                    label="Job Function"
-                    placeholder="Select primary area of work"
-                    isRequired
-                    isInvalid={!!validationErrors.jobFunction}
-                    errorMessage={validationErrors.jobFunction}
-                    selectedKeys={
-                      formData.jobFunction ? [formData.jobFunction] : []
-                    }
-                    onSelectionChange={(keys) => {
-                      if (Array.isArray(keys) && keys.length > 0) {
-                        handleInputChange(
-                          "jobFunction",
-                          Array.from(keys)[0] as string
-                        );
-                      }
-                    }}
-                    description="Your main professional field"
-                    isDisabled={isSubmitting}
-                  >
-                    {Object.entries(jobFunctionsByCategory).map(
-                      ([category, functions]) => (
-                        <SelectItem key={category} textValue={category}>
-                          <div className="font-semibold text-small">
-                            {category}
-                          </div>
-                          {functions.map((func) => (
-                            <SelectItem key={func} value={func}>
-                              {func}
-                            </SelectItem>
-                          ))}
-                        </SelectItem>
-                      )
-                    )}
-                  </Select>
+                  <Divider className="my-2" />
 
+                  {/* Position Details Section */}
                   <div>
-                    <label className="block text-small font-medium text-foreground mb-1.5">
-                      Start Date <span className="text-danger">*</span>
-                    </label>
-                    <DatePicker
-                      aria-label="Start Date"
-                      isRequired
-                      isInvalid={!!validationErrors.startDate}
-                      errorMessage={validationErrors.startDate}
-                      maxValue={today(getLocalTimeZone())}
-                      value={parseAbsoluteToLocal(
-                        formData.startDate.toISOString()
-                      )}
-                      onChange={(date) => handleDateChange(date, "startDate")}
-                      showMonthAndYearPickers
-                      isDisabled={isSubmitting}
-                      hideTimeZone
-                      granularity="day"
-                    />
-                    <p className="text-tiny text-default-500 mt-1">
-                      When you started this position
-                    </p>
+                    <h3 className="text-md font-medium mb-3">
+                      Position Details
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        label="Job Title"
+                        placeholder="Your position or role"
+                        value={formData.title}
+                        isRequired
+                        isInvalid={!!validationErrors.title}
+                        errorMessage={validationErrors.title}
+                        onChange={(e) =>
+                          handleInputChange("title", e.target.value)
+                        }
+                        startContent={
+                          <Briefcase size={16} className="text-gray-400" />
+                        }
+                        description="Your official job title"
+                        isDisabled={isSubmitting}
+                      />
+
+                      <Select
+                        label="Employment Type"
+                        placeholder="Select position type"
+                        isRequired
+                        isInvalid={!!validationErrors.type}
+                        errorMessage={validationErrors.type}
+                        selectedKeys={formData.type ? [formData.type] : []}
+                        onSelectionChange={(keys) => {
+                          if (keys instanceof Set && keys.size > 0) {
+                            handleInputChange("type", Array.from(keys)[0]);
+                          }
+                        }}
+                        startContent={
+                          <BriefcaseBusiness
+                            size={16}
+                            className="text-gray-400"
+                          />
+                        }
+                        description="Type of employment arrangement"
+                        isDisabled={isSubmitting}
+                      >
+                        {positionTypes.map((type) => (
+                          <SelectItem
+                            key={type.value}
+                            value={type.value}
+                            description={type.description}
+                          >
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </Select>
+
+                      <Input
+                        label="Location"
+                        placeholder="City, Country or Remote"
+                        isRequired
+                        isInvalid={!!validationErrors.location}
+                        errorMessage={validationErrors.location}
+                        value={formData.location}
+                        onChange={(e) =>
+                          handleInputChange("location", e.target.value)
+                        }
+                        startContent={
+                          <MapPin size={16} className="text-gray-400" />
+                        }
+                        description="Where the work was performed"
+                        isDisabled={isSubmitting}
+                      />
+
+                      <Select
+                        label="Job Function"
+                        placeholder="Select primary area of work"
+                        isRequired
+                        isInvalid={!!validationErrors.jobFunction}
+                        errorMessage={validationErrors.jobFunction}
+                        selectedKeys={
+                          formData.jobFunction ? [formData.jobFunction] : []
+                        }
+                        onSelectionChange={(keys) => {
+                          if (keys instanceof Set && keys.size > 0) {
+                            handleInputChange(
+                              "jobFunction",
+                              Array.from(keys)[0]
+                            );
+                          }
+                        }}
+                        description="Your main professional field"
+                        isDisabled={isSubmitting}
+                      >
+                        {Object.entries(jobFunctionsByCategory).map(
+                          ([category, functions]) => (
+                            <SelectSection key={category} title={category}>
+                              {functions.map((func) => (
+                                <SelectItem key={func} value={func}>
+                                  {func}
+                                </SelectItem>
+                              ))}
+                            </SelectSection>
+                          )
+                        )}
+                      </Select>
+                    </div>
                   </div>
 
+                  <Divider className="my-2" />
+
+                  {/* Time Period Section */}
                   <div>
-                    <label className="block text-small font-medium text-foreground mb-1.5">
-                      End Date{" "}
-                      {!formData.current && (
-                        <span className="text-danger">*</span>
-                      )}
-                    </label>
-                    <DatePicker
-                      aria-label="End Date"
-                      isInvalid={!!validationErrors.endDate}
-                      errorMessage={validationErrors.endDate}
-                      value={
-                        formData.endDate
-                          ? parseAbsoluteToLocal(formData.endDate.toISOString())
-                          : undefined
-                      }
-                      onChange={(date) => handleDateChange(date, "endDate")}
-                      maxValue={today(getLocalTimeZone())}
-                      isDisabled={formData.current || isSubmitting}
-                      showMonthAndYearPickers
-                      hideTimeZone
-                      granularity="day"
-                    />
-                    <p className="text-tiny text-default-500 mt-1">
-                      {formData.current
-                        ? "Not required for current positions"
-                        : "When you left this position"}
-                    </p>
+                    <h3 className="text-md font-medium mb-3">Time Period</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-small font-medium text-foreground mb-1.5">
+                          Start Date <span className="text-danger">*</span>
+                        </label>
+                        <DatePicker
+                          aria-label="Start Date"
+                          isRequired
+                          isInvalid={!!validationErrors.startDate}
+                          errorMessage={validationErrors.startDate}
+                          maxValue={today(getLocalTimeZone())}
+                          value={parseAbsoluteToLocal(
+                            formData.startDate.toISOString()
+                          )}
+                          onChange={(date) =>
+                            handleDateChange(date, "startDate")
+                          }
+                          showMonthAndYearPickers
+                          isDisabled={isSubmitting}
+                          hideTimeZone
+                          granularity="day"
+                          classNames={{
+                            base: "w-full",
+                          }}
+                        />
+                        <p className="text-tiny text-default-500 mt-1">
+                          When you started this position
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-small font-medium text-foreground mb-1.5">
+                          End Date{" "}
+                          {!formData.current && (
+                            <span className="text-danger">*</span>
+                          )}
+                        </label>
+                        <DatePicker
+                          aria-label="End Date"
+                          isInvalid={!!validationErrors.endDate}
+                          errorMessage={validationErrors.endDate}
+                          value={
+                            formData.endDate
+                              ? parseAbsoluteToLocal(
+                                  formData.endDate.toISOString()
+                                )
+                              : undefined
+                          }
+                          onChange={(date) => handleDateChange(date, "endDate")}
+                          maxValue={today(getLocalTimeZone())}
+                          isDisabled={formData.current || isSubmitting}
+                          showMonthAndYearPickers
+                          hideTimeZone
+                          granularity="day"
+                          classNames={{
+                            base: "w-full",
+                          }}
+                        />
+                        <p className="text-tiny text-default-500 mt-1">
+                          {formData.current
+                            ? "Not required for current positions"
+                            : "When you left this position"}
+                        </p>
+                      </div>
+
+                      <div className="col-span-2 mt-1">
+                        <Checkbox
+                          isSelected={formData.current}
+                          onValueChange={(checked) =>
+                            handleInputChange("current", checked)
+                          }
+                          isDisabled={isSubmitting}
+                        >
+                          I currently work here
+                        </Checkbox>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="col-span-2 mt-1">
-                    <Checkbox
-                      isSelected={formData.current}
-                      onValueChange={(checked) =>
-                        handleInputChange("current", checked)
-                      }
-                      isDisabled={isSubmitting}
-                    >
-                      I currently work here
-                    </Checkbox>
-                  </div>
+                  <Divider className="my-2" />
 
-                  <div className="col-span-2">
+                  {/* Description Section */}
+                  <div>
+                    <h3 className="text-md font-medium mb-3">Description</h3>
                     <Textarea
-                      label="Description"
                       placeholder="Describe your responsibilities, achievements, and skills utilized in this role. Consider including key projects, metrics, and outcomes."
                       value={formData.description || ""}
                       onChange={(e) =>
@@ -1017,6 +1059,10 @@ export default function WorkExperience() {
                       maxRows={5}
                       isDisabled={isSubmitting}
                       description="Highlight your key responsibilities and accomplishments"
+                      classNames={{
+                        base: "w-full",
+                        inputWrapper: "min-h-[100px]",
+                      }}
                     />
                     <div className="flex justify-between mt-1">
                       <p className="text-xs text-gray-500">
@@ -1031,7 +1077,7 @@ export default function WorkExperience() {
                 </div>
               </ModalBody>
 
-              <ModalFooter className="border-t">
+              <ModalFooter className="border-t px-6 py-4">
                 <Button
                   variant="light"
                   onPress={handleCloseModal}
@@ -1045,7 +1091,7 @@ export default function WorkExperience() {
                   isLoading={isSubmitting}
                   isDisabled={isSubmitting}
                 >
-                  {editingExperience ? "Update" : "Save"}
+                  {editingExperience ? "Update Experience" : "Save Experience"}
                 </Button>
               </ModalFooter>
             </>
@@ -1058,29 +1104,31 @@ export default function WorkExperience() {
         isOpen={deleteModal.isOpen}
         onClose={() => !isSubmitting && deleteModal.onClose()}
         isDismissable={!isSubmitting}
+        className="max-w-md"
       >
         <ModalContent>
           {() => (
             <>
-              <ModalHeader className="border-b">
+              <ModalHeader className="border-b px-6 py-4">
                 <h3>Confirm Deletion</h3>
               </ModalHeader>
-              <ModalBody className="py-5">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-danger/10 p-2 flex-shrink-0">
-                    <AlertCircle size={22} className="text-danger" />
+              <ModalBody className="py-6 px-6">
+                <div className="flex items-center gap-4">
+                  <div className="rounded-full bg-danger/10 p-3 flex-shrink-0">
+                    <AlertCircle size={24} className="text-danger" />
                   </div>
-                  <p className="text-gray-600">
+                  <p className="text-gray-700">
                     Are you sure you want to delete this work experience? This
                     action cannot be undone.
                   </p>
                 </div>
               </ModalBody>
-              <ModalFooter className="border-t">
+              <ModalFooter className="border-t px-6 py-4">
                 <Button
                   variant="light"
                   onPress={() => !isSubmitting && deleteModal.onClose()}
                   isDisabled={isSubmitting}
+                  fullWidth
                 >
                   Cancel
                 </Button>
@@ -1089,8 +1137,9 @@ export default function WorkExperience() {
                   onPress={handleDelete}
                   isLoading={isSubmitting}
                   isDisabled={isSubmitting}
+                  fullWidth
                 >
-                  Delete
+                  Delete Experience
                 </Button>
               </ModalFooter>
             </>

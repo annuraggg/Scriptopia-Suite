@@ -29,6 +29,11 @@ const Info = ({
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          description={
+            <p className="text-red-500">
+              This field is cannot be changed later
+            </p>
+          }
         />
 
         <DatePicker
@@ -37,6 +42,11 @@ const Info = ({
           value={dob}
           onChange={(date) => setDob(date)}
           maxValue={today("IST")}
+          description={
+            <p className="text-red-500">
+              This field is cannot be changed later
+            </p>
+          }
         />
 
         <RadioGroup
@@ -45,6 +55,11 @@ const Info = ({
           className="mt-3"
           value={gender}
           onChange={(e) => setGender(e.target.value)}
+          description={
+            <p className="text-red-500">
+              This field is cannot be changed later
+            </p>
+          }
         >
           <Radio value="male">Male</Radio>
           <Radio value="female">Female</Radio>

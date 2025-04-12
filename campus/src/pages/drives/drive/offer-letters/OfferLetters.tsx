@@ -1,5 +1,5 @@
 import { DriveContext } from "@/types/DriveContext";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import {
   Table,
@@ -14,7 +14,7 @@ import {
   Tab,
   Spinner,
   Tooltip,
-  User as NextUIUser,
+  User,
   Avatar,
   Modal,
   ModalContent,
@@ -30,12 +30,14 @@ import {
   Phone,
   Calendar,
   AlertCircle,
-  User,
+  User as UserIcon,
 } from "lucide-react";
 import { ExtendedCandidate } from "@shared-types/ExtendedCandidate";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
+import { ExtendedAppliedDrive } from "@shared-types/ExtendedAppliedDrive";
+import Loader from "@/components/Loader";
 
 interface CandidateDetailsModalProps {
   isOpen: boolean;
@@ -83,7 +85,7 @@ const CandidateDetailsModal: React.FC<CandidateDetailsModalProps> = ({
                 <Avatar
                   src={candidate.profileImage}
                   showFallback
-                  name={candidate.name}
+                  name={candidate.name || "User"}
                   className="h-16 w-16"
                 />
                 <div>
@@ -101,11 +103,11 @@ const CandidateDetailsModal: React.FC<CandidateDetailsModalProps> = ({
                   <div className="bg-default-50 rounded-md p-3">
                     <div className="flex items-center gap-2 mb-2">
                       <Mail className="h-4 w-4 text-default-500" />
-                      <span>{candidate.email}</span>
+                      <span>{candidate.email || "Not provided"}</span>
                     </div>
                     <div className="flex items-center gap-2 mb-2">
                       <Phone className="h-4 w-4 text-default-500" />
-                      <span>{candidate.phone}</span>
+                      <span>{candidate.phone || "Not provided"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-default-500" />
@@ -127,7 +129,8 @@ const CandidateDetailsModal: React.FC<CandidateDetailsModalProps> = ({
                     </h5>
                     <div className="bg-default-50 rounded-md p-3">
                       <div className="font-medium">
-                        {latestEducation.degree} in {latestEducation.branch}
+                        {latestEducation.degree} in{" "}
+                        {latestEducation.branch || "N/A"}
                       </div>
                       <div className="text-sm text-default-600 mt-1">
                         {latestEducation.school}, {latestEducation.board}
@@ -217,8 +220,13 @@ const CandidateDetailsModal: React.FC<CandidateDetailsModalProps> = ({
                 <Button
                   color="primary"
                   variant="flat"
-                  startContent={<User className="h-4 w-4" />}
-                  onPress={() => onViewFullProfile(candidate._id!)}
+                  startContent={<UserIcon className="h-4 w-4" />}
+                  onPress={() => {
+                    if (candidate._id) {
+                      onViewFullProfile(candidate._id);
+                    }
+                  }}
+                  isDisabled={!candidate._id}
                 >
                   View Full Profile
                 </Button>
@@ -240,9 +248,21 @@ const OfferLetters: React.FC = () => {
   const [selectedCandidate, setSelectedCandidate] =
     useState<ExtendedCandidate | null>(null);
   const navigate = useNavigate();
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
 
-  const hiredCandidates = drive.hiredCandidates || [];
-  const offerLetters = drive.offerLetters || [];
+  const [appliedDrives, setAppliedDrives] = useState<ExtendedAppliedDrive[]>(
+    []
+  );
+  const [loadingAppliedDrives, setLoadingAppliedDrives] =
+    useState<boolean>(true);
+  const [offerLetterDownloading, setOfferLetterDownloading] = useState<
+    string | null
+  >(null);
+
+  // Safely access hired candidates and offer letters
+  const hiredCandidates = drive?.hiredCandidates || [];
+  const offerLetters = drive?.offerLetters || [];
 
   const candidatesWithOfferLetters = useMemo(() => {
     return hiredCandidates.filter((candidate) =>
@@ -256,19 +276,47 @@ const OfferLetters: React.FC = () => {
     );
   }, [hiredCandidates, offerLetters]);
 
-  const { getToken } = useAuth();
-  const axios = ax(getToken);
+  useEffect(() => {
+    if (!drive || !drive._id) return;
 
-  const handleDownloadOfferLetter = (candidateId: string) => {
+    setLoadingAppliedDrives(true);
+    axios
+      .get(`/drives/${drive._id}/applied`)
+      .then((res) => {
+        setAppliedDrives(res.data.data || []);
+      })
+      .catch((err) => {
+        console.error("Error fetching applied drives:", err);
+        toast.error(err.response?.data?.message || "Error Getting CTCs");
+      })
+      .finally(() => {
+        setLoadingAppliedDrives(false);
+      });
+  }, [drive?._id]);
+
+  const handleDownloadOfferLetter = (
+    candidateId: string,
+    event: React.MouseEvent
+  ) => {
+    if (event) event.stopPropagation();
+
+    setOfferLetterDownloading(candidateId);
     axios
       .get(`/drives/${drive._id}/offer-letter/${candidateId}`)
       .then((res) => {
-        window.open(res.data.data.url, "_blank");
+        if (res.data?.data?.url) {
+          window.open(res.data.data.url, "_blank");
+        } else {
+          toast.error("No download URL received");
+        }
       })
       .catch((err) => {
         toast.error(
           err.response?.data?.message || "Error downloading offer letter"
         );
+      })
+      .finally(() => {
+        setOfferLetterDownloading(null);
       });
   };
 
@@ -281,36 +329,52 @@ const OfferLetters: React.FC = () => {
     navigate(`/c/${candidateId}`);
   };
 
-  // Helper to get candidate's latest education
-  const getLatestEducation = (candidate: ExtendedCandidate) => {
-    if (!candidate.education || candidate.education.length === 0) return null;
-
-    return candidate.education.sort(
-      (a, b) => (b.endYear || 9999) - (a.endYear || 9999)
-    )[0];
+  // Helper function to get CTC for a candidate
+  const getCandidateCTC = (candidateId: string) => {
+    const appliedDrive = appliedDrives.find(
+      (drive) => drive.user?._id?.toString() === candidateId
+    );
+    return appliedDrive?.salary || "Not Given";
   };
 
-  // Render a row for a candidate
+  // Current date generation
+  const currentDate = new Date("2025-04-12 15:28:03");
+
+  if (!drive) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Spinner color="primary" label="Loading drive data..." />
+      </div>
+    );
+  }
+
+  // Render a candidate row with proper error handling
   const renderCandidateRow = (
     candidate: ExtendedCandidate,
     hasOfferLetter: boolean
   ) => {
-    const latestEducation = getLatestEducation(candidate);
+    if (!candidate) return null;
+
+    const latestEducation =
+      candidate.education && candidate.education.length > 0
+        ? candidate.education.sort(
+            (a, b) => (b.endYear || 9999) - (a.endYear || 9999)
+          )[0]
+        : null;
 
     return (
       <TableRow
         key={candidate._id}
-        className="cursor-pointer"
+        className="cursor-pointer hover:bg-default-50"
         onClick={() => viewCandidateDetails(candidate)}
       >
-        {/* Candidate Info */}
         <TableCell>
-          <NextUIUser
-            name={candidate.name}
+          <User
+            name={candidate.name || "No Name"}
             avatarProps={{
               src: candidate.profileImage,
               showFallback: true,
-              name: candidate.name,
+              name: candidate.name?.[0] || "?",
               size: "sm",
             }}
             classNames={{
@@ -318,8 +382,6 @@ const OfferLetters: React.FC = () => {
             }}
           />
         </TableCell>
-
-        {/* Education */}
         <TableCell>
           {latestEducation ? (
             <div className="flex flex-col">
@@ -334,16 +396,12 @@ const OfferLetters: React.FC = () => {
             "N/A"
           )}
         </TableCell>
-
-        {/* Contact */}
         <TableCell>
           <div className="flex items-center gap-2">
             <Mail className="h-3 w-3 text-default-500" />
-            <span className="text-sm">{candidate.email}</span>
+            <span className="text-sm">{candidate.email || "No email"}</span>
           </div>
         </TableCell>
-
-        {/* Status */}
         <TableCell>
           {hasOfferLetter ? (
             <Chip color="success" variant="flat" size="sm">
@@ -355,8 +413,9 @@ const OfferLetters: React.FC = () => {
             </Chip>
           )}
         </TableCell>
-
-        {/* Actions */}
+        <TableCell>
+          {candidate._id ? getCandidateCTC(candidate._id) : "N/A"}
+        </TableCell>
         <TableCell className="text-right">
           <div className="flex justify-end">
             {hasOfferLetter ? (
@@ -366,9 +425,11 @@ const OfferLetters: React.FC = () => {
                 startContent={<Download className="h-4 w-4" />}
                 size="sm"
                 onClick={(e) => {
-                  e.stopPropagation();
-                  handleDownloadOfferLetter(candidate._id!);
+                  if (candidate._id)
+                    handleDownloadOfferLetter(candidate._id, e);
                 }}
+                isLoading={offerLetterDownloading === candidate._id}
+                isDisabled={offerLetterDownloading !== null || !candidate._id}
               >
                 Download
               </Button>
@@ -391,15 +452,7 @@ const OfferLetters: React.FC = () => {
     );
   };
 
-  if (!drive || !hiredCandidates) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Spinner color="primary" label="Loading candidate data..." />
-      </div>
-    );
-  }
-
-  const currentDate = new Date("2025-04-07 05:21:23"); // Using the date you provided
+  if (loadingAppliedDrives) return <Loader />;
 
   return (
     <div className="w-full p-4">
@@ -410,7 +463,7 @@ const OfferLetters: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white p-4 rounded-md shadow-sm">
           <div className="text-sm font-semibold text-default-500 mb-1">
             TOTAL HIRED
@@ -459,22 +512,16 @@ const OfferLetters: React.FC = () => {
                 <TableColumn>EDUCATION</TableColumn>
                 <TableColumn>CONTACT</TableColumn>
                 <TableColumn>STATUS</TableColumn>
+                <TableColumn>CTC</TableColumn>
                 <TableColumn className="text-right">ACTIONS</TableColumn>
               </TableHeader>
-              <TableBody
-                emptyContent={
-                  <div className="py-5 text-center text-default-500">
-                    No hired candidates found
-                  </div>
-                }
-                items={hiredCandidates}
-              >
-                {(candidate) =>
-                  renderCandidateRow(
-                    candidate,
-                    offerLetters.includes(candidate._id!)
-                  )
-                }
+              <TableBody emptyContent="No hired candidates found">
+                {hiredCandidates
+                  .map((candidate) => {
+                    const hasOfferLetter = offerLetters.includes(candidate._id!);
+                    return renderCandidateRow(candidate, hasOfferLetter);
+                  })
+                  .filter((row) => row !== null)}
               </TableBody>
             </Table>
           </div>
@@ -505,17 +552,13 @@ const OfferLetters: React.FC = () => {
                 <TableColumn>EDUCATION</TableColumn>
                 <TableColumn>CONTACT</TableColumn>
                 <TableColumn>STATUS</TableColumn>
+                <TableColumn>CTC</TableColumn>
                 <TableColumn className="text-right">ACTIONS</TableColumn>
               </TableHeader>
-              <TableBody
-                emptyContent={
-                  <div className="py-5 text-center text-default-500">
-                    No candidates have uploaded offer letters yet
-                  </div>
-                }
-                items={candidatesWithOfferLetters}
-              >
-                {(candidate) => renderCandidateRow(candidate, true)}
+              <TableBody emptyContent="No candidates have uploaded offer letters yet">
+                {candidatesWithOfferLetters
+                  .map((candidate) => renderCandidateRow(candidate, true))
+                  .filter((row) => row !== null)}
               </TableBody>
             </Table>
           </div>
@@ -546,17 +589,13 @@ const OfferLetters: React.FC = () => {
                 <TableColumn>EDUCATION</TableColumn>
                 <TableColumn>CONTACT</TableColumn>
                 <TableColumn>STATUS</TableColumn>
+                <TableColumn>CTC</TableColumn>
                 <TableColumn className="text-right">ACTIONS</TableColumn>
               </TableHeader>
-              <TableBody
-                emptyContent={
-                  <div className="py-5 text-center text-default-500">
-                    All hired candidates have uploaded their offer letters
-                  </div>
-                }
-                items={pendingOfferLetters}
-              >
-                {(candidate) => renderCandidateRow(candidate, false)}
+              <TableBody emptyContent="All hired candidates have uploaded their offer letters">
+                {pendingOfferLetters
+                  .map((candidate) => renderCandidateRow(candidate, false))
+                  .filter((row) => row !== null)}
               </TableBody>
             </Table>
           </div>

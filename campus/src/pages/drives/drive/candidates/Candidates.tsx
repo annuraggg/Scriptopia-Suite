@@ -3,9 +3,11 @@ import { DataTable } from "./DataTable";
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
+import Loader from "@/components/Loader";
 
 const Candidates = () => {
   const [candidatesData, setCandidatesData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -14,14 +16,16 @@ const Candidates = () => {
     const driveId = window.location.pathname.split("/")[2];
     axios.get(`/drives/${driveId}/candidates`).then((res) => {
       setCandidatesData(res.data.data);
-    });
+    }).finally(() => setLoading(false));
   }, []);
 
   const downloadResume = (candidateId: string) => {
-    axios.get(`/institutes/candidate/${candidateId}/resume`).then((res) => {
+    return axios.get(`/institutes/candidate/${candidateId}/resume`).then((res) => {
       window.open(res.data.data.url);
     });
   };
+
+  if (loading) return <Loader />;
 
   if (candidatesData.length === 0) {
     return (

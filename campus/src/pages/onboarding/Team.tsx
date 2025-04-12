@@ -2,17 +2,7 @@ import { Button, Input, Select, SelectItem } from "@nextui-org/react";
 import { Trash } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-
-interface Role {
-  role: string;
-  slug: string;
-}
-
-const roles: Role[] = [
-  { role: "Administrator", slug: "administrator" },
-  { role: "Faculty", slug: "faculty" },
-  { role: "Read Only", slug: "read_only" },
-];
+import roles from "../../../../common/data/defaultInstituteRoles";
 
 interface InvitedMember {
   email: string;
@@ -60,10 +50,7 @@ const Team = ({
       setInvitedMembers(updatedMembers);
       toast.success("Member updated successfully.");
     } else {
-      setInvitedMembers([
-        ...invitedMembers,
-        { email, role: selectedRole },
-      ]);
+      setInvitedMembers([...invitedMembers, { email, role: selectedRole }]);
       toast.success("Member added successfully.");
     }
 
@@ -100,8 +87,8 @@ const Team = ({
           }
         >
           {roles.map((role) => (
-            <SelectItem key={role.slug} value={role.role}>
-              {role.role}
+            <SelectItem key={role.slug} value={role.slug}>
+              {role.name}
             </SelectItem>
           ))}
         </Select>
@@ -123,7 +110,7 @@ const Team = ({
                 {invitedMembers.map((member, index) => (
                   <tr key={index} className="h-14">
                     <td>{member.email}</td>
-                    <td>{roles.find((r) => r.slug === member.role)?.role}</td>
+                    <td>{roles.find((r) => r.slug === member.role)?.name}</td>
                     <td>
                       <Button
                         color="danger"

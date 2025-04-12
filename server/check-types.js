@@ -8,7 +8,7 @@ const spinner = ora({
   spinner: "monkey",
 }).start();
 
-exec("npx tsc --noEmit", (error, stdout, stderr) => {
+exec("npx tsc -b --noEmit", (error, stdout, stderr) => {
   spinner.stop();
 
   if (error) {

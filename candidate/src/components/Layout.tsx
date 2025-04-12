@@ -47,7 +47,7 @@ const Layout = () => {
         <div className="">
           <div className="flex w-full h-screen">
             <div className="h-full">
-              <Sidebar />
+              <Sidebar user={user} />
             </div>
 
             <div className="h-full w-full overflow-y-auto">

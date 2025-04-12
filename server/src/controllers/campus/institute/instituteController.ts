@@ -10,7 +10,7 @@ import r2Client from "../../../config/s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { AuditLog, Member, Role } from "@shared-types/Institute";
-import defaultInstituteRoles from "@/data/defaultInstituteRoles";
+import defaultInstituteRoles from "@shared-data/defaultInstituteRoles";
 import institutePermissions from "@/data/institutePermissions";
 import checkInstitutePermission from "@/middlewares/checkInstitutePermission";
 import { UserJSON } from "@clerk/backend";
@@ -85,7 +85,7 @@ const createInstitute = async (c: Context) => {
     }
 
     const adminRole = defaultInstituteRoles.find(
-      (role) => role.name.toLowerCase() === "administrator"
+      (role) => role.slug === "administrator"
     );
     if (!adminRole) {
       return sendError(c, 500, "Administrator role not found");
@@ -163,8 +163,8 @@ const createInstitute = async (c: Context) => {
       const token = jwt.sign(reqObj, process.env.JWT_SECRET!);
 
       try {
-        await loops.sendTransactionalEmail({
-          transactionalId: process.env.LOOPS_INVITE_EMAIL!,
+        loops.sendTransactionalEmail({
+          transactionalId: process.env.LOOPS_CAMPUS_INVITE_EMAIL!,
           email: member.email,
           dataVariables: {
             inviter: fName || "",
@@ -282,8 +282,9 @@ const joinInstitute = async (c: Context) => {
       const auditLog: AuditLog = {
         user: clerkUser.firstName + " " + clerkUser.lastName,
         userId: userId,
-        action: `User Joined Institute. Invited By: ${inviterClerk.firstName + " " + inviterClerk.lastName
-          }`,
+        action: `User Joined Institute. Invited By: ${
+          inviterClerk.firstName + " " + inviterClerk.lastName
+        }`,
         type: "info",
       };
 
@@ -370,8 +371,9 @@ const updateInstitute = async (c: Context) => {
     }
 
     const currentUser = await clerkClient.users.getUser(c.get("auth").userId);
-    const inviterName = `${currentUser.firstName || ""} ${currentUser.lastName || ""
-      }`.trim();
+    const inviterName = `${currentUser.firstName || ""} ${
+      currentUser.lastName || ""
+    }`.trim();
 
     const oldMembers = institute.members || [];
     const newMembers = body.members || [];
@@ -669,8 +671,9 @@ const updateMembers = async (c: Context) => {
     }
 
     const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
-    const fullName = `${clerkUser.firstName || ""} ${clerkUser.lastName || ""
-      }`.trim();
+    const fullName = `${clerkUser.firstName || ""} ${
+      clerkUser.lastName || ""
+    }`.trim();
 
     const oldMemberEmails = institute.members.map((member) => member.email);
     const newMemberEmails = members.map((member: Member) => member.email);
@@ -768,7 +771,7 @@ const updateMembers = async (c: Context) => {
       const newInviteEmails = newPendingEmails.filter(
         (email: string) => !oldPendingEmails.includes(email)
       );
-      await Promise.all(
+      Promise.all(
         newInviteEmails.map(async (email: string) => {
           const member = members.find((m: Member) => m.email === email);
           const reqObj = {
@@ -1029,11 +1032,15 @@ const requestToJoin = async (c: Context) => {
     // Check if the instituteUid is already in use
     const existingCandidate = await CandidateModel.findOne({
       instituteUid: uid,
-      institute: institute._id
+      institute: institute._id,
     });
 
     if (existingCandidate) {
-      return sendError(c, 400, "A candidate with this unique ID already exists");
+      return sendError(
+        c,
+        400,
+        "A candidate with this unique ID already exists"
+      );
     }
 
     const updatedInstitute = await Institute.findByIdAndUpdate(
@@ -1139,7 +1146,7 @@ const getInstitute = async (c: Context): Promise<any> => {
         )?._id?.toString() === userId.toString()
     );
 
-    console.log(institute.members);
+    console.log(defaultInstituteRoles);
 
     if (!member?.role) {
       return sendError(c, 403, "Invalid member access");
@@ -1352,11 +1359,15 @@ const acceptCandidate = async (c: Context) => {
     const existingCandidate = await CandidateModel.findOne({
       instituteUid: candidate.instituteUid,
       institute: institute._id,
-      _id: { $ne: candidate._id } // Exclude the current candidate
+      _id: { $ne: candidate._id }, // Exclude the current candidate
     });
 
     if (existingCandidate) {
-      return sendError(c, 400, "A candidate with this unique ID already exists");
+      return sendError(
+        c,
+        400,
+        "A candidate with this unique ID already exists"
+      );
     }
 
     const newPending = institute.pendingCandidates.filter(

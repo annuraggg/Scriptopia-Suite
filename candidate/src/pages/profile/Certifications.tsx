@@ -43,7 +43,6 @@ import {
   Calendar,
   Link as LinkIcon,
   FileText,
-  Award,
   AlertCircle,
   ExternalLink,
   Info,
@@ -357,11 +356,7 @@ const Certificates = () => {
   // Get certificate status badge
   const getCertificateStatus = (cert: Certificate) => {
     if (!cert.doesExpire) {
-      return (
-        <Chip color="success" >
-          No Expiry
-        </Chip>
-      );
+      return <Chip color="success">No Expiry</Chip>;
     }
 
     if (!cert.expiryDate) return null;
@@ -371,7 +366,7 @@ const Certificates = () => {
 
     if (expiry < now) {
       return (
-        <Chip color="danger"  startContent={<X size={12} />}>
+        <Chip color="danger" startContent={<X size={12} />}>
           Expired
         </Chip>
       );
@@ -383,14 +378,14 @@ const Certificates = () => {
 
     if (expiry < threeMonthsFromNow) {
       return (
-        <Chip color="warning"  startContent={<Clock size={12} />}>
+        <Chip color="warning" startContent={<Clock size={12} />}>
           Expires Soon
         </Chip>
       );
     }
 
     return (
-      <Chip color="success"  startContent={<Check size={12} />}>
+      <Chip color="success" startContent={<Check size={12} />}>
         Active
       </Chip>
     );
@@ -399,7 +394,7 @@ const Certificates = () => {
   return (
     <div>
       <div className="mb-6">
-        <Breadcrumbs >
+        <Breadcrumbs>
           <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
           <BreadcrumbItem>Certificates</BreadcrumbItem>
         </Breadcrumbs>
@@ -495,16 +490,12 @@ const Certificates = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col items-center gap-2 w-fit">
                         {getCertificateStatus(cert)}
                         {cert.hasScore && cert.score !== undefined && (
                           <Tooltip content="Certificate score">
-                            <Badge
-                              content={`${cert.score}%`}
-                              color="primary"
-                              variant="flat"
-                            >
-                              <Award size={16} />
+                            <Badge color="primary" variant="flat">
+                              <p>Score: {cert.score}%</p>
                             </Badge>
                           </Tooltip>
                         )}
@@ -527,7 +518,6 @@ const Certificates = () => {
                         <Tooltip content="Edit">
                           <Button
                             isIconOnly
-                            
                             variant="light"
                             onClick={() => handleOpen(cert)}
                           >
@@ -537,7 +527,6 @@ const Certificates = () => {
                         <Tooltip content="Delete" color="danger">
                           <Button
                             isIconOnly
-                            
                             variant="light"
                             color="danger"
                             onClick={() => setDeleteConfirmId(cert._id || "")}
@@ -808,7 +797,6 @@ const Certificates = () => {
       <Modal
         isOpen={!!deleteConfirmId}
         onClose={() => !isSubmitting && setDeleteConfirmId(null)}
-        
         isDismissable={!isSubmitting}
       >
         <ModalContent>

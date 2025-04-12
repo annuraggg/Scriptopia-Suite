@@ -83,9 +83,14 @@ const getDrivesForCandidate = async (c: Context) => {
       return sendError(c, 404, "Candidate not found");
     }
 
-    const institute = await Institute.findById(candidate?.institute).populate(
-      "drives"
-    );
+    const institute = await Institute.findById(candidate?.institute).populate({
+      path: "drives",
+      model: "Drive",
+      populate: {
+        path: "company",
+        model: "Company",
+      },
+    });
 
     const onlyPublishedDrives = institute?.drives.filter(
       //@ts-expect-error - Type 'Drive[]' is not assignable to type 'Drive[] | undefined'
@@ -112,14 +117,12 @@ const getDriveForCandidate = async (c: Context) => {
       return sendError(c, 404, "Candidate not found");
     }
 
-    const institute = await Institute.findById(candidate?.institute).populate(
-      "drives"
-    );
+    const institute = await Institute.findById(candidate?.institute);
 
     const drive = await Drive.findOne({
       _id: id,
       published: true,
-    });
+    }).populate("company");
 
     return sendSuccess(c, 200, "Drive fetched successfully", {
       drive: drive,

@@ -34,11 +34,10 @@ import { Checkbox } from "@heroui/checkbox";
 import { useOutletContext } from "react-router-dom";
 import { Drive as DriveType } from "@shared-types/Drive";
 import { Candidate } from "@shared-types/Candidate";
-import { useNavigate } from "react-router-dom";
 
 interface DataTableProps {
   data: Candidate[];
-  downloadResume: (url: string) => void;
+  downloadResume: (url: string) => Promise<void>;
 }
 
 export function DataTable({ data, downloadResume }: DataTableProps) {
@@ -47,8 +46,9 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pageIndex, setPageIndex] = useState(0);
   const [currentDriveId, setCurrentDriveId] = useState<string | null>(null);
-
-  const navigate = useNavigate();
+  const [loadingResume, setLoadingResume] = useState<Record<string, boolean>>(
+    {}
+  );
 
   const { drive } = useOutletContext() as { drive: DriveType };
   useEffect(() => {
@@ -58,6 +58,15 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
       console.log(drive?._id);
     }
   }, [currentDriveId, drive]);
+
+  const handleDownloadResume = async (id: string) => {
+    setLoadingResume((prev) => ({ ...prev, [id]: true }));
+    try {
+      await downloadResume(id);
+    } finally {
+      setLoadingResume((prev) => ({ ...prev, [id]: false }));
+    }
+  };
 
   const columns: ColumnDef<Candidate>[] = [
     {
@@ -119,20 +128,23 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
       accessorKey: "resume",
       header: () => <span>Resume</span>,
       cell: ({ row }) => {
+        const id = row.original._id as string;
+        const isLoading = loadingResume[id];
         return (
           <>
-            {" "}
             <Button
               variant="flat"
-              onPress={() => downloadResume(row.original._id as string)}
+              onPress={() => handleDownloadResume(id)}
               color="success"
+              isLoading={isLoading}
+              isDisabled={isLoading}
             >
               <Download size={16} />
-              Resume
+              {isLoading ? "Downloading..." : "Resume"}
             </Button>
             <Button
               variant="flat"
-              onPress={() => navigate(`/candidates/${row.original._id}`)}
+              onPress={() => window.open(`/c/${row.original._id}`)}
               className="ml-3"
             >
               <User size={16} />
