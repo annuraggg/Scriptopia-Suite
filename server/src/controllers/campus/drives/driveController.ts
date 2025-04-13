@@ -15,6 +15,11 @@ import Candidate from "@/models/Candidate";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import AppliedDrive from "@/models/AppliedDrive";
+import { sendNotificationToCandidates } from "@/utils/sendCandidateNotification";
+import PlacementGroup from "@/models/PlacementGroup";
+import { Institute as IInstitute } from "@shared-types/Institute";
+import { Candidate as ICandidate } from "@shared-types/Candidate";
+import { Company as ICompany } from "@shared-types/Company";
 
 const getDrives = async (c: Context) => {
   try {
@@ -184,6 +189,12 @@ const createDrive = async (c: Context) => {
       ...drive,
       institute: perms.data?.institute?._id,
     });
+
+    const placementGroup = await PlacementGroup.findById(drive.placementGroup);
+
+    if (!placementGroup) {
+      return sendError(c, 404, "Placement group not found");
+    }
 
     await newDrive.save();
 
@@ -418,9 +429,22 @@ const publishDrive = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const drive = await Drive.findById(id);
+    const drive = await Drive.findById(id)
+      .populate<{ institute: IInstitute }>("institute")
+      .populate<{
+        company: ICompany;
+      }>("company");
+
     if (!drive) {
       return sendError(c, 404, "drive not found");
+    }
+
+    const placementGroup = await PlacementGroup.findById(
+      drive.placementGroup
+    ).populate<{ candidates: ICandidate[] }>("candidates");
+
+    if (!placementGroup) {
+      return sendError(c, 404, "Placement group not found");
     }
 
     drive.published = true;
@@ -440,6 +464,33 @@ const publishDrive = async (c: Context) => {
 
     await Institute.findByIdAndUpdate(perms.data?.institute?._id, {
       $push: { auditLogs: auditLog },
+    });
+
+    if (!drive.applicationRange || !drive.applicationRange.end) {
+      return sendError(c, 400, "Application range not found");
+    }
+
+    const deadline = new Date(drive.applicationRange.end).toDateString();
+
+    for (const candidate of placementGroup.candidates) {
+      loops.sendTransactionalEmail({
+        transactionalId: "cm9feh6fq4cyu12lzhwg5a3vy",
+        email: candidate?.email,
+        dataVariables: {
+          candidateName: candidate?.name,
+          drivePosition: drive.title,
+          company: drive.company.name,
+          driveDeadline: deadline,
+          driveLink: `${process.env.CAMPUS_FRONTEND_URL}/campus/drives/${drive?._id}`,
+          institute: drive?.institute?.name,
+        },
+      });
+    }
+
+    sendNotificationToCandidates({
+      candidateIds: placementGroup?.candidates?.map((c) => c?.toString()),
+      title: "New Drive Added",
+      message: `A new drive has been created for the position ${drive.title} at ${drive.company?.name}. Please check your campus drives dashboard for more details.`,
     });
 
     return sendSuccess(c, 201, "Drive published successfully", drive);
@@ -762,7 +813,11 @@ const endDrive = async (c: Context) => {
     }
 
     const { driveId } = await c.req.json();
-    const drive = await Drive.findById(driveId);
+    const drive = await Drive.findById(driveId)
+      .populate<{
+        institute: IInstitute;
+      }>("institute")
+      .populate<{ company: ICompany }>("company");
 
     if (!drive) {
       return sendError(c, 404, "Drive not found");
@@ -778,6 +833,8 @@ const endDrive = async (c: Context) => {
       status: { $in: ["applied", "inprogress", "hired"] },
     });
 
+    const candIds = appliedPosting.map((applied) => applied.user.toString());
+
     if (appliedPosting.length > 0) {
       appliedPosting.forEach((applied) => {
         applied.status = "hired";
@@ -785,6 +842,30 @@ const endDrive = async (c: Context) => {
         applied.save();
       });
     }
+
+    const candidates = await Candidate.find({
+      _id: { $in: candIds },
+    });
+
+    for (const candidate of candidates) {
+      loops.sendTransactionalEmail({
+        transactionalId: "cm9fqj8tg4yitq1s5hbgx3cux",
+        email: candidate?.email,
+        dataVariables: {
+          candidateName: candidate?.name,
+          company: drive.company.name,
+          drivePosition: drive.title,
+          uploadUrl: `${process.env.CAMPUS_FRONTEND_URL}/campus/drives/${drive?._id}`,
+          institute: drive?.institute?.name,
+        },
+      });
+    }
+
+    sendNotificationToCandidates({
+      candidateIds: candIds,
+      title: "Upload Offer Letter",
+      message: `Congratulations for being selected as ${drive.title} at ${drive.company.name} drive. Please upload your offer letter as soon as possible via the drive dashboard`,
+    });
 
     await drive.save();
 
