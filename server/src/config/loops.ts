@@ -4,4 +4,6 @@ import logger from "../utils/logger";
 const loops = new LoopsClient(process.env.LOOPS_API_KEY!);
 logger.info("Loops client initialized");
 
+//TEST
+
 export default loops;
