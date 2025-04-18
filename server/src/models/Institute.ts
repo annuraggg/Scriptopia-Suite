@@ -25,7 +25,7 @@ const memberSchema = new Schema(
     email: { type: String, required: true },
     role: { type: String, required: true },
     notifications: [{ type: notificationSchema }],
-    status: { type: String, enum: ["pending", "active"], default: "pending" },
+    status: { type: String, enum: ["pending", "active", "inactive"], default: "pending" },
   },
   { timestamps: true }
 );
@@ -97,7 +97,7 @@ const instituteSchema = new Schema(
     pendingCandidates: { type: [Schema.Types.ObjectId], ref: "Candidate" },
 
     code: { type: String, required: true },
-
+    createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }

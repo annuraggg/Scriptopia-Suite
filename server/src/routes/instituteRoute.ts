@@ -10,6 +10,7 @@ app.post("/notifications/read", notificationController.readNotification);
 app.post("/create", instituteController.createInstitute);
 app.post("/verify", instituteController.verifyInvite);
 app.post("/join", instituteController.joinInstitute);
+app.post("/leave", instituteController.leaveInstitute);
 
 app.get("/settings", instituteController.getSettings);
 
@@ -37,5 +38,7 @@ app.post("/candidate/:cid/accept", instituteController.acceptCandidate);
 app.post("/candidate/:cid/reject", instituteController.rejectCandidate);
 app.post("/candidate/:cid/remove", instituteController.removeCandidate);
 app.get("/candidate/:cid/resume", instituteController.getResume);
+
+
 
 export default app;

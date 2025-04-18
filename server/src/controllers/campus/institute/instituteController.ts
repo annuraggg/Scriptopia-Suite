@@ -87,6 +87,7 @@ const createInstitute = async (c: Context) => {
     const adminRole = defaultInstituteRoles.find(
       (role) => role.slug === "administrator"
     );
+
     if (!adminRole) {
       return sendError(c, 500, "Administrator role not found");
     }
@@ -135,6 +136,7 @@ const createInstitute = async (c: Context) => {
       },
       auditLogs: [auditLog],
       code,
+      createdBy: uid,
     });
 
     await clerkClient.users.updateUser(clerkUserId, {
@@ -1063,6 +1065,61 @@ const requestToJoin = async (c: Context) => {
   }
 };
 
+const leaveInstitute = async (c: Context) => {
+  const userId = c.get("auth").userId;
+  try {
+    const clerkUser = await clerkClient.users.getUser(userId);
+
+    if (!clerkUser) {
+      return sendError(c, 404, "User not found");
+    }
+
+    const userMeta = clerkUser.publicMetadata as unknown as UserMeta;
+    if (!userMeta.institute) {
+      return sendError(c, 404, "Institute not found in user metadata");
+    }
+
+    const instituteId = userMeta.institute._id;
+
+    const institute = await Institute.findById(instituteId);
+    if (!institute) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    const member = institute.members.find(
+      (m) => m.user?.toString() === c.get("auth")._id
+    );
+    if (!member) {
+      return sendError(c, 404, "Member not found in institute");
+    }
+
+    if (member.status !== "active") {
+      return sendError(c, 400, "Member is not active");
+    }
+
+    if (member.user === institute.createdBy) {
+      return sendError(c, 400, "Cannot leave the institute as the creator");
+    }
+
+    member.status = "inactive";
+
+    await institute.save();
+    await clerkClient.users.updateUser(clerkUser.id, {
+      publicMetadata: {
+        ...userMeta,
+        institute: null,
+      },
+    });
+
+    return sendSuccess(c, 200, "Left institute successfully", {
+      message: "You have left the institute",
+    });
+  } catch (error) {
+    logger.error(error as string);
+    return sendError(c, 500, "Failed to leave institute", error);
+  }
+};
+
 const permissionFieldMap = {
   view_institute: [
     "name",
@@ -1127,6 +1184,7 @@ const getInstitute = async (c: Context): Promise<any> => {
     const userId = c.get("auth")._id;
     const institute = await Institute.findOne({
       "members.user": userId,
+      "members.status": "active",
     })
       .populate("members.user")
       .populate("candidates")
@@ -1547,4 +1605,5 @@ export default {
   rejectCandidate,
   removeCandidate,
   getResume,
+  leaveInstitute,
 };
