@@ -2997,3 +2997,4 @@ main/tsconfig.app.tsbuildinfo
 server/tsconfig.node.tsbuildinfo
 server/tsconfig.tsbuildinfo
 server/tsconfig.app.tsbuildinfo
+scripts/mongodb/.env

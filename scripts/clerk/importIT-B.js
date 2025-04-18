@@ -5,6 +5,8 @@ import { createClerkClient } from "@clerk/backend";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 
+const mode = "DEVELOPMENT"; // Set to "PRODUCTION" for production mode
+
 // Set up __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,8 +16,8 @@ dotenv.config();
 
 // Initialize Clerk client
 const clerkClient = createClerkClient({
-  publishableKey: process.env.CLERK_PUBLIC_KEY,
-  secretKey: process.env.CLERK_API_KEY,
+  publishableKey: mode === "DEVELOPMENT" ? process.env.CLERK_DEV_PUBLIC_KEY : process.env.CLERK_PUBLIC_KEY,
+  secretKey: mode === "DEVELOPMENT" ? process.env.CLERK_DEV_API_KEY : process.env.CLERK_API_KEY,
 });
 
 // CSV file path
