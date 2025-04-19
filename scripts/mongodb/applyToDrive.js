@@ -18,7 +18,7 @@ const config = {
   // Dry run mode - when true, no database changes will be made
   dryRun: true,
   dbConnectionTimeout: 30000,
-  driveId: "67f39e772bf949eb1fa3f8e2",
+  driveId: "68022f76d7e68a307b0afbe7",
   excludedUserIds: {
     production: [],
     development: [],
