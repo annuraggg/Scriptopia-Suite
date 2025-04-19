@@ -6,72 +6,25 @@ import checkPermission from "../../../middlewares/checkInstitutePermission";
 import Drive from "@/models/Drive";
 import AppliedDrive from "@/models/AppliedDrive";
 import Candidate from "@/models/Candidate";
-
-interface SalaryAnalytics {
-  averageCTC: number;
-  highestCTC: number;
-  lowestCTC: number;
-  medianCTC: number;
-  totalCompensation: number;
-}
-
-interface StageAnalytics {
-  stageName: string;
-  totalCandidates: number;
-  passedCandidates: number;
-  failedCandidates: number;
-  passRate: number;
-  dropOffRate: number;
-  isBottleneck: boolean;
-}
-
-interface GenderDistribution {
-  male: number;
-  female: number;
-  other: number;
-  malePercentage: number;
-  femalePercentage: number;
-  otherPercentage: number;
-}
-
-interface EducationDistribution {
-  degreeTypes: Record<string, number>;
-  topSchools: Array<{ school: string; count: number }>;
-}
-
-interface DriveAnalytics {
-  totalCandidates: number;
-  appliedCandidates: number;
-  inProgressCandidates: number;
-  rejectedCandidates: number;
-  hiredCandidates: number;
-  applicationRate: number;
-  conversionRate: number;
-  salary: SalaryAnalytics;
-  stageAnalytics: StageAnalytics[];
-  bottleneckStage?: StageAnalytics;
-  genderDistribution?: GenderDistribution;
-  educationDistribution?: EducationDistribution;
-  timeToHire?: number;
-}
+import {
+  DriveAnalytics,
+  StageAnalytics,
+} from "@shared-types/DriveAnalytics";
 
 const getDriveAnalytics = async (c: Context) => {
   try {
-    const perms = await checkPermission.all(c, [
-      "view_drive",
-      "view_analytics",
-    ]);
+    const perms = await checkPermission.all(c, ["view_drive"]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
 
-    const { driveId } = c.req.param();
-    if (!driveId || !mongoose.Types.ObjectId.isValid(driveId)) {
+    const { id } = c.req.param();
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
       return sendError(c, 400, "Invalid drive ID");
     }
 
     const drive = await Drive.findOne({
-      _id: driveId,
+      _id: id,
       institute: perms.data?.institute?._id,
     }).populate("company");
 
@@ -80,7 +33,7 @@ const getDriveAnalytics = async (c: Context) => {
     }
 
     const appliedDrives = await AppliedDrive.find({
-      drive: driveId,
+      drive: new mongoose.Types.ObjectId(id),
     }).populate("user");
 
     const analytics: DriveAnalytics = {
@@ -258,6 +211,9 @@ const getDriveAnalytics = async (c: Context) => {
       }
     }
 
+    console.log(analytics);
+    console.log(drive);
+
     return sendSuccess(c, 200, "Drive analytics fetched successfully", {
       analytics,
       drive,
@@ -270,10 +226,7 @@ const getDriveAnalytics = async (c: Context) => {
 
 const getComparativeDriveAnalytics = async (c: Context) => {
   try {
-    const perms = await checkPermission.all(c, [
-      "view_drive",
-      "view_analytics",
-    ]);
+    const perms = await checkPermission.all(c, ["view_drive"]);
     if (!perms.allowed) {
       return sendError(c, 401, "Unauthorized");
     }
