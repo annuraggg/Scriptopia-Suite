@@ -59,12 +59,13 @@ ioServer.on("error", (err) => {
   logger.error(err);
 });
 
-app.use(clerkMiddleware());
-app.use("*", trackRouteHits());
+
+app.use("*", clerkMiddleware())
+app.use(trackRouteHits());
 app.use(prettyJSON());
 app.use(cors());
-app.use(authMiddleware);
 app.use(performanceMiddleware);
+app.use(authMiddleware);
 
 app.route("/home", homeRoute);
 app.route("/problems", problemRoute);

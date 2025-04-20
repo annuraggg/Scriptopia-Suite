@@ -25,6 +25,8 @@ const getCandidate = async (c: Context) => {
     if (!auth) {
       return sendError(c, 401, "Unauthorized");
     }
+
+    console.log("Auth: ", auth._id);
     const candidate = await Candidate.findOne({ userId: auth._id })
       .populate({
         path: "appliedPostings", // Populate appliedPostings first

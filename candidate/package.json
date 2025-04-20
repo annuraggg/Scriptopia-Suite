@@ -42,6 +42,8 @@
     "react": "^18.3.1",
     "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^18.3.1",
+    "react-error-boundary": "^5.0.0",
+    "react-icons": "^5.5.0",
     "react-router-dom": "^6.26.2",
     "sonner": "^1.7.0",
     "tailwind-merge": "^2.5.2",
@@ -62,6 +64,6 @@
     "tailwindcss": "^3.4.13",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
-    "vite": "5.4.8"
+    "vite": "^5.4.18"
   }
 }

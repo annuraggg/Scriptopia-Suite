@@ -5,6 +5,8 @@ import { sendError } from "../utils/sendResponse";
 
 const authMiddleware = createMiddleware(async (c: Context, next) => {
   const auth = getAuth(c);
+  console.log(c.req.header("Authorization"))
+
   const credentials = {
     userId: auth?.userId,
     _id: auth?.sessionClaims?._id,
