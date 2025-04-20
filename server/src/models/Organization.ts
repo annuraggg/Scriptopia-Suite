@@ -1,3 +1,4 @@
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
@@ -90,5 +91,6 @@ organizationSchema.index({ name: 1 });
 organizationSchema.index({ "members.email": 1 });
 organizationSchema.index({ "subscription.status": 1 });
 
+organizationSchema.plugin(softDeletePlugin);
 const Organization = mongoose.model("Organization", organizationSchema);
 export default Organization;

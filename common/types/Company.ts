@@ -20,7 +20,8 @@ export interface Company {
   description?: string;
   generalInfo: CompanyGeneralInfo;
   hrContacts?: CompanyHRContacts;
-  archived?: boolean;
+  isArchived?: boolean;
+  deletedAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
 }

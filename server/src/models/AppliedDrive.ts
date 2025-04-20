@@ -1,3 +1,4 @@
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose, { Schema } from "mongoose";
 
 const appliedDriveSchema = new Schema(
@@ -31,5 +32,6 @@ const appliedDriveSchema = new Schema(
   { timestamps: true }
 );
 
+appliedDriveSchema.plugin(softDeletePlugin);
 const AppliedDrive = mongoose.model("AppliedDrive", appliedDriveSchema);
 export default AppliedDrive;

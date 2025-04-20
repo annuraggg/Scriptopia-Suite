@@ -1,3 +1,4 @@
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose from "mongoose";
 
 const testCaseSchema = new mongoose.Schema({
@@ -16,7 +17,7 @@ const customStubSchema = new mongoose.Schema({
   stub: { type: String, required: true },
 });
 
-const ProblemSchema = new mongoose.Schema(
+const problemSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     description: { type: Object, required: true },
@@ -39,5 +40,6 @@ const ProblemSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Problem = mongoose.model("Problem", ProblemSchema);
+problemSchema.plugin(softDeletePlugin)
+const Problem = mongoose.model("Problem", problemSchema);
 export default Problem;

@@ -35,6 +35,8 @@ const createAuditLog = async (
     await Institute.findByIdAndUpdate(instituteId, {
       $push: { auditLogs: auditLog },
     });
+
+    logger.info(`Audit log created: ${action}`);
   } catch (error) {
     logger.error(
       `Failed to create audit log: ${
@@ -101,7 +103,7 @@ const getCompanies = async (c: Context) => {
       hrContacts: company.hrContacts,
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
-      archived: company.archived || false,
+      isArchived: company.isArchived || false,
     }));
 
     return sendSuccess(c, 200, "Companies fetched successfully", {
@@ -177,7 +179,7 @@ const getCompany = async (c: Context) => {
       hrContacts: company.hrContacts,
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
-      archived: company.archived || false,
+      isArchived: company.isArchived || false,
     };
 
     const companyDrives = await Drive.find({ company: companyId });
@@ -340,7 +342,7 @@ const createCompany = async (c: Context) => {
       description: description ? description.trim() : "",
       generalInfo: processedGeneralInfo,
       hrContacts: hrContacts || [],
-      archived: false,
+      isArchived: false,
     });
 
     await newCompany.save({ session });
@@ -352,6 +354,8 @@ const createCompany = async (c: Context) => {
       { session }
     );
 
+    await session.commitTransaction();
+
     // Create audit log
     await createAuditLog(
       c,
@@ -359,14 +363,13 @@ const createCompany = async (c: Context) => {
       `Created new company profile: ${name}`
     );
 
-    await session.commitTransaction();
     return sendSuccess(c, 201, "Company created successfully", {
       _id: newCompany._id,
       name: newCompany.name,
       description: newCompany.description,
       generalInfo: newCompany.generalInfo,
       hrContacts: newCompany.hrContacts,
-      archived: newCompany.archived,
+      isArchived: newCompany.isArchived,
       createdAt: newCompany.createdAt,
       updatedAt: newCompany.updatedAt,
     });
@@ -528,6 +531,8 @@ const updateCompany = async (c: Context) => {
 
     await company.save({ session });
 
+    await session.commitTransaction();
+
     // Create audit log
     await createAuditLog(
       c,
@@ -535,14 +540,13 @@ const updateCompany = async (c: Context) => {
       `Updated company profile: ${company.name}`
     );
 
-    await session.commitTransaction();
     return sendSuccess(c, 200, "Company updated successfully", {
       _id: company._id,
       name: company.name,
       description: company.description,
       generalInfo: company.generalInfo,
       hrContacts: company.hrContacts,
-      archived: company.archived,
+      isArchived: company.isArchived,
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
     });
@@ -618,21 +622,23 @@ const archiveCompany = async (c: Context) => {
       return sendError(c, 404, "Company not found");
     }
 
-    company.archived = !company.archived;
+    company.isArchived = !company.isArchived;
     await company.save({ session });
 
     // Create audit log
-    const status = company.archived ? "Archived" : "Unarchived";
+    const status = company.isArchived ? "Archived" : "Unarchived";
+    await session.commitTransaction();
+
     await createAuditLog(
       c,
       new mongoose.Types.ObjectId(instituteId),
       `${status} company: ${company.name}`
     );
-    await session.commitTransaction();
+
     return sendSuccess(c, 200, `Company ${status.toLowerCase()} successfully`, {
       _id: company._id,
       name: company.name,
-      archived: company.archived,
+      isArchived: company.isArchived,
     });
   } catch (error) {
     await session.abortTransaction();
@@ -650,6 +656,8 @@ const archiveCompany = async (c: Context) => {
 
 const deleteCompany = async (c: Context) => {
   const session = await mongoose.startSession();
+  let transactionCommitted = false;
+
   session.startTransaction();
 
   try {
@@ -677,14 +685,12 @@ const deleteCompany = async (c: Context) => {
       return sendError(c, 400, "Company ID is required");
     }
 
-    // Check if institute exists and contains the company
     const institute = await Institute.findById(instituteId).session(session);
     if (!institute) {
       await session.abortTransaction();
       return sendError(c, 404, "Institute not found");
     }
 
-    // Check if company belongs to institute
     const isCompanyInInstitute = institute.companies.some(
       (id) => id.toString() === companyId
     );
@@ -694,10 +700,7 @@ const deleteCompany = async (c: Context) => {
       return sendError(c, 404, "Company not found in this institute");
     }
 
-    // Find company
-    const company = await Company.findById(
-      new mongoose.Types.ObjectId(companyId)
-    ).session(session);
+    const company = await Company.findById(companyId).session(session);
     if (!company) {
       await session.abortTransaction();
       return sendError(c, 404, "Company not found");
@@ -712,8 +715,13 @@ const deleteCompany = async (c: Context) => {
       { session }
     );
 
+    console.log("Removed company from institute");
+
     // Delete company
     await Company.findByIdAndDelete(companyId, { session });
+
+    await session.commitTransaction();
+    transactionCommitted = true;
 
     // Create audit log
     await createAuditLog(
@@ -723,10 +731,12 @@ const deleteCompany = async (c: Context) => {
       "warning"
     );
 
-    await session.commitTransaction();
     return sendSuccess(c, 200, "Company deleted successfully");
   } catch (error) {
-    await session.abortTransaction();
+    console.log("Error occurred:", error);
+    if (!transactionCommitted) {
+      await session.abortTransaction();
+    }
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(`Error deleting company: ${errorMessage}`);
     return sendError(c, 500, "Something went wrong while deleting the company");

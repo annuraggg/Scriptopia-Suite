@@ -1,3 +1,4 @@
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose from "mongoose";
 import { Schema } from "mongoose";
 
@@ -291,5 +292,6 @@ candidateSchema.index({ institute: 1 });
 candidateSchema.index({ "academicAggregates.hasBacklogs": 1 });
 candidateSchema.index({ "academicAggregates.activeBacklogs": 1 });
 
+candidateSchema.plugin(softDeletePlugin);
 const Candidate = mongoose.model("Candidate", candidateSchema);
 export default Candidate;

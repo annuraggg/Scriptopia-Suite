@@ -1,3 +1,4 @@
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose from "mongoose";
 
 const TransactionSchema = new mongoose.Schema(
@@ -15,7 +16,7 @@ const WalletSchema = new mongoose.Schema({
   transactions: { type: [TransactionSchema], required: false },
 });
 
-const UserSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
     clerkId: { type: String, required: true },
     email: { type: String, required: true },
@@ -25,5 +26,6 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const User = mongoose.model("User", UserSchema);
+userSchema.plugin(softDeletePlugin)
+const User = mongoose.model("User", userSchema);
 export default User;

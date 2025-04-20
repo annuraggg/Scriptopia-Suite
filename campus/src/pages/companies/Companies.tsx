@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
+import { toast } from "sonner";
 import CreateCompanyForm from "./CreateCompanyForm";
 import EditCompanyModal from "./EditCompanyModal";
 import { Company } from "@shared-types/Company";
@@ -65,6 +66,16 @@ const CompanyProfiles = () => {
   const [companyToDelete, setCompanyToDelete] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [companyToEdit, setCompanyToEdit] = useState<Company | null>(null);
+  const [refetchCompanies, setRefetchCompanies] = useState(false);
+
+  // Loading states for different operations
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [archivingCompanyId, setArchivingCompanyId] = useState<string | null>(
+    null
+  );
+  const [isApplyingFilters, setIsApplyingFilters] = useState(false);
+  const [isClearingFilters, setIsClearingFilters] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [filters, setFilters] = useState<Filters>({
     year: "",
@@ -77,29 +88,54 @@ const CompanyProfiles = () => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
-  const fetchCompanies = async () => {
-    try {
-      setIsLoading(true);
-      const response = await axios.get("/companies");
-      console.log("API Response:", response.data);
-
-      if (response.data?.data?.companies) {
-        setCompanies(response.data.data.companies);
-      } else {
-        setError("Invalid data format received from server");
-        console.error("Invalid data format:", response.data);
-      }
-    } catch (err) {
-      setError("Failed to load companies");
-      console.error("Error fetching companies:", err);
-    } finally {
-      setIsLoading(false);
+  // Helper function to show error messages
+  const showError = (err: any, defaultMessage: string) => {
+    let message = defaultMessage;
+    if (err?.response?.data?.message) {
+      message = err.response.data.message;
     }
+    toast.error(message);
+  };
+
+  const fetchCompanies = async () => {
+    setIsLoading(true);
+    axios
+      .get("/companies")
+      .then((response) => {
+        if (response.data?.data?.companies) {
+          setCompanies(response.data.data.companies);
+          setError(null);
+        } else {
+          setError("Invalid data format received from server");
+          console.error("Invalid data format:", response.data);
+          toast.error("Invalid data format received from server");
+        }
+      })
+      .catch((err) => {
+        const errorMessage =
+          err?.response?.data?.message || "Failed to load companies";
+        setError(errorMessage);
+        console.error("Error fetching companies:", err);
+        toast.error(errorMessage);
+      })
+      .finally(() => {
+        setIsLoading(false);
+        setIsRefreshing(false);
+      });
   };
 
   useEffect(() => {
     fetchCompanies();
-  }, []);
+  }, [refetchCompanies]);
+
+  const refreshCompanies = async () => {
+    try {
+      setIsRefreshing(true);
+      await fetchCompanies();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const filteredCompanies = useMemo(() => {
     return companies
@@ -112,7 +148,7 @@ const CompanyProfiles = () => {
           return false;
         }
 
-        const isArchived = !!company.archived;
+        const isArchived = !!company.isArchived;
         if (filter === "active" && isArchived) return false;
         if (filter === "archived" && !isArchived) return false;
 
@@ -166,39 +202,83 @@ const CompanyProfiles = () => {
 
   const handleArchive = async (id: string) => {
     try {
+      setArchivingCompanyId(id);
+      const company = companies.find((c) => c._id === id);
+      const isCurrentlyArchived = !!company?.isArchived;
+
       await axios.post("/companies/archive", { id });
+
+      // Update the local state immediately
       setCompanies((prev) =>
         prev.map((company) =>
           company._id === id
-            ? { ...company, archived: !company.archived }
+            ? { ...company, isArchived: !company.isArchived }
             : company
         )
       );
+
+      toast.success(
+        `Company ${
+          isCurrentlyArchived ? "unarchived" : "archived"
+        } successfully`
+      );
     } catch (err) {
       console.error("Error archiving company:", err);
+      showError(err, "Failed to archive company");
+      // Refresh companies to ensure state is synced with server
+      refreshCompanies();
+    } finally {
+      setArchivingCompanyId(null);
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
+      setIsDeleting(true);
       await axios.delete(`/companies/${id}`);
+
+      // Update local state
       setCompanies((prev) => prev.filter((company) => company._id !== id));
+      setShowDeleteModal(false);
+      setCompanyToDelete(null);
+      toast.success("Company deleted successfully");
     } catch (err) {
       console.error("Error deleting company:", err);
+      showError(err, "Failed to delete company");
+      // Refresh companies to ensure state is synced with server
+      refreshCompanies();
+    } finally {
+      setIsDeleting(false);
     }
+  };
+
+  const handleEditSuccess = () => {
+    setRefetchCompanies(true); // Refresh companies after editing
+    setShowEditModal(false);
+    setCompanyToEdit(null);
+    toast.success("Company updated successfully");
   };
 
   const formatCurrency = (amount: number) =>
     `₹${(amount / 100000).toFixed(1)}L`;
 
-  const clearFilters = () => {
-    setFilters({
-      year: "",
-      studentsRange: "",
-      averagePackage: "",
-      highestPackage: "",
-    });
-    setIsFiltersApplied(false);
+  const clearFilters = async () => {
+    try {
+      setIsClearingFilters(true);
+      setFilters({
+        year: "",
+        studentsRange: "",
+        averagePackage: "",
+        highestPackage: "",
+      });
+      setIsFiltersApplied(false);
+      toast.success("Filters cleared");
+    } catch (err) {
+      console.error("Error clearing filters:", err);
+      showError(err, "Failed to clear filters");
+    } finally {
+      setIsClearingFilters(false);
+    }
   };
 
   const handleFilterChange = (key: keyof Filters, value: string) => {
@@ -208,8 +288,17 @@ const CompanyProfiles = () => {
     }));
   };
 
-  const applyFilters = () => {
-    setIsFiltersApplied(true);
+  const applyFilters = async () => {
+    try {
+      setIsApplyingFilters(true);
+      setIsFiltersApplied(true);
+      toast.success("Filters applied");
+    } catch (err) {
+      console.error("Error applying filters:", err);
+      showError(err, "Failed to apply filters");
+    } finally {
+      setIsApplyingFilters(false);
+    }
   };
 
   const availableYears = useMemo(() => {
@@ -233,14 +322,27 @@ const CompanyProfiles = () => {
               className="w-full"
             >
               <div className="flex justify-between items-center mb-8">
-                <h1 className="text-2xl font-bold">Company Profiles</h1>
-                <Button
-                  color="primary"
-                  startContent={<Plus size={20} />}
-                  onClick={() => setShowCreateForm(true)}
-                >
-                  Create New Profile
-                </Button>
+                <h1 className="text-2xl font-bold">
+                  Company Profiles
+                  {isRefreshing && <Spinner size="sm" className="ml-2" />}
+                </h1>
+                <div className="flex gap-2">
+                  <Button
+                    variant="bordered"
+                    onClick={refreshCompanies}
+                    isLoading={isRefreshing}
+                    isDisabled={isLoading}
+                  >
+                    Refresh
+                  </Button>
+                  <Button
+                    color="primary"
+                    startContent={<Plus size={20} />}
+                    onClick={() => setShowCreateForm(true)}
+                  >
+                    Create New Profile
+                  </Button>
+                </div>
               </div>
 
               <div className="flex gap-8">
@@ -260,6 +362,7 @@ const CompanyProfiles = () => {
                             handleFilterChange("year", e.target.value)
                           }
                           className="w-full mt-1"
+                          isDisabled={isApplyingFilters || isClearingFilters}
                         >
                           {availableYears.map((year) => (
                             <SelectItem key={year} value={year}>
@@ -280,6 +383,7 @@ const CompanyProfiles = () => {
                             handleFilterChange("studentsRange", e.target.value)
                           }
                           className="w-full mt-1"
+                          isDisabled={isApplyingFilters || isClearingFilters}
                         >
                           <SelectItem key="0-50">0-50</SelectItem>
                           <SelectItem key="51-100">51-100</SelectItem>
@@ -298,6 +402,7 @@ const CompanyProfiles = () => {
                             handleFilterChange("averagePackage", e.target.value)
                           }
                           className="w-full mt-1"
+                          isDisabled={isApplyingFilters || isClearingFilters}
                         >
                           <SelectItem key="0-10">0-10L</SelectItem>
                           <SelectItem key="10-20">10-20L</SelectItem>
@@ -316,6 +421,7 @@ const CompanyProfiles = () => {
                             handleFilterChange("highestPackage", e.target.value)
                           }
                           className="w-full mt-1"
+                          isDisabled={isApplyingFilters || isClearingFilters}
                         >
                           <SelectItem key="0-10">0-10L</SelectItem>
                           <SelectItem key="10-20">10-20L</SelectItem>
@@ -328,6 +434,8 @@ const CompanyProfiles = () => {
                           size="sm"
                           variant="light"
                           onClick={clearFilters}
+                          isLoading={isClearingFilters}
+                          isDisabled={isApplyingFilters || isClearingFilters}
                         >
                           Clear All
                         </Button>
@@ -335,8 +443,10 @@ const CompanyProfiles = () => {
                           size="sm"
                           color="primary"
                           onClick={applyFilters}
+                          isLoading={isApplyingFilters}
+                          isDisabled={isApplyingFilters || isClearingFilters}
                         >
-                          Apply Filters
+                          {isApplyingFilters ? "Applying..." : "Apply Filters"}
                         </Button>
                       </div>
                     </div>
@@ -403,7 +513,14 @@ const CompanyProfiles = () => {
                       <h3 className="text-lg font-medium text-danger-700 dark:text-danger-300 mb-2">
                         Error loading companies
                       </h3>
-                      <Button color="primary" onClick={fetchCompanies}>
+                      <p className="text-danger-600 dark:text-danger-400 mb-4">
+                        {error}
+                      </p>
+                      <Button
+                        color="primary"
+                        onClick={refreshCompanies}
+                        isLoading={isRefreshing}
+                      >
                         Retry
                       </Button>
                     </div>
@@ -442,12 +559,12 @@ const CompanyProfiles = () => {
                                 </h3>
                                 <span
                                   className={`px-2 py-1 rounded-full text-xs ${
-                                    company.archived
+                                    company.isArchived
                                       ? "bg-default-100 text-default-600"
                                       : "bg-success-100 text-success-600"
                                   }`}
                                 >
-                                  {company.archived ? "Archived" : "Active"}
+                                  {company.isArchived ? "Archived" : "Active"}
                                 </span>
                                 <span className="px-2 py-1 rounded-full text-xs bg-success-100 text-success-600">
                                   Average Package{" "}
@@ -493,8 +610,15 @@ const CompanyProfiles = () => {
                                     isIconOnly
                                     variant="light"
                                     onClick={(e) => e.stopPropagation()}
+                                    isDisabled={
+                                      archivingCompanyId === company._id
+                                    }
                                   >
-                                    <MoreVertical size={20} />
+                                    {archivingCompanyId === company._id ? (
+                                      <Spinner size="sm" />
+                                    ) : (
+                                      <MoreVertical size={20} />
+                                    )}
                                   </Button>
                                 </DropdownTrigger>
                                 <DropdownMenu
@@ -509,12 +633,22 @@ const CompanyProfiles = () => {
                                       setShowDeleteModal(true);
                                     }
                                   }}
+                                  disabledKeys={[
+                                    ...(company.isArchived ? ["edit"] : []), // Disable edit for archived companies
+                                    ...(archivingCompanyId === company._id
+                                      ? ["edit", "archive", "delete"]
+                                      : []),
+                                  ]}
                                 >
-                                  <DropdownItem key="edit">
-                                    Edit Profile
-                                  </DropdownItem>
+                                  {!company.isArchived ? (
+                                    <DropdownItem key="edit">
+                                      Edit Profile
+                                    </DropdownItem>
+                                  ) : null}
                                   <DropdownItem key="archive">
-                                    {company.archived ? "Unarchive" : "Archive"}
+                                    {company.isArchived
+                                      ? "Unarchive"
+                                      : "Archive"}
                                   </DropdownItem>
                                   <DropdownItem
                                     key="delete"
@@ -561,38 +695,37 @@ const CompanyProfiles = () => {
               be undone.
             </p>
             <div className="flex justify-end gap-3">
-              <Button variant="flat" onClick={() => setShowDeleteModal(false)}>
+              <Button
+                variant="flat"
+                onClick={() => setShowDeleteModal(false)}
+                isDisabled={isDeleting}
+              >
                 Cancel
               </Button>
               <Button
                 color="danger"
+                isLoading={isDeleting}
                 onClick={() => {
                   if (companyToDelete) {
                     handleDelete(companyToDelete);
-                    setShowDeleteModal(false);
-                    setCompanyToDelete(null);
                   }
                 }}
               >
-                Delete
+                {isDeleting ? "Deleting..." : "Delete"}
               </Button>
             </div>
           </motion.div>
         </div>
       )}
 
-      {showEditModal && companyToEdit && (
+      {showEditModal && companyToEdit && !companyToEdit.isArchived && (
         <EditCompanyModal
           company={companyToEdit}
           onClose={() => {
             setShowEditModal(false);
             setCompanyToEdit(null);
           }}
-          onSave={() => {
-            fetchCompanies();
-            setShowEditModal(false);
-            setCompanyToEdit(null);
-          }}
+          onSave={handleEditSuccess}
         />
       )}
     </div>

@@ -28,7 +28,6 @@ interface Candidate {
   uid: string;
   department: string;
   placed: boolean;
-  package?: string | number;
 }
 
 interface DataTableProps {

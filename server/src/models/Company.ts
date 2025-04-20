@@ -1,3 +1,5 @@
+import { archiveProtectionPlugin } from "@/plugins/archiveProtection";
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
@@ -19,7 +21,7 @@ const companySchema = new Schema(
       email: String,
       website: String,
     },
-    archived: { type: Boolean, default: false },
+    isArchived: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },
@@ -29,5 +31,7 @@ const companySchema = new Schema(
 companySchema.index({ name: 1 });
 companySchema.index({ archived: 1 });
 
+companySchema.plugin(archiveProtectionPlugin)
+companySchema.plugin(softDeletePlugin)
 const Company = mongoose.model("Company", companySchema);
 export default Company;

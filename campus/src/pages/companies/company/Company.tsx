@@ -145,7 +145,7 @@ const Company = () => {
       });
       if (response.data.success) {
         alert(
-          `Company ${company.archived ? "unarchived" : "archived"} successfully`
+          `Company ${company.isArchived ? "unarchived" : "archived"} successfully`
         );
         window.location.reload();
       } else {
@@ -157,7 +157,7 @@ const Company = () => {
     }
   };
 
-  if (loading) <Loader />;
+  if (loading) return <Loader />;
 
   if (!company) return <div>Company not found</div>;
 
@@ -170,7 +170,7 @@ const Company = () => {
       <div className="flex items-center justify-between p-2">
         <h1 className="text-3xl flex font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent items-center">
           <p> {company.name}</p>
-          {company.archived && (
+          {company.isArchived && (
             <Chip className="ml-2" color="warning" size="sm">
               Archived
             </Chip>
@@ -184,7 +184,7 @@ const Company = () => {
           </DropdownTrigger>
           <DropdownMenu>
             <DropdownItem key={"archive"} onClick={handleArchiveCompany}>
-              {company.archived ? "Unarchive Company" : "Archive Company"}
+              {company.isArchived ? "Unarchive Company" : "Archive Company"}
             </DropdownItem>
             <DropdownItem
               key={"delete"}

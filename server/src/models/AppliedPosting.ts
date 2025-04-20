@@ -1,3 +1,4 @@
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose, { Schema } from "mongoose";
 
 const appliedPostingSchema = new Schema(
@@ -23,5 +24,6 @@ const appliedPostingSchema = new Schema(
   { timestamps: true }
 );
 
+appliedPostingSchema.plugin(softDeletePlugin);
 const AppliedPosting = mongoose.model("AppliedPosting", appliedPostingSchema);
 export default AppliedPosting;
