@@ -487,11 +487,11 @@ const publishDrive = async (c: Context) => {
       });
     }
 
-    sendNotificationToCandidates({
-      candidateIds: placementGroup?.candidates?.map((c) => c?.toString()),
-      title: "New Drive Added",
-      message: `A new drive has been created for the position ${drive.title} at ${drive.company?.name}. Please check your campus drives dashboard for more details.`,
-    });
+    // sendNotificationToCandidates({
+    //   candidateIds: placementGroup?.candidates?.map((c) => c.toString()),
+    //   title: "New Drive Added",
+    //   message: `A new drive has been created for the position ${drive.title} at ${drive.company?.name}. Please check your campus drives dashboard for more details.`,
+    // });
 
     return sendSuccess(c, 201, "Drive published successfully", drive);
   } catch (e: any) {

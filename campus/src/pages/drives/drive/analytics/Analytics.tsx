@@ -1,20 +1,33 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import {
-  BreadcrumbItem,
-  Breadcrumbs,
   Card,
   CardBody,
   CardHeader,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
   Button,
+  Tabs,
+  Tab,
+  Chip,
+  Divider,
   Progress,
-  Avatar,
-  Tooltip,
 } from "@nextui-org/react";
+import {
+  Users,
+  UserCheck,
+  Clock,
+  Award,
+  AlertCircle,
+  TrendingUp,
+  School,
+  BarChart2,
+  DollarSign,
+  Clipboard,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import Loader from "@/components/Loader";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
+import { toast } from "sonner";
 import {
   BarChart,
   Bar,
@@ -27,965 +40,603 @@ import {
   PieChart,
   Pie,
   Cell,
-  AreaChart,
-  Area,
 } from "recharts";
-import {
-  Download,
-  Users,
-  Calendar,
-  Filter,
-  ArrowUpRight,
-  ArrowDownRight,
-  Clock,
-  Award,
-  CheckSquare,
-  XSquare,
-  TrendingUp,
-} from "lucide-react";
-import { motion } from "framer-motion";
-import axios from "axios";
+import { DriveAnalytics } from "@shared-types/DriveAnalytics";
 
-// Import types
-import { ExtendedDrive } from "@shared-types/ExtendedDrive";
-import { AppliedDrive } from "@shared-types/AppliedDrive";
-
-// Interface for backend data
-interface RawDriveData {
-  drive: ExtendedDrive;
-  appliedDrives: AppliedDrive[];
+interface Drive {
+  _id: string;
+  title: string;
+  company: {
+    name: string;
+    logo?: string;
+  };
+  status: string;
+  jobRole?: string;
+  jobDescription?: string;
+  applicationRange?: {
+    start: string;
+    end: string;
+  };
+  workflow?: {
+    steps: Array<{
+      name: string;
+      description?: string;
+    }>;
+  };
 }
 
-const DriveAnalytics = () => {
-  const { driveId } = useParams<{ driveId: string }>();
-  const [isLoading, setIsLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState<string>("all");
-  const [rawData, setRawData] = useState<RawDriveData | null>(null);
+interface DriveAnalyticsResponse {
+  analytics: DriveAnalytics;
+  drive: Drive;
+}
+
+const COLORS = [
+  "#0088FE",
+  "#00C49F",
+  "#FFBB28",
+  "#FF8042",
+  "#8884d8",
+  "#82ca9d",
+];
+const GENDER_COLORS = {
+  male: "#3b82f6",
+  female: "#ec4899",
+  other: "#8b5cf6",
+};
+
+const DriveAnalyticsPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const { getToken } = useAuth();
+  const axios = ax(getToken);
+  const [data, setData] = useState<DriveAnalyticsResponse | null>(null);
+  const [selected, setSelected] = useState("overview");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchDriveData = async () => {
-      setIsLoading(true);
+    if (!id) return;
+
+    const fetchDriveAnalytics = async () => {
       try {
-        // Fetch raw drive data from the backend
-        const driveResponse = await axios.get(`/api/drives/${driveId}`);
-        const appliedDrivesResponse = await axios.get(
-          `/api/drives/${driveId}/applications`
-        );
-
-        setRawData({
-          drive: driveResponse.data,
-          appliedDrives: appliedDrivesResponse.data,
-        });
+        const response = await axios.get(`/drives/${id}/analytics`);
+        setData(response.data.data);
       } catch (error) {
-        console.error("Failed to fetch drive data:", error);
+        console.error("Error fetching drive analytics:", error);
+        toast.error("Failed to load drive analytics");
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
-    fetchDriveData();
-  }, [driveId]);
+    fetchDriveAnalytics();
+  }, [id, axios]);
 
-  // Calculate analytics from raw data
-  const analytics = useMemo(() => {
-    if (!rawData) return null;
-
-    const { drive, appliedDrives } = rawData;
-    const workflow = drive.workflow;
-
-    if (!workflow?.steps?.length) {
-      return null;
-    }
-
-    // Filter data based on selected time range
-    const filterByTimeRange = (date: Date) => {
-      if (timeRange === "all") return true;
-
-      const today = new Date();
-      const targetDate = new Date(date);
-      const daysDiff = Math.floor(
-        (today.getTime() - targetDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
-
-      return timeRange === "7days" ? daysDiff <= 7 : daysDiff <= 30;
-    };
-
-    const filteredAppliedDrives = appliedDrives.filter((ad) =>
-      filterByTimeRange(new Date(ad.createdAt || new Date()))
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader />
+      </div>
     );
+  }
 
-    // Generate daily applications data
-    const dailyApplicationsMap = new Map();
-    filteredAppliedDrives.forEach((ad) => {
-      const date = new Date(ad.createdAt || new Date())
-        .toISOString()
-        .split("T")[0];
-
-      if (!dailyApplicationsMap.has(date)) {
-        dailyApplicationsMap.set(date, {
-          date,
-          applications: 0,
-          shortlisted: 0,
-          rejected: 0,
-        });
-      }
-
-      const entry = dailyApplicationsMap.get(date);
-      entry.applications++;
-
-      if (ad.status === "rejected") entry.rejected++;
-      // Assuming a candidate who passed the first step is shortlisted
-      if (ad.scores && ad.scores.length > 0) entry.shortlisted++;
-    });
-
-    // Sort daily applications by date
-    const dailyApplications = Array.from(dailyApplicationsMap.values()).sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  if (!data) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen text-center">
+        <AlertCircle size={48} className="text-danger mb-4" />
+        <h2 className="text-2xl font-bold mb-2">Analytics Not Available</h2>
+        <p className="text-gray-500">
+          Unable to load drive analytics. Please try again later.
+        </p>
+        <Button
+          color="primary"
+          className="mt-4"
+          onClick={() => window.history.back()}
+        >
+          Go Back
+        </Button>
+      </div>
     );
+  }
 
-    // Generate application funnel data
-    const funnel =
-      workflow?.steps.map((step, index): { stageName: string; stageType: string; candidatesCount: number; passRate: number; averageTimeInStage: number } => {
-        const candidatesCount = filteredAppliedDrives.filter((ad) => {
-          // Count candidates who have reached or passed this stage
-          const completedSteps = (ad.scores || []).length;
-          return completedSteps >= index;
-        }).length;
+  const { analytics, drive } = data;
 
-        const prevStepCandidates =
-          index === 0
-            ? filteredAppliedDrives.length
-            : funnel
-            ? funnel[index - 1].candidatesCount
-            : filteredAppliedDrives.length;
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
 
-        const passRate =
-          prevStepCandidates > 0
-            ? Math.round((candidatesCount / prevStepCandidates) * 100)
-            : 100;
-
-        // Calculate average time in stage (simplified - using random data since we don't have actual timestamps)
-        // In a real implementation, you would calculate this from the timestamps when candidates enter/exit steps
-        const averageTimeInStage = Math.round(Math.random() * 24 + 12); // Random time between 12-36 hours
-
-        return {
-          stageName: step.name,
-          stageType: step.type,
-          candidatesCount,
-          passRate,
-          averageTimeInStage,
-        };
-      }) || [];
-
-    // Calculate gender demographics
-    const genderCounts = {
-      male: 0,
-      female: 0,
-      other: 0,
-      notSpecified: 0,
-    };
-
-    drive.candidates.forEach((candidate) => {
-      // Count genders
-      if (candidate.gender === "male") genderCounts.male++;
-      else if (candidate.gender === "female") genderCounts.female++;
-      else if (candidate.gender) genderCounts.other++;
-      else genderCounts.notSpecified++;
-    });
-
-    // Generate rejection reasons (simplified)
-    const rejectionReasons = [
-      { reason: "Skills mismatch", count: 0, percentage: 0 },
-      { reason: "Experience requirements", count: 0, percentage: 0 },
-      { reason: "Poor assessment score", count: 0, percentage: 0 },
-      { reason: "Cultural fit concerns", count: 0, percentage: 0 },
-      { reason: "Salary expectations", count: 0, percentage: 0 },
-      { reason: "Other", count: 0, percentage: 0 },
-    ];
-
-    // Populate with random data for visualization purposes
-    // In a real implementation, you would analyze the actual rejection reasons
-    const rejectedCount = filteredAppliedDrives.filter(
-      (ad) => ad.status === "rejected"
-    ).length;
-    const totalReasons = rejectedCount;
-
-    if (totalReasons > 0) {
-      rejectionReasons[0].count = Math.floor(totalReasons * 0.35);
-      rejectionReasons[1].count = Math.floor(totalReasons * 0.25);
-      rejectionReasons[2].count = Math.floor(totalReasons * 0.2);
-      rejectionReasons[3].count = Math.floor(totalReasons * 0.1);
-      rejectionReasons[4].count = Math.floor(totalReasons * 0.05);
-      rejectionReasons[5].count =
-        totalReasons - rejectionReasons.reduce((sum, r) => sum + r.count, 0);
-
-      rejectionReasons.forEach((reason) => {
-        reason.percentage = Math.round((reason.count / totalReasons) * 100);
-      });
-    }
-
-    // Get top candidates based on scores
-    const candidateScores = new Map();
-
-    filteredAppliedDrives.forEach((ad) => {
-      const candidateId = ad.user;
-      let totalScore = 0;
-      let scoreCount = 0;
-
-      (ad.scores || []).forEach((score) => {
-        if (score.score !== undefined) {
-          totalScore += score.score;
-          scoreCount++;
-        }
-      });
-
-      const avgScore = scoreCount > 0 ? Math.round(totalScore / scoreCount) : 0;
-      candidateScores.set(candidateId, avgScore);
-    });
-
-    const topCandidates = drive.candidates
-      .filter((candidate) => candidateScores.has(candidate._id))
-      .map((candidate) => {
-        const appliedDrive = filteredAppliedDrives.find(
-          (ad) => ad.user === candidate._id
-        );
-        const currentStage = appliedDrive
-          ? workflow?.steps[(appliedDrive.scores || []).length]?.name ||
-            "Applied"
-          : "Applied";
-
-        return {
-          id: candidate._id || "",
-          name: candidate.name,
-          email: candidate.email,
-          phone: candidate.phone,
-          profileImage: candidate.profileImage,
-          currentStage,
-          overallScore: candidateScores.get(candidate._id) || 0,
-          skills: (candidate.technicalSkills || [])
-            .slice(0, 6)
-            .map((s) => s.skill),
-          education: candidate.education?.[0]?.degree || "Not specified",
-          experience: candidate.workExperience?.[0]?.title || "Not specified",
-        };
-      })
-      .sort((a, b) => b.overallScore - a.overallScore)
-      .slice(0, 10); // Get top 10 candidates
-
-    // Calculate summary metrics
-    const totalApplicants = filteredAppliedDrives.length;
-    const shortlisted = filteredAppliedDrives.filter(
-      (ad) => (ad.scores || []).length > 0
-    ).length;
-    const interviewScheduled = workflow.steps.some(
-      (s) => s.type === "INTERVIEW"
-    )
-      ? filteredAppliedDrives.filter((ad) => {
-          const interviewStepIndex = workflow.steps.findIndex(
-            (s) => s.type === "INTERVIEW"
-          );
-          return (ad.scores || []).length >= interviewStepIndex;
-        }).length
-      : 0;
-    const hired = filteredAppliedDrives.filter(
-      (ad) => ad.status === "hired"
-    ).length;
-
-    // Calculate approximate growth - this would ideally come from historical data comparison
-    const applicantsGrowth = 12.5;
-    const shortlistedGrowth = 8.2;
-    const interviewScheduledGrowth = 5.3;
-    const hiredGrowth = -2.1;
-
-    // Calculate conversion rate
-    const conversionRate =
-      totalApplicants > 0 ? Math.round((hired / totalApplicants) * 100) : 0;
-
-    // Approximate time to hire - in a real implementation, calculate from actual timestamps
-    const averageTimeToHire = Math.round(
-      funnel.reduce((sum, step) => sum + step.averageTimeInStage, 0) / 24
-    ); // Convert hours to days
-
-    return {
-      driveId: drive._id,
-      driveTitle: drive.title,
-      driveType: drive.type,
-      company: drive.company || "Company",
-      startDate: drive.applicationRange.start,
-      endDate: drive.applicationRange.end,
-      metrics: {
-        totalApplicants,
-        applicantsGrowth,
-        shortlisted,
-        shortlistedGrowth,
-        interviewScheduled,
-        interviewScheduledGrowth,
-        hired,
-        hiredGrowth,
-        conversionRate,
-        averageTimeToHire,
-      },
-      funnel,
-      dailyApplications,
-      demographics: {
-        gender: genderCounts,
-      },
-      rejectionReasons,
-      topCandidates,
-    };
-  }, [rawData, timeRange]);
+  const formatPercentage = (value: number) => {
+    return value.toFixed(1) + "%";
+  };
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+    visible: { opacity: 1, y: 0 },
   };
 
-  // Colors for charts
-  const COLORS = [
-    "#7C3AED",
-    "#3B82F6",
-    "#10B981",
-    "#F59E0B",
-    "#EF4444",
-    "#EC4899",
+  const stageData = analytics.stageAnalytics.map((stage) => ({
+    name: stage.stageName,
+    dropOff: stage.dropOffRate,
+    pass: stage.passRate,
+  }));
+
+  const candidateStatusData = [
+    { name: "Hired", value: analytics.hiredCandidates },
+    { name: "Rejected", value: analytics.rejectedCandidates },
+    { name: "In Progress", value: analytics.inProgressCandidates },
   ];
 
-  // Generate stage-based colors
-  const getStageColor = (index: number, total: number) => {
-    // Color gradient from purple to green
-    return `hsl(${280 - (index / total) * 120}, 70%, 60%)`;
-  };
+  const genderData = analytics.genderDistribution
+    ? [
+        { name: "Male", value: analytics.genderDistribution.male },
+        { name: "Female", value: analytics.genderDistribution.female },
+        { name: "Other", value: analytics.genderDistribution.other },
+      ]
+    : [];
 
-  if (isLoading || !analytics) {
-    return <div className="p-10 text-center">Loading drive analytics...</div>;
-  }
+  const degreeData = analytics.educationDistribution
+    ? Object.entries(analytics.educationDistribution.degreeTypes).map(
+        ([degree, count]) => ({
+          name: degree,
+          value: count,
+        })
+      )
+    : [];
 
-  const {
-    driveTitle,
-    metrics,
-    funnel,
-    dailyApplications,
-    demographics,
-    rejectionReasons,
-    topCandidates,
-  } = analytics;
-
-  // Card metrics for the top row
-  const statsCards = [
-    {
-      title: "Total Applicants",
-      value: metrics.totalApplicants.toString(),
-      change: `${metrics.applicantsGrowth > 0 ? "+" : ""}${
-        metrics.applicantsGrowth
-      }%`,
-      icon: Users,
-      trend: metrics.applicantsGrowth >= 0 ? "up" as const : "down" as const,
-    },
-    {
-      title: "Shortlisted",
-      value: metrics.shortlisted.toString(),
-      change: `${metrics.shortlistedGrowth > 0 ? "+" : ""}${
-        metrics.shortlistedGrowth
-      }%`,
-      icon: CheckSquare,
-      trend: metrics.shortlistedGrowth >= 0 ? "up" as const : "down" as const,
-    },
-    {
-      title: "Interviews Scheduled",
-      value: metrics.interviewScheduled.toString(),
-      change: `${metrics.interviewScheduledGrowth > 0 ? "+" : ""}${
-        metrics.interviewScheduledGrowth
-      }%`,
-      icon: Calendar,
-      trend: metrics.interviewScheduledGrowth >= 0 ? "up" as const : "down" as const,
-    },
-    {
-      title: "Hired Candidates",
-      value: metrics.hired.toString(),
-      change: `${metrics.hiredGrowth > 0 ? "+" : ""}${metrics.hiredGrowth}%`,
-      icon: Award,
-      trend: metrics.hiredGrowth >= 0 ? "up" as const : "down" as const,
-    },
-  ];
-
-  interface StatsCardProps {
-    stat: {
-      title: string;
-      value: string;
-      change: string;
-      icon: any;
-      trend: "up" | "down";
-    };
-    index: number;
-  }
-
-  const StatsCard = ({ stat, index }: StatsCardProps) => (
+  const renderStatsCard = (
+    title: string,
+    value: string | number,
+    icon: React.ReactNode,
+    color: string
+  ) => (
     <motion.div
       variants={cardVariants}
       initial="hidden"
       animate="visible"
-      transition={{ delay: index * 0.1 }}
+      transition={{ duration: 0.3 }}
+      className="w-full md:w-1/2 lg:w-1/4 p-2"
     >
-      <Card>
-        <CardBody className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 rounded-xl bg-primary-100">
-              <stat.icon className="h-6 w-6 text-primary" />
-            </div>
-            <div
-              className={`flex items-center gap-1 text-base ${
-                stat.trend === "up" ? "text-green-600" : "text-red-600"
-              }`}
-            >
-              {stat.change}
-              {stat.trend === "up" ? (
-                <ArrowUpRight className="h-4 w-4" />
-              ) : (
-                <ArrowDownRight className="h-4 w-4" />
-              )}
-            </div>
+      <Card className="h-full">
+        <CardBody className="flex flex-row items-center">
+          <div className={`p-3 rounded-lg bg-${color}-100`}>{icon}</div>
+          <div className="ml-4">
+            <p className="text-sm text-gray-500">{title}</p>
+            <h3 className="text-xl font-bold">{value}</h3>
           </div>
-          <h3 className="text-base mb-1">{stat.title}</h3>
-          <p className="text-2xl font-semibold">{stat.value}</p>
         </CardBody>
       </Card>
     </motion.div>
   );
 
-  return (
-    <div className="max-h-full mt-5 ml-5">
-      <div className="mb-6">
-        <Breadcrumbs>
-          <BreadcrumbItem>Drives</BreadcrumbItem>
-          <BreadcrumbItem>{driveTitle}</BreadcrumbItem>
-          <BreadcrumbItem>Analytics</BreadcrumbItem>
-        </Breadcrumbs>
-
-        <div className="flex justify-between items-center mt-5">
-          <div>
-            <h1 className="text-2xl font-bold">{driveTitle} - Analytics</h1>
-            <p className="text-base text-gray-500">
-              Track performance metrics for this recruitment drive
-            </p>
+  const renderSalaryMetrics = () => (
+    <Card className="mb-6">
+      <CardHeader className="border-b border-gray-200">
+        <h3 className="text-lg font-semibold flex items-center">
+          <DollarSign size={20} className="mr-2" />
+          Salary Analysis
+        </h3>
+      </CardHeader>
+      <CardBody>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="text-center p-4">
+            <p className="text-sm text-gray-500 mb-1">Average CTC</p>
+            <h4 className="text-xl font-bold">
+              {formatCurrency(analytics.salary.averageCTC)}
+            </h4>
           </div>
-
-          <div className="flex gap-4">
-            <Dropdown>
-              <DropdownTrigger>
-                <Button
-                  variant="flat"
-                  startContent={<Calendar className="h-4 w-4" />}
-                >
-                  {timeRange === "all"
-                    ? "All Time"
-                    : timeRange === "30days"
-                    ? "Last 30 Days"
-                    : "Last 7 Days"}
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu
-                aria-label="Time range"
-                onAction={(key) => setTimeRange(key.toString())}
-              >
-                <DropdownItem key="7days">Last 7 Days</DropdownItem>
-                <DropdownItem key="30days">Last 30 Days</DropdownItem>
-                <DropdownItem key="all">All Time</DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
-
-            <Button
-              variant="flat"
-              startContent={<Filter className="h-4 w-4" />}
-            >
-              Filters
-            </Button>
-
-            <Dropdown>
-              <DropdownTrigger>
-                <Button
-                  variant="flat"
-                  startContent={<Download className="h-4 w-4" />}
-                >
-                  Export
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu aria-label="Export options">
-                <DropdownItem key="csv">CSV</DropdownItem>
-                <DropdownItem key="pdf">PDF</DropdownItem>
-                <DropdownItem key="excel">Excel</DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
+          <div className="text-center p-4">
+            <p className="text-sm text-gray-500 mb-1">Highest Package</p>
+            <h4 className="text-xl font-bold">
+              {formatCurrency(analytics.salary.highestCTC)}
+            </h4>
+          </div>
+          <div className="text-center p-4">
+            <p className="text-sm text-gray-500 mb-1">Lowest Package</p>
+            <h4 className="text-xl font-bold">
+              {formatCurrency(analytics.salary.lowestCTC)}
+            </h4>
+          </div>
+          <div className="text-center p-4">
+            <p className="text-sm text-gray-500 mb-1">Median Package</p>
+            <h4 className="text-xl font-bold">
+              {formatCurrency(analytics.salary.medianCTC)}
+            </h4>
           </div>
         </div>
-      </div>
+      </CardBody>
+    </Card>
+  );
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statsCards.map((stat, index) => (
-          <StatsCard key={stat.title} stat={stat} index={index} />
-        ))}
-      </div>
+  const renderStageAnalysis = () => (
+    <Card className="mb-6">
+      <CardHeader className="border-b border-gray-200">
+        <h3 className="text-lg font-semibold flex items-center">
+          <Clipboard size={20} className="mr-2" />
+          Stage Analysis
+        </h3>
+      </CardHeader>
+      <CardBody>
+        {analytics.bottleneckStage && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <h4 className="font-medium text-amber-800 flex items-center">
+              <AlertCircle size={16} className="mr-2" />
+              Bottleneck Identified
+            </h4>
+            <p className="text-sm text-amber-700 mt-1">
+              {analytics.bottleneckStage.stageName} has the highest drop-off
+              rate ({formatPercentage(analytics.bottleneckStage.dropOffRate)}).
+            </p>
+          </div>
+        )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        {/* Application Funnel */}
-        <motion.div
-          className="lg:col-span-2"
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          transition={{ delay: 0.4 }}
-        >
-          <Card className="">
-            <CardHeader className="flex justify-between items-center px-6 py-4">
-              <div>
-                <h3 className="text-lg font-semibold">Application Funnel</h3>
-                <p className="text-sm opacity-80">
-                  Candidates at each stage of the process
-                </p>
-              </div>
-              <Button
-                variant="light"
-                size="sm"
-                startContent={<TrendingUp className="h-4 w-4" />}
+        <div className="mt-4">
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart
+              data={stageData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <RechartsTooltip />
+              <Legend />
+              <Bar dataKey="pass" name="Pass Rate (%)" fill="#4ade80" />
+              <Bar dataKey="dropOff" name="Drop-off Rate (%)" fill="#f87171" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="mt-6">
+          <h4 className="font-medium mb-4">Stage Details</h4>
+          <div className="space-y-4">
+            {analytics.stageAnalytics.map((stage, index) => (
+              <div
+                key={index}
+                className="border border-gray-200 rounded-lg p-4"
               >
-                Trends
-              </Button>
-            </CardHeader>
-            <CardBody className="px-6 pb-6">
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={funnel} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                  <XAxis type="number" />
-                  <YAxis
-                    dataKey="stageName"
-                    type="category"
-                    tickLine={false}
-                    width={150}
-                  />
-                  <RechartsTooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        const data = payload[0].payload;
-                        return (
-                          <div className="bg-white p-4 rounded-md shadow-lg">
-                            <p className="font-medium">{data.stageName}</p>
-                            <p className="text-sm">
-                              Candidates: {data.candidatesCount}
-                            </p>
-                            <p className="text-sm">
-                              Pass Rate: {data.passRate}%
-                            </p>
-                            <p className="text-sm">
-                              Avg. Time: {data.averageTimeInStage}hrs
-                            </p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Bar dataKey="candidatesCount" isAnimationActive={true}>
-                    {funnel.map((_entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={getStageColor(index, funnel.length)}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardBody>
-          </Card>
-        </motion.div>
-
-        {/* Conversion Metrics */}
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          transition={{ delay: 0.5 }}
-        >
-          <Card className="h-full">
-            <CardHeader className="flex justify-between items-center px-6 py-4">
-              <div>
-                <h3 className="text-lg font-semibold">Conversion Metrics</h3>
-                <p className="text-sm opacity-80">Key performance indicators</p>
-              </div>
-            </CardHeader>
-            <CardBody className="px-6 pb-6 flex flex-col gap-6">
-              <div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-sm">Application to Hire</span>
-                  <span className="font-medium">{metrics.conversionRate}%</span>
+                  <h5 className="font-medium">{stage.stageName}</h5>
+                  {stage.isBottleneck && (
+                    <Chip color="warning" size="sm">
+                      Bottleneck
+                    </Chip>
+                  )}
                 </div>
-                <Progress
-                  value={metrics.conversionRate}
-                  color="success"
-                  className="h-2"
-                />
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm">Avg. Time to Hire</span>
-                  <span className="font-medium">
-                    {metrics.averageTimeToHire} days
-                  </span>
+                <div className="grid grid-cols-2 gap-2 mb-2 text-sm">
+                  <div>
+                    Total Candidates:{" "}
+                    <span className="font-medium">{stage.totalCandidates}</span>
+                  </div>
+                  <div>
+                    Passed:{" "}
+                    <span className="font-medium">
+                      {stage.passedCandidates}
+                    </span>
+                  </div>
+                  <div>
+                    Failed:{" "}
+                    <span className="font-medium">
+                      {stage.failedCandidates}
+                    </span>
+                  </div>
+                  <div>
+                    Pass Rate:{" "}
+                    <span className="font-medium">
+                      {formatPercentage(stage.passRate)}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <Clock className="w-4 h-4 mr-2 text-gray-500" />
+                <div className="mt-2">
+                  <div className="flex justify-between mb-1 text-xs">
+                    <span>Pass Rate</span>
+                    <span>{formatPercentage(stage.passRate)}</span>
+                  </div>
                   <Progress
-                    value={Math.min(
-                      (metrics.averageTimeToHire / 30) * 100,
-                      100
-                    )}
-                    color="primary"
+                    value={stage.passRate}
+                    color={
+                      stage.passRate > 70
+                        ? "success"
+                        : stage.passRate > 40
+                        ? "warning"
+                        : "danger"
+                    }
                     className="h-2"
                   />
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+      </CardBody>
+    </Card>
+  );
 
-              <div>
-                <h4 className="text-md font-medium mb-3">
-                  Time in Stage (hrs)
-                </h4>
-                <div className="overflow-y-auto max-h-[150px]">
-                  {funnel.map((stage, index) => (
-                    <div key={index} className="mb-2">
-                      <div className="flex justify-between text-sm">
-                        <span
-                          className="truncate max-w-[70%]"
-                          title={stage.stageName}
-                        >
-                          {stage.stageName}
-                        </span>
-                        <span className="font-medium">
-                          {stage.averageTimeInStage}h
-                        </span>
-                      </div>
-                      <Progress
-                        value={stage.averageTimeInStage}
-                        maxValue={Math.max(
-                          ...funnel.map((s) => s.averageTimeInStage)
-                        )}
-                        color={getProgressColor(index)}
-                        className="h-2"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-        </motion.div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        {/* Daily Application Trend */}
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          transition={{ delay: 0.6 }}
-        >
-          <Card className="">
-            <CardHeader className="flex justify-between items-center px-6 py-4">
-              <div>
-                <h3 className="text-lg font-semibold">Application Trend</h3>
-                <p className="text-sm opacity-80">Daily application activity</p>
-              </div>
-            </CardHeader>
-            <CardBody className="px-6 pb-6">
+  const renderDemographics = () => (
+    <Card className="mb-6">
+      <CardHeader className="border-b border-gray-200">
+        <h3 className="text-lg font-semibold flex items-center">
+          <Users size={20} className="mr-2" />
+          Candidate Demographics
+        </h3>
+      </CardHeader>
+      <CardBody>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {analytics.genderDistribution && (
+            <div>
+              <h4 className="font-medium mb-4 text-center">
+                Gender Distribution
+              </h4>
               <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={dailyApplications}>
-                  <defs>
-                    <linearGradient
-                      id="colorApplications"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#7C3AED" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient
-                      id="colorShortlisted"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient
-                      id="colorRejected"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="5%" stopColor="#EF4444" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
+                <PieChart>
+                  <Pie
+                    data={genderData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) =>
+                      `${name}: ${(percent * 100).toFixed(0)}%`
+                    }
+                  >
+                    {genderData.map((_, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={
+                          Object.values(GENDER_COLORS)[
+                            index % Object.values(GENDER_COLORS).length
+                          ]
+                        }
+                      />
+                    ))}
+                  </Pie>
                   <RechartsTooltip />
                   <Legend />
-                  <Area
-                    type="monotone"
-                    dataKey="applications"
-                    stroke="#7C3AED"
-                    fillOpacity={1}
-                    fill="url(#colorApplications)"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="shortlisted"
-                    stroke="#10B981"
-                    fillOpacity={1}
-                    fill="url(#colorShortlisted)"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="rejected"
-                    stroke="#EF4444"
-                    fillOpacity={1}
-                    fill="url(#colorRejected)"
-                  />
-                </AreaChart>
+                </PieChart>
               </ResponsiveContainer>
-            </CardBody>
-          </Card>
-        </motion.div>
+            </div>
+          )}
 
-        {/* Demographics */}
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          transition={{ delay: 0.7 }}
-        >
-          <Card className="">
-            <CardHeader className="flex justify-between items-center px-6 py-4">
-              <div>
-                <h3 className="text-lg font-semibold">Rejection Analysis</h3>
-                <p className="text-sm opacity-80">
-                  Why candidates get rejected
-                </p>
-              </div>
-            </CardHeader>
-            <CardBody className="px-6 pb-6">
-              <div className="flex flex-col gap-3 max-h-[300px] overflow-y-auto">
-                {rejectionReasons.map((reason, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <XSquare className="h-4 w-4 text-red-500" />
-                      <span
-                        className="text-sm truncate max-w-[150px]"
-                        title={reason.reason}
-                      >
-                        {reason.reason}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">
-                        {reason.count}
-                      </span>
-                      <div className="w-20">
-                        <Progress
-                          value={reason.percentage}
-                          color="danger"
-                          className="h-2"
-                        />
-                      </div>
-                      <span className="text-xs">{reason.percentage}%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8">
-                <h4 className="text-md font-medium mb-3 text-center">
-                  Gender Distribution
-                </h4>
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: "Male", value: demographics.gender.male },
-                        { name: "Female", value: demographics.gender.female },
-                        { name: "Other", value: demographics.gender.other },
-                        {
-                          name: "Not Specified",
-                          value: demographics.gender.notSpecified,
-                        },
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={70}
-                      fill="#8884d8"
-                      dataKey="value"
-                      labelLine={false}
-                      label={({ name, percent }) =>
-                        `${name}: ${(percent * 100).toFixed(0)}%`
-                      }
-                    >
-                      {[0, 1, 2, 3].map((_entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardBody>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Top Candidates */}
-      <motion.div
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
-        transition={{ delay: 0.8 }}
-        className="mb-8"
-      >
-        <Card>
-          <CardHeader className="flex justify-between items-center px-6 py-4">
+          {analytics.educationDistribution && (
             <div>
-              <h3 className="text-lg font-semibold">
-                Top Performing Candidates
-              </h3>
-              <p className="text-sm opacity-80">Highest rated applicants</p>
+              <h4 className="font-medium mb-4 text-center">
+                Education Distribution
+              </h4>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={degreeData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) =>
+                      `${name}: ${(percent * 100).toFixed(0)}%`
+                    }
+                  >
+                    {degreeData.map((_, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
-            <Button variant="light" size="sm">
-              View All
-            </Button>
-          </CardHeader>
-          <CardBody className="px-6 pb-6">
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="py-3 px-4 text-left text-sm font-semibold">
-                      Candidate
-                    </th>
-                    <th className="py-3 px-4 text-left text-sm font-semibold">
-                      Current Stage
-                    </th>
-                    <th className="py-3 px-4 text-left text-sm font-semibold">
-                      Overall Score
-                    </th>
-                    <th className="py-3 px-4 text-left text-sm font-semibold">
-                      Skills
-                    </th>
-                    <th className="py-3 px-4 text-left text-sm font-semibold">
-                      Education
-                    </th>
-                    <th className="py-3 px-4 text-left text-sm font-semibold">
-                      Experience
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topCandidates.slice(0, 5).map((candidate) => (
-                    <tr key={candidate.id} className="border-b">
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar
-                            src={candidate.profileImage}
-                            name={candidate.name}
-                            size="sm"
-                          />
-                          <div>
-                            <p className="text-sm font-medium">
-                              {candidate.name}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {candidate.email}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 text-sm">
-                        {candidate.currentStage}
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-2">
-                          <Progress
-                            value={candidate.overallScore}
-                            color={
-                              candidate.overallScore > 80
-                                ? "success"
-                                : "primary"
-                            }
-                            className="max-w-md"
-                          />
-                          <span className="text-sm font-medium">
-                            {candidate.overallScore}%
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex flex-wrap gap-1">
-                          {candidate.skills.slice(0, 3).map((skill, i) => (
-                            <span
-                              key={i}
-                              className="px-2 py-1 bg-gray-100 text-xs rounded-full"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                          {candidate.skills.length > 3 && (
-                            <Tooltip
-                              content={candidate.skills.slice(3).join(", ")}
-                            >
-                              <span className="px-2 py-1 bg-gray-100 text-xs rounded-full">
-                                +{candidate.skills.length - 3}
-                              </span>
-                            </Tooltip>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 text-sm">
-                        {candidate.education}
-                      </td>
-                      <td className="py-4 px-4 text-sm">
-                        {candidate.experience}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          )}
+        </div>
+
+        {analytics.educationDistribution &&
+          analytics.educationDistribution.topSchools.length > 0 && (
+            <div className="mt-6">
+              <h4 className="font-medium mb-4">Top Schools</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {analytics.educationDistribution.topSchools.map(
+                  (school, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center p-3 border border-gray-200 rounded-lg"
+                    >
+                      <div className="bg-blue-100 p-2 rounded-full mr-3">
+                        <School size={16} className="text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium truncate">{school.school}</p>
+                        <p className="text-sm text-gray-500">
+                          {school.count} candidates
+                        </p>
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
             </div>
-          </CardBody>
-        </Card>
+          )}
+      </CardBody>
+    </Card>
+  );
+
+  return (
+    <div className="container mx-auto px-4 py-6">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="mb-6"
+      >
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold">{drive.title} Analytics</h1>
+            <p className="text-gray-500 mt-1">
+              {drive.company?.name} · {drive.jobRole || "Various Roles"}
+            </p>
+          </div>
+          <Button
+            color="primary"
+            className="mt-4 md:mt-0"
+            onClick={() => window.history.back()}
+          >
+            Back to Drives
+          </Button>
+        </div>
+
+        <Divider className="my-4" />
+
+        <Tabs
+          selectedKey={selected}
+          onSelectionChange={(key) => setSelected(key as string)}
+          className="mt-6"
+        >
+          <Tab key="overview" title="Overview" />
+          <Tab key="stages" title="Stage Analysis" />
+          <Tab key="demographics" title="Demographics" />
+        </Tabs>
       </motion.div>
+
+      {selected === "overview" && (
+        <div className="space-y-6">
+          <div className="flex flex-wrap -mx-2">
+            {renderStatsCard(
+              "Total Candidates",
+              analytics.totalCandidates,
+              <Users size={24} className="text-blue-500" />,
+              "blue"
+            )}
+            {renderStatsCard(
+              "Applied Candidates",
+              analytics.appliedCandidates,
+              <UserCheck size={24} className="text-green-500" />,
+              "green"
+            )}
+            {renderStatsCard(
+              "Hired Candidates",
+              analytics.hiredCandidates,
+              <Award size={24} className="text-purple-500" />,
+              "purple"
+            )}
+            {renderStatsCard(
+              "Application Rate",
+              formatPercentage(analytics.applicationRate),
+              <TrendingUp size={24} className="text-teal-500" />,
+              "teal"
+            )}
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            <Card className="mb-6">
+              <CardHeader className="border-b border-gray-200">
+                <h3 className="text-lg font-semibold flex items-center">
+                  <BarChart2 size={20} className="mr-2" />
+                  Key Performance Indicators
+                </h3>
+              </CardHeader>
+              <CardBody>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-blue-100 mb-4">
+                      <Users size={32} className="text-blue-600" />
+                    </div>
+                    <h4 className="text-2xl font-bold">
+                      {formatPercentage(analytics.applicationRate)}
+                    </h4>
+                    <p className="text-sm text-gray-500">Application Rate</p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-4">
+                      <UserCheck size={32} className="text-green-600" />
+                    </div>
+                    <h4 className="text-2xl font-bold">
+                      {formatPercentage(analytics.conversionRate)}
+                    </h4>
+                    <p className="text-sm text-gray-500">Conversion Rate</p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-amber-100 mb-4">
+                      <Clock size={32} className="text-amber-600" />
+                    </div>
+                    <h4 className="text-2xl font-bold">
+                      {analytics.timeToHire
+                        ? analytics.timeToHire.toFixed(1)
+                        : "N/A"}
+                    </h4>
+                    <p className="text-sm text-gray-500">Avg. Days to Hire</p>
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <Card>
+                <CardHeader className="border-b border-gray-200">
+                  <h3 className="text-lg font-semibold">Candidate Status</h3>
+                </CardHeader>
+                <CardBody>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={candidateStatusData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, value, percent }) =>
+                          `${name}: ${value} (${(percent * 100).toFixed(0)}%)`
+                        }
+                      >
+                        <Cell fill="#4ade80" /> {/* Hired - Green */}
+                        <Cell fill="#f87171" /> {/* Rejected - Red */}
+                        <Cell fill="#fbbf24" /> {/* In Progress - Yellow */}
+                      </Pie>
+                      <RechartsTooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardBody>
+              </Card>
+
+              {renderSalaryMetrics()}
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {selected === "stages" && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          {renderStageAnalysis()}
+        </motion.div>
+      )}
+
+      {selected === "demographics" && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          {renderDemographics()}
+        </motion.div>
+      )}
     </div>
   );
 };
 
-// Helper function for progress colors
-function getProgressColor(index: number) {
-  const colors = [
-    "primary",
-    "success",
-    "warning",
-    "secondary",
-    "danger",
-  ] as const;
-  return colors[index % colors.length];
-}
-
-export default DriveAnalytics;
+export default DriveAnalyticsPage;

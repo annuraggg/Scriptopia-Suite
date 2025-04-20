@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import driveController from "../controllers/campus/drives/driveController";
 import instituteWorkflowController from "../controllers/campus/workflow/instituteWorkflowController";
 import candidatesController from "@/controllers/enterprise/candidates/candidatesController";
+import driveAnalyticsController from "@/controllers/campus/drives/driveAnalyticsController";
 
 const app = new Hono();
 
@@ -40,5 +41,8 @@ app.get("/:id/applied", driveController.getAppliedDrives);
 app.post("/end-drive", driveController.endDrive);
 app.post("/upload-offer-letter", driveController.uploadOfferLetter);
 app.get("/:did/offer-letter/:id", driveController.getOfferLetter);
+
+app.get("/:id/analytics", driveAnalyticsController.getDriveAnalytics);
+
 
 export default app;
