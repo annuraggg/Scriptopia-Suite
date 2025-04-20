@@ -1,6 +1,6 @@
-import { useNavigate } from 'react-router-dom';
-import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Card,
   Input,
@@ -11,34 +11,21 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-  Spinner
-} from '@nextui-org/react';
-import { Search, Plus, MoreVertical, Copy, Calendar, Users, DollarSign } from 'lucide-react';
-import { useAuth } from '@clerk/clerk-react';
-import ax from '@/config/axios';
-import CreateCompanyForm from './CreateCompanyForm';
-import EditCompanyModal from './EditCompanyModal';
-
-interface Company {
-  _id: string;
-  name: string;
-  description: string;
-  generalInfo: {
-    yearVisit: string[];
-    studentsHired: number;
-    averagePackage: number;
-    highestPackage: number;
-    rolesOffered: string[];
-  };
-  hrContacts: {
-    name: string;
-    phone: string;
-    email: string;
-    website: string;
-  };
-  archived?: boolean;
-  createdAt: string;
-}
+  Spinner,
+} from "@nextui-org/react";
+import {
+  Search,
+  Plus,
+  MoreVertical,
+  Calendar,
+  Users,
+  DollarSign,
+} from "lucide-react";
+import { useAuth } from "@clerk/clerk-react";
+import ax from "@/config/axios";
+import CreateCompanyForm from "./CreateCompanyForm";
+import EditCompanyModal from "./EditCompanyModal";
+import { Company } from "@shared-types/Company";
 
 interface Filters {
   year: string;
@@ -48,18 +35,18 @@ interface Filters {
 }
 
 const parseRange = (range: string): [number, number] => {
-  if (range.endsWith('+')) {
+  if (range.endsWith("+")) {
     const start = parseInt(range.slice(0, -1));
     return [start, Infinity];
   }
-  const [start, end] = range.split('-').map(num => parseInt(num));
+  const [start, end] = range.split("-").map((num) => parseInt(num));
   return [start, end];
 };
 
 const formatPackageRange = (range: string): [number, number] => {
   if (!range) return [0, Infinity];
-  const [start, end] = range.split('-');
-  if (end === '+') {
+  const [start, end] = range.split("-");
+  if (end === "+") {
     return [parseInt(start) * 100000, Infinity];
   }
   return [parseInt(start) * 100000, parseInt(end) * 100000];
@@ -80,10 +67,10 @@ const CompanyProfiles = () => {
   const [companyToEdit, setCompanyToEdit] = useState<Company | null>(null);
 
   const [filters, setFilters] = useState<Filters>({
-    year: '',
-    studentsRange: '',
-    averagePackage: '',
-    highestPackage: '',
+    year: "",
+    studentsRange: "",
+    averagePackage: "",
+    highestPackage: "",
   });
   const [isFiltersApplied, setIsFiltersApplied] = useState(false);
 
@@ -115,57 +102,78 @@ const CompanyProfiles = () => {
   }, []);
 
   const filteredCompanies = useMemo(() => {
-    return companies.filter(company => {
-      const companyName = company.name || "";
-      if (searchTerm && !companyName.toLowerCase().includes(searchTerm.toLowerCase())) {
-        return false;
-      }
-
-      const isArchived = !!company.archived;
-      if (filter === "active" && isArchived) return false;
-      if (filter === "archived" && !isArchived) return false;
-
-      if (isFiltersApplied) {
-        if (filters.year && !company.generalInfo.yearVisit.includes(filters.year)) {
+    return companies
+      .filter((company) => {
+        const companyName = company.name || "";
+        if (
+          searchTerm &&
+          !companyName.toLowerCase().includes(searchTerm.toLowerCase())
+        ) {
           return false;
         }
 
-        if (filters.studentsRange) {
-          const [min, max] = parseRange(filters.studentsRange);
-          if (company.generalInfo.studentsHired < min || company.generalInfo.studentsHired > max) {
+        const isArchived = !!company.archived;
+        if (filter === "active" && isArchived) return false;
+        if (filter === "archived" && !isArchived) return false;
+
+        if (isFiltersApplied) {
+          if (
+            filters.year &&
+            !company.generalInfo.yearVisit.includes(filters.year)
+          ) {
             return false;
+          }
+
+          if (filters.studentsRange) {
+            const [min, max] = parseRange(filters.studentsRange);
+            if (
+              company.generalInfo.studentsHired < min ||
+              company.generalInfo.studentsHired > max
+            ) {
+              return false;
+            }
+          }
+
+          if (filters.averagePackage) {
+            const [min, max] = formatPackageRange(filters.averagePackage);
+            if (
+              company.generalInfo.averagePackage < min ||
+              company.generalInfo.averagePackage > max
+            ) {
+              return false;
+            }
+          }
+
+          if (filters.highestPackage) {
+            const [min, max] = formatPackageRange(filters.highestPackage);
+            if (
+              company.generalInfo.highestPackage < min ||
+              company.generalInfo.highestPackage > max
+            ) {
+              return false;
+            }
           }
         }
 
-        if (filters.averagePackage) {
-          const [min, max] = formatPackageRange(filters.averagePackage);
-          if (company.generalInfo.averagePackage < min || company.generalInfo.averagePackage > max) {
-            return false;
-          }
-        }
-
-        if (filters.highestPackage) {
-          const [min, max] = formatPackageRange(filters.highestPackage);
-          if (company.generalInfo.highestPackage < min || company.generalInfo.highestPackage > max) {
-            return false;
-          }
-        }
-      }
-
-      return true;
-    }).sort((a, b) => {
-      return sort === "newest"
-        ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-    });
+        return true;
+      })
+      .sort((a, b) => {
+        return sort === "newest"
+          ? new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
+          : new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime();
+      });
   }, [companies, searchTerm, filter, sort, filters, isFiltersApplied]);
 
   const handleArchive = async (id: string) => {
     try {
       await axios.post("/companies/archive", { id });
-      setCompanies(prev => prev.map(company =>
-        company._id === id ? { ...company, archived: !company.archived } : company
-      ));
+      setCompanies((prev) =>
+        prev.map((company) =>
+          company._id === id
+            ? { ...company, archived: !company.archived }
+            : company
+        )
+      );
     } catch (err) {
       console.error("Error archiving company:", err);
     }
@@ -174,28 +182,29 @@ const CompanyProfiles = () => {
   const handleDelete = async (id: string) => {
     try {
       await axios.delete(`/companies/${id}`);
-      setCompanies(prev => prev.filter(company => company._id !== id));
+      setCompanies((prev) => prev.filter((company) => company._id !== id));
     } catch (err) {
       console.error("Error deleting company:", err);
     }
   };
 
-  const formatCurrency = (amount: number) => `₹${(amount / 100000).toFixed(1)}L`;
+  const formatCurrency = (amount: number) =>
+    `₹${(amount / 100000).toFixed(1)}L`;
 
   const clearFilters = () => {
     setFilters({
-      year: '',
-      studentsRange: '',
-      averagePackage: '',
-      highestPackage: '',
+      year: "",
+      studentsRange: "",
+      averagePackage: "",
+      highestPackage: "",
     });
     setIsFiltersApplied(false);
   };
 
   const handleFilterChange = (key: keyof Filters, value: string) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      [key]: value
+      [key]: value,
     }));
   };
 
@@ -205,8 +214,8 @@ const CompanyProfiles = () => {
 
   const availableYears = useMemo(() => {
     const years = new Set<string>();
-    companies.forEach(company => {
-      company.generalInfo.yearVisit.forEach(year => years.add(year));
+    companies.forEach((company) => {
+      company.generalInfo.yearVisit.forEach((year) => years.add(year));
     });
     return Array.from(years).sort().reverse();
   }, [companies]);
@@ -241,25 +250,35 @@ const CompanyProfiles = () => {
 
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm text-default-500">Last Visited</label>
+                        <label className="text-sm text-default-500">
+                          Last Visited
+                        </label>
                         <Select
                           placeholder="Select Year"
                           value={filters.year}
-                          onChange={(e) => handleFilterChange('year', e.target.value)}
+                          onChange={(e) =>
+                            handleFilterChange("year", e.target.value)
+                          }
                           className="w-full mt-1"
                         >
-                          {availableYears.map(year => (
-                            <SelectItem key={year} value={year}>{year}</SelectItem>
+                          {availableYears.map((year) => (
+                            <SelectItem key={year} value={year}>
+                              {year}
+                            </SelectItem>
                           ))}
                         </Select>
                       </div>
 
                       <div>
-                        <label className="text-sm text-default-500">Students Hired</label>
+                        <label className="text-sm text-default-500">
+                          Students Hired
+                        </label>
                         <Select
                           placeholder="Select Range"
                           value={filters.studentsRange}
-                          onChange={(e) => handleFilterChange('studentsRange', e.target.value)}
+                          onChange={(e) =>
+                            handleFilterChange("studentsRange", e.target.value)
+                          }
                           className="w-full mt-1"
                         >
                           <SelectItem key="0-50">0-50</SelectItem>
@@ -269,11 +288,15 @@ const CompanyProfiles = () => {
                       </div>
 
                       <div>
-                        <label className="text-sm text-default-500">Average Package</label>
+                        <label className="text-sm text-default-500">
+                          Average Package
+                        </label>
                         <Select
                           placeholder="Select Range"
                           value={filters.averagePackage}
-                          onChange={(e) => handleFilterChange('averagePackage', e.target.value)}
+                          onChange={(e) =>
+                            handleFilterChange("averagePackage", e.target.value)
+                          }
                           className="w-full mt-1"
                         >
                           <SelectItem key="0-10">0-10L</SelectItem>
@@ -283,11 +306,15 @@ const CompanyProfiles = () => {
                       </div>
 
                       <div>
-                        <label className="text-sm text-default-500">Highest Package</label>
+                        <label className="text-sm text-default-500">
+                          Highest Package
+                        </label>
                         <Select
                           placeholder="Select Range"
                           value={filters.highestPackage}
-                          onChange={(e) => handleFilterChange('highestPackage', e.target.value)}
+                          onChange={(e) =>
+                            handleFilterChange("highestPackage", e.target.value)
+                          }
                           className="w-full mt-1"
                         >
                           <SelectItem key="0-10">0-10L</SelectItem>
@@ -339,21 +366,27 @@ const CompanyProfiles = () => {
 
                   <div className="flex gap-4 mb-6">
                     <Button
-                      className={`w-1/3 ${filter === "all" ? "bg-default-100" : ""}`}
+                      className={`w-1/3 ${
+                        filter === "all" ? "bg-default-100" : ""
+                      }`}
                       variant={filter === "all" ? "flat" : "ghost"}
                       onClick={() => setFilter("all")}
                     >
                       All
                     </Button>
                     <Button
-                      className={`w-1/3 ${filter === "active" ? "bg-success-100" : ""}`}
+                      className={`w-1/3 ${
+                        filter === "active" ? "bg-success-100" : ""
+                      }`}
                       variant={filter === "active" ? "flat" : "ghost"}
                       onClick={() => setFilter("active")}
                     >
                       Active
                     </Button>
                     <Button
-                      className={`w-1/3 ${filter === "archived" ? "bg-default-100" : ""}`}
+                      className={`w-1/3 ${
+                        filter === "archived" ? "bg-default-100" : ""
+                      }`}
                       variant={filter === "archived" ? "flat" : "ghost"}
                       onClick={() => setFilter("archived")}
                     >
@@ -399,52 +432,61 @@ const CompanyProfiles = () => {
                           key={company._id}
                           className="p-4 cursor-pointer w-full hover:shadow-md transition-shadow"
                           isPressable
-                          onClick={() => navigate(`/company/${company._id}`)}
+                          onClick={() => navigate(`/companies/${company._id}`)}
                         >
-                          <div className="flex justify-between items-start">
+                          <div className="flex justify-between items-center">
                             <div>
                               <div className="flex items-center gap-2 mb-2">
-                                <h3 className="text-lg font-semibold">{company.name}</h3>
+                                <h3 className="text-lg font-semibold">
+                                  {company.name}
+                                </h3>
                                 <span
-                                  className={`px-2 py-1 rounded-full text-xs ${company.archived
-                                    ? "bg-default-100 text-default-600"
-                                    : "bg-success-100 text-success-600"
-                                    }`}
+                                  className={`px-2 py-1 rounded-full text-xs ${
+                                    company.archived
+                                      ? "bg-default-100 text-default-600"
+                                      : "bg-success-100 text-success-600"
+                                  }`}
                                 >
                                   {company.archived ? "Archived" : "Active"}
                                 </span>
                                 <span className="px-2 py-1 rounded-full text-xs bg-success-100 text-success-600">
-                                  Average Package {formatCurrency(company.generalInfo.averagePackage)}
+                                  Average Package{" "}
+                                  {formatCurrency(
+                                    company.generalInfo.averagePackage
+                                  )}
                                 </span>
                               </div>
 
                               <div className="flex items-center gap-4 text-sm text-default-500 mb-4">
                                 <div className="flex items-center gap-2">
                                   <Calendar size={16} />
-                                  <span>Last Visit {company.generalInfo.yearVisit.length > 0 ? company.generalInfo.yearVisit[0] : 'N/A'}</span>
+                                  <span>
+                                    Last Visit{" "}
+                                    {company.generalInfo.yearVisit.length > 0
+                                      ? company.generalInfo.yearVisit[0]
+                                      : "N/A"}
+                                  </span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <Users size={16} />
-                                  <span>{company.generalInfo.studentsHired} Students Hired</span>
+                                  <span>
+                                    {company.generalInfo.studentsHired} Students
+                                    Hired
+                                  </span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <DollarSign size={16} />
-                                  <span>Highest Package {formatCurrency(company.generalInfo.highestPackage)}</span>
+                                  <span>
+                                    Highest Package{" "}
+                                    {formatCurrency(
+                                      company.generalInfo.highestPackage
+                                    )}
+                                  </span>
                                 </div>
                               </div>
                             </div>
 
-                            <div className="flex gap-2">
-                              <Button
-                                isIconOnly
-                                variant="flat"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigator.clipboard.writeText(`https://yourwebsite.com/company/${company._id}`);
-                                }}
-                              >
-                                <Copy size={18} />
-                              </Button>
+                            <div className="flex gap-2 items-center justify-center">
                               <Dropdown>
                                 <DropdownTrigger>
                                   <Button
@@ -455,22 +497,30 @@ const CompanyProfiles = () => {
                                     <MoreVertical size={20} />
                                   </Button>
                                 </DropdownTrigger>
-                                <DropdownMenu onAction={(key) => {
-                                  if (key === "edit") {
-                                    setCompanyToEdit(company);
-                                    setShowEditModal(true);
-                                  } else if (key === "archive") {
-                                    handleArchive(company._id);
-                                  } else if (key === "delete") {
-                                    setCompanyToDelete(company._id);
-                                    setShowDeleteModal(true);
-                                  }
-                                }}>
-                                  <DropdownItem key="edit">Edit Profile</DropdownItem>
+                                <DropdownMenu
+                                  onAction={(key) => {
+                                    if (key === "edit") {
+                                      setCompanyToEdit(company);
+                                      setShowEditModal(true);
+                                    } else if (key === "archive") {
+                                      handleArchive(company._id);
+                                    } else if (key === "delete") {
+                                      setCompanyToDelete(company._id);
+                                      setShowDeleteModal(true);
+                                    }
+                                  }}
+                                >
+                                  <DropdownItem key="edit">
+                                    Edit Profile
+                                  </DropdownItem>
                                   <DropdownItem key="archive">
                                     {company.archived ? "Unarchive" : "Archive"}
                                   </DropdownItem>
-                                  <DropdownItem key="delete" className="text-danger" color="danger">
+                                  <DropdownItem
+                                    key="delete"
+                                    className="text-danger"
+                                    color="danger"
+                                  >
                                     Delete
                                   </DropdownItem>
                                 </DropdownMenu>
@@ -506,7 +556,10 @@ const CompanyProfiles = () => {
             className="bg-white dark:bg-gray-900 rounded-lg p-6 max-w-md w-full"
           >
             <h3 className="text-lg font-semibold mb-4">Confirm Deletion</h3>
-            <p className="mb-6">Are you sure you want to delete this company? This action cannot be undone.</p>
+            <p className="mb-6">
+              Are you sure you want to delete this company? This action cannot
+              be undone.
+            </p>
             <div className="flex justify-end gap-3">
               <Button variant="flat" onClick={() => setShowDeleteModal(false)}>
                 Cancel

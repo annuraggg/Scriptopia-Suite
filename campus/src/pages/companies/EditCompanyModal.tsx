@@ -12,27 +12,7 @@ import {
 import { Save, ArrowLeft } from "lucide-react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-
-interface Company {
-  _id: string;
-  name: string;
-  description: string;
-  generalInfo: {
-    yearVisit: string[];
-    studentsHired: number;
-    averagePackage: number;
-    highestPackage: number;
-    rolesOffered: string[];
-  };
-  hrContacts: {
-    name: string;
-    phone: string;
-    email: string;
-    website: string;
-  };
-  archived?: boolean;
-  createdAt: string;
-}
+import { Company } from "@shared-types/Company";
 
 interface EditCompanyModalProps {
   company: Company;

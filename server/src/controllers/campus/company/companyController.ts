@@ -7,10 +7,10 @@ import { Context } from "hono";
 import clerkClient from "../../../config/clerk";
 import { AuditLog } from "@shared-types/Institute";
 import mongoose from "mongoose";
+import Drive from "@/models/Drive";
+import Candidate from "@/models/Candidate";
+import AppliedDrive from "@/models/AppliedDrive";
 
-/**
- * Creates an audit log entry
- */
 const createAuditLog = async (
   c: Context,
   instituteId: mongoose.Types.ObjectId,
@@ -44,9 +44,6 @@ const createAuditLog = async (
   }
 };
 
-/**
- * Get companies with pagination
- */
 const getCompanies = async (c: Context) => {
   try {
     const authData = c.get("auth");
@@ -54,7 +51,7 @@ const getCompanies = async (c: Context) => {
       return sendError(c, 401, "Authentication data missing");
     }
 
-    const perms = await checkPermission.all(c, ["view_companies"]);
+    const perms = await checkPermission.all(c, ["view_drive"]);
     if (!perms.allowed) {
       logger.warn(
         `Unauthorized access attempt to view companies by user ${authData.userId}`
@@ -75,11 +72,6 @@ const getCompanies = async (c: Context) => {
     );
     const skipCount = (page - 1) * pageSize;
 
-    // Optional filter for archived state
-    const showArchived = c.req.query("showArchived") === "true";
-    const archiveFilter = showArchived ? {} : { archived: false };
-
-    // Get institute and validate
     const institute = await Institute.findById(instituteId);
     if (!institute) {
       return sendError(c, 404, "Institute not found");
@@ -88,13 +80,11 @@ const getCompanies = async (c: Context) => {
     // Get total count for pagination metadata
     const totalCount = await Company.countDocuments({
       _id: { $in: institute.companies },
-      ...archiveFilter,
     });
 
     // Fetch companies with pagination
     const companies = await Company.find({
       _id: { $in: institute.companies },
-      ...archiveFilter,
     })
       .skip(skipCount)
       .limit(pageSize)
@@ -132,9 +122,99 @@ const getCompanies = async (c: Context) => {
   }
 };
 
-/**
- * Create a new company
- */
+const getCompany = async (c: Context) => {
+  try {
+    const authData = c.get("auth");
+    if (!authData) {
+      return sendError(c, 401, "Authentication data missing");
+    }
+
+    const perms = await checkPermission.all(c, ["view_drive"]);
+    if (!perms.allowed) {
+      logger.warn(
+        `Unauthorized access attempt to view company by user ${authData.userId}`
+      );
+      return sendError(c, 403, "You don't have permission to view companies");
+    }
+
+    const instituteId = perms.data?.institute?._id;
+    if (!instituteId) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    const companyId = c.req.param("id");
+    if (!companyId) {
+      return sendError(c, 400, "Company ID is required");
+    }
+
+    // Check if institute exists and contains the company
+    const institute = await Institute.findById(instituteId);
+    if (!institute) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    // Check if company belongs to institute
+    const isCompanyInInstitute = institute.companies.some(
+      (id) => id.toString() === companyId
+    );
+
+    if (!isCompanyInInstitute) {
+      return sendError(c, 404, "Company not found in this institute");
+    }
+
+    // Fetch company details
+    const company = await Company.findById(companyId).lean().exec();
+    if (!company) {
+      return sendError(c, 404, "Company not found");
+    }
+
+    // Format company data to avoid exposing sensitive information
+    const formattedCompany = {
+      _id: company._id?.toString(),
+      name: company.name,
+      description: company.description,
+      generalInfo: company.generalInfo,
+      hrContacts: company.hrContacts,
+      createdAt: company.createdAt,
+      updatedAt: company.updatedAt,
+      archived: company.archived || false,
+    };
+
+    const companyDrives = await Drive.find({ company: companyId });
+    const candidateIds = companyDrives.map((drive) => drive.candidates).flat();
+    const companyAppliedDrives = await AppliedDrive.find({
+      drive: { $in: companyDrives.map((drive) => drive._id) },
+    });
+
+    const hiredCandidateIds = companyAppliedDrives
+      .filter((appliedDrive) => appliedDrive.status === "hired")
+      .map((appliedDrive) => appliedDrive.user);
+
+    const candidates = await Candidate.find({
+      _id: { $in: candidateIds },
+    }).select("userId name email instituteUid institute instituteDepartment");
+
+    const finalCandidates = candidates.map((candidate) => ({
+      _id: candidate._id?.toString(),
+      name: candidate.name,
+      email: candidate.email,
+      uid: candidate.instituteUid,
+      department: candidate.instituteDepartment,
+      placed: hiredCandidateIds.includes(candidate._id),
+    }));
+
+    console.log(finalCandidates);
+    return sendSuccess(c, 200, "Company fetched successfully", {
+      company: formattedCompany,
+      candidates: finalCandidates,
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error(`Error fetching company: ${errorMessage}`);
+    return sendError(c, 500, "Something went wrong while fetching the company");
+  }
+};
+
 const createCompany = async (c: Context) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -145,7 +225,7 @@ const createCompany = async (c: Context) => {
       return sendError(c, 401, "Authentication data missing");
     }
 
-    const perms = await checkPermission.all(c, ["manage_companies"]);
+    const perms = await checkPermission.all(c, ["manage_drive"]);
     if (!perms.allowed) {
       logger.warn(
         `Unauthorized access attempt to create company by user ${authData.userId}`
@@ -300,9 +380,6 @@ const createCompany = async (c: Context) => {
   }
 };
 
-/**
- * Update an existing company
- */
 const updateCompany = async (c: Context) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -313,7 +390,7 @@ const updateCompany = async (c: Context) => {
       return sendError(c, 401, "Authentication data missing");
     }
 
-    const perms = await checkPermission.all(c, ["manage_companies"]);
+    const perms = await checkPermission.all(c, ["manage_drive"]);
     if (!perms.allowed) {
       logger.warn(
         `Unauthorized access attempt to update company by user ${authData.userId}`
@@ -479,9 +556,6 @@ const updateCompany = async (c: Context) => {
   }
 };
 
-/**
- * Toggle company archive status
- */
 const archiveCompany = async (c: Context) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -492,7 +566,7 @@ const archiveCompany = async (c: Context) => {
       return sendError(c, 401, "Authentication data missing");
     }
 
-    const perms = await checkPermission.all(c, ["manage_companies"]);
+    const perms = await checkPermission.all(c, ["manage_drive"]);
     if (!perms.allowed) {
       logger.warn(
         `Unauthorized access attempt to archive company by user ${authData.userId}`
@@ -574,9 +648,6 @@ const archiveCompany = async (c: Context) => {
   }
 };
 
-/**
- * Delete a company
- */
 const deleteCompany = async (c: Context) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -587,7 +658,7 @@ const deleteCompany = async (c: Context) => {
       return sendError(c, 401, "Authentication data missing");
     }
 
-    const perms = await checkPermission.all(c, ["manage_companies"]);
+    const perms = await checkPermission.all(c, ["manage_drive"]);
     if (!perms.allowed) {
       logger.warn(
         `Unauthorized access attempt to delete company by user ${authData.userId}`
@@ -670,4 +741,5 @@ export default {
   updateCompany,
   archiveCompany,
   deleteCompany,
+  getCompany,
 };

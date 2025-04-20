@@ -24,9 +24,7 @@ const Start = lazy(() => import("./pages/start/Start"));
 const Join = lazy(() => import("./pages/join/Join"));
 const Onboarding = lazy(() => import("./pages/onboarding/Onboarding"));
 const CandidateLayout = lazy(() => import("./pages/candidates/Layout"));
-const CompanyDetails = lazy(
-  () => import("./pages/companyprofiles/CompanyDetails")
-);
+const Company = lazy(() => import("./pages/companies/company/Company"));
 
 // Dashboard and other main views
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
@@ -34,8 +32,8 @@ const Drives = lazy(() => import("./pages/drives/Drives"));
 const PlacementGroups = lazy(
   () => import("./pages/placementgroups/PlacementGroups")
 );
-const CompanyProfiles = lazy(
-  () => import("./pages/companyprofiles/CompanyProfiles")
+const Companies = lazy(
+  () => import("./pages/companies/Companies")
 );
 const Candidates = lazy(() => import("./pages/candidates/Candidates"));
 const Analytics = lazy(() => import("./pages/analytics/Analytics"));
@@ -471,18 +469,18 @@ function App() {
           ),
         },
         {
-          path: "companyprofiles",
+          path: "companies",
           element: (
             <Suspense fallback={<Loader />}>
-              <CompanyProfiles />
+              <Companies />
             </Suspense>
           ),
         },
         {
-          path: "company/:id",
+          path: "companies/:id",
           element: (
             <Suspense fallback={<Loader />}>
-              <CompanyDetails />
+              <Company />
             </Suspense>
           ),
         },

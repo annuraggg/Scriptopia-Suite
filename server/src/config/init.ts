@@ -23,7 +23,7 @@ import postingRoutes from "../routes/postingRoute";
 import candidateRoute from "../routes/candidateRoute";
 import walletRoute from "@/routes/walletRoute";
 import placementGroupRoutes from "../routes/placementGroupsroute";
-import companyProfileRoute from "../routes/companyProfileRoute";
+import companyProfileRoute from "../routes/companyRoute";
 import meetRoutes from "../routes/meetRoutes";
 
 import userRoute from "../routes/userRoute";

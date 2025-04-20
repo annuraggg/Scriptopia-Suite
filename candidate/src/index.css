@@ -6,33 +6,33 @@
 
 @layer base {
   :root {
-    --background: 210 33% 97%;
-    --foreground: 228 19% 15%;
-    --card: 210 33% 97%;
-    --card-foreground: 228 19% 15%;
-    --popover: 210 33% 97%;
-    --popover-foreground: 228 19% 15%;
-    --primary: 47 100% 59%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 92 32% 50%; /* Adjusted for better contrast */
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 179 55% 35%; /* Adjusted to be richer */
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
+    --background: 0 0% 100%; /* #FFFFFF */
+    --foreground: 210 29% 16%; /* #1D2935 */
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 210 29% 16%; /* #1D2935 */
+    --popover: 0 0% 100%; /* #FFFFFF */
+    --popover-foreground: 210 29% 16%; /* #1D2935 */
+    --primary: 122 55% 49%; /* #4CAF50 */
+    --primary-foreground: 0 0% 100%; /* #FFFFFF */
+    --secondary: 210 100% 45%; /* #0073E6 */
+    --secondary-foreground: 0 0% 100%; /* #FFFFFF */
+    --muted: 210 29% 16%; /* #1D2935 with reduced opacity */
+    --muted-foreground: 210 29% 16%; /* #1D2935 with reduced opacity */
+    --accent: 42 100% 52%; /* #FFC107 */
+    --accent-foreground: 210 29% 16%; /* #1D2935 */
+    --destructive: 0 84.2% 60.2%; /* Keeping destructive color for error states */
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --border: 210 29% 70%; /* Lighter version of text color for borders */
+    --input: 210 29% 90%; /* Very light version of text color for inputs */
+    --ring: 122 55% 49%; /* #4CAF50 - matching primary */
     --radius: 0.5rem;
 
     /* Chart Colors */
-    --chart-1: 35 92% 55%; /* A richer orange */
-    --chart-2: 150 52% 40%; /* Deeper green */
-    --chart-3: 175 42% 30%; /* Darker teal for contrast */
-    --chart-4: 45 85% 60%; /* Bright yellow */
-    --chart-5: 28 95% 65%; /* Vibrant golden-orange */
+    --chart-1: 122 55% 49%; /* #4CAF50 - Primary */
+    --chart-2: 210 100% 45%; /* #0073E6 - Secondary */
+    --chart-3: 42 100% 52%; /* #FFC107 - Support */
+    --chart-4: 122 40% 60%; /* Lighter green variant */
+    --chart-5: 210 70% 65%; /* Lighter blue variant */
   }
 }
 
@@ -82,32 +82,33 @@ html {
 
 .ce-toolbar__plus,
 .ce-toolbar__settings-btn {
-  color: white;
+  color: #1d2935;
 }
 
 .ce-toolbar__plus:hover,
 .ce-toolbar__settings-btn:hover,
 .ce-inline-tool:hover {
-  color: white;
-  background-color: rgb(57, 57, 57);
+  color: #ffffff;
+  background-color: #4caf50;
 }
 
 .ce-inline-toolbar,
 .ce-conversion-toolbar,
 .ce-conversion-tool__icon {
-  background-color: black;
+  background-color: #0073e6;
+  color: #ffffff;
 }
 
 .ce-inline-toolbar__dropdown:hover {
-  background-color: rgb(32, 31, 31);
+  background-color: #005bb8;
 }
 
 .ce-block ::selection {
-  background: rgb(68, 68, 68);
+  background: rgba(76, 175, 80, 0.3); /* #4CAF50 with opacity */
 }
 
 .cdx-notifies {
-  background-color: rgb(57, 57, 57);
+  background-color: #ffffff;
   width: 50vw;
 }
 
@@ -115,20 +116,20 @@ html {
 .cdx-notify,
 .cdx-notify--error,
 .cdx-notify--bounce-in {
-  background-color: rgb(57, 57, 57) !important;
-  color: black;
+  background-color: #ffffff !important;
+  color: #1d2935;
   width: 50vw !important;
 }
 
 .cdx-input {
-  background-color: black !important;
-  color: white !important;
-  border: none !important;
+  background-color: #ffffff !important;
+  color: #1d2935 !important;
+  border: 1px solid #4caf50 !important;
   border-radius: 20px !important;
 }
 
 .link-tool__input-holder--error {
-  background-color: rgb(57, 57, 57);
+  background-color: rgba(29, 41, 53, 0.1); /* #1D2935 with opacity */
 }
 
 /* width */
@@ -144,16 +145,16 @@ html {
 /* Handle */
 ::-webkit-scrollbar-thumb {
   border-radius: 200px;
-  background: #2e2e33;
+  background: #4caf50;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #3d8b40;
 }
 
 .w-split-bar {
-  background-color: #161618;
+  background-color: #0073e6;
   border: none;
   outline: none;
   box-shadow: none !important;
@@ -161,7 +162,7 @@ html {
 }
 
 .w-split-bar:hover {
-  background-color: #2e2e33 !important;
+  background-color: #005bb8 !important;
 }
 
 .ql-toolbar {
@@ -169,36 +170,37 @@ html {
   border-radius: 10px;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
+  background-color: #ffffff;
 }
 
 .ql-toolbar .ql-stroke {
   fill: none;
-  stroke: #ffffff !important;
-  background-color: #ffffff !important;
+  stroke: #1d2935 !important;
+  background-color: transparent !important;
 }
 
 .ql-editor.ql-blank::before {
-  color: #ffffff !important;
+  color: rgba(29, 41, 53, 0.6) !important; /* #1D2935 with opacity */
 }
 
 .ql-toolbar .ql-fill {
-  fill: #ffffff;
+  fill: #1d2935;
 }
 
 .ql-toolbar .ql-fill {
-  fill: #ffffff !important;
+  fill: #1d2935 !important;
   stroke: none;
 }
 
 .ql-active .ql-fill {
-  fill: skyblue !important;
+  fill: #4caf50 !important;
   stroke: none;
 }
 
 button:hover .ql-stroke,
 .ql-picker-label:hover .ql-stroke {
   fill: none;
-  stroke: skyblue !important;
+  stroke: #4caf50 !important;
 }
 
 .ql-container {
@@ -206,16 +208,17 @@ button:hover .ql-stroke,
   border-radius: 10px;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
+  background-color: #ffffff;
 }
 
 .ql-active .ql-stroke {
   fill: none;
-  stroke: skyblue !important;
+  stroke: #4caf50 !important;
 }
 
 button:hover .ql-fill,
 .ql-picker-label:hover .ql-fill {
-  fill: skyblue !important;
+  fill: #4caf50 !important;
   stroke: none;
 }
 

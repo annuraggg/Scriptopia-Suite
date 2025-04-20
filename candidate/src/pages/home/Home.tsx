@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
 import {
@@ -46,6 +46,14 @@ interface JobTypeOption {
   label: string;
 }
 
+// API pagination interface
+interface PaginationData {
+  page: number;
+  limit: number;
+  totalItems: number;
+  totalPages: number;
+}
+
 // Constants
 const JOB_TYPES: JobTypeOption[] = [
   { value: "full_time", label: "Full Time" },
@@ -72,103 +80,107 @@ const JOB_TYPE_COLORS: Record<
 const Home = () => {
   // State management
   const [postings, setPostings] = useState<ExtendedPosting[]>([]);
-  const [filteredPostings, setFilteredPostings] = useState<ExtendedPosting[]>(
-    []
-  );
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedJobTypes, setSelectedJobTypes] = useState<JobType[]>([]);
   const [salaryRange, setSalaryRange] = useState<SalaryRange>([0, 1000000]);
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [paginationData, setPaginationData] = useState<PaginationData>({
+    page: 1,
+    limit: 10,
+    totalItems: 0,
+    totalPages: 0,
+  });
 
   // Constants
-  const ITEMS_PER_PAGE = 6;
   const DEFAULT_SALARY_MAX = 1000000;
+  const DEFAULT_LIMIT = 10;
 
   // Hooks
   const { getToken } = useAuth();
   const navigate = useNavigate();
   const axios = ax(getToken);
 
-  // Fetch job postings on component mount
+  // Fetch job postings when page or filters change
   useEffect(() => {
     fetchPostings();
-  }, []);
+  }, [currentPage]);
 
-  // Apply filters whenever the filter values or postings change
+  // Fetch job postings with debounce for filters
   useEffect(() => {
-    applyFilters();
-    // Reset to first page when filters change
-    setCurrentPage(1);
-  }, [selectedJobTypes, salaryRange, postings, searchQuery]);
+    const timer = setTimeout(() => {
+      setCurrentPage(1); // Reset to first page when filters change
+      fetchPostings();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [selectedJobTypes, salaryRange, searchQuery]);
 
   /**
-   * Fetch job postings from API
+   * Fetch job postings from API with pagination
    */
   const fetchPostings = async (): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get("/postings/candidate/postings");
-      if (response.data?.data) {
-        setPostings(response.data.data);
-        setFilteredPostings(response.data.data);
+      // Build query parameters for pagination
+      const params = new URLSearchParams();
+      params.append("page", currentPage.toString());
+      params.append("limit", DEFAULT_LIMIT.toString());
+
+      // Add filters if any
+      if (selectedJobTypes.length > 0) {
+        // Convert job types to query parameter
+        params.append("type", selectedJobTypes.join(","));
+      }
+
+      if (salaryRange[0] > 0) {
+        params.append("minSalary", salaryRange[0].toString());
+      }
+
+      if (salaryRange[1] < DEFAULT_SALARY_MAX) {
+        params.append("maxSalary", salaryRange[1].toString());
+      }
+
+      if (searchQuery.trim()) {
+        params.append("search", searchQuery.trim());
+      }
+
+      const response = await axios.get(
+        `/postings/candidate/postings?${params.toString()}`
+      );
+
+      if (response.data?.data !== undefined) {
+        console.log("Fetched postings:", response.data.data.data);
+        console.log("Pagination:", response.data.pagination);
+        setPostings(response.data.data.data);
+        setPaginationData(response.data.data.pagination);
       } else {
         setError("No job postings available");
         setPostings([]);
-        setFilteredPostings([]);
+        setPaginationData({
+          page: 1,
+          limit: DEFAULT_LIMIT,
+          totalItems: 0,
+          totalPages: 0,
+        });
       }
     } catch (err) {
       console.error("Failed to fetch job postings:", err);
       setError("Failed to fetch job postings. Please try again later.");
       setPostings([]);
-      setFilteredPostings([]);
+      setPaginationData({
+        page: 1,
+        limit: DEFAULT_LIMIT,
+        totalItems: 0,
+        totalPages: 0,
+      });
     } finally {
       setLoading(false);
     }
-  };
-
-  /**
-   * Apply filters to job postings
-   */
-  const applyFilters = (): void => {
-    let filtered = [...postings];
-
-    // Apply job type filter
-    if (selectedJobTypes.length > 0) {
-      filtered = filtered.filter(
-        (posting) =>
-          posting.type &&
-          selectedJobTypes.includes(posting.type.toLowerCase() as JobType)
-      );
-    }
-
-    // Apply salary filter
-    filtered = filtered.filter((posting) => {
-      const minSalary = posting.salary?.min || 0;
-      const maxSalary = posting.salary?.max || 0;
-
-      // Check if the salary range overlaps with the filter range
-      return (
-        (minSalary >= salaryRange[0] && minSalary <= salaryRange[1]) ||
-        (maxSalary >= salaryRange[0] && maxSalary <= salaryRange[1]) ||
-        (minSalary <= salaryRange[0] && maxSalary >= salaryRange[1])
-      );
-    });
-
-    // Apply search query filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(
-        (posting) =>
-          posting.title?.toLowerCase().includes(query) ||
-          posting.organizationId?.name?.toLowerCase().includes(query) ||
-          posting.location?.toLowerCase().includes(query)
-      );
-    }
-
-    setFilteredPostings(filtered);
   };
 
   /**
@@ -271,15 +283,7 @@ const Home = () => {
     setSearchQuery("");
   };
 
-  // Calculate pagination
-  const paginatedPostings = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredPostings.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredPostings, currentPage]);
-
-  const totalPages = Math.ceil(filteredPostings.length / ITEMS_PER_PAGE);
-
-  if (loading) return <Loader />;
+  if (loading && postings.length === 0) return <Loader />;
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -289,8 +293,10 @@ const Home = () => {
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Job Listings</h1>
             <p className="text-gray-500 mt-1">
-              {filteredPostings.length}{" "}
-              {filteredPostings.length === 1 ? "opportunity" : "opportunities"}{" "}
+              {paginationData.totalItems}{" "}
+              {paginationData.totalItems === 1
+                ? "opportunity"
+                : "opportunities"}{" "}
               found
             </p>
           </div>
@@ -408,7 +414,7 @@ const Home = () => {
                   </Button>
                 </div>
               </Card>
-            ) : filteredPostings.length === 0 ? (
+            ) : postings.length === 0 && !loading ? (
               <Card className="shadow-sm p-8 text-center">
                 <div className="flex flex-col items-center justify-center py-6">
                   <div className="bg-gray-100 p-3 rounded-full mb-4">
@@ -428,7 +434,7 @@ const Home = () => {
             ) : (
               <>
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
-                  {paginatedPostings.map((posting) => (
+                  {postings.map((posting) => (
                     <Card
                       key={posting._id}
                       className="shadow-sm hover:shadow-md transition-shadow"
@@ -519,7 +525,9 @@ const Home = () => {
                         </div>
 
                         <p className="text-sm text-gray-600 line-clamp-2 h-10">
-                          {formatDescription(posting?.description as unknown as Delta)}
+                          {formatDescription(
+                            posting?.description as unknown as Delta
+                          )}
                         </p>
 
                         <Divider className="my-3" />
@@ -531,7 +539,12 @@ const Home = () => {
 
                           <div className="flex items-center gap-1">
                             <Clock size={14} />
-                            <span>Posted {getAgoDays(posting?.createdAt)}</span>
+                            <span>
+                              Posted{" "}
+                              {getAgoDays(
+                                posting?.publishedOn || posting?.createdAt
+                              )}
+                            </span>
                           </div>
                         </div>
 
@@ -549,16 +562,22 @@ const Home = () => {
                   ))}
                 </div>
 
-                {/* Pagination */}
-                {totalPages > 1 && (
+                {/* Server-side pagination */}
+                {paginationData.totalPages > 1 && (
                   <div className="flex justify-center mt-6">
                     <Pagination
-                      total={totalPages}
-                      initialPage={1}
+                      total={paginationData.totalPages}
                       page={currentPage}
-                      onChange={setCurrentPage}
+                      onChange={(page) => setCurrentPage(page)}
                       showControls
                     />
+                  </div>
+                )}
+
+                {/* Loading indicator when changing pages */}
+                {loading && postings.length > 0 && (
+                  <div className="flex justify-center mt-4">
+                    <Loader />
                   </div>
                 )}
               </>

@@ -273,6 +273,7 @@ const candidateSchema = new Schema(
 
     institute: { type: mongoose.Schema.Types.ObjectId, ref: "Institute" },
     instituteUid: { type: String, required: false },
+    instituteDepartment: { type: String, required: false },
 
     // Profile completion metadata
     profileCompletionPercentage: { type: Number, default: 0 },

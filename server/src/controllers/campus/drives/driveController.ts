@@ -204,117 +204,6 @@ const getDrive = async (c: Context) => {
   }
 };
 
-const getDrivesForCandidate = async (c: Context) => {
-  try {
-    const authData = c.get("auth");
-    const _id = authData?._id;
-
-    if (!_id) {
-      return sendError(c, 401, "Authentication required");
-    }
-
-    const page = parseInt(c.req.query("page") || "1", 10);
-    const limit = Math.min(parseInt(c.req.query("limit") || "20", 10), 100);
-    const skip = (page - 1) * limit;
-
-    if (isNaN(page) || page < 1 || isNaN(limit) || limit < 1) {
-      return sendError(c, 400, "Invalid pagination parameters");
-    }
-
-    const candidate = await Candidate.findOne({ userId: _id });
-    if (!candidate) {
-      return sendError(c, 404, "Candidate not found");
-    }
-
-    const institute = await Institute.findById(candidate?.institute).select(
-      "departments"
-    );
-
-    if (!institute) {
-      return sendError(c, 404, "Institute not found");
-    }
-
-    const totalDrives = await Drive.countDocuments({
-      institute: candidate.institute,
-      published: true,
-    });
-
-    const drives = await Drive.find({
-      institute: candidate.institute,
-      published: true,
-    })
-      .select(
-        "title company applicationRange url published publishedOn hasEnded"
-      )
-      .populate("company", "name logo")
-      .sort({ publishedOn: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    return sendSuccess(c, 200, "Drives fetched successfully", {
-      drives,
-      departments: institute?.departments || [],
-      pagination: {
-        total: totalDrives,
-        page,
-        pages: Math.ceil(totalDrives / limit),
-        limit,
-      },
-    });
-  } catch (e: any) {
-    logger.error(`Error in getDrivesForCandidate: ${e.message}`);
-    return sendError(c, 500, "Internal server error");
-  }
-};
-
-const getDriveForCandidate = async (c: Context) => {
-  try {
-    const authData = c.get("auth");
-    const _id = authData?._id;
-
-    if (!_id) {
-      return sendError(c, 401, "Authentication required");
-    }
-
-    const id = c.req.param("id");
-
-    if (!validateObjectId(id)) {
-      return sendError(c, 400, "Invalid drive ID format");
-    }
-
-    const candidate = await Candidate.findOne({ userId: _id });
-    if (!candidate) {
-      return sendError(c, 404, "Candidate not found");
-    }
-
-    const institute = await Institute.findById(candidate?.institute).select(
-      "departments"
-    );
-
-    if (!institute) {
-      return sendError(c, 404, "Institute not found");
-    }
-
-    const drive = await Drive.findOne({
-      _id: new mongoose.Types.ObjectId(id),
-      published: true,
-      institute: candidate.institute,
-    }).populate("company", "name logo");
-
-    if (!drive) {
-      return sendError(c, 404, "Drive not found");
-    }
-
-    return sendSuccess(c, 200, "Drive fetched successfully", {
-      drive,
-      departments: institute?.departments || [],
-    });
-  } catch (e: any) {
-    logger.error(`Error in getDriveForCandidate: ${e.message}`);
-    return sendError(c, 500, "Internal server error");
-  }
-};
-
 const getDriveBySlug = async (c: Context) => {
   try {
     const slug = c.req.param("slug");
@@ -1703,8 +1592,6 @@ export default {
   gradeAssignment,
   getAssignmentSubmission,
   getAppliedDrives,
-  getDrivesForCandidate,
-  getDriveForCandidate,
   getCandidatesForDrive,
   endDrive,
   uploadOfferLetter,
