@@ -1,3 +1,4 @@
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
@@ -88,10 +89,6 @@ placementGroupSchema.index({ "academicYear.start": 1, "academicYear.end": 1 });
 placementGroupSchema.index({ expiryDate: 1 });
 placementGroupSchema.index({ institute: 1, archived: 1 });
 
-// Virtual: isActive
-placementGroupSchema.virtual("isActive").get(function () {
-  return !this.archived && new Date(this.expiryDate) > new Date();
-});
-
+placementGroupSchema.plugin(softDeletePlugin);
 const PlacementGroup = mongoose.model("PlacementGroup", placementGroupSchema);
 export default PlacementGroup;

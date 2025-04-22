@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "forceStart": "npx kill-port 5170 && npm run dev",
     "preview": "vite preview",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
     "@nextui-org/react": "^2.4.8",

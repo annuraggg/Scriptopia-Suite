@@ -1,6 +1,7 @@
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose from "mongoose";
 
-const MeetSchema = new mongoose.Schema({
+const meetSchema = new mongoose.Schema({
   candidates: {
     type: [mongoose.Schema.Types.ObjectId],
     ref: "Candidate",
@@ -11,5 +12,6 @@ const MeetSchema = new mongoose.Schema({
   code: { type: String },
 });
 
-const Meet = mongoose.model("Meet", MeetSchema);
+meetSchema.plugin(softDeletePlugin);
+const Meet = mongoose.model("Meet", meetSchema);
 export default Meet;

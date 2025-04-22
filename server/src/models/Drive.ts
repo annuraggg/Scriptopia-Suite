@@ -1,3 +1,4 @@
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
@@ -286,5 +287,6 @@ driveSchema.index({ department: 1 });
 driveSchema.index({ title: 1 });
 driveSchema.index({ "ats.status": 1 });
 
+driveSchema.plugin(softDeletePlugin)
 const Drive = mongoose.model("Drive", driveSchema);
 export default Drive;

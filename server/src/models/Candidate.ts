@@ -1,3 +1,4 @@
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose from "mongoose";
 import { Schema } from "mongoose";
 
@@ -273,6 +274,7 @@ const candidateSchema = new Schema(
 
     institute: { type: mongoose.Schema.Types.ObjectId, ref: "Institute" },
     instituteUid: { type: String, required: false },
+    instituteDepartment: { type: String, required: false },
 
     // Profile completion metadata
     profileCompletionPercentage: { type: Number, default: 0 },
@@ -290,5 +292,6 @@ candidateSchema.index({ institute: 1 });
 candidateSchema.index({ "academicAggregates.hasBacklogs": 1 });
 candidateSchema.index({ "academicAggregates.activeBacklogs": 1 });
 
+candidateSchema.plugin(softDeletePlugin);
 const Candidate = mongoose.model("Candidate", candidateSchema);
 export default Candidate;

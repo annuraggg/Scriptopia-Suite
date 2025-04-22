@@ -1,3 +1,4 @@
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose, { Schema } from "mongoose";
 
 const offenseSchema = new Schema({
@@ -24,7 +25,7 @@ const obtainedGradeSchema = new Schema({
   total: { type: Number, required: true },
 });
 
-const MCQAssessmentSubmissionsSchema = new Schema(
+const mcqAssessmentSubmissionsSchema = new Schema(
   {
     assessmentId: {
       type: Schema.Types.ObjectId,
@@ -54,13 +55,14 @@ const MCQAssessmentSubmissionsSchema = new Schema(
   { timestamps: true }
 );
 
-MCQAssessmentSubmissionsSchema.index({ assessmentId: 1 });
-MCQAssessmentSubmissionsSchema.index({ email: 1 });
-MCQAssessmentSubmissionsSchema.index({ status: 1 });
+mcqAssessmentSubmissionsSchema.index({ assessmentId: 1 });
+mcqAssessmentSubmissionsSchema.index({ email: 1 });
+mcqAssessmentSubmissionsSchema.index({ status: 1 });
 
+mcqAssessmentSubmissionsSchema.plugin(softDeletePlugin)
 const MCQAssessmentSubmissions = mongoose.model(
   "MCQAssessmentSubmissions",
-  MCQAssessmentSubmissionsSchema
+  mcqAssessmentSubmissionsSchema
 );
 
 export default MCQAssessmentSubmissions;

@@ -35,6 +35,7 @@ const RewardDrawer = ({
   reward: { earned: boolean; amount: number } | null;
   difficulty: string;
 }) => {
+
   return (
     <Drawer open={isOpen} onClose={onClose}>
       <DrawerContent className="outline-none">
@@ -92,6 +93,8 @@ const Problem = ({
   onExternalPaste,
 
   submitOverride,
+
+  setRefetch,
 }: {
   loading: boolean;
   problem: ProblemType;
@@ -109,6 +112,8 @@ const Problem = ({
   onExternalPaste?: (pastedText: string) => void;
 
   submitOverride?: (code: string, language: string, problemId: string) => void;
+
+  setRefetch?: any;
 }) => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -128,6 +133,12 @@ const Problem = ({
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const [leftPaneActTab, setLeftPaneActTab] = useState<string>("statement");
   const [componentLoading, setComponentLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (reward) {
+      setRefetch((prev: boolean) => !prev);
+    }
+  }, [reward]);
 
   useEffect(() => {
     if (!problem.sdsl) return;

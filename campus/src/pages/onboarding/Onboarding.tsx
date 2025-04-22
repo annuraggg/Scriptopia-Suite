@@ -5,7 +5,7 @@ import Contact from "./Contact";
 import Team from "./Team";
 import { Button } from "@nextui-org/react";
 import { toast } from "sonner";
-import { useAuth, useUser } from "@clerk/clerk-react";
+import { SignOutButton, useAuth, useUser } from "@clerk/clerk-react";
 import { setInstitute } from "@/reducers/instituteReducer";
 import { useDispatch } from "react-redux";
 import ax from "@/config/axios";
@@ -186,10 +186,14 @@ const Onboarding = () => {
         </div>
         <p className="mt-3 opacity-50">
           {currentStep + 1} of {steps.length}
-        </p>
-
-        <div className="mt-5 h-[65%]">{steps[currentStep].component}</div>
-
+        </p>{" "}
+        <div className="mt-5 flex gap-2">
+          <p>Signed in as {user?.emailAddresses[0].emailAddress}</p>
+          <SignOutButton>
+            <p className="text-danger underline cursor-pointer">Logout</p>
+          </SignOutButton>
+        </div>
+        <div className="mt-5 h-[60%] overflow-y-auto">{steps[currentStep].component}</div>
         <div className="flex items-center gap-3 justify-end self-end">
           <Button
             onClick={() => setCurrentStep(currentStep - 1)}

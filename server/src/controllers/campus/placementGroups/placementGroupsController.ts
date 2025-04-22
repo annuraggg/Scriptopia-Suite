@@ -6,131 +6,239 @@ import checkInstitutePermission from "../../../middlewares/checkInstitutePermiss
 import PlacementGroup from "@/models/PlacementGroup";
 import Candidate from "@/models/Candidate";
 import Drive from "@/models/Drive";
+import { z } from "zod";
+import mongoose from "mongoose";
+
+const PlacementGroupSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  academicYear: z.string().min(1, "Academic year is required"),
+  departments: z
+    .array(z.string())
+    .min(1, "At least one department is required"),
+  purpose: z.string().optional(),
+  expiryDate: z.string().datetime().optional(),
+  accessType: z.enum(["public", "private", "invite"]).optional(),
+  candidates: z.array(z.string()).optional().default([]),
+  criteria: z.any().optional(),
+});
+
+interface UpdateData {
+  [key: string]: any;
+}
 
 const createPlacementGroup = async (c: Context) => {
   try {
-    const { userId, _id } = c.get("auth");
     const body = await c.req.json();
+    const validationResult = PlacementGroupSchema.safeParse(body);
+    if (!validationResult.success) {
+      return sendError(
+        c,
+        400,
+        "Invalid request body",
+        validationResult.error.errors
+      );
+    }
+
+    const validatedData = validationResult.data;
+    const { userId, _id } = c.get("auth");
 
     const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
     if (!perms.allowed) {
-      return sendError(c, 403, "Unauthorized");
+      return sendError(
+        c,
+        403,
+        "You don't have permission to create placement groups"
+      );
     }
-
-    const {
-      name,
-      academicYear,
-      departments,
-      purpose,
-      expiryDate,
-      accessType,
-      candidates,
-      criteria,
-    } = body;
 
     const clerkUser = await clerkClient.users.getUser(userId);
     if (!clerkUser) {
-      return sendError(c, 403, "Unauthorized");
+      return sendError(c, 403, "User not found");
     }
 
     const instituteId = (clerkUser.publicMetadata.institute as any)?._id;
-    console.log(clerkUser.publicMetadata);
+    if (!instituteId) {
+      return sendError(c, 400, "Institute not associated with user");
+    }
 
-    const group = await PlacementGroup.create({
-      name,
-      institute: instituteId,
-      academicYear,
-      criteria,
-      departments,
-      purpose,
-      expiryDate,
-      accessType,
-      candidates,
-      createdBy: _id,
-    });
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    await Institute.findByIdAndUpdate(instituteId, {
-      $push: {
-        placementGroups: group._id,
-      },
-    });
+    try {
+      const group = await PlacementGroup.create(
+        [
+          {
+            name: validatedData.name,
+            institute: instituteId,
+            academicYear: validatedData.academicYear,
+            criteria: validatedData.criteria || {},
+            departments: validatedData.departments,
+            purpose: validatedData.purpose || "",
+            expiryDate: validatedData.expiryDate,
 
-    await Institute.findByIdAndUpdate(instituteId, {
-      $push: {
-        auditLogs: {
-          action: "create",
-          userId: _id,
-          user: clerkUser.fullName,
-          type: "info",
+            ...(validatedData.accessType && {
+              accessType: validatedData.accessType,
+            }),
+            candidates: validatedData.candidates || [],
+            createdBy: _id,
+            pendingCandidates: [],
+          },
+        ],
+        { session }
+      );
+
+      await Institute.findByIdAndUpdate(
+        instituteId,
+        {
+          $push: {
+            placementGroups: group[0]._id,
+            auditLogs: {
+              action: "create_placement_group",
+              userId: _id,
+              user: clerkUser.fullName,
+              type: "info",
+              details: `Created placement group: ${validatedData.name}`,
+              timestamp: new Date(),
+            },
+          },
         },
-      },
-    });
+        { session }
+      );
 
-    return sendSuccess(c, 200, "Placement group created", group);
+      await session.commitTransaction();
+      session.endSession();
+
+      return sendSuccess(
+        c,
+        201,
+        "Placement group created successfully",
+        group[0]
+      );
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
   } catch (err) {
-    console.error(err);
-    return sendError(c, 500, "Internal server error", err);
+    console.error(
+      "Error creating placement group:",
+      err instanceof Error ? err.message : "Unknown error"
+    );
+    return sendError(c, 500, "Failed to create placement group");
   }
 };
 
 const getPlacementGroups = async (c: Context) => {
   try {
     const { userId } = c.get("auth");
+
     const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
     if (!perms.allowed) {
-      return sendError(c, 403, "Unauthorized");
+      return sendError(
+        c,
+        403,
+        "You don't have permission to view placement groups"
+      );
     }
+
+    const page = parseInt(c.req.query("page") || "1");
+    const limit = Math.min(parseInt(c.req.query("limit") || "10"), 50);
+    const skip = (page - 1) * limit;
 
     const clerkUser = await clerkClient.users.getUser(userId);
     if (!clerkUser) {
-      return sendError(c, 403, "Unauthorized");
+      return sendError(c, 403, "User not found");
     }
 
     const instituteId = (clerkUser.publicMetadata.institute as any)?._id;
+    if (!instituteId) {
+      return sendError(c, 400, "Institute not associated with user");
+    }
+
+    const totalCount = await PlacementGroup.countDocuments({
+      institute: instituteId,
+    });
 
     const groups = await PlacementGroup.find({ institute: instituteId })
-      .populate("departments")
-      .populate("candidates")
-      .populate("createdBy")
-      .populate("pendingCandidates")
-      .sort({ createdAt: -1 });
+      .populate("departments", "name")
+      .populate("candidates", "name email")
+      .populate("createdBy", "name email")
+      .populate("pendingCandidates", "name email")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
 
-    return sendSuccess(c, 200, "Placement groups fetched", groups);
+    return sendSuccess(c, 200, "Placement groups fetched successfully", {
+      groups,
+      pagination: {
+        total: totalCount,
+        page,
+        pages: Math.ceil(totalCount / limit),
+        limit,
+      },
+    });
   } catch (err) {
-    console.error(err);
-    return sendError(c, 500, "Internal server error", err);
+    console.error(
+      "Error fetching placement groups:",
+      err instanceof Error ? err.message : "Unknown error"
+    );
+    return sendError(c, 500, "Failed to fetch placement groups");
   }
 };
 
 const getPlacementGroup = async (c: Context) => {
   try {
     const { userId } = c.get("auth");
+    const groupId = c.req.param("id");
+
+    if (!mongoose.Types.ObjectId.isValid(groupId)) {
+      return sendError(c, 400, "Invalid placement group ID");
+    }
+
     const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
     if (!perms.allowed) {
-      return sendError(c, 403, "Unauthorized");
+      return sendError(
+        c,
+        403,
+        "You don't have permission to view placement groups"
+      );
     }
 
     const clerkUser = await clerkClient.users.getUser(userId);
     if (!clerkUser) {
-      return sendError(c, 403, "Unauthorized");
+      return sendError(c, 403, "User not found");
     }
 
-    const groupId = c.req.param("id");
+    const instituteId = (clerkUser.publicMetadata.institute as any)?._id;
+    if (!instituteId) {
+      return sendError(c, 400, "Institute not associated with user");
+    }
 
-    const group = await PlacementGroup.findById(groupId)
-      .populate("departments")
-      .populate("candidates")
-      .populate("createdBy")
-      .sort({ createdAt: -1 });
+    const group = await PlacementGroup.findOne({
+      _id: groupId,
+      institute: instituteId,
+    })
+      .populate("departments", "name")
+      .populate("candidates", "name email")
+      .populate("createdBy", "name email")
+      .lean();
 
     if (!group) {
-      return sendError(c, 404, "Placement group not found");
+      return sendError(
+        c,
+        404,
+        "Placement group not found or you don't have access to it"
+      );
     }
 
-    return sendSuccess(c, 200, "Placement group fetched", group);
+    return sendSuccess(c, 200, "Placement group fetched successfully", group);
   } catch (err) {
-    console.error(err);
-    return sendError(c, 500, "Internal server error", err);
+    console.error(
+      "Error fetching placement group:",
+      err instanceof Error ? err.message : "Unknown error"
+    );
+    return sendError(c, 500, "Failed to fetch placement group");
   }
 };
 
@@ -139,18 +247,30 @@ const joinPlacementGroup = async (c: Context) => {
     const id = c.req.param("id");
     const { _id } = c.get("auth");
 
-    const user = await Candidate.findOne({ userId: _id });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return sendError(c, 400, "Invalid placement group ID");
+    }
+
+    const user = await Candidate.findOne({ userId: _id }).lean();
     if (!user) {
       return sendError(c, 404, "User not found");
     }
 
-    const institute = await Institute.findById(user.institute);
+    const institute = await Institute.findById(user.institute).lean();
     if (!institute) {
       return sendError(c, 404, "Institute not found");
     }
 
-    if (!institute.candidates.includes(user._id)) {
-      return sendError(c, 403, "Unauthorized");
+    if (
+      !institute.candidates.some(
+        (candidateId) => candidateId.toString() === user._id.toString()
+      )
+    ) {
+      return sendError(
+        c,
+        403,
+        "You are not a registered candidate of this institute"
+      );
     }
 
     const group = await PlacementGroup.findById(id);
@@ -158,102 +278,306 @@ const joinPlacementGroup = async (c: Context) => {
       return sendError(c, 404, "Placement group not found");
     }
 
-    if (group.candidates.includes(user._id)) {
-      return sendError(c, 400, "Already a member of the group");
+    if (group.institute.toString() !== institute._id.toString()) {
+      return sendError(c, 403, "You don't have access to this placement group");
     }
 
-    if (group.pendingCandidates.includes(user._id)) {
-      return sendError(c, 400, "Already requested to join the group");
+    if (
+      group.candidates.some(
+        (candidateId) => candidateId.toString() === user._id.toString()
+      )
+    ) {
+      return sendError(c, 400, "You are already a member of this group");
     }
+
+    if (
+      group.pendingCandidates.some(
+        (candidateId) => candidateId.toString() === user._id.toString()
+      )
+    ) {
+      return sendError(
+        c,
+        400,
+        "Your request to join this group is already pending"
+      );
+    }
+
+    const accessType = group.get("accessType") || "private";
+
+    if (accessType === "public") {
+      group.candidates.push(user._id);
+    } else {
+      group.pendingCandidates.push(user._id);
+    }
+
+    await group.save();
+
+    await Institute.findByIdAndUpdate(institute._id, {
+      $push: {
+        auditLogs: {
+          action:
+            accessType === "public" ? "joined_group" : "requested_join_group",
+          userId: _id,
+          user: user.name || "Candidate",
+          type: "info",
+          details: `${
+            accessType === "public" ? "Joined" : "Requested to join"
+          } placement group: ${group.name}`,
+          timestamp: new Date(),
+        },
+      },
+    });
+
+    return sendSuccess(
+      c,
+      200,
+      accessType === "public"
+        ? "Successfully joined the placement group"
+        : "Request to join placement group has been submitted",
+      { group: group._id }
+    );
   } catch (err) {
-    console.error(err);
-    return sendError(c, 500, "Internal server error", err);
+    console.error(
+      "Error joining placement group:",
+      err instanceof Error ? err.message : "Unknown error"
+    );
+    return sendError(c, 500, "Failed to join placement group");
   }
 };
 
 const acceptCandidate = async (c: Context) => {
   try {
-    const id = c.req.param("id");
-    const { _id } = c.get("auth");
+    const groupId = c.req.param("id");
+    const { candidateId } = await c.req.json();
+    const { userId, _id } = c.get("auth");
 
-    const user = await Candidate.findOne({ userId: _id });
-    if (!user) {
-      return sendError(c, 404, "User not found");
+    if (
+      !mongoose.Types.ObjectId.isValid(groupId) ||
+      !mongoose.Types.ObjectId.isValid(candidateId)
+    ) {
+      return sendError(c, 400, "Invalid group or candidate ID");
     }
 
-    const group = await PlacementGroup.findById(id);
+    const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
+    if (!perms.allowed) {
+      return sendError(
+        c,
+        403,
+        "You don't have permission to manage placement groups"
+      );
+    }
+
+    const clerkUser = await clerkClient.users.getUser(userId);
+    if (!clerkUser) {
+      return sendError(c, 403, "User not found");
+    }
+
+    const instituteId = (clerkUser.publicMetadata.institute as any)?._id;
+    if (!instituteId) {
+      return sendError(c, 400, "Institute not associated with user");
+    }
+
+    const group = await PlacementGroup.findOne({
+      _id: groupId,
+      institute: instituteId,
+    });
     if (!group) {
-      return sendError(c, 404, "Placement group not found");
+      return sendError(
+        c,
+        404,
+        "Placement group not found or you don't have access to it"
+      );
     }
 
-    if (!group.pendingCandidates.includes(user._id)) {
-      return sendError(c, 400, "Candidate not in pending list");
+    const candidate = await Candidate.findById(candidateId);
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
     }
 
-    group.candidates.push(user._id);
+    if (!group.pendingCandidates.some((id) => id.toString() === candidateId)) {
+      return sendError(c, 400, "Candidate not in the pending list");
+    }
+
+    group.candidates.push(candidateId);
     group.pendingCandidates = group.pendingCandidates.filter(
-      (candidate) => candidate.toString() !== user._id.toString()
+      (id) => id.toString() !== candidateId
     );
+
     await group.save();
 
-    return sendSuccess(c, 200, "Candidate accepted", group);
+    await Institute.findByIdAndUpdate(instituteId, {
+      $push: {
+        auditLogs: {
+          action: "accept_candidate",
+          userId: _id,
+          user: clerkUser.fullName,
+          type: "info",
+          details: `Accepted candidate ${candidate.name} to group: ${group.name}`,
+          timestamp: new Date(),
+        },
+      },
+    });
+
+    return sendSuccess(c, 200, "Candidate accepted successfully", {
+      groupId: group._id,
+      candidateId,
+    });
   } catch (err) {
-    console.error(err);
-    return sendError(c, 500, "Internal server error", err);
+    console.error(
+      "Error accepting candidate:",
+      err instanceof Error ? err.message : "Unknown error"
+    );
+    return sendError(c, 500, "Failed to accept candidate");
   }
 };
 
 const rejectCandidate = async (c: Context) => {
   try {
-    const id = c.req.param("id");
-    const { _id } = c.get("auth");
-    const user = await Candidate.findOne({ userId: _id });
-    if (!user) {
-      return sendError(c, 404, "User not found");
+    const groupId = c.req.param("id");
+    const { candidateId } = await c.req.json();
+    const { userId, _id } = c.get("auth");
+
+    if (
+      !mongoose.Types.ObjectId.isValid(groupId) ||
+      !mongoose.Types.ObjectId.isValid(candidateId)
+    ) {
+      return sendError(c, 400, "Invalid group or candidate ID");
     }
 
-    const group = await PlacementGroup.findById(id);
+    const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
+    if (!perms.allowed) {
+      return sendError(
+        c,
+        403,
+        "You don't have permission to manage placement groups"
+      );
+    }
+
+    const clerkUser = await clerkClient.users.getUser(userId);
+    if (!clerkUser) {
+      return sendError(c, 403, "User not found");
+    }
+
+    const instituteId = (clerkUser.publicMetadata.institute as any)?._id;
+    if (!instituteId) {
+      return sendError(c, 400, "Institute not associated with user");
+    }
+
+    const group = await PlacementGroup.findOne({
+      _id: groupId,
+      institute: instituteId,
+    });
     if (!group) {
-      return sendError(c, 404, "Placement group not found");
+      return sendError(
+        c,
+        404,
+        "Placement group not found or you don't have access to it"
+      );
     }
 
-    if (!group.pendingCandidates.includes(user._id)) {
-      return sendError(c, 400, "Candidate not in pending list");
+    const candidate = await Candidate.findById(candidateId);
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    if (!group.pendingCandidates.some((id) => id.toString() === candidateId)) {
+      return sendError(c, 400, "Candidate not in the pending list");
     }
 
     group.pendingCandidates = group.pendingCandidates.filter(
-      (candidate) => candidate.toString() !== user._id.toString()
+      (id) => id.toString() !== candidateId
     );
 
     await group.save();
-    return sendSuccess(c, 200, "Candidate rejected", group);
+
+    await Institute.findByIdAndUpdate(instituteId, {
+      $push: {
+        auditLogs: {
+          action: "reject_candidate",
+          userId: _id,
+          user: clerkUser.fullName,
+          type: "info",
+          details: `Rejected candidate ${candidate.name} from group: ${group.name}`,
+          timestamp: new Date(),
+        },
+      },
+    });
+
+    return sendSuccess(c, 200, "Candidate rejected successfully", {
+      groupId: group._id,
+      candidateId,
+    });
   } catch (err) {
-    console.error(err);
-    return sendError(c, 500, "Internal server error", err);
+    console.error(
+      "Error rejecting candidate:",
+      err instanceof Error ? err.message : "Unknown error"
+    );
+    return sendError(c, 500, "Failed to reject candidate");
   }
 };
 
 const getCandidatePlacementGroups = async (c: Context) => {
-  const { _id } = c.get("auth");
-
   try {
-    const user = await Candidate.findOne({ userId: _id });
+    const { _id } = c.get("auth");
+
+    const page = parseInt(c.req.query("page") || "1");
+    const limit = Math.min(parseInt(c.req.query("limit") || "10"), 50);
+    const skip = (page - 1) * limit;
+
+    const user = await Candidate.findOne({ userId: _id }).lean();
     if (!user) {
       return sendError(c, 404, "User not found");
     }
 
+    const totalCount = await PlacementGroup.countDocuments({
+      $or: [{ candidates: user._id }, { pendingCandidates: user._id }],
+    });
+
     const groups = await PlacementGroup.find({
       $or: [{ candidates: user._id }, { pendingCandidates: user._id }],
     })
-      .populate("departments")
-      .populate("candidates")
-      .populate("createdBy")
-      .sort({ createdAt: -1 });
+      .populate("departments", "name")
+      .populate("candidates", "name email")
+      .populate("createdBy", "name email")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
 
-    return sendSuccess(c, 200, "Placement groups fetched", groups);
+    const groupsWithStatus = groups.map((group) => {
+      let status = "none";
+      if (
+        group.candidates.some((c) => c._id?.toString() === user._id.toString())
+      ) {
+        status = "member";
+      } else if (
+        group.pendingCandidates.some(
+          (c) => c.toString() === user._id.toString()
+        )
+      ) {
+        status = "pending";
+      }
+      return {
+        ...group,
+        membershipStatus: status,
+      };
+    });
+
+    return sendSuccess(c, 200, "Placement groups fetched successfully", {
+      groups: groupsWithStatus,
+      pagination: {
+        total: totalCount,
+        page,
+        pages: Math.ceil(totalCount / limit),
+        limit,
+      },
+    });
   } catch (err) {
-    console.error(err);
-    return sendError(c, 500, "Internal server error", err);
+    console.error(
+      "Error fetching candidate placement groups:",
+      err instanceof Error ? err.message : "Unknown error"
+    );
+    return sendError(c, 500, "Failed to fetch placement groups");
   }
 };
 
@@ -261,43 +585,114 @@ const updatePlacementGroup = async (c: Context) => {
   try {
     const { userId } = c.get("auth");
     const groupId = c.req.param("id");
+
+    if (!mongoose.Types.ObjectId.isValid(groupId)) {
+      return sendError(c, 400, "Invalid placement group ID");
+    }
+
     const body = await c.req.json();
+    const updateSchema = PlacementGroupSchema.partial();
+    const validationResult = updateSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return sendError(
+        c,
+        400,
+        "Invalid request body",
+        validationResult.error.errors
+      );
+    }
+
+    const validatedData = validationResult.data;
 
     const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
     if (!perms.allowed) {
-      return sendError(c, 403, "Unauthorized");
+      return sendError(
+        c,
+        403,
+        "You don't have permission to update placement groups"
+      );
     }
 
     const clerkUser = await clerkClient.users.getUser(userId);
     if (!clerkUser) {
-      return sendError(c, 403, "Unauthorized");
+      return sendError(c, 403, "User not found");
     }
 
-    const existingGroup = await PlacementGroup.findById(groupId);
+    const instituteId = (clerkUser.publicMetadata.institute as any)?._id;
+    if (!instituteId) {
+      return sendError(c, 400, "Institute not associated with user");
+    }
+
+    const existingGroup = await PlacementGroup.findOne({
+      _id: groupId,
+      institute: instituteId,
+    });
     if (!existingGroup) {
-      return sendError(c, 404, "Group not found");
+      return sendError(
+        c,
+        404,
+        "Placement group not found or you don't have access to it"
+      );
     }
 
-    existingGroup.name = body.name;
-    existingGroup.academicYear = body.academicYear;
-    existingGroup.departments = body.departments;
-    existingGroup.purpose = body.purpose;
-    existingGroup.expiryDate = body.expiryDate;
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    existingGroup.candidates = [];
-    existingGroup.candidates = body.candidates;
+    try {
+      const updateData: UpdateData = {};
+      for (const [key, value] of Object.entries(validatedData)) {
+        if (value !== undefined) {
+          updateData[key] = value;
+        }
+      }
 
-    await existingGroup.save();
+      const updatedGroup = await PlacementGroup.findByIdAndUpdate(
+        groupId,
+        { $set: updateData },
+        { new: true, session }
+      )
+        .populate("departments", "name")
+        .populate("candidates", "name email")
+        .populate("createdBy", "name email");
 
-    const updatedGroup = await PlacementGroup.findById(groupId)
-      .populate("departments")
-      .populate("candidates")
-      .populate("createdBy");
+      await Institute.findByIdAndUpdate(
+        instituteId,
+        {
+          $push: {
+            auditLogs: {
+              action: "update_placement_group",
+              userId,
+              user: clerkUser.fullName,
+              type: "info",
+              details: `Updated placement group: ${existingGroup.name}`,
+              timestamp: new Date(),
+            },
+          },
+        },
+        { session }
+      );
 
-    return sendSuccess(c, 200, "Group updated", updatedGroup);
+      await session.commitTransaction();
+      session.endSession();
+
+      return sendSuccess(
+        c,
+        200,
+        "Placement group updated successfully",
+        updatedGroup
+      );
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
   } catch (err) {
-    console.error(err);
-    return sendError(c, 500, "Internal server error", err);
+    console.error(
+      "Error updating placement group:",
+      err instanceof Error ? err.message : "Unknown error"
+    );
+    return sendError(c, 500, "Failed to update placement group");
   }
 };
 
@@ -306,41 +701,105 @@ const deletePlacementGroup = async (c: Context) => {
     const { userId } = c.get("auth");
     const groupId = c.req.param("id");
 
+    if (!mongoose.Types.ObjectId.isValid(groupId)) {
+      return sendError(c, 400, "Invalid placement group ID");
+    }
+
     const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
     if (!perms.allowed) {
-      return sendError(c, 403, "Unauthorized");
+      return sendError(
+        c,
+        403,
+        "You don't have permission to delete placement groups"
+      );
     }
 
     const clerkUser = await clerkClient.users.getUser(userId);
     if (!clerkUser) {
-      return sendError(c, 403, "Unauthorized");
+      return sendError(c, 403, "User not found");
     }
 
-    const existingGroup = await PlacementGroup.findById(groupId);
+    const instituteId = (clerkUser.publicMetadata.institute as any)?._id;
+    if (!instituteId) {
+      return sendError(c, 400, "Institute not associated with user");
+    }
+
+    const existingGroup = await PlacementGroup.findOne({
+      _id: groupId,
+      institute: instituteId,
+    });
     if (!existingGroup) {
-      return sendError(c, 404, "Group not found");
+      return sendError(
+        c,
+        404,
+        "Placement group not found or you don't have access to it"
+      );
     }
 
-    const drives = await Drive.find({
-      placementGroup: groupId,
-    });
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    const activeDrives = drives.filter((drive) => {
-      return drive.published || !drive.hasEnded;
-    });
+    try {
+      const drives = await Drive.find({
+        placementGroup: groupId,
+      }).lean();
 
-    if (activeDrives.length > 0) {
-      return sendError(c, 400, "Cannot delete group with active drives");
-    } else {
-      await Drive.deleteMany({ placementGroup: groupId });
+      const activeDrives = drives.filter(
+        (drive) => drive.published === true || drive.hasEnded === false
+      );
+
+      if (activeDrives.length > 0) {
+        await session.abortTransaction();
+        session.endSession();
+        return sendError(
+          c,
+          400,
+          "Cannot delete group with active drives. Please end and unpublish all drives first."
+        );
+      }
+
+      await Drive.deleteMany(
+        {
+          placementGroup: groupId,
+        },
+        { session }
+      );
+
+      await Institute.findByIdAndUpdate(
+        instituteId,
+        {
+          $pull: { placementGroups: groupId },
+          $push: {
+            auditLogs: {
+              action: "delete_placement_group",
+              userId,
+              user: clerkUser.fullName,
+              type: "warning",
+              details: `Deleted placement group: ${existingGroup.name}`,
+              timestamp: new Date(),
+            },
+          },
+        },
+        { session }
+      );
+
+      await PlacementGroup.findByIdAndDelete(groupId, { session });
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return sendSuccess(c, 200, "Placement group deleted successfully");
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
     }
-
-    await existingGroup.deleteOne();
-
-    return sendSuccess(c, 200, "Group deleted", existingGroup);
   } catch (err) {
-    console.error(err);
-    return sendError(c, 500, "Internal server error", err);
+    console.error(
+      "Error deleting placement group:",
+      err instanceof Error ? err.message : "Unknown error"
+    );
+    return sendError(c, 500, "Failed to delete placement group");
   }
 };
 

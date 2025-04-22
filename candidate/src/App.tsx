@@ -15,72 +15,79 @@ import Drives from "./pages/campus/drives/Drives";
 import PlacementGroups from "./pages/campus/placementgroups/PlacementGroups";
 import JoinPlacementGroup from "./pages/campus/placementgroups/join/Join";
 import Drive from "./pages/campus/drives/drive/Drive";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 function App() {
   const router = createBrowserRouter([
     {
       path: "/",
-      element: <Lander />,
-    },
-    {
-      path: "/onboarding",
-      element: <Onboarding />,
-    },
-    {
-      path: "/",
-      element: <Layout />,
+      errorElement: <ErrorBoundary />,
       children: [
         {
-          path: "postings/:id",
-          element: <Posting />,
+          path: "",
+          element: <Lander />,
         },
         {
-          path: "postings/:id/apply",
-          element: <Apply />,
+          path: "onboarding",
+          element: <Onboarding />,
         },
         {
-          path: "postings/:id/assignments/:assignmentId",
-          element: <Assignment />,
-        },
-      ],
-    },
-    {
-      path: "/",
-      element: <Layout />,
-      children: [
-        {
-          path: "dashboard",
-          element: <Home />,
-        },
-        {
-          path: "profile",
-          element: <ProfileLayout />,
-          children: [...profileRoutes],
-        },
-
-        {
-          path: "/campus",
-          element: <CampusLayout />,
+          path: "",
+          element: <Layout />,
           children: [
             {
-              path: "drives",
-              element: <Drives />,
+              path: "postings/:id",
+              element: <Posting />,
             },
             {
-              path: "drives/:id",
-              element: <Drive />,
+              path: "postings/:id/apply",
+              element: <Apply />,
             },
             {
-              path: "placement-groups",
-              element: <PlacementGroups />,
+              path: "postings/:id/assignments/:assignmentId",
+              element: <Assignment />,
+            },
+          ],
+        },
+        {
+          path: "",
+          element: <Layout />,
+          children: [
+            {
+              path: "dashboard",
+              element: <Home />,
             },
             {
-              path: "placement-groups/join/:id",
-              element: <JoinPlacementGroup />,
+              path: "profile",
+              element: <ProfileLayout />,
+              children: [...profileRoutes],
             },
+
             {
-              path: "resume",
-              element: <Resume />,
+              path: "/campus",
+              element: <CampusLayout />,
+              children: [
+                {
+                  path: "drives",
+                  element: <Drives />,
+                },
+                {
+                  path: "drives/:id",
+                  element: <Drive />,
+                },
+                {
+                  path: "placement-groups",
+                  element: <PlacementGroups />,
+                },
+                {
+                  path: "placement-groups/join/:id",
+                  element: <JoinPlacementGroup />,
+                },
+                {
+                  path: "resume",
+                  element: <Resume />,
+                },
+              ],
             },
           ],
         },

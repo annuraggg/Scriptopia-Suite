@@ -26,7 +26,8 @@
       "@shared-types/*": ["../common/types/*"],
       "@types/*": ["src/types/*"],
       "@shared-data/*": ["../common/data/*"]
-    }
+    },
+    "incremental": true
   },
   "include": ["src", "../common/types", "../common/data"]
 }

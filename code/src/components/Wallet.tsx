@@ -15,9 +15,10 @@ import { useAuth } from "@clerk/clerk-react";
 
 interface WalletProps {
   userId: string;
+  refetch?: boolean;
 }
 
-const Wallet: React.FC<WalletProps> = ({ userId }) => {
+const Wallet: React.FC<WalletProps> = ({ userId, refetch }) => {
   const [balance, setBalance] = useState<string>("0");
   const [address, setAddress] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -26,12 +27,14 @@ const Wallet: React.FC<WalletProps> = ({ userId }) => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
+
+
   useEffect(() => {
     const initializeWallet = async () => {
       try {
         setIsLoading(true);
         console.log("Fetching wallet for userId:", userId);
-        
+
         const { data } = await axios.get(`/wallet/${userId}`);
         console.log("Wallet API Response:", data);
 
@@ -56,7 +59,7 @@ const Wallet: React.FC<WalletProps> = ({ userId }) => {
     if (userId) {
       initializeWallet();
     }
-  }, [userId]);
+  }, [userId, refetch]);
 
   const copyAddress = () => {
     if (address) {

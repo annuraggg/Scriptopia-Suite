@@ -15,6 +15,7 @@
       "@types/*": ["src/types/*"],
       "@shared-types/*": ["../common/types/*"],
       "@shared-data/*": ["../common/data/*"]
-    }
+    },
+    "incremental": true
   }
 }

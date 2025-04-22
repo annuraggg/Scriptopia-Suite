@@ -10,7 +10,7 @@
     "forceStart": "npx kill-port 5171 && npm run dev",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc -b"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.2.2",

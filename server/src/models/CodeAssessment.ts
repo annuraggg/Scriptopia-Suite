@@ -1,3 +1,4 @@
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose from "mongoose";
 
 const openRangeSchema = new mongoose.Schema({
@@ -41,7 +42,7 @@ const securitySchema = new mongoose.Schema({
   enableSyntaxHighlighting: { type: Boolean, required: true, default: false },
 });
 
-const assessmentSchema = new mongoose.Schema(
+const codeAssessmentSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     description: { type: String, required: true },
@@ -85,8 +86,9 @@ const assessmentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-assessmentSchema.index({ author: 1 });
-assessmentSchema.index({ postingId: 1 });
+codeAssessmentSchema.plugin(softDeletePlugin)
+codeAssessmentSchema.index({ author: 1 });
+codeAssessmentSchema.index({ postingId: 1 });
 
-const CodeAssessment = mongoose.model("CodeAssessment", assessmentSchema);
+const CodeAssessment = mongoose.model("CodeAssessment", codeAssessmentSchema);
 export default CodeAssessment;

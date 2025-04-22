@@ -23,11 +23,12 @@ import postingRoutes from "../routes/postingRoute";
 import candidateRoute from "../routes/candidateRoute";
 import walletRoute from "@/routes/walletRoute";
 import placementGroupRoutes from "../routes/placementGroupsroute";
-import companyProfileRoute from "../routes/companyProfileRoute";
+import companyProfileRoute from "../routes/companyRoute";
 import meetRoutes from "../routes/meetRoutes";
 
 import userRoute from "../routes/userRoute";
 import { clerkMiddleware } from "@hono/clerk-auth";
+import { trackRouteHits } from "../middlewares/routeTracker";
 
 import { Server } from "socket.io";
 import { serve } from "@hono/node-server";
@@ -58,12 +59,13 @@ ioServer.on("error", (err) => {
   logger.error(err);
 });
 
-// @ts-ignore
-app.use(clerkMiddleware());
+
+app.use("*", clerkMiddleware())
+app.use(trackRouteHits());
 app.use(prettyJSON());
 app.use(cors());
-app.use(authMiddleware);
 app.use(performanceMiddleware);
+app.use(authMiddleware);
 
 app.route("/home", homeRoute);
 app.route("/problems", problemRoute);
@@ -83,8 +85,7 @@ app.route("/companies", companyProfileRoute);
 
 app.route("/wallet", walletRoute);
 
-app.route("/meet", meetRoutes)
-
+app.route("/meet", meetRoutes);
 
 export default app;
 export { ioServer };

@@ -1,3 +1,4 @@
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose from "mongoose";
 
 const optionSchema = new mongoose.Schema({
@@ -89,5 +90,6 @@ mcqAssessmentSchema.index({ author: 1 });
 mcqAssessmentSchema.index({ "candidates.email": 1 });
 mcqAssessmentSchema.index({ postingId: 1 });
 
+mcqAssessmentSchema.plugin(softDeletePlugin);
 const MCQAssessment = mongoose.model("MCQAssessment", mcqAssessmentSchema);
 export default MCQAssessment;
