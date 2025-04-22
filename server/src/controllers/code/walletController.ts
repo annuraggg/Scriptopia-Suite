@@ -44,8 +44,8 @@ const getWallet = async (c: Context) => {
         !isNaN(blockchainBalanceFloat) &&
         blockchainBalanceFloat !== user.wallet.balance
       ) {
-        user.wallet.balance = blockchainBalanceFloat;
-        await user.save();
+        // user.wallet.balance = blockchainBalanceFloat;
+        // await user.save();
         console.log("Updated wallet balance:", user.wallet.balance);
       }
     } catch (error) {
