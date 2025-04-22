@@ -1,6 +1,7 @@
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose from "mongoose";
 
-const AssignmentSubmissionSchema = new mongoose.Schema(
+const assignmentSubmissionSchema = new mongoose.Schema(
   {
     assignmentId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -34,8 +35,9 @@ const AssignmentSubmissionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+assignmentSubmissionSchema.plugin(softDeletePlugin);
 const AssignmentSubmission = mongoose.model(
   "AssignmentSubmission",
-  AssignmentSubmissionSchema
+  assignmentSubmissionSchema
 );
 export default AssignmentSubmission;

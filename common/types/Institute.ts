@@ -61,6 +61,7 @@ export interface Address {
 }
 
 export interface Institute {
+  _id?: string;
   name: string;
   email: string;
   website: string;

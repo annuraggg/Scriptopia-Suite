@@ -9,61 +9,106 @@ import logger from "../../../utils/logger";
 import r2Client from "../../../config/s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { AuditLog, Member, Role } from "@shared-types/Institute";
+import {
+  AuditLog,
+  Institute as IInstitute,
+  Member,
+  Role,
+} from "@shared-types/Institute";
 import defaultInstituteRoles from "@shared-data/defaultInstituteRoles";
 import institutePermissions from "@/data/institutePermissions";
 import checkInstitutePermission from "@/middlewares/checkInstitutePermission";
 import { UserJSON } from "@clerk/backend";
-import { MemberWithPermission } from "@shared-types/MemberWithPermission";
 import { UserMeta } from "@shared-types/UserMeta";
 import CandidateModel from "@/models/Candidate";
 import { Types } from "mongoose";
 import Candidate from "@/models/Candidate";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import mongoose from "mongoose";
+import {
+  sanitizeInput,
+  validateEmail,
+  validateWebsite,
+} from "@/utils/validation";
 
+const TOKEN_EXPIRY = "24h";
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_FILE_TYPES = ["image/png", "image/jpeg", "image/jpg"];
+// const MAX_RESUME_SIZE = 10 * 1024 * 1024;
+
+/**
+ * Create a new institute
+ */
 const createInstitute = async (c: Context) => {
   try {
-    const { name, email, website, address, members } = await c.req.json();
-    const clerkUserId = c.get("auth").userId;
-    const clerkUser = await clerkClient.users.getUser(clerkUserId);
-    const fName = clerkUser.firstName;
-    const lName = clerkUser.lastName;
-    const uid = clerkUser.publicMetadata._id;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const websiteRegex = /(http|https):\/\/[^ "]*/;
+    const body = await c.req.json();
+    const { name, email, website, address, members } = body;
 
-    if (!name || !email || !website || !address || !members) {
-      return sendError(c, 400, "Please fill all fields");
+    const sanitizedName = sanitizeInput(name);
+    const sanitizedEmail = sanitizeInput(email);
+    const sanitizedWebsite = sanitizeInput(website);
+    const sanitizedAddress = sanitizeInput(address);
+
+    const clerkUserId = c.get("auth")?.userId;
+    if (!clerkUserId) {
+      return sendError(c, 401, "Authentication required");
     }
-    if (!emailRegex.test(email)) {
+
+    const clerkUser = await clerkClient.users.getUser(clerkUserId);
+    const fName = clerkUser.firstName || "";
+    const lName = clerkUser.lastName || "";
+    const uid = clerkUser.publicMetadata._id;
+
+    if (!uid) {
+      return sendError(c, 400, "User metadata is missing");
+    }
+
+    if (
+      !sanitizedName ||
+      !sanitizedEmail ||
+      !sanitizedWebsite ||
+      !sanitizedAddress ||
+      !members
+    ) {
+      return sendError(c, 400, "Please fill all required fields");
+    }
+
+    if (!validateEmail(sanitizedEmail)) {
       return sendError(c, 400, "Invalid email address");
     }
-    if (!websiteRegex.test(website)) {
+
+    if (!validateWebsite(sanitizedWebsite)) {
       return sendError(c, 400, "Invalid website address");
     }
 
-    const existingInstitute = await Institute.findOne({ email });
+    const existingInstitute = await Institute.findOne({
+      email: sanitizedEmail,
+    });
     if (existingInstitute) {
       return sendError(c, 400, "Institute with this email already exists");
     }
 
     const userInInstitute = await Institute.findOne({
       "members.user": uid,
+      "members.status": "active",
     });
     if (userInInstitute) {
       return sendError(c, 400, "User is already part of an institute");
     }
 
-    const membersArr = [];
+    const membersArr: Member[] = [];
+
     for (const member of members) {
       if (!member.email || !member.role) {
         return sendError(c, 400, "Please fill all fields for members");
       }
-      if (!emailRegex.test(member.email)) {
+
+      const sanitizedMemberEmail = sanitizeInput(member.email);
+      if (!validateEmail(sanitizedMemberEmail)) {
         return sendError(
           c,
           400,
-          `Invalid email address for member: ${member.email}`
+          `Invalid email address for member: ${sanitizedMemberEmail}`
         );
       }
 
@@ -72,14 +117,17 @@ const createInstitute = async (c: Context) => {
       );
 
       if (!role) {
-        return sendError(c, 400, `Invalid role for member: ${member.email}`);
+        return sendError(
+          c,
+          400,
+          `Invalid role for member: ${sanitizedMemberEmail}`
+        );
       }
 
       membersArr.push({
-        user: uid || null,
-        email: member.email,
+        user: member.user,
+        email: sanitizedMemberEmail,
         role: role?.slug,
-        addedOn: new Date(),
         status: "pending",
       });
     }
@@ -93,10 +141,9 @@ const createInstitute = async (c: Context) => {
     }
 
     membersArr.push({
-      user: uid,
+      user: typeof uid === "string" ? uid : "",
       email: clerkUser.emailAddresses[0].emailAddress,
       role: adminRole?.slug,
-      addedOn: new Date(),
       status: "active",
     });
 
@@ -105,74 +152,93 @@ const createInstitute = async (c: Context) => {
       userId: uid as string,
       action: "Institute Created",
       type: "info",
+      timestamp: new Date(),
     };
-
-    // const addressParts = address.split(',').map((part: string) => part.trim());
-    // const formattedAddress = {
-    //   street: addressParts[0] || '',
-    //   city: addressParts[1] || '',
-    //   state: addressParts[2] || '',
-    //   country: addressParts[3] || '',
-    //   zipCode: addressParts[4] || ''
-    // };
 
     const code = crypto.randomUUID();
 
-    const institute = await Institute.create({
-      name,
-      email,
-      website,
-      address,
-      members: membersArr,
-      roles: defaultInstituteRoles,
-      subscription: {
-        type: "trial",
-        status: "active",
-        startedOn: new Date(),
-        endsOn: new Date(new Date().setDate(new Date().getDate() + 15)),
-        maxStudents: 50,
-        maxFaculty: 10,
-        features: [],
-      },
-      auditLogs: [auditLog],
-      code,
-      createdBy: uid,
-    });
+    const session = await mongoose.startSession();
+    let institute;
 
-    await clerkClient.users.updateUser(clerkUserId, {
-      publicMetadata: {
-        ...clerkUser.publicMetadata,
-        institute: {
-          _id: institute._id,
-          name: institute.name,
-          role: adminRole,
-        },
-      },
-    });
+    try {
+      await session.withTransaction(async () => {
+        institute = await Institute.create(
+          [
+            {
+              name: sanitizedName,
+              email: sanitizedEmail,
+              website: sanitizedWebsite,
+              address: sanitizedAddress,
+              members: membersArr,
+              roles: defaultInstituteRoles,
+              subscription: {
+                type: "trial",
+                status: "active",
+                startedOn: new Date(),
+                endsOn: new Date(new Date().setDate(new Date().getDate() + 15)),
+                maxStudents: 50,
+                maxFaculty: 10,
+                features: [],
+              },
+              auditLogs: [auditLog],
+              code,
+              createdBy: uid,
+            },
+          ],
+          { session }
+        );
+
+        institute = institute[0];
+
+        await clerkClient.users.updateUser(clerkUserId, {
+          publicMetadata: {
+            ...clerkUser.publicMetadata,
+            institute: {
+              _id: institute._id,
+              name: institute.name,
+              role: adminRole,
+            },
+          },
+        });
+      });
+
+      await session.endSession();
+    } catch (error) {
+      await session.abortTransaction();
+      await session.endSession();
+      logger.error(`Transaction failed in createInstitute: ${error}`);
+      return sendError(c, 500, "Failed to create institute", {
+        message: "Database transaction failed",
+      });
+    }
 
     for (const member of members) {
       const role = defaultInstituteRoles.find(
         (r) => r.name.toLowerCase() === member.role.toLowerCase()
       );
+
       const reqObj = {
-        email: member.email,
+        email: sanitizeInput(member.email),
         role: role?.slug,
-        institute: institute._id,
+        institute: (institute as unknown as IInstitute)?._id,
         inviter: fName || "",
         inviterId: uid,
-        institutename: name,
+        institutename: sanitizedName,
       };
-      const token = jwt.sign(reqObj, process.env.JWT_SECRET!);
+
+      const token = jwt.sign(reqObj, process.env.JWT_SECRET!, {
+        expiresIn: TOKEN_EXPIRY,
+      });
 
       try {
         loops.sendTransactionalEmail({
           transactionalId: process.env.LOOPS_CAMPUS_INVITE_EMAIL!,
-          email: member.email,
+          email: sanitizeInput(member.email),
           dataVariables: {
             inviter: fName || "",
             joinlink: `${process.env
               .ENTERPRISE_FRONTEND_URL!}/join?token=${token}`,
-            institutename: name,
+            institutename: sanitizedName,
           },
         });
       } catch (error) {
@@ -183,32 +249,62 @@ const createInstitute = async (c: Context) => {
     }
 
     return sendSuccess(c, 201, "Institute created successfully", {
-      institute: institute._id,
+      institute: (institute as unknown as IInstitute)?._id,
     });
   } catch (error) {
     logger.error(`Failed to create institute: ${error}`);
-    return sendError(c, 500, "Failed to create institute", error);
+    return sendError(c, 500, "Failed to create institute", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Verify an invitation token
+ */
 const verifyInvite = async (c: Context) => {
   try {
     const { token } = await c.req.json();
-    const cid = c.get("auth").userId;
+    const cid = c.get("auth")?.userId;
+
+    if (!cid) {
+      return sendError(c, 401, "Authentication required");
+    }
+
+    if (!token) {
+      return sendError(c, 400, "Token is required");
+    }
+
     const clerkUser = await clerkClient.users.getUser(cid);
     const email = clerkUser.emailAddresses[0].emailAddress;
 
-    if (!token) {
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+        institute: string;
+        email: string;
+        role: string;
+        iat: number;
+        exp: number;
+      };
+    } catch (error) {
+      if ((error as Error).name === "TokenExpiredError") {
+        return sendError(c, 400, "Invitation has expired");
+      }
       return sendError(c, 400, "Invalid token");
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-      institute: string;
-    };
+    if (!decoded?.institute || !Types.ObjectId.isValid(decoded.institute)) {
+      return sendError(c, 400, "Invalid invitation");
+    }
 
     const institute = await Institute.findById(decoded.institute);
     if (!institute) {
       return sendError(c, 404, "Institute not found");
+    }
+
+    if (decoded.email !== email) {
+      return sendError(c, 400, "This invitation is not for your email address");
     }
 
     const instituteWithMember = await Institute.findOne({
@@ -217,30 +313,71 @@ const verifyInvite = async (c: Context) => {
     });
 
     if (!instituteWithMember) {
-      return sendError(c, 400, "Invalid Invite");
+      return sendError(c, 400, "Invalid invitation");
     }
 
-    return sendSuccess(c, 200, "Token verified", decoded);
+    return sendSuccess(c, 200, "Invitation verified", {
+      institute: decoded.institute,
+      instituteName: institute.name,
+      role: decoded.role,
+    });
   } catch (error) {
-    logger.error(error as string);
-    return sendError(c, 500, "Failed to verify token", error);
+    logger.error(`verifyInvite error: ${error}`);
+    return sendError(c, 500, "Failed to verify invitation", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Join an institute using an invitation token
+ */
 const joinInstitute = async (c: Context) => {
   try {
     const { status, token } = await c.req.json();
-    const userId = c.get("auth")._id;
-    const cid = c.get("auth").userId;
+    const userId = c.get("auth")?._id;
+    const cid = c.get("auth")?.userId;
+
+    if (!userId || !cid) {
+      return sendError(c, 401, "Authentication required");
+    }
+
+    if (!token) {
+      return sendError(c, 400, "Token is required");
+    }
+
+    if (status !== "accept" && status !== "reject") {
+      return sendError(c, 400, "Invalid status value");
+    }
+
     const clerkUser = await clerkClient.users.getUser(cid);
     const email = clerkUser.emailAddresses[0].emailAddress;
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-      institute: string;
-    } as {
-      role: string;
-      institute: string;
-      inviterId: string;
-    };
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+        role: string;
+        institute: string;
+        inviterId: string;
+        email: string;
+        iat: number;
+        exp: number;
+      };
+    } catch (error) {
+      if ((error as Error).name === "TokenExpiredError") {
+        return sendError(c, 400, "Invitation has expired");
+      }
+      return sendError(c, 400, "Invalid token");
+    }
+
+    if (!decoded?.institute || !Types.ObjectId.isValid(decoded.institute)) {
+      return sendError(c, 400, "Invalid invitation");
+    }
+
+    if (decoded.email !== email) {
+      return sendError(c, 400, "This invitation is not for your email address");
+    }
+
     const institute = await Institute.findById(decoded.institute);
     if (!institute) {
       return sendError(c, 404, "Institute not found");
@@ -252,123 +389,200 @@ const joinInstitute = async (c: Context) => {
     });
 
     if (!instituteWithMember) {
-      return sendError(c, 400, "Invalid Invite");
+      return sendError(c, 400, "Invalid invitation");
     }
 
-    if (institute._id.toString() !== decoded.institute) {
-      return sendError(c, 400, "Invalid Invite");
+    const userInInstitute = await Institute.findOne({
+      _id: { $ne: decoded.institute },
+      "members.user": userId,
+      "members.status": "active",
+    });
+
+    if (userInInstitute) {
+      return sendError(c, 400, "You are already a member of another institute");
     }
 
-    const role = institute.roles.find((r: any) => r.slug === decoded.role);
     if (status === "accept") {
-      clerkClient.users.updateUser(cid, {
-        publicMetadata: {
-          ...clerkUser.publicMetadata,
-          institute: {
-            _id: decoded.institute,
-            name: institute.name,
-            role: role,
-          },
-        },
-      });
-
-      const inviterUser = await User.findById(decoded.inviterId);
-      if (!inviterUser) {
-        return sendError(c, 404, "Inviter not found");
+      const role = institute.roles.find((r: any) => r.slug === decoded.role);
+      if (!role) {
+        return sendError(c, 400, "Invalid role in invitation");
       }
 
-      const inviterClerk = await clerkClient.users.getUser(
-        inviterUser?.clerkId
-      );
+      const session = await mongoose.startSession();
+      try {
+        await session.withTransaction(async () => {
+          await clerkClient.users.updateUser(cid, {
+            publicMetadata: {
+              ...clerkUser.publicMetadata,
+              institute: {
+                _id: decoded.institute,
+                name: institute.name,
+                role: role,
+              },
+            },
+          });
 
-      const auditLog: AuditLog = {
-        user: clerkUser.firstName + " " + clerkUser.lastName,
-        userId: userId,
-        action: `User Joined Institute. Invited By: ${
-          inviterClerk.firstName + " " + inviterClerk.lastName
-        }`,
-        type: "info",
-      };
+          let inviterName = "Unknown";
+          try {
+            const inviterUser = await User.findById(decoded.inviterId);
+            if (inviterUser?.clerkId) {
+              const inviterClerk = await clerkClient.users.getUser(
+                inviterUser.clerkId
+              );
+              inviterName = `${inviterClerk.firstName || ""} ${
+                inviterClerk.lastName || ""
+              }`.trim();
+            }
+          } catch (inviterError) {
+            logger.error(`Failed to find inviter: ${inviterError}`);
+          }
 
-      await Institute.updateOne(
-        { _id: decoded.institute, "members.email": email },
-        { $set: { "members.$.status": "active", "members.$.user": userId } },
-        { $push: { auditLogs: auditLog } }
-      );
+          const auditLog: AuditLog = {
+            user: `${clerkUser.firstName || ""} ${
+              clerkUser.lastName || ""
+            }`.trim(),
+            userId: userId,
+            action: `User Joined Institute. Invited By: ${inviterName}`,
+            type: "info",
+          };
+
+          await Institute.updateOne(
+            { _id: decoded.institute, "members.email": email },
+            {
+              $set: { "members.$.status": "active", "members.$.user": userId },
+              $push: { auditLogs: auditLog },
+            }
+          );
+        });
+        await session.endSession();
+      } catch (error) {
+        await session.abortTransaction();
+        await session.endSession();
+        logger.error(`Transaction failed in joinInstitute: ${error}`);
+        return sendError(c, 500, "Failed to join institute", {
+          message: "Database transaction failed",
+        });
+      }
     } else {
       await Institute.updateOne(
-        { _id: decoded.institute, "members.email": email },
+        { _id: decoded.institute },
         { $pull: { members: { email } } }
       );
     }
 
-    return sendSuccess(c, 200, "Joined Institute", {
-      id: decoded.institute,
-    });
+    return sendSuccess(
+      c,
+      200,
+      status === "accept"
+        ? "Joined institute successfully"
+        : "Invitation rejected",
+      {
+        id: decoded.institute,
+      }
+    );
   } catch (error) {
-    logger.error(error as string);
-    return sendError(c, 500, "Failed to join institute", error);
+    logger.error(`joinInstitute error: ${error}`);
+    return sendError(c, 500, "Failed to process invitation", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Get institute settings
+ */
 const getSettings = async (c: Context) => {
   try {
     const perms = await checkInstitutePermission.all(c, ["view_institute"]);
     if (!perms.allowed) {
-      return sendError(c, 401, "Unauthorized");
+      return sendError(
+        c,
+        403,
+        "You don't have permission to view institute settings"
+      );
     }
-    const institute = await Institute.findById(perms.data?.institute?._id)
+
+    if (!perms.data?.institute?._id) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    const instituteId = perms.data.institute._id;
+
+    if (!Types.ObjectId.isValid(instituteId)) {
+      return sendError(c, 400, "Invalid institute ID");
+    }
+
+    const institute = await Institute.findById(instituteId)
       .populate("auditLogs.user")
       .populate("members.user")
       .lean();
+
     if (!institute) {
       return sendError(c, 404, "Institute not found");
     }
+
     const logoUrl = institute.logo;
-    try {
-      if (logoUrl) {
+    if (logoUrl) {
+      try {
         const command = new GetObjectCommand({
           Bucket: process.env.R2_S3_BUCKET!,
           Key: logoUrl,
         });
-        const data = await r2Client.send(command);
-        const buffer = await data.Body?.transformToByteArray();
-        const base64 = Buffer.from(buffer as unknown as ArrayBuffer).toString(
-          "base64"
-        );
-        institute.logo = `data:image/png;base64,${base64}`;
+        const presignedUrl = await getSignedUrl(r2Client, command, {
+          expiresIn: 3600,
+        });
+        institute.logo = presignedUrl;
+      } catch (e) {
+        logger.error(`Failed to fetch logo: ${e}`);
+
+        institute.logo = null;
       }
-    } catch (e) {
-      console.log("Failed to fetch logo", e);
-      console.log(e);
     }
-    return sendSuccess(c, 200, "Success", {
-      institute,
+
+    const sanitizedInstitute = {
+      ...institute,
+      auditLogs: institute.auditLogs.map((log: any) => ({
+        ...log,
+
+        additionalData: undefined,
+      })),
+    };
+
+    return sendSuccess(c, 200, "Settings retrieved successfully", {
+      institute: sanitizedInstitute,
       permissions: institutePermissions,
     });
   } catch (error) {
-    logger.error(error as string);
-    return sendError(c, 500, "Failed to fetch institute settings", error);
+    logger.error(`getSettings error: ${error}`);
+    return sendError(c, 500, "Failed to fetch institute settings", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Update institute settings
+ */
 const updateInstitute = async (c: Context) => {
   try {
     const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
-    console.log(perms);
     if (!perms.allowed) {
-      return sendError(c, 401, "Unauthorized");
+      return sendError(
+        c,
+        403,
+        "You don't have permission to manage institute settings"
+      );
     }
+
     const instituteId = perms.data?.institute?._id;
-    if (!instituteId) {
+    if (!instituteId || !Types.ObjectId.isValid(instituteId)) {
       return sendError(c, 404, "Institute not found");
     }
+
     const body = await c.req.json();
-    console.log(body.departments);
 
     const institute = await Institute.findById(instituteId).lean();
     if (!institute) {
-      logger.error("Institute not found:");
       return sendError(c, 404, "Institute not found");
     }
 
@@ -380,144 +594,199 @@ const updateInstitute = async (c: Context) => {
     const oldMembers = institute.members || [];
     const newMembers = body.members || [];
 
+    if (newMembers.length > 0) {
+      const hasAdmin = newMembers.some((member: Member) => {
+        const role = institute.roles.find(
+          (r) => (r as unknown as Role).slug === member.role
+        );
+        return (
+          (role as unknown as Role)?.slug === "administrator" &&
+          member.status === "active"
+        );
+      });
+
+      if (!hasAdmin) {
+        return sendError(
+          c,
+          400,
+          "At least one active administrator is required"
+        );
+      }
+    }
+
     const oldEmails = oldMembers.map((m) => m.email);
     const newEmails = newMembers.map((m: Member) => m.email);
     const removedEmails = oldEmails.filter(
       (email) => !newEmails.includes(email)
     );
 
+    const metadataUpdatePromises = [];
+
     if (removedEmails.length > 0) {
       const removedMembers = oldMembers.filter(
-        (member) => removedEmails.includes(member.email) && member._id
+        (member) => removedEmails.includes(member.email) && member.user
       );
-      await Promise.all(
-        removedMembers.map(async (member) => {
-          if (!member._id) return;
-          try {
-            const user = await User.findById(member._id);
-            if (!user?.clerkId) return;
-            const clerkUserToUpdate = await clerkClient.users.getUser(
-              user.clerkId
-            );
-            const currentMetadata =
-              clerkUserToUpdate.publicMetadata as unknown as UserMeta;
-            if (currentMetadata.institute?._id === instituteId) {
-              await clerkClient.users.updateUser(user.clerkId, {
-                publicMetadata: {
-                  currentMetadata,
-                  institute: null,
-                },
-              });
+
+      for (const member of removedMembers) {
+        if (!member.user) continue;
+
+        metadataUpdatePromises.push(
+          (async () => {
+            try {
+              const user = await User.findById(member.user);
+              if (!user?.clerkId) return;
+
+              const clerkUserToUpdate = await clerkClient.users.getUser(
+                user.clerkId
+              );
+              const currentMetadata =
+                clerkUserToUpdate.publicMetadata as unknown as UserMeta;
+
+              if (currentMetadata.institute?._id === instituteId.toString()) {
+                await clerkClient.users.updateUser(user.clerkId, {
+                  publicMetadata: {
+                    ...currentMetadata,
+                    institute: null,
+                  },
+                });
+              }
+            } catch (error) {
+              logger.error(
+                `Failed to update Clerk metadata for removed user: ${member.user}`
+              );
             }
-          } catch (error) {
-            logger.error(
-              `Failed to update Clerk metadata for removed user: ${member._id}`
-            );
-          }
-        })
-      );
+          })()
+        );
+      }
     }
 
     const existingMembers = newMembers.filter(
       (member: Member) =>
         oldEmails.includes(member.email) && member.status === "active"
     );
-    await Promise.all(
-      existingMembers.map(async (newMember: Member) => {
-        const oldMember = oldMembers.find((m) => m.email === newMember.email);
-        if (!oldMember?._id || oldMember.role === newMember.role) return;
-        try {
-          const user = await User.findById(oldMember._id);
-          if (!user?.clerkId) return;
-          const clerkUserToUpdate = await clerkClient.users.getUser(
-            user.clerkId
-          );
-          const currentMetadata =
-            clerkUserToUpdate.publicMetadata as unknown as UserMeta;
-          if (currentMetadata.institute?._id === instituteId) {
-            const role = institute.roles.find(
-              (r: any) => r.slug === newMember.role
-            ) as Role | undefined;
-            if (!role) return;
-            await clerkClient.users.updateUser(user.clerkId, {
-              publicMetadata: {
-                currentMetadata,
-                institute: {
-                  ...currentMetadata.institute,
-                  role: role,
+
+    for (const newMember of existingMembers) {
+      const oldMember = oldMembers.find((m) => m.email === newMember.email);
+
+      if (!oldMember?.user || oldMember.role === newMember.role) continue;
+
+      metadataUpdatePromises.push(
+        (async () => {
+          try {
+            const user = await User.findById(oldMember.user);
+            if (!user?.clerkId) return;
+
+            const clerkUserToUpdate = await clerkClient.users.getUser(
+              user.clerkId
+            );
+            const currentMetadata =
+              clerkUserToUpdate.publicMetadata as unknown as UserMeta;
+
+            if (currentMetadata.institute?._id === instituteId.toString()) {
+              const role = institute.roles.find(
+                (r: any) => r.slug === newMember.role
+              );
+              if (!role) return;
+
+              await clerkClient.users.updateUser(user.clerkId, {
+                publicMetadata: {
+                  ...currentMetadata,
+                  institute: {
+                    ...currentMetadata.institute,
+                    role: role,
+                  },
                 },
-              },
-            });
+              });
+            }
+          } catch (error) {
+            logger.error(
+              `Failed to update role in Clerk metadata for user: ${oldMember.user}`
+            );
           }
-        } catch (error) {
-          logger.error(
-            `Failed to update role in Clerk metadata for user: ${oldMember._id}`
-          );
-        }
-      })
-    );
+        })()
+      );
+    }
 
     const oldPendingEmails = oldMembers
       .filter((member) => member.status === "pending")
       .map((member) => member.email);
+
     const newPendingMembers = newMembers.filter(
       (member: Member) =>
         member.status === "pending" && !oldPendingEmails.includes(member.email)
     );
 
-    await Promise.all(
-      newPendingMembers.map(async (member: Member) => {
-        const role = institute.roles.find(
-          (r: any) => r.slug === member.role
-        ) as Role | undefined;
-        if (!role) {
-          logger.error(`Role not found for member: ${member.email}`);
-          return;
-        }
-        const reqObj = {
-          email: member.email,
-          role: role.slug,
-          institute: instituteId,
-          inviter: inviterName,
-          inviterId: currentUser?.publicMetadata?._id,
-          institutename: body.name || institute.name,
-        };
-        const token = jwt.sign(reqObj, process.env.JWT_SECRET!);
-        try {
-          console.log(body.name, institute.name);
-          const l = await loops.sendTransactionalEmail({
-            transactionalId: process.env.LOOPS_CAMPUS_INVITE_EMAIL!,
-            email: member.email,
-            dataVariables: {
-              inviter: inviterName,
-              joinlink: `${process.env
-                .CAMPUS_FRONTEND_URL!}/join?token=${token}`,
-              institutename: body.name || institute.name,
-            },
-          });
+    for (const member of newPendingMembers) {
+      const sanitizedEmail = sanitizeInput(member.email);
+      if (!validateEmail(sanitizedEmail)) {
+        return sendError(
+          c,
+          400,
+          `Invalid email address for member: ${sanitizedEmail}`
+        );
+      }
 
-          console.log(l);
-          logger.info(`Invite sent to: ${member.email}`);
-        } catch (error) {
-          console.error(error);
-          logger.error(`Failed to send invite to: ${member.email}`);
-        }
-      })
-    );
+      const role = institute.roles.find((r: any) => r.slug === member.role) as
+        | Role
+        | undefined;
+
+      if (!role) {
+        logger.error(`Role not found for member: ${member.email}`);
+        continue;
+      }
+
+      const reqObj = {
+        email: sanitizedEmail,
+        role: role.slug,
+        institute: instituteId,
+        inviter: inviterName,
+        inviterId: currentUser?.publicMetadata?._id,
+        institutename: body.name || institute.name,
+      };
+
+      const token = jwt.sign(reqObj, process.env.JWT_SECRET!, {
+        expiresIn: TOKEN_EXPIRY,
+      });
+
+      try {
+        await loops.sendTransactionalEmail({
+          transactionalId: process.env.LOOPS_CAMPUS_INVITE_EMAIL!,
+          email: sanitizedEmail,
+          dataVariables: {
+            inviter: inviterName,
+            joinlink: `${process.env.CAMPUS_FRONTEND_URL!}/join?token=${token}`,
+            institutename: body.name || institute.name,
+          },
+        });
+
+        logger.info(`Invite sent to: ${sanitizedEmail}`);
+      } catch (error) {
+        logger.error(`Failed to send invite to: ${sanitizedEmail}: ${error}`);
+      }
+    }
+
+    await Promise.all(metadataUpdatePromises);
 
     const auditLog = {
       user: inviterName,
       userId: currentUser?.publicMetadata?._id,
       action: "Institute Updated",
       type: "info",
+      timestamp: new Date(),
     };
-    console.log("abc");
+
+    const sanitizedBody = {
+      ...body,
+      name: body.name ? sanitizeInput(body.name) : institute.name,
+      email: body.email ? sanitizeInput(body.email) : institute.email,
+      website: body.website ? sanitizeInput(body.website) : institute.website,
+    };
 
     const updatedInstitute = await Institute.findByIdAndUpdate(
       instituteId,
       {
-        ...body,
-        $push: { auditLog: auditLog },
+        ...sanitizedBody,
+        $push: { auditLogs: auditLog },
       },
       { new: true }
     );
@@ -525,106 +794,211 @@ const updateInstitute = async (c: Context) => {
     if (!updatedInstitute) {
       return sendError(c, 404, "Institute not found");
     }
-    return sendSuccess(
-      c,
-      200,
-      "Institute settings updated successfully",
-      updatedInstitute
-    );
+
+    return sendSuccess(c, 200, "Institute settings updated successfully", {
+      _id: updatedInstitute._id,
+      name: updatedInstitute.name,
+    });
   } catch (error) {
-    logger.error(error as string);
-    return sendError(c, 500, "Failed to update institute settings", error);
+    logger.error(`updateInstitute error: ${error}`);
+    return sendError(c, 500, "Failed to update institute settings", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Update general institute settings
+ */
 const updateGeneralSettings = async (c: Context) => {
   try {
     const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
     if (!perms.allowed) {
-      return sendError(c, 401, "Unauthorized");
+      return sendError(
+        c,
+        403,
+        "You don't have permission to manage institute settings"
+      );
     }
+
     const { name, email, website } = await c.req.json();
     const instituteId = perms.data?.institute?._id;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const websiteRegex = /(http|https):\/\/[^ "]*/;
-    if (!name || !email || !website) {
+
+    if (!instituteId || !Types.ObjectId.isValid(instituteId)) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    const sanitizedName = sanitizeInput(name);
+    const sanitizedEmail = sanitizeInput(email);
+    const sanitizedWebsite = sanitizeInput(website);
+
+    if (!sanitizedName || !sanitizedEmail || !sanitizedWebsite) {
       return sendError(c, 400, "Please fill all required fields");
     }
-    if (!emailRegex.test(email)) {
+
+    if (!validateEmail(sanitizedEmail)) {
       return sendError(c, 400, "Invalid email address");
     }
-    if (!websiteRegex.test(website)) {
+
+    if (!validateWebsite(sanitizedWebsite)) {
       return sendError(c, 400, "Invalid website address");
     }
+
+    const existingInstitute = await Institute.findOne({
+      email: sanitizedEmail,
+      _id: { $ne: instituteId },
+    });
+
+    if (existingInstitute) {
+      return sendError(c, 400, "Institute with this email already exists");
+    }
+
     const user = await clerkClient.users.getUser(c.get("auth").userId);
     const auditLog: AuditLog = {
-      user: user.firstName + " " + user.lastName,
+      user: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
       userId: c.get("auth")._id,
       action: "Institute General Settings Updated",
       type: "info",
     };
+
     const institute = await Institute.findById(instituteId).populate(
       "members.user"
     );
+
     if (!institute) {
       return sendError(c, 404, "Institute not found");
     }
-    if (name !== institute.name) {
-      for (const member of institute.members) {
-        if (!member._id) continue;
-        const userDoc = await User.findById(member._id);
-        if (!userDoc) continue;
-        const u = await clerkClient.users.getUser(userDoc?.clerkId);
-        const publicMetadata = u.publicMetadata;
-        (publicMetadata.institute as { name: string }).name = name;
-        await clerkClient.users.updateUser(userDoc.clerkId, {
-          publicMetadata,
-        });
-      }
+
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        if (sanitizedName !== institute.name) {
+          const updatePromises = [];
+          for (const member of institute.members) {
+            if (!member.user || member.status !== "active") continue;
+
+            const userDoc = await User.findById(member.user);
+            if (!userDoc?.clerkId) continue;
+
+            updatePromises.push(
+              (async () => {
+                try {
+                  const u = await clerkClient.users.getUser(userDoc.clerkId);
+                  const publicMetadata =
+                    u.publicMetadata as unknown as UserMeta;
+                  if (
+                    publicMetadata.institute &&
+                    publicMetadata.institute._id === instituteId.toString()
+                  ) {
+                    publicMetadata.institute.name = sanitizedName;
+                    await clerkClient.users.updateUser(userDoc.clerkId, {
+                      publicMetadata:
+                        publicMetadata as unknown as UserPublicMetadata,
+                    });
+                  }
+                } catch (error) {
+                  logger.error(
+                    `Failed to update institute name for user ${userDoc.clerkId}: ${error}`
+                  );
+                }
+              })()
+            );
+          }
+
+          await Promise.all(updatePromises);
+        }
+
+        institute.name = sanitizedName;
+        institute.email = sanitizedEmail;
+        institute.website = sanitizedWebsite;
+        institute.auditLogs.push(auditLog);
+        await institute.save({ session });
+      });
+
+      await session.endSession();
+    } catch (error) {
+      await session.abortTransaction();
+      await session.endSession();
+      logger.error(`Transaction failed in updateGeneralSettings: ${error}`);
+      return sendError(c, 500, "Failed to update institute settings", {
+        message: "Database transaction failed",
+      });
     }
-    institute.name = name;
-    institute.email = email;
-    institute.website = website;
-    institute.auditLogs.push(auditLog);
-    await institute.save();
-    return sendSuccess(
-      c,
-      200,
-      "Institute settings updated successfully",
-      institute
-    );
+
+    return sendSuccess(c, 200, "Institute settings updated successfully", {
+      _id: institute._id,
+      name: institute.name,
+      email: institute.email,
+      website: institute.website,
+    });
   } catch (error) {
-    logger.error(error as string);
-    return sendError(c, 500, "Failed to update institute settings", error);
+    logger.error(`updateGeneralSettings error: ${error}`);
+    return sendError(c, 500, "Failed to update institute settings", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Update institute logo
+ */
 const updateLogo = async (c: Context) => {
   try {
     const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
     if (!perms.allowed) {
-      return sendError(c, 401, "Unauthorized");
+      return sendError(
+        c,
+        403,
+        "You don't have permission to update institute logo"
+      );
     }
 
-    // Parse the incoming request body
+    const orgId = perms.data?.institute?._id;
+    if (!orgId || !Types.ObjectId.isValid(orgId)) {
+      return sendError(c, 404, "Institute not found");
+    }
+
     const file = await c.req.json();
 
     if (!file.logo) {
-      return sendError(c, 400, "Please provide a file");
+      return sendError(c, 400, "Please provide a logo image");
     }
 
-    const buffer = Buffer.from(
-      file.logo.replace(/^data:image\/\w+;base64,/, ""),
-      "base64"
-    );
+    const logoData = file.logo;
+    const matches = logoData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
 
-    const orgId = perms.data?.institute?._id;
+    if (!matches || matches.length !== 3) {
+      return sendError(c, 400, "Invalid image format");
+    }
+
+    const contentType = matches[1];
+    const base64Data = matches[2];
+
+    if (!ALLOWED_FILE_TYPES.includes(contentType)) {
+      return sendError(
+        c,
+        400,
+        `File type not allowed. Accepted types: ${ALLOWED_FILE_TYPES.join(
+          ", "
+        )}`
+      );
+    }
+
+    const buffer = Buffer.from(base64Data, "base64");
+    if (buffer.length > MAX_FILE_SIZE) {
+      return sendError(
+        c,
+        400,
+        `File size exceeds the ${MAX_FILE_SIZE / (1024 * 1024)}MB limit`
+      );
+    }
+
     const uploadParams = {
       Bucket: process.env.R2_S3_BUCKET!,
-      Key: `inst-logos/${orgId}.png`,
+      Key: `inst-logos/${orgId}.${contentType.split("/")[1]}`,
       Body: buffer,
       ContentEncoding: "base64",
-      ContentType: "image/png",
+      ContentType: contentType,
     };
 
     const upload = new Upload({
@@ -636,36 +1010,66 @@ const updateLogo = async (c: Context) => {
 
     const user = await clerkClient.users.getUser(c.get("auth").userId);
     const auditLog: AuditLog = {
-      user: user.firstName + " " + user.lastName,
+      user: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
       userId: c.get("auth")._id,
       action: "Institute Logo Updated",
       type: "info",
     };
 
-    const updatedOrg = await Institute.findByIdAndUpdate(orgId, {
-      $set: { logo: `inst-logos/${orgId}.png` },
-      $push: { auditLogs: auditLog },
-    });
+    const updatedOrg = await Institute.findByIdAndUpdate(
+      orgId,
+      {
+        $set: { logo: uploadParams.Key },
+        $push: { auditLogs: auditLog },
+      },
+      { new: true }
+    );
 
     if (!updatedOrg) {
       return sendError(c, 404, "Institute not found");
     }
 
-    return c.json({ message: "Logo updated successfully" });
+    return sendSuccess(c, 200, "Logo updated successfully");
   } catch (error) {
-    logger.error(error as string);
-    return sendError(c, 500, "Failed to update institute logo", error);
+    logger.error(`updateLogo error: ${error}`);
+    return sendError(c, 500, "Failed to update institute logo", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Update institute members
+ */
 const updateMembers = async (c: Context) => {
   try {
     const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
     if (!perms.allowed) {
-      return sendError(c, 401, "Unauthorized");
+      return sendError(
+        c,
+        403,
+        "You don't have permission to update institute members"
+      );
     }
+
     const { members } = await c.req.json();
     const instituteId = perms.data?.institute?._id;
+
+    if (!instituteId || !Types.ObjectId.isValid(instituteId)) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    if (!Array.isArray(members)) {
+      return sendError(c, 400, "Members must be an array");
+    }
+
+    const hasAdmin = members.some((member: Member) => {
+      return member.role === "administrator" && member.status === "active";
+    });
+
+    if (!hasAdmin) {
+      return sendError(c, 400, "At least one active administrator is required");
+    }
 
     const institute = await Institute.findById(instituteId);
     if (!institute) {
@@ -677,71 +1081,79 @@ const updateMembers = async (c: Context) => {
       clerkUser.lastName || ""
     }`.trim();
 
-    const oldMemberEmails = institute.members.map((member) => member.email);
+    const oldMembers = institute.members;
+    const oldMemberEmails = oldMembers.map((member) => member.email);
     const newMemberEmails = members.map((member: Member) => member.email);
+
     const removedMemberEmails = oldMemberEmails.filter(
       (email) => !newMemberEmails.includes(email)
     );
 
-    const metadataUpdates = [];
-    if (removedMemberEmails.length > 0) {
-      const removedMembers = institute.members.filter(
-        (member) => removedMemberEmails.includes(member.email) && member._id
-      );
-      metadataUpdates.push(
-        removedMembers.map(async (member) => {
-          if (!member._id) return;
-          try {
-            const user = await User.findById(member._id);
-            if (!user?.clerkId) return;
-            const clerkUserToUpdate = await clerkClient.users.getUser(
-              user.clerkId
-            );
-            const currentMetadata: UserMeta =
-              clerkUserToUpdate.publicMetadata as unknown as UserMeta;
-            if (currentMetadata.institute?._id === instituteId) {
-              await clerkClient.users.updateUser(user.clerkId, {
-                publicMetadata: {
-                  currentMetadata,
-                  institute: null,
-                },
-              });
-            }
-          } catch (error) {
-            logger.error(
-              `Failed to update Clerk metadata for user: ${member._id}`
-            );
-          }
-        })
-      );
-    }
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        if (removedMemberEmails.length > 0) {
+          const removedMembers = oldMembers.filter(
+            (member) =>
+              removedMemberEmails.includes(member.email) && member.user
+          );
 
-    const existingMembers = members.filter(
-      (member: Member) =>
-        oldMemberEmails.includes(member.email) && member.status === "active"
-    );
-    existingMembers.forEach((newMember: Member) => {
-      const oldMember = institute.members.find(
-        (m) => m.email === newMember.email
-      );
-      if (!oldMember || !oldMember._id) return;
-      if (oldMember.role !== newMember.role) {
-        metadataUpdates.push(async () => {
+          for (const member of removedMembers) {
+            if (!member.user) continue;
+
+            try {
+              const user = await User.findById(member.user);
+              if (!user?.clerkId) continue;
+
+              const clerkUserToUpdate = await clerkClient.users.getUser(
+                user.clerkId
+              );
+              const currentMetadata =
+                clerkUserToUpdate.publicMetadata as unknown as UserMeta;
+
+              if (currentMetadata.institute?._id === instituteId.toString()) {
+                await clerkClient.users.updateUser(user.clerkId, {
+                  publicMetadata: {
+                    ...currentMetadata,
+                    institute: null,
+                  },
+                });
+              }
+            } catch (error) {
+              logger.error(
+                `Failed to update Clerk metadata for user: ${member.user}: ${error}`
+              );
+            }
+          }
+        }
+
+        const existingMembers = members.filter(
+          (member: Member) =>
+            oldMemberEmails.includes(member.email) && member.status === "active"
+        );
+
+        for (const newMember of existingMembers) {
+          const oldMember = oldMembers.find((m) => m.email === newMember.email);
+          if (!oldMember?.user || oldMember.role === newMember.role) continue;
+
           try {
-            const user = await User.findById(oldMember._id);
-            if (!user?.clerkId) return;
+            const user = await User.findById(oldMember.user);
+            if (!user?.clerkId) continue;
+
             const clerkUserToUpdate = await clerkClient.users.getUser(
               user.clerkId
             );
-            const currentMetadata: UserMeta =
+            const currentMetadata =
               clerkUserToUpdate.publicMetadata as unknown as UserMeta;
-            if (currentMetadata.institute?._id === instituteId) {
+
+            if (currentMetadata.institute?._id === instituteId.toString()) {
               const role = institute.roles.find(
-                (r: any) => r.slug === newMember.role
+                (r) => r.slug === newMember.role
               );
+
               await clerkClient.users.updateUser(user.clerkId, {
                 publicMetadata: {
-                  currentMetadata,
+                  ...currentMetadata,
                   institute: {
                     ...currentMetadata.institute,
                     role: role,
@@ -751,157 +1163,247 @@ const updateMembers = async (c: Context) => {
             }
           } catch (error) {
             logger.error(
-              `Failed to update role in Clerk metadata for user: ${oldMember._id}`
+              `Failed to update role in Clerk metadata for user: ${oldMember.user}: ${error}`
             );
           }
-        });
-      }
-    });
+        }
 
-    await Promise.all(metadataUpdates);
+        const oldPendingMembers = oldMembers.filter(
+          (member) => member.status === "pending"
+        );
+        const oldPendingEmails = oldPendingMembers.map((m) => m.email);
+        const newPendingMembers = members.filter(
+          (member: Member) => member.status === "pending"
+        );
+        const newPendingEmails = newPendingMembers.map((m: Member) => m.email);
+        const newInviteEmails = newPendingEmails.filter(
+          (email: string) => !oldPendingEmails.includes(email)
+        );
 
-    const oldPendingMembers = institute.members.filter(
-      (member) => member.status === "pending"
-    );
-    const newPendingMembers = members.filter(
-      (member: Member) => member.status === "pending"
-    );
-
-    if (oldPendingMembers.length !== newPendingMembers.length) {
-      const newPendingEmails = newPendingMembers.map((m: Member) => m.email);
-      const oldPendingEmails = oldPendingMembers.map((m) => m.email);
-      const newInviteEmails = newPendingEmails.filter(
-        (email: string) => !oldPendingEmails.includes(email)
-      );
-      Promise.all(
-        newInviteEmails.map(async (email: string) => {
+        for (const email of newInviteEmails) {
           const member = members.find((m: Member) => m.email === email);
+          if (!validateEmail(email)) {
+            logger.warn(`Skipping invalid email: ${email}`);
+            continue;
+          }
+
+          const role = institute.roles.find((r) => r.slug === member.role);
+          if (!role) {
+            logger.warn(`Skipping member with invalid role: ${email}`);
+            continue;
+          }
+
           const reqObj = {
             email,
-            role: member.role.name,
-            roleId: member.role._id,
+            role: role.slug,
             institute: instituteId,
             inviter: clerkUser.firstName || "",
             inviterId: c.get("auth")._id,
             institutename: institute.name,
           };
-          const token = jwt.sign(reqObj, process.env.JWT_SECRET!);
-          return loops.sendTransactionalEmail({
-            transactionalId: process.env.LOOPS_INVITE_EMAIL!,
-            email,
-            dataVariables: {
-              inviter: clerkUser.firstName || "",
-              joinlink: `${process.env
-                .ENTERPRISE_FRONTEND_URL!}/join?token=${token}`,
-              institutename: institute.name,
-            },
+
+          const token = jwt.sign(reqObj, process.env.JWT_SECRET!, {
+            expiresIn: TOKEN_EXPIRY,
           });
-        })
-      );
+
+          try {
+            await loops.sendTransactionalEmail({
+              transactionalId: process.env.LOOPS_INVITE_EMAIL!,
+              email,
+              dataVariables: {
+                inviter: clerkUser.firstName || "",
+                joinlink: `${process.env
+                  .ENTERPRISE_FRONTEND_URL!}/join?token=${token}`,
+                institutename: institute.name,
+              },
+            });
+          } catch (error) {
+            logger.error(`Failed to send invite to: ${email}: ${error}`);
+          }
+        }
+
+        const finalMembers = members.map((member: Member) => ({
+          user: (member.user as unknown as UserJSON)?.id || null,
+          email: sanitizeInput(member.email),
+          role: member.role,
+          addedOn: (member as any).addedOn || new Date(),
+          status: member.status,
+        }));
+
+        const auditLog = {
+          user: fullName,
+          userId: c.get("auth")._id,
+          action: "Institute Members Updated",
+          type: "info",
+          timestamp: new Date(),
+        };
+
+        await Institute.findByIdAndUpdate(
+          instituteId,
+          {
+            $set: { members: finalMembers },
+            $push: { auditLogs: auditLog },
+          },
+          { session }
+        );
+      });
+
+      await session.endSession();
+    } catch (error) {
+      await session.abortTransaction();
+      await session.endSession();
+      logger.error(`Transaction failed in updateMembers: ${error}`);
+      return sendError(c, 500, "Failed to update institute members", {
+        message: "Database transaction failed",
+      });
     }
 
-    const finalMembers = members.map((member: Member) => ({
-      user: (member.user as unknown as UserJSON)?.id,
-      email: member.email,
-      role: member.role,
-      addedOn: (member as any).addedOn,
-      status: member.status,
-    }));
-
-    const auditLog = {
-      user: fullName,
-      userId: c.get("auth")._id,
-      action: "Institute Members Updated",
-      type: "info",
-    };
-
-    const updatedInstitute = await Institute.findByIdAndUpdate(
-      instituteId,
-      {
-        $set: { members: finalMembers },
-        $push: { auditLogs: auditLog },
-      },
-      { new: true }
-    );
-    if (!updatedInstitute) {
-      return sendError(c, 404, "Institute not found");
-    }
-    return sendSuccess(
-      c,
-      200,
-      "Institute settings updated successfully",
-      members
-    );
+    return sendSuccess(c, 200, "Institute members updated successfully");
   } catch (error) {
-    logger.error(error as string);
-    return sendError(c, 500, "Failed to update institute settings", error);
+    logger.error(`updateMembers error: ${error}`);
+    return sendError(c, 500, "Failed to update institute members", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Update institute roles
+ */
 const updateRoles = async (c: Context) => {
   try {
     const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
     if (!perms.allowed) {
-      return sendError(c, 401, "Unauthorized");
+      return sendError(
+        c,
+        403,
+        "You don't have permission to update institute roles"
+      );
     }
+
     const { roles } = await c.req.json();
+    const instituteId = perms.data?.institute?._id;
+
+    if (!instituteId || !Types.ObjectId.isValid(instituteId)) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    if (!Array.isArray(roles)) {
+      return sendError(c, 400, "Roles must be an array");
+    }
+
     const finalRoles: Role[] = [];
     for (const role of roles) {
+      if (!role.name || !role.slug) {
+        return sendError(c, 400, "Each role must have a name and slug");
+      }
+
+      if (typeof role.slug !== "string" || !/^[a-z0-9_-]+$/.test(role.slug)) {
+        return sendError(c, 400, `Invalid role slug format: ${role.slug}`);
+      }
+
+      if (finalRoles.some((r) => r.slug === role.slug)) {
+        return sendError(c, 400, `Duplicate role slug: ${role.slug}`);
+      }
+
       const roleObj: Role = {
-        name: role.name,
+        name: sanitizeInput(role.name),
         slug: role.slug,
-        description: role.description,
-        permissions: role.permissions,
-        default: role.default,
+        description: role.description ? sanitizeInput(role.description) : "",
+        permissions: Array.isArray(role.permissions)
+          ? role.permissions.filter((p: string) =>
+              institutePermissions.includes(p)
+            )
+          : [],
+        default: !!role.default,
       };
+
       finalRoles.push(roleObj);
     }
-    const instituteId = perms.data?.institute?._id;
+
     const institute = await Institute.findById(instituteId);
     if (!institute) {
       return sendError(c, 404, "Institute not found");
     }
+
+    const defaultSystemRoles = defaultInstituteRoles.map((role) => role.slug);
+    const userModifiedSystemRoles = finalRoles.some(
+      (role) =>
+        defaultSystemRoles.includes(role.slug) &&
+        !defaultInstituteRoles.some(
+          (defaultRole) =>
+            defaultRole.slug === role.slug &&
+            JSON.stringify(defaultRole.permissions) ===
+              JSON.stringify(role.permissions)
+        )
+    );
+
+    if (userModifiedSystemRoles) {
+      return sendError(c, 400, "Cannot modify default system roles");
+    }
+
     const clerkUser = await clerkClient.users.getUser(c.get("auth").userId);
-    const fName = clerkUser.firstName;
-    const lName = clerkUser.lastName;
+    const fullName = `${clerkUser.firstName || ""} ${
+      clerkUser.lastName || ""
+    }`.trim();
+
     const auditLog: AuditLog = {
-      user: fName + " " + lName,
+      user: fullName,
       userId: c.get("auth")._id,
       action: "Institute Roles Updated",
       type: "info",
     };
-    finalRoles.push(...defaultInstituteRoles);
-    const updatedInstitute = await Institute.findByIdAndUpdate(instituteId, {
-      $set: { roles: finalRoles },
-      $push: { auditLogs: auditLog },
-    });
+
+    const existingDefaultRoles = defaultInstituteRoles.filter(
+      (role) => !finalRoles.some((r) => r.slug === role.slug)
+    );
+
+    const updatedInstitute = await Institute.findByIdAndUpdate(
+      instituteId,
+      {
+        $set: { roles: [...finalRoles, ...existingDefaultRoles] },
+        $push: { auditLogs: auditLog },
+      },
+      { new: true }
+    );
+
     if (!updatedInstitute) {
       return sendError(c, 404, "Institute not found");
     }
-    return sendSuccess(
-      c,
-      200,
-      "Institute settings updated successfully",
-      updatedInstitute
-    );
+
+    return sendSuccess(c, 200, "Institute roles updated successfully", {
+      roles: updatedInstitute.roles,
+    });
   } catch (error) {
-    logger.error(error as string);
-    return sendError(c, 500, "Failed to update institute settings", error);
+    logger.error(`updateRoles error: ${error}`);
+    return sendError(c, 500, "Failed to update institute roles", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Get candidates for an institute
+ */
 const getCandidates = async (c: Context) => {
   try {
     const perms = await checkInstitutePermission.all(c, ["view_institute"]);
     if (!perms.allowed) {
-      return sendError(c, 401, "Unauthorized");
+      return sendError(c, 403, "You don't have permission to view candidates");
     }
 
     const instituteId = perms.data?.institute?._id;
+    if (!instituteId || !Types.ObjectId.isValid(instituteId)) {
+      return sendError(c, 404, "Institute not found");
+    }
+
     const institute = await Institute.findOne({ _id: instituteId })
-      .populate("candidates")
+      .populate({
+        path: "candidates",
+        select: "-passwordHash -resetToken -refreshToken",
+      })
       .lean();
-    1;
+
     if (!institute) {
       return sendError(c, 404, "Institute not found");
     }
@@ -910,23 +1412,40 @@ const getCandidates = async (c: Context) => {
       c,
       200,
       "Candidates fetched successfully",
-      institute?.candidates
+      institute?.candidates || []
     );
   } catch (error) {
-    console.error(error as string);
-    return sendError(c, 500, "Failed to fetch candidates", error);
+    logger.error(`getCandidates error: ${error}`);
+    return sendError(c, 500, "Failed to fetch candidates", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Get pending candidates for an institute
+ */
 const getPendingCandidates = async (c: Context) => {
   try {
     const perms = await checkInstitutePermission.all(c, ["view_institute"]);
     if (!perms.allowed) {
-      return sendError(c, 401, "Unauthorized");
+      return sendError(
+        c,
+        403,
+        "You don't have permission to view pending candidates"
+      );
     }
+
     const instituteId = perms.data?.institute?._id;
+    if (!instituteId || !Types.ObjectId.isValid(instituteId)) {
+      return sendError(c, 404, "Institute not found");
+    }
+
     const institute = await Institute.findOne({ _id: instituteId })
-      .populate("pendingCandidates")
+      .populate({
+        path: "pendingCandidates",
+        select: "-passwordHash -resetToken -refreshToken",
+      })
       .lean();
 
     if (!institute) {
@@ -937,80 +1456,78 @@ const getPendingCandidates = async (c: Context) => {
       c,
       200,
       "Pending Candidates fetched successfully",
-      institute?.pendingCandidates
+      institute?.pendingCandidates || []
     );
   } catch (error) {
-    logger.error(error as string);
-    return sendError(c, 500, "Failed to fetch pending candidates", error);
+    logger.error(`getPendingCandidates error: ${error}`);
+    return sendError(c, 500, "Failed to fetch pending candidates", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Get departments for an institute
+ */
 const getDepartments = async (c: Context) => {
   try {
     const perms = await checkInstitutePermission.all(c, ["view_institute"]);
     if (!perms.allowed) {
-      return sendError(c, 401, "Unauthorized");
+      return sendError(c, 403, "You don't have permission to view departments");
     }
+
     const instituteId = perms.data?.institute?._id;
-    const institute = await Institute.findById(instituteId).lean();
+    if (!instituteId || !Types.ObjectId.isValid(instituteId)) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    const institute = await Institute.findById(instituteId)
+      .select("departments")
+      .lean();
+
     if (!institute) {
       return sendError(c, 404, "Institute not found");
     }
+
     return sendSuccess(
       c,
       200,
       "Departments fetched successfully",
-      institute.departments
+      institute.departments || []
     );
   } catch (error) {
-    logger.error(error as string);
-    return sendError(c, 500, "Failed to fetch departments", error);
+    logger.error(`getDepartments error: ${error}`);
+    return sendError(c, 500, "Failed to fetch departments", {
+      message: "Internal server error",
+    });
   }
 };
 
-const updateDepartments = async (c: Context) => {
-  try {
-    const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
-    if (!perms.allowed) {
-      return sendError(c, 401, "Unauthorized");
-    }
-    const { departments } = await c.req.json();
-    const instituteId = perms.data?.institute?._id;
-    const user = await clerkClient.users.getUser(c.get("auth").userId);
-    const fName = user.firstName;
-    const lName = user.lastName;
-    const institute = await Institute.findById(instituteId);
-    if (!institute) {
-      return sendError(c, 404, "Institute not found");
-    }
-    institute.departments = departments;
-    institute.auditLogs.push({
-      user: fName + " " + lName,
-      userId: c.get("auth")._id,
-      action: "Departments Updated",
-      type: "info",
-    });
-    await institute.save();
-    return sendSuccess(c, 200, "Departments updated successfully", {
-      departments: institute.departments,
-    });
-  } catch (error) {
-    logger.error(error as string);
-    return sendError(c, 500, "Failed to update departments", error);
-  }
-};
-
+/**
+ * Request to join an institute
+ */
 const requestToJoin = async (c: Context) => {
   try {
     const { code, uid } = await c.req.json();
-    const user = await c.get("auth")._id;
+    const userId = c.get("auth")?._id;
 
-    const candidate = await CandidateModel.findOne({ userId: user });
+    if (!userId) {
+      return sendError(c, 401, "Authentication required");
+    }
+
+    if (!code || !uid) {
+      return sendError(c, 400, "Institute code and candidate ID are required");
+    }
+
+    const sanitizedCode = sanitizeInput(code);
+    const sanitizedUid = sanitizeInput(uid);
+
+    const candidate = await CandidateModel.findOne({ userId });
     if (!candidate) {
       return sendError(c, 404, "Candidate not found");
     }
 
-    const institute = await Institute.findOne({ code });
+    const institute = await Institute.findOne({ code: sanitizedCode });
     if (!institute) {
       return sendError(c, 404, "Institute not found");
     }
@@ -1020,20 +1537,35 @@ const requestToJoin = async (c: Context) => {
         (c) => c?.toString() === candidate?._id?.toString()
       )
     ) {
-      return sendError(c, 400, "Already requested to join");
+      return sendError(
+        c,
+        400,
+        "You have already requested to join this institute"
+      );
     }
 
-    if (institute.candidates.some((m) => m?.toString() === user)) {
-      return sendError(c, 400, "Already a candidate of the institute");
+    if (
+      institute.candidates.some(
+        (c) => c?.toString() === candidate._id.toString()
+      )
+    ) {
+      return sendError(c, 400, "You are already a candidate of this institute");
     }
 
-    if (institute.members.some((m) => m.user?.toString() === user)) {
-      return sendError(c, 400, "Already a faculty of the institute");
+    if (institute.members.some((m) => m.user?.toString() === userId)) {
+      return sendError(
+        c,
+        400,
+        "You are already a faculty member of this institute"
+      );
     }
 
-    // Check if the instituteUid is already in use
+    if (candidate.institute) {
+      return sendError(c, 400, "You already belong to another institute");
+    }
+
     const existingCandidate = await CandidateModel.findOne({
-      instituteUid: uid,
+      instituteUid: sanitizedUid,
       institute: institute._id,
     });
 
@@ -1041,85 +1573,161 @@ const requestToJoin = async (c: Context) => {
       return sendError(
         c,
         400,
-        "A candidate with this unique ID already exists"
+        "A candidate with this unique ID already exists in this institute"
       );
     }
 
-    const updatedInstitute = await Institute.findByIdAndUpdate(
-      institute._id,
-      {
-        $push: { pendingCandidates: candidate._id },
-      },
-      { new: true }
-    );
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        await Institute.findByIdAndUpdate(
+          institute._id,
+          {
+            $push: { pendingCandidates: candidate._id },
+          },
+          { session }
+        );
 
-    candidate.instituteUid = uid;
-    await candidate.save();
+        candidate.instituteUid = sanitizedUid;
+        await candidate.save({ session });
+      });
+
+      await session.endSession();
+    } catch (error) {
+      await session.abortTransaction();
+      await session.endSession();
+      logger.error(`Transaction failed in requestToJoin: ${error}`);
+      return sendError(c, 500, "Failed to send join request", {
+        message: "Database transaction failed",
+      });
+    }
 
     return sendSuccess(c, 200, "Request to join institute sent successfully", {
-      name: updatedInstitute?.name,
+      name: institute.name,
     });
   } catch (error) {
-    logger.error(error as string);
-    return sendError(c, 500, "Failed to request to join institute", error);
+    logger.error(`requestToJoin error: ${error}`);
+    return sendError(c, 500, "Failed to request to join institute", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Leave an institute
+ */
 const leaveInstitute = async (c: Context) => {
-  const userId = c.get("auth").userId;
+  const userId = c.get("auth")?.userId;
+  if (!userId) {
+    return sendError(c, 401, "Authentication required");
+  }
+
   try {
     const clerkUser = await clerkClient.users.getUser(userId);
-
     if (!clerkUser) {
       return sendError(c, 404, "User not found");
     }
 
     const userMeta = clerkUser.publicMetadata as unknown as UserMeta;
     if (!userMeta.institute) {
-      return sendError(c, 404, "Institute not found in user metadata");
+      return sendError(c, 404, "You are not a member of any institute");
     }
 
     const instituteId = userMeta.institute._id;
+    if (!Types.ObjectId.isValid(instituteId)) {
+      return sendError(c, 400, "Invalid institute ID in user metadata");
+    }
 
     const institute = await Institute.findById(instituteId);
     if (!institute) {
+      await clerkClient.users.updateUser(userId, {
+        publicMetadata: {
+          ...userMeta,
+          institute: null,
+        },
+      });
       return sendError(c, 404, "Institute not found");
     }
 
+    const memberId = c.get("auth")?._id;
+    if (!memberId) {
+      return sendError(c, 401, "User ID not found");
+    }
+
     const member = institute.members.find(
-      (m) => m.user?.toString() === c.get("auth")._id
+      (m) => m.user?.toString() === memberId
     );
+
     if (!member) {
-      return sendError(c, 404, "Member not found in institute");
+      await clerkClient.users.updateUser(userId, {
+        publicMetadata: {
+          ...userMeta,
+          institute: null,
+        },
+      });
+      return sendError(c, 404, "You are not a member of this institute");
     }
 
     if (member.status !== "active") {
-      return sendError(c, 400, "Member is not active");
+      return sendError(c, 400, "Your membership is not active");
     }
 
-    if (member.user === institute.createdBy) {
-      return sendError(c, 400, "Cannot leave the institute as the creator");
+    if (memberId === institute.createdBy?.toString()) {
+      return sendError(c, 400, "Institute owners cannot leave the institute");
     }
 
-    member.status = "inactive";
+    if (member.role === "administrator") {
+      const activeAdmins = institute.members.filter(
+        (m) => m.status === "active" && m.role === "administrator"
+      );
 
-    await institute.save();
-    await clerkClient.users.updateUser(clerkUser.id, {
-      publicMetadata: {
-        ...userMeta,
-        institute: null,
-      },
-    });
+      if (activeAdmins.length <= 1) {
+        return sendError(
+          c,
+          400,
+          "Cannot leave institute as you are the last administrator"
+        );
+      }
+    }
+
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        member.status = "inactive";
+        await institute.save({ session });
+
+        await clerkClient.users.updateUser(clerkUser.id, {
+          publicMetadata: {
+            ...userMeta,
+            institute: null,
+          },
+        });
+      });
+
+      await session.endSession();
+    } catch (error) {
+      await session.abortTransaction();
+      await session.endSession();
+      logger.error(`Transaction failed in leaveInstitute: ${error}`);
+      return sendError(c, 500, "Failed to leave institute", {
+        message: "Database transaction failed",
+      });
+    }
 
     return sendSuccess(c, 200, "Left institute successfully", {
-      message: "You have left the institute",
+      message: "You have successfully left the institute",
     });
   } catch (error) {
-    logger.error(error as string);
-    return sendError(c, 500, "Failed to leave institute", error);
+    logger.error(`leaveInstitute error: ${error}`);
+    return sendError(c, 500, "Failed to leave institute", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Field mapping for permissions
+ */
 const permissionFieldMap = {
   view_institute: [
     "name",
@@ -1179,22 +1787,42 @@ const permissionFieldMap = {
   ],
 };
 
-const getInstitute = async (c: Context): Promise<any> => {
+/**
+ * Get all institute information based on user permissions
+ */
+const getInstitute = async (c: Context) => {
   try {
-    const userId = c.get("auth")._id;
+    const userId = c.get("auth")?._id;
+    if (!userId) {
+      return sendError(c, 401, "Authentication required");
+    }
+
     const institute = await Institute.findOne({
       "members.user": userId,
       "members.status": "active",
     })
-      .populate("members.user")
-      .populate("candidates")
-      .populate("pendingCandidates")
+      .populate({
+        path: "members.user",
+        select: "-passwordHash -resetToken -refreshToken",
+      })
+      .populate({
+        path: "candidates",
+        select: "-passwordHash -resetToken -refreshToken",
+      })
+      .populate({
+        path: "pendingCandidates",
+        select: "-passwordHash -resetToken -refreshToken",
+      })
       .populate("companies")
       .populate("drives")
       .lean();
 
     if (!institute) {
-      return sendError(c, 404, "Institute not found");
+      return sendError(
+        c,
+        404,
+        "Institute not found or you are not an active member"
+      );
     }
 
     const member = institute.members.find(
@@ -1204,17 +1832,16 @@ const getInstitute = async (c: Context): Promise<any> => {
         )?._id?.toString() === userId.toString()
     );
 
-    console.log(defaultInstituteRoles);
-
     if (!member?.role) {
       return sendError(c, 403, "Invalid member access");
     }
 
-    const role = defaultInstituteRoles.find(
+    const role = institute.roles.find(
       (r) => r.slug === (member.role as unknown as string)
     );
+
     if (!role?.permissions?.length) {
-      return sendError(c, 403, "No permissions found for role");
+      return sendError(c, 403, "No permissions found for your role");
     }
 
     const fieldsToSelect = [
@@ -1230,9 +1857,18 @@ const getInstitute = async (c: Context): Promise<any> => {
     const [selectedInstitute, userDoc] = await Promise.all([
       Institute.findById(institute._id)
         .select(fieldsToSelect.join(" "))
-        .populate("members.user")
-        .populate("candidates")
-        .populate("pendingCandidates")
+        .populate({
+          path: "members.user",
+          select: "firstName lastName email profilePic",
+        })
+        .populate({
+          path: "candidates",
+          select: "-passwordHash -resetToken -refreshToken",
+        })
+        .populate({
+          path: "pendingCandidates",
+          select: "-passwordHash -resetToken -refreshToken",
+        })
         .populate("companies")
         .populate("placementGroups")
         .populate("drives"),
@@ -1244,10 +1880,10 @@ const getInstitute = async (c: Context): Promise<any> => {
       return sendError(c, 404, "Required data not found");
     }
 
-    const user: MemberWithPermission = {
-      ...member, // @ts-expect-error - TS sucks
-      _id: member._id,
-      // userInfo: userDetails,
+    const user = {
+      ...member,
+      _id: member._id?.toString(),
+      user: member.user ? member.user.toString() : undefined,
       permissions: role.permissions,
       createdAt: member.createdAt || new Date(),
     };
@@ -1260,84 +1896,108 @@ const getInstitute = async (c: Context): Promise<any> => {
           Key: logoUrl,
         });
 
-        const data = await r2Client.send(command);
-        if (data?.Body) {
-          const buffer = await data.Body.transformToByteArray();
-          const base64 = await Buffer.from(
-            buffer as unknown as ArrayBuffer
-          ).toString("base64");
-          selectedInstitute.logo = `data:image/png;base64,${base64.toString()}`;
-        }
+        const presignedUrl = await getSignedUrl(r2Client, command, {
+          expiresIn: 3600,
+        });
+        selectedInstitute.logo = presignedUrl;
       } catch (e) {
         logger.error(`Failed to fetch logo: ${e}`);
+        selectedInstitute.logo = null;
       }
     }
 
-    console.log(selectedInstitute?.candidates);
     return sendSuccess(c, 200, "Institute fetched successfully", {
       institute: selectedInstitute,
       user,
     });
   } catch (error) {
     logger.error("Failed to fetch institute: " + error);
-    return sendError(c, 500, "Failed to fetch institute", error);
+    return sendError(c, 500, "Failed to fetch institute", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Verify if a candidate has a pending request
+ */
 const verifyRequest = async (c: Context) => {
   try {
-    const auth = c.get("auth")._id;
-    const candidate = await CandidateModel.findOne({ userId: auth });
+    const userId = c.get("auth")?._id;
+    if (!userId) {
+      return sendError(c, 401, "Authentication required");
+    }
+
+    const candidate = await CandidateModel.findOne({ userId });
     if (!candidate) {
       return sendError(c, 404, "Candidate not found");
     }
 
     const isCandidatePending = await Institute.findOne({
-      pendingCandidates: {
-        $elemMatch: {
-          candidate: candidate._id,
-        },
-      },
+      pendingCandidates: candidate._id,
     });
 
     if (!isCandidatePending) {
-      return sendSuccess(c, 200, "Candidate not found", { exist: false });
+      return sendSuccess(c, 200, "No pending requests found", { exist: false });
     }
 
-    return sendSuccess(c, 200, "Candidate found", {
+    return sendSuccess(c, 200, "Pending request found", {
       exist: true,
       name: isCandidatePending.name,
     });
   } catch (error) {
     logger.error("Failed to verify request: " + error);
-    return sendError(c, 500, "Failed to verify request", error);
+    return sendError(c, 500, "Failed to verify request", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Cancel a pending join request
+ */
 const cancelRequest = async (c: Context) => {
   try {
-    const auth = c.get("auth")._id;
-    const candidate = await CandidateModel.findOne({ userId: auth });
+    const userId = c.get("auth")?._id;
+    if (!userId) {
+      return sendError(c, 401, "Authentication required");
+    }
+
+    const candidate = await CandidateModel.findOne({ userId });
     if (!candidate) {
       return sendError(c, 404, "Candidate not found");
     }
 
     const isCandidatePending = await Institute.findOne({
-      pendingCandidates: {
-        $elemMatch: {
-          candidate: candidate._id,
-        },
-      },
+      pendingCandidates: candidate._id,
     });
 
     if (!isCandidatePending) {
-      return sendSuccess(c, 200, "Candidate not found", { exist: true });
+      return sendSuccess(c, 200, "No pending request found", { exist: false });
     }
 
-    await Institute.updateOne(
-      { _id: isCandidatePending._id },
-      { $pull: { pendingCandidates: { candidate: candidate._id } } }
-    );
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        await Institute.updateOne(
+          { _id: isCandidatePending._id },
+          { $pull: { pendingCandidates: candidate._id } },
+          { session }
+        );
+
+        candidate.instituteUid = undefined;
+        await candidate.save({ session });
+      });
+
+      await session.endSession();
+    } catch (error) {
+      await session.abortTransaction();
+      await session.endSession();
+      logger.error(`Transaction failed in cancelRequest: ${error}`);
+      return sendError(c, 500, "Failed to cancel request", {
+        message: "Database transaction failed",
+      });
+    }
 
     return sendSuccess(c, 200, "Request cancelled successfully", {
       exist: true,
@@ -1345,21 +2005,45 @@ const cancelRequest = async (c: Context) => {
     });
   } catch (error) {
     logger.error("Failed to cancel request: " + error);
-    return sendError(c, 500, "Failed to cancel request", error);
+    return sendError(c, 500, "Failed to cancel request", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Get a specific candidate's details
+ */
 const getCandidate = async (c: Context) => {
   try {
     const cid = c.req.param("cid");
-    const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
-    if (!perms.allowed) {
-      return sendError(c, 401, "Unauthorized");
+    if (!cid || !Types.ObjectId.isValid(cid)) {
+      return sendError(c, 400, "Invalid candidate ID");
     }
 
-    const institute = await Institute.findById(perms.data?.institute?._id)
-      .populate("candidates")
-      .populate("pendingCandidates");
+    const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
+    if (!perms.allowed) {
+      return sendError(
+        c,
+        403,
+        "You don't have permission to view candidate details"
+      );
+    }
+
+    const instituteId = perms.data?.institute?._id;
+    if (!instituteId) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    const institute = await Institute.findById(instituteId)
+      .populate({
+        path: "candidates",
+        select: "-passwordHash -resetToken -refreshToken",
+      })
+      .populate({
+        path: "pendingCandidates",
+        select: "-passwordHash -resetToken -refreshToken",
+      });
 
     if (!institute) {
       return sendError(c, 404, "Institute not found");
@@ -1379,23 +2063,40 @@ const getCandidate = async (c: Context) => {
       return sendSuccess(c, 200, "Candidate found", candidate);
     }
 
-    return sendError(c, 404, "Candidate not found");
+    return sendError(c, 404, "Candidate not found in this institute");
   } catch (error) {
-    logger.error("Failed to verify request: " + error);
-    return sendError(c, 500, "Failed to verify request", error);
+    logger.error("Failed to get candidate details: " + error);
+    return sendError(c, 500, "Failed to get candidate details", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Accept a pending candidate
+ */
 const acceptCandidate = async (c: Context) => {
   try {
     const candidateId = c.req.param("cid");
-    const perms = await checkInstitutePermission.all(c, ["verify_candidate"]);
-    console.log(perms.data?.institute?.role);
-    if (!perms.allowed) {
-      return sendError(c, 401, "Unauthorized");
+    if (!candidateId || !Types.ObjectId.isValid(candidateId)) {
+      return sendError(c, 400, "Invalid candidate ID");
     }
 
-    const institute = await Institute.findById(perms.data?.institute?._id);
+    const perms = await checkInstitutePermission.all(c, ["verify_candidate"]);
+    if (!perms.allowed) {
+      return sendError(
+        c,
+        403,
+        "You don't have permission to verify candidates"
+      );
+    }
+
+    const instituteId = perms.data?.institute?._id;
+    if (!instituteId) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    const institute = await Institute.findById(instituteId);
     if (!institute) {
       return sendError(c, 404, "Institute not found");
     }
@@ -1406,61 +2107,100 @@ const acceptCandidate = async (c: Context) => {
     }
 
     const pendingCandidate = institute.pendingCandidates.find(
-      (c) => c?.toString() === candidate._id.toString()
+      (c) => c?.toString() === candidateId
     );
 
     if (!pendingCandidate) {
       return sendError(c, 404, "Pending candidate not found");
     }
 
-    // Check if the instituteUid is already in use by another candidate
+    if (
+      candidate.institute &&
+      candidate.institute.toString() !== instituteId.toString()
+    ) {
+      return sendError(
+        c,
+        400,
+        "Candidate is already part of another institute"
+      );
+    }
+
     const existingCandidate = await CandidateModel.findOne({
       instituteUid: candidate.instituteUid,
-      institute: institute._id,
-      _id: { $ne: candidate._id }, // Exclude the current candidate
+      institute: instituteId,
+      _id: { $ne: candidateId },
     });
 
     if (existingCandidate) {
       return sendError(
         c,
         400,
-        "A candidate with this unique ID already exists"
+        "A candidate with this unique ID already exists in this institute"
       );
     }
 
-    const newPending = institute.pendingCandidates.filter(
-      (c) => c?.toString() !== candidate._id.toString()
-    );
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        institute.pendingCandidates = institute.pendingCandidates.filter(
+          (c) => c?.toString() !== candidateId
+        );
+        institute.candidates.push(candidate._id);
+        await institute.save({ session });
 
-    institute.candidates.push(candidate._id);
-    institute.pendingCandidates = newPending;
+        candidate.institute = new Types.ObjectId(instituteId);
+        candidate.notifications.push({
+          message: `You have been accepted to ${institute.name}`,
+          type: "institute",
+          timestamp: new Date(),
+        });
+        await candidate.save({ session });
+      });
 
-    candidate.institute = institute._id;
-
-    candidate.notifications.push({
-      message: `You have been accepted to ${institute.name}`,
-      type: "institute",
-    });
-
-    await candidate.save();
-    await institute.save();
+      await session.endSession();
+    } catch (error) {
+      await session.abortTransaction();
+      await session.endSession();
+      logger.error(`Transaction failed in acceptCandidate: ${error}`);
+      return sendError(c, 500, "Failed to accept candidate", {
+        message: "Database transaction failed",
+      });
+    }
 
     return sendSuccess(c, 200, "Candidate accepted successfully");
   } catch (error) {
     logger.error("Failed to accept candidate: " + error);
-    return sendError(c, 500, "Failed to accept candidate", error);
+    return sendError(c, 500, "Failed to accept candidate", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Reject a pending candidate
+ */
 const rejectCandidate = async (c: Context) => {
   try {
     const candidateId = c.req.param("cid");
-    const perms = await checkInstitutePermission.all(c, ["verify_candidate"]);
-    if (!perms.allowed) {
-      return sendError(c, 401, "Unauthorized");
+    if (!candidateId || !Types.ObjectId.isValid(candidateId)) {
+      return sendError(c, 400, "Invalid candidate ID");
     }
 
-    const institute = await Institute.findById(perms.data?.institute?._id);
+    const perms = await checkInstitutePermission.all(c, ["verify_candidate"]);
+    if (!perms.allowed) {
+      return sendError(
+        c,
+        403,
+        "You don't have permission to verify candidates"
+      );
+    }
+
+    const instituteId = perms.data?.institute?._id;
+    if (!instituteId) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    const institute = await Institute.findById(instituteId);
     if (!institute) {
       return sendError(c, 404, "Institute not found");
     }
@@ -1471,51 +2211,80 @@ const rejectCandidate = async (c: Context) => {
     }
 
     const pendingCandidate = institute.pendingCandidates.find(
-      (c) => c?.toString() === candidate._id.toString()
+      (c) => c?.toString() === candidateId
     );
 
     if (!pendingCandidate) {
       return sendError(c, 404, "Pending candidate not found");
     }
 
-    // Fix: Properly update the pendingCandidates array
-    institute.pendingCandidates = institute.pendingCandidates.filter(
-      (c) => c?.toString() !== candidate._id.toString()
-    );
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        institute.pendingCandidates = institute.pendingCandidates.filter(
+          (c) => c?.toString() !== candidateId
+        );
+        await institute.save({ session });
 
-    candidate.notifications.push({
-      message: `Your request to join ${institute.name} has been rejected`,
-      type: "institute",
-    });
+        candidate.instituteUid = undefined;
+        candidate.notifications.push({
+          message: `Your request to join ${institute.name} has been rejected`,
+          type: "institute",
+          timestamp: new Date(),
+        });
+        await candidate.save({ session });
+      });
 
-    await candidate.save();
-    await institute.save();
+      await session.endSession();
+    } catch (error) {
+      await session.abortTransaction();
+      await session.endSession();
+      logger.error(`Transaction failed in rejectCandidate: ${error}`);
+      return sendError(c, 500, "Failed to reject candidate", {
+        message: "Database transaction failed",
+      });
+    }
 
     return sendSuccess(c, 200, "Candidate rejected successfully");
   } catch (error) {
     logger.error("Failed to reject candidate: " + error);
-    return sendError(c, 500, "Failed to reject candidate", error);
+    return sendError(c, 500, "Failed to reject candidate", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Get a candidate's resume
+ */
 const getResume = async (c: Context) => {
   try {
-    const auth = c.get("auth");
     const cid = c.req.param("cid");
-
-    if (!auth) {
-      return sendError(c, 401, "Unauthorized");
+    if (!cid || !Types.ObjectId.isValid(cid)) {
+      return sendError(c, 400, "Invalid candidate ID");
     }
 
     const perms = await checkInstitutePermission.all(c, ["view_institute"]);
     if (!perms.allowed) {
-      return sendError(c, 401, "Unauthorized");
+      return sendError(c, 403, "You don't have permission to view resumes");
     }
 
-    const candidate = await Candidate.findOne({ _id: cid });
+    const instituteId = perms.data?.institute?._id;
+    if (!instituteId) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    const candidate = await Candidate.findOne({
+      _id: cid,
+      institute: instituteId,
+    });
 
     if (!candidate) {
-      return sendError(c, 404, "Candidate not found");
+      return sendError(
+        c,
+        404,
+        "Candidate not found or doesn't belong to your institute"
+      );
     }
 
     const command = new GetObjectCommand({
@@ -1525,22 +2294,40 @@ const getResume = async (c: Context) => {
 
     const url = await getSignedUrl(r2Client, command, { expiresIn: 600 });
 
-    return sendSuccess(c, 200, "Resume URL", { url });
+    return sendSuccess(c, 200, "Resume URL generated", { url });
   } catch (error) {
     logger.error(error as string);
-    return sendError(c, 500, "Internal Server Error");
+    return sendError(c, 500, "Failed to get resume", {
+      message: "Internal server error",
+    });
   }
 };
 
+/**
+ * Remove a candidate from an institute
+ */
 const removeCandidate = async (c: Context) => {
   try {
     const candidateId = c.req.param("cid");
-    const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
-    if (!perms.allowed) {
-      return sendError(c, 401, "Unauthorized");
+    if (!candidateId || !Types.ObjectId.isValid(candidateId)) {
+      return sendError(c, 400, "Invalid candidate ID");
     }
 
-    const institute = await Institute.findById(perms.data?.institute?._id);
+    const perms = await checkInstitutePermission.all(c, ["manage_institute"]);
+    if (!perms.allowed) {
+      return sendError(
+        c,
+        403,
+        "You don't have permission to remove candidates"
+      );
+    }
+
+    const instituteId = perms.data?.institute?._id;
+    if (!instituteId) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    const institute = await Institute.findById(instituteId);
     if (!institute) {
       return sendError(c, 404, "Institute not found");
     }
@@ -1550,35 +2337,47 @@ const removeCandidate = async (c: Context) => {
       return sendError(c, 404, "Candidate not found");
     }
 
-    // Check if the candidate is actually in this institute
     const isInInstitute = institute.candidates.some(
-      (c) => c?.toString() === candidate._id.toString()
+      (c) => c?.toString() === candidateId
     );
 
     if (!isInInstitute) {
       return sendError(c, 404, "Candidate not found in this institute");
     }
 
-    // Remove the candidate from the institute
-    institute.candidates = institute.candidates.filter(
-      (c) => c?.toString() !== candidate._id.toString()
-    );
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        institute.candidates = institute.candidates.filter(
+          (c) => c?.toString() !== candidateId
+        );
+        await institute.save({ session });
 
-    // Clear the institute reference from the candidate
-    candidate.institute = undefined;
+        candidate.institute = undefined;
+        candidate.notifications.push({
+          message: `You have been removed from ${institute.name}`,
+          type: "institute",
+          timestamp: new Date(),
+        });
+        await candidate.save({ session });
+      });
 
-    candidate.notifications.push({
-      message: `You have been removed from ${institute.name}`,
-      type: "institute",
-    });
-
-    await candidate.save();
-    await institute.save();
+      await session.endSession();
+    } catch (error) {
+      await session.abortTransaction();
+      await session.endSession();
+      logger.error(`Transaction failed in removeCandidate: ${error}`);
+      return sendError(c, 500, "Failed to remove candidate", {
+        message: "Database transaction failed",
+      });
+    }
 
     return sendSuccess(c, 200, "Candidate removed successfully");
   } catch (error) {
     logger.error("Failed to remove candidate: " + error);
-    return sendError(c, 500, "Failed to remove candidate", error);
+    return sendError(c, 500, "Failed to remove candidate", {
+      message: "Internal server error",
+    });
   }
 };
 
@@ -1593,7 +2392,6 @@ export default {
   updateMembers,
   updateRoles,
   getDepartments,
-  updateDepartments,
   getInstitute,
   updateInstitute,
   getPendingCandidates,

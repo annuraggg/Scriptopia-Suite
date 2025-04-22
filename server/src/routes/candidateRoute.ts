@@ -1,4 +1,6 @@
 import candidateController from "@/controllers/candidate/candidateController";
+import driveController from "@/controllers/candidate/drives/driveController";
+import placementGroupsController from "@/controllers/candidate/placementGroups/placementGroupController";
 import { Hono } from "hono";
 
 const app = new Hono();
@@ -14,5 +16,11 @@ app.post("/apply", candidateController.apply);
 app.post("/drive/apply", candidateController.applyToDrive);
 app.get("/applied", candidateController.getAppliedPostings);
 app.get("/applied/drives", candidateController.getAppliedDrives);
+
+// Candidate Drive Controller
+app.get("/drives", driveController.getDrives);
+
+// Candidate Placement Group Controller
+app.get("/placement-groups", placementGroupsController.getPlacementGroups);
 
 export default app;

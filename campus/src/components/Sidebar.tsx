@@ -67,7 +67,7 @@ const Sidebar = ({
     {
       icon: IconBuilding,
       label: "Company Profiles",
-      link: "/companyprofiles",
+      link: "/companies",
       visible:
         user?.permissions?.includes("view_drive") ||
         user?.permissions?.includes("manage_drive"),
@@ -148,7 +148,7 @@ const Sidebar = ({
     "settings",
     "placement-groups",
     "candidates",
-    "companyprofiles",
+    "companies",
   ];
 
   useEffect(() => {

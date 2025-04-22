@@ -17,7 +17,7 @@ const Info = ({
   setGender: React.Dispatch<React.SetStateAction<string>>;
 }) => {
   return (
-    <div className="pt-16">
+    <div className="pt-10">
       <h2>
         Welcome to Scriptopia Candidate. <br /> Let's get you started.
       </h2>

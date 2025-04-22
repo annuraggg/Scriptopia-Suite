@@ -1,3 +1,4 @@
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
@@ -25,7 +26,11 @@ const memberSchema = new Schema(
     email: { type: String, required: true },
     role: { type: String, required: true },
     notifications: [{ type: notificationSchema }],
-    status: { type: String, enum: ["pending", "active", "inactive"], default: "pending" },
+    status: {
+      type: String,
+      enum: ["pending", "active", "inactive"],
+      default: "pending",
+    },
   },
   { timestamps: true }
 );
@@ -109,6 +114,6 @@ instituteSchema.index({ "members.email": 1 });
 instituteSchema.index({ "subscription.status": 1 });
 instituteSchema.index({ isDeleted: 1 });
 
+instituteSchema.plugin(softDeletePlugin);
 const Institute = mongoose.model("Institute", instituteSchema);
-
 export default Institute;

@@ -12,16 +12,20 @@ import {
   Tabs,
   Tab,
   Button,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
   Input,
+  Pagination,
 } from "@nextui-org/react";
 import { DataTable } from "./DataTable";
 import { motion } from "framer-motion";
 // import { useNavigate } from "react-router-dom";
-import { Search, ChevronDown } from "lucide-react";
+import { Search } from "lucide-react";
+
+interface PaginationInfo {
+  total: number;
+  page: number;
+  pages: number;
+  limit: number;
+}
 
 const PlacementGroups = () => {
   const [placementGroups, setPlacementGroups] = useState<PlacementGroup[]>([]);
@@ -31,7 +35,12 @@ const PlacementGroups = () => {
   );
   const [selected, setSelected] = useState("details");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("newest");
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    total: 0,
+    page: 1,
+    pages: 0,
+    limit: 10,
+  });
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -40,12 +49,23 @@ const PlacementGroups = () => {
     fetchPlacementGroups();
   }, []);
 
-  const fetchPlacementGroups = () => {
+  const fetchPlacementGroups = (page = 1) => {
     setLoading(true);
     axios
-      .get("/placement-groups/candidate")
+      .get(`/candidates/placement-groups?page=${page}`)
       .then((res) => {
-        setPlacementGroups(res.data.data);
+        console.log(res.data.data);
+        // Extract groups array and pagination info from the new structure
+        const { groups, pagination } = res.data.data;
+        setPlacementGroups(groups || []);
+        setPagination(
+          pagination || {
+            total: 0,
+            page: 1,
+            pages: 0,
+            limit: 10,
+          }
+        );
         setSelectedGroup(null);
       })
       .catch((err) => {
@@ -67,6 +87,10 @@ const PlacementGroups = () => {
     setSelected("details");
   };
 
+  const handlePageChange = (page: number) => {
+    fetchPlacementGroups(page);
+  };
+
   if (loading) {
     return <Loader />;
   }
@@ -86,38 +110,9 @@ const PlacementGroups = () => {
       {!selectedGroup ? (
         <div>
           <div className="lg:col-span-3">
-            {/* Top Bar with Search and Filters */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-              <div className="flex-1">
-                <Dropdown>
-                  <DropdownTrigger>
-                    <Button
-                      variant="bordered"
-                      className="w-full sm:w-auto justify-between"
-                      endContent={<ChevronDown size={16} />}
-                    >
-                      {sortBy === "newest"
-                        ? "Newest"
-                        : sortBy === "oldest"
-                        ? "Oldest"
-                        : "Alphabetical"}
-                    </Button>
-                  </DropdownTrigger>
-                  <DropdownMenu
-                    aria-label="Sort options"
-                    selectionMode="single"
-                    selectedKeys={[sortBy]}
-                    onSelectionChange={(keys) =>
-                      setSortBy(Array.from(keys)[0] as string)
-                    }
-                  >
-                    <DropdownItem key="newest">Newest</DropdownItem>
-                    <DropdownItem key="oldest">Oldest</DropdownItem>
-                    <DropdownItem key="alphabetical">Alphabetical</DropdownItem>
-                  </DropdownMenu>
-                </Dropdown>
-              </div>
-              <div className="flex-1 sm:flex-grow-[6]">
+            {/* Top Bar with Search */}
+            <div className="flex mb-6">
+              <div className="w-full">
                 <Input
                   placeholder="Search Group"
                   value={searchQuery}
@@ -181,6 +176,19 @@ const PlacementGroups = () => {
                     </CardBody>
                   </Card>
                 ))}
+              </div>
+            )}
+
+            {/* Pagination */}
+            {pagination.pages > 1 && (
+              <div className="flex justify-center mt-6">
+                <Pagination
+                  total={pagination.pages}
+                  initialPage={pagination.page}
+                  page={pagination.page}
+                  onChange={handlePageChange}
+                  color="primary"
+                />
               </div>
             )}
           </div>

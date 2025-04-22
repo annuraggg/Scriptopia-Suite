@@ -126,6 +126,8 @@ const campusItems: SidebarProps[] = [
   },
 ];
 
+const needFullRadius = ["/campus/drives"];
+
 const Sidebar = ({ user }: { user: ExtendedCandidate }) => {
   const [activeParent, setActiveParent] = useState<string>("");
   const [activeChild, setActiveChild] = useState<string>("");
@@ -286,7 +288,17 @@ const Sidebar = ({ user }: { user: ExtendedCandidate }) => {
   };
 
   return (
-    <div className="h-screen flex bg-foreground text-background rounded-r-2xl">
+    <div
+      className={`h-screen flex bg-foreground text-background 
+      ${
+        needFullRadius.includes(location.pathname.split("/").slice(0).join("/"))
+          ? "rounded-none"
+          : "rounded-r-2xl"
+      } 
+
+      overflow-hidden
+    `}
+    >
       <div className="flex flex-col items-center justify-between py-5">
         <div>
           <img src="/logo.svg" alt="Logo" className="w-10 h-10 mb-5 mx-auto" />

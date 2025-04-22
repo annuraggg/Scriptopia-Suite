@@ -8,7 +8,7 @@ const Address = ({
   setAddress: React.Dispatch<React.SetStateAction<string>>;
 }) => {
   return (
-    <div className="pt-16">
+    <div className="pt-10">
       <p className="opacity-50 mt-1">
         Next, tell us about your address so we can find postings near you.
       </p>

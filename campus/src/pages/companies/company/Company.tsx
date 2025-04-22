@@ -11,20 +11,25 @@ import {
   Button,
   Tabs,
   Tab,
-  Spinner,
 } from "@nextui-org/react";
-import {
-  Users,
-  Briefcase,
-  Target,
-  Activity,
-  MoreVertical,
-} from "lucide-react";
+import { MoreVertical } from "lucide-react";
 import { motion } from "framer-motion";
 import Filter from "./Filter";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { CompanyTable } from "./CompanyTable";
+import { Company as ICompany } from "@shared-types/Company";
+import Loader from "@/components/Loader";
+import { toast } from "sonner";
+
+interface Student {
+  _id: string;
+  name: string;
+  email: string;
+  uid: string;
+  department: string;
+  placed: boolean;
+}
 
 const SORT_OPTIONS = {
   NEWEST: "newest",
@@ -33,208 +38,17 @@ const SORT_OPTIONS = {
 
 const formatCurrency = (amount: number) => `₹${(amount / 100000).toFixed(1)}L`;
 
-interface CompanyDetail {
-  _id: string;
-  name: string;
-  description?: string;
-  generalInfo: {
-    industry: string[];
-    yearVisit: string[];
-    studentsHired: number;
-    averagePackage: number;
-    highestPackage: number;
-    rolesOffered: string[];
-  };
-  stats: {
-    title: string;
-    value: string;
-    change: string;
-    icon: any;
-    trend: "up" | "down";
-  }[];
-  hrContacts: {
-    name: string;
-    phone: string;
-    email: string;
-    website: string;
-  };
-  archived: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Student {
-  name: string;
-  id: string;
-  department: string;
-  placed: string;
-  package?: string;
-  year: string;
-}
-
-const useCompanyData = (id: string) => {
-  const [company, setCompany] = useState<CompanyDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+const Company = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
-  useEffect(() => {
-    const fetchCompany = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get("/companies");
-        if (response.data.success) {
-          const foundCompany = response.data.data.companies.find(
-            (company: CompanyDetail) => company._id === id
-          );
-
-          if (foundCompany) {
-            foundCompany.stats = [
-              {
-                title: "Students Hired",
-                value: foundCompany.generalInfo.studentsHired.toString(),
-                change: "+12.5%",
-                icon: Users,
-                trend: "up",
-              },
-              {
-                title: "Average Package",
-                value: formatCurrency(foundCompany.generalInfo.averagePackage),
-                change: "+8.2%",
-                icon: Briefcase,
-                trend: "up",
-              },
-              {
-                title: "Highest Package",
-                value: formatCurrency(foundCompany.generalInfo.highestPackage),
-                change: "-2.4%",
-                icon: Target,
-                trend: "down",
-              },
-              {
-                title: "Placement Rate",
-                value: "92%",
-                icon: Activity,
-                trend: "up",
-              },
-            ];
-
-            setCompany(foundCompany);
-          } else {
-            setError("Company not found");
-          }
-        } else {
-          setError(response.data.message || "Failed to fetch company data");
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCompany();
-  }, [id]);
-
-  return { company, loading, error };
-};
-
-const useStudentData = () => {
+  const [company, setCompany] = useState<ICompany | null>(null);
+  const [loading, setloading] = useState(true);
   const [students, setStudents] = useState<Student[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        setStudents([
-          {
-            id: "22204003",
-            name: "John C",
-            department: "Computer Engineering",
-            placed: "2024",
-            package: "₹12.5L",
-            year: "2024",
-          },
-          {
-            id: "22204007",
-            name: "AJ Styles",
-            department: "Information Technology",
-            placed: "2023",
-            package: "₹10.0L",
-            year: "2024",
-          },
-          {
-            id: "22204016",
-            name: "Randy Orton",
-            department: "CSE-AIML",
-            placed: "2022",
-            package: "₹15.0L",
-            year: "2024",
-          },
-        ]);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStudents();
-  }, []);
-
-  return { students, loading, error };
-};
-
-const useFilteredStudents = (
-  students: Student[],
-  searchTerm: string,
-  filter: "all" | "placed" | "pending",
-  activeFilters: { year: string; departments: string[] },
-  sort: string
-) => {
-  return useMemo(() => {
-    return students
-      .filter((student) => {
-        const matchesSearch =
-          !searchTerm ||
-          student.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesFilter = filter === "all" || student.placed === filter;
-        const matchesYear =
-          !activeFilters.year || student.year === activeFilters.year;
-        const matchesDepartment =
-          !activeFilters.departments.length ||
-          activeFilters.departments.includes(student.department);
-
-        return (
-          matchesSearch && matchesFilter && matchesYear && matchesDepartment
-        );
-      })
-      .sort((a, b) =>
-        sort === SORT_OPTIONS.NEWEST
-          ? b.year.localeCompare(a.year)
-          : a.year.localeCompare(b.year)
-      );
-  }, [students, searchTerm, filter, activeFilters, sort]);
-};
-
-export default function CompanyDetails() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-
-  const {
-    company,
-    loading: companyLoading,
-    error: companyError,
-  } = useCompanyData(id!);
-  const {
-    students,
-    loading: studentsLoading,
-    error: studentsError,
-  } = useStudentData();
-
+  // UI states
   const [selected, setSelected] = useState("details");
   const [searchTerm, _setSearchTerm] = useState("");
   const [filter] = useState<"all" | "placed" | "pending">("all");
@@ -246,16 +60,53 @@ export default function CompanyDetails() {
     departments: [] as string[],
   });
 
-  const { getToken } = useAuth();
-  const axios = ax(getToken);
+  // Fetch company data (was in useCompanyData)
+  useEffect(() => {
+    const fetchCompany = async () => {
+      setloading(true);
+      axios
+        .get("/companies/" + id)
+        .then((res) => {
+          setCompany(res.data.data.company);
+          setStudents(res.data.data.candidates);
+        })
+        .catch((err) => {
+          toast.error(
+            err.response?.data?.message || "Failed to fetch company data"
+          );
+        })
+        .finally(() => setloading(false));
+    };
 
-  const filteredStudents = useFilteredStudents(
-    students,
-    searchTerm,
-    filter,
-    activeFilters,
-    sort
-  );
+    fetchCompany();
+  }, [id]);
+
+  // Filter students (was in useFilteredStudents)
+  const filteredStudents = useMemo(() => {
+    return students
+      .filter((student) => {
+        const matchesSearch =
+          !searchTerm ||
+          student.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesFilter =
+          filter === "all" ||
+          (filter === "placed" ? student.placed : !student.placed);
+        const matchesYear = !activeFilters.year || true; // Skip year filtering as it's not in the schema
+        const matchesDepartment =
+          !activeFilters.departments.length ||
+          activeFilters.departments.includes(student.department);
+
+        return (
+          matchesSearch && matchesFilter && matchesYear && matchesDepartment
+        );
+      })
+      .sort((a, b) => {
+        // Sort by name since there's no year/batch field
+        return sort === SORT_OPTIONS.NEWEST
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name);
+      });
+  }, [students, searchTerm, filter, activeFilters, sort]);
 
   const handleFilterChange = (newFilters: {
     year: string;
@@ -294,7 +145,7 @@ export default function CompanyDetails() {
       });
       if (response.data.success) {
         alert(
-          `Company ${company.archived ? "unarchived" : "archived"} successfully`
+          `Company ${company.isArchived ? "unarchived" : "archived"} successfully`
         );
         window.location.reload();
       } else {
@@ -306,14 +157,8 @@ export default function CompanyDetails() {
     }
   };
 
-  if (companyLoading || studentsLoading)
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Spinner />
-      </div>
-    );
-  if (companyError || studentsError)
-    return <div>Error loading data: {companyError || studentsError}</div>;
+  if (loading) return <Loader />;
+
   if (!company) return <div>Company not found</div>;
 
   return (
@@ -323,9 +168,9 @@ export default function CompanyDetails() {
       className="p-6"
     >
       <div className="flex items-center justify-between p-2">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          {company.name}
-          {company.archived && (
+        <h1 className="text-3xl flex font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent items-center">
+          <p> {company.name}</p>
+          {company.isArchived && (
             <Chip className="ml-2" color="warning" size="sm">
               Archived
             </Chip>
@@ -338,14 +183,8 @@ export default function CompanyDetails() {
             </Button>
           </DropdownTrigger>
           <DropdownMenu>
-            <DropdownItem
-              key={"edit"}
-              onClick={() => navigate(`/company/${company._id}/edit`)}
-            >
-              Edit Details
-            </DropdownItem>
             <DropdownItem key={"archive"} onClick={handleArchiveCompany}>
-              {company.archived ? "Unarchive Company" : "Archive Company"}
+              {company.isArchived ? "Unarchive Company" : "Archive Company"}
             </DropdownItem>
             <DropdownItem
               key={"delete"}
@@ -466,30 +305,30 @@ export default function CompanyDetails() {
                   <div className="mx-2">
                     <p className="text-sm text-default-500 mb-1">Name</p>
                     <p className="text-lg font-semibold">
-                      {company.hrContacts.name}
+                      {company.hrContacts?.name}
                     </p>
                   </div>
                   <div className="mx-2">
                     <p className="text-sm text-default-500 mb-1">Phone</p>
                     <p className="text-lg font-semibold">
-                      {company.hrContacts.phone}
+                      {company.hrContacts?.phone}
                     </p>
                   </div>
                   <div className="mx-2">
                     <p className="text-sm text-default-500 mb-1">Email</p>
                     <p className="text-lg font-semibold">
-                      {company.hrContacts.email}
+                      {company.hrContacts?.email}
                     </p>
                   </div>
                   <div className="mx-2">
                     <p className="text-sm text-default-500 mb-1">Website</p>
                     <a
-                      href={`https://${company.hrContacts.website}`}
+                      href={`https://${company.hrContacts?.website}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-lg font-semibold text-primary hover:underline"
                     >
-                      {company.hrContacts.website}
+                      {company.hrContacts?.website}
                     </a>
                   </div>
                 </div>
@@ -514,4 +353,6 @@ export default function CompanyDetails() {
       </Tabs>
     </motion.div>
   );
-}
+};
+
+export default Company;

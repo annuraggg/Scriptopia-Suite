@@ -10,7 +10,7 @@ const Contact = ({
   setPhone: React.Dispatch<React.SetStateAction<string>>;
 }) => {
   return (
-    <div className="pt-16">
+    <div className="pt-10">
       <p className="opacity-50 mt-1">
         Next, tell us about how we can contact you.
       </p>

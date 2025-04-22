@@ -9,6 +9,7 @@ import {
   RedirectToSignIn,
   SignedIn,
   SignedOut,
+  SignOutButton,
   useAuth,
   useUser,
 } from "@clerk/clerk-react";
@@ -122,7 +123,7 @@ const Onboarding = () => {
       <SignedIn>
         {" "}
         <div className="flex items-center justify-center h-screen p-10">
-          <div className="min-w-[60%] h-full pr-10">
+          <div className="min-w-[60%] pr-10">
             <img src="logo.svg" alt="logo" className="w-14 h-14" />
             <div className="flex gap-3 mt-10">
               {steps.map((_s, i) => (
@@ -142,6 +143,13 @@ const Onboarding = () => {
             <p className="mt-3 opacity-50">
               {currentStep + 1} of {steps.length}
             </p>
+
+            <div className="mt-5 flex gap-2">
+              <p>Signed in as {user?.emailAddresses[0].emailAddress}</p>
+              <SignOutButton>
+                <p className="text-danger underline cursor-pointer">Logout</p>
+              </SignOutButton>
+            </div>
 
             <div className="h-[65%]">{steps[currentStep].component}</div>
 

@@ -8,7 +8,7 @@ const Info = ({
   setInstituteName: React.Dispatch<React.SetStateAction<string>>;
 }) => {
   return (
-    <div className="pt-16">
+    <div className="pt-10">
       <h2>
         Welcome to Scriptopia Campus. <br /> Let's get you started.
       </h2>

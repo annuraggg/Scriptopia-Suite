@@ -1,3 +1,4 @@
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose from "mongoose";
 
 const ResultSchema = new mongoose.Schema({
@@ -16,7 +17,7 @@ const DriverMetaSchema = new mongoose.Schema({
   timestamp: { type: Date, required: true },
 });
 
-const SubmissionSchema = new mongoose.Schema(
+const submissionSchema = new mongoose.Schema(
   {
     problem: { type: mongoose.Schema.Types.ObjectId, ref: "Problem" },
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -36,5 +37,6 @@ const SubmissionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Submission = mongoose.model("Submission", SubmissionSchema);
+submissionSchema.plugin(softDeletePlugin);
+const Submission = mongoose.model("Submission", submissionSchema);
 export default Submission;

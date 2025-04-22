@@ -1,3 +1,4 @@
+import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
@@ -267,5 +268,6 @@ postingSchema.index({ department: 1 });
 postingSchema.index({ title: 1 });
 postingSchema.index({ "ats.status": 1 });
 
+postingSchema.plugin(softDeletePlugin)
 const Posting = mongoose.model("Posting", postingSchema);
 export default Posting;
