@@ -82,11 +82,13 @@ const getCompanies = async (c: Context) => {
     // Get total count for pagination metadata
     const totalCount = await Company.countDocuments({
       _id: { $in: institute.companies },
+      deleted: { $ne: true }, // Using softDelete plugin
     });
 
     // Fetch companies with pagination
     const companies = await Company.find({
       _id: { $in: institute.companies },
+      deleted: { $ne: true }, // Using softDelete plugin
     })
       .skip(skipCount)
       .limit(pageSize)
@@ -100,7 +102,7 @@ const getCompanies = async (c: Context) => {
       name: company.name,
       description: company.description,
       generalInfo: company.generalInfo,
-      hrContacts: company.hrContacts,
+      hrContact: company.hrContact,
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
       isArchived: company.isArchived || false,
@@ -165,7 +167,13 @@ const getCompany = async (c: Context) => {
     }
 
     // Fetch company details
-    const company = await Company.findById(companyId).lean().exec();
+    const company = await Company.findOne({
+      _id: companyId,
+      deleted: { $ne: true }, // Using softDelete plugin
+    })
+      .lean()
+      .exec();
+
     if (!company) {
       return sendError(c, 404, "Company not found");
     }
@@ -176,13 +184,17 @@ const getCompany = async (c: Context) => {
       name: company.name,
       description: company.description,
       generalInfo: company.generalInfo,
-      hrContacts: company.hrContacts,
+      hrContact: company.hrContact,
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
       isArchived: company.isArchived || false,
     };
 
-    const companyDrives = await Drive.find({ company: companyId });
+    const companyDrives = await Drive.find({
+      company: companyId,
+      deleted: { $ne: true }, // Using softDelete plugin
+    });
+
     const candidateIds = companyDrives.map((drive) => drive.candidates).flat();
     const companyAppliedDrives = await AppliedDrive.find({
       drive: { $in: companyDrives.map((drive) => drive._id) },
@@ -205,7 +217,6 @@ const getCompany = async (c: Context) => {
       placed: hiredCandidateIds.includes(candidate._id),
     }));
 
-    console.log(finalCandidates);
     return sendSuccess(c, 200, "Company fetched successfully", {
       company: formattedCompany,
       candidates: finalCandidates,
@@ -248,7 +259,7 @@ const createCompany = async (c: Context) => {
       name,
       description = "",
       generalInfo = {},
-      hrContacts = [],
+      hrContact = {},
     } = companyData;
 
     // Validate name
@@ -267,46 +278,118 @@ const createCompany = async (c: Context) => {
       return sendError(c, 400, "generalInfo must be an object");
     }
 
-    const { studentsHired, averagePackage, highestPackage } = generalInfo;
+    // Create a valid yearStats array that matches MongoDB document expectations
+    let yearStatsArray: Array<{
+      year: string;
+      hired: number;
+      highest: number;
+      average: number;
+    }> = [];
 
-    if (
-      studentsHired === undefined ||
-      averagePackage === undefined ||
-      highestPackage === undefined
+    // Add yearStats if provided
+    if (generalInfo.yearStats && Array.isArray(generalInfo.yearStats)) {
+      // Validate each yearStat
+      for (const yearStat of generalInfo.yearStats) {
+        if (
+          !yearStat.year ||
+          !yearStat.hired ||
+          !yearStat.highest ||
+          !yearStat.average
+        ) {
+          await session.abortTransaction();
+          return sendError(
+            c,
+            400,
+            "Each yearStat must include year, hired, highest, and average values"
+          );
+        }
+
+        // Validate numeric values
+        const hiredNum = Number(yearStat.hired);
+        const highestNum = Number(yearStat.highest);
+        const averageNum = Number(yearStat.average);
+
+        if (isNaN(hiredNum) || hiredNum < 0) {
+          await session.abortTransaction();
+          return sendError(c, 400, "hired must be a non-negative number");
+        }
+
+        if (isNaN(highestNum) || highestNum < 0) {
+          await session.abortTransaction();
+          return sendError(c, 400, "highest must be a non-negative number");
+        }
+
+        if (isNaN(averageNum) || averageNum < 0) {
+          await session.abortTransaction();
+          return sendError(c, 400, "average must be a non-negative number");
+        }
+
+        yearStatsArray.push({
+          year: yearStat.year,
+          hired: hiredNum,
+          highest: highestNum,
+          average: averageNum,
+        });
+      }
+    }
+    // For backward compatibility - convert old format to new if needed
+    else if (
+      generalInfo.studentsHired !== undefined ||
+      generalInfo.averagePackage !== undefined ||
+      generalInfo.highestPackage !== undefined
     ) {
-      await session.abortTransaction();
-      return sendError(
-        c,
-        400,
-        "Missing required fields in generalInfo: studentsHired, averagePackage, and highestPackage are required"
-      );
+      const currentYear = new Date().getFullYear().toString();
+      const studentsHiredNum = Number(generalInfo.studentsHired || 0);
+      const averagePackageNum = Number(generalInfo.averagePackage || 0);
+      const highestPackageNum = Number(generalInfo.highestPackage || 0);
+
+      if (isNaN(studentsHiredNum) || studentsHiredNum < 0) {
+        await session.abortTransaction();
+        return sendError(c, 400, "studentsHired must be a non-negative number");
+      }
+
+      if (isNaN(averagePackageNum) || averagePackageNum < 0) {
+        await session.abortTransaction();
+        return sendError(
+          c,
+          400,
+          "averagePackage must be a non-negative number"
+        );
+      }
+
+      if (isNaN(highestPackageNum) || highestPackageNum < 0) {
+        await session.abortTransaction();
+        return sendError(
+          c,
+          400,
+          "highestPackage must be a non-negative number"
+        );
+      }
+
+      yearStatsArray.push({
+        year: currentYear,
+        hired: studentsHiredNum,
+        highest: highestPackageNum,
+        average: averagePackageNum,
+      });
     }
 
-    // Ensure numeric values are valid
-    const studentsHiredNum = Number(studentsHired);
-    const averagePackageNum = Number(averagePackage);
-    const highestPackageNum = Number(highestPackage);
+    // Initialize default generalInfo structure
+    const processedGeneralInfo = {
+      industry: Array.isArray(generalInfo.industry) ? generalInfo.industry : [],
+      yearStats: yearStatsArray,
+      rolesOffered: Array.isArray(generalInfo.rolesOffered)
+        ? generalInfo.rolesOffered
+        : [],
+    };
 
-    if (isNaN(studentsHiredNum) || studentsHiredNum < 0) {
-      await session.abortTransaction();
-      return sendError(c, 400, "studentsHired must be a non-negative number");
-    }
-
-    if (isNaN(averagePackageNum) || averagePackageNum < 0) {
-      await session.abortTransaction();
-      return sendError(c, 400, "averagePackage must be a non-negative number");
-    }
-
-    if (isNaN(highestPackageNum) || highestPackageNum < 0) {
-      await session.abortTransaction();
-      return sendError(c, 400, "highestPackage must be a non-negative number");
-    }
-
-    // Validate hrContacts
-    if (hrContacts && !Array.isArray(hrContacts)) {
-      await session.abortTransaction();
-      return sendError(c, 400, "hrContacts must be an array");
-    }
+    // Validate hrContact
+    const processedHrContact = {
+      name: hrContact.name || "",
+      phone: hrContact.phone || "",
+      email: hrContact.email || "",
+      website: hrContact.website || "",
+    };
 
     // Check if institute exists
     const institute = await Institute.findById(instituteId).session(session);
@@ -323,6 +406,7 @@ const createCompany = async (c: Context) => {
           "i"
         ),
       },
+      deleted: { $ne: true }, // Using softDelete plugin
     }).session(session);
 
     if (existingCompany) {
@@ -331,17 +415,11 @@ const createCompany = async (c: Context) => {
     }
 
     // Create company with validated and sanitized data
-    const processedGeneralInfo = {
-      studentsHired: studentsHiredNum,
-      averagePackage: averagePackageNum,
-      highestPackage: highestPackageNum,
-    };
-
     const newCompany = new Company({
       name: name.trim(),
       description: description ? description.trim() : "",
       generalInfo: processedGeneralInfo,
-      hrContacts: hrContacts || [],
+      hrContact: processedHrContact,
       isArchived: false,
     });
 
@@ -368,7 +446,7 @@ const createCompany = async (c: Context) => {
       name: newCompany.name,
       description: newCompany.description,
       generalInfo: newCompany.generalInfo,
-      hrContacts: newCompany.hrContacts,
+      hrContact: newCompany.hrContact,
       isArchived: newCompany.isArchived,
       createdAt: newCompany.createdAt,
       updatedAt: newCompany.updatedAt,
@@ -407,7 +485,7 @@ const updateCompany = async (c: Context) => {
     }
 
     const companyData = await c.req.json().catch(() => ({}));
-    const { _id, name, description, generalInfo, hrContacts } = companyData;
+    const { _id, name, description, generalInfo, hrContact } = companyData;
 
     // Validate company ID
     if (!_id) {
@@ -433,12 +511,20 @@ const updateCompany = async (c: Context) => {
     }
 
     // Find company
-    const company = await Company.findById(
-      new mongoose.Types.ObjectId(_id)
-    ).session(session);
+    const company = await Company.findOne({
+      _id: new mongoose.Types.ObjectId(_id),
+      deleted: { $ne: true }, // Using softDelete plugin
+    }).session(session);
+
     if (!company) {
       await session.abortTransaction();
       return sendError(c, 404, "Company not found");
+    }
+
+    // Check if the company is archived (using archiveProtection plugin)
+    if (company.isArchived) {
+      await session.abortTransaction();
+      return sendError(c, 403, "Archived companies cannot be modified");
     }
 
     // Check for duplicate name if name is being changed
@@ -451,6 +537,7 @@ const updateCompany = async (c: Context) => {
             "i"
           ),
         },
+        deleted: { $ne: true }, // Using softDelete plugin
       }).session(session);
 
       if (existingCompany) {
@@ -470,23 +557,105 @@ const updateCompany = async (c: Context) => {
         return sendError(c, 400, "generalInfo must be an object");
       }
 
-      const { studentsHired, averagePackage, highestPackage } = generalInfo;
-
       // Initialize generalInfo if it doesn't exist
       if (!company.generalInfo) {
         company.generalInfo = {
-          studentsHired: 0,
-          averagePackage: 0,
-          highestPackage: 0,
           industry: [],
-          yearVisit: [],
           rolesOffered: [],
         };
       }
 
-      // Update with validation
-      if (studentsHired !== undefined) {
-        const studentsHiredNum = Number(studentsHired);
+      // Update industry if provided
+      if (generalInfo.industry !== undefined) {
+        if (!Array.isArray(generalInfo.industry)) {
+          await session.abortTransaction();
+          return sendError(c, 400, "industry must be an array");
+        }
+        company.generalInfo.industry = generalInfo.industry;
+      }
+
+      // Update rolesOffered if provided
+      if (generalInfo.rolesOffered !== undefined) {
+        if (!Array.isArray(generalInfo.rolesOffered)) {
+          await session.abortTransaction();
+          return sendError(c, 400, "rolesOffered must be an array");
+        }
+        company.generalInfo.rolesOffered = generalInfo.rolesOffered;
+      }
+
+      // Update yearStats if provided
+      if (generalInfo.yearStats !== undefined) {
+        if (!Array.isArray(generalInfo.yearStats)) {
+          await session.abortTransaction();
+          return sendError(c, 400, "yearStats must be an array");
+        }
+
+        const updatedYearStats: Array<{
+          year: string;
+          hired: number;
+          highest: number;
+          average: number;
+        }> = [];
+
+        // Validate each yearStat
+        for (const yearStat of generalInfo.yearStats) {
+          if (
+            !yearStat.year ||
+            yearStat.hired === undefined ||
+            yearStat.highest === undefined ||
+            yearStat.average === undefined
+          ) {
+            await session.abortTransaction();
+            return sendError(
+              c,
+              400,
+              "Each yearStat must include year, hired, highest, and average values"
+            );
+          }
+
+          // Validate numeric values
+          const hiredNum = Number(yearStat.hired);
+          const highestNum = Number(yearStat.highest);
+          const averageNum = Number(yearStat.average);
+
+          if (isNaN(hiredNum) || hiredNum < 0) {
+            await session.abortTransaction();
+            return sendError(c, 400, "hired must be a non-negative number");
+          }
+
+          if (isNaN(highestNum) || highestNum < 0) {
+            await session.abortTransaction();
+            return sendError(c, 400, "highest must be a non-negative number");
+          }
+
+          if (isNaN(averageNum) || averageNum < 0) {
+            await session.abortTransaction();
+            return sendError(c, 400, "average must be a non-negative number");
+          }
+
+          updatedYearStats.push({
+            year: yearStat.year,
+            hired: hiredNum,
+            highest: highestNum,
+            average: averageNum,
+          });
+        }
+
+        // @ts-expect-error // Mongoose document array type issue
+        company.generalInfo.yearStats = updatedYearStats;
+      }
+
+      // For backward compatibility - handle old fields if present
+      if (
+        generalInfo.studentsHired !== undefined ||
+        generalInfo.averagePackage !== undefined ||
+        generalInfo.highestPackage !== undefined
+      ) {
+        const currentYear = new Date().getFullYear().toString();
+        const studentsHiredNum = Number(generalInfo.studentsHired || 0);
+        const averagePackageNum = Number(generalInfo.averagePackage || 0);
+        const highestPackageNum = Number(generalInfo.highestPackage || 0);
+
         if (isNaN(studentsHiredNum) || studentsHiredNum < 0) {
           await session.abortTransaction();
           return sendError(
@@ -495,11 +664,7 @@ const updateCompany = async (c: Context) => {
             "studentsHired must be a non-negative number"
           );
         }
-        company.generalInfo.studentsHired = studentsHiredNum;
-      }
 
-      if (averagePackage !== undefined) {
-        const averagePackageNum = Number(averagePackage);
         if (isNaN(averagePackageNum) || averagePackageNum < 0) {
           await session.abortTransaction();
           return sendError(
@@ -508,11 +673,7 @@ const updateCompany = async (c: Context) => {
             "averagePackage must be a non-negative number"
           );
         }
-        company.generalInfo.averagePackage = averagePackageNum;
-      }
 
-      if (highestPackage !== undefined) {
-        const highestPackageNum = Number(highestPackage);
         if (isNaN(highestPackageNum) || highestPackageNum < 0) {
           await session.abortTransaction();
           return sendError(
@@ -521,16 +682,56 @@ const updateCompany = async (c: Context) => {
             "highestPackage must be a non-negative number"
           );
         }
-        company.generalInfo.highestPackage = highestPackageNum;
+
+        // Convert existing yearStats to a plain array if it's a Mongoose document array
+        const yearStats = Array.isArray(company.generalInfo.yearStats)
+          ? [...company.generalInfo.yearStats]
+          : [];
+
+        // Check if we already have a stat for the current year
+        const existingYearIndex = yearStats.findIndex(
+          (stat) => stat.year === currentYear
+        );
+
+        if (existingYearIndex >= 0) {
+          // @ts-expect-error
+          yearStats[existingYearIndex] = {
+            year: currentYear,
+            hired: studentsHiredNum,
+            highest: highestPackageNum,
+            average: averagePackageNum,
+          };
+        } else {
+          // @ts-expect-error
+          yearStats.push({
+            year: currentYear,
+            hired: studentsHiredNum,
+            highest: highestPackageNum,
+            average: averagePackageNum,
+          });
+        }
+
+        // @ts-expect-error
+        company.generalInfo.yearStats = yearStats;
       }
     }
 
-    if (hrContacts) {
-      company.hrContacts = hrContacts;
+    // Update hrContact
+    if (hrContact !== undefined) {
+      if (typeof hrContact !== "object") {
+        await session.abortTransaction();
+        return sendError(c, 400, "hrContact must be an object");
+      }
+
+      company.hrContact = {
+        name: hrContact.name || company.hrContact?.name || "",
+        phone: hrContact.phone || company.hrContact?.phone || "",
+        email: hrContact.email || company.hrContact?.email || "",
+        website: hrContact.website || company.hrContact?.website || "",
+      };
     }
 
     await company.save({ session });
-
     await session.commitTransaction();
 
     // Create audit log
@@ -545,7 +746,7 @@ const updateCompany = async (c: Context) => {
       name: company.name,
       description: company.description,
       generalInfo: company.generalInfo,
-      hrContacts: company.hrContacts,
+      hrContact: company.hrContact,
       isArchived: company.isArchived,
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
@@ -614,9 +815,11 @@ const archiveCompany = async (c: Context) => {
     }
 
     // Find and toggle archive status
-    const company = await Company.findById(
-      new mongoose.Types.ObjectId(id)
-    ).session(session);
+    const company = await Company.findOne({
+      _id: new mongoose.Types.ObjectId(id),
+      deleted: { $ne: true }, // Using softDelete plugin
+    }).session(session);
+
     if (!company) {
       await session.abortTransaction();
       return sendError(c, 404, "Company not found");
@@ -700,7 +903,11 @@ const deleteCompany = async (c: Context) => {
       return sendError(c, 404, "Company not found in this institute");
     }
 
-    const company = await Company.findById(companyId).session(session);
+    const company = await Company.findOne({
+      _id: companyId,
+      deleted: { $ne: true }, // Using softDelete plugin
+    }).session(session);
+
     if (!company) {
       await session.abortTransaction();
       return sendError(c, 404, "Company not found");
@@ -715,11 +922,8 @@ const deleteCompany = async (c: Context) => {
       { session }
     );
 
-    console.log("Removed company from institute");
-
-    // Delete company
-    await Company.findByIdAndDelete(companyId, { session });
-
+    // Using soft delete instead of completely removing the document
+    await company.deleteOne();
     await session.commitTransaction();
     transactionCommitted = true;
 
@@ -733,7 +937,6 @@ const deleteCompany = async (c: Context) => {
 
     return sendSuccess(c, 200, "Company deleted successfully");
   } catch (error) {
-    console.log("Error occurred:", error);
     if (!transactionCommitted) {
       await session.abortTransaction();
     }

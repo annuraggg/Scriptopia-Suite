@@ -60,7 +60,7 @@ const Company = () => {
     departments: [] as string[],
   });
 
-  // Fetch company data (was in useCompanyData)
+  // Fetch company data
   useEffect(() => {
     const fetchCompany = async () => {
       setloading(true);
@@ -81,7 +81,7 @@ const Company = () => {
     fetchCompany();
   }, [id]);
 
-  // Filter students (was in useFilteredStudents)
+  // Filter students
   const filteredStudents = useMemo(() => {
     return students
       .filter((student) => {
@@ -145,7 +145,9 @@ const Company = () => {
       });
       if (response.data.success) {
         alert(
-          `Company ${company.isArchived ? "unarchived" : "archived"} successfully`
+          `Company ${
+            company.isArchived ? "unarchived" : "archived"
+          } successfully`
         );
         window.location.reload();
       } else {
@@ -155,6 +157,38 @@ const Company = () => {
       console.error("Error archiving/unarchiving company:", error);
       alert("An error occurred");
     }
+  };
+
+  // Calculate total students hired from yearStats
+  const getTotalStudentsHired = () => {
+    if (!company) return 0;
+    return company.generalInfo.yearStats.reduce(
+      (total, stat) => total + stat.hired,
+      0
+    );
+  };
+
+  // Calculate average package across all years
+  const getAveragePackage = () => {
+    if (!company) return 0;
+    const stats = company.generalInfo.yearStats;
+    if (stats.length === 0) return 0;
+    const totalAverage = stats.reduce((sum, stat) => sum + stat.average, 0);
+    return totalAverage / stats.length;
+  };
+
+  // Get highest package across all years
+  const getHighestPackage = () => {
+    if (!company) return 0;
+    const stats = company.generalInfo.yearStats;
+    if (stats.length === 0) return 0;
+    return Math.max(...stats.map((stat) => stat.highest));
+  };
+
+  // Get all years as comma-separated string
+  const getYearsOfVisit = () => {
+    if (!company) return "";
+    return company.generalInfo.yearStats.map((stat) => stat.year).join(", ");
   };
 
   if (loading) return <Loader />;
@@ -210,7 +244,7 @@ const Company = () => {
               <CardBody>
                 <h3 className="text-xl font-semibold mb-4">About</h3>
                 <p className="text-default-500 leading-relaxed mx-2">
-                  {company.description}
+                  {company.description || "No description available"}
                 </p>
               </CardBody>
             </Card>
@@ -246,7 +280,7 @@ const Company = () => {
                         Year(s) of Visit
                       </p>
                       <p className="text-lg font-semibold">
-                        {company.generalInfo.yearVisit.join(", ")}
+                        {getYearsOfVisit()}
                       </p>
                     </div>
                     <div className="mx-2">
@@ -254,7 +288,7 @@ const Company = () => {
                         Total Students Hired
                       </p>
                       <p className="text-lg font-semibold">
-                        {company.generalInfo.studentsHired}
+                        {getTotalStudentsHired()}
                       </p>
                     </div>
                     <div className="mx-2">
@@ -262,7 +296,7 @@ const Company = () => {
                         Average Package
                       </p>
                       <p className="text-lg font-semibold">
-                        {formatCurrency(company.generalInfo.averagePackage)}
+                        {formatCurrency(getAveragePackage())}
                       </p>
                     </div>
                     <div className="mx-2">
@@ -270,7 +304,7 @@ const Company = () => {
                         Highest Package
                       </p>
                       <p className="text-lg font-semibold">
-                        {formatCurrency(company.generalInfo.highestPackage)}
+                        {formatCurrency(getHighestPackage())}
                       </p>
                     </div>
                   </div>
@@ -294,42 +328,91 @@ const Company = () => {
                       ))}
                     </div>
                   </div>
+
+                  {/* Year-wise Statistics */}
+                  <div className="mx-2">
+                    <p className="text-xl font-semibold mb-3">
+                      Year-wise Statistics
+                    </p>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-default-200">
+                        <thead>
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-default-500 uppercase tracking-wider">
+                              Year
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-default-500 uppercase tracking-wider">
+                              Hired
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-default-500 uppercase tracking-wider">
+                              Average Package
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-default-500 uppercase tracking-wider">
+                              Highest Package
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-default-50 divide-y divide-default-200">
+                          {company.generalInfo.yearStats.map((stat) => (
+                            <tr key={stat.year}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                {stat.year}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                {stat.hired}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                {formatCurrency(stat.average)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                {formatCurrency(stat.highest)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               </CardBody>
             </Card>
 
             <Card className="bg-default-50 p-2">
               <CardBody>
-                <h3 className="text-xl font-semibold mb-4">HR Contacts</h3>
+                <h3 className="text-xl font-semibold mb-4">HR Contact</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="mx-2">
                     <p className="text-sm text-default-500 mb-1">Name</p>
                     <p className="text-lg font-semibold">
-                      {company.hrContacts?.name}
+                      {company.hrContact?.name || "N/A"}
                     </p>
                   </div>
                   <div className="mx-2">
                     <p className="text-sm text-default-500 mb-1">Phone</p>
                     <p className="text-lg font-semibold">
-                      {company.hrContacts?.phone}
+                      {company.hrContact?.phone || "N/A"}
                     </p>
                   </div>
                   <div className="mx-2">
                     <p className="text-sm text-default-500 mb-1">Email</p>
                     <p className="text-lg font-semibold">
-                      {company.hrContacts?.email}
+                      {company.hrContact?.email || "N/A"}
                     </p>
                   </div>
                   <div className="mx-2">
                     <p className="text-sm text-default-500 mb-1">Website</p>
-                    <a
-                      href={`https://${company.hrContacts?.website}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-lg font-semibold text-primary hover:underline"
-                    >
-                      {company.hrContacts?.website}
-                    </a>
+                    {company.hrContact?.website ? (
+                      <a
+                        href={`https://${company.hrContact.website}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-lg font-semibold text-primary hover:underline"
+                      >
+                        {company.hrContact.website}
+                      </a>
+                    ) : (
+                      <p className="text-lg font-semibold">N/A</p>
+                    )}
                   </div>
                 </div>
               </CardBody>
