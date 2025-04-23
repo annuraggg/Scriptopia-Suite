@@ -5,7 +5,7 @@ import { Moon, Sun } from 'lucide-react';
 import Wallet from './Wallet';
 import { useAuth } from "@clerk/clerk-react";
 
-const Navbar = () => {
+const Navbar = ({ refetch }: { refetch: boolean }) => {
   const { userId } = useAuth();
   const links = [
     {
@@ -55,7 +55,7 @@ const Navbar = () => {
           >
             {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
           </Button>
-          {userId && <Wallet userId={userId} />}
+          {userId && <Wallet userId={userId} refetch={refetch} />}
           <UserButton />
         </div>
       </div>

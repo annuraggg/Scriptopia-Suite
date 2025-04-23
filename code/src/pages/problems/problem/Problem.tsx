@@ -4,11 +4,14 @@ import { useAuth } from "@clerk/clerk-react";
 import { Problem as ProblemType } from "@shared-types/Problem";
 import { Submission } from "@shared-types/Submission";
 import { useEffect, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 
 const Problem = () => {
   const [problem, setProblem] = useState<ProblemType>({} as ProblemType);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+
+  const { setRefetch } = useOutletContext() as { setRefetch: (refetch: boolean) => void };
 
   const { getToken } = useAuth();
   useEffect(() => {
@@ -21,7 +24,7 @@ const Problem = () => {
         setSubmissions(res.data.data.submissions);
         console.log(res.data.data);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => {
         setLoading(false);
       });
@@ -34,6 +37,7 @@ const Problem = () => {
         problem={problem}
         submissions={submissions}
         setSubmissions={setSubmissions}
+        setRefetch={setRefetch}
       />
     </div>
   );

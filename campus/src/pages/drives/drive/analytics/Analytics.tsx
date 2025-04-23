@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import {
   Card,
@@ -22,6 +22,7 @@ import {
   BarChart2,
   DollarSign,
   Clipboard,
+  Download,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Loader from "@/components/Loader";
@@ -42,6 +43,9 @@ import {
   Cell,
 } from "recharts";
 import { DriveAnalytics } from "@shared-types/DriveAnalytics";
+import { ExtendedAppliedDrive } from "@shared-types/ExtendedAppliedDrive";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface Drive {
   _id: string;
@@ -59,8 +63,10 @@ interface Drive {
   };
   workflow?: {
     steps: Array<{
+      _id?: string;
       name: string;
       description?: string;
+      status?: string;
     }>;
   };
 }
@@ -68,6 +74,17 @@ interface Drive {
 interface DriveAnalyticsResponse {
   analytics: DriveAnalytics;
   drive: Drive;
+}
+
+interface StageAnalytics {
+  stageName: string;
+  totalCandidates: number;
+  passedCandidates: number;
+  failedCandidates: number;
+  passRate: number;
+  dropOffRate: number;
+  isBottleneck: boolean;
+  _id?: string;
 }
 
 const COLORS = [
@@ -78,10 +95,16 @@ const COLORS = [
   "#8884d8",
   "#82ca9d",
 ];
+
 const GENDER_COLORS = {
   male: "#3b82f6",
   female: "#ec4899",
   other: "#8b5cf6",
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
 };
 
 const DriveAnalyticsPage: React.FC = () => {
@@ -89,18 +112,26 @@ const DriveAnalyticsPage: React.FC = () => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
   const [data, setData] = useState<DriveAnalyticsResponse | null>(null);
+  const [pipelineData, setPipelineData] = useState<ExtendedAppliedDrive[]>([]);
   const [selected, setSelected] = useState("overview");
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!id) return;
 
     const fetchDriveAnalytics = async () => {
       try {
-        const response = await axios.get(`/drives/${id}/analytics`);
-        setData(response.data.data);
+        const [analyticsResponse, pipelineResponse] = await Promise.all([
+          axios.get(`/drives/${id}/analytics`),
+          axios.get(`/drives/${id}/applied`),
+        ]);
+
+        setData(analyticsResponse.data.data);
+        setPipelineData(pipelineResponse.data.data);
       } catch (error) {
-        console.error("Error fetching drive analytics:", error);
+        console.error("Error fetching drive data:", error);
         toast.error("Failed to load drive analytics");
       } finally {
         setLoading(false);
@@ -109,6 +140,224 @@ const DriveAnalyticsPage: React.FC = () => {
 
     fetchDriveAnalytics();
   }, [id, axios]);
+
+  const calculateStageAnalytics = (): StageAnalytics[] => {
+    if (!data?.drive.workflow?.steps || !pipelineData.length) {
+      return [];
+    }
+
+    return data.drive.workflow.steps.map((step, stepIndex) => {
+      const totalCandidates = pipelineData.length;
+
+      const candidatesInStage = pipelineData.filter((candidate) => {
+        if (step.status === "in-progress") {
+          return (
+            candidate.status === "inprogress" ||
+            (stepIndex === 0 && candidate.status === "applied")
+          );
+        } else if (
+          step.status === "completed" &&
+          stepIndex === data.drive.workflow!.steps!.length - 1
+        ) {
+          return candidate.status === "hired";
+        } else if (candidate.status === "rejected") {
+          return (
+            candidate.disqualifiedStage?.toString() === step._id?.toString()
+          );
+        }
+        return false;
+      });
+
+      const passedCandidates = pipelineData.filter((candidate) => {
+        if (candidate.status === "hired") return true;
+
+        if (candidate.status === "inprogress") {
+          const activeStepIndex = data.drive.workflow!.steps!.findIndex(
+            (s) => s.status === "in-progress"
+          );
+          return activeStepIndex > stepIndex;
+        }
+
+        if (candidate.status === "rejected") {
+          const rejectedStepIndex = data.drive.workflow!.steps!.findIndex(
+            (s) => s._id?.toString() === candidate.disqualifiedStage?.toString()
+          );
+          return rejectedStepIndex > stepIndex;
+        }
+
+        return false;
+      });
+
+      const failedCandidates = pipelineData.filter(
+        (candidate) =>
+          candidate.status === "rejected" &&
+          candidate.disqualifiedStage?.toString() === step._id?.toString()
+      ).length;
+
+      const passRate =
+        totalCandidates > 0
+          ? (passedCandidates.length / totalCandidates) * 100
+          : 0;
+      const dropOffRate =
+        totalCandidates > 0 ? (failedCandidates / totalCandidates) * 100 : 0;
+
+      return {
+        stageName: step.name,
+        totalCandidates,
+        passedCandidates: passedCandidates.length,
+        failedCandidates,
+        passRate,
+        dropOffRate,
+        isBottleneck: false,
+        _id: step._id,
+      };
+    });
+  };
+
+  const exportToPDF = async () => {
+    if (!contentRef.current || !data) return;
+
+    try {
+      setExporting(true);
+      toast.info("Preparing export...");
+
+      // Create a temporary div to render all analytics sections
+      const tempDiv = document.createElement("div");
+      tempDiv.style.width = "1000px"; // Set a fixed width for better PDF rendering
+      tempDiv.style.padding = "20px";
+      tempDiv.style.backgroundColor = "white";
+      document.body.appendChild(tempDiv);
+
+      // Clone the content for all tabs
+      const currentTab = selected;
+
+      // First render Overview
+      setSelected("overview");
+      await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for render
+      const overviewClone = contentRef.current.cloneNode(true) as HTMLElement;
+      tempDiv.appendChild(overviewClone);
+
+      // Then render Stage Analysis
+      setSelected("stages");
+      await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for render
+      const stagesClone = contentRef.current.cloneNode(true) as HTMLElement;
+      tempDiv.appendChild(stagesClone);
+
+      // Finally render Demographics
+      setSelected("demographics");
+      await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for render
+      const demographicsClone = contentRef.current.cloneNode(
+        true
+      ) as HTMLElement;
+      tempDiv.appendChild(demographicsClone);
+
+      // Set back to original tab
+      setSelected(currentTab);
+
+      // Create PDF
+      const pdf = new jsPDF("p", "mm", "a4");
+
+      // Add title page
+      pdf.setFontSize(24);
+      pdf.text(`${data.drive.title} Analytics Report`, 20, 30);
+      pdf.setFontSize(16);
+      pdf.text(`${data.drive.company?.name}`, 20, 45);
+      pdf.text(`${data.drive.jobRole || "Various Roles"}`, 20, 55);
+      pdf.setFontSize(12);
+      const today = new Date().toLocaleDateString();
+      pdf.text(`Generated on: ${today}`, 20, 65);
+
+      let verticalOffset = 30;
+      let pageCount = 1;
+
+      // Capture and add each section to PDF
+      const sections = tempDiv.children;
+      for (let i = 0; i < sections.length; i++) {
+        const section = sections[i] as HTMLElement;
+
+        // Add a new page for each section
+        if (i > 0) {
+          pdf.addPage();
+          pageCount++;
+          verticalOffset = 20;
+        }
+
+        // Add section title
+        let sectionTitle = "";
+        if (i === 0) sectionTitle = "Overview";
+        if (i === 1) sectionTitle = "Stage Analysis";
+        if (i === 2) sectionTitle = "Demographics";
+
+        pdf.setFontSize(18);
+        pdf.text(sectionTitle, 20, verticalOffset);
+        verticalOffset += 10;
+
+        // Convert section to canvas and add to PDF
+        const canvas = await html2canvas(section, {
+          scale: 0.7, // Scale down for better fitting
+          logging: false,
+          useCORS: true,
+          allowTaint: true,
+        });
+
+        const imgData = canvas.toDataURL("image/png");
+        const imgWidth = 170; // A4 width minus margins
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        // Check if image fits on current page, otherwise add new page
+        if (verticalOffset + imgHeight > 270) {
+          pdf.addPage();
+          pageCount++;
+          verticalOffset = 20;
+        }
+
+        pdf.addImage(imgData, "PNG", 20, verticalOffset, imgWidth, imgHeight);
+        verticalOffset += imgHeight + 20;
+      }
+
+      // Add page numbers
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(10);
+        pdf.text(
+          `Page ${i} of ${pageCount}`,
+          pdf.internal.pageSize.getWidth() - 40,
+          pdf.internal.pageSize.getHeight() - 10
+        );
+      }
+
+      // Clean up
+      document.body.removeChild(tempDiv);
+
+      // Download PDF
+      pdf.save(`${data.drive.title}-Analytics-Report.pdf`);
+      toast.success("Analytics report downloaded successfully!");
+    } catch (error) {
+      console.error("Error exporting to PDF:", error);
+      toast.error("Failed to export analytics report");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const stageAnalytics = calculateStageAnalytics();
+
+  const bottleneckStage =
+    stageAnalytics.length > 0
+      ? stageAnalytics.reduce(
+          (prev, current) =>
+            current.dropOffRate > prev.dropOffRate ? current : prev,
+          stageAnalytics[0]
+        )
+      : null;
+
+  if (bottleneckStage) {
+    stageAnalytics.forEach((stage) => {
+      if (stage.stageName === bottleneckStage.stageName) {
+        stage.isBottleneck = true;
+      }
+    });
+  }
 
   if (loading) {
     return (
@@ -139,7 +388,7 @@ const DriveAnalyticsPage: React.FC = () => {
 
   const { analytics, drive } = data;
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
@@ -147,34 +396,48 @@ const DriveAnalyticsPage: React.FC = () => {
     }).format(value);
   };
 
-  const formatPercentage = (value: number) => {
+  const formatPercentage = (value: number): string => {
     return value.toFixed(1) + "%";
   };
 
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-  };
-
-  const stageData = analytics.stageAnalytics.map((stage) => ({
+  const stageData = stageAnalytics.map((stage) => ({
     name: stage.stageName,
     dropOff: stage.dropOffRate,
     pass: stage.passRate,
   }));
 
+  const hiredCandidates = pipelineData.filter(
+    (c) => c.status === "hired"
+  ).length;
+  const rejectedCandidates = pipelineData.filter(
+    (c) => c.status === "rejected"
+  ).length;
+  const inProgressCandidates = pipelineData.filter(
+    (c) => c.status === "inprogress" || c.status === "applied"
+  ).length;
+
   const candidateStatusData = [
-    { name: "Hired", value: analytics.hiredCandidates },
-    { name: "Rejected", value: analytics.rejectedCandidates },
-    { name: "In Progress", value: analytics.inProgressCandidates },
+    { name: "Hired", value: hiredCandidates },
+    { name: "Rejected", value: rejectedCandidates },
+    { name: "In Progress", value: inProgressCandidates },
   ];
 
-  const genderData = analytics.genderDistribution
-    ? [
-        { name: "Male", value: analytics.genderDistribution.male },
-        { name: "Female", value: analytics.genderDistribution.female },
-        { name: "Other", value: analytics.genderDistribution.other },
-      ]
-    : [];
+  const genderDistribution = pipelineData.reduce(
+    (acc: { male: number; female: number; other: number }, candidate) => {
+      const gender = candidate.user.gender?.toLowerCase() || "other";
+      if (gender === "male") acc.male++;
+      else if (gender === "female") acc.female++;
+      else acc.other++;
+      return acc;
+    },
+    { male: 0, female: 0, other: 0 }
+  );
+
+  const genderData = [
+    { name: "Male", value: genderDistribution.male },
+    { name: "Female", value: genderDistribution.female },
+    { name: "Other", value: genderDistribution.other },
+  ].filter((item) => item.value > 0);
 
   const degreeData = analytics.educationDistribution
     ? Object.entries(analytics.educationDistribution.degreeTypes).map(
@@ -198,11 +461,11 @@ const DriveAnalyticsPage: React.FC = () => {
       transition={{ duration: 0.3 }}
       className="w-full md:w-1/2 lg:w-1/4 p-2"
     >
-      <Card className="h-full">
+      <Card className="h-full shadow-md hover:shadow-lg transition-shadow duration-300">
         <CardBody className="flex flex-row items-center">
           <div className={`p-3 rounded-lg bg-${color}-100`}>{icon}</div>
           <div className="ml-4">
-            <p className="text-sm text-gray-500">{title}</p>
+            <p className="text-sm text-default-500">{title}</p>
             <h3 className="text-xl font-bold">{value}</h3>
           </div>
         </CardBody>
@@ -211,36 +474,36 @@ const DriveAnalyticsPage: React.FC = () => {
   );
 
   const renderSalaryMetrics = () => (
-    <Card className="mb-6">
-      <CardHeader className="border-b border-gray-200">
+    <Card className="mb-6 shadow-md">
+      <CardHeader className="border-b border-default-200 bg-default-50">
         <h3 className="text-lg font-semibold flex items-center">
-          <DollarSign size={20} className="mr-2" />
+          <DollarSign size={20} className="mr-2 text-primary" />
           Salary Analysis
         </h3>
       </CardHeader>
       <CardBody>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="text-center p-4">
-            <p className="text-sm text-gray-500 mb-1">Average CTC</p>
-            <h4 className="text-xl font-bold">
+          <div className="text-center p-4 border border-default-200 rounded-lg hover:bg-default-50 transition-colors">
+            <p className="text-sm text-default-500 mb-1">Average CTC</p>
+            <h4 className="text-xl font-bold text-primary">
               {formatCurrency(analytics.salary.averageCTC)}
             </h4>
           </div>
-          <div className="text-center p-4">
-            <p className="text-sm text-gray-500 mb-1">Highest Package</p>
-            <h4 className="text-xl font-bold">
+          <div className="text-center p-4 border border-default-200 rounded-lg hover:bg-default-50 transition-colors">
+            <p className="text-sm text-default-500 mb-1">Highest Package</p>
+            <h4 className="text-xl font-bold text-success">
               {formatCurrency(analytics.salary.highestCTC)}
             </h4>
           </div>
-          <div className="text-center p-4">
-            <p className="text-sm text-gray-500 mb-1">Lowest Package</p>
-            <h4 className="text-xl font-bold">
+          <div className="text-center p-4 border border-default-200 rounded-lg hover:bg-default-50 transition-colors">
+            <p className="text-sm text-default-500 mb-1">Lowest Package</p>
+            <h4 className="text-xl font-bold text-warning">
               {formatCurrency(analytics.salary.lowestCTC)}
             </h4>
           </div>
-          <div className="text-center p-4">
-            <p className="text-sm text-gray-500 mb-1">Median Package</p>
-            <h4 className="text-xl font-bold">
+          <div className="text-center p-4 border border-default-200 rounded-lg hover:bg-default-50 transition-colors">
+            <p className="text-sm text-default-500 mb-1">Median Package</p>
+            <h4 className="text-xl font-bold text-secondary">
               {formatCurrency(analytics.salary.medianCTC)}
             </h4>
           </div>
@@ -250,78 +513,103 @@ const DriveAnalyticsPage: React.FC = () => {
   );
 
   const renderStageAnalysis = () => (
-    <Card className="mb-6">
-      <CardHeader className="border-b border-gray-200">
+    <Card className="mb-6 shadow-md">
+      <CardHeader className="border-b border-default-200 bg-default-50">
         <h3 className="text-lg font-semibold flex items-center">
-          <Clipboard size={20} className="mr-2" />
+          <Clipboard size={20} className="mr-2 text-primary" />
           Stage Analysis
         </h3>
       </CardHeader>
       <CardBody>
-        {analytics.bottleneckStage && (
-          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+        {bottleneckStage && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg shadow-sm">
             <h4 className="font-medium text-amber-800 flex items-center">
               <AlertCircle size={16} className="mr-2" />
               Bottleneck Identified
             </h4>
             <p className="text-sm text-amber-700 mt-1">
-              {analytics.bottleneckStage.stageName} has the highest drop-off
-              rate ({formatPercentage(analytics.bottleneckStage.dropOffRate)}).
+              <span className="font-medium">{bottleneckStage.stageName}</span>{" "}
+              has the highest drop-off rate (
+              {formatPercentage(bottleneckStage.dropOffRate)}). Consider
+              reviewing this stage to improve conversion.
             </p>
           </div>
         )}
 
-        <div className="mt-4">
+        <div className="mt-6 bg-default-50 p-4 rounded-lg">
+          <h4 className="font-medium mb-4 text-center text-primary">
+            Stage Performance Analysis
+          </h4>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
               data={stageData}
               margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <RechartsTooltip />
-              <Legend />
-              <Bar dataKey="pass" name="Pass Rate (%)" fill="#4ade80" />
-              <Bar dataKey="dropOff" name="Drop-off Rate (%)" fill="#f87171" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+              <XAxis dataKey="name" tick={{ fill: "#666" }} />
+              <YAxis tick={{ fill: "#666" }} />
+              <RechartsTooltip
+                contentStyle={{
+                  backgroundColor: "#fff",
+                  borderRadius: "8px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                }}
+              />
+              <Legend wrapperStyle={{ paddingTop: "10px" }} />
+              <Bar
+                dataKey="pass"
+                name="Pass Rate (%)"
+                fill="#4ade80"
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar
+                dataKey="dropOff"
+                name="Drop-off Rate (%)"
+                fill="#f87171"
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="mt-6">
-          <h4 className="font-medium mb-4">Stage Details</h4>
-          <div className="space-y-4">
-            {analytics.stageAnalytics.map((stage, index) => (
+        <div className="mt-8">
+          <h4 className="font-medium mb-4 text-primary">Stage Details</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {stageAnalytics.map((stage, index) => (
               <div
                 key={index}
-                className="border border-gray-200 rounded-lg p-4"
+                className={`border ${
+                  stage.isBottleneck
+                    ? "border-amber-300 bg-amber-50"
+                    : "border-default-200"
+                } rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow`}
               >
                 <div className="flex justify-between mb-2">
                   <h5 className="font-medium">{stage.stageName}</h5>
                   {stage.isBottleneck && (
-                    <Chip color="warning" size="sm">
+                    <Chip color="warning" size="sm" variant="flat">
                       Bottleneck
                     </Chip>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-2 mb-2 text-sm">
-                  <div>
+                <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                  <div className="bg-default-50 p-2 rounded">
                     Total Candidates:{" "}
                     <span className="font-medium">{stage.totalCandidates}</span>
                   </div>
-                  <div>
+                  <div className="bg-default-50 p-2 rounded">
                     Passed:{" "}
-                    <span className="font-medium">
+                    <span className="font-medium text-success">
                       {stage.passedCandidates}
                     </span>
                   </div>
-                  <div>
+                  <div className="bg-default-50 p-2 rounded">
                     Failed:{" "}
-                    <span className="font-medium">
+                    <span className="font-medium text-danger">
                       {stage.failedCandidates}
                     </span>
                   </div>
-                  <div>
+                  <div className="bg-default-50 p-2 rounded">
                     Pass Rate:{" "}
                     <span className="font-medium">
                       {formatPercentage(stage.passRate)}
@@ -342,7 +630,10 @@ const DriveAnalyticsPage: React.FC = () => {
                         ? "warning"
                         : "danger"
                     }
+                    size="md"
+                    radius="sm"
                     className="h-2"
+                    showValueLabel={false}
                   />
                 </div>
               </div>
@@ -354,18 +645,18 @@ const DriveAnalyticsPage: React.FC = () => {
   );
 
   const renderDemographics = () => (
-    <Card className="mb-6">
-      <CardHeader className="border-b border-gray-200">
+    <Card className="mb-6 shadow-md">
+      <CardHeader className="border-b border-default-200 bg-default-50">
         <h3 className="text-lg font-semibold flex items-center">
-          <Users size={20} className="mr-2" />
+          <Users size={20} className="mr-2 text-primary" />
           Candidate Demographics
         </h3>
       </CardHeader>
       <CardBody>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {analytics.genderDistribution && (
-            <div>
-              <h4 className="font-medium mb-4 text-center">
+          {genderData.length > 0 && (
+            <div className="bg-default-50 p-4 rounded-lg">
+              <h4 className="font-medium mb-4 text-center text-primary">
                 Gender Distribution
               </h4>
               <ResponsiveContainer width="100%" height={300}>
@@ -375,34 +666,44 @@ const DriveAnalyticsPage: React.FC = () => {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    outerRadius={80}
+                    outerRadius={90}
+                    innerRadius={50}
                     fill="#8884d8"
                     dataKey="value"
                     label={({ name, percent }) =>
                       `${name}: ${(percent * 100).toFixed(0)}%`
                     }
+                    paddingAngle={2}
                   >
-                    {genderData.map((_, index) => (
+                    {genderData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={
-                          Object.values(GENDER_COLORS)[
-                            index % Object.values(GENDER_COLORS).length
-                          ]
+                          entry.name.toLowerCase() === "male"
+                            ? GENDER_COLORS.male
+                            : entry.name.toLowerCase() === "female"
+                            ? GENDER_COLORS.female
+                            : GENDER_COLORS.other
                         }
                       />
                     ))}
                   </Pie>
-                  <RechartsTooltip />
-                  <Legend />
+                  <RechartsTooltip
+                    contentStyle={{
+                      backgroundColor: "#fff",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    }}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: "10px" }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           )}
 
-          {analytics.educationDistribution && (
-            <div>
-              <h4 className="font-medium mb-4 text-center">
+          {analytics.educationDistribution && degreeData.length > 0 && (
+            <div className="bg-default-50 p-4 rounded-lg">
+              <h4 className="font-medium mb-4 text-center text-primary">
                 Education Distribution
               </h4>
               <ResponsiveContainer width="100%" height={300}>
@@ -412,12 +713,14 @@ const DriveAnalyticsPage: React.FC = () => {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    outerRadius={80}
+                    outerRadius={90}
+                    innerRadius={50}
                     fill="#8884d8"
                     dataKey="value"
                     label={({ name, percent }) =>
                       `${name}: ${(percent * 100).toFixed(0)}%`
                     }
+                    paddingAngle={2}
                   >
                     {degreeData.map((_, index) => (
                       <Cell
@@ -426,8 +729,14 @@ const DriveAnalyticsPage: React.FC = () => {
                       />
                     ))}
                   </Pie>
-                  <RechartsTooltip />
-                  <Legend />
+                  <RechartsTooltip
+                    contentStyle={{
+                      backgroundColor: "#fff",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    }}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: "10px" }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -436,22 +745,23 @@ const DriveAnalyticsPage: React.FC = () => {
 
         {analytics.educationDistribution &&
           analytics.educationDistribution.topSchools.length > 0 && (
-            <div className="mt-6">
-              <h4 className="font-medium mb-4">Top Schools</h4>
+            <div className="mt-8">
+              <h4 className="font-medium mb-4 text-primary">Top Schools</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {analytics.educationDistribution.topSchools.map(
                   (school, index) => (
                     <div
                       key={index}
-                      className="flex items-center p-3 border border-gray-200 rounded-lg"
+                      className="flex items-center p-4 border border-default-200 rounded-lg shadow-sm hover:shadow-md transition-shadow bg-default-50"
                     >
-                      <div className="bg-blue-100 p-2 rounded-full mr-3">
-                        <School size={16} className="text-blue-600" />
+                      <div className="bg-blue-100 p-3 rounded-full mr-4">
+                        <School size={18} className="text-blue-600" />
                       </div>
                       <div className="flex-1">
                         <p className="font-medium truncate">{school.school}</p>
-                        <p className="text-sm text-gray-500">
-                          {school.count} candidates
+                        <p className="text-sm text-default-500">
+                          {school.count} candidate
+                          {school.count !== 1 ? "s" : ""}
                         </p>
                       </div>
                     </div>
@@ -464,6 +774,14 @@ const DriveAnalyticsPage: React.FC = () => {
     </Card>
   );
 
+  const totalCandidates = pipelineData.length;
+  const applicationRate =
+    totalCandidates > 0
+      ? (totalCandidates / (analytics.totalCandidates || 1)) * 100
+      : 0;
+  const conversionRate =
+    totalCandidates > 0 ? (hiredCandidates / totalCandidates) * 100 : 0;
+
   return (
     <div className="container mx-auto px-4 py-6">
       <motion.div
@@ -474,17 +792,22 @@ const DriveAnalyticsPage: React.FC = () => {
       >
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold">{drive.title} Analytics</h1>
-            <p className="text-gray-500 mt-1">
+            <h1 className="text-2xl font-bold text-primary">
+              {drive.title} Analytics
+            </h1>
+            <p className="text-default-500 mt-1">
               {drive.company?.name} · {drive.jobRole || "Various Roles"}
             </p>
           </div>
           <Button
             color="primary"
-            className="mt-4 md:mt-0"
-            onClick={() => window.history.back()}
+            variant="shadow"
+            className="mt-4 md:mt-0 flex items-center gap-2"
+            onClick={exportToPDF}
+            isLoading={exporting}
+            startContent={!exporting && <Download size={18} />}
           >
-            Back to Drives
+            {exporting ? "Exporting..." : "Export"}
           </Button>
         </div>
 
@@ -494,6 +817,9 @@ const DriveAnalyticsPage: React.FC = () => {
           selectedKey={selected}
           onSelectionChange={(key) => setSelected(key as string)}
           className="mt-6"
+          variant="underlined"
+          color="primary"
+          size="lg"
         >
           <Tab key="overview" title="Overview" />
           <Tab key="stages" title="Stage Analysis" />
@@ -501,140 +827,161 @@ const DriveAnalyticsPage: React.FC = () => {
         </Tabs>
       </motion.div>
 
-      {selected === "overview" && (
-        <div className="space-y-6">
-          <div className="flex flex-wrap -mx-2">
-            {renderStatsCard(
-              "Total Candidates",
-              analytics.totalCandidates,
-              <Users size={24} className="text-blue-500" />,
-              "blue"
-            )}
-            {renderStatsCard(
-              "Applied Candidates",
-              analytics.appliedCandidates,
-              <UserCheck size={24} className="text-green-500" />,
-              "green"
-            )}
-            {renderStatsCard(
-              "Hired Candidates",
-              analytics.hiredCandidates,
-              <Award size={24} className="text-purple-500" />,
-              "purple"
-            )}
-            {renderStatsCard(
-              "Application Rate",
-              formatPercentage(analytics.applicationRate),
-              <TrendingUp size={24} className="text-teal-500" />,
-              "teal"
-            )}
-          </div>
+      <div ref={contentRef}>
+        {selected === "overview" && (
+          <div className="space-y-6">
+            <div className="flex flex-wrap -mx-2">
+              {renderStatsCard(
+                "Total Candidates",
+                totalCandidates,
+                <Users size={24} className="text-blue-500" />,
+                "blue"
+              )}
+              {renderStatsCard(
+                "Active Candidates",
+                pipelineData.filter(
+                  (c) => c.status === "applied" || c.status === "inprogress"
+                ).length,
+                <UserCheck size={24} className="text-green-500" />,
+                "green"
+              )}
+              {renderStatsCard(
+                "Hired Candidates",
+                hiredCandidates,
+                <Award size={24} className="text-purple-500" />,
+                "purple"
+              )}
+              {renderStatsCard(
+                "Application Rate",
+                formatPercentage(applicationRate),
+                <TrendingUp size={24} className="text-teal-500" />,
+                "teal"
+              )}
+            </div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-          >
-            <Card className="mb-6">
-              <CardHeader className="border-b border-gray-200">
-                <h3 className="text-lg font-semibold flex items-center">
-                  <BarChart2 size={20} className="mr-2" />
-                  Key Performance Indicators
-                </h3>
-              </CardHeader>
-              <CardBody>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-blue-100 mb-4">
-                      <Users size={32} className="text-blue-600" />
-                    </div>
-                    <h4 className="text-2xl font-bold">
-                      {formatPercentage(analytics.applicationRate)}
-                    </h4>
-                    <p className="text-sm text-gray-500">Application Rate</p>
-                  </div>
-
-                  <div className="text-center">
-                    <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-4">
-                      <UserCheck size={32} className="text-green-600" />
-                    </div>
-                    <h4 className="text-2xl font-bold">
-                      {formatPercentage(analytics.conversionRate)}
-                    </h4>
-                    <p className="text-sm text-gray-500">Conversion Rate</p>
-                  </div>
-
-                  <div className="text-center">
-                    <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-amber-100 mb-4">
-                      <Clock size={32} className="text-amber-600" />
-                    </div>
-                    <h4 className="text-2xl font-bold">
-                      {analytics.timeToHire
-                        ? analytics.timeToHire.toFixed(1)
-                        : "N/A"}
-                    </h4>
-                    <p className="text-sm text-gray-500">Avg. Days to Hire</p>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <Card>
-                <CardHeader className="border-b border-gray-200">
-                  <h3 className="text-lg font-semibold">Candidate Status</h3>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
+              <Card className="mb-6 shadow-md">
+                <CardHeader className="border-b border-default-200 bg-default-50">
+                  <h3 className="text-lg font-semibold flex items-center">
+                    <BarChart2 size={20} className="mr-2 text-primary" />
+                    Key Performance Indicators
+                  </h3>
                 </CardHeader>
                 <CardBody>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={candidateStatusData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, value, percent }) =>
-                          `${name}: ${value} (${(percent * 100).toFixed(0)}%)`
-                        }
-                      >
-                        <Cell fill="#4ade80" /> {/* Hired - Green */}
-                        <Cell fill="#f87171" /> {/* Rejected - Red */}
-                        <Cell fill="#fbbf24" /> {/* In Progress - Yellow */}
-                      </Pie>
-                      <RechartsTooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="text-center p-4 border border-default-200 rounded-lg hover:shadow-sm transition-shadow">
+                      <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-blue-100 mb-4">
+                        <Users size={32} className="text-blue-600" />
+                      </div>
+                      <h4 className="text-2xl font-bold text-blue-600">
+                        {formatPercentage(applicationRate)}
+                      </h4>
+                      <p className="text-sm text-default-500">
+                        Application Rate
+                      </p>
+                    </div>
+
+                    <div className="text-center p-4 border border-default-200 rounded-lg hover:shadow-sm transition-shadow">
+                      <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-4">
+                        <UserCheck size={32} className="text-green-600" />
+                      </div>
+                      <h4 className="text-2xl font-bold text-green-600">
+                        {formatPercentage(conversionRate)}
+                      </h4>
+                      <p className="text-sm text-default-500">
+                        Conversion Rate
+                      </p>
+                    </div>
+
+                    <div className="text-center p-4 border border-default-200 rounded-lg hover:shadow-sm transition-shadow">
+                      <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-amber-100 mb-4">
+                        <Clock size={32} className="text-amber-600" />
+                      </div>
+                      <h4 className="text-2xl font-bold text-amber-600">
+                        {analytics.timeToHire
+                          ? analytics.timeToHire.toFixed(1)
+                          : "N/A"}
+                      </h4>
+                      <p className="text-sm text-default-500">
+                        Avg. Days to Hire
+                      </p>
+                    </div>
+                  </div>
                 </CardBody>
               </Card>
 
-              {renderSalaryMetrics()}
-            </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <Card className="shadow-md">
+                  <CardHeader className="border-b border-default-200 bg-default-50">
+                    <h3 className="text-lg font-semibold flex items-center">
+                      <BarChart2 size={20} className="mr-2 text-primary" />
+                      Candidate Status
+                    </h3>
+                  </CardHeader>
+                  <CardBody className="bg-default-50">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={candidateStatusData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={90}
+                          innerRadius={50}
+                          fill="#8884d8"
+                          dataKey="value"
+                          label={({ name, value, percent }) =>
+                            `${name}: ${value} (${(percent * 100).toFixed(0)}%)`
+                          }
+                          paddingAngle={2}
+                        >
+                          <Cell fill="#4ade80" />
+                          <Cell fill="#f87171" />
+                          <Cell fill="#fbbf24" />
+                        </Pie>
+                        <RechartsTooltip
+                          contentStyle={{
+                            backgroundColor: "#fff",
+                            borderRadius: "8px",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                          }}
+                        />
+                        <Legend wrapperStyle={{ paddingTop: "10px" }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </CardBody>
+                </Card>
+
+                {renderSalaryMetrics()}
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {selected === "stages" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            {renderStageAnalysis()}
           </motion.div>
-        </div>
-      )}
+        )}
 
-      {selected === "stages" && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          {renderStageAnalysis()}
-        </motion.div>
-      )}
-
-      {selected === "demographics" && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          {renderDemographics()}
-        </motion.div>
-      )}
+        {selected === "demographics" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            {renderDemographics()}
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 };
