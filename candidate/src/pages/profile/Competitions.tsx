@@ -27,7 +27,7 @@ import {
   TableCell,
   Badge,
   Skeleton,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState } from "react";
 import {
   getLocalTimeZone,

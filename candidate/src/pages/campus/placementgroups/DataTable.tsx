@@ -41,7 +41,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState } from "react";
 import ax from "@/config/axios";
 import { toast } from "sonner";

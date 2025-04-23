@@ -17,8 +17,8 @@ import {
   CardBody,
   Divider,
   Badge,
-} from "@nextui-org/react";
-import { DateInput } from "@nextui-org/date-input";
+} from "@heroui/react";
+import { DateInput } from "@heroui/date-input";
 import { useEffect, useState, useCallback } from "react";
 import { parseDate, CalendarDate, today } from "@internationalized/date";
 import {

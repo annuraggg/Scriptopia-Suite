@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Card, CardBody, CardHeader } from "@nextui-org/react";
-import { Button, Input, Select, SelectItem } from "@nextui-org/react";
+import { Card, CardBody, CardHeader } from "@heroui/react";
+import { Button, Input, Select, SelectItem } from "@heroui/react";
 import { motion } from "framer-motion";
 import { Bell, Clock, FileText, FormInput, Brain, Briefcase, Mail } from 'lucide-react';
 

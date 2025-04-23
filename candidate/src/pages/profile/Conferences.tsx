@@ -26,7 +26,7 @@ import {
   Divider,
   Chip,
   Skeleton,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState } from "react";
 import {
   getLocalTimeZone,
@@ -337,14 +337,13 @@ export default function Conferences() {
   };
 
   return (
-    <div>
+    (<div>
       <div className="mb-6">
         <Breadcrumbs >
           <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
           <BreadcrumbItem>Conferences & Events</BreadcrumbItem>
         </Breadcrumbs>
       </div>
-
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-semibold">Conferences & Events</h1>
@@ -361,10 +360,9 @@ export default function Conferences() {
           Add Conference
         </Button>
       </div>
-
       {isLoading ? (
         // Skeleton loader for loading state
-        <div className="space-y-4">
+        (<div className="space-y-4">
           <Card>
             <CardBody className="p-0">
               <div className="p-4">
@@ -383,7 +381,7 @@ export default function Conferences() {
               </div>
             </CardBody>
           </Card>
-        </div>
+        </div>)
       ) : !user?.conferences?.length ? (
         <Card className="w-full border-dashed bg-default-50 border-2 border-gray-200">
           <CardBody className="py-12">
@@ -531,7 +529,6 @@ export default function Conferences() {
           </Table>
         </Card>
       )}
-
       {/* Add/Edit Modal */}
       <Modal
         isOpen={isOpen}
@@ -686,7 +683,6 @@ export default function Conferences() {
           )}
         </ModalContent>
       </Modal>
-
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={isDeleteOpen}
@@ -730,6 +726,6 @@ export default function Conferences() {
           )}
         </ModalContent>
       </Modal>
-    </div>
+    </div>)
   );
 }

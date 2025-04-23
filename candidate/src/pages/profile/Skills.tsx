@@ -17,7 +17,7 @@ import {
   Tooltip,
   Badge,
   Skeleton,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   Plus,
   Code,

@@ -21,7 +21,7 @@ import {
   Skeleton,
   Autocomplete,
   AutocompleteItem,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   Edit2,
   Calendar,
@@ -761,7 +761,7 @@ const Education = () => {
     : PROGRAMS;
 
   return (
-    <div>
+    (<div>
       {/* Main Education Modal */}
       <Modal
         size="3xl"
@@ -1151,7 +1151,6 @@ const Education = () => {
           )}
         </ModalContent>
       </Modal>
-
       {/* Add Branch Modal */}
       <Modal
         isOpen={isBranchModalOpen}
@@ -1204,7 +1203,6 @@ const Education = () => {
           )}
         </ModalContent>
       </Modal>
-
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={deleteConfirmationOpen}
@@ -1247,13 +1245,11 @@ const Education = () => {
           )}
         </ModalContent>
       </Modal>
-
       {/* Education Dashboard */}
       <Breadcrumbs className="mb-6">
         <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
         <BreadcrumbItem href="/profile/education">Education</BreadcrumbItem>
       </Breadcrumbs>
-
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-semibold">Education Information</h1>
@@ -1269,7 +1265,6 @@ const Education = () => {
           Add Education
         </Button>
       </div>
-
       {/* Academic Summary Card */}
       {user?.academicAggregates?.hasBacklogs && (
         <Card className="w-full mb-6 border-warning-200 bg-warning-50">
@@ -1305,11 +1300,10 @@ const Education = () => {
           </CardBody>
         </Card>
       )}
-
       <div className="space-y-4">
         {isLoading ? (
           // Loading skeleton
-          Array(3)
+          (Array(3)
             .fill(0)
             .map((_, i) => (
               <Card key={i} className="w-full border shadow-sm">
@@ -1328,7 +1322,7 @@ const Education = () => {
                   </div>
                 </CardBody>
               </Card>
-            ))
+            )))
         ) : !sortedEducation.length ? (
           <Card className="w-full bg-gray-50 border-dashed border-2 border-gray-200">
             <CardBody className="py-12 flex flex-col items-center justify-center gap-4">
@@ -1511,7 +1505,7 @@ const Education = () => {
           </>
         )}
       </div>
-    </div>
+    </div>)
   );
 };
 

@@ -10,7 +10,7 @@ import {
   Select, 
   SelectItem,
   Spinner 
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { motion } from "framer-motion";
 import { 
   Lock, 

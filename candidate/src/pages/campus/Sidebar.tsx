@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { Tooltip } from "@nextui-org/tooltip";
+import { Tooltip } from "@heroui/tooltip";
 import { X } from "lucide-react";
 import { IconBriefcaseFilled, IconUsersGroup } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 
 interface SidebarProps {
   icon: any;

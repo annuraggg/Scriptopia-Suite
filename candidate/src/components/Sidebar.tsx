@@ -1,4 +1,4 @@
-import { Badge, Tooltip } from "@nextui-org/react";
+import { Badge, Tooltip } from "@heroui/react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {

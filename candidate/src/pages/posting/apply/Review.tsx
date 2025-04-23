@@ -9,7 +9,7 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-} from "@nextui-org/react";
+} from "@heroui/react";
 
 import { toast } from "sonner";
 import { useAuth, useUser } from "@clerk/clerk-react";

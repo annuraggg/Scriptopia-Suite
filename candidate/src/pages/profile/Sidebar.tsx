@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Tooltip } from "@nextui-org/tooltip";
+import { Tooltip } from "@heroui/tooltip";
 import { ChevronRight } from "lucide-react";
 import {
   IconFileDescriptionFilled,

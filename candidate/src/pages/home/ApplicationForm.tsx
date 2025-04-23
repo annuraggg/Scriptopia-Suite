@@ -11,7 +11,7 @@ import {
   Chip,
   Accordion,
   AccordionItem
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { UserCircle, Send, Briefcase, Book, Award, FileBadge, Globe, Check, X, ChevronDown } from 'lucide-react';
 import type { Candidate } from '@shared-types/Candidate';
 import { useAuth } from "@clerk/clerk-react";
@@ -450,7 +450,7 @@ function ApplicationForm({ posting, onClose, onSubmit }: ApplicationFormProps) {
   };
 
   return (
-    <AnimatePresence>
+    (<AnimatePresence>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -528,7 +528,7 @@ function ApplicationForm({ posting, onClose, onSubmit }: ApplicationFormProps) {
                         const isRecommended = config.required && config.allowEmpty;
 
                         return (
-                          <motion.div
+                          (<motion.div
                             key={field}
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -564,7 +564,7 @@ function ApplicationForm({ posting, onClose, onSubmit }: ApplicationFormProps) {
                                 )}
                               </CardBody>
                             </Card>
-                          </motion.div>
+                          </motion.div>)
                         );
                       })}
                     </CardBody>
@@ -599,7 +599,7 @@ function ApplicationForm({ posting, onClose, onSubmit }: ApplicationFormProps) {
           </CardFooter>
         </Card>
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>)
   );
 }
 

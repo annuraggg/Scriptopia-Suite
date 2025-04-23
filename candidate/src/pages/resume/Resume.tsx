@@ -16,7 +16,7 @@ import {
   Spinner,
   Tab,
   Tabs,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Candidate } from "@shared-types/Candidate";
 import { useOutletContext, Link } from "react-router-dom";
 import ResumePDF from "./ResumePDF";

@@ -3,7 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import RootContext from "@/types/RootContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, CheckCircle } from "lucide-react";
-import { Card, CardBody, Button, Badge, Tabs, Tab } from "@nextui-org/react";
+import { Card, CardBody, Button, Badge, Tabs, Tab } from "@heroui/react";
 import { Notification } from "@shared-types/Notification";
 
 const Notifications = () => {

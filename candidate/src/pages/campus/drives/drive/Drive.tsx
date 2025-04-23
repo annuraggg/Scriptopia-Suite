@@ -12,7 +12,7 @@ import {
   useDisclosure,
   Avatar,
   Badge,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   IconBriefcase,
   IconBuilding,
@@ -38,7 +38,7 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Drive as IDrive } from "@shared-types/Drive";
 import { useOutletContext } from "react-router-dom";
 import { Candidate } from "@shared-types/Candidate";
@@ -407,7 +407,7 @@ const Drive: React.FC = () => {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-16">
+    (<div className="bg-gray-50 min-h-screen pb-16">
       {/* Sticky header with application status */}
       {applied && (
         <div className="sticky top-0 z-10 w-full bg-white shadow-sm border-b border-gray-100">
@@ -442,7 +442,6 @@ const Drive: React.FC = () => {
           </div>
         </div>
       )}
-
       {/* Main content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Alert banners */}
@@ -790,7 +789,7 @@ const Drive: React.FC = () => {
                         if (sectionFields.length === 0) return null;
 
                         return (
-                          <div
+                          (<div
                             key={idx}
                             className="border border-gray-100 rounded-lg p-3"
                           >
@@ -850,7 +849,7 @@ const Drive: React.FC = () => {
                                 }
                               )}
                             </div>
-                          </div>
+                          </div>)
                         );
                       }
                     )}
@@ -1004,7 +1003,6 @@ const Drive: React.FC = () => {
           </div>
         </div>
       </div>
-
       {/* Application Modal */}
       <Modal
         isOpen={isOpen}
@@ -1142,7 +1140,6 @@ const Drive: React.FC = () => {
           )}
         </ModalContent>
       </Modal>
-
       {/* Success Modal with Registration Link */}
       <Modal
         isOpen={successModalOpen}
@@ -1200,7 +1197,6 @@ const Drive: React.FC = () => {
           )}
         </ModalContent>
       </Modal>
-
       {/* Upload Offer Letter Modal */}
       <UploadOfferLetter
         isOpen={uploadModalOpen}
@@ -1209,7 +1205,7 @@ const Drive: React.FC = () => {
         title="Upload Offer Letter"
         isLoading={uploadLoading}
       />
-    </div>
+    </div>)
   );
 };
 

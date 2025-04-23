@@ -11,7 +11,7 @@ import {
   Progress,
   Tooltip,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   IconBriefcase,
   IconBuilding,
@@ -42,7 +42,7 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useOutletContext } from "react-router-dom";
 import { Candidate } from "@shared-types/Candidate";
 
