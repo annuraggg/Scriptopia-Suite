@@ -5,30 +5,30 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 98%; /* #FFFFFF */
-  --foreground: 224 20.55% 14.31%; /* #1D212C */
+  --background: 0 0% 100%; /* #FFFFFF */
+  --foreground: 210 29% 20%; /* #2C3E50 */
 
-  --card: 0 0% 100%; /* #F5F5F5 */
+  --card: 0 0% 100%; /* #FFFFFF */
   --popover: 0 0% 100%; /* #FFFFFF */
 
-  --primary: 48.15 93.1% 65.88%; /* #F9D957 */
-  --secondary: 205.15 79.15% 41.37%; /* #1677BD */
-  --muted: 220 8.94% 46.08%; /* #6B7280 */
-  --accent: 176.54 32.91% 30.98%; /* #356966 */
-  --destructive: 339 86.54% 40.78%; /* #C20E4D */
+  --primary: 145 63% 49%; /* #2ECC71 */
+  --secondary: 33 100% 51%; /* #F39C12 */
+  --muted: 204 8% 76%; /* #BDC3C7 */
+  --accent: 204 8% 76%; /* #BDC3C7 - using Support color */
+  --destructive: 339 86.54% 40.78%; /* #C20E4D - kept original */
 
-  --border: 176.54 32.91% 30.98%; /* #356966 */
-  --input: 0 0% 96.08%; /* #F5F5F5 */
-  --ring: 205.15 79.15% 41.37%; /* #1677BD */
+  --border: 204 8% 76%; /* #BDC3C7 - using Support color */
+  --input: 0 0% 96.08%; /* #F5F5F5 - kept original for subtle contrast */
+  --ring: 33 100% 51%; /* #F39C12 - using Secondary color */
 
   --radius: 0.5rem;
 
   /* Chart Colors */
-  --chart-1: 12 76% 61%; /* Warm Orange */
-  --chart-2: 173 58% 39%; /* Teal Green */
-  --chart-3: 197 37% 24%; /* Deep Blue */
-  --chart-4: 43 74% 66%; /* Yellow-Gold */
-  --chart-5: 27 87% 67%; /* Bright Orange */
+  --chart-1: 33 100% 51%; /* #F39C12 - Orange/Secondary */
+  --chart-2: 145 63% 49%; /* #2ECC71 - Green/Primary */
+  --chart-3: 210 29% 24%; /* #2C3E50 - Dark Blue/Gray/Text */
+  --chart-4: 204 8% 76%; /* #BDC3C7 - Light Gray/Support */
+  --chart-5: 145 39% 39%; /* Darker shade of Primary */
 }
 
 html,
@@ -101,7 +101,7 @@ h6 {
 /* Toolbar Styling */
 .ql-toolbar {
   background-color: #f8f8f8;
-  border: 1px solid #e4e4e7 !important;
+  border: 1px solid #bdc3c7 !important;
   border-bottom: none !important;
   border-radius: 12px 12px 0 0;
   padding: 14px !important;
@@ -118,32 +118,32 @@ h6 {
 /* Editor Container */
 .ql-container {
   background-color: #ffffff;
-  border: 1px solid #e4e4e7 !important;
+  border: 1px solid #bdc3c7 !important;
   border-top: none !important;
   border-radius: 0 0 12px 12px;
-  color: #18181b;
+  color: #2c3e50;
   font-family: "geist", sans-serif;
   transition: all 0.2s ease;
 }
 
 .ql-container:focus-within {
-  border-color: #d4d4d8 !important;
+  border-color: #bdc3c7 !important;
 }
 
 /* Toolbar Icons */
 .ql-toolbar .ql-stroke {
   fill: none;
-  stroke: #71717a !important;
+  stroke: #2c3e50 !important;
   transition: all 0.2s ease;
 }
 
 .ql-toolbar .ql-fill {
-  fill: #71717a !important;
+  fill: #2c3e50 !important;
   transition: all 0.2s ease;
 }
 
 .ql-toolbar .ql-picker {
-  color: #71717a !important;
+  color: #2c3e50 !important;
   transition: all 0.2s ease;
 }
 
@@ -159,35 +159,35 @@ h6 {
 }
 
 .ql-toolbar button:hover {
-  background-color: #e4e4e7;
+  background-color: #bdc3c7;
 }
 
 /* Hover States */
 .ql-toolbar button:hover .ql-stroke,
 .ql-toolbar button.ql-active .ql-stroke,
 .ql-toolbar .ql-picker-label:hover .ql-stroke {
-  stroke: #18181b !important;
+  stroke: #2c3e50 !important;
   transform: scale(1.05);
 }
 
 .ql-toolbar button:hover .ql-fill,
 .ql-toolbar button.ql-active .ql-fill,
 .ql-toolbar .ql-picker-label:hover .ql-fill {
-  fill: #18181b !important;
+  fill: #2c3e50 !important;
   transform: scale(1.05);
 }
 
 /* Active States */
 .ql-toolbar button.ql-active,
 .ql-toolbar .ql-picker-label.ql-active {
-  background-color: #e4e4e7;
-  color: #18181b !important;
+  background-color: #bdc3c7;
+  color: #2c3e50 !important;
 }
 
 /* Dropdown Styling */
 .ql-toolbar .ql-picker-options {
   background-color: #ffffff;
-  border: 1px solid #e4e4e7;
+  border: 1px solid #bdc3c7;
   border-radius: 8px;
   padding: 6px 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -195,7 +195,7 @@ h6 {
 }
 
 .ql-toolbar .ql-picker-item {
-  color: #71717a;
+  color: #2c3e50;
   padding: 6px 14px;
   transition: all 0.2s ease;
   border-radius: 4px;
@@ -203,8 +203,8 @@ h6 {
 }
 
 .ql-toolbar .ql-picker-item:hover {
-  color: #18181b;
-  background-color: #f4f4f5;
+  color: #2c3e50;
+  background-color: #bdc3c7;
 }
 
 /* Editor Content */
@@ -216,7 +216,7 @@ h6 {
 }
 
 .ql-editor.ql-blank::before {
-  color: #a1a1aa !important;
+  color: #bdc3c7 !important;
   font-style: normal;
   font-family: "geist", sans-serif;
   opacity: 0.8;
@@ -227,29 +227,29 @@ h6 {
 
 /* Selection Color */
 .ql-editor ::selection {
-  background-color: rgba(147, 147, 147, 0.15);
+  background-color: rgba(46, 204, 113, 0.15);
 }
 
 /* Link Tooltip */
 .ql-tooltip {
   background-color: #ffffff !important;
-  border: 1px solid #e4e4e7 !important;
+  border: 1px solid #bdc3c7 !important;
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  color: #18181b !important;
+  color: #2c3e50 !important;
   padding: 8px 12px;
 }
 
 .ql-tooltip input[type="text"] {
   background-color: #f8f8f8;
-  border: 1px solid #e4e4e7;
+  border: 1px solid #bdc3c7;
   border-radius: 6px;
-  color: #18181b;
+  color: #2c3e50;
   padding: 6px 10px;
 }
 
 .ql-tooltip input[type="text"]:focus {
-  border-color: #d4d4d8;
+  border-color: #f39c12;
   outline: none;
 }
 
@@ -257,19 +257,19 @@ h6 {
 .ql-editor pre.ql-syntax {
   background-color: #f8f8f8;
   border-radius: 8px;
-  color: #18181b;
+  color: #2c3e50;
   padding: 16px;
   font-family: "Fira Code", monospace;
   margin: 1em 0;
-  border: 1px solid #e4e4e7;
+  border: 1px solid #bdc3c7;
 }
 
 /* Blockquote */
 .ql-editor blockquote {
-  border-left: 4px solid #e4e4e7;
+  border-left: 4px solid #2ecc71;
   padding: 12px 0 12px 20px;
   margin: 1.5em 0;
-  color: #71717a;
+  color: #2c3e50;
   font-style: italic;
 }
 
@@ -283,52 +283,52 @@ h6 {
 }
 
 .ql-editor::-webkit-scrollbar-thumb {
-  background: #e4e4e7;
+  background: #bdc3c7;
   border-radius: 10px;
 }
 
 .ql-editor::-webkit-scrollbar-thumb:hover {
-  background: #d4d4d8;
+  background: #f39c12;
 }
 
 /* Links */
 .ql-editor a {
-  color: #2563eb;
+  color: #f39c12;
   text-decoration: none;
   transition: all 0.2s ease;
 }
 
 .ql-editor a:hover {
-  color: #3b82f6;
+  color: #f39c12;
   text-decoration: underline;
 }
 
 /* Additional Components */
 .ce-toolbar__plus,
 .ce-toolbar__settings-btn {
-  color: #71717a;
+  color: #2c3e50;
 }
 
 .ce-toolbar__plus:hover,
 .ce-toolbar__settings-btn:hover,
 .ce-inline-tool:hover {
-  color: #18181b;
-  background-color: #f4f4f5;
+  color: #2c3e50;
+  background-color: #bdc3c7;
 }
 
 .ce-inline-toolbar,
 .ce-conversion-toolbar,
 .ce-conversion-tool__icon {
   background-color: #ffffff;
-  border: 1px solid #e4e4e7;
+  border: 1px solid #bdc3c7;
 }
 
 .ce-inline-toolbar__dropdown:hover {
-  background-color: #f4f4f5;
+  background-color: #bdc3c7;
 }
 
 .ce-block ::selection {
-  background: rgba(147, 147, 147, 0.15);
+  background: rgba(46, 204, 113, 0.15);
 }
 
 .cdx-notifies {
@@ -338,19 +338,19 @@ h6 {
 
 .cdx-notify {
   background-color: #f8f8f8 !important;
-  color: #18181b;
+  color: #2c3e50;
   width: 50vw !important;
 }
 
 .cdx-input {
   background-color: #ffffff !important;
-  color: #18181b !important;
-  border: 1px solid #e4e4e7 !important;
+  color: #2c3e50 !important;
+  border: 1px solid #bdc3c7 !important;
   border-radius: 20px !important;
 }
 
 .w-split-bar {
-  background-color: #f4f4f5;
+  background-color: #bdc3c7;
   border: none;
   outline: none;
   box-shadow: none !important;
@@ -358,27 +358,33 @@ h6 {
 }
 
 .w-split-bar:hover {
-  background-color: #e4e4e7 !important;
+  background-color: #f39c12 !important;
 }
 
 /* Tags Input */
 .react-tagsinput {
   background-color: #f2f2f3 !important;
-  border: 1px solid #f2f2f3 !important;
+  border: 1px solid #bdc3c7 !important;
   border-radius: 10px;
   min-width: 300px;
 }
 
 .react-tagsinput-tag {
-  background-color: #e2e2e4 !important;
-  color: black !important;
+  background-color: #2ecc71 !important;
+  color: #ffffff !important;
   border: none !important;
   border-radius: 10px !important;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fadeIn {

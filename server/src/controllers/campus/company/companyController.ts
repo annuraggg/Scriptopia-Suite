@@ -253,6 +253,7 @@ const createCompany = async (c: Context) => {
 
     // Validate request body
     const companyData = await c.req.json().catch(() => ({}));
+    console.log(companyData)
 
     // Validate required fields
     const {

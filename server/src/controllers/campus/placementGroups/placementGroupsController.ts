@@ -161,7 +161,7 @@ const getPlacementGroups = async (c: Context) => {
 
     const groups = await PlacementGroup.find({ institute: instituteId })
       .populate("departments", "name")
-      .populate("candidates", "name email")
+      .populate("candidates", "name email createdAt instituteUid _id")
       .populate("createdBy", "name email")
       .populate("pendingCandidates", "name email")
       .sort({ createdAt: -1 })
@@ -220,7 +220,7 @@ const getPlacementGroup = async (c: Context) => {
       institute: instituteId,
     })
       .populate("departments", "name")
-      .populate("candidates", "name email")
+      .populate("candidates", "name email instituteUid createdAt _id")
       .populate("createdBy", "name email")
       .lean();
 

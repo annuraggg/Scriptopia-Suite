@@ -191,7 +191,8 @@ const getDrive = async (c: Context) => {
         select: "-textSubmission",
       })
       .populate("interviews.interview")
-      .populate("hiredCandidates");
+      .populate("hiredCandidates")
+      .populate("placementGroup", "name");
 
     if (!drive) {
       return sendError(c, 404, "Drive not found");
@@ -391,6 +392,7 @@ const createWorkflow = async (c: Context) => {
     return sendError(c, 500, "Internal server error");
   }
 };
+
 const updateAts = async (c: Context) => {
   try {
     if (!c.req.header("content-type")?.includes("application/json")) {
@@ -805,6 +807,7 @@ const deleteDrive = async (c: Context) => {
     return sendError(c, 500, "Internal server error");
   }
 };
+
 const getAssignment = async (c: Context) => {
   try {
     const { id, aid } = c.req.param();
@@ -1230,20 +1233,68 @@ const getCandidatesForDrive = async (c: Context) => {
     }
 
     const page = parseInt(c.req.query("page") || "1", 10);
-    const limit = Math.min(parseInt(c.req.query("limit") || "50", 10), 200);
+    const limit = Math.min(parseInt(c.req.query("limit") || "10", 10), 200);
     const skip = (page - 1) * limit;
 
-    const candidates = await Candidate.find({
+    // Get search query parameter
+    const searchQuery = c.req.query("search");
+
+    // Build the search filter
+    let filter: any = {
       _id: { $in: placementGroup.candidates },
-    })
-      .select("name email department semester profileImage")
+    };
+
+    // Add search condition if search query exists
+    if (searchQuery && searchQuery.trim()) {
+      // Create a case-insensitive regex for the search term
+      const searchRegex = new RegExp(searchQuery, "i");
+
+      // Search across multiple fields
+      filter = {
+        ...filter,
+        $or: [
+          { name: searchRegex },
+          { email: searchRegex },
+          { instituteUid: searchRegex },
+          { phone: searchRegex },
+          { department: searchRegex },
+        ],
+      };
+    }
+
+    const dbCandidates = await Candidate.find(filter)
+      .select("name email department phone instituteUid resumeUrl status")
       .sort({ name: 1 })
       .skip(skip)
       .limit(limit);
 
-    const total = await Candidate.countDocuments({
-      _id: { $in: placementGroup.candidates },
-    });
+    const candidates = [];
+
+    for (const candidate of dbCandidates) {
+      const appliedPosting = await AppliedDrive.findOne({
+        user: candidate._id,
+        drive: new mongoose.Types.ObjectId(driveId),
+      });
+
+      if (appliedPosting) {
+        candidates.push({
+          ...candidate.toObject(),
+          appliedPostingId: appliedPosting._id,
+          status: appliedPosting.status,
+        });
+      } else {
+        candidates.push({
+          ...candidate.toObject(),
+          appliedPostingId: null,
+          status: "not_applied",
+        });
+      }
+    }
+
+    const total = await Candidate.countDocuments(filter);
+
+    const lastUpdated = new Date().toISOString();
+    const updatedBy = c.get("user")?.login || "system";
 
     return sendSuccess(c, 200, "Candidates fetched successfully", {
       candidates,
@@ -1252,6 +1303,10 @@ const getCandidatesForDrive = async (c: Context) => {
         page,
         pages: Math.ceil(total / limit),
         limit,
+      },
+      meta: {
+        lastUpdated,
+        updatedBy,
       },
     });
   } catch (e: any) {

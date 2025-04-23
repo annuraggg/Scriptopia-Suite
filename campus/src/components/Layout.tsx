@@ -79,7 +79,7 @@ const Layout = () => {
           {/* Mobile Header */}
           <div className="sm:hidden fixed top-0 left-0 right-0 h-16 border-b z-40 px-5 flex items-center justify-between">
             <img
-              src="/logo.png"
+              src="/logo.svg"
               alt="logo"
               className="h-6 cursor-pointer"
               onClick={() => {

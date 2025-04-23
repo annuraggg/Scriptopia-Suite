@@ -217,7 +217,7 @@ const Sidebar = ({
           {(!isMobile || !collapsed) && (
             <div className={`${isMobile ? "mt-12" : "mt-4"} mb-6`}>
               <img
-                src="/logo.png"
+                src="/logo.svg"
                 alt="logo"
                 className="cursor-pointer h-10"
                 onClick={() => {
