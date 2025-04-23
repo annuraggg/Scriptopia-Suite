@@ -6,7 +6,7 @@ import {
   SignedOut,
   useAuth,
 } from "@clerk/clerk-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { MemberWithPermission as MWP } from "@shared-types/MemberWithPermission";
@@ -14,9 +14,10 @@ import { Menu } from "lucide-react";
 import { Button } from "@nextui-org/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExtendedInstitute } from "@shared-types/ExtendedInstitute";
+import { Notification } from "@shared-types/Notification";
 
 const Layout = () => {
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotificationsState] = useState<Notification[]>([]);
   const [institute, setInstitute] = useState<ExtendedInstitute>(
     {} as ExtendedInstitute
   );
@@ -28,6 +29,27 @@ const Layout = () => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
+  const setNotifications = useCallback(
+    (updatedNotifications: Notification[], notificationId: string) => {
+      setNotificationsState(updatedNotifications);
+
+      const newlyReadNotification = updatedNotifications.find(
+        (notification) => notification._id === notificationId
+      );
+
+      console.log("Newly read notification:", newlyReadNotification);
+      if (newlyReadNotification) {
+        axios
+          .post(`/users/notifications/${newlyReadNotification._id}`)
+          .catch((error) => {
+            console.error("Error marking notification as read:", error);
+            toast.error("Failed to mark notification as read");
+          });
+      }
+    },
+    [notifications, user._id, axios]
+  );
+  
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 640;
@@ -48,7 +70,6 @@ const Layout = () => {
       .then((res) => {
         setInstitute(res.data.data.institute);
         setUser(res.data.data.user);
-        setNotifications(res.data.data.notifications);
         console.log(res.data.data.institute);
       })
       .catch((err) => {
@@ -61,6 +82,11 @@ const Layout = () => {
       .finally(() => {
         setRerender(!rerender);
       });
+
+    axios.get("/users/notifications?platform=campus").then((res) => {
+      console.log(res.data.data);
+      setNotificationsState(res.data.data);
+    });
   }, []);
 
   const updateInstitute = (newInstitute: ExtendedInstitute) => {
@@ -121,7 +147,11 @@ const Layout = () => {
                   className={`${isMobile ? "fixed" : "relative"} z-50`}
                 >
                   <Sidebar
-                    notifications={notifications}
+                    notifications={
+                      notifications?.filter(
+                        (n) => !n.readBy?.includes(user?.user!)
+                      )?.length
+                    }
                     institute={institute}
                     user={user}
                     isMobile={isMobile}
@@ -139,6 +169,7 @@ const Layout = () => {
               <Outlet
                 context={{
                   notifications,
+                  setNotifications, // Use our custom function that sends POST requests
                   user,
                   institute,
                   setInstitute: updateInstitute,

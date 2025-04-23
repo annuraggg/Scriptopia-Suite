@@ -16,6 +16,9 @@ import PlacementGroups from "./pages/campus/placementgroups/PlacementGroups";
 import JoinPlacementGroup from "./pages/campus/placementgroups/join/Join";
 import Drive from "./pages/campus/drives/drive/Drive";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { Suspense } from "react";
+import Loader from "./components/Loader";
+import Notifications from "./pages/notifications/Notifications";
 
 function App() {
   const router = createBrowserRouter([
@@ -56,6 +59,14 @@ function App() {
             {
               path: "dashboard",
               element: <Home />,
+            },
+            {
+              path: "notifications",
+              element: (
+                <Suspense fallback={<Loader />}>
+                  <Notifications />
+                </Suspense>
+              ),
             },
             {
               path: "profile",

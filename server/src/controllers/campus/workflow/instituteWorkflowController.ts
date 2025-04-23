@@ -15,6 +15,8 @@ import { Assessment, Assignment } from "@shared-types/Drive";
 import User from "@/models/User";
 import Meet from "@/models/Meet";
 import AppliedDrive from "@/models/AppliedDrive";
+import getCampusUsersWithPermission from "@/utils/getUserWithPermission";
+import { sendNotificationToCampus } from "@/utils/sendNotification";
 
 const REGION = "ap-south-1";
 
@@ -204,6 +206,24 @@ const advanceWorkflow = async (c: Context) => {
       const updatedDrive = await Drive.findById(_id)
         .populate("candidates")
         .populate("institute");
+
+      const institute = await Institute.findById(drive.institute);
+      if (!institute) {
+        return sendError(c, 404, "Institute not found");
+      }
+
+      const notifyingUsers = await getCampusUsersWithPermission({
+        institute: institute,
+        permissions: ["manage_drive"],
+      });
+
+      if (notifyingUsers.length > 0) {
+        await sendNotificationToCampus({
+          userIds: notifyingUsers,
+          title: "Drive Workflow Advanced",
+          message: `The workflow for drive "${drive.title}" has been advanced to the next step.`,
+        });
+      }
 
       return sendSuccess(
         c,

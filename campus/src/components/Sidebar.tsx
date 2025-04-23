@@ -24,7 +24,6 @@ import {
   ModalFooter,
 } from "@nextui-org/react";
 import { MemberWithPermission } from "@shared-types/MemberWithPermission";
-import { Notification } from "@shared-types/Institute";
 import { ExtendedInstitute } from "@shared-types/ExtendedInstitute";
 import ax from "@/config/axios";
 import { toast } from "sonner";
@@ -35,7 +34,7 @@ const Sidebar = ({
   isMobile,
   onClose,
 }: {
-  notifications: Notification[];
+  notifications: number;
   institute: ExtendedInstitute;
   user: MemberWithPermission;
   isMobile: boolean;
@@ -103,7 +102,7 @@ const Sidebar = ({
       label: "Notifications",
       link: "/notifications",
       visible: true,
-      length: notifications?.length,
+      length: notifications,
     },
     {
       icon: IconSettingsFilled,

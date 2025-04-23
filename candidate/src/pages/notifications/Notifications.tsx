@@ -1,24 +1,12 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { RootState } from "@/types/Reducer";
-import { RootContext } from "@/types/RootContext";
+import RootContext from "@/types/RootContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, CheckCircle } from "lucide-react";
-import {
-  Card,
-  CardBody,
-  Button,
-  Badge,
-  Tabs,
-  Tab,
-  Breadcrumbs,
-  BreadcrumbItem,
-} from "@nextui-org/react";
+import { Card, CardBody, Button, Badge, Tabs, Tab } from "@nextui-org/react";
 import { Notification } from "@shared-types/Notification";
 
 const Notifications = () => {
-  const org = useSelector((state: RootState) => state.institute);
   const { notifications, setNotifications, user } =
     useOutletContext<RootContext>();
   const [selectedTab, setSelectedTab] = useState<string>("all");
@@ -42,7 +30,7 @@ const Notifications = () => {
         if (notification._id === notificationId) {
           return {
             ...notification,
-            readBy: [...(notification.readBy || []), user?.user!],
+            readBy: [...(notification.readBy || []), user?.userId._id!],
           };
         }
         return notification;
@@ -56,11 +44,11 @@ const Notifications = () => {
       case "unread":
         return notifications.filter(
           (notification: Notification) =>
-            !notification.readBy?.includes(user?.user!)
+            !notification.readBy?.includes(user?.userId._id!)
         );
       case "read":
         return notifications.filter((notification: Notification) =>
-          notification.readBy?.includes(user?.user!)
+          notification.readBy?.includes(user?.userId._id!)
         );
       case "all":
       default:
@@ -69,18 +57,13 @@ const Notifications = () => {
   };
 
   const isNotificationRead = (notification: Notification): boolean => {
-    return notification.readBy?.includes(user?.user!) || false;
+    return notification.readBy?.includes(user?.userId._id!) || false;
   };
 
   const filteredNotifications = filterNotifications(selectedTab);
 
   return (
     <div className="mt-5 ml-5">
-      <Breadcrumbs>
-        <BreadcrumbItem>{org.name}</BreadcrumbItem>
-        <BreadcrumbItem>Notifications</BreadcrumbItem>
-      </Breadcrumbs>
-
       <div className="flex justify-between items-center mt-6 pr-4">
         <div>
           <h1 className="text-3xl font-bold">Notification Center</h1>
@@ -89,7 +72,7 @@ const Notifications = () => {
           content={
             notifications.filter(
               (notification: Notification) =>
-                !notification.readBy?.includes(user?.user!)
+                !notification.readBy?.includes(user?.userId._id!)
             ).length
           }
           color="danger"

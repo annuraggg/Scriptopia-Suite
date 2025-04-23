@@ -15,13 +15,17 @@ import Candidate from "@/models/Candidate";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import AppliedDrive from "@/models/AppliedDrive";
-import { sendNotificationToCandidates } from "@/utils/sendCandidateNotification";
+import {
+  sendNotificationToCampus,
+  sendNotificationToCandidate,
+} from "@/utils/sendNotification";
 import PlacementGroup from "@/models/PlacementGroup";
 import { Institute as IInstitute } from "@shared-types/Institute";
 import { Candidate as ICandidate } from "@shared-types/Candidate";
 import { Company as ICompany } from "@shared-types/Company";
 import crypto from "crypto";
 import { z } from "zod";
+import getCampusUsersWithPermission from "@/utils/getUserWithPermission";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_FILE_EXTENSIONS = new Set([".pdf", ".doc", ".docx", ".zip"]);
@@ -339,6 +343,27 @@ const createDrive = async (c: Context) => {
       ),
       `Created New Drive: ${drive.title}`
     );
+
+    const institute = await Institute.findById(perms.data?.institute?._id);
+
+    if (!institute) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    const notifyingUsers = await getCampusUsersWithPermission({
+      institute: institute!,
+      permissions: ["manage_drive"],
+    });
+
+    console.log("Notifying users:", notifyingUsers);
+
+    if (notifyingUsers.length > 0) {
+      await sendNotificationToCampus({
+        userIds: notifyingUsers,
+        title: "New Drive Created",
+        message: `A new drive has been created for the position ${drive.title} at ${drive.company?.name}.`,
+      });
+    }
 
     return sendSuccess(c, 201, "Drive created successfully", newDrive);
   } catch (e: any) {
@@ -737,10 +762,13 @@ const publishDrive = async (c: Context) => {
       const candidateIds = placementGroup.candidates.map((c) =>
         c._id?.toString()
       );
-      await sendNotificationToCandidates({
-        candidateIds: candidateIds.filter(
-          (id): id is string => id !== undefined
-        ),
+
+      const candidates = await Candidate.find({
+        _id: { $in: candidateIds },
+      });
+
+      await sendNotificationToCandidate({
+        candidateIds: candidates.map((c) => c.userId?.toString()),
         title: "New Drive Added",
         message: `A new drive has been created for the position ${
           drive.title
@@ -750,7 +778,25 @@ const publishDrive = async (c: Context) => {
       });
     }
 
-    return sendSuccess(c, 201, "Drive published successfully", drive);
+    const institute = await Institute.findById(perms.data?.institute?._id);
+    if (!institute) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    const notifyingUsers = await getCampusUsersWithPermission({
+      institute: institute,
+      permissions: ["manage_drive"],
+    });
+
+    if (notifyingUsers.length > 0) {
+      await sendNotificationToCampus({
+        userIds: notifyingUsers,
+        title: "New Drive Published",
+        message: `A new drive has been published for the position ${drive.title} at ${drive.company?.name}.`,
+      });
+    }
+
+    return sendSuccess(c, 200, "Drive published successfully", drive);
   } catch (e: any) {
     logger.error(`Error in publishDrive: ${e.message}`);
     return sendError(c, 500, "Internal server error");
@@ -773,7 +819,7 @@ const deleteDrive = async (c: Context) => {
     const drive = await Drive.findOne({
       _id: new mongoose.Types.ObjectId(driveId),
       institute: new mongoose.Types.ObjectId(perms.data?.institute?._id),
-    });
+    }).populate<{ company: ICompany }>("company", "name");
 
     if (!drive) {
       return sendError(c, 404, "Drive not found or you don't have permission");
@@ -800,6 +846,21 @@ const deleteDrive = async (c: Context) => {
     await AppliedDrive.deleteMany({
       drive: new mongoose.Types.ObjectId(driveId),
     });
+
+    const institute = await Institute.findById(perms.data?.institute?._id);
+
+    const notifyingUsers = await getCampusUsersWithPermission({
+      institute: institute,
+      permissions: ["manage_drive"],
+    });
+
+    if (notifyingUsers.length > 0) {
+      await sendNotificationToCampus({
+        userIds: notifyingUsers,
+        title: "Drive Deleted",
+        message: `The drive for the position ${drive.title} at ${drive.company?.name} has been deleted.`,
+      });
+    }
 
     return sendSuccess(c, 200, "Drive deleted successfully");
   } catch (e: any) {
@@ -1407,8 +1468,8 @@ const endDrive = async (c: Context) => {
           );
         });
 
-        await sendNotificationToCandidates({
-          candidateIds,
+        await sendNotificationToCandidate({
+          candidateIds: candidates.map((c) => c.userId?.toString()),
           title: "Upload Offer Letter",
           message: `Congratulations for being selected as ${drive.title} at ${
             drive.company?.name || "the company"
@@ -1421,6 +1482,24 @@ const endDrive = async (c: Context) => {
         new mongoose.Types.ObjectId(perms.data?.institute?._id),
         `Ended Drive: ${drive.title} with ${drive.hiredCandidates.length} hired candidates`
       );
+
+      const institute = await Institute.findById(perms.data?.institute?._id);
+      if (!institute) {
+        return sendError(c, 404, "Institute not found");
+      }
+
+      const notifyingUsers = await getCampusUsersWithPermission({
+        institute: institute,
+        permissions: ["manage_drive"],
+      });
+
+      if (notifyingUsers.length > 0) {
+        await sendNotificationToCampus({
+          userIds: notifyingUsers,
+          title: "Drive Ended",
+          message: `The drive for the position ${drive.title} at ${drive.company?.name} has ended.`,
+        });
+      }
 
       return sendSuccess(c, 200, "Drive ended successfully", {
         driveId: drive._id,

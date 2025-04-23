@@ -2,6 +2,7 @@ import { Context } from "hono";
 import { sendError, sendSuccess } from "../../../utils/sendResponse";
 import Institute from "../../../models/Institute";
 import User from "../../../models/User";
+import { User as IUser } from "@shared-types/User";
 import jwt from "jsonwebtoken";
 import loops from "../../../config/loops";
 import clerkClient from "../../../config/clerk";
@@ -30,6 +31,8 @@ import {
   validateEmail,
   validateWebsite,
 } from "@/utils/validation";
+import getCampusUsersWithPermission from "@/utils/getUserWithPermission";
+import { sendNotificationToCampus } from "@/utils/sendNotification";
 
 const TOKEN_EXPIRY = "24h";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -468,6 +471,21 @@ const joinInstitute = async (c: Context) => {
         { _id: decoded.institute },
         { $pull: { members: { email } } }
       );
+    }
+
+    const notifyingUsers = await getCampusUsersWithPermission({
+      institute: institute!,
+      permissions: ["manage_institute"],
+    });
+
+    if (notifyingUsers.length > 0) {
+      await sendNotificationToCampus({
+        userIds: notifyingUsers,
+        title: "New Member Joined",
+        message: `${clerkUser.firstName || ""} ${
+          clerkUser.lastName || ""
+        } has joined the institute.`,
+      });
     }
 
     return sendSuccess(
@@ -1602,6 +1620,19 @@ const requestToJoin = async (c: Context) => {
       });
     }
 
+    const notifyingUsers = await getCampusUsersWithPermission({
+      institute: institute,
+      permissions: ["verify_candidates"],
+    });
+
+    if (notifyingUsers.length > 0) {
+      await sendNotificationToCampus({
+        userIds: notifyingUsers,
+        title: "New Candidate Request",
+        message: `New candidate request from ${candidate.name} (${candidate.email})`,
+      });
+    }
+
     return sendSuccess(c, 200, "Request to join institute sent successfully", {
       name: institute.name,
     });
@@ -1714,6 +1745,19 @@ const leaveInstitute = async (c: Context) => {
       });
     }
 
+    const notifyingUsers = await getCampusUsersWithPermission({
+      institute: institute,
+      permissions: ["manage_institute"],
+    });
+
+    if (notifyingUsers.length > 0) {
+      await sendNotificationToCampus({
+        userIds: notifyingUsers,
+        title: "Member Left Institute",
+        message: `${clerkUser.firstName} ${clerkUser.lastName} has left the institute`,
+      });
+    }
+
     return sendSuccess(c, 200, "Left institute successfully", {
       message: "You have successfully left the institute",
     });
@@ -1803,15 +1847,12 @@ const getInstitute = async (c: Context) => {
     })
       .populate({
         path: "members.user",
-        select: "-passwordHash -resetToken -refreshToken",
       })
       .populate({
         path: "candidates",
-        select: "-passwordHash -resetToken -refreshToken",
       })
       .populate({
         path: "pendingCandidates",
-        select: "-passwordHash -resetToken -refreshToken",
       })
       .populate("companies")
       .populate("drives")
@@ -1859,15 +1900,12 @@ const getInstitute = async (c: Context) => {
         .select(fieldsToSelect.join(" "))
         .populate({
           path: "members.user",
-          select: "firstName lastName email profilePic",
         })
         .populate({
           path: "candidates",
-          select: "-passwordHash -resetToken -refreshToken",
         })
         .populate({
           path: "pendingCandidates",
-          select: "-passwordHash -resetToken -refreshToken",
         })
         .populate("companies")
         .populate("placementGroups")
@@ -1883,7 +1921,7 @@ const getInstitute = async (c: Context) => {
     const user = {
       ...member,
       _id: member._id?.toString(),
-      user: member.user ? member.user.toString() : undefined,
+      user: member.user ? (member.user as unknown as IUser)._id : undefined,
       permissions: role.permissions,
       createdAt: member.createdAt || new Date(),
     };
