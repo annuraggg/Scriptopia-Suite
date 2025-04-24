@@ -221,43 +221,35 @@ const DriveAnalyticsPage: React.FC = () => {
       setExporting(true);
       toast.info("Preparing export...");
 
-      // Create a temporary div to render all analytics sections
       const tempDiv = document.createElement("div");
-      tempDiv.style.width = "1000px"; // Set a fixed width for better PDF rendering
+      tempDiv.style.width = "1000px";
       tempDiv.style.padding = "20px";
       tempDiv.style.backgroundColor = "white";
       document.body.appendChild(tempDiv);
 
-      // Clone the content for all tabs
       const currentTab = selected;
 
-      // First render Overview
       setSelected("overview");
-      await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for render
+      await new Promise((resolve) => setTimeout(resolve, 100));
       const overviewClone = contentRef.current.cloneNode(true) as HTMLElement;
       tempDiv.appendChild(overviewClone);
 
-      // Then render Stage Analysis
       setSelected("stages");
-      await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for render
+      await new Promise((resolve) => setTimeout(resolve, 100));
       const stagesClone = contentRef.current.cloneNode(true) as HTMLElement;
       tempDiv.appendChild(stagesClone);
 
-      // Finally render Demographics
       setSelected("demographics");
-      await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for render
+      await new Promise((resolve) => setTimeout(resolve, 100));
       const demographicsClone = contentRef.current.cloneNode(
         true
       ) as HTMLElement;
       tempDiv.appendChild(demographicsClone);
 
-      // Set back to original tab
       setSelected(currentTab);
 
-      // Create PDF
       const pdf = new jsPDF("p", "mm", "a4");
 
-      // Add title page
       pdf.setFontSize(24);
       pdf.text(`${data.drive.title} Analytics Report`, 20, 30);
       pdf.setFontSize(16);
@@ -270,19 +262,16 @@ const DriveAnalyticsPage: React.FC = () => {
       let verticalOffset = 30;
       let pageCount = 1;
 
-      // Capture and add each section to PDF
       const sections = tempDiv.children;
       for (let i = 0; i < sections.length; i++) {
         const section = sections[i] as HTMLElement;
 
-        // Add a new page for each section
         if (i > 0) {
           pdf.addPage();
           pageCount++;
           verticalOffset = 20;
         }
 
-        // Add section title
         let sectionTitle = "";
         if (i === 0) sectionTitle = "Overview";
         if (i === 1) sectionTitle = "Stage Analysis";
@@ -292,19 +281,17 @@ const DriveAnalyticsPage: React.FC = () => {
         pdf.text(sectionTitle, 20, verticalOffset);
         verticalOffset += 10;
 
-        // Convert section to canvas and add to PDF
         const canvas = await html2canvas(section, {
-          scale: 0.7, // Scale down for better fitting
+          scale: 0.7,
           logging: false,
           useCORS: true,
           allowTaint: true,
         });
 
         const imgData = canvas.toDataURL("image/png");
-        const imgWidth = 170; // A4 width minus margins
+        const imgWidth = 170;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-        // Check if image fits on current page, otherwise add new page
         if (verticalOffset + imgHeight > 270) {
           pdf.addPage();
           pageCount++;
@@ -315,7 +302,6 @@ const DriveAnalyticsPage: React.FC = () => {
         verticalOffset += imgHeight + 20;
       }
 
-      // Add page numbers
       for (let i = 1; i <= pageCount; i++) {
         pdf.setPage(i);
         pdf.setFontSize(10);
@@ -326,10 +312,8 @@ const DriveAnalyticsPage: React.FC = () => {
         );
       }
 
-      // Clean up
       document.body.removeChild(tempDiv);
 
-      // Download PDF
       pdf.save(`${data.drive.title}-Analytics-Report.pdf`);
       toast.success("Analytics report downloaded successfully!");
     } catch (error) {

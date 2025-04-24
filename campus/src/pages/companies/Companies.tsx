@@ -658,9 +658,9 @@ const CompanyProfiles = () => {
                                       setCompanyToEdit(company);
                                       setShowEditModal(true);
                                     } else if (key === "archive") {
-                                      handleArchive(company._id);
+                                      handleArchive(company._id!);
                                     } else if (key === "delete") {
-                                      setCompanyToDelete(company._id);
+                                      setCompanyToDelete(company._id!);
                                       setShowDeleteModal(true);
                                     }
                                   }}
