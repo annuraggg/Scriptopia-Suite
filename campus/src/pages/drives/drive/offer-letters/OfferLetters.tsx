@@ -283,7 +283,7 @@ const OfferLetters: React.FC = () => {
     axios
       .get(`/drives/${drive._id}/applied`)
       .then((res) => {
-        setAppliedDrives(res.data.data || []);
+        setAppliedDrives(res.data.data.applications || []);
       })
       .catch((err) => {
         console.error("Error fetching applied drives:", err);

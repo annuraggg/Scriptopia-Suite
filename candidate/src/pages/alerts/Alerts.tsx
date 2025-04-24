@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Card, CardBody, CardHeader } from "@nextui-org/react";
-import { Button, Input, Select, SelectItem } from "@nextui-org/react";
+import { Card, CardBody, CardHeader } from "@heroui/react";
+import { Button, Input, Select, SelectItem } from "@heroui/react";
 import { motion } from "framer-motion";
 import { Bell, Clock, FileText, FormInput, Brain, Briefcase, Mail } from 'lucide-react';
 
@@ -199,9 +199,9 @@ const Alerts = () => {
                         className="max-w-xs"
                         onChange={(e) => setSelectedTime(e.target.value)}
                       >
-                        <SelectItem key="15" value="15">15 mins before</SelectItem>
-                        <SelectItem key="30" value="30">30 mins before</SelectItem>
-                        <SelectItem key="45" value="45">45 mins before</SelectItem>
+                        <SelectItem key="15">15 mins before</SelectItem>
+                        <SelectItem key="30">30 mins before</SelectItem>
+                        <SelectItem key="45">45 mins before</SelectItem>
                       </Select>
                       <Button 
                         color="primary" 

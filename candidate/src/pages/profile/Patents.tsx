@@ -26,7 +26,7 @@ import {
   Divider,
   Chip,
   Skeleton,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState, useEffect } from "react";
 import {
   Plus,
@@ -50,7 +50,7 @@ import {
   parseAbsoluteToLocal,
   getLocalTimeZone,
 } from "@internationalized/date";
-import { DatePicker } from "@nextui-org/react";
+import { DatePicker } from "@heroui/react";
 import { z } from "zod";
 
 // Patent schema for form validation with improved error messages
@@ -463,7 +463,7 @@ const Patents = () => {
   };
 
   return (
-    <div>
+    (<div>
       {/* Header section */}
       <div className="mb-6">
         <Breadcrumbs className="mb-4">
@@ -489,13 +489,12 @@ const Patents = () => {
           </Button>
         </div>
       </div>
-
       {isLoading ? (
         // Skeleton loader for loading state
-        <div className="space-y-4">
+        (<div className="space-y-4">
           <Skeleton className="w-full h-32 rounded-lg" />
           <Skeleton className="w-full h-32 rounded-lg" />
-        </div>
+        </div>)
       ) : !user.patents?.length ? (
         <Card className="w-full bg-gray-50 border-dashed border-2 border-gray-200">
           <CardBody className="py-12 flex flex-col items-center justify-center gap-4">
@@ -522,7 +521,7 @@ const Patents = () => {
         </Card>
       ) : (
         /* Patent card with table */
-        <Card className="shadow-sm">
+        (<Card className="shadow-sm">
           <CardHeader className="bg-gray-50/50 flex justify-between items-center">
             <div className="flex items-center gap-2">
               <Award size={18} className="text-primary" />
@@ -622,9 +621,8 @@ const Patents = () => {
               ))}
             </TableBody>
           </Table>
-        </Card>
+        </Card>)
       )}
-
       {/* Add/Edit Patent Modal */}
       <Modal
         isOpen={isOpen}
@@ -688,7 +686,7 @@ const Patents = () => {
                     isDisabled={isSubmitting}
                   >
                     {patentOffices.map((office) => (
-                      <SelectItem key={office.value} value={office.value}>
+                      <SelectItem key={office.value}>
                         {office.label}
                       </SelectItem>
                     ))}
@@ -728,7 +726,6 @@ const Patents = () => {
                     {patentStatuses.map((stat) => (
                       <SelectItem
                         key={stat.value}
-                        value={stat.value}
                         startContent={stat.icon}
                       >
                         {stat.label}
@@ -834,7 +831,6 @@ const Patents = () => {
           )}
         </ModalContent>
       </Modal>
-
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={deleteModal.isOpen}
@@ -879,7 +875,7 @@ const Patents = () => {
           )}
         </ModalContent>
       </Modal>
-    </div>
+    </div>)
   );
 };
 

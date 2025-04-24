@@ -9,7 +9,6 @@ import {
   Calendar,
   Users,
   ChevronRight,
-  ArrowUpRight,
   Download,
   Search,
 } from "lucide-react";
@@ -51,7 +50,8 @@ const Pipeline = () => {
     axios
       .get(`/drives/${driveId}/applied`)
       .then((res) => {
-        setAppliedDrives(res.data.data);
+        console.log(res.data.data);
+        setAppliedDrives(res.data.data.applications);
       })
       .catch((err) => {
         toast.error(
@@ -82,10 +82,12 @@ const Pipeline = () => {
     const csvRows = [headers.join(",")];
     const candidatesByStep: Record<number, string[]> = {};
 
+    // Initialize arrays for each step
     drive.workflow.steps.forEach((_, index) => {
       candidatesByStep[index] = [];
     });
 
+    // Sort candidates into their respective steps
     appliedDrives.forEach((applied) => {
       let stepIndex;
       if (applied.status === "inprogress") {
@@ -95,8 +97,16 @@ const Pipeline = () => {
           ) ?? -1;
       } else if (applied.status === "applied") {
         stepIndex = 0;
+      } else if (applied.status === "hired") {
+        // Put hired candidates in the last step
+        stepIndex = drive.workflow?.steps.length ?? 0 - 1;
       } else {
-        stepIndex = applied.disqualifiedStage;
+        // For disqualified candidates
+        stepIndex = drive.workflow?.steps.findIndex(
+          (step) =>
+            step._id?.toString() === applied.disqualifiedStage?.toString()
+        );
+        if (stepIndex === -1) stepIndex = 0; // Default to first step if not found
       }
 
       if (
@@ -110,14 +120,16 @@ const Pipeline = () => {
     });
 
     const maxCandidates = Math.max(
-      ...Object.values(candidatesByStep).map((candidates) => candidates.length)
+      ...Object.values(candidatesByStep).map((candidates) => candidates.length),
+      0 // Add 0 to prevent error if no candidates
     );
 
+    // Create CSV rows with candidate names
     for (let i = 0; i < maxCandidates; i++) {
       const rowData = [];
 
       for (let j = 0; j < drive.workflow.steps.length; j++) {
-        const candidatesInStep = candidatesByStep[j];
+        const candidatesInStep = candidatesByStep[j] || [];
         rowData.push(
           i < candidatesInStep.length
             ? `"${candidatesInStep[i].replace(/"/g, '""')}"`
@@ -326,12 +338,7 @@ const Pipeline = () => {
             >
               Download CSV
             </Button>
-            <Button
-              color="primary"
-              startContent={<ArrowUpRight className="w-4 h-4" />}
-            >
-              View Drive Details
-            </Button>
+            {/* "View Drive Details" button removed as requested */}
           </div>
         </div>
       </div>

@@ -21,7 +21,7 @@ import {
   Chip,
   Tooltip,
   Skeleton,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   today,
   getLocalTimeZone,
@@ -296,14 +296,13 @@ const Awards = () => {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   return (
-    <div>
+    (<div>
       <Breadcrumbs className="mb-6">
         <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
         <BreadcrumbItem href="/profile/awards">
           Awards & Recognitions
         </BreadcrumbItem>
       </Breadcrumbs>
-
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Awards & Recognitions</h1>
@@ -319,10 +318,9 @@ const Awards = () => {
           Add Award
         </Button>
       </div>
-
       {isLoading ? (
         // Skeleton loaders for loading state
-        <div className="grid gap-4">
+        (<div className="grid gap-4">
           {[1, 2].map((i) => (
             <Card key={i} className="w-full">
               <CardHeader className="flex justify-between items-center">
@@ -339,7 +337,7 @@ const Awards = () => {
               </CardBody>
             </Card>
           ))}
-        </div>
+        </div>)
       ) : !user?.awards || user.awards.length === 0 ? (
         <Card className="bg-gray-50 border-dashed border-2 border-gray-200">
           <CardBody className="flex flex-col items-center py-12">
@@ -426,7 +424,6 @@ const Awards = () => {
           ))}
         </div>
       )}
-
       {/* Add/Edit Award Modal */}
       <Modal
         isOpen={isOpen}
@@ -500,21 +497,18 @@ const Awards = () => {
                   >
                     <SelectItem
                       key="academic"
-                      value="academic"
                       startContent={<School size={16} />}
                     >
                       Academic
                     </SelectItem>
                     <SelectItem
                       key="professional"
-                      value="professional"
                       startContent={<Building size={16} />}
                     >
                       Professional
                     </SelectItem>
                     <SelectItem
                       key="personal"
-                      value="personal"
                       startContent={<Trophy size={16} />}
                     >
                       Personal
@@ -579,7 +573,6 @@ const Awards = () => {
           )}
         </ModalContent>
       </Modal>
-
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={!!deleteConfirmId}
@@ -628,7 +621,7 @@ const Awards = () => {
           )}
         </ModalContent>
       </Modal>
-    </div>
+    </div>)
   );
 };
 

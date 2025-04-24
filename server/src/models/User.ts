@@ -22,6 +22,9 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true },
     streak: { type: [Date] },
     wallet: { type: WalletSchema, default: null },
+
+    isSample: { type: Boolean, default: false },
+    sampleInstituteId: { type: mongoose.Schema.Types.ObjectId, ref: "Institute" },
   },
   { timestamps: true }
 );

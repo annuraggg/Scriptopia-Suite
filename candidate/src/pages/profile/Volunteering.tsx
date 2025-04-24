@@ -22,7 +22,7 @@ import {
   BreadcrumbItem,
   Skeleton,
   Badge,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState, useEffect } from "react";
 import {
   Edit2,
@@ -567,14 +567,13 @@ const VolunteeringComponent = () => {
     });
 
   return (
-    <div>
+    (<div>
       <div className="mb-6">
         <Breadcrumbs>
           <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
           <BreadcrumbItem>Volunteer Experience</BreadcrumbItem>
         </Breadcrumbs>
       </div>
-
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-semibold">Volunteer Experience</h1>
@@ -592,13 +591,12 @@ const VolunteeringComponent = () => {
           </Button>
         )}
       </div>
-
       {isLoading ? (
         // Skeleton loading state
-        <div className="space-y-4">
+        (<div className="space-y-4">
           <Skeleton className="h-40 w-full rounded-lg" />
           <Skeleton className="h-40 w-full rounded-lg" />
-        </div>
+        </div>)
       ) : !user.volunteerings?.length ? (
         <Card className="w-full bg-gray-50 border-dashed border-2 border-gray-200">
           <CardBody className="flex flex-col items-center justify-center py-12">
@@ -781,7 +779,6 @@ const VolunteeringComponent = () => {
           )}
         </>
       )}
-
       {/* Add/Edit Experience Modal */}
       <Modal
         isOpen={isOpen}
@@ -860,7 +857,7 @@ const VolunteeringComponent = () => {
                           {group.category}
                         </div>
                         {group.items.map((cause) => (
-                          <SelectItem key={cause.value} value={cause.value}>
+                          <SelectItem key={cause.value}>
                             {cause.value}
                           </SelectItem>
                         ))}
@@ -981,7 +978,6 @@ const VolunteeringComponent = () => {
           )}
         </ModalContent>
       </Modal>
-
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={deleteModal.isOpen}
@@ -1026,7 +1022,7 @@ const VolunteeringComponent = () => {
           )}
         </ModalContent>
       </Modal>
-    </div>
+    </div>)
   );
 };
 

@@ -8,7 +8,7 @@ import {
   Button,
   Spinner,
   Input,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   IconUpload,
   IconX,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Card, CardBody, Button } from "@nextui-org/react";
+import { Card, CardBody, Button } from "@heroui/react";
 import { motion } from "framer-motion";
 import Loader from "@/components/Loader";
 import { PlacementGroup } from "@shared-types/PlacementGroup";

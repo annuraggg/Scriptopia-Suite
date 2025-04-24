@@ -3,19 +3,26 @@ import { softDeletePlugin } from "@/plugins/softDelete";
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
+const yearStatsSchema = new Schema(
+  {
+    year: { type: String, required: true },
+    hired: { type: Number, required: true },
+    highest: { type: Number, required: true },
+    average: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
 const companySchema = new Schema(
   {
     name: { type: String, required: true },
     description: String,
     generalInfo: {
       industry: [{ type: String }],
-      yearVisit: [{ type: String }],
-      studentsHired: { type: Number, required: true },
-      averagePackage: { type: Number, required: true },
-      highestPackage: { type: Number, required: true },
+      yearStats: { type: [yearStatsSchema], required: false },
       rolesOffered: [{ type: String }],
     },
-    hrContacts: {
+    hrContact: {
       name: String,
       phone: String,
       email: String,
@@ -24,6 +31,7 @@ const companySchema = new Schema(
     isArchived: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
+    isSample: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
@@ -31,7 +39,8 @@ const companySchema = new Schema(
 companySchema.index({ name: 1 });
 companySchema.index({ archived: 1 });
 
-companySchema.plugin(archiveProtectionPlugin)
-companySchema.plugin(softDeletePlugin)
+companySchema.plugin(archiveProtectionPlugin);
+companySchema.plugin(softDeletePlugin);
+
 const Company = mongoose.model("Company", companySchema);
 export default Company;

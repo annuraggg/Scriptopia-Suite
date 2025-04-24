@@ -3,7 +3,6 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Terms from "./pages/terms/Terms";
 import Privacy from "./pages/privacy/Privacy";
 import Lander from "./pages/lander/Lander";
-import { useTheme } from "./components/theme-provider";
 import Navbar from "./pages/lander/Navbar";
 
 function App() {
@@ -22,10 +21,8 @@ function App() {
     },
   ]);
 
-  const { theme } = useTheme();
-
   return (
-    <main className={`${theme === "dark" ? "dark" : ""} text-foreground bg-background`}>
+    <main>
       <Navbar />
       <RouterProvider router={router} />
     </main>

@@ -88,6 +88,45 @@ const CompanyProfiles = () => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
+  // Helper functions for getting metrics from yearStats array
+  const getTotalStudentsHired = (company: Company): number => {
+    return company.generalInfo.yearStats.reduce(
+      (total, stat) => total + stat.hired,
+      0
+    );
+  };
+
+  const getAveragePackage = (company: Company): number => {
+    const stats = company.generalInfo.yearStats;
+    if (stats.length === 0) return 0;
+
+    // Calculate weighted average based on number of students hired per year
+    const totalStudents = stats.reduce((sum, stat) => sum + stat.hired, 0);
+    if (totalStudents === 0) return 0;
+
+    const weightedSum = stats.reduce(
+      (sum, stat) => sum + stat.average * stat.hired,
+      0
+    );
+
+    return weightedSum / totalStudents;
+  };
+
+  const getHighestPackage = (company: Company): number => {
+    const stats = company.generalInfo.yearStats;
+    if (stats.length === 0) return 0;
+    return Math.max(...stats.map((stat) => stat.highest));
+  };
+
+  const getYearsOfVisit = (company: Company): string[] => {
+    return company.generalInfo.yearStats.map((stat) => stat.year);
+  };
+
+  const getMostRecentYear = (company: Company): string => {
+    const years = getYearsOfVisit(company);
+    return years.length > 0 ? years.sort().reverse()[0] : "N/A";
+  };
+
   // Helper function to show error messages
   const showError = (err: any, defaultMessage: string) => {
     let message = defaultMessage;
@@ -153,39 +192,37 @@ const CompanyProfiles = () => {
         if (filter === "archived" && !isArchived) return false;
 
         if (isFiltersApplied) {
+          // Filter by year
           if (
             filters.year &&
-            !company.generalInfo.yearVisit.includes(filters.year)
+            !getYearsOfVisit(company).includes(filters.year)
           ) {
             return false;
           }
 
+          // Filter by students range
           if (filters.studentsRange) {
             const [min, max] = parseRange(filters.studentsRange);
-            if (
-              company.generalInfo.studentsHired < min ||
-              company.generalInfo.studentsHired > max
-            ) {
+            const totalHired = getTotalStudentsHired(company);
+            if (totalHired < min || totalHired > max) {
               return false;
             }
           }
 
+          // Filter by average package
           if (filters.averagePackage) {
             const [min, max] = formatPackageRange(filters.averagePackage);
-            if (
-              company.generalInfo.averagePackage < min ||
-              company.generalInfo.averagePackage > max
-            ) {
+            const avgPackage = getAveragePackage(company);
+            if (avgPackage < min || avgPackage > max) {
               return false;
             }
           }
 
+          // Filter by highest package
           if (filters.highestPackage) {
             const [min, max] = formatPackageRange(filters.highestPackage);
-            if (
-              company.generalInfo.highestPackage < min ||
-              company.generalInfo.highestPackage > max
-            ) {
+            const highestPackage = getHighestPackage(company);
+            if (highestPackage < min || highestPackage > max) {
               return false;
             }
           }
@@ -301,10 +338,11 @@ const CompanyProfiles = () => {
     }
   };
 
+  // Get all unique years from all companies' yearStats
   const availableYears = useMemo(() => {
     const years = new Set<string>();
     companies.forEach((company) => {
-      company.generalInfo.yearVisit.forEach((year) => years.add(year));
+      company.generalInfo.yearStats.forEach((stat) => years.add(stat.year));
     });
     return Array.from(years).sort().reverse();
   }, [companies]);
@@ -568,9 +606,7 @@ const CompanyProfiles = () => {
                                 </span>
                                 <span className="px-2 py-1 rounded-full text-xs bg-success-100 text-success-600">
                                   Average Package{" "}
-                                  {formatCurrency(
-                                    company.generalInfo.averagePackage
-                                  )}
+                                  {formatCurrency(getAveragePackage(company))}
                                 </span>
                               </div>
 
@@ -578,16 +614,13 @@ const CompanyProfiles = () => {
                                 <div className="flex items-center gap-2">
                                   <Calendar size={16} />
                                   <span>
-                                    Last Visit{" "}
-                                    {company.generalInfo.yearVisit.length > 0
-                                      ? company.generalInfo.yearVisit[0]
-                                      : "N/A"}
+                                    Last Visit {getMostRecentYear(company)}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <Users size={16} />
                                   <span>
-                                    {company.generalInfo.studentsHired} Students
+                                    {getTotalStudentsHired(company)} Students
                                     Hired
                                   </span>
                                 </div>
@@ -595,9 +628,7 @@ const CompanyProfiles = () => {
                                   <DollarSign size={16} />
                                   <span>
                                     Highest Package{" "}
-                                    {formatCurrency(
-                                      company.generalInfo.highestPackage
-                                    )}
+                                    {formatCurrency(getHighestPackage(company))}
                                   </span>
                                 </div>
                               </div>
@@ -627,9 +658,9 @@ const CompanyProfiles = () => {
                                       setCompanyToEdit(company);
                                       setShowEditModal(true);
                                     } else if (key === "archive") {
-                                      handleArchive(company._id);
+                                      handleArchive(company._id!);
                                     } else if (key === "delete") {
-                                      setCompanyToDelete(company._id);
+                                      setCompanyToDelete(company._id!);
                                       setShowDeleteModal(true);
                                     }
                                   }}

@@ -10,7 +10,7 @@ import {
   Select, 
   SelectItem,
   Spinner 
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { motion } from "framer-motion";
 import { 
   Lock, 
@@ -167,7 +167,7 @@ const SettingsPage: React.FC = () => {
                 startContent={<Globe />}
               >
                 {visibilityOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem key={option.value}>
                     {option.label}
                   </SelectItem>
                 ))}

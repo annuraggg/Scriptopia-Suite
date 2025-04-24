@@ -26,7 +26,7 @@ import {
   TableCell,
   Tooltip,
   Skeleton,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   today,
   ZonedDateTime,
@@ -409,14 +409,13 @@ const Scholarships = () => {
   );
 
   return (
-    <div>
+    (<div>
       <div className="mb-6">
         <Breadcrumbs>
           <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
           <BreadcrumbItem>Scholarships</BreadcrumbItem>
         </Breadcrumbs>
       </div>
-
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-semibold">Scholarships & Grants</h1>
@@ -434,13 +433,12 @@ const Scholarships = () => {
           </Button>
         )}
       </div>
-
       {isLoading ? (
         // Skeleton loader for loading state
-        <div className="space-y-4">
+        (<div className="space-y-4">
           <Skeleton className="w-full h-32 rounded-lg" />
           <Skeleton className="w-full h-32 rounded-lg" />
-        </div>
+        </div>)
       ) : !user?.scholarships?.length ? (
         renderEmptyState()
       ) : (
@@ -503,7 +501,6 @@ const Scholarships = () => {
           </TableBody>
         </Table>
       )}
-
       {/* Scholarship Form Modal */}
       <Modal
         isOpen={isOpen}
@@ -563,7 +560,7 @@ const Scholarships = () => {
                       isDisabled={isSubmitting}
                     >
                       {organizations.map((org) => (
-                        <SelectItem key={org.value} value={org.value}>
+                        <SelectItem key={org.value}>
                           {org.label}
                         </SelectItem>
                       ))}
@@ -651,7 +648,6 @@ const Scholarships = () => {
           )}
         </ModalContent>
       </Modal>
-
       {/* Confirmation Modal for Delete */}
       <Modal
         isOpen={isConfirmDeleteOpen}
@@ -696,7 +692,7 @@ const Scholarships = () => {
           )}
         </ModalContent>
       </Modal>
-    </div>
+    </div>)
   );
 };
 

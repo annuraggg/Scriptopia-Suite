@@ -28,7 +28,7 @@ import {
   Tooltip,
   Badge,
   Skeleton,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   today,
   ZonedDateTime,
@@ -428,14 +428,13 @@ const ExtraCurricular = () => {
   };
 
   return (
-    <div>
+    (<div>
       <div className="mb-6">
         <Breadcrumbs>
           <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
           <BreadcrumbItem>Extra-curricular Activities</BreadcrumbItem>
         </Breadcrumbs>
       </div>
-
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-semibold">
@@ -453,13 +452,12 @@ const ExtraCurricular = () => {
           Add Activity
         </Button>
       </div>
-
       {isLoading ? (
         // Skeleton loader for loading state
-        <div className="space-y-4">
+        (<div className="space-y-4">
           <Skeleton className="h-32 w-full rounded-lg" />
           <Skeleton className="h-32 w-full rounded-lg" />
-        </div>
+        </div>)
       ) : !user?.extraCurriculars?.length ? (
         <Card className="w-full bg-gray-50 border-dashed border-2 border-gray-200">
           <CardBody className="py-12 flex flex-col items-center justify-center gap-4">
@@ -608,7 +606,6 @@ const ExtraCurricular = () => {
           </Table>
         </Card>
       )}
-
       {/* Add/Edit Activity Modal */}
       <Modal
         isOpen={isOpen}
@@ -788,7 +785,6 @@ const ExtraCurricular = () => {
           )}
         </ModalContent>
       </Modal>
-
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={deleteConfirmationOpen}
@@ -835,7 +831,7 @@ const ExtraCurricular = () => {
           )}
         </ModalContent>
       </Modal>
-    </div>
+    </div>)
   );
 };
 

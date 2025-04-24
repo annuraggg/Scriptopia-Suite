@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select, SelectItem, Card, CardBody } from '@nextui-org/react';
+import { Select, SelectItem, Card, CardBody } from "@heroui/react";
 import { getAllThemeNames, getThemeByName } from './Themes';
 import { ThemeStyles } from '@/types/ResumeTheme';
 
@@ -33,7 +33,7 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({
             className="mt-2"
           >
             {themeNames.map((name) => (
-              <SelectItem key={name} value={name}>
+              <SelectItem key={name}>
                 {name}
               </SelectItem>
             ))}

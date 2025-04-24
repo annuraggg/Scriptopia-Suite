@@ -1,15 +1,12 @@
-name: Stage Server
+name: Stage Backend
 
 on:
   push:
     branches: [dev]
 
 jobs:
-  deploy:
+  deploy-stage:
     runs-on: ubuntu-latest
-
-    env:
-      DEBUG: 'true'
 
     steps:
       - name: Checkout code
@@ -50,4 +47,4 @@ jobs:
             npm ci
             pm2 restart all --update-env
 
-            echo 'Server Staged Successfully!'
+            echo 'Server Deployed Successfully!'

@@ -8,11 +8,12 @@ import {
   Card,
   CardBody,
   CardHeader,
+  Divider,
 } from "@nextui-org/react";
-import { Save, ArrowLeft } from "lucide-react";
+import { Save, ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
-import { Company } from "@shared-types/Company";
+import { Company, YearStats } from "@shared-types/Company";
 
 interface EditCompanyModalProps {
   company: Company;
@@ -30,12 +31,23 @@ const EditCompanyModal = ({
   const [roles, setRoles] = useState<string[]>(
     company.generalInfo.rolesOffered || []
   );
-  const [yearVisit, setYearVisit] = useState<string[]>(
-    company.generalInfo.yearVisit || []
+  const [industries, setIndustries] = useState<string[]>(
+    company.generalInfo.industry || []
   );
   const [newRole, setNewRole] = useState("");
-  const [newYear, setNewYear] = useState("");
+  const [newIndustry, setNewIndustry] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // For managing year stats
+  const [yearStats, setYearStats] = useState<YearStats[]>(
+    company.generalInfo.yearStats || []
+  );
+  const [newYearStat, setNewYearStat] = useState<YearStats>({
+    year: "",
+    hired: 0,
+    highest: 0,
+    average: 0,
+  });
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -66,23 +78,70 @@ const EditCompanyModal = ({
     }
   };
 
-  const handleNumberInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle changes to year stats form fields
+  const handleYearStatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const numValue = value === "" ? 0 : parseFloat(value);
 
-    const [parent, child] = name.split(".");
+    setNewYearStat((prev) => ({
+      ...prev,
+      [name]: name === "year" ? value : value === "" ? 0 : parseFloat(value),
+    }));
+  };
 
-    setFormData((prev) => {
-      const parentObj = {
-        ...(prev[parent as keyof Company] as Record<string, any>),
-      };
-      parentObj[child] = numValue;
+  // Handle changes to existing year stats
+  const handleExistingYearStatChange = (
+    index: number,
+    field: keyof YearStats,
+    value: string
+  ) => {
+    const updatedYearStats = [...yearStats];
 
-      return {
-        ...prev,
-        [parent]: parentObj,
-      };
-    });
+    if (field === "year") {
+      updatedYearStats[index][field] = value;
+    } else {
+      updatedYearStats[index][field] = value === "" ? 0 : parseFloat(value);
+    }
+
+    setYearStats(updatedYearStats);
+    updateFormDataYearStats(updatedYearStats);
+  };
+
+  // Update the formData with new year stats
+  const updateFormDataYearStats = (updatedYearStats: YearStats[]) => {
+    setFormData((prev) => ({
+      ...prev,
+      generalInfo: {
+        ...prev.generalInfo,
+        yearStats: updatedYearStats,
+      },
+    }));
+  };
+
+  // Add a new year stat
+  const addYearStat = () => {
+    if (
+      newYearStat.year &&
+      !yearStats.some((stat) => stat.year === newYearStat.year)
+    ) {
+      const updatedYearStats = [...yearStats, newYearStat];
+      setYearStats(updatedYearStats);
+      updateFormDataYearStats(updatedYearStats);
+      setNewYearStat({
+        year: "",
+        hired: 0,
+        highest: 0,
+        average: 0,
+      });
+    }
+  };
+
+  // Remove a year stat
+  const removeYearStat = (yearToRemove: string) => {
+    const updatedYearStats = yearStats.filter(
+      (stat) => stat.year !== yearToRemove
+    );
+    setYearStats(updatedYearStats);
+    updateFormDataYearStats(updatedYearStats);
   };
 
   const addRole = () => {
@@ -112,29 +171,31 @@ const EditCompanyModal = ({
     }));
   };
 
-  const addYear = () => {
-    if (newYear && !yearVisit.includes(newYear)) {
-      const updatedYears = [...yearVisit, newYear];
-      setYearVisit(updatedYears);
+  const addIndustry = () => {
+    if (newIndustry && !industries.includes(newIndustry)) {
+      const updatedIndustries = [...industries, newIndustry];
+      setIndustries(updatedIndustries);
       setFormData((prev) => ({
         ...prev,
         generalInfo: {
           ...prev.generalInfo,
-          yearVisit: updatedYears,
+          industry: updatedIndustries,
         },
       }));
-      setNewYear("");
+      setNewIndustry("");
     }
   };
 
-  const removeYear = (yearToRemove: string) => {
-    const updatedYears = yearVisit.filter((year) => year !== yearToRemove);
-    setYearVisit(updatedYears);
+  const removeIndustry = (industryToRemove: string) => {
+    const updatedIndustries = industries.filter(
+      (industry) => industry !== industryToRemove
+    );
+    setIndustries(updatedIndustries);
     setFormData((prev) => ({
       ...prev,
       generalInfo: {
         ...prev.generalInfo,
-        yearVisit: updatedYears,
+        industry: updatedIndustries,
       },
     }));
   };
@@ -145,14 +206,9 @@ const EditCompanyModal = ({
     setError(null);
 
     try {
+      // No need to transform yearStats as they should already be in the correct format
       const preparedData = {
         ...formData,
-        generalInfo: {
-          ...formData.generalInfo,
-          studentsHired: Number(formData.generalInfo.studentsHired),
-          averagePackage: Number(formData.generalInfo.averagePackage),
-          highestPackage: Number(formData.generalInfo.highestPackage),
-        },
       };
 
       const response = await axios.put("/companies/update", preparedData);
@@ -228,7 +284,7 @@ const EditCompanyModal = ({
                   <Textarea
                     label="Description"
                     name="description"
-                    value={formData.description}
+                    value={formData.description || ""}
                     onChange={handleInputChange}
                     minRows={3}
                   />
@@ -238,70 +294,166 @@ const EditCompanyModal = ({
 
             <Card className="p-4">
               <CardHeader className="pb-0 pt-0">
-                <h3 className="text-lg font-semibold">Visit Info</h3>
+                <h3 className="text-lg font-semibold">Industry</h3>
               </CardHeader>
               <CardBody>
                 <div className="space-y-4">
                   <div>
                     <div className="flex gap-2 mb-2">
                       <Input
-                        label="Year of Visit"
-                        placeholder="e.g. 2023"
-                        value={newYear}
-                        onChange={(e) => setNewYear(e.target.value)}
+                        label="Industry"
+                        placeholder="e.g. Technology"
+                        value={newIndustry}
+                        onChange={(e) => setNewIndustry(e.target.value)}
                         className="flex-1"
                       />
-                      <Button onClick={addYear} className="self-end">
+                      <Button onClick={addIndustry} className="self-end">
                         Add
                       </Button>
                     </div>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {yearVisit.map((year) => (
+                      {industries.map((industry) => (
                         <Chip
-                          key={year}
-                          onClose={() => removeYear(year)}
+                          key={industry}
+                          onClose={() => removeIndustry(industry)}
                           variant="flat"
                         >
-                          {year}
+                          {industry}
                         </Chip>
                       ))}
                     </div>
                   </div>
-
-                  <Input
-                    type="number"
-                    label="Students Hired"
-                    name="generalInfo.studentsHired"
-                    value={formData.generalInfo.studentsHired.toString()}
-                    onChange={handleNumberInputChange}
-                  />
                 </div>
               </CardBody>
             </Card>
 
             <Card className="p-4">
               <CardHeader className="pb-0 pt-0">
-                <h3 className="text-lg font-semibold">Package Details</h3>
+                <h3 className="text-lg font-semibold">Year Statistics</h3>
               </CardHeader>
               <CardBody>
-                <div className="space-y-4">
-                  <Input
-                    type="number"
-                    label="Average Package (in ₹)"
-                    name="generalInfo.averagePackage"
-                    value={formData.generalInfo.averagePackage.toString()}
-                    onChange={handleNumberInputChange}
-                    startContent={<span className="text-default-400">₹</span>}
-                  />
+                <div className="space-y-6">
+                  {/* Existing Year Stats */}
+                  {yearStats.length > 0 && (
+                    <div className="space-y-4">
+                      <h4 className="text-md font-medium">Existing Records</h4>
+                      {yearStats.map((stat, index) => (
+                        <div key={stat.year} className="p-3 border rounded-lg">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-medium">
+                              Year: {stat.year}
+                            </span>
+                            <Button
+                              isIconOnly
+                              color="danger"
+                              variant="light"
+                              onClick={() => removeYearStat(stat.year)}
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <Input
+                              type="number"
+                              label="Students Hired"
+                              value={stat.hired.toString()}
+                              onChange={(e) =>
+                                handleExistingYearStatChange(
+                                  index,
+                                  "hired",
+                                  e.target.value
+                                )
+                              }
+                            />
+                            <Input
+                              type="number"
+                              label="Highest Package (₹)"
+                              value={stat.highest.toString()}
+                              onChange={(e) =>
+                                handleExistingYearStatChange(
+                                  index,
+                                  "highest",
+                                  e.target.value
+                                )
+                              }
+                              startContent={
+                                <span className="text-default-400">₹</span>
+                              }
+                            />
+                            <Input
+                              type="number"
+                              label="Average Package (₹)"
+                              value={stat.average.toString()}
+                              onChange={(e) =>
+                                handleExistingYearStatChange(
+                                  index,
+                                  "average",
+                                  e.target.value
+                                )
+                              }
+                              startContent={
+                                <span className="text-default-400">₹</span>
+                              }
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
-                  <Input
-                    type="number"
-                    label="Highest Package (in ₹)"
-                    name="generalInfo.highestPackage"
-                    value={formData.generalInfo.highestPackage.toString()}
-                    onChange={handleNumberInputChange}
-                    startContent={<span className="text-default-400">₹</span>}
-                  />
+                  <Divider />
+
+                  {/* Add New Year Stat */}
+                  <div className="space-y-4">
+                    <h4 className="text-md font-medium">Add New Year Record</h4>
+                    <div className="p-3 border rounded-lg">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                        <Input
+                          label="Year"
+                          name="year"
+                          placeholder="e.g. 2023"
+                          value={newYearStat.year}
+                          onChange={handleYearStatChange}
+                        />
+                        <Input
+                          type="number"
+                          label="Students Hired"
+                          name="hired"
+                          value={newYearStat.hired.toString()}
+                          onChange={handleYearStatChange}
+                        />
+                        <Input
+                          type="number"
+                          label="Highest Package (₹)"
+                          name="highest"
+                          value={newYearStat.highest.toString()}
+                          onChange={handleYearStatChange}
+                          startContent={
+                            <span className="text-default-400">₹</span>
+                          }
+                        />
+                        <Input
+                          type="number"
+                          label="Average Package (₹)"
+                          name="average"
+                          value={newYearStat.average.toString()}
+                          onChange={handleYearStatChange}
+                          startContent={
+                            <span className="text-default-400">₹</span>
+                          }
+                        />
+                      </div>
+                      <div className="flex justify-end">
+                        <Button
+                          color="primary"
+                          startContent={<Plus size={18} />}
+                          onClick={addYearStat}
+                        >
+                          Add Year Record
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardBody>
             </Card>
@@ -351,30 +503,30 @@ const EditCompanyModal = ({
                 <div className="space-y-4">
                   <Input
                     label="HR Name"
-                    name="hrContacts.name"
-                    value={formData.hrContacts?.name || ""}
+                    name="hrContact.name"
+                    value={formData.hrContact?.name || ""}
                     onChange={handleInputChange}
                   />
 
                   <Input
                     label="HR Phone"
-                    name="hrContacts.phone"
-                    value={formData.hrContacts?.phone || ""}
+                    name="hrContact.phone"
+                    value={formData.hrContact?.phone || ""}
                     onChange={handleInputChange}
                   />
 
                   <Input
                     label="HR Email"
-                    name="hrContacts.email"
+                    name="hrContact.email"
                     type="email"
-                    value={formData.hrContacts?.email || ""}
+                    value={formData.hrContact?.email || ""}
                     onChange={handleInputChange}
                   />
 
                   <Input
                     label="Company Website"
-                    name="hrContacts.website"
-                    value={formData.hrContacts?.website || ""}
+                    name="hrContact.website"
+                    value={formData.hrContact?.website || ""}
                     onChange={handleInputChange}
                   />
                 </div>

@@ -36,7 +36,7 @@ const Companies = lazy(
   () => import("./pages/companies/Companies")
 );
 const Candidates = lazy(() => import("./pages/candidates/Candidates"));
-const Analytics = lazy(() => import("./pages/analytics/Analytics"));
+const Analytics = lazy(() => import("./pages/analytics/AnalyticsDashboard"));
 const Notifications = lazy(() => import("./pages/notifications/Notifications"));
 const Billing = lazy(() => import("./pages/billing/Billing"));
 const Documentation = lazy(() => import("./pages/documentation/Documentation"));

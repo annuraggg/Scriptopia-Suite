@@ -22,7 +22,7 @@ import {
   Avatar,
   Skeleton,
   Divider,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState, useEffect } from "react";
 import {
   Edit2,
@@ -581,14 +581,13 @@ export default function WorkExperience() {
   };
 
   return (
-    <div>
+    (<div>
       <Breadcrumbs className="mb-6">
         <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
         <BreadcrumbItem href="/profile/experience">
           Work Experience
         </BreadcrumbItem>
       </Breadcrumbs>
-
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-semibold">Work Experience</h1>
@@ -604,14 +603,13 @@ export default function WorkExperience() {
           Add Experience
         </Button>
       </div>
-
       <div className="space-y-4">
         {isLoading ? (
           // Skeleton loader for loading state
-          <div className="space-y-4">
+          (<div className="space-y-4">
             <Skeleton className="h-40 w-full rounded-lg" />
             <Skeleton className="h-40 w-full rounded-lg" />
-          </div>
+          </div>)
         ) : !user.workExperience?.length ? (
           <Card className="w-full bg-gray-50 border-dashed border-2 border-gray-200">
             <CardBody className="flex flex-col items-center justify-center py-12">
@@ -757,7 +755,6 @@ export default function WorkExperience() {
           </>
         )}
       </div>
-
       {/* Add/Edit Experience Modal */}
       <Modal
         isOpen={isOpen}
@@ -840,7 +837,7 @@ export default function WorkExperience() {
                           ([category, sectors]) => (
                             <SelectSection key={category} title={category}>
                               {sectors.map((sector) => (
-                                <SelectItem key={sector} value={sector}>
+                                <SelectItem key={sector}>
                                   {sector}
                                 </SelectItem>
                               ))}
@@ -900,7 +897,6 @@ export default function WorkExperience() {
                         {positionTypes.map((type) => (
                           <SelectItem
                             key={type.value}
-                            value={type.value}
                             description={type.description}
                           >
                             {type.label}
@@ -949,7 +945,7 @@ export default function WorkExperience() {
                           ([category, functions]) => (
                             <SelectSection key={category} title={category}>
                               {functions.map((func) => (
-                                <SelectItem key={func} value={func}>
+                                <SelectItem key={func}>
                                   {func}
                                 </SelectItem>
                               ))}
@@ -1098,7 +1094,6 @@ export default function WorkExperience() {
           )}
         </ModalContent>
       </Modal>
-
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={deleteModal.isOpen}
@@ -1146,6 +1141,6 @@ export default function WorkExperience() {
           )}
         </ModalContent>
       </Modal>
-    </div>
+    </div>)
   );
 }

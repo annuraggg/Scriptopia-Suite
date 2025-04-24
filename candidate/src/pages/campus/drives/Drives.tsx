@@ -10,7 +10,7 @@ import {
   Input,
   Tooltip,
   Pagination,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   Search,
   Briefcase,

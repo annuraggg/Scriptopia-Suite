@@ -6,9 +6,18 @@ import CompanyStatsTab from "./CompanyStatsTab";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
+import { Company } from "@shared-types/Company";
 
 interface CreateCompanyFormProps {
   onClose: () => void;
+}
+
+// Define interface for year-wise placement stats
+interface YearlyStats {
+  year: string;
+  avgPackage: string;
+  highestPackage: string;
+  studentsHired: string;
 }
 
 const CreateCompanyForm: React.FC<CreateCompanyFormProps> = ({ onClose }) => {
@@ -23,15 +32,41 @@ const CreateCompanyForm: React.FC<CreateCompanyFormProps> = ({ onClose }) => {
   const [hrEmail, setHrEmail] = useState("");
   const [hrPhone, setHrPhone] = useState("");
   const [hrWebsite, setHrWebsite] = useState("");
-
-  const [avgPackage, setAvgPackage] = useState("");
-  const [highestPackage, setHighestPackage] = useState("");
-  const [studentsHired, setStudentsHired] = useState("");
-  const [yearVisit] = useState<string[]>([new Date().getFullYear().toString()]);
+  const [yearlyStats, setYearlyStats] = useState<YearlyStats[]>([]);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
   const [loading, setLoading] = useState(false);
+
+  // Function to update a specific stat for a specific year
+  const updateYearlyStats = (
+    year: string,
+    field: keyof Omit<YearlyStats, "year">,
+    value: string
+  ) => {
+    setYearlyStats((prevStats) =>
+      prevStats.map((statItem) =>
+        statItem.year === year ? { ...statItem, [field]: value } : statItem
+      )
+    );
+  };
+
+  // Function to add a new year to stats
+  const addYearToStats = (year: string) => {
+    if (yearlyStats.some((stat) => stat.year === year)) {
+      toast.error("This year already exists in the stats");
+      return;
+    }
+    setYearlyStats([
+      ...yearlyStats,
+      { year, avgPackage: "", highestPackage: "", studentsHired: "" },
+    ]);
+  };
+
+  // Function to remove a year from stats
+  const removeYearFromStats = (year: string) => {
+    setYearlyStats(yearlyStats.filter((stat) => stat.year !== year));
+  };
 
   const handleSave = async () => {
     setLoading(true);
@@ -42,41 +77,54 @@ const CreateCompanyForm: React.FC<CreateCompanyFormProps> = ({ onClose }) => {
         return;
       }
 
-      if (!studentsHired || !avgPackage || !highestPackage) {
-        toast.error("All placement statistics are required");
+      // Validate that all yearly stats are filled
+      const hasIncompleteStats = yearlyStats.some(
+        (stat) =>
+          !stat.avgPackage || !stat.highestPackage || !stat.studentsHired
+      );
+
+      if (hasIncompleteStats) {
+        toast.error("All placement statistics are required for each year");
         setLoading(false);
         return;
       }
 
-      const companyData = {
+      // Transform yearly stats to the format needed for the API
+      const placementStats = yearlyStats.map((stat) => ({
+        year: stat.year,
+        average: Number(stat.avgPackage),
+        highest: Number(stat.highestPackage),
+        hired: Number(stat.studentsHired),
+      }));
+
+      const companyData: Company = {
         name,
         description,
-        hrContacts: {
+        hrContact: {
           name: hrName,
           email: hrEmail,
           phone: hrPhone,
-          website: hrWebsite || ""
+          website: hrWebsite || "",
         },
         generalInfo: {
           industry: industry,
-          yearVisit: yearVisit,
-          studentsHired: Number(studentsHired),
-          averagePackage: Number(avgPackage),
-          highestPackage: Number(highestPackage),
-          rolesOffered: rolesOffered
-        }
+          yearStats: placementStats, // Now an array of yearly stats
+          rolesOffered: rolesOffered,
+        },
       };
 
       await axios.post("/companies/create", companyData);
 
       toast.success("Company profile created successfully!");
-      
+
       onClose();
-      
-      window.location.href = "/companyprofiles";
+
+      window.location.href = "/companies";
     } catch (err: any) {
       console.error("Error creating company:", err);
-      toast.error(err.response?.data?.message || "Error creating company profile");
+      toast.error(
+        err.response?.data?.message || "Error creating company profile"
+      );
     } finally {
       setLoading(false);
     }
@@ -97,20 +145,15 @@ const CreateCompanyForm: React.FC<CreateCompanyFormProps> = ({ onClose }) => {
               px-4 py-3 
               rounded-lg 
               transition-all duration-300 ease-in-out 
-              ${activeStep === index
-                ? "bg-foreground text-background"
-                : "bg-background text-foreground"
+              ${
+                activeStep === index
+                  ? "bg-foreground text-background"
+                  : "bg-background text-foreground"
               }
               cursor-pointer group
             `}
             onClick={() => {
-              if (
-                index === activeStep - 1 ||
-                index === activeStep + 1 ||
-                index === activeStep
-              ) {
-                setActiveStep(index);
-              }
+              setActiveStep(index);
             }}
           >
             <div className="flex items-center space-x-4">
@@ -168,12 +211,10 @@ const CreateCompanyForm: React.FC<CreateCompanyFormProps> = ({ onClose }) => {
         )}
         {activeStep === 2 && (
           <CompanyStatsTab
-            avgPackage={avgPackage}
-            setAvgPackage={setAvgPackage}
-            highestPackage={highestPackage}
-            setHighestPackage={setHighestPackage}
-            studentsHired={studentsHired}
-            setStudentsHired={setStudentsHired}
+            yearlyStats={yearlyStats}
+            updateYearlyStats={updateYearlyStats}
+            addYearToStats={addYearToStats}
+            removeYearFromStats={removeYearFromStats}
             activeStep={activeStep}
             setActiveStep={setActiveStep}
             onSave={handleSave}

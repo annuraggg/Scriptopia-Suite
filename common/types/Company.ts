@@ -1,13 +1,17 @@
+export interface YearStats {
+  year: string;
+  hired: number;
+  highest: number;
+  average: number;
+}
+
 export interface CompanyGeneralInfo {
   industry: string[];
-  yearVisit: string[];
-  studentsHired: number;
-  averagePackage: number;
-  highestPackage: number;
+  yearStats: YearStats[];
   rolesOffered: string[];
 }
 
-export interface CompanyHRContacts {
+export interface CompanyHRContact {
   name?: string;
   phone?: string;
   email?: string;
@@ -15,11 +19,11 @@ export interface CompanyHRContacts {
 }
 
 export interface Company {
-  _id: string;
+  _id?: string;
   name: string;
   description?: string;
   generalInfo: CompanyGeneralInfo;
-  hrContacts?: CompanyHRContacts;
+  hrContact?: CompanyHRContact;
   isArchived?: boolean;
   deletedAt?: Date | null;
   createdAt?: Date;

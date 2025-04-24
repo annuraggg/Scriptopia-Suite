@@ -17,6 +17,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
+  Pagination,
 } from "@nextui-org/react";
 import { Search, Plus, MoreVertical, Copy, Trash } from "lucide-react";
 import { useAuth } from "@clerk/clerk-react";
@@ -49,6 +50,20 @@ const PlacementGroups = () => {
   });
   const [editGroup, setEditGroup] = useState<PlacementGroup | null>(null);
   const [deleteGroup, setDeleteGroup] = useState<PlacementGroup | null>(null);
+
+  // New pagination state
+  const [pagination, setPagination] = useState<{
+    total: number;
+    page: number;
+    pages: number;
+    limit: number;
+  }>({
+    total: 0,
+    page: 1,
+    pages: 1,
+    limit: 10,
+  });
+
   const {
     isOpen: isDeleteModalOpen,
     onOpen: openDeleteModal,
@@ -59,18 +74,31 @@ const PlacementGroups = () => {
   const { getToken } = useAuth();
   const axios = ax(getToken);
 
-  const fetchGroups = async () => {
+  const fetchGroups = async (page = 1) => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const response = await axios.get("/placement-groups");
+      // Added pagination parameters to the API call
+      const response = await axios.get(
+        `/placement-groups?page=${page}&limit=${pagination.limit}`
+      );
       console.log("API Response:", response.data);
 
       if (response.data && response.data.success) {
-        if (response.data.data && Array.isArray(response.data.data)) {
-          console.log("Placement Groups:", response.data.data);
-          setGroups(response.data.data);
+        // Updated to extract groups from the new data structure
+        if (
+          response.data.data &&
+          response.data.data.groups &&
+          Array.isArray(response.data.data.groups)
+        ) {
+          console.log("Placement Groups:", response.data.data.groups);
+          setGroups(response.data.data.groups);
+
+          // Store pagination info
+          if (response.data.data.pagination) {
+            setPagination(response.data.data.pagination);
+          }
         } else {
           console.error(
             "Unexpected response structure for placementGroups:",
@@ -106,6 +134,10 @@ const PlacementGroups = () => {
   useEffect(() => {
     fetchGroups();
   }, []);
+
+  const handlePageChange = (page: number) => {
+    fetchGroups(page);
+  };
 
   const filteredGroups = useMemo(() => {
     return (groups || [])
@@ -250,7 +282,7 @@ const PlacementGroups = () => {
             Error loading placement groups
           </h3>
           <p className="text-danger-500 dark:text-danger-400 mb-6">{error}</p>
-          <Button color="primary" onClick={fetchGroups}>
+          <Button color="primary" onClick={() => fetchGroups()}>
             Retry
           </Button>
         </div>
@@ -282,109 +314,118 @@ const PlacementGroups = () => {
     }
 
     return (
-      <div className="space-y-4">
-        {filteredGroups.map((group) => (
-          <Card
-            key={group._id}
-            className="p-4 cursor-pointer w-full hover:shadow-md transition-shadow"
-            isPressable
-            onClick={() => navigate(`/placement-groups/${group._id}`)}
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-semibold">{group.name}</h3>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      group.archived
-                        ? "bg-default-100 text-default-600"
-                        : "bg-success-100 text-success-600"
-                    }`}
+      <>
+        <div className="space-y-4">
+          {filteredGroups.map((group) => (
+            <Card
+              key={group._id}
+              className="p-4 cursor-pointer w-full hover:shadow-md transition-shadow"
+              isPressable
+              onClick={() => navigate(`/placement-groups/${group._id}`)}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-lg font-semibold">{group.name}</h3>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        group.archived
+                          ? "bg-default-100 text-default-600"
+                          : "bg-success-100 text-success-600"
+                      }`}
+                    >
+                      {group.archived ? "Archived" : "Active"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-4 text-sm text-default-500 mb-4">
+                    <span>
+                      {group.academicYear.start} - {group.academicYear.end}
+                    </span>
+                    <span>
+                      Created:{" "}
+                      {new Date(group?.createdAt!).toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {Array.isArray(group.departments) &&
+                      group.departments.map((deptId) => {
+                        const dept = instituteDepartments.find(
+                          (d) => d._id === deptId
+                        );
+                        return (
+                          <span
+                            key={deptId}
+                            className="px-2 py-1 bg-default-100 rounded-full text-xs"
+                          >
+                            {dept?.name || deptId}
+                          </span>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    isIconOnly
+                    variant="flat"
+                    onClick={(e) => handleCopyLink(group._id!, e)}
                   >
-                    {group.archived ? "Archived" : "Active"}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-4 text-sm text-default-500 mb-4">
-                  <span>
-                    {group.academicYear.start} - {group.academicYear.end}
-                  </span>
-                  <span>
-                    Created: {new Date(group?.createdAt!).toLocaleDateString()}
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {Array.isArray(group.departments) &&
-                    group.departments.map((deptId) => {
-                      const dept = instituteDepartments.find(
-                        (d) => d._id === deptId
-                      );
-                      return (
-                        <span
-                          key={deptId}
-                          className="px-2 py-1 bg-default-100 rounded-full text-xs"
-                        >
-                          {dept?.name || deptId}
-                        </span>
-                      );
-                    })}
+                    <Copy size={18} />
+                  </Button>
+                  <Dropdown>
+                    <DropdownTrigger>
+                      <Button isIconOnly variant="flat">
+                        <MoreVertical size={18} />
+                      </Button>
+                    </DropdownTrigger>
+                    <DropdownMenu
+                      onAction={(key) => {
+                        if (key === "archive") {
+                          handleArchive(group._id!, {
+                            stopPropagation: () => {},
+                          } as React.MouseEvent);
+                        } else if (key === "edit") {
+                          setEditGroup(group);
+                        } else if (key === "delete") {
+                          handleDeleteClick(group, {
+                            stopPropagation: () => {},
+                          } as React.MouseEvent);
+                        }
+                      }}
+                    >
+                      <DropdownItem key="edit">Edit</DropdownItem>
+                      <DropdownItem
+                        key="delete"
+                        className="text-danger"
+                        color="danger"
+                        startContent={<Trash size={18} />}
+                      >
+                        Delete
+                      </DropdownItem>
+                    </DropdownMenu>
+                  </Dropdown>
                 </div>
               </div>
+            </Card>
+          ))}
+        </div>
 
-              <div className="flex gap-2">
-                <Button
-                  isIconOnly
-                  variant="flat"
-                  onClick={(e) => handleCopyLink(group._id!, e)}
-                >
-                  <Copy size={18} />
-                </Button>
-                <Dropdown>
-                  <DropdownTrigger>
-                    <Button isIconOnly variant="flat">
-                      <MoreVertical size={18} />
-                    </Button>
-                  </DropdownTrigger>
-                  <DropdownMenu
-                    onAction={(key) => {
-                      if (key === "archive") {
-                        handleArchive(group._id!, {
-                          stopPropagation: () => {},
-                        } as React.MouseEvent);
-                      } else if (key === "edit") {
-                        setEditGroup(group);
-                      } else if (key === "delete") {
-                        handleDeleteClick(group, {
-                          stopPropagation: () => {},
-                        } as React.MouseEvent);
-                      }
-                    }}
-                  >
-                    <DropdownItem key="edit">Edit</DropdownItem>
-                    {/* <DropdownItem
-                      key="archive"
-                      className="text-warning"
-                      color="warning"
-                      startContent={<Archive size={18} />}
-                    >
-                      {group.archived ? "Unarchive" : "Archive"}
-                    </DropdownItem> */}
-                    <DropdownItem
-                      key="delete"
-                      className="text-danger"
-                      color="danger"
-                      startContent={<Trash size={18} />}
-                    >
-                      Delete
-                    </DropdownItem>
-                  </DropdownMenu>
-                </Dropdown>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+        {/* Pagination component */}
+        {pagination.pages > 1 && (
+          <div className="flex justify-center mt-6">
+            <Pagination
+              total={pagination.pages}
+              initialPage={pagination.page}
+              page={pagination.page}
+              onChange={handlePageChange}
+              showControls
+              showShadow
+            />
+          </div>
+        )}
+      </>
     );
   };
 
@@ -440,36 +481,15 @@ const PlacementGroups = () => {
                     }
                   />
                 </div>
+
+                {/* Display total count from pagination */}
+                <div className="text-default-500">
+                  Total: {pagination.total} groups
+                </div>
               </div>
 
               <div className="flex gap-4 mb-6">
-                {/* <Button
-                  className={`w-1/2 ${
-                    filter === "all" ? "bg-default-100" : ""
-                  }`}
-                  variant={filter === "all" ? "flat" : "ghost"}
-                  onClick={() => setFilter("all")}
-                >
-                  All
-                </Button>
-                <Button
-                  className={`w-1/2 ${
-                    filter === "active" ? "bg-success-100" : ""
-                  }`}
-                  variant={filter === "active" ? "flat" : "ghost"}
-                  onClick={() => setFilter("active")}
-                >
-                  Active
-                </Button> */}
-                {/* <Button
-                  className={`w-1/3 ${
-                    filter === "archived" ? "bg-default-100" : ""
-                  }`}
-                  variant={filter === "archived" ? "flat" : "ghost"}
-                  onClick={() => setFilter("archived")}
-                >
-                  Archived
-                </Button> */}
+                {/* Filter buttons commented out in original code */}
               </div>
 
               {renderPlacementGroups()}

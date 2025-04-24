@@ -8,6 +8,8 @@ import Candidate from "@/models/Candidate";
 import Drive from "@/models/Drive";
 import { z } from "zod";
 import mongoose from "mongoose";
+import getCampusUsersWithPermission from "@/utils/getUserWithPermission";
+import { sendNotificationToCampus } from "@/utils/sendNotification";
 
 const PlacementGroupSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -108,6 +110,24 @@ const createPlacementGroup = async (c: Context) => {
       await session.commitTransaction();
       session.endSession();
 
+      const institute = await Institute.findById(instituteId).lean();
+      if (!institute) {
+        return sendError(c, 404, "Institute not found");
+      }
+
+      const notifyingUsers = await getCampusUsersWithPermission({
+        institute: institute,
+        permissions: ["manage_drive"],
+      });
+
+      if (notifyingUsers.length > 0) {
+        await sendNotificationToCampus({
+          userIds: notifyingUsers,
+          title: "New Placement Group Created",
+          message: `A new placement group "${validatedData.name}" has been created.`,
+        });
+      }
+
       return sendSuccess(
         c,
         201,
@@ -161,7 +181,7 @@ const getPlacementGroups = async (c: Context) => {
 
     const groups = await PlacementGroup.find({ institute: instituteId })
       .populate("departments", "name")
-      .populate("candidates", "name email")
+      .populate("candidates", "name email createdAt instituteUid _id")
       .populate("createdBy", "name email")
       .populate("pendingCandidates", "name email")
       .sort({ createdAt: -1 })
@@ -220,7 +240,7 @@ const getPlacementGroup = async (c: Context) => {
       institute: instituteId,
     })
       .populate("departments", "name")
-      .populate("candidates", "name email")
+      .populate("candidates", "name email instituteUid createdAt _id")
       .populate("createdBy", "name email")
       .lean();
 
@@ -787,6 +807,19 @@ const deletePlacementGroup = async (c: Context) => {
 
       await session.commitTransaction();
       session.endSession();
+
+      const notifyingUsers = await getCampusUsersWithPermission({
+        institute: existingGroup.institute,
+        permissions: ["manage_drive"],
+      });
+
+      if (notifyingUsers.length > 0) {
+        await sendNotificationToCampus({
+          userIds: notifyingUsers,
+          title: "Placement Group Deleted",
+          message: `The placement group "${existingGroup.name}" has been deleted.`,
+        });
+      }
 
       return sendSuccess(c, 200, "Placement group deleted successfully");
     } catch (error) {

@@ -20,10 +20,10 @@ const LargeHeading = ({ children }: any) => {
 
 const Lander = () => {
   const navigate = useNavigate();
-  const institute = useSelector((state: RootState) => state.institute);
+  const organization = useSelector((state: RootState) => state.institute);
 
   const redirectUser = () => {
-    if (institute._id) {
+    if (organization._id) {
       navigate("/dashboard");
     } else {
       navigate("/onboarding");
@@ -32,46 +32,46 @@ const Lander = () => {
 
   const projects = [
     {
-      title: "Smart Drives",
+      title: "Placement Drive Management",
       description:
-        "Create and manage drives with AI assistance that helps you write better descriptions and reach the right candidates.",
+        "Effortlessly organize and manage multiple company placement drives, schedule events, and track participation all from one dashboard.",
     },
     {
-      title: "AI-Powered Matching",
+      title: "Student Eligibility & Tracking",
       description:
-        "Our advanced algorithms match candidates to drives based on skills, experience, and cultural fit with unprecedented accuracy.",
+        "Manage student profiles, track eligibility criteria fulfillment, and monitor student progress through various rounds of placement drives.",
     },
     {
-      title: "Custom Assessments",
+      title: "Stage-wise Elimination Tracking",
       description:
-        "Design role-specific assessments that evaluate both technical skills and soft skills to ensure the perfect fit.",
+        "Monitor student performance across written tests, group discussions, technical and HR interviews with detailed elimination tracking.",
     },
     {
-      title: "Intelligent Screening",
+      title: "Company Relationship Management",
       description:
-        "Automate initial candidate screening with AI that understands context and nuance in resumes and applications.",
+        "Maintain recruiter databases, track company visits, and build long-term relationships with industry partners for your institute.",
     },
     {
-      title: "Virtual Interviews",
+      title: "Offer Letter Management",
       description:
-        "Conduct seamless online interviews with built-in scheduling, recording, and AI-powered insights.",
+        "Efficiently track job offers, manage acceptance rates, and maintain comprehensive records of student placements and packages.",
     },
-
     {
-      title: "Real-time Analytics",
+      title: "Placement Analytics",
       description:
-        "Get instant insights into your hiring process with comprehensive analytics and customizable dashboards.",
+        "Generate insightful reports on placement statistics, department-wise performance, and yearly placement trends for your institute.",
     },
   ];
 
   const data = [
     {
-      title: "Drive and Requisition Management",
+      title: "Drive Registration & Management",
       content: (
         <div>
           <p className="text-neutral-800 dark:text-neutral-200 text-xs md:text-sm font-normal mb-8">
-            Effortlessly create and distribute drives to multiple
-            platforms. Track and manage drive requisitions with ease.
+            Register incoming companies for placement drives, manage schedules,
+            and track all drive-related activities centrally for your
+            institution.
           </p>{" "}
           <img
             src="/t11.png"
@@ -85,13 +85,13 @@ const Lander = () => {
       ),
     },
     {
-      title: "Application Collection",
+      title: "Student Registration & Eligibility",
       content: (
         <div>
           <p className="text-neutral-800 dark:text-neutral-200 text-xs md:text-sm font-normal mb-8">
-            Collect applications from drive boards, company websites, and direct
-            submissions. Parse and store applicant information, resumes, and
-            cover letters securely.
+            Track student registrations for placement drives, verify eligibility
+            criteria, and manage department-wise student data for placement
+            activities.
           </p>
           <img
             src="/t21.png"
@@ -101,12 +101,13 @@ const Lander = () => {
       ),
     },
     {
-      title: "Automated Resume Screening",
+      title: "Round-wise Student Tracking",
       content: (
         <div>
           <p className="text-neutral-800 dark:text-neutral-200 text-xs md:text-sm font-normal mb-8">
-            Display a curated list of selected candidates for your review.
-            Easily manage and track candidate progress.
+            Monitor student performance through various elimination rounds -
+            from aptitude tests to technical interviews, with comprehensive
+            stage-wise tracking.
           </p>
           <img
             src="/t31.png"
@@ -120,13 +121,13 @@ const Lander = () => {
       ),
     },
     {
-      title: " Assessments",
+      title: "Placement Results Management",
       content: (
         <div>
           <p className="text-neutral-800 dark:text-neutral-200 text-xs md:text-sm font-normal mb-8">
-            Create tailored assessments including multiple-choice questions and
-            coding challenges. Evaluate candidates' skills directly on our
-            platform.
+            Record and manage placement outcomes, generate offer letters, and
+            maintain comprehensive placement records for institutional
+            reporting.
           </p>
           <img
             src="/t41.png"
@@ -140,12 +141,13 @@ const Lander = () => {
       ),
     },
     {
-      title: "  Conduct Interviews",
+      title: "Analytics & Reporting",
       content: (
         <div>
           <p className="text-neutral-800 dark:text-neutral-200 text-xs md:text-sm font-normal mb-8">
-            Schedule interviews, communicate with candidates, and gather
-            feedback seamlessly.
+            Generate comprehensive reports on placement statistics, company-wise
+            offers, and student performance to showcase your institute's
+            placement excellence.
           </p>
         </div>
       ),
@@ -156,15 +158,13 @@ const Lander = () => {
     <div className="relative min-h-screen bg-white text-gray-900 ">
       {/* Header */}
       <header className="relative z-20 px-6 lg:px-20 py-6 flex justify-between items-center border-b border-gray-100">
-        <img src="/logo.png" alt="logo" className="w-12 h-12" />
+        <img src="/logo.svg" alt="logo" className="w-12 h-12" />
         <div className="flex items-center gap-4">
           <Button
             onClick={redirectUser}
-            className="bg-violet-600 hover:bg-violet-700 text-white rounded-full px-6 cursor-not-allowed"
-            disabled={true}
-          
+            className="bg-violet-600 hover:bg-violet-700 text-white rounded-full px-6"
           >
-            Get Started
+            {organization._id ? "Go to Dashboard" : "Get Started"}
           </Button>
         </div>
       </header>
@@ -176,12 +176,12 @@ const Lander = () => {
             titleComponent={
               <div>
                 <p className="text-2xl md:text-4xl lg:text-7xl font-bold font-gloock text-center">
-                  The Future of Hiring is Here
+                  Simplify Your Institute's Placement Management
                 </p>
-                <p className="text-base md:text-sm mt-4  font-normal inter-var text-center mb-10">
-                  Transform your recruitment process with our AI-powered
-                  platform that makes hiring smarter, faster, and more efficient
-                  than ever before.
+                <p className="text-base md:text-sm mt-4 font-normal inter-var text-center mb-10">
+                  A comprehensive platform for educational institutions to
+                  streamline campus placement activities, track student
+                  progress, and manage company relationships effortlessly.
                 </p>
               </div>
             }
@@ -199,7 +199,7 @@ const Lander = () => {
       </div>
 
       <div className="max-w-5xl mx-auto px-8 mt-32">
-        <LargeHeading>Everything you need to hire better</LargeHeading>
+        <LargeHeading>Everything your placement cell needs</LargeHeading>
         <HoverEffect items={projects} />
       </div>
 
@@ -209,9 +209,11 @@ const Lander = () => {
       </div>
 
       {/* Platform launching soon message */}
-      <section className="relative z-20 px-6 lg:px-20 py-20  text-black">
+      <section className="relative z-20 px-6 lg:px-20 py-20 text-black">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="font-caveat text-7xl">Platform Launching Soon</h1>
+          <h1 className="font-caveat text-7xl">
+            Elevate Your Placement Management Now!
+          </h1>
         </div>
       </section>
 

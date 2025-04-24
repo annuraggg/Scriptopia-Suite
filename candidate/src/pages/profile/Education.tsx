@@ -21,7 +21,7 @@ import {
   Skeleton,
   Autocomplete,
   AutocompleteItem,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   Edit2,
   Calendar,
@@ -855,7 +855,6 @@ const Education = () => {
                             <AutocompleteItem
                               key={item.value}
                               textValue={item.label}
-                              value={item.value}
                               className="data-[selected=true]:bg-primary-100 dark:data-[selected=true]:bg-primary-800/40"
                             >
                               <div className="flex flex-col">
@@ -907,10 +906,7 @@ const Education = () => {
                           className="max-w-xs"
                         >
                           {(item) => (
-                            <AutocompleteItem
-                              key={item.value}
-                              value={item.value}
-                            >
+                            <AutocompleteItem key={item.value}>
                               {item.label}
                             </AutocompleteItem>
                           )}
@@ -942,9 +938,7 @@ const Education = () => {
                         description="Mode of education"
                       >
                         {EDUCATION_TYPES.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
-                          </SelectItem>
+                          <SelectItem key={type.value}>{type.label}</SelectItem>
                         ))}
                       </Select>
 
@@ -1151,7 +1145,6 @@ const Education = () => {
           )}
         </ModalContent>
       </Modal>
-
       {/* Add Branch Modal */}
       <Modal
         isOpen={isBranchModalOpen}
@@ -1204,7 +1197,6 @@ const Education = () => {
           )}
         </ModalContent>
       </Modal>
-
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={deleteConfirmationOpen}
@@ -1247,13 +1239,11 @@ const Education = () => {
           )}
         </ModalContent>
       </Modal>
-
       {/* Education Dashboard */}
       <Breadcrumbs className="mb-6">
         <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
         <BreadcrumbItem href="/profile/education">Education</BreadcrumbItem>
       </Breadcrumbs>
-
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-semibold">Education Information</h1>
@@ -1269,7 +1259,6 @@ const Education = () => {
           Add Education
         </Button>
       </div>
-
       {/* Academic Summary Card */}
       {user?.academicAggregates?.hasBacklogs && (
         <Card className="w-full mb-6 border-warning-200 bg-warning-50">
@@ -1305,7 +1294,6 @@ const Education = () => {
           </CardBody>
         </Card>
       )}
-
       <div className="space-y-4">
         {isLoading ? (
           // Loading skeleton
