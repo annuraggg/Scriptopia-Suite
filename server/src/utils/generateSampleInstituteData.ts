@@ -377,6 +377,6 @@ const generateSampleInstituteCandidates = async (instituteId: string) => {
   );
 };
 
-generateSampleInstituteCandidates("67f23bc672617f99ac1c227b");
+// generateSampleInstituteCandidates("67f23bc672617f99ac1c227b");
 
 export default generateSampleInstituteData;

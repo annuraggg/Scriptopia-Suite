@@ -7,8 +7,8 @@ import driveAnalyticsController from "@/controllers/campus/drives/driveAnalytics
 const app = new Hono();
 
 app.get("/", driveController.getDrives);
-app.get("/candidate", driveController.getDrivesForCandidate);
-app.get("/candidate/:id", driveController.getDriveForCandidate);
+// app.get("/candidate", driveController.getDrivesForCandidate);
+// app.get("/candidate/:id", driveController.getDriveForCandidate);
 app.get("/:id", driveController.getDrive);
 app.get("/slug/:slug", driveController.getDriveBySlug);
 
@@ -43,7 +43,7 @@ app.post("/upload-offer-letter", driveController.uploadOfferLetter);
 app.get("/:did/offer-letter/:id", driveController.getOfferLetter);
 
 app.get("/:id/analytics", driveAnalyticsController.getDriveAnalytics);
-app.get("/institute/analytics", driveAnalyticsController.getInstituteAnalytics);
+// app.get("/institute/analytics", driveAnalyticsController.getInstituteAnalytics);
 
 
 export default app;

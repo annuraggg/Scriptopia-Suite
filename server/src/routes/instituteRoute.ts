@@ -24,7 +24,7 @@ app.get('/candidates', instituteController.getCandidates);
 app.get('/candidates/pending', instituteController.getPendingCandidates);
 
 app.get('/settings', instituteController.getDepartments);
-app.post('/settings/departments', instituteController.updateDepartments);
+// app.post('/settings/departments', instituteController.updateDepartments);
 
 app.get("/", instituteController.getInstitute);
 app.put("/", instituteController.updateInstitute);
