@@ -6,7 +6,7 @@ import {
   SelectItem,
   Card,
   CardBody,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Palette, Type, Layout, Space } from "lucide-react";
 import { ThemeStyles } from "@/types/ResumeTheme";
 

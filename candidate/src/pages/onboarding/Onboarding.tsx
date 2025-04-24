@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "./Onboarding.css";
 import Info from "./Info";
 import Contact from "./Contact";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import { CalendarDate } from "@internationalized/date";
 import { toast } from "sonner";
 import {

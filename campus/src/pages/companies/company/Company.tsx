@@ -403,7 +403,7 @@ const Company = () => {
                     <p className="text-sm text-default-500 mb-1">Website</p>
                     {company.hrContact?.website ? (
                       <a
-                        href={`https://${company.hrContact.website}`}
+                        href={`${company.hrContact.website}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-lg font-semibold text-primary hover:underline"

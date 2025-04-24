@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { NextUIProvider } from "@nextui-org/react";
+import { HeroUIProvider } from "@heroui/react";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { Toaster } from "sonner";
 import { ErrorBoundary } from "react-error-boundary";
@@ -15,11 +15,11 @@ if (!publishableKey) {
 
 createRoot(document.getElementById("root")!).render(
   <ErrorBoundary FallbackComponent={ErrorBoundaryPage}>
-    <NextUIProvider>
+    <HeroUIProvider>
       <ClerkProvider publishableKey={publishableKey}>
         <App />
         <Toaster richColors />
       </ClerkProvider>
-    </NextUIProvider>
+    </HeroUIProvider>
   </ErrorBoundary>
 );

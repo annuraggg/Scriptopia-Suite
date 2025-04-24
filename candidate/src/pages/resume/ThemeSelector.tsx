@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select, SelectItem, Card, CardBody } from '@nextui-org/react';
+import { Select, SelectItem, Card, CardBody } from "@heroui/react";
 import { getAllThemeNames, getThemeByName } from './Themes';
 import { ThemeStyles } from '@/types/ResumeTheme';
 

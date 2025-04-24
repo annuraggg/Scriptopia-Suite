@@ -1,4 +1,4 @@
-import { Tooltip } from "@nextui-org/react";
+import { Badge, Tooltip } from "@heroui/react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -128,7 +128,13 @@ const campusItems: SidebarProps[] = [
 
 const needFullRadius = ["/campus/drives"];
 
-const Sidebar = ({ user }: { user: ExtendedCandidate }) => {
+const Sidebar = ({
+  user,
+  notifications,
+}: {
+  user: ExtendedCandidate;
+  notifications: number;
+}) => {
   const [activeParent, setActiveParent] = useState<string>("");
   const [activeChild, setActiveChild] = useState<string>("");
   const [expandedItem, setExpandedItem] = useState<SidebarProps | null>(null);
@@ -165,7 +171,7 @@ const Sidebar = ({ user }: { user: ExtendedCandidate }) => {
       label: "Notifications",
       link: "notifications",
       visible: true,
-      length: 3,
+      length: notifications,
     },
   ];
 
@@ -325,7 +331,13 @@ const Sidebar = ({ user }: { user: ExtendedCandidate }) => {
                 }`}
                 onClick={() => changePage(item)}
               >
-                <item.icon />
+                <Badge
+                  content={item?.length}
+                  color="primary"
+                  className={`${!item?.length ? "hidden" : ""} text-xs`}
+                >
+                  <item.icon className="w-5 h-5" />
+                </Badge>
               </div>
             </Tooltip>
           ))}

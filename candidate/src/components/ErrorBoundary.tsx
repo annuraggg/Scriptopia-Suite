@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import { useRouteError } from "react-router-dom";
 
 // Friendly error messages mapping

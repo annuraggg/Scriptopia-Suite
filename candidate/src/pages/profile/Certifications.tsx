@@ -27,7 +27,7 @@ import {
   Badge,
   Skeleton,
   Link,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState, useEffect } from "react";
 import {
   getLocalTimeZone,

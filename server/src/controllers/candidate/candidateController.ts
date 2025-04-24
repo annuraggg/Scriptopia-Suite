@@ -18,6 +18,8 @@ import Drive from "@/models/Drive";
 import clerkClient from "@/config/clerk";
 import PlacementGroup from "@/models/PlacementGroup";
 import mongoose from "mongoose";
+import getCampusUsersWithPermission from "@/utils/getUserWithPermission";
+import { sendNotificationToCampus } from "@/utils/sendNotification";
 
 // Maximum resume file size (5MB)
 const MAX_RESUME_SIZE = 5 * 1024 * 1024;
@@ -860,6 +862,24 @@ const applyToDrive = async (c: Context) => {
 
     // Commit transaction
     await session.commitTransaction();
+
+    const institute = await Institute.findById(drive.institute);
+    if (!institute) {
+      return sendError(c, 404, "Institute not found");
+    }
+
+    const notifyingUser = await getCampusUsersWithPermission({
+      institute: institute,
+      permissions: ["manage_drive"],
+    });
+
+    if (notifyingUser.length > 0) {
+      await sendNotificationToCampus({
+        userIds: notifyingUser,
+        title: `New Application for Drive "${drive.title}"`,
+        message: `${candidate.name} has applied for the drive "${drive.title}".`,
+      });
+    }
 
     return sendSuccess(c, 200, "Application to drive submitted successfully");
   } catch (error) {

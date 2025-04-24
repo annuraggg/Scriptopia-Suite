@@ -5,7 +5,6 @@ import { Progress } from "@heroui/progress";
 import { Tooltip } from "@heroui/tooltip";
 import { Divider } from "@heroui/divider";
 import {
-  IconBuilding,
   IconMapPin,
   IconUsers,
   IconCalendar,
@@ -38,6 +37,7 @@ type ChipColors = "default" | "primary" | "success" | "warning" | "danger";
 
 const Info = () => {
   const { drive } = useOutletContext() as { drive: ExtendedDrive };
+  console.log(drive); // Debugging line to check the drive object
   // Current date and time: 2025-04-12 17:20:56
 
   const isActive = () => {
@@ -231,25 +231,6 @@ const Info = () => {
                     ? (drive.placementGroup as PlacementGroup)?.name ||
                       "Name not available"
                     : drive.placementGroup || "Not specified"}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                <IconBuilding
-                  className="text-gray-600 dark:text-gray-400"
-                  size={20}
-                />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Department
-                </p>
-                <p className="font-medium text-gray-800 dark:text-white">
-                  {drive?.institute?.departments?.find(
-                    (d) => d._id === drive?.department
-                  )?.name || "Not specified"}
                 </p>
               </div>
             </div>

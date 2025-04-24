@@ -21,7 +21,7 @@ import {
   Tooltip,
   Badge,
   Skeleton,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState, useEffect } from "react";
 import {
   Plus,
@@ -429,14 +429,13 @@ const Projects = () => {
   );
 
   return (
-    <div>
+    (<div>
       <div className="mb-6">
         <Breadcrumbs>
           <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
           <BreadcrumbItem>Projects</BreadcrumbItem>
         </Breadcrumbs>
       </div>
-
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-semibold">Projects</h1>
@@ -454,13 +453,12 @@ const Projects = () => {
           </Button>
         )}
       </div>
-
       {isLoading ? (
         // Skeleton loader for loading state
-        <div className="space-y-4">
+        (<div className="space-y-4">
           <Skeleton className="w-full h-32 rounded-lg" />
           <Skeleton className="w-full h-32 rounded-lg" />
-        </div>
+        </div>)
       ) : !user?.projects?.length ? (
         renderEmptyState()
       ) : (
@@ -630,7 +628,6 @@ const Projects = () => {
           )}
         </>
       )}
-
       {/* Project Form Modal */}
       <Modal
         isOpen={isOpen}
@@ -845,7 +842,6 @@ const Projects = () => {
           )}
         </ModalContent>
       </Modal>
-
       {/* Confirmation Modal for Delete */}
       <Modal
         isOpen={isConfirmDeleteOpen}
@@ -890,7 +886,7 @@ const Projects = () => {
           )}
         </ModalContent>
       </Modal>
-    </div>
+    </div>)
   );
 };
 

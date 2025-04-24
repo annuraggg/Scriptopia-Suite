@@ -129,7 +129,7 @@ const DriveAnalyticsPage: React.FC = () => {
         ]);
 
         setData(analyticsResponse.data.data);
-        setPipelineData(pipelineResponse.data.data);
+        setPipelineData(pipelineResponse.data.data.applications);
       } catch (error) {
         console.error("Error fetching drive data:", error);
         toast.error("Failed to load drive analytics");
@@ -148,6 +148,25 @@ const DriveAnalyticsPage: React.FC = () => {
 
     return data.drive.workflow.steps.map((step, stepIndex) => {
       const totalCandidates = pipelineData.length;
+
+      // const candidatesInStage = pipelineData.filter((candidate) => {
+      //   if (step.status === "in-progress") {
+      //     return (
+      //       candidate.status === "inprogress" ||
+      //       (stepIndex === 0 && candidate.status === "applied")
+      //     );
+      //   } else if (
+      //     step.status === "completed" &&
+      //     stepIndex === data.drive.workflow!.steps!.length - 1
+      //   ) {
+      //     return candidate.status === "hired";
+      //   } else if (candidate.status === "rejected") {
+      //     return (
+      //       candidate.disqualifiedStage?.toString() === step._id?.toString()
+      //     );
+      //   }
+      //   return false;
+      // });
 
       const passedCandidates = pipelineData.filter((candidate) => {
         if (candidate.status === "hired") return true;

@@ -19,7 +19,7 @@ export interface CompanyHRContact {
 }
 
 export interface Company {
-  _id: string;
+  _id?: string;
   name: string;
   description?: string;
   generalInfo: CompanyGeneralInfo;

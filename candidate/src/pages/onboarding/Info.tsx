@@ -1,4 +1,4 @@
-import { DatePicker, Input, Radio, RadioGroup } from "@nextui-org/react";
+import { DatePicker, Input, Radio, RadioGroup } from "@heroui/react";
 import { CalendarDate, today } from "@internationalized/date";
 
 const Info = ({

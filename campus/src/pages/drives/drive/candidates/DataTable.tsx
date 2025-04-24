@@ -7,12 +7,10 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-
 import {
   Table,
   TableBody,
@@ -21,43 +19,59 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
 import {
   ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
   Download,
   User,
+  ExternalLink,
+  Search,
 } from "lucide-react";
 import { Button } from "@heroui/button";
-import { Checkbox } from "@heroui/checkbox";
-import { useOutletContext } from "react-router-dom";
-import { Drive as DriveType } from "@shared-types/Drive";
-import { Candidate } from "@shared-types/Candidate";
+import { Candidate as ICandidate } from "@shared-types/Candidate";
+import { Input } from "@heroui/input";
+import { useDebouncedCallback } from "use-debounce";
 
 interface DataTableProps {
   data: Candidate[];
   downloadResume: (url: string) => Promise<void>;
+  onSearch: (query: string) => void;
+  searchQuery: string;
+  isLoading: boolean;
+  onRetry?: () => void; // Add retry function prop
 }
 
-export function DataTable({ data, downloadResume }: DataTableProps) {
-  const [candidates] = useState(data);
+interface Candidate extends ICandidate {
+  status: string;
+}
+
+export function DataTable({
+  data,
+  downloadResume,
+  onSearch,
+  searchQuery,
+  isLoading,
+  onRetry,
+}: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [pageIndex, setPageIndex] = useState(0);
-  const [currentDriveId, setCurrentDriveId] = useState<string | null>(null);
   const [loadingResume, setLoadingResume] = useState<Record<string, boolean>>(
     {}
   );
+  const [searchValue, setSearchValue] = useState(searchQuery || "");
 
-  const { drive } = useOutletContext() as { drive: DriveType };
   useEffect(() => {
-    if (drive) {
-      setCurrentDriveId(drive?._id as string);
-      console.log(candidates);
-      console.log(drive?._id);
-    }
-  }, [currentDriveId, drive]);
+    setSearchValue(searchQuery);
+  }, [searchQuery]);
+
+  // Log data changes to help debug
+  useEffect(() => {
+    console.log("DataTable received data:", data?.length || 0, "records");
+  }, [data]);
+
+  // Debounce search to avoid excessive API calls
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    onSearch(value);
+  }, 500);
 
   const handleDownloadResume = async (id: string) => {
     setLoadingResume((prev) => ({ ...prev, [id]: true }));
@@ -68,25 +82,56 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
     }
   };
 
+  const openProfileInNewWindow = (id: string) => {
+    window.open(`/c/${id}`, "_blank");
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchValue(value);
+    debouncedSearch(value);
+  };
+
+  // Get status color based on status value
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "active":
+      case "accepted":
+      case "approved":
+        return "text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs";
+      case "pending":
+      case "in progress":
+      case "in review":
+        return "text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full text-xs";
+      case "rejected":
+      case "declined":
+      case "inactive":
+        return "text-red-600 bg-red-100 px-2 py-1 rounded-full text-xs";
+      default:
+        return "text-gray-600 bg-gray-100 px-2 py-1 rounded-full text-xs";
+    }
+  };
+
   const columns: ColumnDef<Candidate>[] = [
     {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          isSelected={table.getIsAllPageRowsSelected()}
-          onValueChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
+      accessorKey: "instituteUid",
+      header: ({ column }) => (
+        <Button
+          variant="light"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          UID
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
       ),
-      cell: ({ row }) => (
-        <Checkbox
-          isSelected={row.getIsSelected()}
-          onValueChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
+      cell: ({ row }) => {
+        const uid = row.original.instituteUid;
+        return uid ? (
+          uid
+        ) : (
+          <span className="text-gray-400 italic">Not available</span>
+        );
+      },
     },
     {
       accessorKey: "name",
@@ -123,75 +168,127 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
+      cell: ({ row }) => {
+        const phone = row.getValue("phone");
+        return phone ? (
+          phone
+        ) : (
+          <span className="text-gray-400 italic">Not provided</span>
+        );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }) => (
+        <Button
+          variant="light"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Status
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => {
+        const status = row.original.status || "Not Set";
+        return <span className={getStatusColor(status)}>{status}</span>;
+      },
     },
     {
       accessorKey: "resume",
-      header: () => <span>Resume</span>,
+      header: () => <span>Actions</span>,
       cell: ({ row }) => {
         const id = row.original._id as string;
         const isLoading = loadingResume[id];
+        const hasResume = !!row.original.resumeUrl;
+
         return (
-          <>
+          <div className="flex space-x-2">
+            {hasResume ? (
+              <Button
+                variant="flat"
+                onPress={() => handleDownloadResume(id)}
+                color="success"
+                isLoading={isLoading}
+                isDisabled={isLoading}
+                size="sm"
+              >
+                <Download size={16} />
+                {isLoading ? "Downloading..." : "Resume"}
+              </Button>
+            ) : (
+              <Button
+                variant="flat"
+                isDisabled={true}
+                color="default"
+                size="sm"
+              >
+                <span className="text-gray-400 italic">No Resume</span>
+              </Button>
+            )}
             <Button
               variant="flat"
-              onPress={() => handleDownloadResume(id)}
-              color="success"
-              isLoading={isLoading}
-              isDisabled={isLoading}
-            >
-              <Download size={16} />
-              {isLoading ? "Downloading..." : "Resume"}
-            </Button>
-            <Button
-              variant="flat"
-              onPress={() => window.open(`/c/${row.original._id}`)}
-              className="ml-3"
+              onPress={() => openProfileInNewWindow(id)}
+              size="sm"
             >
               <User size={16} />
+              <ExternalLink size={12} className="ml-1" />
               View
             </Button>
-          </>
+          </div>
         );
       },
     },
   ];
 
   const table = useReactTable({
-    data: candidates,
+    data: data || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     state: {
       sorting,
       columnFilters,
-      pagination: { pageSize: 10, pageIndex: pageIndex },
     },
+    manualPagination: true,
   });
+
+  // Skeleton table rows
+  const skeletonRows = Array(10)
+    .fill(0)
+    .map((_, index) => (
+      <TableRow key={`skeleton-${index}`}>
+        {Array(columns.length)
+          .fill(0)
+          .map((_, cellIndex) => (
+            <TableCell key={`skeleton-cell-${index}-${cellIndex}`}>
+              <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+            </TableCell>
+          ))}
+      </TableRow>
+    ));
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between w-full mb-4">
-        <div className="flex items-center space-x-2">
-          <Button
-            onClick={() => setPageIndex(pageIndex - 1)}
-            isDisabled={!table.getCanPreviousPage()}
-            isIconOnly
-          >
-            <ChevronLeft />
-          </Button>
-          <Button
-            onClick={() => setPageIndex(pageIndex + 1)}
-            isDisabled={!table.getCanNextPage()}
-            isIconOnly
-          >
-            <ChevronRight />
-          </Button>
+      <div className="mb-4">
+        <div className="flex space-x-2">
+          <Input
+            value={searchValue}
+            onChange={handleSearchChange}
+            placeholder="Search by name, email, or UID..."
+            className="max-w-md"
+            startContent={<Search size={18} />}
+            isClearable
+            onClear={() => {
+              setSearchValue("");
+              onSearch("");
+            }}
+          />
         </div>
       </div>
+
       <div className="w-full overflow-auto">
         <Table className="w-full">
           <TableHeader>
@@ -213,12 +310,11 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              skeletonRows
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
@@ -235,7 +331,37 @@ export function DataTable({ data, downloadResume }: DataTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  <div className="flex flex-col items-center gap-2">
+                    {searchValue ? (
+                      <>
+                        <p className="text-lg font-medium">
+                          No candidates found matching "{searchValue}"
+                        </p>
+                        <Button
+                          onClick={() => {
+                            setSearchValue("");
+                            onSearch("");
+                          }}
+                          color="secondary"
+                          size="sm"
+                        >
+                          Clear Search
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-lg font-medium">
+                          No candidates available
+                        </p>
+                        <Button onClick={onRetry} color="primary" size="sm">
+                          Retry Loading
+                        </Button>
+                      </>
+                    )}
+                    <p className="text-sm text-gray-500 mt-2">
+                      If this issue persists, please contact support.
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}

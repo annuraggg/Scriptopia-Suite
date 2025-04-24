@@ -6,6 +6,7 @@ import CompanyStatsTab from "./CompanyStatsTab";
 import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
+import { Company } from "@shared-types/Company";
 
 interface CreateCompanyFormProps {
   onClose: () => void;
@@ -31,13 +32,7 @@ const CreateCompanyForm: React.FC<CreateCompanyFormProps> = ({ onClose }) => {
   const [hrEmail, setHrEmail] = useState("");
   const [hrPhone, setHrPhone] = useState("");
   const [hrWebsite, setHrWebsite] = useState("");
-
-  // Replace individual stats with year-wise stats array
-  const currentYear = new Date().getFullYear().toString();
   const [yearlyStats, setYearlyStats] = useState<YearlyStats[]>([]);
-
-  // Year visit remains as is
-  const [yearVisit] = useState<string[]>([currentYear]);
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
@@ -97,15 +92,15 @@ const CreateCompanyForm: React.FC<CreateCompanyFormProps> = ({ onClose }) => {
       // Transform yearly stats to the format needed for the API
       const placementStats = yearlyStats.map((stat) => ({
         year: stat.year,
-        averagePackage: Number(stat.avgPackage),
-        highestPackage: Number(stat.highestPackage),
-        studentsHired: Number(stat.studentsHired),
+        average: Number(stat.avgPackage),
+        highest: Number(stat.highestPackage),
+        hired: Number(stat.studentsHired),
       }));
 
-      const companyData = {
+      const companyData: Company = {
         name,
         description,
-        hrContacts: {
+        hrContact: {
           name: hrName,
           email: hrEmail,
           phone: hrPhone,
@@ -113,8 +108,7 @@ const CreateCompanyForm: React.FC<CreateCompanyFormProps> = ({ onClose }) => {
         },
         generalInfo: {
           industry: industry,
-          yearVisit: yearVisit,
-          placementStats: placementStats, // Now an array of yearly stats
+          yearStats: placementStats, // Now an array of yearly stats
           rolesOffered: rolesOffered,
         },
       };

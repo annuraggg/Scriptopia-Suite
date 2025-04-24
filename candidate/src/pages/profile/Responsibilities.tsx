@@ -18,7 +18,7 @@ import {
   Divider,
   Tooltip,
   Skeleton,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState, useEffect } from "react";
 import {
   Edit2,
@@ -387,14 +387,13 @@ export default function Responsibilities() {
   };
 
   return (
-    <div>
+    (<div>
       <Breadcrumbs className="mb-6">
         <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
         <BreadcrumbItem href="/profile/responsibilities">
           Positions & Responsibilities
         </BreadcrumbItem>
       </Breadcrumbs>
-
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-semibold">
@@ -412,14 +411,13 @@ export default function Responsibilities() {
           Add Position
         </Button>
       </div>
-
       <div className="space-y-4">
         {isLoading ? (
           // Skeleton loader for loading state
-          <div className="space-y-4">
+          (<div className="space-y-4">
             <Skeleton className="w-full h-32 rounded-lg" />
             <Skeleton className="w-full h-32 rounded-lg" />
-          </div>
+          </div>)
         ) : !user.responsibilities?.length ? (
           <Card className="w-full bg-gray-50 border-dashed border-2 border-gray-200">
             <CardBody className="py-12 flex flex-col items-center justify-center gap-4">
@@ -536,7 +534,6 @@ export default function Responsibilities() {
           </>
         )}
       </div>
-
       {/* Add/Edit Position Modal */}
       <Modal
         isOpen={isOpen}
@@ -712,7 +709,6 @@ export default function Responsibilities() {
           )}
         </ModalContent>
       </Modal>
-
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={deleteModal.isOpen}
@@ -757,6 +753,6 @@ export default function Responsibilities() {
           )}
         </ModalContent>
       </Modal>
-    </div>
+    </div>)
   );
 }

@@ -14,7 +14,7 @@ import {
   Button,
   Input,
   Pagination,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { DataTable } from "./DataTable";
 import { motion } from "framer-motion";
 // import { useNavigate } from "react-router-dom";
