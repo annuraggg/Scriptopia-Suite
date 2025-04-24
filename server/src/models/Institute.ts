@@ -104,6 +104,10 @@ const instituteSchema = new Schema(
     code: { type: String, required: true },
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     isDeleted: { type: Boolean, default: false },
+
+    isSample: { type: Boolean, default: false },
+    samplePassword: { type: String, default: null },
+    sampleSalt: { type: String, default: null },
   },
   { timestamps: true }
 );

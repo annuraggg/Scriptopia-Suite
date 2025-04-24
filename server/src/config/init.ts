@@ -8,7 +8,7 @@ import authMiddleware from "../middlewares/authMiddleware";
 
 import "../utils/logger";
 import "./db";
-import "./cache";
+// import "./cache";
 import "./loops";
 import "./clerk";
 

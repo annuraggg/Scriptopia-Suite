@@ -14,11 +14,6 @@ import { User as IUser } from "@shared-types/User";
 
 const runCode = async (c: Context) => {
   try {
-    const cached = false;
-    if (cached) {
-      return sendSuccess(c, 200, "Success", JSON.parse(c.get("cachedData")));
-    }
-
     const body = await c.req.json();
     const prob = await Problem.findOne({ _id: body.problemId });
 
@@ -109,7 +104,11 @@ const submitCode = async (c: Context) => {
       if (user) {
         user.streak.push(date);
 
-        const shouldReward = shouldRewardUser(prob.difficulty, prob._id?.toString(), user as unknown as IUser);
+        const shouldReward = shouldRewardUser(
+          prob.difficulty,
+          prob._id?.toString(),
+          user as unknown as IUser
+        );
 
         if (shouldReward && user.wallet?.address) {
           const rewardAmount =
@@ -118,8 +117,11 @@ const submitCode = async (c: Context) => {
               : prob.difficulty === "medium"
               ? "2"
               : "3";
-          const amountInWei = Web3.utils.toWei(rewardAmount.toString(), 'ether');
-          console.log(amountInWei)
+          const amountInWei = Web3.utils.toWei(
+            rewardAmount.toString(),
+            "ether"
+          );
+          console.log(amountInWei);
 
           try {
             const rewardSent = await sendTokenReward(

@@ -33,6 +33,7 @@ import {
 } from "@/utils/validation";
 import getCampusUsersWithPermission from "@/utils/getUserWithPermission";
 import { sendNotificationToCampus } from "@/utils/sendNotification";
+import generateSampleInstituteData from "@/utils/generateSampleInstituteData";
 
 const TOKEN_EXPIRY = "24h";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -45,7 +46,7 @@ const ALLOWED_FILE_TYPES = ["image/png", "image/jpeg", "image/jpg"];
 const createInstitute = async (c: Context) => {
   try {
     const body = await c.req.json();
-    const { name, email, website, address, members } = body;
+    const { name, email, website, address, members, sampleData } = body;
 
     const sanitizedName = sanitizeInput(name);
     const sanitizedEmail = sanitizeInput(email);
@@ -251,7 +252,11 @@ const createInstitute = async (c: Context) => {
       }
     }
 
-    return sendSuccess(c, 201, "Institute created successfully", {
+    if (sampleData) {
+      generateSampleInstituteData((institute as unknown as IInstitute)?._id!)
+    }
+
+    return sendSuccess(c, 400, "Institute created successfully", {
       institute: (institute as unknown as IInstitute)?._id,
     });
   } catch (error) {
@@ -1842,18 +1847,18 @@ const getInstitute = async (c: Context) => {
     }
 
     const institute = await Institute.findOne({
-      "members.user": userId,
-      "members.status": "active",
+      members: {
+        $elemMatch: {
+          user: userId,
+          status: "active",
+        },
+      },
     })
       .populate({
         path: "members.user",
       })
-      .populate({
-        path: "candidates",
-      })
-      .populate({
-        path: "pendingCandidates",
-      })
+      .populate("candidates")
+      .populate("pendingCandidates")
       .populate("companies")
       .populate("drives")
       .lean();
