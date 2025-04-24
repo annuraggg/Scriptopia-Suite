@@ -33,7 +33,7 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({
             className="mt-2"
           >
             {themeNames.map((name) => (
-              <SelectItem key={name} value={name}>
+              <SelectItem key={name}>
                 {name}
               </SelectItem>
             ))}

@@ -497,21 +497,18 @@ const Awards = () => {
                   >
                     <SelectItem
                       key="academic"
-                      value="academic"
                       startContent={<School size={16} />}
                     >
                       Academic
                     </SelectItem>
                     <SelectItem
                       key="professional"
-                      value="professional"
                       startContent={<Building size={16} />}
                     >
                       Professional
                     </SelectItem>
                     <SelectItem
                       key="personal"
-                      value="personal"
                       startContent={<Trophy size={16} />}
                     >
                       Personal

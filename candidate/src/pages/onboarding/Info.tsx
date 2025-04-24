@@ -40,7 +40,7 @@ const Info = ({
           label="Date of Birth"
           className="mt-3"
           value={dob}
-          onChange={(date) => setDob(date)}
+          onChange={(date) => setDob(date!)}
           maxValue={today("IST")}
           description={
             <p className="text-red-500">

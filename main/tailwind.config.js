@@ -9,7 +9,7 @@ export default {
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
-    "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
   prefix: "",
   theme: {
@@ -27,6 +27,9 @@ export default {
       poly: ["Polysans", "sans-serif"],
     },
     extend: {
+      animation: {
+        "meteor-effect": "meteor 5s linear infinite",
+      },
       dropShadow: {
         glow: [
           "0 0px 10px rgba(255,255, 255, 0.35)",
@@ -44,19 +47,16 @@ export default {
           "0 0px 1px rgba(255,0, 0, .1)",
           "0 0px 5px rgba(255, 0,0, .1)",
         ],
-        "glow-dark": ["0 0px 10px rgba(1,1,1, 1)", "0 0px 65px rgba(1,1,1, 1)"],
-        "glow-opacity-dark": [
-          "0 0px 10px rgba(0,0, 0, 0.03)",
-          "0 0px 65px rgba(0,0,0, 0.03)",
-        ],
-        "glow-light-dark": [
-          "0 0px 1px rgba(0,0, 0, 0.35)",
-          "0 0px 10px rgba(0,0,0, 0.2)",
-        ],
-        "glow-extralight-dark": [
-          "0 0px 1px rgba(0,0, 0, 0.1)",
-          "0 0px 5px rgba(0,0,0, 0.1)",
-        ],
+      },
+      keyframes: {
+        meteor: {
+          "0%": { transform: "rotate(215deg) translateX(0)", opacity: "1" },
+          "70%": { opacity: "1" },
+          "100%": {
+            transform: "rotate(215deg) translateX(-500px)",
+            opacity: "0",
+          },
+        },
       },
       colors: {
         border: "hsl(var(--border))",
@@ -114,5 +114,5 @@ export default {
       },
     },
   },
-  plugins: [import("tailwindcss-animate"), nextui()],
+  plugins: [require("tailwindcss-animate"), nextui()],
 };

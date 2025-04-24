@@ -857,7 +857,7 @@ const VolunteeringComponent = () => {
                           {group.category}
                         </div>
                         {group.items.map((cause) => (
-                          <SelectItem key={cause.value} value={cause.value}>
+                          <SelectItem key={cause.value}>
                             {cause.value}
                           </SelectItem>
                         ))}

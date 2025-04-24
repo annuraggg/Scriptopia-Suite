@@ -773,7 +773,6 @@ const Projects = () => {
                     {associationOptions.map((option) => (
                       <SelectItem
                         key={option.value}
-                        value={option.value}
                         startContent={option.icon}
                       >
                         {option.label}

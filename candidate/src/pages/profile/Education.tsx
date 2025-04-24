@@ -761,7 +761,7 @@ const Education = () => {
     : PROGRAMS;
 
   return (
-    (<div>
+    <div>
       {/* Main Education Modal */}
       <Modal
         size="3xl"
@@ -855,7 +855,6 @@ const Education = () => {
                             <AutocompleteItem
                               key={item.value}
                               textValue={item.label}
-                              value={item.value}
                               className="data-[selected=true]:bg-primary-100 dark:data-[selected=true]:bg-primary-800/40"
                             >
                               <div className="flex flex-col">
@@ -907,10 +906,7 @@ const Education = () => {
                           className="max-w-xs"
                         >
                           {(item) => (
-                            <AutocompleteItem
-                              key={item.value}
-                              value={item.value}
-                            >
+                            <AutocompleteItem key={item.value}>
                               {item.label}
                             </AutocompleteItem>
                           )}
@@ -942,9 +938,7 @@ const Education = () => {
                         description="Mode of education"
                       >
                         {EDUCATION_TYPES.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
-                          </SelectItem>
+                          <SelectItem key={type.value}>{type.label}</SelectItem>
                         ))}
                       </Select>
 
@@ -1303,7 +1297,7 @@ const Education = () => {
       <div className="space-y-4">
         {isLoading ? (
           // Loading skeleton
-          (Array(3)
+          Array(3)
             .fill(0)
             .map((_, i) => (
               <Card key={i} className="w-full border shadow-sm">
@@ -1322,7 +1316,7 @@ const Education = () => {
                   </div>
                 </CardBody>
               </Card>
-            )))
+            ))
         ) : !sortedEducation.length ? (
           <Card className="w-full bg-gray-50 border-dashed border-2 border-gray-200">
             <CardBody className="py-12 flex flex-col items-center justify-center gap-4">
@@ -1505,7 +1499,7 @@ const Education = () => {
           </>
         )}
       </div>
-    </div>)
+    </div>
   );
 };
 
