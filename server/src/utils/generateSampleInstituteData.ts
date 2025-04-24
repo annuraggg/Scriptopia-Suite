@@ -4,9 +4,28 @@ import clerkClient from "@/config/clerk";
 import { generate } from "generate-passphrase";
 import User from "@/models/User";
 import Candidate from "@/models/Candidate";
+import PlacementGroup from "@/models/PlacementGroup";
+import Company from "@/models/Company";
+import Drive from "@/models/Drive";
 import sampleDepartments from "@/data/samples/institute/departments";
+import { Types } from "mongoose";
+import { PlacementGroup as IPlacementGroup } from "@shared-types/PlacementGroup";
+import { Company as ICompany } from "@shared-types/Company";
 
 const CANDIDATES_LIMIT = 2;
+const PLACEMENT_GROUPS_MIN = 3;
+const PLACEMENT_GROUPS_MAX = 10;
+const COMPANIES_MIN = 5;
+const COMPANIES_MAX = 15;
+const DRIVES_MIN = 7;
+const DRIVES_MAX = 20;
+
+const StepStatus = {
+  PENDING: "pending",
+  IN_PROGRESS: "in-progress",
+  COMPLETED: "completed",
+  FAILED: "failed",
+};
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -18,6 +37,12 @@ const generateSampleInstituteData = async (instituteId: string) => {
 
   await generateSampleInstituteDepartments(instituteId);
   await generateSampleInstituteCandidates(instituteId);
+  await generateSamplePlacementGroups(
+    instituteId,
+    institute.createdBy?.toString()
+  );
+  await generateSampleCompanies(instituteId);
+  await generateSampleDrives(instituteId);
 };
 
 const generateSampleInstituteDepartments = async (instituteId: string) => {
@@ -108,6 +133,7 @@ const generateSampleInstituteCandidates = async (instituteId: string) => {
       address: faker.location.streetAddress(true),
       summary: faker.lorem.paragraph(),
       profileImage: faker.image.avatar(),
+      isSample: true,
 
       socialLinks: Array.from({
         length: faker.number.int({ min: 1, max: 3 }),
@@ -132,7 +158,8 @@ const generateSampleInstituteCandidates = async (instituteId: string) => {
           : null;
         const activeBacklogs = faker.number.int({ min: 0, max: 3 });
         const totalBacklogs =
-          activeBacklogs + faker.number.int({ min: activeBacklogs, max: 2 });
+          activeBacklogs +
+          faker.number.int({ min: activeBacklogs, max: activeBacklogs + 10 });
 
         return {
           school: faker.company.name() + " University",
@@ -377,6 +404,551 @@ const generateSampleInstituteCandidates = async (instituteId: string) => {
   );
 };
 
-// generateSampleInstituteCandidates("67f23bc672617f99ac1c227b");
+const generateSamplePlacementGroups = async (
+  instituteId: string,
+  createdBy: string
+) => {
+  try {
+    const institute = await Institute.findById(instituteId);
+    if (!institute) {
+      throw new Error("Institute not found");
+    }
+
+    const candidates = await Candidate.find({
+      institute: instituteId,
+      isSample: true,
+    });
+
+    if (candidates.length === 0) {
+      console.log("No sample candidates found to create placement groups");
+      return;
+    }
+
+    const groupCount = faker.number.int({
+      min: PLACEMENT_GROUPS_MIN,
+      max: PLACEMENT_GROUPS_MAX,
+    });
+
+    console.log(`Creating ${groupCount} sample placement groups`);
+
+    const placementGroupIds = [];
+
+    for (let i = 0; i < groupCount; i++) {
+      const startYear = faker.number.int({ min: 2019, max: 2024 });
+      const endYear = startYear + 1;
+
+      const departmentCount = faker.number.int({
+        min: 1,
+        max: Math.min(3, institute.departments.length),
+      });
+
+      const selectedDepartments = faker.helpers
+        .shuffle(institute.departments)
+        .slice(0, departmentCount)
+        .map((dept) => dept._id);
+
+      const candidateCount = faker.number.int({
+        min: 1,
+        max: Math.min(candidates.length, 20),
+      });
+
+      const selectedCandidates = faker.helpers
+        .shuffle([...candidates])
+        .slice(0, candidateCount)
+        .map((candidate) => candidate._id);
+
+      const placementGroup = new PlacementGroup({
+        name: `${faker.company.name()} ${startYear}-${endYear} Placement Drive`,
+        institute: instituteId,
+        academicYear: {
+          start: startYear.toString(),
+          end: endYear.toString(),
+        },
+        departments: selectedDepartments,
+        purpose: faker.helpers.arrayElement([
+          "Campus recruitment drive",
+          "Internship opportunity",
+          "Summer placement",
+          "Industrial training",
+          "Pre-placement offer selection",
+        ]),
+        expiryDate: faker.date.between({
+          from: new Date(`${endYear}-01-01`),
+          to: new Date(`${endYear}-12-31`),
+        }),
+        candidates: selectedCandidates,
+        pendingCandidates: [],
+        createdBy,
+        isSample: true,
+        archived: faker.datatype.boolean(0.2),
+      });
+
+      const savedPlacementGroup = await placementGroup.save();
+      placementGroupIds.push(savedPlacementGroup._id);
+
+      console.log(`Created placement group: ${placementGroup.name}`);
+    }
+
+    await Institute.updateOne(
+      { _id: instituteId },
+      {
+        $push: {
+          placementGroups: { $each: placementGroupIds },
+          auditLogs: {
+            action: `Added ${groupCount} sample placement groups`,
+            user: "System",
+            userId: "system",
+            type: "info",
+          },
+        },
+      }
+    );
+
+    console.log(
+      `Added ${groupCount} placement groups to institute ${instituteId}`
+    );
+  } catch (error) {
+    console.error("Error generating placement groups:", error);
+    throw error;
+  }
+};
+
+/**
+ * Generate sample companies and associate them with the institute
+ */
+const generateSampleCompanies = async (instituteId: string) => {
+  try {
+    const companyCount = faker.number.int({
+      min: COMPANIES_MIN,
+      max: COMPANIES_MAX,
+    });
+
+    console.log(`Creating ${companyCount} sample companies`);
+
+    const companyIds = [];
+
+    const industries = [
+      "Technology",
+      "Finance",
+      "Healthcare",
+      "Manufacturing",
+      "Retail",
+      "Consulting",
+      "Education",
+      "Telecommunications",
+      "Energy",
+      "Media",
+      "Real Estate",
+      "Automotive",
+      "Aerospace",
+      "Pharmaceuticals",
+      "Transportation",
+      "Food & Beverage",
+      "Entertainment",
+    ];
+
+    const roles = [
+      "Software Engineer",
+      "Data Scientist",
+      "Product Manager",
+      "Business Analyst",
+      "UX Designer",
+      "Marketing Specialist",
+      "Sales Representative",
+      "Financial Analyst",
+      "HR Specialist",
+      "Operations Manager",
+      "Network Administrator",
+      "DevOps Engineer",
+      "Quality Assurance Analyst",
+      "Research Scientist",
+      "Customer Success Manager",
+      "Project Manager",
+      "Technical Writer",
+    ];
+
+    for (let i = 0; i < companyCount; i++) {
+      const industryCount = faker.number.int({ min: 1, max: 3 });
+      const companyIndustries = faker.helpers.arrayElements(
+        industries,
+        industryCount
+      );
+
+      const rolesCount = faker.number.int({ min: 2, max: 5 });
+      const companyRoles = faker.helpers.arrayElements(roles, rolesCount);
+
+      const currentYear = new Date().getFullYear();
+      const yearStats = Array.from({ length: 3 }).map((_, index) => {
+        const year = (currentYear - index).toString();
+        const hired = faker.number.int({ min: 5, max: 50 });
+        const highest = faker.number.int({ min: 1200000, max: 3000000 });
+        const average = faker.number.int({ min: 600000, max: highest });
+
+        return {
+          year,
+          hired,
+          highest,
+          average,
+        };
+      });
+
+      const company = new Company({
+        name: faker.company.name(),
+        description:
+          faker.company.catchPhrase() + ". " + faker.lorem.paragraph(2),
+        generalInfo: {
+          industry: companyIndustries,
+          yearStats,
+          rolesOffered: companyRoles,
+        },
+        hrContact: {
+          name: faker.person.fullName(),
+          phone: faker.phone.number(),
+          email: faker.internet.email(),
+          website: faker.internet.url(),
+        },
+        isArchived: faker.datatype.boolean(0.15),
+        isSample: true,
+        createdAt: faker.date.past({ years: 2 }),
+        updatedAt: faker.date.recent(),
+      });
+
+      const savedCompany = await company.save();
+      companyIds.push(savedCompany._id);
+
+      console.log(`Created company: ${company.name}`);
+    }
+
+    await Institute.updateOne(
+      { _id: instituteId },
+      {
+        $push: {
+          companies: { $each: companyIds },
+          auditLogs: {
+            action: `Added ${companyCount} sample companies`,
+            user: "System",
+            userId: "system",
+            type: "info",
+          },
+        },
+      }
+    );
+
+    console.log(`Added ${companyCount} companies to institute ${instituteId}`);
+
+    return companyIds;
+  } catch (error) {
+    console.error("Error generating companies:", error);
+    throw error;
+  }
+};
+
+/**
+ * Generate sample drives for the institute
+ */
+const generateSampleDrives = async (instituteId: string) => {
+  try {
+    const institute = await Institute.findById(instituteId)
+      .populate<{ placementGroups: IPlacementGroup[] }>("placementGroups")
+      .populate<{ companies: ICompany[] }>("companies");
+
+    if (!institute) {
+      throw new Error("Institute not found");
+    }
+
+    if (!institute.placementGroups || institute.placementGroups.length === 0) {
+      console.log("No placement groups found, cannot create drives");
+      return;
+    }
+
+    if (!institute.companies || institute.companies.length === 0) {
+      console.log("No companies found, cannot create drives");
+      return;
+    }
+
+    const driveCount = faker.number.int({
+      min: DRIVES_MIN,
+      max: DRIVES_MAX,
+    });
+
+    console.log(`Creating ${driveCount} sample drives`);
+
+    const customStepNames = [
+      ["Resume Shortlisting", "Technical Interview", "HR Interview"],
+      [
+        "Application Screening",
+        "Aptitude Test",
+        "Technical Round",
+        "Final Interview",
+      ],
+      [
+        "Profile Review",
+        "Coding Challenge",
+        "Technical Discussion",
+        "Culture Fit",
+        "Offer Discussion",
+      ],
+      [
+        "Resume Evaluation",
+        "Group Discussion",
+        "Technical Skills Assessment",
+        "Managerial Round",
+      ],
+      [
+        "Initial Screening",
+        "Technical Assessment",
+        "Team Fit Interview",
+        "HR & Compensation Discussion",
+      ],
+      [
+        "Application Review",
+        "Online Coding Test",
+        "System Design Discussion",
+        "Behavioral Interview",
+      ],
+    ];
+
+    const techSkills = [
+      "JavaScript",
+      "TypeScript",
+      "React",
+      "Node.js",
+      "Python",
+      "Java",
+      "C++",
+      "SQL",
+      "MongoDB",
+      "AWS",
+      "Docker",
+      "Kubernetes",
+      "Git",
+      "Machine Learning",
+      "Data Analysis",
+      "System Design",
+      "API Development",
+      "Cloud Computing",
+      "DevOps",
+      "Agile Methodology",
+      "UI/UX Design",
+      "Mobile Development",
+    ];
+
+    const employmentTypes = [
+      "full_time",
+      "part_time",
+      "internship",
+      "contract",
+      "temporary",
+    ];
+
+    const currencies = ["INR", "USD", "EUR", "GBP"];
+
+    for (let i = 0; i < driveCount; i++) {
+      const company = faker.helpers.arrayElement(institute.companies);
+
+      const placementGroup = faker.helpers.arrayElement(
+        institute.placementGroups
+      );
+
+      const placementGroupData = await PlacementGroup.findById(
+        placementGroup._id
+      );
+
+      if (
+        !placementGroupData ||
+        !placementGroupData.candidates ||
+        placementGroupData.candidates.length === 0
+      ) {
+        continue;
+      }
+
+      const isPublished = faker.datatype.boolean(0.8);
+
+      const hasEnded = isPublished ? faker.datatype.boolean(0.5) : false;
+
+      const now = new Date();
+      const pastDate = faker.date.past({ years: 1 });
+      const futureDate = faker.date.future({ years: 1 });
+
+      let applicationStart, applicationEnd;
+      if (hasEnded) {
+        applicationStart = faker.date.between({
+          from: pastDate,
+          to: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+        });
+        applicationEnd = faker.date.between({
+          from: applicationStart,
+          to: now,
+        });
+      } else {
+        if (faker.datatype.boolean()) {
+          applicationStart = faker.date.recent({ days: 30 });
+          applicationEnd = faker.date.soon({ days: 30 });
+        } else {
+          applicationStart = faker.date.soon({ days: 10 });
+          applicationEnd = faker.date.between({
+            from: applicationStart,
+            to: futureDate,
+          });
+        }
+      }
+
+      let selectedCandidates: string | any[] = [];
+      let hiredCandidates: string | any[] = [];
+      let offerLetters: Types.ObjectId[] = [];
+
+      if (isPublished) {
+        const selectionPercentage = faker.number.float({ min: 0.8, max: 1.0 });
+        selectedCandidates = faker.helpers
+          .shuffle([...placementGroupData.candidates])
+          .slice(
+            0,
+            Math.floor(
+              placementGroupData.candidates.length * selectionPercentage
+            )
+          );
+
+        if (hasEnded && selectedCandidates.length > 0) {
+          const hirePercentage = faker.number.float({ min: 0.1, max: 0.5 });
+          hiredCandidates = faker.helpers
+            .shuffle([...selectedCandidates])
+            .slice(0, Math.ceil(selectedCandidates.length * hirePercentage));
+
+          const offerLetterPercentage = faker.number.float({
+            min: 0.7,
+            max: 1.0,
+          });
+          offerLetters = faker.helpers
+            .shuffle([...hiredCandidates])
+            .slice(
+              0,
+              Math.ceil(hiredCandidates.length * offerLetterPercentage)
+            );
+        }
+      }
+
+      const stepsTemplate = faker.helpers.arrayElement(customStepNames);
+      const steps = stepsTemplate.map((stepName) => ({
+        name: stepName,
+        type: "CUSTOM",
+        status: hasEnded
+          ? StepStatus.COMPLETED
+          : faker.helpers.arrayElement([
+              StepStatus.PENDING,
+              StepStatus.IN_PROGRESS,
+            ]),
+        schedule: {
+          startTime: hasEnded
+            ? faker.date.between({ from: applicationEnd, to: now })
+            : null,
+          endTime: hasEnded ? faker.date.recent() : null,
+          actualCompletionTime: hasEnded ? faker.date.recent() : null,
+        },
+      }));
+
+      const currencySelected = faker.helpers.arrayElement(currencies);
+      const minSalary = faker.number.int({ min: 300000, max: 1000000 });
+      const maxSalary = faker.number.int({
+        min: minSalary * 1.2,
+        max: minSalary * 2,
+      });
+
+      const selectedSkills = faker.helpers.arrayElements(
+        techSkills,
+        faker.number.int({ min: 3, max: 8 })
+      );
+
+      const drive = new Drive({
+        institute: instituteId,
+        title: `${company.name} ${faker.helpers.arrayElement([
+          "Campus Recruitment",
+          "Hiring Drive",
+          "Career Fair",
+          "Talent Hunt",
+        ])} ${new Date().getFullYear()}`,
+        link: faker.internet.url(),
+        description: {
+          blocks: [
+            {
+              key: faker.string.uuid(),
+              text: faker.lorem.paragraphs(3),
+              type: "unstyled",
+              depth: 0,
+              inlineStyleRanges: [],
+              entityRanges: [],
+              data: {},
+            },
+          ],
+          entityMap: {},
+        },
+        company: company._id,
+        location: faker.helpers.arrayElement([
+          "Remote",
+          "Hybrid",
+          `${faker.location.city()}, ${faker.location.state()}`,
+          `${faker.location.city()}`,
+          "Multiple Locations",
+        ]),
+        type: faker.helpers.arrayElement(employmentTypes),
+        url: faker.internet.url(),
+        openings: faker.number.int({ min: 1, max: 20 }),
+        salary: {
+          min: minSalary,
+          max: maxSalary,
+          currency: currencySelected,
+        },
+        applicationRange: {
+          start: applicationStart,
+          end: applicationEnd,
+        },
+        skills: selectedSkills,
+        workflow: {
+          steps: steps,
+        },
+        assignments: [],
+        mcqAssessments: [],
+        codeAssessments: [],
+        interviews: [],
+        candidates: selectedCandidates,
+        additionalDetails: {},
+        placementGroup: placementGroup._id,
+        published: isPublished,
+        publishedOn: isPublished ? faker.date.recent({ days: 30 }) : null,
+        hasEnded: hasEnded,
+        hiredCandidates: hiredCandidates,
+        offerLetters: offerLetters,
+        isSample: true,
+      });
+
+      await drive.save();
+      console.log(
+        `Created drive: ${drive.title} (${isPublished ? "Published" : "Draft"}${
+          hasEnded ? ", Ended" : ""
+        })`
+      );
+    }
+
+    await Institute.updateOne(
+      { _id: instituteId },
+      {
+        $push: {
+          auditLogs: {
+            action: `Added ${driveCount} sample drives`,
+            user: "System",
+            userId: "system",
+            type: "info",
+          },
+        },
+      }
+    );
+
+    console.log(
+      `Added ${driveCount} sample drives for institute ${instituteId}`
+    );
+  } catch (error) {
+    console.error("Error generating drives:", error);
+    throw error;
+  }
+};
 
 export default generateSampleInstituteData;
