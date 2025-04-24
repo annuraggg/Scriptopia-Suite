@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import instituteController from "../controllers/campus/institute/instituteController";
 import notificationController from "../controllers/enterprise/notification/notifcationController";
+import instituteAnalyticsController from "../controllers/campus/institute/instituteAnalyticsController";
 
 const app = new Hono();
 
@@ -39,6 +40,10 @@ app.post("/candidate/:cid/reject", instituteController.rejectCandidate);
 app.post("/candidate/:cid/remove", instituteController.removeCandidate);
 app.get("/candidate/:cid/resume", instituteController.getResume);
 
-
+app.get("/analytics", instituteAnalyticsController.getInstituteAnalytics);
+app.get("/analytics/timerange", instituteAnalyticsController.getInstituteAnalyticsByTimeRange);
+app.get("/analytics/departments", instituteAnalyticsController.getDepartmentAnalytics);
+app.get("/analytics/offerletters", instituteAnalyticsController.getOfferLetterAnalytics);
+app.get("/analytics/dashboard", instituteAnalyticsController.getComprehensiveDashboardStats);
 
 export default app;

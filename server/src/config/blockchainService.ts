@@ -38,7 +38,7 @@ const ScryptoTokenABI: AbiItem[] = [
       {
         internalType: "address",
         name: "spender",
-        type: "address",
+        type: "   ",
       },
       {
         internalType: "uint256",

@@ -6,10 +6,7 @@ import checkPermission from "../../../middlewares/checkInstitutePermission";
 import Drive from "@/models/Drive";
 import AppliedDrive from "@/models/AppliedDrive";
 import Candidate from "@/models/Candidate";
-import {
-  DriveAnalytics,
-  StageAnalytics,
-} from "@shared-types/DriveAnalytics";
+import { DriveAnalytics, StageAnalytics } from "@shared-types/DriveAnalytics";
 
 const getDriveAnalytics = async (c: Context) => {
   try {
@@ -224,137 +221,7 @@ const getDriveAnalytics = async (c: Context) => {
   }
 };
 
-const getComparativeDriveAnalytics = async (c: Context) => {
-  try {
-    const perms = await checkPermission.all(c, ["view_drive"]);
-    if (!perms.allowed) {
-      return sendError(c, 401, "Unauthorized");
-    }
-
-    const { year, limit = 5 } = c.req.query();
-    const limitNum = parseInt(limit.toString());
-
-    const filter: any = {
-      institute: perms.data?.institute?._id,
-    };
-
-    if (year) {
-      const startDate = new Date(`${year}-01-01`);
-      const endDate = new Date(`${parseInt(year) + 1}-01-01`);
-
-      filter.$or = [
-        {
-          "applicationRange.start": {
-            $gte: startDate,
-            $lt: endDate,
-          },
-        },
-        {
-          createdAt: {
-            $gte: startDate,
-            $lt: endDate,
-          },
-        },
-      ];
-    }
-
-    const drives = await Drive.find(filter)
-      .populate("company")
-      .sort({ createdAt: -1 })
-      .limit(limitNum);
-
-    if (!drives.length) {
-      return sendError(c, 404, "No drives found");
-    }
-
-    const comparativeData = await Promise.all(
-      drives.map(async (drive) => {
-        const appliedDrives = await AppliedDrive.find({ drive: drive._id });
-
-        const hiredCount = appliedDrives.filter(
-          (ad) => ad.status === "hired"
-        ).length;
-        const rejectedCount = appliedDrives.filter(
-          (ad) => ad.status === "rejected"
-        ).length;
-        const inProgressCount = appliedDrives.filter(
-          (ad) => ad.status === "inprogress"
-        ).length;
-
-        const salaries = appliedDrives
-          .filter((ad) => ad.status === "hired" && ad.salary)
-          .map((ad) => ad.salary || 0);
-
-        const avgSalary =
-          salaries.length > 0
-            ? salaries.reduce((a, b) => a + b, 0) / salaries.length
-            : 0;
-
-        return {
-          driveId: drive._id,
-          title: drive.title,
-          company: (drive.company as any)?.name || "Unknown Company",
-          totalCandidates: drive.candidates?.length || 0,
-          appliedCount: appliedDrives.length,
-          hiredCount,
-          rejectedCount,
-          inProgressCount,
-          conversionRate:
-            appliedDrives.length > 0
-              ? (hiredCount / appliedDrives.length) * 100
-              : 0,
-          averageSalary: avgSalary,
-          applicationPeriod: drive.applicationRange
-            ? `${new Date(
-                drive.applicationRange.start ?? new Date(0)
-              ).toLocaleDateString()} - ${new Date(
-                drive.applicationRange.end ?? new Date(0)
-              ).toLocaleDateString()}`
-            : "Not specified",
-        };
-      })
-    );
-
-    const overallStats = {
-      totalDrives: comparativeData.length,
-      totalApplicants: comparativeData.reduce(
-        (sum, drive) => sum + drive.appliedCount,
-        0
-      ),
-      totalHired: comparativeData.reduce(
-        (sum, drive) => sum + drive.hiredCount,
-        0
-      ),
-      averageConversionRate:
-        comparativeData.reduce((sum, drive) => sum + drive.conversionRate, 0) /
-        comparativeData.length,
-      highestConversionRate: Math.max(
-        ...comparativeData.map((drive) => drive.conversionRate)
-      ),
-      lowestConversionRate: Math.min(
-        ...comparativeData.map((drive) => drive.conversionRate)
-      ),
-      averageSalaryOffered:
-        comparativeData.reduce((sum, drive) => sum + drive.averageSalary, 0) /
-        comparativeData.length,
-    };
-
-    return sendSuccess(
-      c,
-      200,
-      "Comparative drive analytics fetched successfully",
-      {
-        drives: comparativeData,
-        overallStats,
-      }
-    );
-  } catch (e: any) {
-    logger.error(e);
-    return sendError(c, 500, "Something went wrong");
-  }
-};
 
 export default {
   getDriveAnalytics,
-  getComparativeDriveAnalytics,
 };

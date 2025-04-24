@@ -43,7 +43,7 @@ app.post("/upload-offer-letter", driveController.uploadOfferLetter);
 app.get("/:did/offer-letter/:id", driveController.getOfferLetter);
 
 app.get("/:id/analytics", driveAnalyticsController.getDriveAnalytics);
-app.get("/:id/analytics/candidates")
+app.get("/institute/analytics", driveAnalyticsController.getInstituteAnalytics);
 
 
 export default app;
