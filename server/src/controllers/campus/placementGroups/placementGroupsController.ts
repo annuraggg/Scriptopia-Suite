@@ -13,13 +13,15 @@ import { sendNotificationToCampus } from "@/utils/sendNotification";
 
 const PlacementGroupSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  academicYear: z.string().min(1, "Academic year is required"),
+  academicYear: z.object({
+    start: z.string().min(1, "Start year is required"),
+    end: z.string().min(1, "End year is required"),
+  }),
   departments: z
     .array(z.string())
     .min(1, "At least one department is required"),
   purpose: z.string().optional(),
-  expiryDate: z.string().datetime().optional(),
-  accessType: z.enum(["public", "private", "invite"]).optional(),
+  expiryDate: z.string().optional(),
   candidates: z.array(z.string()).optional().default([]),
   criteria: z.any().optional(),
 });
@@ -31,14 +33,11 @@ interface UpdateData {
 const createPlacementGroup = async (c: Context) => {
   try {
     const body = await c.req.json();
+    console.log("Request body:", body);
     const validationResult = PlacementGroupSchema.safeParse(body);
     if (!validationResult.success) {
-      return sendError(
-        c,
-        400,
-        "Invalid request body",
-        validationResult.error.errors
-      );
+      console.error("Validation errors:", validationResult.error.errors);
+      return sendError(c, 400, validationResult.error.errors?.toString());
     }
 
     const validatedData = validationResult.data;
@@ -77,10 +76,6 @@ const createPlacementGroup = async (c: Context) => {
             departments: validatedData.departments,
             purpose: validatedData.purpose || "",
             expiryDate: validatedData.expiryDate,
-
-            ...(validatedData.accessType && {
-              accessType: validatedData.accessType,
-            }),
             candidates: validatedData.candidates || [],
             createdBy: _id,
             pendingCandidates: [],

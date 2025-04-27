@@ -180,19 +180,25 @@ const Criteria = ({
     onClose();
   };
 
-  // Update an existing rule
-  const updateRule = () => {
+  // Update an existing rule - this function will now take parameters
+  const updateRule = (
+    category: string,
+    subcategory: string,
+    operator: string,
+    value: string,
+    educationType: string
+  ) => {
     if (!editingRule?._id) return;
 
     const updatedRules = rules.map((rule) =>
       rule._id === editingRule._id
         ? {
             ...rule,
-            category: ruleFormData.category,
-            subcategory: ruleFormData.subcategory,
-            operator: ruleFormData.operator,
-            value: ruleFormData.value,
-            type: ruleFormData.type || undefined,
+            category,
+            subcategory,
+            operator,
+            value,
+            type: educationType || undefined,
           }
         : rule
     );
@@ -659,8 +665,14 @@ const Criteria = ({
               onPress={() => {
                 if (category && subcategory && operator && value) {
                   if (isEditing) {
-                    // Update existing rule
-                    updateRule();
+                    // Update existing rule by passing the current form values
+                    updateRule(
+                      category,
+                      subcategory,
+                      operator,
+                      value,
+                      educationType
+                    );
                   } else {
                     // Add new rule
                     addRule(
