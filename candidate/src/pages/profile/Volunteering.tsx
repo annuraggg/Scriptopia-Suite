@@ -567,7 +567,7 @@ const VolunteeringComponent = () => {
     });
 
   return (
-    (<div>
+    <div>
       <div className="mb-6">
         <Breadcrumbs>
           <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
@@ -593,10 +593,10 @@ const VolunteeringComponent = () => {
       </div>
       {isLoading ? (
         // Skeleton loading state
-        (<div className="space-y-4">
+        <div className="space-y-4">
           <Skeleton className="h-40 w-full rounded-lg" />
           <Skeleton className="h-40 w-full rounded-lg" />
-        </div>)
+        </div>
       ) : !user.volunteerings?.length ? (
         <Card className="w-full bg-gray-50 border-dashed border-2 border-gray-200">
           <CardBody className="flex flex-col items-center justify-center py-12">
@@ -781,11 +781,11 @@ const VolunteeringComponent = () => {
       )}
       {/* Add/Edit Experience Modal */}
       <Modal
+        isDismissable={false}
         isOpen={isOpen}
         onClose={closeModal}
         size="2xl"
         scrollBehavior="inside"
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (
@@ -980,9 +980,9 @@ const VolunteeringComponent = () => {
       </Modal>
       {/* Delete Confirmation Modal */}
       <Modal
+        isDismissable={false}
         isOpen={deleteModal.isOpen}
         onClose={() => !isSubmitting && deleteModal.onClose()}
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (
@@ -1022,7 +1022,7 @@ const VolunteeringComponent = () => {
           )}
         </ModalContent>
       </Modal>
-    </div>)
+    </div>
   );
 };
 

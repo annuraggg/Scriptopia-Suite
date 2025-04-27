@@ -764,10 +764,10 @@ const Education = () => {
     <div>
       {/* Main Education Modal */}
       <Modal
+        isDismissable={false}
         size="3xl"
         isOpen={isOpen}
         onClose={() => !isSubmitting && onClose()}
-        isDismissable={!isSubmitting}
         scrollBehavior="inside"
       >
         <ModalContent>
@@ -821,8 +821,6 @@ const Education = () => {
                           label: program,
                           value: program,
                         }))}
-                        inputValue={degreeSearchValue}
-                        onInputChange={setDegreeSearchValue}
                         selectedKey={formData.degree}
                         onSelectionChange={(key) => {
                           if (key) {
@@ -1147,9 +1145,9 @@ const Education = () => {
       </Modal>
       {/* Add Branch Modal */}
       <Modal
+        isDismissable={false}
         isOpen={isBranchModalOpen}
         onClose={onBranchModalClose}
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (
@@ -1199,9 +1197,9 @@ const Education = () => {
       </Modal>
       {/* Delete Confirmation Modal */}
       <Modal
+        isDismissable={false}
         isOpen={deleteConfirmationOpen}
         onClose={() => !isSubmitting && setDeleteConfirmationOpen(false)}
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (

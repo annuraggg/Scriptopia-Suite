@@ -581,7 +581,7 @@ export default function WorkExperience() {
   };
 
   return (
-    (<div>
+    <div>
       <Breadcrumbs className="mb-6">
         <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
         <BreadcrumbItem href="/profile/experience">
@@ -606,10 +606,10 @@ export default function WorkExperience() {
       <div className="space-y-4">
         {isLoading ? (
           // Skeleton loader for loading state
-          (<div className="space-y-4">
+          <div className="space-y-4">
             <Skeleton className="h-40 w-full rounded-lg" />
             <Skeleton className="h-40 w-full rounded-lg" />
-          </div>)
+          </div>
         ) : !user.workExperience?.length ? (
           <Card className="w-full bg-gray-50 border-dashed border-2 border-gray-200">
             <CardBody className="flex flex-col items-center justify-center py-12">
@@ -757,11 +757,11 @@ export default function WorkExperience() {
       </div>
       {/* Add/Edit Experience Modal */}
       <Modal
+        isDismissable={false}
         isOpen={isOpen}
         onClose={handleCloseModal}
         size="2xl"
         scrollBehavior="inside"
-        isDismissable={!isSubmitting}
         classNames={{
           base: "max-w-2xl",
           body: "py-6",
@@ -837,9 +837,7 @@ export default function WorkExperience() {
                           ([category, sectors]) => (
                             <SelectSection key={category} title={category}>
                               {sectors.map((sector) => (
-                                <SelectItem key={sector}>
-                                  {sector}
-                                </SelectItem>
+                                <SelectItem key={sector}>{sector}</SelectItem>
                               ))}
                             </SelectSection>
                           )
@@ -945,9 +943,7 @@ export default function WorkExperience() {
                           ([category, functions]) => (
                             <SelectSection key={category} title={category}>
                               {functions.map((func) => (
-                                <SelectItem key={func}>
-                                  {func}
-                                </SelectItem>
+                                <SelectItem key={func}>{func}</SelectItem>
                               ))}
                             </SelectSection>
                           )
@@ -1096,9 +1092,9 @@ export default function WorkExperience() {
       </Modal>
       {/* Delete Confirmation Modal */}
       <Modal
+        isDismissable={false}
         isOpen={deleteModal.isOpen}
         onClose={() => !isSubmitting && deleteModal.onClose()}
-        isDismissable={!isSubmitting}
         className="max-w-md"
       >
         <ModalContent>
@@ -1141,6 +1137,6 @@ export default function WorkExperience() {
           )}
         </ModalContent>
       </Modal>
-    </div>)
+    </div>
   );
 }

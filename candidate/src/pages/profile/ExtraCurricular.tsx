@@ -428,7 +428,7 @@ const ExtraCurricular = () => {
   };
 
   return (
-    (<div>
+    <div>
       <div className="mb-6">
         <Breadcrumbs>
           <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
@@ -454,10 +454,10 @@ const ExtraCurricular = () => {
       </div>
       {isLoading ? (
         // Skeleton loader for loading state
-        (<div className="space-y-4">
+        <div className="space-y-4">
           <Skeleton className="h-32 w-full rounded-lg" />
           <Skeleton className="h-32 w-full rounded-lg" />
-        </div>)
+        </div>
       ) : !user?.extraCurriculars?.length ? (
         <Card className="w-full bg-gray-50 border-dashed border-2 border-gray-200">
           <CardBody className="py-12 flex flex-col items-center justify-center gap-4">
@@ -608,11 +608,11 @@ const ExtraCurricular = () => {
       )}
       {/* Add/Edit Activity Modal */}
       <Modal
+        isDismissable={false}
         isOpen={isOpen}
         onClose={closeAndReset}
         size="xl"
         scrollBehavior="inside"
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (
@@ -787,9 +787,9 @@ const ExtraCurricular = () => {
       </Modal>
       {/* Delete Confirmation Modal */}
       <Modal
+        isDismissable={false}
         isOpen={deleteConfirmationOpen}
         onClose={() => !isSubmitting && setDeleteConfirmationOpen(false)}
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (
@@ -831,7 +831,7 @@ const ExtraCurricular = () => {
           )}
         </ModalContent>
       </Modal>
-    </div>)
+    </div>
   );
 };
 

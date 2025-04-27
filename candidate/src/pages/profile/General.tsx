@@ -565,7 +565,7 @@ const General = () => {
 
       {/* Edit Summary Modal */}
       <Modal
-        isOpen={isOpen}
+isDismissable={false}        isOpen={isOpen}
         onClose={onClose}
         size="2xl"
         scrollBehavior="inside"

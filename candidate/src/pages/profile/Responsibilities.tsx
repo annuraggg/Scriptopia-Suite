@@ -387,7 +387,7 @@ export default function Responsibilities() {
   };
 
   return (
-    (<div>
+    <div>
       <Breadcrumbs className="mb-6">
         <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
         <BreadcrumbItem href="/profile/responsibilities">
@@ -414,10 +414,10 @@ export default function Responsibilities() {
       <div className="space-y-4">
         {isLoading ? (
           // Skeleton loader for loading state
-          (<div className="space-y-4">
+          <div className="space-y-4">
             <Skeleton className="w-full h-32 rounded-lg" />
             <Skeleton className="w-full h-32 rounded-lg" />
-          </div>)
+          </div>
         ) : !user.responsibilities?.length ? (
           <Card className="w-full bg-gray-50 border-dashed border-2 border-gray-200">
             <CardBody className="py-12 flex flex-col items-center justify-center gap-4">
@@ -536,11 +536,11 @@ export default function Responsibilities() {
       </div>
       {/* Add/Edit Position Modal */}
       <Modal
+        isDismissable={false}
         isOpen={isOpen}
         onClose={() => !isSubmitting && onClose()}
         size="2xl"
         scrollBehavior="inside"
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {(onClose) => (
@@ -711,9 +711,9 @@ export default function Responsibilities() {
       </Modal>
       {/* Delete Confirmation Modal */}
       <Modal
+        isDismissable={false}
         isOpen={deleteModal.isOpen}
         onClose={() => !isSubmitting && deleteModal.onClose()}
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (
@@ -753,6 +753,6 @@ export default function Responsibilities() {
           )}
         </ModalContent>
       </Modal>
-    </div>)
+    </div>
   );
 }

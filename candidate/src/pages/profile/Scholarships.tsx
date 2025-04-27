@@ -33,13 +33,7 @@ import {
   parseAbsoluteToLocal,
   getLocalTimeZone,
 } from "@internationalized/date";
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  School,
-  AlertCircle,
-} from "lucide-react";
+import { Plus, Pencil, Trash2, School, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useOutletContext } from "react-router-dom";
 import { Scholarship, Candidate } from "@shared-types/Candidate";
@@ -409,7 +403,7 @@ const Scholarships = () => {
   );
 
   return (
-    (<div>
+    <div>
       <div className="mb-6">
         <Breadcrumbs>
           <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
@@ -435,10 +429,10 @@ const Scholarships = () => {
       </div>
       {isLoading ? (
         // Skeleton loader for loading state
-        (<div className="space-y-4">
+        <div className="space-y-4">
           <Skeleton className="w-full h-32 rounded-lg" />
           <Skeleton className="w-full h-32 rounded-lg" />
-        </div>)
+        </div>
       ) : !user?.scholarships?.length ? (
         renderEmptyState()
       ) : (
@@ -503,12 +497,12 @@ const Scholarships = () => {
       )}
       {/* Scholarship Form Modal */}
       <Modal
+        isDismissable={false}
         isOpen={isOpen}
         onClose={handleClose}
         size="md"
         placement="center"
         scrollBehavior="inside"
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (
@@ -560,9 +554,7 @@ const Scholarships = () => {
                       isDisabled={isSubmitting}
                     >
                       {organizations.map((org) => (
-                        <SelectItem key={org.value}>
-                          {org.label}
-                        </SelectItem>
+                        <SelectItem key={org.value}>{org.label}</SelectItem>
                       ))}
                     </Select>
 
@@ -650,9 +642,9 @@ const Scholarships = () => {
       </Modal>
       {/* Confirmation Modal for Delete */}
       <Modal
+        isDismissable={false}
         isOpen={isConfirmDeleteOpen}
         onClose={() => !isSubmitting && setIsConfirmDeleteOpen(false)}
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (
@@ -692,7 +684,7 @@ const Scholarships = () => {
           )}
         </ModalContent>
       </Modal>
-    </div>)
+    </div>
   );
 };
 

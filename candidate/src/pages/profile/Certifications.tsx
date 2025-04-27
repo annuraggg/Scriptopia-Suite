@@ -547,13 +547,13 @@ const Certificates = () => {
 
       {/* Add/Edit Certificate Modal */}
       <Modal
+        isDismissable={false}
         isOpen={isOpen}
         onOpenChange={onOpenChange}
         onClose={handleClose}
         size="3xl"
         placement="center"
         scrollBehavior="inside"
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (
@@ -795,9 +795,9 @@ const Certificates = () => {
 
       {/* Delete Confirmation Modal */}
       <Modal
+        isDismissable={false}
         isOpen={!!deleteConfirmId}
         onClose={() => !isSubmitting && setDeleteConfirmId(null)}
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (

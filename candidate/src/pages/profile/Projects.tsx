@@ -429,7 +429,7 @@ const Projects = () => {
   );
 
   return (
-    (<div>
+    <div>
       <div className="mb-6">
         <Breadcrumbs>
           <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
@@ -455,10 +455,10 @@ const Projects = () => {
       </div>
       {isLoading ? (
         // Skeleton loader for loading state
-        (<div className="space-y-4">
+        <div className="space-y-4">
           <Skeleton className="w-full h-32 rounded-lg" />
           <Skeleton className="w-full h-32 rounded-lg" />
-        </div>)
+        </div>
       ) : !user?.projects?.length ? (
         renderEmptyState()
       ) : (
@@ -630,10 +630,10 @@ const Projects = () => {
       )}
       {/* Project Form Modal */}
       <Modal
+        isDismissable={false}
         isOpen={isOpen}
         onClose={handleCloseModal}
         size="2xl"
-        isDismissable={!isSubmitting}
         scrollBehavior="inside"
       >
         <ModalContent>
@@ -771,10 +771,7 @@ const Projects = () => {
                     description="Category that best describes this project"
                   >
                     {associationOptions.map((option) => (
-                      <SelectItem
-                        key={option.value}
-                        startContent={option.icon}
-                      >
+                      <SelectItem key={option.value} startContent={option.icon}>
                         {option.label}
                       </SelectItem>
                     ))}
@@ -843,9 +840,9 @@ const Projects = () => {
       </Modal>
       {/* Confirmation Modal for Delete */}
       <Modal
+        isDismissable={false}
         isOpen={isConfirmDeleteOpen}
         onClose={() => !isSubmitting && setIsConfirmDeleteOpen(false)}
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (
@@ -885,7 +882,7 @@ const Projects = () => {
           )}
         </ModalContent>
       </Modal>
-    </div>)
+    </div>
   );
 };
 

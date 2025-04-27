@@ -514,11 +514,11 @@ const Competitions = () => {
 
       {/* Add/Edit Competition Modal */}
       <Modal
+        isDismissable={false}
         isOpen={isOpen}
         onClose={handleClose}
         size="2xl"
         scrollBehavior="inside"
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (
@@ -596,7 +596,9 @@ const Competitions = () => {
                           Array.from(keys).includes("professional") ||
                           Array.from(keys).includes("personal")
                         ) {
-                          setAssociatedWith(Array.from(keys)[0] as CompetitionType);
+                          setAssociatedWith(
+                            Array.from(keys)[0] as CompetitionType
+                          );
 
                           // Clear association error if exists
                           if (errors.associatedWith) {
@@ -612,15 +614,9 @@ const Competitions = () => {
                       isDisabled={isSubmitting}
                       description="Type of competition"
                     >
-                      <SelectItem key="academic">
-                        Academic
-                      </SelectItem>
-                      <SelectItem key="professional">
-                        Professional
-                      </SelectItem>
-                      <SelectItem key="personal">
-                        Personal
-                      </SelectItem>
+                      <SelectItem key="academic">Academic</SelectItem>
+                      <SelectItem key="professional">Professional</SelectItem>
+                      <SelectItem key="personal">Personal</SelectItem>
                     </Select>
 
                     <div>
@@ -684,10 +680,10 @@ const Competitions = () => {
 
       {/* Delete Confirmation Modal */}
       <Modal
+        isDismissable={false}
         isOpen={deleteConfirmationOpen}
         onClose={() => !isSubmitting && setDeleteConfirmationOpen(false)}
         size="sm"
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (

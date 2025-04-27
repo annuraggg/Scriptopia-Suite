@@ -296,7 +296,7 @@ const Awards = () => {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   return (
-    (<div>
+    <div>
       <Breadcrumbs className="mb-6">
         <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
         <BreadcrumbItem href="/profile/awards">
@@ -320,7 +320,7 @@ const Awards = () => {
       </div>
       {isLoading ? (
         // Skeleton loaders for loading state
-        (<div className="grid gap-4">
+        <div className="grid gap-4">
           {[1, 2].map((i) => (
             <Card key={i} className="w-full">
               <CardHeader className="flex justify-between items-center">
@@ -337,7 +337,7 @@ const Awards = () => {
               </CardBody>
             </Card>
           ))}
-        </div>)
+        </div>
       ) : !user?.awards || user.awards.length === 0 ? (
         <Card className="bg-gray-50 border-dashed border-2 border-gray-200">
           <CardBody className="flex flex-col items-center py-12">
@@ -426,11 +426,11 @@ const Awards = () => {
       )}
       {/* Add/Edit Award Modal */}
       <Modal
+        isDismissable={false}
         isOpen={isOpen}
         onClose={handleCloseModal}
         size="2xl"
         scrollBehavior="inside"
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (
@@ -575,9 +575,9 @@ const Awards = () => {
       </Modal>
       {/* Delete Confirmation Modal */}
       <Modal
+        isDismissable={false}
         isOpen={!!deleteConfirmId}
         onClose={() => !isSubmitting && setDeleteConfirmId(null)}
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (
@@ -621,7 +621,7 @@ const Awards = () => {
           )}
         </ModalContent>
       </Modal>
-    </div>)
+    </div>
   );
 };
 

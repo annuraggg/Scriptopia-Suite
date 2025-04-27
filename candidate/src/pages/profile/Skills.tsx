@@ -672,11 +672,11 @@ const Skills = () => {
 
       {/* Main Skill Modal */}
       <Modal
+        isDismissable={false}
         isOpen={isOpen}
         onClose={() => !isSubmitting && onClose()}
         size="lg"
         scrollBehavior="inside"
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           <ModalHeader className="flex flex-col gap-1 border-b">
@@ -809,8 +809,6 @@ const Skills = () => {
                 )}
               </div>
             </div>
-
-      
           </ModalBody>
           <Divider />
           <ModalFooter className="border-t">
@@ -842,9 +840,9 @@ const Skills = () => {
 
       {/* Delete Confirmation Modal */}
       <Modal
+        isDismissable={false}
         isOpen={isConfirmDeleteOpen}
         onClose={() => !isSubmitting && onConfirmDeleteClose()}
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (

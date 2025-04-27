@@ -322,7 +322,6 @@ export default function Conferences() {
     return (
       <Avatar
         name={title.charAt(0).toUpperCase()}
-        
         radius="lg"
         color={isVirtual ? "success" : "primary"}
         classNames={{
@@ -337,9 +336,9 @@ export default function Conferences() {
   };
 
   return (
-    (<div>
+    <div>
       <div className="mb-6">
-        <Breadcrumbs >
+        <Breadcrumbs>
           <BreadcrumbItem href="/profile">Profile</BreadcrumbItem>
           <BreadcrumbItem>Conferences & Events</BreadcrumbItem>
         </Breadcrumbs>
@@ -362,7 +361,7 @@ export default function Conferences() {
       </div>
       {isLoading ? (
         // Skeleton loader for loading state
-        (<div className="space-y-4">
+        <div className="space-y-4">
           <Card>
             <CardBody className="p-0">
               <div className="p-4">
@@ -381,7 +380,7 @@ export default function Conferences() {
               </div>
             </CardBody>
           </Card>
-        </div>)
+        </div>
       ) : !user?.conferences?.length ? (
         <Card className="w-full border-dashed bg-default-50 border-2 border-gray-200">
           <CardBody className="py-12">
@@ -415,9 +414,7 @@ export default function Conferences() {
             <div className="flex items-center gap-2">
               <Globe size={18} className="text-primary" />
               <h2 className="text-lg font-medium">Your Conferences & Events</h2>
-              <Chip  variant="flat">
-                {user.conferences.length}
-              </Chip>
+              <Chip variant="flat">{user.conferences.length}</Chip>
             </div>
           </CardHeader>
           <Divider />
@@ -449,12 +446,7 @@ export default function Conferences() {
                           </p>
                         )}
                         {isUpcoming(conference.eventDate) && (
-                          <Chip
-                            
-                            color="success"
-                            variant="flat"
-                            className="mt-1"
-                          >
+                          <Chip color="success" variant="flat" className="mt-1">
                             Upcoming
                           </Chip>
                         )}
@@ -484,7 +476,6 @@ export default function Conferences() {
                       <Tooltip content="Edit">
                         <Button
                           isIconOnly
-                          
                           variant="light"
                           onClick={() => handleEdit(conference)}
                         >
@@ -494,7 +485,6 @@ export default function Conferences() {
                       <Tooltip content="Delete" color="danger">
                         <Button
                           isIconOnly
-                          
                           variant="light"
                           color="danger"
                           onClick={() =>
@@ -513,7 +503,6 @@ export default function Conferences() {
                             target="_blank"
                             rel="noopener noreferrer"
                             isIconOnly
-                            
                             variant="light"
                             color="primary"
                           >
@@ -531,10 +520,10 @@ export default function Conferences() {
       )}
       {/* Add/Edit Modal */}
       <Modal
+        isDismissable={false}
         isOpen={isOpen}
         onClose={handleCloseModal}
         size="2xl"
-        isDismissable={!isSubmitting}
         scrollBehavior="inside"
       >
         <ModalContent>
@@ -566,7 +555,6 @@ export default function Conferences() {
                     errorMessage={validationErrors.title}
                     isRequired
                     isDisabled={isSubmitting}
-                    
                     startContent={<Globe size={16} className="text-gray-400" />}
                     description="Name of the conference or event"
                   />
@@ -581,7 +569,6 @@ export default function Conferences() {
                     errorMessage={validationErrors.organizer}
                     isRequired
                     isDisabled={isSubmitting}
-                    
                     startContent={
                       <Building2 size={16} className="text-gray-400" />
                     }
@@ -599,7 +586,6 @@ export default function Conferences() {
                     isRequired
                     isDisabled={isSubmitting}
                     labelPlacement="outside"
-                    
                     startContent={
                       <MapPin size={16} className="text-gray-400" />
                     }
@@ -641,7 +627,6 @@ export default function Conferences() {
                         <ExternalLink size={16} className="text-gray-400" />
                       }
                       isDisabled={isSubmitting}
-                      
                       description="URL to conference website or your presentation"
                     />
                   </div>
@@ -656,7 +641,6 @@ export default function Conferences() {
                       minRows={3}
                       maxRows={5}
                       isDisabled={isSubmitting}
-                      
                       description="Details about the conference and your role/participation"
                     />
                   </div>
@@ -685,10 +669,9 @@ export default function Conferences() {
       </Modal>
       {/* Delete Confirmation Modal */}
       <Modal
+        isDismissable={false}
         isOpen={isDeleteOpen}
         onClose={() => !isSubmitting && onDeleteClose()}
-        
-        isDismissable={!isSubmitting}
       >
         <ModalContent>
           {() => (
@@ -726,6 +709,6 @@ export default function Conferences() {
           )}
         </ModalContent>
       </Modal>
-    </div>)
+    </div>
   );
 }
