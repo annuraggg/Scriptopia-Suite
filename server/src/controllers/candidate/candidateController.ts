@@ -52,8 +52,6 @@ const validateCandidate = (data: any) => {
     errors.push("Education must be an array");
   } else if (data.education) {
     data.education.forEach((edu: any, index: number) => {
-      if (!edu.institution)
-        errors.push(`Education ${index + 1}: Institution is required`);
       if (!edu.degree)
         errors.push(`Education ${index + 1}: Degree is required`);
     });
