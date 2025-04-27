@@ -2132,7 +2132,7 @@ const acceptCandidate = async (c: Context) => {
       return sendError(c, 400, "Invalid candidate ID");
     }
 
-    const perms = await checkInstitutePermission.all(c, ["verify_candidate"]);
+    const perms = await checkInstitutePermission.all(c, ["verify_candidates"]);
     if (!perms.allowed) {
       return sendError(
         c,
@@ -2236,7 +2236,7 @@ const rejectCandidate = async (c: Context) => {
       return sendError(c, 400, "Invalid candidate ID");
     }
 
-    const perms = await checkInstitutePermission.all(c, ["verify_candidate"]);
+    const perms = await checkInstitutePermission.all(c, ["verify_candidates"]);
     if (!perms.allowed) {
       return sendError(
         c,
