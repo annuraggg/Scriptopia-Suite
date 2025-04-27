@@ -87,4 +87,50 @@ const getDrives = async (c: Context) => {
   }
 };
 
-export default { getDrives };
+const getDrive = async (c: Context) => {
+  try {
+    const authData = c.get("auth");
+    const _id = authData?._id;
+
+    if (!_id) {
+      return sendError(c, 401, "Authentication required");
+    }
+
+    const driveId = c.req.param("id");
+
+    if (!driveId) {
+      return sendError(c, 400, "Drive ID is required");
+    }
+
+    const candidate = await Candidate.findOne({ userId: _id });
+    if (!candidate) {
+      return sendError(c, 404, "Candidate not found");
+    }
+
+    const drive = await Drive.findById(driveId)
+      .populate("company", "name logo")
+      .populate("institute", "name logo departments")
+      .lean();
+
+    if (!drive) {
+      return sendError(c, 404, "Drive not found");
+    }
+
+    const appliedDrive = await AppliedDrive.findOne({
+      candidate: candidate._id,
+      drive: drive._id,
+    });
+
+    const status = appliedDrive?.status || "rejected";
+
+    return sendSuccess(c, 200, "Drive fetched successfully", {
+      drive: { ...drive, candidates: undefined },
+      status,
+    });
+  } catch (e: any) {
+    logger.error(`Error in getDriveForCandidate: ${e.message}`);
+    return sendError(c, 500, "Internal server error");
+  }
+};
+
+export default { getDrives, getDrive };

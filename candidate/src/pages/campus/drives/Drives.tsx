@@ -467,7 +467,7 @@ const Home = () => {
                             </Tooltip>
                           </div>
 
-                          <h3 className="font-bold text-gray-800 text-lg mt-1 mb-3 line-clamp-1">
+                          <h3 className="font-bold text-gray-800 text-lg mt-1 mb-3 truncate overflow-hidden">
                             {drive?.title || "Untitled Position"}
                           </h3>
 

@@ -19,12 +19,12 @@ const getPlacementGroups = async (c: Context) => {
 
     const totalCount = await PlacementGroup.countDocuments({
       institute: candidate.institute,
-      candidates: { $in: [_id] },
+      candidates: { $in: [candidate._id] },
     });
 
     const groups = await PlacementGroup.find({
       institute: candidate.institute,
-      candidates: { $in: [_id] },
+      candidates: { $in: [candidate._id] },
     })
       .populate("departments", "name")
       .populate("candidates", "name email")

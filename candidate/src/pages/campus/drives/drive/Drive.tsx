@@ -113,7 +113,7 @@ const Drive: React.FC = () => {
     setLoading(true);
     const driveId = window.location.pathname.split("/")[3];
     axios
-      .get(`/drives/candidate/${driveId}`)
+      .get(`/candidates/drives/${driveId}`)
       .then((res) => {
         if (!res.data.data.drive) {
           toast.error("Drive not found");
@@ -407,7 +407,7 @@ const Drive: React.FC = () => {
   }
 
   return (
-    (<div className="bg-gray-50 min-h-screen pb-16">
+    <div className="bg-gray-50 min-h-screen pb-16">
       {/* Sticky header with application status */}
       {applied && (
         <div className="sticky top-0 z-10 w-full bg-white shadow-sm border-b border-gray-100">
@@ -445,6 +445,13 @@ const Drive: React.FC = () => {
       {/* Main content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Alert banners */}
+        {!isJobOpen && (
+          <Alert className="bg-red-50 border-red-200 text-red-800">
+            <AlertTitle className="flex items-center gap-2">
+              This Drive is no longer accepting registerations
+            </AlertTitle>
+          </Alert>
+        )}
         <div className="space-y-4 mb-6">
           {isHired && (
             <Alert className="bg-green-50 border-green-200 text-green-800">
@@ -789,7 +796,7 @@ const Drive: React.FC = () => {
                         if (sectionFields.length === 0) return null;
 
                         return (
-                          (<div
+                          <div
                             key={idx}
                             className="border border-gray-100 rounded-lg p-3"
                           >
@@ -849,7 +856,7 @@ const Drive: React.FC = () => {
                                 }
                               )}
                             </div>
-                          </div>)
+                          </div>
                         );
                       }
                     )}
@@ -1205,7 +1212,7 @@ const Drive: React.FC = () => {
         title="Upload Offer Letter"
         isLoading={uploadLoading}
       />
-    </div>)
+    </div>
   );
 };
 

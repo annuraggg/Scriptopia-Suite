@@ -19,6 +19,7 @@ app.get("/applied/drives", candidateController.getAppliedDrives);
 
 // Candidate Drive Controller
 app.get("/drives", driveController.getDrives);
+app.get("/drives/:id", driveController.getDrive);
 
 // Candidate Placement Group Controller
 app.get("/placement-groups", placementGroupsController.getPlacementGroups);
