@@ -19,7 +19,7 @@ interface InvitedMember {
 
 const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [sampleData, setSampleData] = useState(false);
+  const [sampleData, setSampleData] = useState(true);
 
   const [instituteName, setInstituteName] = useState<string>("");
   const [instituteEmail, setInstituteEmail] = useState<string>("");
@@ -153,10 +153,9 @@ const Onboarding = () => {
           zipCode: instituteZipCode,
         },
         members: invitedMembers,
-        sampleData
+        sampleData,
       })
       .then(() => {
-        setLoading(false);
         toast.success("Institute created successfully");
         window.location.href = "/dashboard";
         const data = {
@@ -173,7 +172,14 @@ const Onboarding = () => {
       });
   };
 
-  if (loading) return <Loader />;
+  const loadingTexts = [
+    "Creating your account...",
+    "Setting up your institute...",
+    sampleData ? "Generating Sample Data..." : "Finishing Up...",
+    "Almost there...",
+  ];
+
+  if (loading) return <Loader text={loadingTexts} interval={4000} />;
 
   return (
     <div className="flex items-center justify-center h-screen p-10 py-5">
