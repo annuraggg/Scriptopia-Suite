@@ -51,7 +51,9 @@ const createInstitute = async (c: Context) => {
     const sanitizedName = sanitizeInput(name);
     const sanitizedEmail = sanitizeInput(email);
     const sanitizedWebsite = sanitizeInput(website);
-    const sanitizedAddress = sanitizeInput(address);
+    const sanitizedAddress = address;
+
+    console.log(sanitizedAddress);
 
     const clerkUserId = c.get("auth")?.userId;
     if (!clerkUserId) {
@@ -93,9 +95,14 @@ const createInstitute = async (c: Context) => {
     }
 
     const userInInstitute = await Institute.findOne({
-      "members.user": uid,
-      "members.status": "active",
+      members: {
+        $elemMatch: {
+          user: uid,
+          status: "active",
+        },
+      },
     });
+
     if (userInInstitute) {
       return sendError(c, 400, "User is already part of an institute");
     }
@@ -205,15 +212,13 @@ const createInstitute = async (c: Context) => {
           },
         });
       });
-
-      await session.endSession();
     } catch (error) {
-      await session.abortTransaction();
-      await session.endSession();
       logger.error(`Transaction failed in createInstitute: ${error}`);
       return sendError(c, 500, "Failed to create institute", {
         message: "Database transaction failed",
       });
+    } finally {
+      await session.endSession(); // Ensure the session ends regardless of success or failure
     }
 
     for (const member of members) {
@@ -253,10 +258,12 @@ const createInstitute = async (c: Context) => {
     }
 
     if (sampleData) {
-      generateSampleInstituteData((institute as unknown as IInstitute)?._id!)
+      await generateSampleInstituteData(
+        (institute as unknown as IInstitute)?._id!
+      );
     }
 
-    return sendSuccess(c, 400, "Institute created successfully", {
+    return sendSuccess(c, 200, "Institute created successfully", {
       institute: (institute as unknown as IInstitute)?._id,
     });
   } catch (error) {
@@ -2332,7 +2339,7 @@ const getResume = async (c: Context) => {
 
     const command = new GetObjectCommand({
       Bucket: process.env.R2_S3_RESUME_BUCKET!,
-      Key: `${candidate._id}.pdf`,
+      Key: candidate?.isSample ? "sample.pdf" : `${candidate._id}.pdf`,
     });
 
     const url = await getSignedUrl(r2Client, command, { expiresIn: 600 });

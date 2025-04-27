@@ -11,8 +11,9 @@ import sampleDepartments from "@/data/samples/institute/departments";
 import { Types } from "mongoose";
 import { PlacementGroup as IPlacementGroup } from "@shared-types/PlacementGroup";
 import { Company as ICompany } from "@shared-types/Company";
+import AppliedDrive from "@/models/AppliedDrive";
 
-const CANDIDATES_LIMIT = 2;
+const CANDIDATES_LIMIT = 20;
 const PLACEMENT_GROUPS_MIN = 3;
 const PLACEMENT_GROUPS_MAX = 10;
 const COMPANIES_MIN = 5;
@@ -27,7 +28,7 @@ const StepStatus = {
   FAILED: "failed",
 };
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+// const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const generateSampleInstituteData = async (instituteId: string) => {
   const institute = await Institute.findById(instituteId);
@@ -43,6 +44,7 @@ const generateSampleInstituteData = async (instituteId: string) => {
   );
   await generateSampleCompanies(instituteId);
   await generateSampleDrives(instituteId);
+  await generateSampleAppliedDrives(instituteId);
 };
 
 const generateSampleInstituteDepartments = async (instituteId: string) => {
@@ -87,6 +89,11 @@ const generateRandomCandidate = () => {
 };
 
 const generateSampleInstituteCandidates = async (instituteId: string) => {
+  const institute = await Institute.findById(instituteId);
+  if (!institute) {
+    throw new Error("Institute not found");
+  }
+
   const passphrase = generate({
     fast: true,
     separator: "-",
@@ -110,7 +117,7 @@ const generateSampleInstituteCandidates = async (instituteId: string) => {
       privateMetadata: { isSample: true, sampleInstituteId: instituteId },
     });
 
-    await delay(1000);
+    console.log("Created user:", candidate.username);
   }
 
   const dbUsers = await User.find({
@@ -379,7 +386,7 @@ const generateSampleInstituteCandidates = async (instituteId: string) => {
         };
       }),
 
-      resumeUrl: faker.internet.url(),
+      resumeUrl: "scriptopia-resumes/sample.pdf",
       institute: instituteId,
       instituteUid: faker.string.alphanumeric(10),
       createdAt: new Date(),
@@ -387,7 +394,10 @@ const generateSampleInstituteCandidates = async (instituteId: string) => {
     });
 
     await newCandidate.save();
+    institute.candidates.push(newCandidate._id);
   }
+
+  await institute.save();
 
   await Institute.updateOne(
     { _id: instituteId },
@@ -767,14 +777,17 @@ const generateSampleDrives = async (instituteId: string) => {
       const hasEnded = isPublished ? faker.datatype.boolean(0.5) : false;
 
       const now = new Date();
-      const pastDate = faker.date.past({ years: 1 });
+      const pastDate = faker.date.past({ years: 1 }); // 1 day in milliseconds
       const futureDate = faker.date.future({ years: 1 });
 
       let applicationStart, applicationEnd;
+      const calculatedToDate = new Date(
+        now.getTime() - 30 * 24 * 60 * 60 * 1000
+      );
       if (hasEnded) {
         applicationStart = faker.date.between({
-          from: pastDate,
-          to: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+          from: pastDate < calculatedToDate ? pastDate : calculatedToDate,
+          to: calculatedToDate,
         });
         applicationEnd = faker.date.between({
           from: applicationStart,
@@ -921,12 +934,15 @@ const generateSampleDrives = async (instituteId: string) => {
       });
 
       await drive.save();
+      institute.drives.push(drive._id);
       console.log(
         `Created drive: ${drive.title} (${isPublished ? "Published" : "Draft"}${
           hasEnded ? ", Ended" : ""
         })`
       );
     }
+    
+    await institute.save();
 
     await Institute.updateOne(
       { _id: instituteId },
@@ -947,6 +963,121 @@ const generateSampleDrives = async (instituteId: string) => {
     );
   } catch (error) {
     console.error("Error generating drives:", error);
+    throw error;
+  }
+};
+
+const generateSampleAppliedDrives = async (instituteId: string) => {
+  try {
+    const publishedDrives = await Drive.find({
+      institute: instituteId,
+      published: true,
+    }).populate("placementGroup");
+
+    if (!publishedDrives || publishedDrives.length === 0) {
+      console.log("No published drives found for this institute.");
+      return;
+    }
+
+    for (const drive of publishedDrives) {
+      const placementGroup = await PlacementGroup.findById(
+        drive.placementGroup
+      ).populate("candidates");
+      if (
+        !placementGroup ||
+        !placementGroup.candidates ||
+        placementGroup.candidates.length === 0
+      ) {
+        console.log(
+          `Skipping drive: ${drive.title} (No candidates in associated placement group)`
+        );
+        continue;
+      }
+
+      const totalCandidates = placementGroup.candidates.length;
+      const appliedCount = Math.ceil(
+        totalCandidates * faker.number.float({ min: 0.5, max: 1.0 })
+      );
+
+      console.log(
+        `Generating ${appliedCount} applied drives for drive: ${drive.title}`
+      );
+
+      const appliedDrives = [];
+
+      const selectedCandidates = faker.helpers
+        .shuffle([...placementGroup.candidates])
+        .slice(0, appliedCount);
+
+      for (const candidateId of selectedCandidates) {
+        const status = faker.helpers.arrayElement([
+          "applied",
+          "inprogress",
+          "rejected",
+          "hired",
+        ]);
+
+        let disqualifiedStage = null;
+        let disqualifiedReason = null;
+        if (status === "rejected") {
+          const workflowSteps = drive.workflow?.steps || [];
+          if (workflowSteps.length > 0) {
+            const randomStep = faker.helpers.arrayElement(workflowSteps);
+            disqualifiedStage = randomStep._id;
+            disqualifiedReason = faker.helpers.arrayElement([
+              "Failed technical round",
+              "Did not meet minimum qualifications",
+              "Missed interview",
+              "Failed coding assessment",
+            ]);
+          }
+        }
+
+        let salary = null;
+        let offerLetterKey = null;
+        let offerLetterUploadedAt = null;
+        if (
+          status === "hired" &&
+          drive.hasEnded &&
+          drive.workflow?.steps?.slice(-1)[0]?.status === "completed"
+        ) {
+          salary = faker.number.int({
+            min: drive.salary.min!,
+            max: drive.salary.max!,
+          });
+
+          offerLetterKey = faker.string.uuid();
+          offerLetterUploadedAt = faker.date.between({
+            from: drive.publishedOn || new Date(),
+            to: new Date(),
+          });
+        }
+
+        const appliedDrive = {
+          drive: drive._id,
+          user: candidateId,
+          disqualifiedStage,
+          disqualifiedReason,
+          scores: [],
+          status,
+          salary,
+          offerLetterKey,
+          offerLetterUploadedAt,
+          isSample: true,
+        };
+
+        appliedDrives.push(appliedDrive);
+      }
+
+      await AppliedDrive.insertMany(appliedDrives);
+      console.log(
+        `Created ${appliedDrives.length} applied drives for drive: ${drive.title}`
+      );
+    }
+
+    console.log("Sample applied drives generation complete.");
+  } catch (error) {
+    console.error("Error generating sample applied drives:", error);
     throw error;
   }
 };
