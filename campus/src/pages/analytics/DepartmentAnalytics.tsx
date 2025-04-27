@@ -37,7 +37,7 @@ export default function DepartmentAnalytics() {
     };
 
     loadData();
-  }, [analyticsService]);
+  }, []);
 
   if (loading || !departmentStats) {
     return (

@@ -53,7 +53,7 @@ export default function Dashboard() {
     };
 
     loadData();
-  }, [analyticsService]);
+  }, []);
 
   if (loading || !dashboardStats || !analyticsData) {
     return (
