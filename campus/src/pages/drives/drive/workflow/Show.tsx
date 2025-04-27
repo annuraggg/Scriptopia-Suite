@@ -202,7 +202,7 @@ const Show: React.FC<ShowProps> = ({ workflowData }) => {
       );
 
       const qualifiedCandidates = allAppliedDrives?.filter(
-        (appliedDrive) => appliedDrive?.status === "inprogress"
+        (appliedDrive) => appliedDrive?.status === "inprogress" || appliedDrive?.status === "applied"
       );
 
       if (qualifiedCandidates?.length < 2) {
