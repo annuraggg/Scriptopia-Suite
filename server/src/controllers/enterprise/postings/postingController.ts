@@ -135,8 +135,6 @@ const createPosting = async (c: Context) => {
       return sendError(c, 500, "Error creating posting");
     }
 
-    console.log(newPostingFetched);
-
     const interviews = newPostingFetched?.workflow?.steps.filter(
       (step) => step.type === "INTERVIEW"
     );

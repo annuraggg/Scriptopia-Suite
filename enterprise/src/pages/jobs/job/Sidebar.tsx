@@ -189,6 +189,8 @@ const Sidebar = ({ posting, loading, isMobile, onClose }: SidebarProps) => {
       }
       if (step.type === "INTERVIEW" && posting?.interviews) totalCompleted++;
       if (step.type === "CUSTOM") totalCompleted++;
+
+      console.log(totalCompleted)
     });
 
     console.log(totalCompleted, steps.length);

@@ -367,14 +367,24 @@ const Pipeline = () => {
             if (step.status === "in-progress") {
               return (
                 applied.status === "inprogress" ||
+                applied.status === "hired" ||
+                (applied.status === "rejected" &&
+                  applied.disqualifiedStage?.toString() ===
+                    step._id?.toString()) ||
                 (index === 0 && applied.status === "applied")
               );
             }
-            // For the "hired" candidates in the last step
+            // For the last step - include both hired and rejected candidates from last stage
             else if (isLastStep && step.status === "completed") {
-              return applied.status === "hired";
+              return (
+                applied.status === "hired" ||
+                (!drive?.hasEnded && applied.status === "inprogress") ||
+                (applied.status === "rejected" &&
+                  applied.disqualifiedStage?.toString() ===
+                    step._id?.toString())
+              );
             }
-            // For disqualified candidates, check if they were disqualified at this stage
+            // For disqualified candidates in non-last stages
             else if (applied.status === "rejected") {
               return (
                 applied.disqualifiedStage?.toString() === step._id?.toString()

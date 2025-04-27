@@ -1223,6 +1223,8 @@ const getOrganization = async (c: Context): Promise<Response> => {
       console.log(e);
     }
 
+    console.log("Selected Org", selectedOrg.departments);
+
     return sendSuccess(c, 200, "Organization fetched successfully", {
       organization: selectedOrg,
       user,

@@ -1279,18 +1279,21 @@ const getCandidatesForDrive = async (c: Context) => {
       return sendError(c, 401, "Unauthorized");
     }
 
+    // Fetch drive with populated candidates
     const drive = await Drive.findOne({
       _id: new mongoose.Types.ObjectId(driveId),
       institute: new mongoose.Types.ObjectId(perms.data?.institute?._id),
-    });
+    }).populate(
+      "candidates",
+      "name email department phone instituteUid resumeUrl status"
+    );
 
     if (!drive) {
       return sendError(c, 404, "Drive not found or you don't have permission");
     }
 
-    const placementGroup = await PlacementGroup.findById(drive.placementGroup);
-    if (!placementGroup) {
-      return sendError(c, 404, "Placement group not found");
+    if (!drive.candidates || !Array.isArray(drive.candidates)) {
+      return sendError(c, 404, "No candidates found for this drive");
     }
 
     const page = parseInt(c.req.query("page") || "1", 10);
@@ -1300,38 +1303,29 @@ const getCandidatesForDrive = async (c: Context) => {
     // Get search query parameter
     const searchQuery = c.req.query("search");
 
-    // Build the search filter
-    let filter: any = {
-      _id: { $in: placementGroup.candidates },
-    };
+    // Filter candidates based on search query
+    let filteredCandidates = drive.candidates;
 
-    // Add search condition if search query exists
     if (searchQuery && searchQuery.trim()) {
-      // Create a case-insensitive regex for the search term
       const searchRegex = new RegExp(searchQuery, "i");
-
-      // Search across multiple fields
-      filter = {
-        ...filter,
-        $or: [
-          { name: searchRegex },
-          { email: searchRegex },
-          { instituteUid: searchRegex },
-          { phone: searchRegex },
-          { department: searchRegex },
-        ],
-      };
+      filteredCandidates = filteredCandidates.filter((candidate: any) => {
+        return (
+          searchRegex.test(candidate.name) ||
+          searchRegex.test(candidate.email) ||
+          searchRegex.test(candidate.instituteUid) ||
+          searchRegex.test(candidate.phone) ||
+          searchRegex.test(candidate.department)
+        );
+      });
     }
 
-    const dbCandidates = await Candidate.find(filter)
-      .select("name email department phone instituteUid resumeUrl status")
-      .sort({ name: 1 })
-      .skip(skip)
-      .limit(limit);
+    // Apply pagination
+    const total = filteredCandidates.length;
+    const paginatedCandidates = filteredCandidates.slice(skip, skip + limit);
 
     const candidates = [];
 
-    for (const candidate of dbCandidates) {
+    for (const candidate of paginatedCandidates) {
       const appliedPosting = await AppliedDrive.findOne({
         user: candidate._id,
         drive: new mongoose.Types.ObjectId(driveId),
@@ -1339,20 +1333,12 @@ const getCandidatesForDrive = async (c: Context) => {
 
       if (appliedPosting) {
         candidates.push({
-          ...candidate.toObject(),
+          ...candidate,
           appliedPostingId: appliedPosting._id,
           status: appliedPosting.status,
         });
-      } else {
-        candidates.push({
-          ...candidate.toObject(),
-          appliedPostingId: null,
-          status: "not_applied",
-        });
       }
     }
-
-    const total = await Candidate.countDocuments(filter);
 
     const lastUpdated = new Date().toISOString();
     const updatedBy = c.get("user")?.login || "system";
@@ -1683,7 +1669,10 @@ const getOfferLetter = async (c: Context) => {
       user: new mongoose.Types.ObjectId(id),
     });
 
-    if (!appliedDrive || (!appliedDrive.offerLetterKey && !candidate.isSample)) {
+    if (
+      !appliedDrive ||
+      (!appliedDrive.offerLetterKey && !candidate.isSample)
+    ) {
       return sendError(c, 404, "Offer letter record not found");
     }
 
@@ -1693,7 +1682,9 @@ const getOfferLetter = async (c: Context) => {
         Key: appliedDrive.offerLetterKey || "",
       });
 
-      const url = candidate?.isSample ? "https://www.peoplebox.ai//wp-content/uploads/2024/09/Job-offer-letter-sample.webp" : await getSignedUrl(r2Client, command, { expiresIn: 300 });
+      const url = candidate?.isSample
+        ? "https://www.peoplebox.ai//wp-content/uploads/2024/09/Job-offer-letter-sample.webp"
+        : await getSignedUrl(r2Client, command, { expiresIn: 300 });
 
       return sendSuccess(c, 200, "File URL generated", {
         url,

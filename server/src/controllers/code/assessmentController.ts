@@ -30,6 +30,7 @@ import AppliedDrive from "@/models/AppliedDrive";
 import checkInstitutePermission from "@/middlewares/checkInstitutePermission";
 import Drive from "@/models/Drive";
 import CandidateModel from "@/models/Candidate";
+import { WorkflowStep } from "@shared-types/Posting";
 
 async function getIoServer() {
   const { ioServer } = await import("@/config/init");
@@ -294,13 +295,21 @@ const createMcqAssessment = async (c: Context) => {
         return sendError(c, 400, "Workflow not found");
       }
 
+      const isAssessmentStep = (step: WorkflowStep) =>
+        step.type === "MCQ_ASSESSMENT" || step.type === "CODING_ASSESSMENT";
+
       const assessmentstep = parseInt(step);
-      const workflowId = posting.workflow.steps[assessmentstep]?._id;
+      console.log("assessment step", assessmentstep);
+      const workflowId = // @ts-expect-error
+        posting.workflow.steps?.filter(isAssessmentStep)?.[assessmentstep];
+
+      console.log("workflowId", workflowId);
+
       await Posting.findByIdAndUpdate(postingId, {
         $push: {
           mcqAssessments: {
             assessmentId: newAssessment._id,
-            workflowId: workflowId,
+            workflowId: workflowId._id,
           },
         },
         updatedOn: new Date(),
@@ -429,14 +438,21 @@ const createCodeAssessment = async (c: Context) => {
         return sendError(c, 400, "Workflow not found");
       }
 
+      const isAssessmentStep = (step: WorkflowStep) =>
+        step.type === "MCQ_ASSESSMENT" || step.type === "CODING_ASSESSMENT";
+
       const assessmentstep = parseInt(step);
-      const workflowId = posting.workflow.steps[assessmentstep]?._id;
+      console.log("assessment step", assessmentstep);
+      const workflowId = // @ts-expect-error
+        posting.workflow.steps?.filter(isAssessmentStep)?.[assessmentstep];
+
+      console.log("workflowId", workflowId);
 
       await Posting.findByIdAndUpdate(postingId, {
         $push: {
           codeAssessments: {
             assessmentId: newAssessment._id,
-            workflowId: workflowId,
+            workflowId: workflowId._id,
           },
         },
         updatedOn: new Date(),

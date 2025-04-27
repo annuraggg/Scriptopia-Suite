@@ -89,12 +89,13 @@ const JOB_TYPE_COLORS: Record<JobType, string> = {
   temporary: "danger",
 };
 
-const JOB_STATUS_COLORS: Record<JobStatus, string> = {
+const JOB_STATUS_COLORS = {
   applied: "primary",
   inprogress: "warning",
   hired: "success",
   rejected: "danger",
   disqualified: "danger",
+  not_applied: "default",
 };
 
 /**
@@ -399,7 +400,7 @@ const Home = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
                 {filteredDrives.map((driveItem) => {
                   const drive = driveItem.drive;
-                  const status = driveItem.status;
+                  const status = driveItem.status || "not_applied";
                   const deadline = getApplicationDeadline(driveItem);
                   const isDeadlineSoon =
                     deadline.includes("day") && parseInt(deadline) <= 3;

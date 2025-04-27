@@ -72,6 +72,8 @@ const CreateJob = () => {
   const { organization, setOrganization } = useOutletContext() as RootContext;
   const navigate = useNavigate();
 
+  console.log("Organization", organization);
+
   const handleSave = () => {
     setLoading(true);
 
@@ -96,6 +98,8 @@ const CreateJob = () => {
         };
       });
     });
+
+    console.log("Department", department);
 
     const posting: Posting = {
       title,
