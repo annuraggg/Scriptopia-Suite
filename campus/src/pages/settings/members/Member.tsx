@@ -45,6 +45,8 @@ const Members: React.FC = () => {
   const { institute, setInstitute, user, rerender } =
     useOutletContext() as SettingsContext;
 
+  const [innerRerender, setInnerRerender] = useState(false);
+
   useEffect(() => {
     if (!institute.members) return;
     console.log(institute.members);
@@ -59,7 +61,7 @@ const Members: React.FC = () => {
 
     setMembers(finalMembers);
     setInvitedMembers(finalInvitedMembers);
-  }, [rerender]);
+  }, [rerender, innerRerender]);
 
   const handleInvite = (newMember: Member) => {
     const newInstitute = { ...institute };
@@ -77,11 +79,13 @@ const Members: React.FC = () => {
   };
 
   const removeMember = (email: string) => {
+    onRemoveConfirmOpenChange();
     const newInstitute = { ...institute };
     const updatedMembers = newInstitute.members?.filter(
       (member) => member.email !== email
     );
     setInstitute({ ...newInstitute, members: updatedMembers });
+    setInnerRerender(!innerRerender);
   };
 
   const revokeMember = (email: string) => {

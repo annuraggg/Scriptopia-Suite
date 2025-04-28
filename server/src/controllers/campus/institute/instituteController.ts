@@ -300,6 +300,9 @@ const verifyInvite = async (c: Context) => {
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
         institute: string;
+        institutename: string;
+        inviter: string;
+        inviterId: string;
         email: string;
         role: string;
         iat: number;
@@ -336,8 +339,9 @@ const verifyInvite = async (c: Context) => {
 
     return sendSuccess(c, 200, "Invitation verified", {
       institute: decoded.institute,
-      instituteName: institute.name,
+      institutename: institute.name,
       role: decoded.role,
+      inviter: decoded.inviter,
     });
   } catch (error) {
     logger.error(`verifyInvite error: ${error}`);
@@ -492,6 +496,8 @@ const joinInstitute = async (c: Context) => {
       institute: institute!,
       permissions: ["manage_institute"],
     });
+
+    console.log("Notifying users: ", notifyingUsers);
 
     if (notifyingUsers.length > 0) {
       await sendNotificationToCampus({
@@ -821,12 +827,15 @@ const updateInstitute = async (c: Context) => {
         $set: {
           ...sanitizedBody,
         },
-        $push: {
-          auditLogs: auditLog,
-        },
       },
       { new: true }
     );
+
+    // push audit log
+    if (updatedInstitute) {
+      updatedInstitute.auditLogs.push(auditLog);
+      await updatedInstitute.save();
+    }
 
     if (!updatedInstitute) {
       return sendError(c, 404, "Institute not found");

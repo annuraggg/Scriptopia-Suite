@@ -23,7 +23,7 @@ const getCampusUsersWithPermission = async ({
 
   console.log("members", members);
 
-  const users = members.map((member) => member?.user);
+  const users = members.map((member) => member?.user).filter(Boolean);
   return users;
 };
 

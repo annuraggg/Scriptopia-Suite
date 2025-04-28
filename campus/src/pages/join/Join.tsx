@@ -108,7 +108,7 @@ const Join = () => {
           </Card>
         ) : (
           <Card>
-            <CardHeader className="justify-center">institute Invite</CardHeader>
+            <CardHeader className="justify-center">Institute Invite</CardHeader>
             <CardBody className="items-center px-10 w-[30vw]">
               <div className="flex gap-5 items-center">
                 <Avatar src={user?.imageUrl} size="lg" />

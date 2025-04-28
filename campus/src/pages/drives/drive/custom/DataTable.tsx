@@ -271,6 +271,7 @@ const DataTable = ({
     );
 
     if (!appliedDrive) {
+      console.error("Applied drive not found for candidate:", _id);
       setIsLoading(false);
       return;
     }
@@ -463,13 +464,18 @@ const DataTable = ({
     />
   );
 
-  // Helper to check if selectedRows is a Set with items
+  // Update the helper functions to recognize "all" selection
   const hasSelectedRows = (): boolean => {
-    return selectedRows instanceof Set ? selectedRows.size > 0 : false;
+    return (
+      selectedRows === "all" ||
+      (selectedRows instanceof Set && selectedRows.size > 0)
+    );
   };
 
-  // Get count of selected rows
   const getSelectedRowsCount = (): number => {
+    if (selectedRows === "all") {
+      return currentPageItems.length; // Count of visible items
+    }
     return selectedRows instanceof Set ? selectedRows.size : 0;
   };
 
