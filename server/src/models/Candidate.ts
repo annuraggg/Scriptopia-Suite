@@ -279,6 +279,8 @@ const candidateSchema = new Schema(
     // Profile completion metadata
     profileCompletionPercentage: { type: Number, default: 0 },
     lastProfileUpdate: { type: Date, default: Date.now },
+
+    isSample: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

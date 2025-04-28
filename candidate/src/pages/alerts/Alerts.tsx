@@ -199,9 +199,9 @@ const Alerts = () => {
                         className="max-w-xs"
                         onChange={(e) => setSelectedTime(e.target.value)}
                       >
-                        <SelectItem key="15" value="15">15 mins before</SelectItem>
-                        <SelectItem key="30" value="30">30 mins before</SelectItem>
-                        <SelectItem key="45" value="45">45 mins before</SelectItem>
+                        <SelectItem key="15">15 mins before</SelectItem>
+                        <SelectItem key="30">30 mins before</SelectItem>
+                        <SelectItem key="45">45 mins before</SelectItem>
                       </Select>
                       <Button 
                         color="primary" 

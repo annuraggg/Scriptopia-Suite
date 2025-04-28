@@ -612,13 +612,13 @@ const Competitions = () => {
                       isDisabled={isSubmitting}
                       description="Type of competition"
                     >
-                      <SelectItem key="academic" value="academic">
+                      <SelectItem key="academic">
                         Academic
                       </SelectItem>
-                      <SelectItem key="professional" value="professional">
+                      <SelectItem key="professional">
                         Professional
                       </SelectItem>
-                      <SelectItem key="personal" value="personal">
+                      <SelectItem key="personal">
                         Personal
                       </SelectItem>
                     </Select>

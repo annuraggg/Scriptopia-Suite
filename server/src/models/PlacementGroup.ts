@@ -77,6 +77,8 @@ const placementGroupSchema = new Schema(
       type: Boolean,
       default: false,
     },
+
+    isSample: { type: Boolean, default: false },
   },
   {
     timestamps: true,

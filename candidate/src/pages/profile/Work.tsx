@@ -837,7 +837,7 @@ export default function WorkExperience() {
                           ([category, sectors]) => (
                             <SelectSection key={category} title={category}>
                               {sectors.map((sector) => (
-                                <SelectItem key={sector} value={sector}>
+                                <SelectItem key={sector}>
                                   {sector}
                                 </SelectItem>
                               ))}
@@ -897,7 +897,6 @@ export default function WorkExperience() {
                         {positionTypes.map((type) => (
                           <SelectItem
                             key={type.value}
-                            value={type.value}
                             description={type.description}
                           >
                             {type.label}
@@ -946,7 +945,7 @@ export default function WorkExperience() {
                           ([category, functions]) => (
                             <SelectSection key={category} title={category}>
                               {functions.map((func) => (
-                                <SelectItem key={func} value={func}>
+                                <SelectItem key={func}>
                                   {func}
                                 </SelectItem>
                               ))}

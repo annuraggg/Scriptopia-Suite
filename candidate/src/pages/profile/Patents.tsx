@@ -686,7 +686,7 @@ const Patents = () => {
                     isDisabled={isSubmitting}
                   >
                     {patentOffices.map((office) => (
-                      <SelectItem key={office.value} value={office.value}>
+                      <SelectItem key={office.value}>
                         {office.label}
                       </SelectItem>
                     ))}
@@ -726,7 +726,6 @@ const Patents = () => {
                     {patentStatuses.map((stat) => (
                       <SelectItem
                         key={stat.value}
-                        value={stat.value}
                         startContent={stat.icon}
                       >
                         {stat.label}

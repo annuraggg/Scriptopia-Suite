@@ -132,7 +132,7 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
                 }
               >
                 {Object.entries(colorSchemes).map(([key, scheme]) => (
-                  <SelectItem key={key} value={key}>
+                  <SelectItem key={key}>
                     {scheme.name}
                   </SelectItem>
                 ))}
@@ -170,7 +170,7 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
                 }
               >
                 {fontOptions.heading.map((font) => (
-                  <SelectItem key={font.value} value={font.value}>
+                  <SelectItem key={font.value}>
                     {font.name}
                   </SelectItem>
                 ))}
@@ -184,7 +184,7 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
                 }
               >
                 {fontOptions.body.map((font) => (
-                  <SelectItem key={font.value} value={font.value}>
+                  <SelectItem key={font.value}>
                     {font.name}
                   </SelectItem>
                 ))}
@@ -206,7 +206,7 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
                 }
               >
                 {layoutOptions.map((layout) => (
-                  <SelectItem key={layout.value} value={layout.value}>
+                  <SelectItem key={layout.value}>
                     {layout.name}
                   </SelectItem>
                 ))}
@@ -220,7 +220,7 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
                 }
               >
                 {headerAlignmentOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem key={option.value}>
                     {option.name}
                   </SelectItem>
                 ))}
@@ -237,7 +237,7 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
                 }
               >
                 {sectionHeadingStyles.map((style) => (
-                  <SelectItem key={style.value} value={style.value}>
+                  <SelectItem key={style.value}>
                     {style.name}
                   </SelectItem>
                 ))}
@@ -257,7 +257,7 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
                 onChange={(e) => handleSpacingChange(e.target.value)}
               >
                 {spacingOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem key={option.value} >
                     {option.name}
                   </SelectItem>
                 ))}

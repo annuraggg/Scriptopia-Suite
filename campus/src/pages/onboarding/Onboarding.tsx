@@ -10,6 +10,7 @@ import { setInstitute } from "@/reducers/instituteReducer";
 import { useDispatch } from "react-redux";
 import ax from "@/config/axios";
 import Loader from "@/components/Loader";
+import SampleData from "./SampleData";
 
 interface InvitedMember {
   email: string;
@@ -18,6 +19,7 @@ interface InvitedMember {
 
 const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(0);
+  const [sampleData, setSampleData] = useState(true);
 
   const [instituteName, setInstituteName] = useState<string>("");
   const [instituteEmail, setInstituteEmail] = useState<string>("");
@@ -92,6 +94,13 @@ const Onboarding = () => {
         />
       ),
     },
+    {
+      name: "Sample Data",
+      description: "Do you want to play with sample data before you start?",
+      component: (
+        <SampleData sampleData={sampleData} setSampleData={setSampleData} />
+      ),
+    },
   ];
 
   const validate = () => {
@@ -144,9 +153,9 @@ const Onboarding = () => {
           zipCode: instituteZipCode,
         },
         members: invitedMembers,
+        sampleData,
       })
       .then(() => {
-        setLoading(false);
         toast.success("Institute created successfully");
         window.location.href = "/dashboard";
         const data = {
@@ -163,7 +172,14 @@ const Onboarding = () => {
       });
   };
 
-  if (loading) return <Loader />;
+  const loadingTexts = [
+    "Creating your account...",
+    "Setting up your institute...",
+    sampleData ? "Generating Sample Data..." : "Finishing Up...",
+    "Almost there...",
+  ];
+
+  if (loading) return <Loader text={loadingTexts} interval={4000} />;
 
   return (
     <div className="flex items-center justify-center h-screen p-10 py-5">
@@ -193,7 +209,9 @@ const Onboarding = () => {
             <p className="text-danger underline cursor-pointer">Logout</p>
           </SignOutButton>
         </div>
-        <div className="mt-5 h-[60%] overflow-y-auto">{steps[currentStep].component}</div>
+        <div className="mt-5 h-[60%] overflow-y-auto">
+          {steps[currentStep].component}
+        </div>
         <div className="flex items-center gap-3 justify-end self-end">
           <Button
             onClick={() => setCurrentStep(currentStep - 1)}

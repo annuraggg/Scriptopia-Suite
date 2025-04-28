@@ -12,14 +12,20 @@ const userCreated = async (c: Context) => {
     (email: { id: string }) => email.id === primary_email_address_id
   );
 
+  const cUser = await clerkClient.users.getUser(id);
+  const publicMetadata = cUser.publicMetadata;
+  const privateMetadata = cUser.privateMetadata;
+
   try {
     const user = await User.create({
       clerkId: id,
       email: email.email_address,
+      isSample: privateMetadata?.isSample || false,
+      sampleInstituteId: privateMetadata?.sampleInstituteId || undefined,
     });
 
     await clerkClient.users.updateUser(id, {
-      publicMetadata: { _id: user._id },
+      publicMetadata: { ...publicMetadata, _id: user._id },
     });
 
     return sendSuccess(c, 200, "User created successfully");

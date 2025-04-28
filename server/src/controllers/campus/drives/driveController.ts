@@ -1683,17 +1683,17 @@ const getOfferLetter = async (c: Context) => {
       user: new mongoose.Types.ObjectId(id),
     });
 
-    if (!appliedDrive || !appliedDrive.offerLetterKey) {
+    if (!appliedDrive || (!appliedDrive.offerLetterKey && !candidate.isSample)) {
       return sendError(c, 404, "Offer letter record not found");
     }
 
     try {
       const command = new GetObjectCommand({
         Bucket: process.env.R2_S3_OFFERLETTER_BUCKET!,
-        Key: appliedDrive.offerLetterKey,
+        Key: appliedDrive.offerLetterKey || "",
       });
 
-      const url = await getSignedUrl(r2Client, command, { expiresIn: 300 });
+      const url = candidate?.isSample ? "https://www.peoplebox.ai//wp-content/uploads/2024/09/Job-offer-letter-sample.webp" : await getSignedUrl(r2Client, command, { expiresIn: 300 });
 
       return sendSuccess(c, 200, "File URL generated", {
         url,

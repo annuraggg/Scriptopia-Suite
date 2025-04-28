@@ -33,6 +33,7 @@ import {
 } from "@/utils/validation";
 import getCampusUsersWithPermission from "@/utils/getUserWithPermission";
 import { sendNotificationToCampus } from "@/utils/sendNotification";
+import generateSampleInstituteData from "@/utils/generateSampleInstituteData";
 
 const TOKEN_EXPIRY = "24h";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -45,12 +46,14 @@ const ALLOWED_FILE_TYPES = ["image/png", "image/jpeg", "image/jpg"];
 const createInstitute = async (c: Context) => {
   try {
     const body = await c.req.json();
-    const { name, email, website, address, members } = body;
+    const { name, email, website, address, members, sampleData } = body;
 
     const sanitizedName = sanitizeInput(name);
     const sanitizedEmail = sanitizeInput(email);
     const sanitizedWebsite = sanitizeInput(website);
-    const sanitizedAddress = sanitizeInput(address);
+    const sanitizedAddress = address;
+
+    console.log(sanitizedAddress);
 
     const clerkUserId = c.get("auth")?.userId;
     if (!clerkUserId) {
@@ -92,9 +95,14 @@ const createInstitute = async (c: Context) => {
     }
 
     const userInInstitute = await Institute.findOne({
-      "members.user": uid,
-      "members.status": "active",
+      members: {
+        $elemMatch: {
+          user: uid,
+          status: "active",
+        },
+      },
     });
+
     if (userInInstitute) {
       return sendError(c, 400, "User is already part of an institute");
     }
@@ -204,15 +212,13 @@ const createInstitute = async (c: Context) => {
           },
         });
       });
-
-      await session.endSession();
     } catch (error) {
-      await session.abortTransaction();
-      await session.endSession();
       logger.error(`Transaction failed in createInstitute: ${error}`);
       return sendError(c, 500, "Failed to create institute", {
         message: "Database transaction failed",
       });
+    } finally {
+      await session.endSession(); // Ensure the session ends regardless of success or failure
     }
 
     for (const member of members) {
@@ -251,7 +257,13 @@ const createInstitute = async (c: Context) => {
       }
     }
 
-    return sendSuccess(c, 201, "Institute created successfully", {
+    if (sampleData) {
+      await generateSampleInstituteData(
+        (institute as unknown as IInstitute)?._id!
+      );
+    }
+
+    return sendSuccess(c, 200, "Institute created successfully", {
       institute: (institute as unknown as IInstitute)?._id,
     });
   } catch (error) {
@@ -1842,18 +1854,18 @@ const getInstitute = async (c: Context) => {
     }
 
     const institute = await Institute.findOne({
-      "members.user": userId,
-      "members.status": "active",
+      members: {
+        $elemMatch: {
+          user: userId,
+          status: "active",
+        },
+      },
     })
       .populate({
         path: "members.user",
       })
-      .populate({
-        path: "candidates",
-      })
-      .populate({
-        path: "pendingCandidates",
-      })
+      .populate("candidates")
+      .populate("pendingCandidates")
       .populate("companies")
       .populate("drives")
       .lean();
@@ -2120,7 +2132,7 @@ const acceptCandidate = async (c: Context) => {
       return sendError(c, 400, "Invalid candidate ID");
     }
 
-    const perms = await checkInstitutePermission.all(c, ["verify_candidate"]);
+    const perms = await checkInstitutePermission.all(c, ["verify_candidates"]);
     if (!perms.allowed) {
       return sendError(
         c,
@@ -2224,7 +2236,7 @@ const rejectCandidate = async (c: Context) => {
       return sendError(c, 400, "Invalid candidate ID");
     }
 
-    const perms = await checkInstitutePermission.all(c, ["verify_candidate"]);
+    const perms = await checkInstitutePermission.all(c, ["verify_candidates"]);
     if (!perms.allowed) {
       return sendError(
         c,
@@ -2327,7 +2339,7 @@ const getResume = async (c: Context) => {
 
     const command = new GetObjectCommand({
       Bucket: process.env.R2_S3_RESUME_BUCKET!,
-      Key: `${candidate._id}.pdf`,
+      Key: candidate?.isSample ? "sample.pdf" : `${candidate._id}.pdf`,
     });
 
     const url = await getSignedUrl(r2Client, command, { expiresIn: 600 });

@@ -277,7 +277,9 @@ const driveSchema = new Schema(
       type: [mongoose.Schema.Types.ObjectId],
       ref: "Candidate",
       required: false,
-    }
+    },
+
+    isSample: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
@@ -287,6 +289,6 @@ driveSchema.index({ department: 1 });
 driveSchema.index({ title: 1 });
 driveSchema.index({ "ats.status": 1 });
 
-driveSchema.plugin(softDeletePlugin)
+driveSchema.plugin(softDeletePlugin);
 const Drive = mongoose.model("Drive", driveSchema);
 export default Drive;

@@ -560,7 +560,7 @@ const Scholarships = () => {
                       isDisabled={isSubmitting}
                     >
                       {organizations.map((org) => (
-                        <SelectItem key={org.value} value={org.value}>
+                        <SelectItem key={org.value}>
                           {org.label}
                         </SelectItem>
                       ))}

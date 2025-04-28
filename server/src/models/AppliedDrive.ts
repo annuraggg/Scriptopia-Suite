@@ -28,6 +28,7 @@ const appliedDriveSchema = new Schema(
 
     offerLetterKey: { type: String, required: false },
     offerLetterUploadedAt: { type: Date, required: false },
+    isSample: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
