@@ -19,6 +19,7 @@ import { useAuth } from "@clerk/clerk-react";
 import ax from "@/config/axios";
 import { CompanyTable } from "./CompanyTable";
 import { Company as ICompany } from "@shared-types/Company";
+import Analytics from "./Analytics";
 import Loader from "@/components/Loader";
 import { toast } from "sonner";
 
@@ -432,6 +433,10 @@ const Company = () => {
               <CompanyTable data={filteredStudents} />
             </div>
           </div>
+        </Tab>
+
+        <Tab key="placements" title="Placement Details">
+          <Analytics />
         </Tab>
       </Tabs>
     </motion.div>
