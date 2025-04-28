@@ -32,7 +32,10 @@ import {
   validateWebsite,
 } from "@/utils/validation";
 import getCampusUsersWithPermission from "@/utils/getUserWithPermission";
-import { sendNotificationToCampus } from "@/utils/sendNotification";
+import {
+  sendNotificationToCampus,
+  sendNotificationToCandidate,
+} from "@/utils/sendNotification";
 import generateSampleInstituteData from "@/utils/generateSampleInstituteData";
 
 const TOKEN_EXPIRY = "24h";
@@ -815,8 +818,12 @@ const updateInstitute = async (c: Context) => {
     const updatedInstitute = await Institute.findByIdAndUpdate(
       instituteId,
       {
-        ...sanitizedBody,
-        $push: { auditLogs: auditLog },
+        $set: {
+          ...sanitizedBody,
+        },
+        $push: {
+          auditLogs: auditLog,
+        },
       },
       { new: true }
     );
@@ -2217,6 +2224,12 @@ const acceptCandidate = async (c: Context) => {
       });
     }
 
+    await sendNotificationToCandidate({
+      candidateIds: [candidateId],
+      title: "Campus Join Request Accepted",
+      message: `You have been accepted to ${institute.name}`,
+    });
+
     return sendSuccess(c, 200, "Candidate accepted successfully");
   } catch (error) {
     logger.error("Failed to accept candidate: " + error);
@@ -2294,6 +2307,12 @@ const rejectCandidate = async (c: Context) => {
         message: "Database transaction failed",
       });
     }
+
+    await sendNotificationToCandidate({
+      candidateIds: [candidateId],
+      title: "Campus Join Request Rejected",
+      message: `Your request to join ${institute.name} has been rejected`,
+    });
 
     return sendSuccess(c, 200, "Candidate rejected successfully");
   } catch (error) {

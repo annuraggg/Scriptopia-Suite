@@ -1211,6 +1211,7 @@ const Drive: React.FC = () => {
         onUpload={handleFileUpload}
         title="Upload Offer Letter"
         isLoading={uploadLoading}
+        currency={drive?.salary?.currency}
       />
     </div>
   );

@@ -28,6 +28,7 @@ import { Department } from "@shared-types/Institute";
 import EditGroupModal from "./EditGroupModal";
 import { useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
+import { toast } from "sonner";
 
 const PlacementGroups = () => {
   const { institute } = useOutletContext<RootContext>();
@@ -238,32 +239,27 @@ const PlacementGroups = () => {
     openDeleteModal();
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = () => {
     if (!deleteGroup?._id) return;
 
-    try {
-      setIsDeleting(true);
-      const response = await axios.delete(
-        `/placement-groups/${deleteGroup._id}`
-      );
+    setIsDeleting(true);
 
-      if (response.data && response.data.success) {
-        // Remove the group from state
+    axios
+      .delete(`/placement-groups/${deleteGroup._id}`)
+      .then(() => {
         setGroups((prevGroups) =>
           prevGroups.filter((group) => group._id !== deleteGroup._id)
         );
-
-        // Close the modal and reset deleteGroup
         closeDeleteModal();
         setDeleteGroup(null);
-      } else {
-        console.error("Failed to delete group:", response.data);
-      }
-    } catch (error) {
-      console.error("Error deleting group:", error);
-    } finally {
-      setIsDeleting(false);
-    }
+      })
+      .catch((error) => {
+        console.error("Error deleting group:", error);
+        toast.error(error.response.data.message || "Error deleting group");
+      })
+      .finally(() => {
+        setIsDeleting(false);
+      });
   };
 
   const renderPlacementGroups = () => {

@@ -22,6 +22,7 @@ interface UploadOfferLetterProps {
   onUpload: (file: File, ctc: string) => void;
   title?: string;
   isLoading?: boolean;
+  currency?: string;
 }
 
 const UploadOfferLetter: React.FC<UploadOfferLetterProps> = ({
@@ -30,6 +31,7 @@ const UploadOfferLetter: React.FC<UploadOfferLetterProps> = ({
   onUpload,
   title = "Upload File",
   isLoading = false,
+  currency = "INR",
 }) => {
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [file, setFile] = useState<File | null>(null);
@@ -238,7 +240,7 @@ const UploadOfferLetter: React.FC<UploadOfferLetterProps> = ({
 
               <Input
                 type="text"
-                label="CTC (in LPA)"
+                label={`CTC (in ${currency})`}
                 placeholder="Enter your CTC"
                 value={ctc}
                 onChange={handleCtcChange}

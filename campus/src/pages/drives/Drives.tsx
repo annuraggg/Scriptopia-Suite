@@ -313,7 +313,7 @@ const Drives: React.FC = () => {
                           </span>
                         </div>
 
-                        <p className="text-xs mt-3">
+                        <p className="text-xs mt-3 text-start">
                           {getDriveStatus(drive) === "active"
                             ? `Open Until ${new Date(
                                 drive.applicationRange?.end

@@ -753,6 +753,7 @@ const deletePlacementGroup = async (c: Context) => {
 
     const session = await mongoose.startSession();
     session.startTransaction();
+    let committed = false;
 
     try {
       const drives = await Drive.find({
@@ -765,11 +766,10 @@ const deletePlacementGroup = async (c: Context) => {
 
       if (activeDrives.length > 0) {
         await session.abortTransaction();
-        session.endSession();
         return sendError(
           c,
           400,
-          "Cannot delete group with active drives. Please end and unpublish all drives first."
+          "Cannot delete group with active drives. Please end all drives first."
         );
       }
 
@@ -801,7 +801,7 @@ const deletePlacementGroup = async (c: Context) => {
       await PlacementGroup.findByIdAndDelete(groupId, { session });
 
       await session.commitTransaction();
-      session.endSession();
+      committed = true;
 
       const notifyingUsers = await getCampusUsersWithPermission({
         institute: existingGroup.institute,
@@ -818,9 +818,12 @@ const deletePlacementGroup = async (c: Context) => {
 
       return sendSuccess(c, 200, "Placement group deleted successfully");
     } catch (error) {
-      await session.abortTransaction();
-      session.endSession();
+      if (!committed) {
+        await session.abortTransaction();
+      }
       throw error;
+    } finally {
+      session.endSession();
     }
   } catch (err) {
     console.error(
