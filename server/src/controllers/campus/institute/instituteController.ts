@@ -1443,16 +1443,21 @@ const getCandidates = async (c: Context) => {
       return sendError(c, 404, "Institute not found");
     }
 
+    // Populate more deeply to ensure we get all the candidate data
     const institute = await Institute.findOne({ _id: instituteId })
       .populate({
         path: "candidates",
         select: "-passwordHash -resetToken -refreshToken",
+        options: { lean: true },
       })
       .lean();
 
     if (!institute) {
       return sendError(c, 404, "Institute not found");
     }
+
+    // Log what we're sending back for debugging
+    console.log(`Returning ${institute?.candidates?.length || 0} candidates`);
 
     return sendSuccess(
       c,

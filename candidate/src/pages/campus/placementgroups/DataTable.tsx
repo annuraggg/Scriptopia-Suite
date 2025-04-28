@@ -22,13 +22,12 @@ import {
 } from "@/components/ui/table";
 
 import {
-  UserMinusIcon,
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
-  X,
   Check,
   Eye,
+  X,
 } from "lucide-react";
 import {
   Button,
@@ -42,7 +41,7 @@ import {
   ModalFooter,
   useDisclosure,
 } from "@heroui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ax from "@/config/axios";
 import { toast } from "sonner";
 import { useAuth } from "@clerk/clerk-react";
@@ -67,7 +66,6 @@ export function DataTable<TData extends Candidate>({
   );
   const [isAccepting, setIsAccepting] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
-  const [isRemoving, setIsRemoving] = useState(false);
 
   const {
     isOpen: isAcceptModalOpen,
@@ -79,14 +77,14 @@ export function DataTable<TData extends Candidate>({
     onOpen: onOpenRejectModal,
     onClose: onCloseRejectModal,
   } = useDisclosure();
-  const {
-    isOpen: isRemoveModalOpen,
-    onOpen: onOpenRemoveModal,
-    onClose: onCloseRemoveModal,
-  } = useDisclosure();
 
   const { getToken } = useAuth();
   const axios = ax(getToken);
+
+  // Log data for debugging
+  useEffect(() => {
+    console.log("DataTable received data:", data);
+  }, [data]);
 
   const handleAcceptCandidate = (id: string) => {
     setIsAccepting(true);
@@ -121,24 +119,6 @@ export function DataTable<TData extends Candidate>({
       })
       .finally(() => {
         setIsRejecting(false);
-      });
-  };
-
-  const handleRemoveCandidate = (id: string) => {
-    setIsRemoving(true);
-    axios
-      .post(`/institutes/candidate/${id}/remove`)
-      .then(() => {
-        toast.success("Candidate Removed Successfully");
-        onDataUpdate?.();
-        onCloseRemoveModal();
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error(err.response?.data?.message || "An Error Occurred");
-      })
-      .finally(() => {
-        setIsRemoving(false);
       });
   };
 
@@ -222,12 +202,13 @@ export function DataTable<TData extends Candidate>({
       },
       cell: ({ row }) => {
         const createdAt = row.original.createdAt;
-        return new Date(createdAt!).toDateString();
+        // Fix date formatting to prevent "Invalid Date" issues
+        return createdAt ? new Date(createdAt).toLocaleDateString() : "N/A";
       },
     },
     {
       id: "actions",
-      cell: (row) => {
+      cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
             {type === "pending" && (
@@ -237,7 +218,7 @@ export function DataTable<TData extends Candidate>({
                   variant="flat"
                   color={"success"}
                   onPress={() => {
-                    setSelectedCandidate(row.row.original);
+                    setSelectedCandidate(row.original);
                     onOpenAcceptModal();
                   }}
                 >
@@ -252,7 +233,7 @@ export function DataTable<TData extends Candidate>({
                 variant="flat"
                 color="primary"
                 onPress={() =>
-                  window.open(`/c/${row.row.original._id}`)
+                  window.open(`/c/${row.original._id}`)
                 }
               >
                 <Eye />
@@ -266,7 +247,7 @@ export function DataTable<TData extends Candidate>({
                   variant="flat"
                   color="danger"
                   onPress={() => {
-                    setSelectedCandidate(row.row.original);
+                    setSelectedCandidate(row.original);
                     onOpenRejectModal();
                   }}
                 >
@@ -274,22 +255,8 @@ export function DataTable<TData extends Candidate>({
                 </Button>
               </Tooltip>
             )}
-
-            {type === "active" && (
-              <Tooltip content="Remove from Campus">
-                <Button
-                  isIconOnly
-                  variant="flat"
-                  color="danger"
-                  onPress={() => {
-                    setSelectedCandidate(row.row.original);
-                    onOpenRemoveModal();
-                  }}
-                >
-                  <UserMinusIcon />
-                </Button>
-              </Tooltip>
-            )}
+            
+            {/* Remove button has been removed */}
           </div>
         );
       },
@@ -462,46 +429,6 @@ export function DataTable<TData extends Candidate>({
                   }
                 >
                   Reject
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-
-      {/* Remove Modal */}
-      <Modal isOpen={isRemoveModalOpen} onClose={onCloseRemoveModal}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                Remove Candidate
-              </ModalHeader>
-              <ModalBody>
-                <p>
-                  Are you sure you want to remove{" "}
-                  <strong>{selectedCandidate?.name}</strong> from the
-                  campus?
-                </p>
-              </ModalBody>
-              <ModalFooter>
-                <Button
-                  variant="light"
-                  onPress={onClose}
-                  isDisabled={isRemoving}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  color="danger"
-                  isLoading={isRemoving}
-                  onPress={() =>
-                    handleRemoveCandidate(
-                      selectedCandidate?._id || ""
-                    )
-                  }
-                >
-                  Remove
                 </Button>
               </ModalFooter>
             </>
