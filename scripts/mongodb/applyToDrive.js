@@ -14,11 +14,11 @@ import PlacementGroup from "./PlacementGroup.js";
 // =============================================
 
 const config = {
-  mode: "DEVELOPMENT", // "DEVELOPMENT" or "PRODUCTION"
+  mode: "PRODUCTION", // "DEVELOPMENT" or "PRODUCTION"
   // Dry run mode - when true, no database changes will be made
-  dryRun: true,
+  dryRun: false,
   dbConnectionTimeout: 30000,
-  driveId: "68022f76d7e68a307b0afbe7",
+  driveId: "6810a8aaf238c0018200b031",
   excludedUserIds: {
     production: [],
     development: [],

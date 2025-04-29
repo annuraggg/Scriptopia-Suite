@@ -52,6 +52,7 @@ const Candidates = () => {
     try {
       const res = await axios.get(url);
       const data = res.data.data as CandidatesResponse;
+      console.log("Candidates data:", data);
 
       setCandidatesData(data.candidates);
       setPagination(

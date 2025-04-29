@@ -1283,10 +1283,12 @@ const getCandidatesForDrive = async (c: Context) => {
     const drive = await Drive.findOne({
       _id: new mongoose.Types.ObjectId(driveId),
       institute: new mongoose.Types.ObjectId(perms.data?.institute?._id),
-    }).populate(
-      "candidates",
-      "name email department phone instituteUid resumeUrl status"
-    );
+    })
+      .populate(
+        "candidates",
+        "name email department phone instituteUid resumeUrl status"
+      )
+      .lean();
 
     if (!drive) {
       return sendError(c, 404, "Drive not found or you don't have permission");
@@ -1298,7 +1300,7 @@ const getCandidatesForDrive = async (c: Context) => {
 
     const page = parseInt(c.req.query("page") || "1", 10);
     const limit = Math.min(parseInt(c.req.query("limit") || "10", 10), 200);
-    const skip = (page - 1) * limit;
+    // const skip = (page - 1) * limit;
 
     // Get search query parameter
     const searchQuery = c.req.query("search");
@@ -1321,7 +1323,7 @@ const getCandidatesForDrive = async (c: Context) => {
 
     // Apply pagination
     const total = filteredCandidates.length;
-    const paginatedCandidates = filteredCandidates.slice(skip, skip + limit);
+    const paginatedCandidates = filteredCandidates;
 
     const candidates = [];
 
