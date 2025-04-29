@@ -17,7 +17,7 @@ const LandingPage: React.FC = () => {
   return (
     <div className="bg-gradient-to-b from-indigo-50 to-white min-h-screen">
       {/* Header Section */}
-      <header className="container mx-auto px-6 py-16 max-w-6xl">
+      <header className="container1 mx-auto px-6 py-16 max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -52,7 +52,7 @@ const LandingPage: React.FC = () => {
 
       {/* Main Features Section */}
       <section className="py-20 bg-white">
-        <div className="container mx-auto px-6 max-w-6xl">
+        <div className="container1 mx-auto px-6 max-w-6xl">
           <h2 className="text-3xl font-bold text-center text-indigo-900 mb-4">
             Built for Tech Candidates Like You
           </h2>
@@ -83,7 +83,7 @@ const LandingPage: React.FC = () => {
 
       {/* How It Works Section */}
       <section className="py-20 bg-indigo-50">
-        <div className="container mx-auto px-6 max-w-6xl">
+        <div className="container1 mx-auto px-6 max-w-6xl">
           <h2 className="text-3xl font-bold text-center text-indigo-900 mb-16">
             How Scriptopia Works
           </h2>
@@ -119,7 +119,7 @@ const LandingPage: React.FC = () => {
 
       {/* Detailed Features Section */}
       <section className="py-20 bg-white">
-        <div className="container mx-auto px-6 max-w-6xl">
+        <div className="container1 mx-auto px-6 max-w-6xl">
           <h2 className="text-3xl font-bold text-center text-indigo-900 mb-4">
             Comprehensive Platform Features
           </h2>
@@ -165,7 +165,7 @@ const LandingPage: React.FC = () => {
 
       {/* Coming Soon Banner */}
       <section className="py-16 bg-indigo-700 text-white">
-        <div className="container mx-auto px-6 max-w-6xl text-center">
+        <div className="container1 mx-auto px-6 max-w-6xl text-center">
           <h2 className="text-3xl font-bold mb-4">Coming Soon!</h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">
             Scriptopia is currently in final development and will be launching
@@ -182,7 +182,7 @@ const LandingPage: React.FC = () => {
 
       {/* Footer */}
       <footer className="bg-indigo-900 text-white py-10">
-        <div className="container mx-auto px-6 max-w-6xl">
+        <div className="container1 mx-auto px-6 max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
               <h2 className="text-2xl font-bold">Scriptopia</h2>
