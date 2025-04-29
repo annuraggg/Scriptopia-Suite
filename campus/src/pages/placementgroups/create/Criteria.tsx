@@ -25,13 +25,13 @@ import {
   ChevronRight,
   Edit2,
   Save,
+  X,
 } from "lucide-react";
 import { PlacementGroupRule } from "@shared-types/PlacementGroup";
 import { useOutletContext } from "react-router-dom";
 import { RootContext } from "@/types/RootContext";
 import { Department } from "@shared-types/Institute";
 
-// Data definitions at the top
 const DEGREE_TYPES = [
   { value: "secondary", label: "Secondary (10th)" },
   { value: "senior_secondary", label: "Senior Secondary (12th)" },
@@ -65,21 +65,17 @@ const EXPERIENCE_TYPES = [
   { value: "freelance", label: "Freelance" },
 ];
 
-// Generate graduation year options (previous 10 years and next 5 years)
 const generateGraduationYears = () => {
   const currentYear = new Date().getFullYear();
   const years = [];
 
-  // Previous 10 years
   for (let i = 10; i > 0; i--) {
     const year = currentYear - i;
     years.push({ value: year.toString(), label: year.toString() });
   }
 
-  // Current year
   years.push({ value: currentYear.toString(), label: currentYear.toString() });
 
-  // Next 5 years
   for (let i = 1; i <= 5; i++) {
     const year = currentYear + i;
     years.push({ value: year.toString(), label: year.toString() });
@@ -90,7 +86,6 @@ const generateGraduationYears = () => {
 
 const GRADUATION_YEARS = generateGraduationYears();
 
-// Category definitions
 const CATEGORY_OPTIONS = [
   { value: "basic", label: "Basic Information" },
   { value: "education", label: "Education" },
@@ -99,7 +94,6 @@ const CATEGORY_OPTIONS = [
   { value: "achievements", label: "Achievements" },
 ];
 
-// Subcategory options by category
 const SUBCATEGORY_OPTIONS: Record<
   string,
   Array<{ value: string; label: string }>
@@ -147,19 +141,24 @@ const Criteria = ({
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { institute } = useOutletContext<RootContext>();
 
-  // New state for editing
   const [editingRule, setEditingRule] = useState<PlacementGroupRule | null>(
     null
   );
-  const [ruleFormData, setRuleFormData] = useState({
-    category: "",
-    subcategory: "",
-    operator: "",
-    value: "",
-    type: "",
-  });
 
-  // Add a new rule
+  const [formCategory, setFormCategory] = useState("basic");
+  const [formSubcategory, setFormSubcategory] = useState("");
+  const [formOperator, setFormOperator] = useState(">=");
+  const [formValue, setFormValue] = useState("");
+  const [formEducationType, setFormEducationType] = useState("");
+
+  const resetModalForm = () => {
+    setFormCategory("basic");
+    setFormSubcategory("");
+    setFormOperator(">=");
+    setFormValue("");
+    setFormEducationType("");
+  };
+
   const addRule = (
     category: string,
     subcategory: string,
@@ -178,9 +177,9 @@ const Criteria = ({
     };
     setRules([...rules, newRule]);
     onClose();
+    resetModalForm();
   };
 
-  // Update an existing rule - this function will now take parameters
   const updateRule = (
     category: string,
     subcategory: string,
@@ -206,27 +205,37 @@ const Criteria = ({
     setRules(updatedRules);
     setEditingRule(null);
     onClose();
+    resetModalForm();
   };
 
-  // Delete a rule
   const deleteRule = (ruleId: string) => {
     setRules(rules.filter((rule) => rule._id !== ruleId));
   };
 
-  // Open the modal for editing a rule
   const editRule = (rule: PlacementGroupRule) => {
     setEditingRule(rule);
-    setRuleFormData({
-      category: rule.category,
-      subcategory: rule.subcategory,
-      operator: rule.operator,
-      value: rule.value,
-      type: rule.type || "",
-    });
+
+    setFormCategory(rule.category);
+    setFormSubcategory(rule.subcategory);
+    setFormOperator(rule.operator);
+    setFormValue(rule.value);
+    setFormEducationType(rule.type || "");
+
     onOpen();
   };
 
-  // Get operator options based on subcategory
+  const openAddModal = () => {
+    setEditingRule(null);
+    resetModalForm();
+    onOpen();
+  };
+
+  const handleModalClose = () => {
+    setEditingRule(null);
+    resetModalForm();
+    onClose();
+  };
+
   const getOperatorOptions = (subcategory: string) => {
     if (subcategory === "branch" || subcategory === "location") {
       return [
@@ -254,258 +263,235 @@ const Criteria = ({
     ];
   };
 
-  const renderRuleModal = () => {
-    // Use either editing data or initialize new values
-    const isEditing = !!editingRule;
-
-    const [category, setCategory] = useState(
-      isEditing ? ruleFormData.category : "basic"
-    );
-    const [subcategory, setSubcategory] = useState(
-      isEditing ? ruleFormData.subcategory : ""
-    );
-    const [operator, setOperator] = useState(
-      isEditing ? ruleFormData.operator : ">="
-    );
-    const [value, setValue] = useState(isEditing ? ruleFormData.value : "");
-    const [educationType, setEducationType] = useState(
-      isEditing ? ruleFormData.type : ""
-    );
-
-    // Initialize with edited values when editing
-    useEffect(() => {
-      if (isEditing) {
-        setCategory(ruleFormData.category);
-        setSubcategory(ruleFormData.subcategory);
-        setOperator(ruleFormData.operator);
-        setValue(ruleFormData.value);
-        setEducationType(ruleFormData.type);
-      }
-    }, [isEditing, ruleFormData]);
-
-    // Update operator when subcategory changes
-    useEffect(() => {
-      if (subcategory) {
-        if (
-          subcategory === "gender" ||
-          subcategory === "degree" ||
-          subcategory === "experienceType"
-        ) {
-          setOperator("=");
-        } else if (subcategory === "branch" || subcategory === "location") {
-          setOperator("contains");
-        } else if (subcategory === "gaps") {
-          setOperator("<=");
-        } else {
-          setOperator(">=");
-        }
-      }
-    }, [subcategory]);
-
-    // Live preview of the rule being created/edited
-    const criteriaPreview = useMemo(() => {
-      if (!category || !subcategory || !operator || !value) return "";
-
-      const getSubcategoryLabel = () => {
-        return (
-          SUBCATEGORY_OPTIONS[category]?.find(
-            (opt) => opt.value === subcategory
-          )?.label || subcategory
-        );
-      };
-
-      const getOperatorText = () => {
-        const operatorMap: Record<string, string> = {
-          "=": "equal to",
-          "!=": "not equal to",
-          ">": "greater than",
-          ">=": "greater than or equal to",
-          "<": "less than",
-          "<=": "less than or equal to",
-          contains: "contains",
-          not_contains: "does not contain",
-        };
-        return operatorMap[operator] || operator;
-      };
-
-      const getEducationTypeLabel = () => {
-        if (!educationType) return "";
-        return (
-          EDUCATION_TYPES.find((opt) => opt.value === educationType)?.label ||
-          ""
-        );
-      };
-
-      // Handle special cases for specific fields
-      if (subcategory === "gender") {
-        const genderLabel =
-          GENDER_OPTIONS.find((g) => g.value === value)?.label || value;
-        return `Candidate should be ${genderLabel}`;
-      } else if (subcategory === "degree") {
-        const degreeLabel =
-          DEGREE_TYPES.find((d) => d.value === value)?.label || value;
-        return `Candidate should have degree type ${
-          operator === "=" ? "equal to" : "not equal to"
-        } ${degreeLabel}`;
-      } else if (subcategory === "experienceType") {
-        const expTypeLabel =
-          EXPERIENCE_TYPES.find((e) => e.value === value)?.label || value;
-        return `Candidate should have experience type ${
-          operator === "=" ? "equal to" : "not equal to"
-        } ${expTypeLabel}`;
-      } else if (subcategory === "graduationYear") {
-        return `Candidate should have graduation year ${getOperatorText()} ${value}`;
-      }
-
-      const educationTypeText = educationType
-        ? `${getEducationTypeLabel()} `
-        : "";
-
-      return `Candidate should have ${
-        subcategory === "percentage" ? educationTypeText : ""
-      }${getSubcategoryLabel()} ${getOperatorText()} ${value}`;
-    }, [category, subcategory, operator, value, educationType]);
-
-    // Render value input based on subcategory
-    const renderValueInput = () => {
-      if (subcategory === "gender") {
-        return (
-          <Select
-            label="Gender"
-            placeholder="Select gender"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            classNames={{
-              label: "text-sm font-medium",
-            }}
-            variant="bordered"
-            selectedKeys={value ? [value] : []}
-          >
-            {GENDER_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </Select>
-        );
-      } else if (subcategory === "degree") {
-        return (
-          <Select
-            label="Degree Type"
-            placeholder="Select degree type"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            classNames={{
-              label: "text-sm font-medium",
-            }}
-            variant="bordered"
-            selectedKeys={value ? [value] : []}
-          >
-            {DEGREE_TYPES.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </Select>
-        );
-      } else if (subcategory === "branch") {
-        return (
-          <Select
-            label="Branch/Department"
-            placeholder="Select department"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            classNames={{
-              label: "text-sm font-medium",
-            }}
-            variant="bordered"
-            selectedKeys={value ? [value] : []}
-          >
-            {institute.departments?.map((department: Department) => (
-              <SelectItem key={department._id} value={department.name}>
-                {department.name}
-              </SelectItem>
-            ))}
-          </Select>
-        );
-      } else if (subcategory === "experienceType") {
-        return (
-          <Select
-            label="Experience Type"
-            placeholder="Select experience type"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            classNames={{
-              label: "text-sm font-medium",
-            }}
-            variant="bordered"
-            selectedKeys={value ? [value] : []}
-          >
-            {EXPERIENCE_TYPES.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </Select>
-        );
-      } else if (subcategory === "graduationYear") {
-        return (
-          <Select
-            label="Graduation Year"
-            placeholder="Select graduation year"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            classNames={{
-              label: "text-sm font-medium",
-            }}
-            variant="bordered"
-            selectedKeys={value ? [value] : []}
-          >
-            {GRADUATION_YEARS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </Select>
-        );
+  useEffect(() => {
+    if (formSubcategory) {
+      if (
+        formSubcategory === "gender" ||
+        formSubcategory === "degree" ||
+        formSubcategory === "experienceType"
+      ) {
+        setFormOperator("=");
+      } else if (
+        formSubcategory === "branch" ||
+        formSubcategory === "location"
+      ) {
+        setFormOperator("contains");
+      } else if (formSubcategory === "gaps") {
+        setFormOperator("<=");
       } else {
-        return (
-          <Input
-            label="Value"
-            placeholder="Enter value"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            type={
-              subcategory === "percentage" ||
-              subcategory === "age" ||
-              subcategory === "experience" ||
-              subcategory === "projectCount" ||
-              subcategory === "gaps" ||
-              subcategory === "activeBacklogs" ||
-              subcategory === "totalBacklogs" ||
-              subcategory === "certificateCount" ||
-              subcategory === "awardCount" ||
-              subcategory === "scholarshipCount" ||
-              subcategory === "patentCount"
-                ? "number"
-                : "text"
-            }
-            classNames={{
-              label: "text-sm font-medium",
-            }}
-            variant="bordered"
-          />
-        );
+        setFormOperator(">=");
       }
+    }
+  }, [formSubcategory]);
+
+  const criteriaPreview = useMemo(() => {
+    if (!formCategory || !formSubcategory || !formOperator || !formValue)
+      return "";
+
+    const getSubcategoryLabel = () => {
+      return (
+        SUBCATEGORY_OPTIONS[formCategory]?.find(
+          (opt) => opt.value === formSubcategory
+        )?.label || formSubcategory
+      );
     };
+
+    const getOperatorText = () => {
+      const operatorMap: Record<string, string> = {
+        "=": "equal to",
+        "!=": "not equal to",
+        ">": "greater than",
+        ">=": "greater than or equal to",
+        "<": "less than",
+        "<=": "less than or equal to",
+        contains: "contains",
+        not_contains: "does not contain",
+      };
+      return operatorMap[formOperator] || formOperator;
+    };
+
+    const getEducationTypeLabel = () => {
+      if (!formEducationType) return "";
+      return (
+        EDUCATION_TYPES.find((opt) => opt.value === formEducationType)?.label ||
+        ""
+      );
+    };
+
+    if (formSubcategory === "gender") {
+      const genderLabel =
+        GENDER_OPTIONS.find((g) => g.value === formValue)?.label || formValue;
+      return `Candidate should be ${genderLabel}`;
+    } else if (formSubcategory === "degree") {
+      const degreeLabel =
+        DEGREE_TYPES.find((d) => d.value === formValue)?.label || formValue;
+      return `Candidate should have degree type ${
+        formOperator === "=" ? "equal to" : "not equal to"
+      } ${degreeLabel}`;
+    } else if (formSubcategory === "experienceType") {
+      const expTypeLabel =
+        EXPERIENCE_TYPES.find((e) => e.value === formValue)?.label || formValue;
+      return `Candidate should have experience type ${
+        formOperator === "=" ? "equal to" : "not equal to"
+      } ${expTypeLabel}`;
+    } else if (formSubcategory === "graduationYear") {
+      return `Candidate should have graduation year ${getOperatorText()} ${formValue}`;
+    }
+
+    const educationTypeText = formEducationType
+      ? `${getEducationTypeLabel()} `
+      : "";
+
+    return `Candidate should have ${
+      formSubcategory === "percentage" ? educationTypeText : ""
+    }${getSubcategoryLabel()} ${getOperatorText()} ${formValue}`;
+  }, [
+    formCategory,
+    formSubcategory,
+    formOperator,
+    formValue,
+    formEducationType,
+  ]);
+
+  const renderValueInput = () => {
+    if (formSubcategory === "gender") {
+      return (
+        <Select
+          label="Gender"
+          placeholder="Select gender"
+          value={formValue}
+          onChange={(e) => setFormValue(e.target.value)}
+          classNames={{
+            label: "text-sm font-medium",
+          }}
+          variant="bordered"
+          selectedKeys={formValue ? [formValue] : []}
+        >
+          {GENDER_OPTIONS.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </Select>
+      );
+    } else if (formSubcategory === "degree") {
+      return (
+        <Select
+          label="Degree Type"
+          placeholder="Select degree type"
+          value={formValue}
+          onChange={(e) => setFormValue(e.target.value)}
+          classNames={{
+            label: "text-sm font-medium",
+          }}
+          variant="bordered"
+          selectedKeys={formValue ? [formValue] : []}
+        >
+          {DEGREE_TYPES.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </Select>
+      );
+    } else if (formSubcategory === "branch") {
+      return (
+        <Select
+          label="Branch/Department"
+          placeholder="Select department"
+          value={formValue}
+          onChange={(e) => setFormValue(e.target.value)}
+          classNames={{
+            label: "text-sm font-medium",
+          }}
+          variant="bordered"
+          selectedKeys={formValue ? [formValue] : []}
+        >
+          {institute.departments?.map((department: Department) => (
+            <SelectItem key={department._id} value={department.name}>
+              {department.name}
+            </SelectItem>
+          ))}
+        </Select>
+      );
+    } else if (formSubcategory === "experienceType") {
+      return (
+        <Select
+          label="Experience Type"
+          placeholder="Select experience type"
+          value={formValue}
+          onChange={(e) => setFormValue(e.target.value)}
+          classNames={{
+            label: "text-sm font-medium",
+          }}
+          variant="bordered"
+          selectedKeys={formValue ? [formValue] : []}
+        >
+          {EXPERIENCE_TYPES.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </Select>
+      );
+    } else if (formSubcategory === "graduationYear") {
+      return (
+        <Select
+          label="Graduation Year"
+          placeholder="Select graduation year"
+          value={formValue}
+          onChange={(e) => setFormValue(e.target.value)}
+          classNames={{
+            label: "text-sm font-medium",
+          }}
+          variant="bordered"
+          selectedKeys={formValue ? [formValue] : []}
+        >
+          {GRADUATION_YEARS.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </Select>
+      );
+    } else {
+      return (
+        <Input
+          label="Value"
+          placeholder="Enter value"
+          value={formValue}
+          onChange={(e) => setFormValue(e.target.value)}
+          type={
+            formSubcategory === "percentage" ||
+            formSubcategory === "age" ||
+            formSubcategory === "experience" ||
+            formSubcategory === "projectCount" ||
+            formSubcategory === "gaps" ||
+            formSubcategory === "activeBacklogs" ||
+            formSubcategory === "totalBacklogs" ||
+            formSubcategory === "certificateCount" ||
+            formSubcategory === "awardCount" ||
+            formSubcategory === "scholarshipCount" ||
+            formSubcategory === "patentCount"
+              ? "number"
+              : "text"
+          }
+          classNames={{
+            label: "text-sm font-medium",
+          }}
+          variant="bordered"
+        />
+      );
+    }
+  };
+
+  const renderRuleModal = () => {
+    const isEditing = !!editingRule;
 
     return (
       <Modal
         isOpen={isOpen}
-        onClose={() => {
-          onClose();
-          setEditingRule(null);
-        }}
+        onClose={handleModalClose}
         size="lg"
         scrollBehavior="inside"
       >
@@ -525,19 +511,19 @@ const Criteria = ({
               <Select
                 label="Category"
                 placeholder="Select a category"
-                value={category}
+                value={formCategory}
                 onChange={(e) => {
-                  setCategory(e.target.value);
-                  setSubcategory("");
-                  setOperator(">=");
-                  setValue("");
-                  setEducationType("");
+                  setFormCategory(e.target.value);
+                  setFormSubcategory("");
+                  setFormOperator(">=");
+                  setFormValue("");
+                  setFormEducationType("");
                 }}
                 classNames={{
                   label: "text-sm font-medium",
                 }}
                 variant="bordered"
-                selectedKeys={[category]}
+                selectedKeys={[formCategory]}
               >
                 {CATEGORY_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
@@ -549,38 +535,37 @@ const Criteria = ({
               <Select
                 label="Subcategory"
                 placeholder="Select a subcategory"
-                value={subcategory}
+                value={formSubcategory}
                 onChange={(e) => {
-                  setSubcategory(e.target.value);
-                  setValue("");
+                  setFormSubcategory(e.target.value);
+                  setFormValue("");
 
-                  // Set default operator based on subcategory
                   if (
                     e.target.value === "branch" ||
                     e.target.value === "location"
                   ) {
-                    setOperator("contains");
+                    setFormOperator("contains");
                   } else if (
                     e.target.value === "gender" ||
                     e.target.value === "degree" ||
                     e.target.value === "experienceType"
                   ) {
-                    setOperator("=");
+                    setFormOperator("=");
                   } else if (e.target.value === "gaps") {
-                    setOperator("<=");
+                    setFormOperator("<=");
                   } else {
-                    setOperator(">=");
+                    setFormOperator(">=");
                   }
                 }}
-                isDisabled={!category}
+                isDisabled={!formCategory}
                 classNames={{
                   label: "text-sm font-medium",
                 }}
                 variant="bordered"
-                selectedKeys={subcategory ? [subcategory] : []}
+                selectedKeys={formSubcategory ? [formSubcategory] : []}
               >
-                {category
-                  ? SUBCATEGORY_OPTIONS[category]?.map((option) => (
+                {formCategory
+                  ? SUBCATEGORY_OPTIONS[formCategory]?.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
                       </SelectItem>
@@ -588,17 +573,17 @@ const Criteria = ({
                   : null}
               </Select>
 
-              {subcategory === "percentage" && (
+              {formSubcategory === "percentage" && (
                 <Select
                   label="Education Type"
                   placeholder="Select education type"
-                  value={educationType}
-                  onChange={(e) => setEducationType(e.target.value)}
+                  value={formEducationType}
+                  onChange={(e) => setFormEducationType(e.target.value)}
                   classNames={{
                     label: "text-sm font-medium",
                   }}
                   variant="bordered"
-                  selectedKeys={educationType ? [educationType] : []}
+                  selectedKeys={formEducationType ? [formEducationType] : []}
                 >
                   {EDUCATION_TYPES.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
@@ -608,19 +593,19 @@ const Criteria = ({
                 </Select>
               )}
 
-              {subcategory && (
+              {formSubcategory && (
                 <Select
                   label="Operator"
                   placeholder="Select an operator"
-                  value={operator}
-                  onChange={(e) => setOperator(e.target.value)}
+                  value={formOperator}
+                  onChange={(e) => setFormOperator(e.target.value)}
                   classNames={{
                     label: "text-sm font-medium",
                   }}
                   variant="bordered"
-                  selectedKeys={[operator]}
+                  selectedKeys={[formOperator]}
                 >
-                  {getOperatorOptions(subcategory).map((option) => (
+                  {getOperatorOptions(formSubcategory).map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
@@ -628,7 +613,7 @@ const Criteria = ({
                 </Select>
               )}
 
-              {subcategory && renderValueInput()}
+              {formSubcategory && renderValueInput()}
 
               {criteriaPreview && (
                 <Card className="bg-blue-50 border-blue-200">
@@ -650,43 +635,41 @@ const Criteria = ({
             </div>
           </ModalBody>
           <ModalFooter className="border-t">
-            <Button
-              color="danger"
-              variant="flat"
-              onPress={() => {
-                onClose();
-                setEditingRule(null);
-              }}
-            >
+            <Button color="danger" variant="flat" onPress={handleModalClose}>
               Cancel
             </Button>
             <Button
               color="primary"
               onPress={() => {
-                if (category && subcategory && operator && value) {
+                if (
+                  formCategory &&
+                  formSubcategory &&
+                  formOperator &&
+                  formValue
+                ) {
                   if (isEditing) {
-                    // Update existing rule by passing the current form values
                     updateRule(
-                      category,
-                      subcategory,
-                      operator,
-                      value,
-                      educationType
+                      formCategory,
+                      formSubcategory,
+                      formOperator,
+                      formValue,
+                      formEducationType
                     );
                   } else {
-                    // Add new rule
                     addRule(
-                      category,
-                      subcategory,
-                      operator,
-                      value,
-                      educationType || undefined
+                      formCategory,
+                      formSubcategory,
+                      formOperator,
+                      formValue,
+                      formEducationType || undefined
                     );
                   }
                 }
               }}
               startContent={isEditing ? <Save size={18} /> : <Plus size={18} />}
-              isDisabled={!category || !subcategory || !operator || !value}
+              isDisabled={
+                !formCategory || !formSubcategory || !formOperator || !formValue
+              }
             >
               {isEditing ? "Update Criteria" : "Add Criteria"}
             </Button>
@@ -696,7 +679,6 @@ const Criteria = ({
     );
   };
 
-  // Helper function to get readable rule summary
   const getRuleSummary = (rule: PlacementGroupRule): string => {
     const operatorMap: Record<string, string> = {
       "=": "equal to",
@@ -716,7 +698,6 @@ const Criteria = ({
       rule.subcategory.slice(1).replace(/([A-Z])/g, " $1");
     let typePrefix = rule.type ? `${rule.type.toUpperCase()} ` : "";
 
-    // Handle special cases for display
     if (rule.subcategory === "gender") {
       const genderLabel =
         GENDER_OPTIONS.find((g) => g.value === rule.value)?.label || rule.value;
@@ -741,7 +722,6 @@ const Criteria = ({
     } ${rule.value}`;
   };
 
-  // Get a human-readable sentence version of the rule
   const getHumanReadableRule = (rule: PlacementGroupRule): string => {
     const operatorMap: Record<string, string> = {
       "=": "equal to",
@@ -754,12 +734,10 @@ const Criteria = ({
       not_contains: "does not contain",
     };
 
-    // Get subcategory in a readable format
     let subcategoryLabel =
       rule.subcategory.charAt(0).toUpperCase() +
       rule.subcategory.slice(1).replace(/([A-Z])/g, " $1");
 
-    // Add education type prefix if applicable
     let typePrefix = "";
     if (rule.type) {
       const educationTypeMap: Record<string, string> = {
@@ -773,7 +751,6 @@ const Criteria = ({
       typePrefix = `${educationTypeMap[rule.type] || rule.type.toUpperCase()} `;
     }
 
-    // Handle special cases for human-readable display
     if (rule.subcategory === "gender") {
       const genderLabel =
         GENDER_OPTIONS.find((g) => g.value === rule.value)?.label || rule.value;
@@ -810,7 +787,6 @@ const Criteria = ({
         {rules?.map((rule) => (
           <Chip
             key={rule._id}
-            onClose={() => deleteRule(rule._id || "")}
             variant="flat"
             color={getCategoryColor(rule.category)}
             className="py-2 px-3"
@@ -818,15 +794,27 @@ const Criteria = ({
               <div className="w-1.5 h-1.5 rounded-full bg-current mr-1" />
             }
             endContent={
-              <Button
-                isIconOnly
-                size="sm"
-                variant="light"
-                onPress={() => editRule(rule)}
-                className="ml-1 -mr-1"
-              >
-                <Edit2 size={14} />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  onPress={() => editRule(rule)}
+                  className="ml-1"
+                >
+                  <Edit2 size={14} />
+                </Button>
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  color="danger"
+                  onPress={() => deleteRule(rule._id || "")}
+                  className="-mr-1"
+                >
+                  <X size={14} />
+                </Button>
+              </div>
             }
           >
             {getRuleSummary(rule)}
@@ -836,7 +824,6 @@ const Criteria = ({
     );
   };
 
-  // Helper function to get color based on category
   const getCategoryColor = (category: string) => {
     const colorMap: Record<
       string,
@@ -851,7 +838,6 @@ const Criteria = ({
     return colorMap[category] || "default";
   };
 
-  // Simple component to show when there are no criteria
   const renderNoCriteriaState = () => {
     return (
       <div className="flex flex-col items-center justify-center p-10 text-center">
@@ -867,7 +853,7 @@ const Criteria = ({
           color="primary"
           className="mt-6"
           startContent={<Plus size={18} />}
-          onPress={onOpen}
+          onPress={openAddModal}
         >
           Add Criteria
         </Button>
@@ -889,7 +875,7 @@ const Criteria = ({
             <Button
               color="primary"
               startContent={<Plus size={18} />}
-              onPress={onOpen}
+              onPress={openAddModal}
               size="md"
             >
               Add Criteria
