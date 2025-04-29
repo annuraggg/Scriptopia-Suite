@@ -83,7 +83,7 @@ export default function Dashboard() {
           transition={{ duration: 0.5 }}
         >
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent pb-2  ">
               Analytics Dashboard
             </h1>
             <Breadcrumbs className="text-sm">

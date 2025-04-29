@@ -802,28 +802,46 @@ const deletePlacementGroup = async (c: Context) => {
 
       await session.commitTransaction();
       committed = true;
+      session.endSession();
 
-      const notifyingUsers = await getCampusUsersWithPermission({
-        institute: existingGroup.institute,
-        permissions: ["manage_drive"],
-      });
+      const groupName = existingGroup.name;
+      const groupInstitute = existingGroup.institute;
 
-      if (notifyingUsers.length > 0) {
-        await sendNotificationToCampus({
-          userIds: notifyingUsers,
-          title: "Placement Group Deleted",
-          message: `The placement group "${existingGroup.name}" has been deleted.`,
+      const response = sendSuccess(
+        c,
+        200,
+        "Placement group deleted successfully"
+      );
+
+      try {
+        const notifyingUsers = await getCampusUsersWithPermission({
+          institute: groupInstitute,
+          permissions: ["manage_drive"],
         });
+
+        if (notifyingUsers.length > 0) {
+          sendNotificationToCampus({
+            userIds: notifyingUsers,
+            title: "Placement Group Deleted",
+            message: `The placement group "${groupName}" has been deleted.`,
+          }).catch((err) => {
+            console.error(
+              "Failed to send notification after placement group deletion:",
+              err
+            );
+          });
+        }
+      } catch (notificationErr) {
+        console.error("Error preparing notifications:", notificationErr);
       }
 
-      return sendSuccess(c, 200, "Placement group deleted successfully");
+      return response;
     } catch (error) {
       if (!committed) {
         await session.abortTransaction();
       }
-      throw error;
-    } finally {
       session.endSession();
+      throw error;
     }
   } catch (err) {
     console.error(

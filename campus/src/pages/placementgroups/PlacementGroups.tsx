@@ -241,21 +241,42 @@ const PlacementGroups = () => {
 
   const handleDeleteConfirm = () => {
     if (!deleteGroup?._id) return;
-
     setIsDeleting(true);
 
     axios
       .delete(`/placement-groups/${deleteGroup._id}`)
       .then(() => {
+        closeDeleteModal();
+        setDeleteGroup(null);
+        toast.success("Placement group deleted successfully");
+
         setGroups((prevGroups) =>
           prevGroups.filter((group) => group._id !== deleteGroup._id)
         );
-        closeDeleteModal();
-        setDeleteGroup(null);
+
+        setTimeout(() => {
+          fetchGroups(pagination.page);
+        }, 300);
       })
       .catch((error) => {
         console.error("Error deleting group:", error);
-        toast.error(error.response.data.message || "Error deleting group");
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to delete placement group. Please try again.";
+
+        if (error.response?.status === 404) {
+          toast.success("Placement group no longer exists");
+          setGroups((prevGroups) =>
+            prevGroups.filter((group) => group._id !== deleteGroup?._id)
+          );
+          closeDeleteModal();
+          setDeleteGroup(null);
+          setTimeout(() => {
+            fetchGroups(pagination.page);
+          }, 300);
+        } else {
+          toast.error(errorMessage);
+        }
       })
       .finally(() => {
         setIsDeleting(false);
