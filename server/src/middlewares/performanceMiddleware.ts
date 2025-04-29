@@ -13,7 +13,7 @@ const performanceLogger = createMiddleware(async (c, next) => {
 
     const end = hrtime.bigint();
     const durationMs = Number((end - start) / BigInt(1_000_000)).toFixed(2);
-    const isAuthenticated = !!c.get("user")?.mid;
+    const isAuthenticated = !!c.get("auth")?.userId;
 
     const logMessage = [
       `MT: ${c.req.method}`,

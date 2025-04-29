@@ -5,7 +5,7 @@ import { createClerkClient } from "@clerk/backend";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 
-const mode = "DEVELOPMENT"; // Set to "PRODUCTION" for production mode
+const mode = "PRODUCTION"; // Set to "PRODUCTION" for production mode
 
 // Set up __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);

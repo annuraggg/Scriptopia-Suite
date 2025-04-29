@@ -13,11 +13,11 @@ import path from "path";
 
 const config = {
   // Environment settings
-  mode: "DEVELOPMENT", // "DEVELOPMENT" or "PRODUCTION"
+  mode: "PRODUCTION", // "DEVELOPMENT" or "PRODUCTION"
   // Dry run mode - when true, no database changes will be made
   dryRun: true,
   dbConnectionTimeout: 30000,
-  instituteId: "67fe71e972aaf8161b52734d",
+  instituteId: "68109ed2f238c0018200a83b",
 
   // CSV file settings
   csvFilePath: "students.csv",
@@ -26,9 +26,11 @@ const config = {
   // User exclusion lists
   excludedUserIds: {
     production: [
-      "67f637b8a81b7f72c5f9ff94",
-      "67f63132a81b7f72c5f9fe4e",
-      "67f62ec6a81b7f72c5f9fe10",
+      "680dea64a47b9525c8c3a4ac",
+      "680dea77a47b9525c8c3a4b1",
+      "680f4cb5b447d298a01eae57",
+      "68109e58f238c0018200a832",
+      "680f524e2603574e3447d802",
     ],
     development: [
       "671bc29315275596cf0c667d",
@@ -43,7 +45,7 @@ const config = {
   },
 
   // Default education institution ID
-  defaultInstitutionId: "67f62ff1a81b7f72c5f9fe18",
+  defaultInstitutionId: "68109ed2f238c0018200a83b",
 
   // Default candidate values
   defaults: {

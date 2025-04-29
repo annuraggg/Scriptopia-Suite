@@ -95,21 +95,21 @@ const createAuditLog = async (
   }
 };
 
-const processBatch = async <T, R>(
-  items: T[],
-  batchSize: number,
-  processFn: (batch: T[]) => Promise<R[]>
-): Promise<R[]> => {
-  const results: R[] = [];
+// const processBatch = async <T, R>(
+//   items: T[],
+//   batchSize: number,
+//   processFn: (batch: T[]) => Promise<R[]>
+// ): Promise<R[]> => {
+//   const results: R[] = [];
 
-  for (let i = 0; i < items.length; i += batchSize) {
-    const batch = items.slice(i, i + batchSize);
-    const batchResults = await processFn(batch);
-    results.push(...batchResults);
-  }
+//   for (let i = 0; i < items.length; i += batchSize) {
+//     const batch = items.slice(i, i + batchSize);
+//     const batchResults = await processFn(batch);
+//     results.push(...batchResults);
+//   }
 
-  return results;
-};
+//   return results;
+// };
 
 const getDrives = async (c: Context) => {
   try {
@@ -734,29 +734,29 @@ const publishDrive = async (c: Context) => {
       return sendError(c, 400, "Application deadline is required");
     }
 
-    const deadline = new Date(drive.applicationRange.end).toDateString();
+    // const deadline = new Date(drive.applicationRange.end).toDateString();
 
-    const BATCH_SIZE = 10;
-    const candidateEmails = placementGroup.candidates.filter((c) => c.email);
+    // const BATCH_SIZE = 10;
+    // const candidateEmails = placementGroup.candidates.filter((c) => c.email);
 
-    await processBatch(candidateEmails, BATCH_SIZE, async (batch) => {
-      const promises = batch.map((candidate) =>
-        loops.sendTransactionalEmail({
-          transactionalId: "cm9feh6fq4cyu12lzhwg5a3vy",
-          email: candidate?.email || "",
-          dataVariables: {
-            candidateName: candidate?.name || "Candidate",
-            drivePosition: drive.title,
-            company: drive.company?.name || "the company",
-            driveDeadline: deadline,
-            driveLink: `${process.env.CAMPUS_FRONTEND_URL}/campus/drives/${drive?._id}`,
-            institute: drive?.institute?.name || "your institute",
-          },
-        })
-      );
+    // await processBatch(candidateEmails, BATCH_SIZE, async (batch) => {
+    //   const promises = batch.map((candidate) =>
+    //     loops.sendTransactionalEmail({
+    //       transactionalId: "cm9feh6fq4cyu12lzhwg5a3vy",
+    //       email: candidate?.email || "",
+    //       dataVariables: {
+    //         candidateName: candidate?.name || "Candidate",
+    //         drivePosition: drive.title,
+    //         company: drive.company?.name || "the company",
+    //         driveDeadline: deadline,
+    //         driveLink: `${process.env.CAMPUS_FRONTEND_URL}/campus/drives/${drive?._id}`,
+    //         institute: drive?.institute?.name || "your institute",
+    //       },
+    //     })
+    //   );
 
-      return Promise.all(promises);
-    });
+    //   return Promise.all(promises);
+    // });
 
     if (placementGroup.candidates.length > 0) {
       const candidateIds = placementGroup.candidates.map((c) =>
@@ -1436,23 +1436,23 @@ const endDrive = async (c: Context) => {
           },
         });
 
-        await processBatch(candidates, 10, async (batch) => {
-          return Promise.all(
-            batch.map((candidate) =>
-              loops.sendTransactionalEmail({
-                transactionalId: "cm9fqj8tg4yitq1s5hbgx3cux",
-                email: candidate?.email || "",
-                dataVariables: {
-                  candidateName: candidate?.name || "Candidate",
-                  company: drive.company?.name || "the company",
-                  drivePosition: drive.title || "the position",
-                  uploadUrl: `${process.env.CAMPUS_FRONTEND_URL}/campus/drives/${drive?._id}`,
-                  institute: drive?.institute?.name || "your institute",
-                },
-              })
-            )
-          );
-        });
+        // await processBatch(candidates, 10, async (batch) => {
+        //   return Promise.all(
+        //     batch.map((candidate) =>
+        //       loops.sendTransactionalEmail({
+        //         transactionalId: "cm9fqj8tg4yitq1s5hbgx3cux",
+        //         email: candidate?.email || "",
+        //         dataVariables: {
+        //           candidateName: candidate?.name || "Candidate",
+        //           company: drive.company?.name || "the company",
+        //           drivePosition: drive.title || "the position",
+        //           uploadUrl: `${process.env.CAMPUS_FRONTEND_URL}/campus/drives/${drive?._id}`,
+        //           institute: drive?.institute?.name || "your institute",
+        //         },
+        //       })
+        //     )
+        //   );
+        // });
 
         await sendNotificationToCandidate({
           candidateIds: candidates.map((c) => c.userId?.toString()),
