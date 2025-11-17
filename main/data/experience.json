@@ -1,0 +1,94 @@
+[
+  {
+    "id": "1",
+    "company": "Tech Innovations Inc.",
+    "position": "Senior Full Stack Developer",
+    "location": "San Francisco, CA",
+    "startDate": "2023-01-15",
+    "endDate": null,
+    "current": true,
+    "description": "Lead development of microservices architecture and mentor junior developers",
+    "responsibilities": [
+      "Architected and implemented microservices using Node.js and Docker",
+      "Led a team of 5 developers in building a SaaS platform serving 100k+ users",
+      "Reduced API response time by 60% through optimization and caching strategies",
+      "Mentored junior developers and conducted code reviews",
+      "Implemented CI/CD pipelines using GitHub Actions and AWS"
+    ],
+    "technologies": ["React", "Node.js", "PostgreSQL", "Docker", "AWS", "TypeScript"],
+    "achievements": [
+      "Promoted to Senior Developer after 8 months",
+      "Led successful migration of monolith to microservices",
+      "Reduced infrastructure costs by 30%"
+    ]
+  },
+  {
+    "id": "2",
+    "company": "StartupXYZ",
+    "position": "Full Stack Developer",
+    "location": "Remote",
+    "startDate": "2021-06-01",
+    "endDate": "2022-12-31",
+    "current": false,
+    "description": "Built core features for a B2B SaaS platform from ground up",
+    "responsibilities": [
+      "Developed RESTful APIs and GraphQL endpoints for mobile and web clients",
+      "Implemented real-time features using WebSockets and Redis",
+      "Built responsive UIs with React and styled-components",
+      "Integrated third-party services (Stripe, SendGrid, Twilio)",
+      "Participated in agile development processes and sprint planning"
+    ],
+    "technologies": ["React", "Node.js", "MongoDB", "Redis", "GraphQL", "AWS"],
+    "achievements": [
+      "Built MVP that secured $2M in Series A funding",
+      "Reduced page load time by 40%",
+      "Implemented feature that increased user retention by 25%"
+    ]
+  },
+  {
+    "id": "3",
+    "company": "Digital Solutions Corp",
+    "position": "Frontend Developer",
+    "location": "New York, NY",
+    "startDate": "2020-03-01",
+    "endDate": "2021-05-31",
+    "current": false,
+    "description": "Developed modern web applications using React and Vue.js",
+    "responsibilities": [
+      "Created reusable component libraries with Storybook",
+      "Implemented responsive designs from Figma mockups",
+      "Optimized web performance and accessibility",
+      "Collaborated with UX designers and backend developers",
+      "Wrote unit and integration tests using Jest and React Testing Library"
+    ],
+    "technologies": ["React", "Vue.js", "JavaScript", "CSS3", "Jest", "Webpack"],
+    "achievements": [
+      "Improved lighthouse score from 65 to 95",
+      "Built component library used across 5 products",
+      "Achieved 100% WCAG 2.1 AA compliance"
+    ]
+  },
+  {
+    "id": "4",
+    "company": "Freelance",
+    "position": "Web Developer",
+    "location": "Remote",
+    "startDate": "2019-01-01",
+    "endDate": "2020-02-28",
+    "current": false,
+    "description": "Provided web development services to small businesses and startups",
+    "responsibilities": [
+      "Built custom websites and web applications for clients",
+      "Managed hosting and deployment on various platforms",
+      "Provided ongoing maintenance and support",
+      "Consulted on technical architecture and technology choices",
+      "Handled client communications and project management"
+    ],
+    "technologies": ["WordPress", "React", "PHP", "MySQL", "JavaScript", "HTML/CSS"],
+    "achievements": [
+      "Successfully delivered 15+ projects on time and within budget",
+      "Maintained 5-star rating on freelance platforms",
+      "Grew client base through referrals and repeat business"
+    ]
+  }
+]
