@@ -113,9 +113,9 @@ async function initializeSchema() {
   for (const statement of statements) {
     try {
       await db.execute(statement);
-    } catch (error: any) {
+    } catch (error) {
       console.error(`Error executing statement: ${statement.substring(0, 100)}...`);
-      console.error(error.message);
+      console.error((error as Error).message);
     }
   }
 
@@ -158,8 +158,8 @@ async function migrateProjects() {
         ],
       });
       console.log(`  ✓ Migrated project: ${project.title}`);
-    } catch (error: any) {
-      console.error(`  ✗ Failed to migrate project ${project.title}: ${error.message}`);
+    } catch (error) {
+      console.error(`  ✗ Failed to migrate project ${project.title}: ${(error as Error).message}`);
     }
   }
 
@@ -200,8 +200,8 @@ async function migrateExperience() {
         ],
       });
       console.log(`  ✓ Migrated experience: ${exp.company} - ${exp.position}`);
-    } catch (error: any) {
-      console.error(`  ✗ Failed to migrate experience ${exp.company}: ${error.message}`);
+    } catch (error) {
+      console.error(`  ✗ Failed to migrate experience ${exp.company}: ${(error as Error).message}`);
     }
   }
 
@@ -241,8 +241,8 @@ async function migrateCredentials() {
         ],
       });
       console.log(`  ✓ Migrated credential: ${cred.name}`);
-    } catch (error: any) {
-      console.error(`  ✗ Failed to migrate credential ${cred.name}: ${error.message}`);
+    } catch (error) {
+      console.error(`  ✗ Failed to migrate credential ${cred.name}: ${(error as Error).message}`);
     }
   }
 
@@ -288,12 +288,12 @@ async function migrateSkills() {
             ],
           });
           totalSkills++;
-        } catch (error: any) {
-          console.error(`  ✗ Failed to migrate skill ${skill.name}: ${error.message}`);
+        } catch (error) {
+          console.error(`  ✗ Failed to migrate skill ${skill.name}: ${(error as Error).message}`);
         }
       }
-    } catch (error: any) {
-      console.error(`  ✗ Failed to migrate category ${category.category}: ${error.message}`);
+    } catch (error) {
+      console.error(`  ✗ Failed to migrate category ${category.category}: ${(error as Error).message}`);
     }
   }
 
@@ -317,8 +317,8 @@ async function checkConnection() {
   try {
     await db.execute('SELECT 1');
     console.log('✓ Database connection successful');
-  } catch (error: any) {
-    console.error('✗ Database connection failed:', error.message);
+  } catch (error) {
+    console.error('✗ Database connection failed:', (error as Error).message);
     process.exit(1);
   }
 }
@@ -332,9 +332,9 @@ async function clearDatabase() {
     try {
       await db.execute(`DELETE FROM ${table}`);
       console.log(`  ✓ Cleared ${table}`);
-    } catch (error: any) {
+    } catch (error) {
       // Table might not exist yet, that's OK
-      console.log(`  - Skipped ${table} (${error.message})`);
+      console.log(`  - Skipped ${table} (${(error as Error).message})`);
     }
   }
 }
@@ -356,9 +356,9 @@ async function main() {
     console.log('\n' + '='.repeat(60));
     console.log('✓ Migration completed successfully!');
     console.log('='.repeat(60));
-  } catch (error: any) {
+  } catch (error) {
     console.error('\n' + '='.repeat(60));
-    console.error('✗ Migration failed:', error.message);
+    console.error('✗ Migration failed:', (error as Error).message);
     console.error('='.repeat(60));
     process.exit(1);
   }

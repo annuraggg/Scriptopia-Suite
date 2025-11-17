@@ -131,28 +131,29 @@ export async function getAllProjectsWithRatings(): Promise<ProjectWithRatings[]>
     ORDER BY p.created_at DESC
   `);
 
-  return result.rows.map((row: any) => {
+  return result.rows.map((row) => {
+    const rowData = row as Record<string, unknown>;
     const project = rowToProject({
-      id: row.id,
-      title: row.title,
-      description: row.description,
-      long_description: row.long_description,
-      technologies: row.technologies,
-      github_url: row.github_url,
-      live_url: row.live_url,
-      image_url: row.image_url,
-      featured: row.featured,
-      start_date: row.start_date,
-      end_date: row.end_date,
-      category: row.category,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
+      id: rowData.id as string,
+      title: rowData.title as string,
+      description: rowData.description as string,
+      long_description: rowData.long_description as string | null,
+      technologies: rowData.technologies as string,
+      github_url: rowData.github_url as string | null,
+      live_url: rowData.live_url as string | null,
+      image_url: rowData.image_url as string | null,
+      featured: rowData.featured as number,
+      start_date: rowData.start_date as string | null,
+      end_date: rowData.end_date as string | null,
+      category: rowData.category as string | null,
+      created_at: rowData.created_at as string,
+      updated_at: rowData.updated_at as string,
     });
 
     return {
       ...project,
-      avgRating: parseFloat((row.avg_rating || 0).toFixed(2)),
-      ratingCount: row.rating_count || 0,
+      avgRating: parseFloat(((rowData.avg_rating as number) || 0).toFixed(2)),
+      ratingCount: (rowData.rating_count as number) || 0,
     };
   });
 }
@@ -173,28 +174,29 @@ export async function getFeaturedProjectsWithRatings(): Promise<ProjectWithRatin
     ORDER BY p.created_at DESC
   `);
 
-  return result.rows.map((row: any) => {
+  return result.rows.map((row) => {
+    const rowData = row as Record<string, unknown>;
     const project = rowToProject({
-      id: row.id,
-      title: row.title,
-      description: row.description,
-      long_description: row.long_description,
-      technologies: row.technologies,
-      github_url: row.github_url,
-      live_url: row.live_url,
-      image_url: row.image_url,
-      featured: row.featured,
-      start_date: row.start_date,
-      end_date: row.end_date,
-      category: row.category,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
+      id: rowData.id as string,
+      title: rowData.title as string,
+      description: rowData.description as string,
+      long_description: rowData.long_description as string | null,
+      technologies: rowData.technologies as string,
+      github_url: rowData.github_url as string | null,
+      live_url: rowData.live_url as string | null,
+      image_url: rowData.image_url as string | null,
+      featured: rowData.featured as number,
+      start_date: rowData.start_date as string | null,
+      end_date: rowData.end_date as string | null,
+      category: rowData.category as string | null,
+      created_at: rowData.created_at as string,
+      updated_at: rowData.updated_at as string,
     });
 
     return {
       ...project,
-      avgRating: parseFloat((row.avg_rating || 0).toFixed(2)),
-      ratingCount: row.rating_count || 0,
+      avgRating: parseFloat(((rowData.avg_rating as number) || 0).toFixed(2)),
+      ratingCount: (rowData.rating_count as number) || 0,
     };
   });
 }
