@@ -1,0 +1,72 @@
+[
+  {
+    "id": "1",
+    "title": "E-commerce Platform",
+    "description": "A full-stack e-commerce platform with real-time inventory management and payment integration",
+    "longDescription": "Built a comprehensive e-commerce solution using React, Node.js, and MongoDB. Features include user authentication, product management, shopping cart, order tracking, and Stripe payment integration. Implemented real-time inventory updates using WebSockets.",
+    "technologies": ["React", "Node.js", "MongoDB", "Express", "Stripe API", "WebSockets"],
+    "githubUrl": "https://github.com/example/ecommerce-platform",
+    "liveUrl": "https://demo-ecommerce.example.com",
+    "imageUrl": "/projects/ecommerce.png",
+    "featured": true,
+    "startDate": "2024-01-15",
+    "endDate": "2024-06-30",
+    "category": "Web Development"
+  },
+  {
+    "id": "2",
+    "title": "AI Chat Application",
+    "description": "Real-time chat application with AI-powered message suggestions and sentiment analysis",
+    "longDescription": "Developed a modern chat application integrating OpenAI's GPT for intelligent message suggestions and sentiment analysis. Built with Next.js, Socket.io for real-time communication, and PostgreSQL for data persistence.",
+    "technologies": ["Next.js", "Socket.io", "PostgreSQL", "OpenAI API", "TypeScript", "Tailwind CSS"],
+    "githubUrl": "https://github.com/example/ai-chat-app",
+    "liveUrl": "https://ai-chat.example.com",
+    "imageUrl": "/projects/chat-app.png",
+    "featured": true,
+    "startDate": "2024-03-01",
+    "endDate": "2024-08-15",
+    "category": "AI/ML"
+  },
+  {
+    "id": "3",
+    "title": "Task Management System",
+    "description": "Collaborative project management tool with kanban boards and team analytics",
+    "longDescription": "Created a comprehensive task management system with drag-and-drop kanban boards, team collaboration features, real-time updates, and detailed analytics dashboards. Supports multiple projects, custom workflows, and integrations.",
+    "technologies": ["Vue.js", "Firebase", "Vuex", "Chart.js", "Material UI"],
+    "githubUrl": "https://github.com/example/task-manager",
+    "liveUrl": null,
+    "imageUrl": "/projects/task-manager.png",
+    "featured": false,
+    "startDate": "2023-09-01",
+    "endDate": "2023-12-20",
+    "category": "Productivity"
+  },
+  {
+    "id": "4",
+    "title": "Mobile Fitness Tracker",
+    "description": "Cross-platform mobile app for tracking workouts, nutrition, and health metrics",
+    "longDescription": "Built a comprehensive fitness tracking mobile application using React Native. Features include workout logging, nutrition tracking, progress visualization, social features, and integration with wearable devices.",
+    "technologies": ["React Native", "Redux", "GraphQL", "Apollo Client", "HealthKit", "Google Fit"],
+    "githubUrl": "https://github.com/example/fitness-tracker",
+    "liveUrl": "https://apps.apple.com/app/fitness-tracker",
+    "imageUrl": "/projects/fitness-tracker.png",
+    "featured": true,
+    "startDate": "2023-06-01",
+    "endDate": "2024-02-28",
+    "category": "Mobile Development"
+  },
+  {
+    "id": "5",
+    "title": "DevOps Dashboard",
+    "description": "Monitoring and deployment dashboard for containerized applications",
+    "longDescription": "Developed a comprehensive DevOps dashboard for monitoring and managing containerized applications. Includes CI/CD pipeline visualization, resource monitoring, log aggregation, and automated deployment capabilities.",
+    "technologies": ["React", "Docker", "Kubernetes", "Prometheus", "Grafana", "Jenkins"],
+    "githubUrl": "https://github.com/example/devops-dashboard",
+    "liveUrl": null,
+    "imageUrl": "/projects/devops-dashboard.png",
+    "featured": false,
+    "startDate": "2024-02-01",
+    "endDate": null,
+    "category": "DevOps"
+  }
+]

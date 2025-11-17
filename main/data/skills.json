@@ -1,0 +1,182 @@
+[
+  {
+    "id": "1",
+    "category": "Frontend",
+    "skills": [
+      {
+        "name": "React",
+        "level": "Expert",
+        "yearsOfExperience": 5,
+        "description": "Advanced proficiency in React, including hooks, context, performance optimization, and testing"
+      },
+      {
+        "name": "TypeScript",
+        "level": "Advanced",
+        "yearsOfExperience": 4,
+        "description": "Strong typing skills, generics, advanced types, and type-safe API design"
+      },
+      {
+        "name": "Next.js",
+        "level": "Advanced",
+        "yearsOfExperience": 3,
+        "description": "Server-side rendering, static site generation, API routes, and app router"
+      },
+      {
+        "name": "Vue.js",
+        "level": "Intermediate",
+        "yearsOfExperience": 2,
+        "description": "Component composition, Vuex state management, and Vue 3 composition API"
+      },
+      {
+        "name": "CSS/Tailwind",
+        "level": "Expert",
+        "yearsOfExperience": 6,
+        "description": "Modern CSS, responsive design, animations, and utility-first frameworks"
+      }
+    ]
+  },
+  {
+    "id": "2",
+    "category": "Backend",
+    "skills": [
+      {
+        "name": "Node.js",
+        "level": "Expert",
+        "yearsOfExperience": 5,
+        "description": "RESTful APIs, GraphQL, microservices, and real-time applications"
+      },
+      {
+        "name": "Express.js",
+        "level": "Expert",
+        "yearsOfExperience": 5,
+        "description": "Middleware development, routing, error handling, and security best practices"
+      },
+      {
+        "name": "Python",
+        "level": "Intermediate",
+        "yearsOfExperience": 3,
+        "description": "Django, Flask, data processing, and automation scripts"
+      },
+      {
+        "name": "GraphQL",
+        "level": "Advanced",
+        "yearsOfExperience": 3,
+        "description": "Schema design, resolvers, subscriptions, and Apollo Server"
+      }
+    ]
+  },
+  {
+    "id": "3",
+    "category": "Database",
+    "skills": [
+      {
+        "name": "PostgreSQL",
+        "level": "Advanced",
+        "yearsOfExperience": 4,
+        "description": "Complex queries, indexing, optimization, and database design"
+      },
+      {
+        "name": "MongoDB",
+        "level": "Advanced",
+        "yearsOfExperience": 4,
+        "description": "Schema design, aggregation pipelines, and performance tuning"
+      },
+      {
+        "name": "Redis",
+        "level": "Intermediate",
+        "yearsOfExperience": 3,
+        "description": "Caching strategies, pub/sub, and session management"
+      },
+      {
+        "name": "Prisma",
+        "level": "Advanced",
+        "yearsOfExperience": 2,
+        "description": "Type-safe database access, migrations, and query optimization"
+      }
+    ]
+  },
+  {
+    "id": "4",
+    "category": "DevOps & Cloud",
+    "skills": [
+      {
+        "name": "AWS",
+        "level": "Advanced",
+        "yearsOfExperience": 4,
+        "description": "EC2, S3, Lambda, RDS, CloudFormation, and cloud architecture"
+      },
+      {
+        "name": "Docker",
+        "level": "Advanced",
+        "yearsOfExperience": 4,
+        "description": "Containerization, multi-stage builds, and container orchestration"
+      },
+      {
+        "name": "Kubernetes",
+        "level": "Intermediate",
+        "yearsOfExperience": 2,
+        "description": "Cluster management, deployments, services, and scaling"
+      },
+      {
+        "name": "CI/CD",
+        "level": "Advanced",
+        "yearsOfExperience": 4,
+        "description": "GitHub Actions, GitLab CI, automated testing, and deployment pipelines"
+      },
+      {
+        "name": "Terraform",
+        "level": "Intermediate",
+        "yearsOfExperience": 2,
+        "description": "Infrastructure as Code, module development, and state management"
+      }
+    ]
+  },
+  {
+    "id": "5",
+    "category": "Tools & Practices",
+    "skills": [
+      {
+        "name": "Git",
+        "level": "Expert",
+        "yearsOfExperience": 6,
+        "description": "Version control, branching strategies, and collaborative workflows"
+      },
+      {
+        "name": "Testing",
+        "level": "Advanced",
+        "yearsOfExperience": 4,
+        "description": "Jest, React Testing Library, Cypress, unit and integration testing"
+      },
+      {
+        "name": "Agile/Scrum",
+        "level": "Advanced",
+        "yearsOfExperience": 5,
+        "description": "Sprint planning, stand-ups, retrospectives, and iterative development"
+      },
+      {
+        "name": "System Design",
+        "level": "Advanced",
+        "yearsOfExperience": 4,
+        "description": "Scalable architecture, microservices, and distributed systems"
+      }
+    ]
+  },
+  {
+    "id": "6",
+    "category": "Mobile",
+    "skills": [
+      {
+        "name": "React Native",
+        "level": "Intermediate",
+        "yearsOfExperience": 2,
+        "description": "Cross-platform mobile development, native modules, and app deployment"
+      },
+      {
+        "name": "Expo",
+        "level": "Intermediate",
+        "yearsOfExperience": 2,
+        "description": "Rapid prototyping, OTA updates, and managed workflow"
+      }
+    ]
+  }
+]
